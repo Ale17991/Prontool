@@ -1,0 +1,62 @@
+{
+  "name": "homio-faturamento",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Faturamento médico integrado ao GHL/Homio",
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration",
+    "test:contract": "vitest run tests/contract",
+    "test:e2e": "playwright test",
+    "test:coverage": "vitest run --coverage",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:diff": "supabase db diff",
+    "supabase:gen-types": "supabase gen types typescript --local > src/lib/db/generated/types.ts",
+    "seed:tuss": "tsx scripts/seed-tuss.ts",
+    "seed:demo": "tsx supabase/seed/demo-tenant.ts",
+    "simulate:webhook": "tsx scripts/simulate-ghl-webhook.ts",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yaml,yml}\""
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^3.4.4",
+    "@supabase/ssr": "^0.5.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "@upstash/qstash": "^2.7.17",
+    "exceljs": "^4.4.0",
+    "next": "14.2.5",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "resend": "^3.5.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.2",
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5",
+    "eslint-config-prettier": "^9.1.0",
+    "msw": "^2.3.4",
+    "prettier": "^3.3.2",
+    "tsx": "^4.16.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  },
+  "packageManager": "pnpm@9.5.0"
+}

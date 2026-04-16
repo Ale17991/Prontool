@@ -30,18 +30,18 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 **Purpose**: Project initialization, tooling, directory skeleton. No business logic yet.
 
-- [ ] T001 Initialize Next.js 14 App Router TypeScript project at repo root (create `package.json`, `next.config.ts`, `tsconfig.json`, `.gitignore` including `.env.local`, `.next`, `coverage`)
-- [ ] T002 [P] Install production dependencies in `package.json` (`next@14`, `react@18`, `react-dom@18`, `@supabase/supabase-js`, `@supabase/ssr`, `@upstash/qstash`, `@react-pdf/renderer`, `exceljs`, `zod`, `resend`, `pino`, `pino-pretty`)
-- [ ] T003 [P] Install dev dependencies in `package.json` (`typescript@5.4`, `@types/node`, `@types/react`, `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `tsx`, `msw`, `eslint`, `eslint-config-next`, `prettier`)
-- [ ] T004 [P] Configure ESLint at `.eslintrc.json` and Prettier at `.prettierrc` (extend `next/core-web-vitals`, `prettier`; enforce `no-console` in `src/`)
-- [ ] T005 Create directory skeleton per `plan.md` Structure Decision (`src/app/`, `src/app/api/`, `src/lib/core/`, `src/lib/integrations/`, `src/lib/db/`, `src/lib/auth/`, `src/lib/observability/`, `src/components/`, `supabase/migrations/`, `supabase/seed/`, `tests/contract/`, `tests/integration/`, `tests/e2e/`, `tests/helpers/`, `scripts/`)
-- [ ] T006 [P] Configure Vitest in `vitest.config.ts` (Node environment, `tests/helpers/setup.ts` for Supabase local client bootstrap, 30 s timeout for integration suites)
-- [ ] T007 [P] Configure Playwright in `playwright.config.ts` (baseURL `http://localhost:3000`, pt-BR locale, artifacts to `tests/e2e/artifacts/`)
-- [ ] T008 [P] Create `.env.example` at repo root with all required variables per `quickstart.md` Section 2 (Supabase URLs, service-role key, `PATIENT_DATA_ENCRYPTION_KEY`, QStash keys, Resend keys)
-- [ ] T009 [P] Configure structured logger at `src/lib/observability/logger.ts` (pino with redaction paths: `req.headers.authorization`, `req.body.patient.*`, `*.cpf`, `*.full_name`, `*.email`, `*.phone`, `*.birth_date`)
-- [ ] T010 Initialize Supabase CLI project: run `supabase init`, then edit `supabase/config.toml` (timezone `America/Sao_Paulo`, JWT secret placeholder, auth hooks enabled)
-- [ ] T011 [P] Create CI workflow at `.github/workflows/ci.yml` (jobs: `lint`, `typecheck`, `test-unit`, `test-integration` with Supabase service container, `test-contract`)
-- [ ] T012 [P] Add npm scripts to `package.json` (`dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:integration`, `test:e2e`, `supabase:start`, `supabase:reset`, `supabase:diff`, `supabase:gen-types`, `seed:tuss`, `seed:demo`)
+- [x] T001 Initialize Next.js 14 App Router TypeScript project at repo root (create `package.json`, `next.config.ts`, `tsconfig.json`, `.gitignore` including `.env.local`, `.next`, `coverage`)
+- [x] T002 [P] Install production dependencies in `package.json` (`next@14`, `react@18`, `react-dom@18`, `@supabase/supabase-js`, `@supabase/ssr`, `@upstash/qstash`, `@react-pdf/renderer`, `exceljs`, `zod`, `resend`, `pino`, `pino-pretty`)
+- [x] T003 [P] Install dev dependencies in `package.json` (`typescript@5.4`, `@types/node`, `@types/react`, `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `tsx`, `msw`, `eslint`, `eslint-config-next`, `prettier`)
+- [x] T004 [P] Configure ESLint at `.eslintrc.json` and Prettier at `.prettierrc` (extend `next/core-web-vitals`, `prettier`; enforce `no-console` in `src/`)
+- [x] T005 Create directory skeleton per `plan.md` Structure Decision (`src/app/`, `src/app/api/`, `src/lib/core/`, `src/lib/integrations/`, `src/lib/db/`, `src/lib/auth/`, `src/lib/observability/`, `src/components/`, `supabase/migrations/`, `supabase/seed/`, `tests/contract/`, `tests/integration/`, `tests/e2e/`, `tests/helpers/`, `scripts/`)
+- [x] T006 [P] Configure Vitest in `vitest.config.ts` (Node environment, `tests/helpers/setup.ts` for Supabase local client bootstrap, 30 s timeout for integration suites)
+- [x] T007 [P] Configure Playwright in `playwright.config.ts` (baseURL `http://localhost:3000`, pt-BR locale, artifacts to `tests/e2e/artifacts/`)
+- [x] T008 [P] Create `.env.example` at repo root with all required variables per `quickstart.md` Section 2 (Supabase URLs, service-role key, `PATIENT_DATA_ENCRYPTION_KEY`, QStash keys, Resend keys)
+- [x] T009 [P] Configure structured logger at `src/lib/observability/logger.ts` (pino with redaction paths: `req.headers.authorization`, `req.body.patient.*`, `*.cpf`, `*.full_name`, `*.email`, `*.phone`, `*.birth_date`)
+- [x] T010 Initialize Supabase CLI project: run `supabase init`, then edit `supabase/config.toml` (timezone `America/Sao_Paulo`, JWT secret placeholder, auth hooks enabled)
+- [x] T011 [P] Create CI workflow at `.github/workflows/ci.yml` (jobs: `lint`, `typecheck`, `test-unit`, `test-integration` with Supabase service container, `test-contract`)
+- [x] T012 [P] Add npm scripts to `package.json` (`dev`, `build`, `start`, `lint`, `typecheck`, `test`, `test:integration`, `test:e2e`, `supabase:start`, `supabase:reset`, `supabase:diff`, `supabase:gen-types`, `seed:tuss`, `seed:demo`)
 
 ---
 
@@ -53,90 +53,90 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Database schema (migrations are sequential by filename, can be authored in parallel)
 
-- [ ] T013 Create migration `supabase/migrations/0001_extensions.sql` enabling `pgcrypto` and `pgsodium` (or gracefully skipping pgsodium if unavailable in region)
-- [ ] T014 [P] Create migration `supabase/migrations/0002_tenants.sql`: tables `tenants`, `user_tenants` (PK user_id+tenant_id), `tenant_ghl_config` with encrypted `webhook_secret` column; add `updated_at` trigger
-- [ ] T015 [P] Create migration `supabase/migrations/0003_tuss_catalog.sql`: global read-only tables `tuss_codes`, `tuss_catalog_versions` with indexes on `code`, `(valid_from, valid_to)`
-- [ ] T016 [P] Create migration `supabase/migrations/0004_procedures_plans.sql`: `procedures` (UNIQUE tenant_id+tuss_code) and `health_plans` (UNIQUE tenant_id+name) tables
-- [ ] T017 [P] Create migration `supabase/migrations/0005_doctors.sql`: `doctors` and `doctor_commission_history` tables, unique constraints on (tenant_id, crm) and (tenant_id, doctor_id, valid_from)
-- [ ] T018 [P] Create migration `supabase/migrations/0006_price_versions.sql`: `price_versions` table with self-FK `previous_version_id`, UNIQUE (tenant_id, procedure_id, plan_id, valid_from), CHECK amount_cents>=0
-- [ ] T019 [P] Create migration `supabase/migrations/0007_patients.sql`: `patients` with `*_enc BYTEA` columns, helper SQL functions `enc_text(text)` and `dec_text(bytea)` wrapping pgcrypto symmetric encryption using `PATIENT_DATA_ENCRYPTION_KEY` GUC
-- [ ] T020 [P] Create migration `supabase/migrations/0008_appointments.sql`: `appointments` (FKs to patient, doctor, procedure, plan, source_price_version_id, source_commission_history_id, source_raw_event_id with UNIQUE), `appointment_reversals` (UNIQUE appointment_id, CHECK reversal_amount_cents<0), and view `appointments_effective` per data-model.md §6
-- [ ] T021 [P] Create migration `supabase/migrations/0009_webhook_events.sql`: `raw_webhook_events` (UNIQUE tenant_id+ghl_event_id), `webhook_event_transitions`, view `dlq_events`
-- [ ] T022 [P] Create migration `supabase/migrations/0010_alerts.sql`: `alerts`, `alert_status_transitions`
-- [ ] T023 [P] Create migration `supabase/migrations/0011_audit_log.sql`: `audit_log` table with all required fields per data-model.md §9, including `CHECK (result IN ('success','denied','conflict'))` to support FR-005b conflict entries
+- [x] T013 Create migration `supabase/migrations/0001_extensions.sql` enabling `pgcrypto` and `pgsodium` (or gracefully skipping pgsodium if unavailable in region)
+- [x] T014 [P] Create migration `supabase/migrations/0002_tenants.sql`: tables `tenants`, `user_tenants` (PK user_id+tenant_id), `tenant_ghl_config` with encrypted `webhook_secret` column; add `updated_at` trigger
+- [x] T015 [P] Create migration `supabase/migrations/0003_tuss_catalog.sql`: global read-only tables `tuss_codes`, `tuss_catalog_versions` with indexes on `code`, `(valid_from, valid_to)`
+- [x] T016 [P] Create migration `supabase/migrations/0004_procedures_plans.sql`: `procedures` (UNIQUE tenant_id+tuss_code) and `health_plans` (UNIQUE tenant_id+name) tables
+- [x] T017 [P] Create migration `supabase/migrations/0005_doctors.sql`: `doctors` and `doctor_commission_history` tables, unique constraints on (tenant_id, crm) and (tenant_id, doctor_id, valid_from)
+- [x] T018 [P] Create migration `supabase/migrations/0006_price_versions.sql`: `price_versions` table with self-FK `previous_version_id`, UNIQUE (tenant_id, procedure_id, plan_id, valid_from), CHECK amount_cents>=0
+- [x] T019 [P] Create migration `supabase/migrations/0007_patients.sql`: `patients` with `*_enc BYTEA` columns, helper SQL functions `enc_text(text)` and `dec_text(bytea)` wrapping pgcrypto symmetric encryption using `PATIENT_DATA_ENCRYPTION_KEY` GUC
+- [x] T020 [P] Create migration `supabase/migrations/0008_appointments.sql`: `appointments` (FKs to patient, doctor, procedure, plan, source_price_version_id, source_commission_history_id, source_raw_event_id with UNIQUE), `appointment_reversals` (UNIQUE appointment_id, CHECK reversal_amount_cents<0), and view `appointments_effective` per data-model.md §6
+- [x] T021 [P] Create migration `supabase/migrations/0009_webhook_events.sql`: `raw_webhook_events` (UNIQUE tenant_id+ghl_event_id), `webhook_event_transitions`, view `dlq_events`
+- [x] T022 [P] Create migration `supabase/migrations/0010_alerts.sql`: `alerts`, `alert_status_transitions`
+- [x] T023 [P] Create migration `supabase/migrations/0011_audit_log.sql`: `audit_log` table with all required fields per data-model.md §9, including `CHECK (result IN ('success','denied','conflict'))` to support FR-005b conflict entries
 
 ### Triggers (enforce constitution Principles I and II at DB layer)
 
-- [ ] T024 Create migration `supabase/migrations/0012_append_only_triggers.sql`: function `enforce_append_only()` raising exception on UPDATE/DELETE; attach to `appointments`, `appointment_reversals`, `price_versions`, `doctor_commission_history`, `audit_log`, `raw_webhook_events` (payload columns only), `webhook_event_transitions`, `alert_status_transitions`; document exception via `SESSION_USER='supabase_admin'`
-- [ ] T025 Create migration `supabase/migrations/0013_audit_triggers.sql`: function `log_audit()` reading `current_setting('app.actor_id')`, `app.ip`, `app.user_agent`; attach AFTER INSERT triggers on `price_versions`, `doctor_commission_history`, `procedures`, `appointments`, `appointment_reversals`, `patients`
-- [ ] T026 Create migration `supabase/migrations/0014_tuss_validation_trigger.sql`: BEFORE INSERT trigger on `procedures` validating `tuss_code` exists in `tuss_codes` with NULL `valid_to`; error message includes the code
-- [ ] T027 Create migration `supabase/migrations/0015_appointment_validation_trigger.sql`: BEFORE INSERT trigger on `appointments` that verifies (a) active `price_versions` row exists for (tenant_id, procedure_id, plan_id) with `valid_from <= appointment_at::date` — raises `APPOINTMENT_PRICE_MISSING` on failure — AND (b) the referenced procedure's `tuss_code` still has a matching `tuss_codes` row with `valid_to IS NULL` at appointment time — raises `TUSS_CODE_RETIRED` on failure (FR-016). Both exceptions are caught by the worker and route the event to DLQ with the failure code.
+- [x] T024 Create migration `supabase/migrations/0012_append_only_triggers.sql`: function `enforce_append_only()` raising exception on UPDATE/DELETE; attach to `appointments`, `appointment_reversals`, `price_versions`, `doctor_commission_history`, `audit_log`, `raw_webhook_events` (payload columns only), `webhook_event_transitions`, `alert_status_transitions`; document exception via `SESSION_USER='supabase_admin'`
+- [x] T025 Create migration `supabase/migrations/0013_audit_triggers.sql`: function `log_audit()` reading `current_setting('app.actor_id')`, `app.ip`, `app.user_agent`; attach AFTER INSERT triggers on `price_versions`, `doctor_commission_history`, `procedures`, `appointments`, `appointment_reversals`, `patients`
+- [x] T026 Create migration `supabase/migrations/0014_tuss_validation_trigger.sql`: BEFORE INSERT trigger on `procedures` validating `tuss_code` exists in `tuss_codes` with NULL `valid_to`; error message includes the code
+- [x] T027 Create migration `supabase/migrations/0015_appointment_validation_trigger.sql`: BEFORE INSERT trigger on `appointments` that verifies (a) active `price_versions` row exists for (tenant_id, procedure_id, plan_id) with `valid_from <= appointment_at::date` — raises `APPOINTMENT_PRICE_MISSING` on failure — AND (b) the referenced procedure's `tuss_code` still has a matching `tuss_codes` row with `valid_to IS NULL` at appointment time — raises `TUSS_CODE_RETIRED` on failure (FR-016). Both exceptions are caught by the worker and route the event to DLQ with the failure code.
 
 ### Row-Level Security and grants (Principle III + V)
 
-- [ ] T028 Create migration `supabase/migrations/0016_rls_enable.sql`: `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` for every tenant-scoped table; leave `tuss_codes`, `tuss_catalog_versions` RLS-disabled (global read-only)
-- [ ] T029 Create migration `supabase/migrations/0017_rls_policies.sql`: `tenant_isolation` policy (`USING (tenant_id = (auth.jwt()->>'tenant_id')::uuid)`) on every tenant table; role-gated write policies on `price_versions`, `procedures`, `health_plans`, `doctors`, `doctor_commission_history`, `tenant_ghl_config` (require `role='admin'`); `appointment_reversals` write requires `role IN ('admin','financeiro')`
-- [ ] T030 Create migration `supabase/migrations/0018_grants.sql`: revoke `UPDATE` and `DELETE` from role `authenticated` on all append-only financial tables; grant only `SELECT, INSERT` on the same tables; grant `UPDATE(processing_status, last_processed_at, processing_attempt_count)` on `raw_webhook_events` to service-role only
+- [x] T028 Create migration `supabase/migrations/0016_rls_enable.sql`: `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` for every tenant-scoped table; leave `tuss_codes`, `tuss_catalog_versions` RLS-disabled (global read-only)
+- [x] T029 Create migration `supabase/migrations/0017_rls_policies.sql`: `tenant_isolation` policy (`USING (tenant_id = (auth.jwt()->>'tenant_id')::uuid)`) on every tenant table; role-gated write policies on `price_versions`, `procedures`, `health_plans`, `doctors`, `doctor_commission_history`, `tenant_ghl_config` (require `role='admin'`); `appointment_reversals` write requires `role IN ('admin','financeiro')`
+- [x] T030 Create migration `supabase/migrations/0018_grants.sql`: revoke `UPDATE` and `DELETE` from role `authenticated` on all append-only financial tables; grant only `SELECT, INSERT` on the same tables; grant `UPDATE(processing_status, last_processed_at, processing_attempt_count)` on `raw_webhook_events` to service-role only
 
 ### TUSS catalog seed (Principle IV + follow-up from research R5)
 
-- [ ] T031 [P] Implement `scripts/seed-tuss.ts`: downloads `github.com/charlesfgarcia/tabelas-ans` at a pinned commit SHA, parses files, inserts into `tuss_codes`, records a new `tuss_catalog_versions` row with commit SHA and content hash
-- [ ] T032 Add license verification step in `scripts/seed-tuss.ts` (same file as T031; depends on T031): reads LICENSE file from the downloaded repo; logs license name + URL; aborts import with a clear error if LICENSE is missing or not permissive (resolves R5 follow-up TODO before production seed)
-- [ ] T032a Implement `src/lib/core/catalog/detect-deprecated.ts` — scans the tenant's `procedures` and `price_versions` for any `tuss_code` whose `tuss_codes` row now has `valid_to IS NOT NULL`; emits one alert per (tenant, tuss_code) with `type='tuss_deprecated'` via the dispatcher from T047; deduplicates against existing open alerts
-- [ ] T032b Invoke `detect-deprecated` at the end of `scripts/seed-tuss.ts` so every catalog refresh fans out alerts to tenants affected by newly-retired codes (depends on T031, T032, T032a, T047)
-- [ ] T032c [P] Integration test `tests/integration/tuss-deprecation-alert.spec.ts` — seed a procedure referencing an active TUSS; flip that TUSS row `valid_to` to a past date; run `detect-deprecated`; assert an `alerts` row with `type='tuss_deprecated'` exists for the affected tenant and the Resend client was called
+- [x] T031 [P] Implement `scripts/seed-tuss.ts`: downloads `github.com/charlesfgarcia/tabelas-ans` at a pinned commit SHA, parses files, inserts into `tuss_codes`, records a new `tuss_catalog_versions` row with commit SHA and content hash
+- [x] T032 Add license verification step in `scripts/seed-tuss.ts` (same file as T031; depends on T031): reads LICENSE file from the downloaded repo; logs license name + URL; aborts import with a clear error if LICENSE is missing or not permissive (resolves R5 follow-up TODO before production seed)
+- [x] T032a Implement `src/lib/core/catalog/detect-deprecated.ts` — scans the tenant's `procedures` and `price_versions` for any `tuss_code` whose `tuss_codes` row now has `valid_to IS NOT NULL`; emits one alert per (tenant, tuss_code) with `type='tuss_deprecated'` via the dispatcher from T047; deduplicates against existing open alerts
+- [x] T032b Invoke `detect-deprecated` at the end of `scripts/seed-tuss.ts` so every catalog refresh fans out alerts to tenants affected by newly-retired codes (depends on T031, T032, T032a, T047)
+- [x] T032c [P] Integration test `tests/integration/tuss-deprecation-alert.spec.ts` — seed a procedure referencing an active TUSS; flip that TUSS row `valid_to` to a past date; run `detect-deprecated`; assert an `alerts` row with `type='tuss_deprecated'` exists for the affected tenant and the Resend client was called
 
 ### Supabase Auth and typed clients
 
-- [ ] T033 Create SQL function `supabase/migrations/0019_auth_hook_custom_claims.sql` triggered on `auth.users` sign-in that reads `user_tenants` and returns JWT claims `tenant_id` and `role`; register via `supabase/config.toml` auth hooks section
-- [ ] T034 [P] Create `src/lib/db/supabase-browser.ts` (browser client using anon key)
-- [ ] T035 [P] Create `src/lib/db/supabase-server.ts` (SSR/Route Handler server client reading cookies; respects RLS via user JWT)
-- [ ] T036 [P] Create `src/lib/db/supabase-service.ts` (service-role client; module enforces usage only from `src/app/api/webhooks/` and `src/app/api/workers/` via a call-site guard that throws when imported elsewhere)
-- [ ] T037 [P] Create `src/lib/db/types.ts` placeholder that imports from `src/lib/db/generated/types.ts` (regenerated via `pnpm supabase:gen-types` after migrations apply)
+- [x] T033 Create SQL function `supabase/migrations/0019_auth_hook_custom_claims.sql` triggered on `auth.users` sign-in that reads `user_tenants` and returns JWT claims `tenant_id` and `role`; register via `supabase/config.toml` auth hooks section
+- [x] T034 [P] Create `src/lib/db/supabase-browser.ts` (browser client using anon key)
+- [x] T035 [P] Create `src/lib/db/supabase-server.ts` (SSR/Route Handler server client reading cookies; respects RLS via user JWT)
+- [x] T036 [P] Create `src/lib/db/supabase-service.ts` (service-role client; module enforces usage only from `src/app/api/webhooks/` and `src/app/api/workers/` via a call-site guard that throws when imported elsewhere)
+- [x] T037 [P] Create `src/lib/db/types.ts` placeholder that imports from `src/lib/db/generated/types.ts` (regenerated via `pnpm supabase:gen-types` after migrations apply)
 
 ### Auth helpers and RBAC
 
-- [ ] T038 [P] Create `src/lib/auth/get-session.ts` (reads JWT from cookies; returns `{ user, tenantId, role }` or null)
-- [ ] T039 [P] Create `src/lib/auth/require-role.ts` (throws `ForbiddenError` if session role not in allowed list; logs deny to audit via `src/lib/core/audit/deny.ts`)
-- [ ] T040 [P] Create `src/lib/auth/rbac.ts` (role constants, permission matrix `can(role, action, resource)`; used by UI for hiding controls; server always re-checks)
+- [x] T038 [P] Create `src/lib/auth/get-session.ts` (reads JWT from cookies; returns `{ user, tenantId, role }` or null)
+- [x] T039 [P] Create `src/lib/auth/require-role.ts` (throws `ForbiddenError` if session role not in allowed list; logs deny to audit via `src/lib/core/audit/deny.ts`)
+- [x] T040 [P] Create `src/lib/auth/rbac.ts` (role constants, permission matrix `can(role, action, resource)`; used by UI for hiding controls; server always re-checks)
 
 ### Observability and errors
 
-- [ ] T041 [P] Create `src/lib/observability/trace.ts` (mint `trace_id`; context helpers to stamp `tenant_id`, `user_id` on pino log lines)
-- [ ] T042 [P] Create `src/lib/observability/errors.ts` (error classes `ValidationError`, `ForbiddenError`, `ConflictError`, `NotFoundError`, `DomainError` with typed `code` field for HTTP mapping)
-- [ ] T043 [P] Create `src/lib/observability/http.ts` (Route-Handler helper `toHttpResponse(err)` mapping error classes → HTTP status + JSON body)
+- [x] T041 [P] Create `src/lib/observability/trace.ts` (mint `trace_id`; context helpers to stamp `tenant_id`, `user_id` on pino log lines)
+- [x] T042 [P] Create `src/lib/observability/errors.ts` (error classes `ValidationError`, `ForbiddenError`, `ConflictError`, `NotFoundError`, `DomainError` with typed `code` field for HTTP mapping)
+- [x] T043 [P] Create `src/lib/observability/http.ts` (Route-Handler helper `toHttpResponse(err)` mapping error classes → HTTP status + JSON body)
 
 ### Email (Resend) and queue (QStash) integrations
 
-- [ ] T044 [P] Create `src/lib/integrations/email/resend-client.ts` (typed wrapper; helper `sendAlertEmail({ tenantId, subject, bodyRef })` that never embeds PII per FR-037)
-- [ ] T045 [P] Create `src/lib/integrations/queue/qstash-client.ts` (helper `enqueueGhlEvent(rawEventId)` targeting `/api/workers/process-ghl-event`)
-- [ ] T046 [P] Create `src/lib/integrations/queue/verify-qstash-signature.ts` (HMAC verification for QStash incoming webhook)
+- [x] T044 [P] Create `src/lib/integrations/email/resend-client.ts` (typed wrapper; helper `sendAlertEmail({ tenantId, subject, bodyRef })` that never embeds PII per FR-037)
+- [x] T045 [P] Create `src/lib/integrations/queue/qstash-client.ts` (helper `enqueueGhlEvent(rawEventId)` targeting `/api/workers/process-ghl-event`)
+- [x] T046 [P] Create `src/lib/integrations/queue/verify-qstash-signature.ts` (HMAC verification for QStash incoming webhook)
 
 ### Core alerts dispatcher (reused by US1–US3)
 
-- [ ] T047 Create `src/lib/core/alerts/dispatcher.ts` (domain function `dispatchAlert({ tenantId, type, subjectRef, detail })` that INSERTs into `alerts`, records `alert_status_transitions`, and calls `sendAlertEmail`; deduplicates by `(tenant_id, type, subject_ref)` within 1 hour)
-- [ ] T048 [P] Create `src/lib/core/audit/deny.ts` (helper that inserts a denied-attempt row in `audit_log` with `result='denied'`)
+- [x] T047 Create `src/lib/core/alerts/dispatcher.ts` (domain function `dispatchAlert({ tenantId, type, subjectRef, detail })` that INSERTs into `alerts`, records `alert_status_transitions`, and calls `sendAlertEmail`; deduplicates by `(tenant_id, type, subject_ref)` within 1 hour)
+- [x] T048 [P] Create `src/lib/core/audit/deny.ts` (helper that inserts a denied-attempt row in `audit_log` with `result='denied'`)
 
 ### Base UI scaffolding
 
-- [ ] T049 [P] Create `src/app/layout.tsx` (root layout, pt-BR lang, Inter font)
-- [ ] T050 [P] Create `src/app/(auth)/login/page.tsx` (Supabase Auth login form, redirect to `/dashboard`)
-- [ ] T051 [P] Create `src/app/(dashboard)/layout.tsx` (role-aware navigation, tenant badge, sign-out)
-- [ ] T052 [P] Create `middleware.ts` at repo root (redirects unauthenticated requests from `/dashboard/*` and `/api/*` except `/api/webhooks/*` and `/api/workers/*` to `/login`)
+- [x] T049 [P] Create `src/app/layout.tsx` (root layout, pt-BR lang, Inter font)
+- [x] T050 [P] Create `src/app/(auth)/login/page.tsx` (Supabase Auth login form, redirect to `/dashboard`)
+- [x] T051 [P] Create `src/app/(dashboard)/layout.tsx` (role-aware navigation, tenant badge, sign-out)
+- [x] T052 [P] Create `middleware.ts` at repo root (redirects unauthenticated requests from `/dashboard/*` and `/api/*` except `/api/webhooks/*` and `/api/workers/*` to `/login`)
 
 ### Test infrastructure
 
-- [ ] T053 Create `tests/helpers/supabase-test-client.ts` (spins up `supabase start` before suite, `supabase stop` after; exports service-role client and RLS client factory)
-- [ ] T054 [P] Create `tests/helpers/seed-factories.ts` (builders for tenants, users with roles, procedures with valid TUSS codes, plans, doctors, commission history, price versions)
-- [ ] T055 [P] Create `tests/helpers/jwt-helper.ts` (mint JWTs with arbitrary `tenant_id` + `role` claims signed with local Supabase JWT secret)
-- [ ] T056 [P] Create `tests/helpers/contract-runner.ts` (loads an OpenAPI YAML from `specs/001-faturamento-medico-ghl/contracts/` and validates request/response shapes using `zod-to-json-schema` reverse)
+- [x] T053 Create `tests/helpers/supabase-test-client.ts` (spins up `supabase start` before suite, `supabase stop` after; exports service-role client and RLS client factory)
+- [x] T054 [P] Create `tests/helpers/seed-factories.ts` (builders for tenants, users with roles, procedures with valid TUSS codes, plans, doctors, commission history, price versions)
+- [x] T055 [P] Create `tests/helpers/jwt-helper.ts` (mint JWTs with arbitrary `tenant_id` + `role` claims signed with local Supabase JWT secret)
+- [x] T056 [P] Create `tests/helpers/contract-runner.ts` (loads an OpenAPI YAML from `specs/001-faturamento-medico-ghl/contracts/` and validates request/response shapes using `zod-to-json-schema` reverse)
 
 ### Constitution-level integration tests (run first; must pass on empty app before any story work)
 
-- [ ] T057 [P] Integration test `tests/integration/append-only.spec.ts` — attempts UPDATE and DELETE via SQL as `authenticated` role on `appointments`, `appointment_reversals`, `price_versions`, `audit_log`, `doctor_commission_history`; all MUST raise the trigger exception (validates Principle I)
-- [ ] T058 [P] Integration test `tests/integration/tenant-isolation.spec.ts` — creates two tenants A and B, authenticates as A, attempts SELECT/INSERT on every tenant-scoped table referencing B's ids; all MUST fail (validates Principle III)
-- [ ] T059 [P] Integration test `tests/integration/audit-trail.spec.ts` — INSERTs into `price_versions`, `doctor_commission_history`, `procedures`, `appointments`, `appointment_reversals`; asserts corresponding `audit_log` row exists with every required field filled (validates Principle II)
-- [ ] T060 [P] Integration test `tests/integration/rbac-matrix.spec.ts` — matrix of (role × endpoint) using `jwt-helper`; every unauthorized combination returns 403 and records a `result='denied'` row in `audit_log` (validates Principle V)
+- [x] T057 [P] Integration test `tests/integration/append-only.spec.ts` — attempts UPDATE and DELETE via SQL as `authenticated` role on `appointments`, `appointment_reversals`, `price_versions`, `audit_log`, `doctor_commission_history`; all MUST raise the trigger exception (validates Principle I)
+- [x] T058 [P] Integration test `tests/integration/tenant-isolation.spec.ts` — creates two tenants A and B, authenticates as A, attempts SELECT/INSERT on every tenant-scoped table referencing B's ids; all MUST fail (validates Principle III)
+- [x] T059 [P] Integration test `tests/integration/audit-trail.spec.ts` — INSERTs into `price_versions`, `doctor_commission_history`, `procedures`, `appointments`, `appointment_reversals`; asserts corresponding `audit_log` row exists with every required field filled (validates Principle II)
+- [x] T060 [P] Integration test `tests/integration/rbac-matrix.spec.ts` — matrix of (role × endpoint) using `jwt-helper`; every unauthorized combination returns 403 and records a `result='denied'` row in `audit_log` (validates Principle V)
 
 **Checkpoint**: Foundation ready. User story implementation can now begin.
 
