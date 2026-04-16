@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: Tabela de Preços
+  version: 1.0.0
+  description: |
+    Consulta e gestão de versões de preço por (procedimento, plano).
+    Append-only: alterações criam nova versão; concorrência otimista via
+    chain head token (FR-005a/b).
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/precos:
+    get:
+      summary: Lista head (versão vigente hoje) de cada combinação procedimento×plano
+      operationId: listCurrentPrices
+      parameters:
+        - name: procedure_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: plan_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: as_of
+          in: query
+          schema: { type: string, format: date }
+          description: Data para consulta de vigência (default = hoje)
+      responses:
+        '200':
+          description: Lista de preços vigentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceHead'
+  /api/precos/versions:
+    post:
+      summary: Cria nova versão de preço (nunca sobrescreve)
+      operationId: createPriceVersion
+      description: |
+        Exige token de chain head atual (`expected_head_id`). Se head
+        tiver mudado desde a carga, resposta 409 (FR-005a).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePriceVersionRequest'
+      responses:
+        '201':
+          description: Nova versão criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceVersion'
+        '409':
+          description: Token de versão obsoleto (outro admin alterou desde a carga)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictError'
+        '403':
+          description: Usuário sem papel admin
+  /api/precos/versions/{id}/history:
+    get:
+      summary: Chain de versões para uma combinação procedimento×plano
+      operationId: getPriceHistory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Todas as versões ordenadas por valid_from desc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceVersion'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PriceHead:
+      type: object
+      required: [id, procedure_id, plan_id, amount_cents, valid_from]
+      properties:
+        id: { type: string, format: uuid }
+        procedure_id: { type: string, format: uuid }
+        procedure_tuss_code: { type: string }
+        plan_id: { type: string, format: uuid }
+        plan_name: { type: string }
+        amount_cents: { type: integer, format: int64, minimum: 0 }
+        valid_from: { type: string, format: date }
+        valid_to: { type: string, format: date, nullable: true }
+    PriceVersion:
+      allOf:
+        - $ref: '#/components/schemas/PriceHead'
+        - type: object
+          required: [created_at, created_by, reason]
+          properties:
+            created_at: { type: string, format: date-time }
+            created_by: { type: string, format: uuid }
+            reason: { type: string }
+            previous_version_id: { type: string, format: uuid, nullable: true }
+    CreatePriceVersionRequest:
+      type: object
+      required: [procedure_id, plan_id, amount_cents, valid_from, reason, expected_head_id]
+      properties:
+        procedure_id: { type: string, format: uuid }
+        plan_id: { type: string, format: uuid }
+        amount_cents: { type: integer, minimum: 0 }
+        valid_from: { type: string, format: date }
+        reason: { type: string, minLength: 3 }
+        expected_head_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID da versão head carregada no form; null se primeira versão da chain
+    ConflictError:
+      type: object
+      required: [code, message, current_head_id]
+      properties:
+        code: { type: string, example: PRICE_VERSION_CONFLICT }
+        message: { type: string }
+        current_head_id: { type: string, format: uuid }

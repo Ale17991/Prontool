@@ -1,0 +1,108 @@
+openapi: 3.1.0
+info:
+  title: Trilha de Auditoria
+  version: 1.0.0
+  description: |
+    Leitura e exportação da trilha de auditoria (FR-019, Principle II).
+    Restrito ao papel `admin` do tenant.
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/auditoria:
+    get:
+      summary: Lista paginada de entradas da trilha
+      operationId: listAuditEntries
+      parameters:
+        - name: entity
+          in: query
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: result
+          in: query
+          schema: { type: string, enum: [success, denied, conflict] }
+        - name: cursor
+          in: query
+          schema: { type: string, nullable: true }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditRow' }
+                  next_cursor: { type: string, nullable: true }
+        '403':
+          description: Papel não autorizado
+  /api/auditoria/export:
+    get:
+      summary: Exporta trilha em CSV ou JSON sem transformação que descarte campos (FR-019)
+      operationId: exportAuditTrail
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema: { type: string, enum: [csv, json] }
+        - name: entity
+          in: query
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: result
+          in: query
+          schema: { type: string, enum: [success, denied, conflict] }
+      responses:
+        '200':
+          description: Arquivo com todos os campos originais preservados
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AuditRow' }
+        '403':
+          description: Papel não autorizado
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuditRow:
+      type: object
+      required: [id, tenant_id, timestamp_utc, entity, result]
+      properties:
+        id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        actor_id: { type: string, format: uuid, nullable: true }
+        actor_label: { type: string, nullable: true }
+        timestamp_utc: { type: string, format: date-time }
+        entity: { type: string }
+        entity_id: { type: string, format: uuid, nullable: true }
+        field: { type: string, nullable: true }
+        old_value: { type: string, nullable: true }
+        new_value: { type: string, nullable: true }
+        reason: { type: string, nullable: true }
+        ip: { type: string, nullable: true }
+        user_agent: { type: string, nullable: true }
+        result: { type: string, enum: [success, denied, conflict] }

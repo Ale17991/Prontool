@@ -1,0 +1,97 @@
+openapi: 3.1.0
+info:
+  title: Procedimentos (cadastro de clínica)
+  version: 1.0.0
+  description: |
+    CRUD de procedimentos da clínica vinculados ao catálogo TUSS global.
+    Código TUSS é validado por trigger no banco contra `tuss_codes` com
+    `valid_to IS NULL`. Writes restritos ao papel `admin`.
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/procedimentos:
+    get:
+      summary: Lista procedimentos do tenant
+      operationId: listProcedures
+      parameters:
+        - name: include_inactive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Procedure'
+    post:
+      summary: Cadastra procedimento (admin; TUSS validado em trigger)
+      operationId: createProcedure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProcedureRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Procedure' }
+        '400':
+          description: TUSS inválido ou descontinuado
+        '403':
+          description: Papel não autorizado
+        '409':
+          description: Procedimento com esse TUSS já existe no tenant
+  /api/procedimentos/{id}:
+    patch:
+      summary: Atualiza display_name e/ou active (admin)
+      operationId: updateProcedure
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name: { type: string }
+                active: { type: boolean }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Procedure' }
+        '403':
+          description: Papel não autorizado
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Procedure:
+      type: object
+      required: [id, tuss_code, active]
+      properties:
+        id: { type: string, format: uuid }
+        tuss_code: { type: string }
+        tuss_description: { type: string, description: Resolvida do catálogo global }
+        display_name: { type: string, nullable: true }
+        active: { type: boolean }
+        created_at: { type: string, format: date-time }
+    CreateProcedureRequest:
+      type: object
+      required: [tuss_code]
+      properties:
+        tuss_code: { type: string }
+        display_name: { type: string, nullable: true }
