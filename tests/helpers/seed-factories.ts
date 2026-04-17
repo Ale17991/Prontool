@@ -148,9 +148,11 @@ export async function seedPatient(tenantId: string): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
   // Encryption keys must be set for this session.
-  await sb.rpc('set_patient_encryption_key_for_test').catch(() => {
+  try {
+    await sb.rpc('set_patient_encryption_key_for_test')
+  } catch {
     // RPC optional; when absent, seed via a helper that sets SET LOCAL.
-  })
+  }
   await sb.from('patients').insert({
     id,
     tenant_id: tenantId,

@@ -1,18 +1,21 @@
-import type { NextConfig } from 'next'
-
-const config: NextConfig = {
+/** @type {import('next').NextConfig} */
+const config = {
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
     typedRoutes: true,
-    serverComponentsExternalPackages: ['@react-pdf/renderer', 'exceljs', 'pino', 'pino-pretty'],
+    serverComponentsExternalPackages: [
+      '@react-pdf/renderer',
+      'exceljs',
+      'pino',
+      'pino-pretty',
+    ],
   },
   logging: {
     fetches: {
       fullUrl: false,
     },
   },
-  i18n: undefined,
   async headers() {
     return [
       {

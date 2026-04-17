@@ -14,14 +14,16 @@ if (envFile) {
   for (const line of lines) {
     const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line)
     if (match) {
-      const [, k, raw] = match
+      const k = match[1]
+      const raw = match[2]
+      if (!k || raw === undefined) continue
       const v = raw.replace(/^"|"$/g, '')
       if (!process.env[k]) process.env[k] = v
     }
   }
 }
 
-process.env.NODE_ENV = 'test'
+;(process.env as Record<string, string>).NODE_ENV = 'test'
 process.env.LOG_LEVEL ??= 'warn'
 
 beforeAll(() => {

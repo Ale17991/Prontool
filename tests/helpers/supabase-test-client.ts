@@ -49,10 +49,13 @@ export async function resetDatabase(opts: { wipeCatalog?: boolean } = {}): Promi
   for (const t of tables) {
     const { error } = await sb.from(t).delete().neq('id', '00000000-0000-0000-0000-000000000000')
     if (error && !error.message.includes('no rows')) {
-      // Some tables use composite PKs (user_tenants); fallback to raw SQL
-      await sb.rpc('truncate_all_mutable').catch(() => {
-        /* ignore - RPC optional */
-      })
+      // Some tables use composite PKs (user_tenants); fallback to raw SQL.
+      // RPC is optional; swallow its failure.
+      try {
+        await sb.rpc('truncate_all_mutable')
+      } catch {
+        /* ignore */
+      }
     }
   }
   if (opts.wipeCatalog) {

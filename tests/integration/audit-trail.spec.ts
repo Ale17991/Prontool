@@ -34,16 +34,24 @@ describe('Principle II — audit trail', () => {
     const sb = serviceClient()
 
     // Set session context for trigger to pick up actor / ip / ua.
-    await sb.rpc('set_config', {
-      parameter: 'app.actor_id',
-      value: actorId,
-      is_local: false,
-    } as never).catch(() => undefined)
-    await sb.rpc('set_config', {
-      parameter: 'app.actor_label',
-      value: actorLabel,
-      is_local: false,
-    } as never).catch(() => undefined)
+    try {
+      await sb.rpc('set_config', {
+        parameter: 'app.actor_id',
+        value: actorId,
+        is_local: false,
+      } as never)
+    } catch {
+      /* RPC may not be exposed; trigger will write NULL actor */
+    }
+    try {
+      await sb.rpc('set_config', {
+        parameter: 'app.actor_label',
+        value: actorLabel,
+        is_local: false,
+      } as never)
+    } catch {
+      /* same */
+    }
 
     // First version
     const firstId = randomUUID()

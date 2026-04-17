@@ -35,7 +35,7 @@ const REDACTION_PATHS = [
 
 const isDev = process.env.NODE_ENV !== 'production'
 
-export const logger: Logger = pino({
+const baseOptions = {
   level: process.env.LOG_LEVEL ?? 'info',
   redact: {
     paths: REDACTION_PATHS,
@@ -43,13 +43,17 @@ export const logger: Logger = pino({
   },
   timestamp: pino.stdTimeFunctions.isoTime,
   base: { service: 'homio-faturamento' },
-  transport: isDev
-    ? {
+}
+
+export const logger: Logger = isDev
+  ? pino({
+      ...baseOptions,
+      transport: {
         target: 'pino-pretty',
         options: { colorize: true, translateTime: 'SYS:standard' },
-      }
-    : undefined,
-})
+      },
+    })
+  : pino(baseOptions)
 
 /**
  * Child logger with per-request context (tenant_id, user_id, trace_id).

@@ -5,8 +5,8 @@
 
 export class DomainError extends Error {
   readonly code: string
-  readonly statusHint?: number
-  readonly meta?: Record<string, unknown>
+  readonly statusHint: number | undefined
+  readonly meta: Record<string, unknown> | undefined
 
   constructor(code: string, message: string, opts: { status?: number; meta?: Record<string, unknown> } = {}) {
     super(message)
@@ -19,7 +19,7 @@ export class DomainError extends Error {
 
 export class ValidationError extends DomainError {
   constructor(message: string, meta?: Record<string, unknown>) {
-    super('VALIDATION_FAILED', message, { status: 400, meta })
+    super('VALIDATION_FAILED', message, meta ? { status: 400, meta } : { status: 400 })
   }
 }
 
@@ -43,7 +43,7 @@ export class NotFoundError extends DomainError {
 
 export class ConflictError extends DomainError {
   constructor(code: string, message: string, meta?: Record<string, unknown>) {
-    super(code, message, { status: 409, meta })
+    super(code, message, meta ? { status: 409, meta } : { status: 409 })
   }
 }
 
@@ -56,7 +56,7 @@ export class InvalidSignatureError extends DomainError {
 /** Raised when a webhook payload is missing required custom fields. */
 export class WebhookPayloadError extends DomainError {
   constructor(message: string, meta?: Record<string, unknown>) {
-    super('WEBHOOK_PAYLOAD_INVALID', message, { meta })
+    super('WEBHOOK_PAYLOAD_INVALID', message, meta ? { meta } : {})
   }
 }
 
