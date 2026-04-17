@@ -45,6 +45,47 @@ export async function seedHealthPlan(tenantId: string, name = 'Unimode Teste'): 
   return id
 }
 
+export interface GhlConfigSeed {
+  secret?: string
+  triggerStageName?: string
+  planoField?: string
+  tussField?: string
+  medicoField?: string
+}
+
+/**
+ * Seeds a `tenant_ghl_config` row for tests. The `webhook_secret_enc` column
+ * is BYTEA encrypted with the platform key; we rely on an `enc_text_with_key`
+ * RPC (added by the test-helpers migration) to produce the ciphertext with
+ * the same key the production handler uses to decrypt. Tests that run before
+ * that migration lands will fail with a clear error pointing here.
+ */
+export async function seedGhlConfig(tenantId: string, opts: GhlConfigSeed = {}): Promise<void> {
+  const sb = serviceClient()
+  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY not set; seedGhlConfig cannot encrypt')
+  const secret = opts.secret ?? 'test-webhook-secret'
+  const { data: enc, error } = await sb.rpc('enc_text_with_key', { plain: secret, key })
+  if (error)
+    throw new Error(
+      `seedGhlConfig: enc_text_with_key RPC missing or failed: ${error.message}. ` +
+        'Ensure migration 0020_test_helpers.sql is applied.',
+    )
+  await sb.from('tenant_ghl_config').insert({
+    tenant_id: tenantId,
+    webhook_secret_enc: enc as unknown as string,
+    trigger_stage_name: opts.triggerStageName ?? 'atendimento',
+    field_map_plano: opts.planoField ?? 'plano',
+    field_map_procedimento_tuss: opts.tussField ?? 'tuss',
+    field_map_medico_identifier: opts.medicoField ?? 'medico_id',
+    field_map_patient_name: 'patient_name',
+    field_map_patient_cpf: 'patient_cpf',
+    field_map_patient_phone: 'patient_phone',
+    field_map_patient_email: 'patient_email',
+    field_map_patient_birth_date: 'patient_birth_date',
+  })
+}
+
 export async function seedTussCode(code: string, opts: { retired?: boolean } = {}): Promise<void> {
   const sb = serviceClient()
   const versionId = randomUUID()

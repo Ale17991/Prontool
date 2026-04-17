@@ -150,22 +150,22 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Tests for User Story 1 (write first, MUST fail before implementation)
 
-- [ ] T061 [P] [US1] Contract test `tests/contract/webhook-ghl.spec.ts` validates request/response shape of POST `/api/webhooks/ghl` against `contracts/webhook-ghl.yaml`
-- [ ] T062 [P] [US1] Contract test `tests/contract/reversal.spec.ts` validates `/api/atendimentos/{id}/reversal` against `contracts/atendimentos.yaml` (reversal slice of US1)
-- [ ] T063 [P] [US1] Integration test `tests/integration/webhook-happy-path.spec.ts` — seeded tenant; POST webhook; assert raw event persisted; after worker processes, assert appointment with frozen values matches seed
-- [ ] T064 [P] [US1] Integration test `tests/integration/webhook-idempotency.spec.ts` — same `ghl_event_id` delivered twice; second returns `duplicate:true`; only one row in `appointments`
-- [ ] T065 [P] [US1] Integration test `tests/integration/webhook-missing-field.spec.ts` — payload without `plano` custom field; worker routes to DLQ; `alerts` row created with `type='webhook_rejected'`; e-mail dispatched (MSW spy)
-- [ ] T066 [P] [US1] Integration test `tests/integration/webhook-unknown-tuss.spec.ts` — TUSS code not in catalog; DLQ + alert
-- [ ] T067 [P] [US1] Integration test `tests/integration/webhook-no-price.spec.ts` — combination (procedure, plan) without any `price_versions` row; DLQ + alert with combination in `detail`
-- [ ] T067a [P] [US1] Integration test `tests/integration/webhook-tuss-retired-between-setup-and-atendimento.spec.ts` — seed procedure with active TUSS; later flip `tuss_codes.valid_to` to past; fire webhook referencing that procedure; assert event lands in DLQ with `failure_reason='TUSS_CODE_RETIRED'` (validates FR-016 at appointment time)
-- [ ] T068 [P] [US1] Integration test `tests/integration/webhook-signature-invalid.spec.ts` — bad HMAC header; endpoint returns 401; `alert` with `type='signature_failure'`
-- [ ] T069 [P] [US1] Integration test `tests/integration/appointment-price-snapshot.spec.ts` — create appointment; afterwards create newer `price_versions` row; re-read appointment; `frozen_amount_cents` unchanged
-- [ ] T070 [P] [US1] Integration test `tests/integration/appointment-commission-snapshot.spec.ts` — create appointment; afterwards insert new `doctor_commission_history`; re-read appointment; `frozen_commission_bps` unchanged
-- [ ] T071 [P] [US1] Integration test `tests/integration/reversal-flow.spec.ts` — create appointment; POST reversal; assert `appointments_effective.effective_status='estornado'` and `net_amount_cents` is the expected zero-sum
-- [ ] T072 [P] [US1] Integration test `tests/integration/reversal-duplicate-blocked.spec.ts` — second reversal on same appointment returns 409
-- [ ] T073 [P] [US1] Integration test `tests/integration/reversal-rbac.spec.ts` — recepcionista and profissional_saude receive 403 on reversal endpoint
-- [ ] T074 [P] [US1] Integration test `tests/integration/alert-email-no-pii.spec.ts` — triggers a `webhook_rejected` alert involving a known patient; asserts the Resend payload body and subject contain no `cpf`, `full_name`, `phone`, `email` tokens (validates SC-013 / FR-037)
-- [ ] T074a [P] [US1] Integration test `tests/integration/patient-update-no-appointment-drift.spec.ts` — create appointment for patient P; update P's phone/email via `upsert-from-ghl`; re-read appointment and assert `patient_id` unchanged, `frozen_amount_cents` unchanged, and nothing in `appointments` was mutated (validates FR-010b)
+- [x] T061 [P] [US1] Contract test `tests/contract/webhook-ghl.spec.ts` validates request/response shape of POST `/api/webhooks/ghl` against `contracts/webhook-ghl.yaml`
+- [x] T062 [P] [US1] Contract test `tests/contract/reversal.spec.ts` validates `/api/atendimentos/{id}/reversal` against `contracts/atendimentos.yaml` (reversal slice of US1)
+- [x] T063 [P] [US1] Integration test `tests/integration/webhook-happy-path.spec.ts` — seeded tenant; POST webhook; assert raw event persisted; after worker processes, assert appointment with frozen values matches seed
+- [x] T064 [P] [US1] Integration test `tests/integration/webhook-idempotency.spec.ts` — same `ghl_event_id` delivered twice; second returns `duplicate:true`; only one row in `appointments`
+- [x] T065 [P] [US1] Integration test `tests/integration/webhook-missing-field.spec.ts` — payload without `plano` custom field; worker routes to DLQ; `alerts` row created with `type='webhook_rejected'`; e-mail dispatched (MSW spy)
+- [x] T066 [P] [US1] Integration test `tests/integration/webhook-unknown-tuss.spec.ts` — TUSS code not in catalog; DLQ + alert
+- [x] T067 [P] [US1] Integration test `tests/integration/webhook-no-price.spec.ts` — combination (procedure, plan) without any `price_versions` row; DLQ + alert with combination in `detail`
+- [x] T067a [P] [US1] Integration test `tests/integration/webhook-tuss-retired-between-setup-and-atendimento.spec.ts` — seed procedure with active TUSS; later flip `tuss_codes.valid_to` to past; fire webhook referencing that procedure; assert event lands in DLQ with `failure_reason='TUSS_CODE_RETIRED'` (validates FR-016 at appointment time)
+- [x] T068 [P] [US1] Integration test `tests/integration/webhook-signature-invalid.spec.ts` — bad HMAC header; endpoint returns 401; `alert` with `type='signature_failure'`
+- [x] T069 [P] [US1] Integration test `tests/integration/appointment-price-snapshot.spec.ts` — create appointment; afterwards create newer `price_versions` row; re-read appointment; `frozen_amount_cents` unchanged
+- [x] T070 [P] [US1] Integration test `tests/integration/appointment-commission-snapshot.spec.ts` — create appointment; afterwards insert new `doctor_commission_history`; re-read appointment; `frozen_commission_bps` unchanged
+- [x] T071 [P] [US1] Integration test `tests/integration/reversal-flow.spec.ts` — create appointment; POST reversal; assert `appointments_effective.effective_status='estornado'` and `net_amount_cents` is the expected zero-sum
+- [x] T072 [P] [US1] Integration test `tests/integration/reversal-duplicate-blocked.spec.ts` — second reversal on same appointment returns 409
+- [x] T073 [P] [US1] Integration test `tests/integration/reversal-rbac.spec.ts` — recepcionista and profissional_saude receive 403 on reversal endpoint
+- [x] T074 [P] [US1] Integration test `tests/integration/alert-email-no-pii.spec.ts` — triggers a `webhook_rejected` alert involving a known patient; asserts the Resend payload body and subject contain no `cpf`, `full_name`, `phone`, `email` tokens (validates SC-013 / FR-037)
+- [x] T074a [P] [US1] Integration test `tests/integration/patient-update-no-appointment-drift.spec.ts` — create appointment for patient P; update P's phone/email via `upsert-from-ghl`; re-read appointment and assert `patient_id` unchanged, `frozen_amount_cents` unchanged, and nothing in `appointments` was mutated (validates FR-010b)
 - [ ] T075 [P] [US1] E2E test `tests/e2e/webhook-to-dashboard.spec.ts` — using Playwright, simulate webhook via API call, then navigate to `/dashboard/atendimentos` and assert the new row appears with correct values
 
 ### Integration layer (GHL & QStash)

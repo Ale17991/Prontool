@@ -29,12 +29,15 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-      '@/app': resolve(__dirname, './src/app'),
-      '@/lib': resolve(__dirname, './src/lib'),
-      '@/components': resolve(__dirname, './src/components'),
-      '@/tests': resolve(__dirname, './tests'),
-    },
+    // Vite matches aliases in declaration order, first match wins. The bare
+    // `@` prefix must come last or it swallows `@/tests/*` before the
+    // specific alias has a chance to match.
+    alias: [
+      { find: /^@\/tests\/(.*)$/, replacement: resolve(__dirname, './tests/$1') },
+      { find: /^@\/app\/(.*)$/, replacement: resolve(__dirname, './src/app/$1') },
+      { find: /^@\/lib\/(.*)$/, replacement: resolve(__dirname, './src/lib/$1') },
+      { find: /^@\/components\/(.*)$/, replacement: resolve(__dirname, './src/components/$1') },
+      { find: /^@\/(.*)$/, replacement: resolve(__dirname, './src/$1') },
+    ],
   },
 })
