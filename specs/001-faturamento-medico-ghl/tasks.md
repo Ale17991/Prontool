@@ -170,19 +170,19 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Integration layer (GHL & QStash)
 
-- [ ] T076 [P] [US1] Implement `src/lib/integrations/ghl/verify-signature.ts` — HMAC-SHA256 of timestamp+payload with tenant secret; rejects if timestamp drift > 5 min
-- [ ] T077 [P] [US1] Implement `src/lib/integrations/ghl/extract-custom-fields.ts` — Zod schema builder parameterized by `tenant_ghl_config`; returns typed `ExtractedEvent` or throws `ValidationError` listing missing fields
+- [x] T076 [P] [US1] Implement `src/lib/integrations/ghl/verify-signature.ts` — HMAC-SHA256 of timestamp+payload with tenant secret; rejects if timestamp drift > 5 min
+- [x] T077 [P] [US1] Implement `src/lib/integrations/ghl/extract-custom-fields.ts` — Zod schema builder parameterized by `tenant_ghl_config`; returns typed `ExtractedEvent` or throws `ValidationError` listing missing fields
 
 ### Raw event ingestion and idempotency
 
-- [ ] T078 [US1] Implement `src/lib/core/webhooks/ingest-raw-event.ts` — INSERT into `raw_webhook_events` using `ON CONFLICT DO NOTHING RETURNING id`; returns `{ rawEventId, duplicate }`; appends row in `webhook_event_transitions` with `to_status='pending'`
+- [x] T078 [US1] Implement `src/lib/core/webhooks/ingest-raw-event.ts` — INSERT into `raw_webhook_events` using `ON CONFLICT DO NOTHING RETURNING id`; returns `{ rawEventId, duplicate }`; appends row in `webhook_event_transitions` with `to_status='pending'`
 
 ### Semantic processing (worker path)
 
-- [ ] T079 [US1] Implement `src/lib/core/pricing/resolve-price.ts` — given (tenantId, procedureId, planId, asOfDate) returns the active `price_versions` row ordering by `valid_from DESC, created_at DESC`; throws `DomainError('APPOINTMENT_PRICE_MISSING')` if none
-- [ ] T080 [US1] Implement `src/lib/core/commissions/resolve-commission.ts` — given (tenantId, doctorId, asOfDate) returns the active `doctor_commission_history` row; throws if none
-- [ ] T081 [US1] Implement `src/lib/core/patients/upsert-from-ghl.ts` — INSERT ... ON CONFLICT (tenant_id, ghl_contact_id) DO UPDATE for mutable fields; encrypts name/CPF/phone/email/birth_date using `enc_text()` SQL function; returns `patient_id`
-- [ ] T082 [US1] Implement `src/lib/core/appointments/create-from-event.ts` — orchestrates: `upsert-from-ghl` → `resolve-price` → `resolve-commission` → INSERT `appointments` with source FKs populated; wraps in transaction with `SET LOCAL app.actor_id='worker:process-ghl-event'` so audit trigger attributes correctly
+- [x] T079 [US1] Implement `src/lib/core/pricing/resolve-price.ts` — given (tenantId, procedureId, planId, asOfDate) returns the active `price_versions` row ordering by `valid_from DESC, created_at DESC`; throws `DomainError('APPOINTMENT_PRICE_MISSING')` if none
+- [x] T080 [US1] Implement `src/lib/core/commissions/resolve-commission.ts` — given (tenantId, doctorId, asOfDate) returns the active `doctor_commission_history` row; throws if none
+- [x] T081 [US1] Implement `src/lib/core/patients/upsert-from-ghl.ts` — INSERT ... ON CONFLICT (tenant_id, ghl_contact_id) DO UPDATE for mutable fields; encrypts name/CPF/phone/email/birth_date using `enc_text()` SQL function; returns `patient_id`
+- [x] T082 [US1] Implement `src/lib/core/appointments/create-from-event.ts` — orchestrates: `upsert-from-ghl` → `resolve-price` → `resolve-commission` → INSERT `appointments` with source FKs populated; wraps in transaction with `SET LOCAL app.actor_id='worker:process-ghl-event'` so audit trigger attributes correctly
 - [ ] T083 [US1] Implement `src/lib/core/webhooks/process-event.ts` — reads raw event by id; sets `processing_status='processing'` with status transition; calls `create-from-event`; on success sets `done`; on `DomainError`/`ValidationError` sets `dlq` and calls `dispatchAlert` with appropriate type; on transient failure re-throws to QStash retry
 
 ### API Route Handlers
