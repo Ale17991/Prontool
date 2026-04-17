@@ -13,7 +13,7 @@ import {
   resetDatabase,
   serviceClient,
 } from '@/tests/helpers/supabase-test-client'
-import { seedTenant, seedGhlConfig } from '@/tests/helpers/seed-factories'
+import { seedTenant, seedGhlConfig, seedUser } from '@/tests/helpers/seed-factories'
 import { buildSignedWebhookRequest, buildValidGhlPayload } from '@/tests/helpers/webhook-request'
 
 describe('T065 — webhook missing required custom field', () => {
@@ -24,6 +24,7 @@ describe('T065 — webhook missing required custom field', () => {
   it("routes event to DLQ with type='webhook_rejected' and dispatches an alert email", async () => {
     const { tenantId } = await seedTenant('t065')
     await seedGhlConfig(tenantId)
+    await seedUser(tenantId, 'admin', 'admin-t065') // so dispatchAlert has someone to email
 
     const payload = buildValidGhlPayload({ event_id: 'evt_missing_plano' })
     delete (payload.contact.custom_fields as Record<string, string>).plano

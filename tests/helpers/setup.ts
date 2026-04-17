@@ -2,10 +2,12 @@
  * Global Vitest setup. Loads env vars, ensures Supabase local is running,
  * resets the DB to migrations baseline before each test file.
  */
-import { beforeAll } from 'vitest'
+import { beforeAll, afterAll, afterEach } from 'vitest'
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { mswServer } from './msw-server'
+import { resetAllSpies } from './msw-spies'
 
 // Load .env.test if present, otherwise fall back to .env.local
 const envFile = ['.env.test', '.env.local'].find((f) => existsSync(join(process.cwd(), f)))
@@ -39,4 +41,18 @@ beforeAll(() => {
         '(Constitution Section 3 forbids mocking the DB for integration tests.)',
     )
   }
+
+  // Intercept outbound HTTP (Resend, QStash) so tests can assert what the
+  // production code tried to send. Only relays matching URLs are mocked;
+  // Supabase traffic on 127.0.0.1 is passed through unchanged.
+  mswServer.listen({ onUnhandledRequest: 'bypass' })
 }, 30_000)
+
+afterEach(() => {
+  resetAllSpies()
+  mswServer.resetHandlers()
+})
+
+afterAll(() => {
+  mswServer.close()
+})

@@ -10,7 +10,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase } from '@/tests/helpers/supabase-test-client'
-import { seedTenant, seedGhlConfig } from '@/tests/helpers/seed-factories'
+import { seedTenant, seedGhlConfig, seedUser } from '@/tests/helpers/seed-factories'
 import { buildSignedWebhookRequest, buildValidGhlPayload } from '@/tests/helpers/webhook-request'
 
 const PATIENT = {
@@ -28,6 +28,7 @@ describe('T074 — alert emails carry no patient PII', () => {
   it('resend payload (subject + body) contains none of cpf/name/phone/email', async () => {
     const { tenantId } = await seedTenant('t074')
     await seedGhlConfig(tenantId)
+    await seedUser(tenantId, 'admin', 'admin-t074')
 
     const payload = buildValidGhlPayload({ event_id: 'evt_pii_leak_check' })
     payload.contact.custom_fields.patient_cpf = PATIENT.cpf

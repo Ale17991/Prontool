@@ -57,8 +57,6 @@ describe('T073 — reversal is gated to admin/financeiro', () => {
     const user = await seedUser(tenantId, role)
     const jwt = mintJwt({ userId: user.userId, email: user.email, tenantId, role })
 
-    // @ts-expect-error — impl pending T088b
-
     const { POST } = await import('@/app/api/atendimentos/[id]/reversal/route')
     const res = await POST(
       new Request(`http://localhost/api/atendimentos/${appointmentId}/reversal`, {

@@ -52,7 +52,6 @@ describe('contract: POST /api/atendimentos/{id}/reversal', () => {
 
   describe('Route Handler module', () => {
     it('exports POST from src/app/api/atendimentos/[id]/reversal/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T088b)
       const mod = await import('@/app/api/atendimentos/[id]/reversal/route')
       expect(typeof (mod as { POST?: unknown }).POST).toBe('function')
     })

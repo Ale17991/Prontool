@@ -60,8 +60,6 @@ describe('T071 — reversal flow marks appointment as estornado', () => {
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
 
-    // @ts-expect-error — impl pending T088b
-
     const { POST } = await import('@/app/api/atendimentos/[id]/reversal/route')
     const res = await POST(
       new Request(`http://localhost/api/atendimentos/${appointmentId}/reversal`, {
