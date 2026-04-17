@@ -54,6 +54,7 @@
     "eslint-config-prettier": "^9.1.0",
     "msw": "^2.3.4",
     "prettier": "^3.3.2",
+    "supabase": "^2.92.0",
     "tsx": "^4.16.2",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0",

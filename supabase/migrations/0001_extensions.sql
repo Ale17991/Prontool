@@ -6,12 +6,14 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA extensions;
 
 -- pgsodium is preferred for sealed-box encryption but unavailable in some
--- Supabase regions. We fall back to pgcrypto. The downstream patient
--- encryption functions (0007_patients.sql) are written against pgcrypto
--- to keep behavior portable.
+-- Supabase regions (and requires pre-provisioned schema/role on the local
+-- CLI stack). We fall back to pgcrypto. The downstream patient encryption
+-- functions (0007_patients.sql) are written against pgcrypto to keep
+-- behavior portable, so pgsodium is optional.
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'pgsodium') THEN
-    CREATE EXTENSION IF NOT EXISTS pgsodium WITH SCHEMA pgsodium;
-  END IF;
+  CREATE SCHEMA IF NOT EXISTS pgsodium;
+  CREATE EXTENSION IF NOT EXISTS pgsodium WITH SCHEMA pgsodium;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'pgsodium not installable in this environment (%); continuing with pgcrypto fallback', SQLERRM;
 END $$;
