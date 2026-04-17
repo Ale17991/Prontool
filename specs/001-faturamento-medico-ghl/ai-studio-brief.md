@@ -101,9 +101,11 @@ estrutura existente e propor uma melhor**, contanto que mantenha:
 | `/precos`                  | nova        | `GET /api/precos` (+ `/procedimentos`, `/planos` p/ dropdowns) |
 | `/precos/novo`             | nova        | `POST /api/precos/versions`                                   |
 | `/precos/[id]`             | nova        | `GET .../history`, `POST .../versions`                        |
-| `/procedimentos`           | nova        | `GET /api/procedimentos`, `POST`, `PATCH /[id]`               |
+| `/procedimentos`           | nova        | `GET /api/procedimentos`, `POST`, `PATCH /[id]`, `GET /api/tuss-codes` (typeahead) |
 | `/planos`                  | nova        | `GET /api/planos`, `POST`, `PATCH /[id]`                      |
 | `/auditoria`               | nova        | `GET /api/auditoria`, links de export                         |
+| `/pacientes`               | nova        | `GET /api/pacientes`                                          |
+| `/pacientes/[id]`          | nova        | `GET /api/pacientes/[id]`, `GET /registros`, `POST` (texto), `POST /upload` (arquivo), `DELETE /registros/[recordId]`, `POST /anonymize` |
 
 Detalhes de UX por tela estão em §5.10.
 
@@ -608,6 +610,168 @@ interface ListAuditResponse {
 (FR-019). UI: usar `<a href="/api/auditoria/export?format=csv&...">` —
 o browser baixa por causa do `Content-Disposition`.
 
+### 5.A Pacientes e Prontuário
+
+#### `GET /api/pacientes?q=&page=&page_size=`
+
+**Permissão:** qualquer papel autenticado. Lista paginada com busca
+por substring em **nome OU CPF** (busca client-side por causa da
+criptografia LGPD — RPC bulk-decripta tudo do tenant em uma chamada,
+então busca/paginação são em memória).
+
+```ts
+interface PatientListItem {
+  id: string
+  ghlContactId: string
+  fullName: string                          // já descriptografado
+  cpf: string
+  phone: string | null
+  email: string | null
+  birthDate: string | null                  // 'YYYY-MM-DD'
+  anonymizedAt: string | null               // ISO timestamp ou null
+  createdAt: string
+  updatedAt: string
+}
+
+interface ListPatientsQuery {
+  q?: string                                // substring case-insensitive
+  page?: number                             // 1-based, default 1
+  page_size?: number                        // 1..100, default 25
+}
+
+interface ListPatientsResponse {
+  items: PatientListItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+```
+
+#### `GET /api/pacientes/[id]`
+
+**Permissão:** qualquer papel autenticado.
+
+```ts
+interface PatientFinancialSummary {
+  appointmentCount: number
+  activeAppointmentCount: number
+  reversedAppointmentCount: number
+  totalRevenueCents: number                  // soma frozen
+  netRevenueCents: number                    // soma net (frozen + reversal)
+  lastAppointmentAt: string | null
+}
+
+interface GetPatientResponse {
+  patient: PatientListItem                   // mesmo shape; PII vira '[anonimizado]' se anonymizedAt!=null
+  summary: PatientFinancialSummary
+}
+```
+
+#### `GET /api/pacientes/[id]/registros`
+
+**Permissão:** qualquer papel autenticado. Por default oculta soft-deletados.
+
+```ts
+type ClinicalRecordType = 'texto' | 'arquivo'
+
+interface ClinicalRecord {
+  id: string
+  tenantId: string
+  patientId: string
+  title: string
+  type: ClinicalRecordType
+  content: string | null                     // texto: conteúdo; arquivo: null
+  fileName: string | null                    // arquivo: nome original; texto: null
+  fileUrl: string | null                     // arquivo: path no bucket clinical-files
+  fileSizeBytes: number | null
+  createdBy: string                          // uuid do auth.users
+  createdAt: string
+  deletedAt: string | null
+}
+
+type ListClinicalRecordsResponse = ClinicalRecord[]
+```
+
+#### `POST /api/pacientes/[id]/registros` — registro de texto
+
+**Permissão:** `admin`, `financeiro`.
+
+```ts
+interface CreateTextRecordRequest {
+  title: string                              // 1..200 caracteres
+  content: string                            // mín 1 caractere
+}
+// Resposta 201: ClinicalRecord (type='texto')
+```
+
+#### `POST /api/pacientes/[id]/registros/upload` — registro de arquivo
+
+**Permissão:** `admin`, `financeiro`. **Multipart/form-data** com:
+- `title` (string, 1..200)
+- `file` (binário, ≤ 25 MB)
+
+Resposta 201: `ClinicalRecord` com `type='arquivo'`, `fileUrl` no
+formato `{tenant_id}/{patient_id}/{record_id}-{filename}`. Pra
+download, gerar URL assinada com Supabase client:
+
+```ts
+const { data } = await supabase.storage
+  .from('clinical-files')
+  .createSignedUrl(record.fileUrl, 60) // 60s
+window.open(data.signedUrl)
+```
+
+#### `DELETE /api/pacientes/[id]/registros/[recordId]` — soft-delete
+
+**Permissão:** `admin`, `financeiro`.
+
+```ts
+interface SoftDeleteResponse {
+  id: string
+  deleted_at: string
+}
+```
+
+Códigos: 404 (não existe), 409 `CLINICAL_RECORD_ALREADY_DELETED`
+(idempotente — se já tinha `deletedAt`, recusa pra preservar a
+trilha de auditoria).
+
+#### `POST /api/pacientes/[id]/anonymize` — LGPD right-to-erasure
+
+**Permissão:** **admin only**. **Operação IRREVERSÍVEL.**
+
+```ts
+interface AnonymizeRequest {
+  reason: string                             // 10..500 caracteres
+}
+
+interface AnonymizeResponse {
+  patientId: string
+  anonymizedAt: string
+  recordsAnonymized: number
+  filesRemoved: number
+}
+```
+
+Efeito:
+- `patients.full_name_enc` / `cpf_enc` viram placeholder `[anonimizado]`
+- `phone_enc`, `email_enc`, `birth_date_enc` ficam `NULL`
+- `patients.anonymized_at` recebe timestamp
+- Cada `clinical_records` do paciente:
+  - tipo `texto` → `content` vira `[anonimizado]`
+  - tipo `arquivo` → arquivo é removido do Storage; `file_name` /
+    `file_url` viram `[arquivo-removido]`, `file_size_bytes = 0`
+- Linha `audit_log` com `result='success'`, `field='anonymized_at'`,
+  `reason=<motivo informado>`
+- Segundo call → 409 `PATIENT_ALREADY_ANONYMIZED`
+
+UX recomendada: modal com texto firme tipo "Esta operação é
+irreversível. Após anonimizar, o nome, CPF, telefone, e-mail e
+todos os registros clínicos deste paciente serão substituídos por
+placeholders. Os atendimentos financeiros (valores, datas,
+comissões) são preservados pra fins contábeis. Continuar?" + campo
+de motivo obrigatório (mín 10 chars).
+
 ### 5.10 Mapeamento tela → endpoint
 
 | Tela              | Endpoints                                                              | Notas de UX |
@@ -623,6 +787,8 @@ o browser baixa por causa do `Content-Disposition`.
 | `/planos`         | `GET/POST /api/planos`, `PATCH /api/planos/[id]`                       | Idem procedimentos. **Não exibir campo de "Renomear"** — proibido. |
 | `/auditoria`      | `GET /api/auditoria`, `GET /api/auditoria/export`                      | Tabela paginada com "Carregar mais". Filtros: entidade (dropdown fixo), período, resultado. Botões "Exportar CSV" e "Exportar JSON" (`<a href>` direto). |
 | `/login`          | `signInWithPassword` no client                                         | Email + senha. Sucesso → push para `/atendimentos`. |
+| `/pacientes`      | `GET /api/pacientes?q=&page=&page_size=`                                | Tabela com busca (nome/CPF) e paginação. Linha clicável → `/pacientes/[id]`. Pill amarelo `[anonimizado]` quando `anonymizedAt`. |
+| `/pacientes/[id]` | `GET /api/pacientes/[id]`, `GET /api/pacientes/[id]/registros`, `POST/upload`, `DELETE`, `POST /anonymize` | Detalhe (PII), card de sumário financeiro, lista de registros, abas "Texto"/"Arquivo" no botão de novo registro, botão "Anonimizar (LGPD)" só admin com modal de confirmação. |
 
 ---
 
