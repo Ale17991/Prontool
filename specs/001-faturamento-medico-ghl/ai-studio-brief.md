@@ -417,6 +417,49 @@ type GetPriceHistoryResponse = PriceVersionWithMeta[]
 
 ### 5.7 Procedimentos
 
+> **Como o admin escolhe o TUSS:** o catálogo TUSS (~7000 códigos) é
+> **global e pré-carregado** uma vez por instância via
+> `pnpm seed:tuss` (puxa do `github.com/charlesfgarcia/tabelas-ans`). O
+> admin **não decora código** — a tela de criação de procedimento usa
+> um campo de busca (typeahead) que consulta `GET /api/tuss-codes`,
+> mostra `code + description`, e o usuário escolhe um item da lista. O
+> `tuss_code` selecionado vai pra `POST /api/procedimentos`. O backend
+> valida via trigger que o código existe e está vigente.
+>
+> **Em desenvolvimento** o catálogo pode ter só os códigos de demo
+> (~3 entradas seedadas). Pra ter o catálogo completo na demo, rodar
+> `pnpm seed:tuss`.
+
+#### `GET /api/tuss-codes?q=&limit=`
+
+**Permissão:** qualquer papel autenticado (catálogo é leitura pública
+dentro do tenant). Busca por prefixo de `code` OU substring na
+`description`. Apenas códigos ativos (não retirados) são retornados.
+
+```ts
+interface TussSearchResult {
+  code: string                              // ex: '10101012'
+  description: string                       // ex: 'Consulta em consultório'
+  terminologyChapter: string | null         // capítulo da tabela TUSS, opcional
+}
+
+interface SearchTussQuery {
+  q?: string                                // busca livre (vazio = primeiros N)
+  limit?: number                            // 1..200, default 50
+}
+
+type SearchTussResponse = TussSearchResult[]
+```
+
+**UX recomendada do typeahead:**
+- Input com debounce de ~250ms; cada keystroke (≥2 caracteres) dispara
+  `GET /api/tuss-codes?q=<texto>`.
+- Lista dropdown mostra `code — description` (ex: `10101012 — Consulta
+  em consultório`).
+- Quando o usuário clica num item, salva o `code` no estado do form e
+  exibe o `description` num campo read-only do lado.
+- Estado vazio: "Digite código ou descrição para buscar."
+
 #### `GET /api/procedimentos?include_inactive=...`
 
 ```ts
@@ -576,7 +619,7 @@ o browser baixa por causa do `Content-Disposition`.
 | `/precos`         | `GET /api/precos`, `GET /api/procedimentos`, `GET /api/planos`         | Filtros: dropdowns de procedimento e plano + datepicker `as_of`. Botão "+ Novo preço". Linha clicável → `/precos/[id]`. |
 | `/precos/novo`    | `GET /api/procedimentos`, `GET /api/planos`, `POST /api/precos/versions` | Form simples; `expected_head_id: null`. 409 → "Já existe — use a tela de edição". |
 | `/precos/[id]`    | `GET /api/precos/versions/[id]/history`, `POST /api/precos/versions`   | Card head no topo, form de edição abaixo (carrega `expected_head_id` escondido), tabela de histórico no rodapé. **409 = modal de conflito**. |
-| `/procedimentos`  | `GET/POST /api/procedimentos`, `PATCH /api/procedimentos/[id]`         | Toggle "Ativo" inline (admin). Form de criação inline (admin). Recepcionista vê read-only. |
+| `/procedimentos`  | `GET/POST /api/procedimentos`, `PATCH /api/procedimentos/[id]`, `GET /api/tuss-codes` | Toggle "Ativo" inline (admin). **Form de criação usa typeahead** que busca em `/api/tuss-codes` — admin escolhe da lista, NÃO digita código. Recepcionista vê read-only. |
 | `/planos`         | `GET/POST /api/planos`, `PATCH /api/planos/[id]`                       | Idem procedimentos. **Não exibir campo de "Renomear"** — proibido. |
 | `/auditoria`      | `GET /api/auditoria`, `GET /api/auditoria/export`                      | Tabela paginada com "Carregar mais". Filtros: entidade (dropdown fixo), período, resultado. Botões "Exportar CSV" e "Exportar JSON" (`<a href>` direto). |
 | `/login`          | `signInWithPassword` no client                                         | Email + senha. Sucesso → push para `/atendimentos`. |

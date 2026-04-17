@@ -308,6 +308,36 @@ type GetPriceHistoryResponse = PriceVersionWithMeta[]   // ordem desc por valid_
 
 ## US2 — Procedimentos
 
+### Fluxo do TUSS
+
+O catálogo TUSS é **global e pré-carregado** (uma vez por instância via
+`pnpm seed:tuss`). Admin **não digita código** ao cadastrar procedimento
+— usa typeahead que consulta `GET /api/tuss-codes` e escolhe da lista.
+
+### `GET /api/tuss-codes?q=&limit=`
+
+Busca no catálogo TUSS (códigos ativos apenas). Permissão: qualquer
+papel autenticado.
+
+```ts
+interface TussSearchResult {
+  code: string                              // ex: '10101012'
+  description: string                       // ex: 'Consulta em consultório'
+  terminologyChapter: string | null
+}
+
+interface SearchTussQuery {
+  q?: string                                // busca livre; vazio = primeiros N
+  limit?: number                            // 1..200, default 50
+}
+
+type SearchTussResponse = TussSearchResult[]
+```
+
+A busca é por prefixo de `code` OU substring na `description`. Sugestão
+de UX: input com debounce ~250ms, dropdown mostrando `"10101012 — Consulta
+em consultório"`, click salva `code` no form do procedimento.
+
 ### `GET /api/procedimentos`
 
 ```ts
