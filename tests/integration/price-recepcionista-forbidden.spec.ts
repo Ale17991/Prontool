@@ -37,8 +37,6 @@ describe('T105 — recepcionista is forbidden from creating price versions', () 
       tenantId,
       role: 'recepcionista',
     })
-
-    // @ts-expect-error — implementation pending (T112)
     const { POST } = await import('@/app/api/precos/versions/route')
 
     const res = await POST(

@@ -44,8 +44,6 @@ describe('T104 — duplicate valid_from collides at the database UNIQUE', () => 
 
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T112)
     const { POST } = await import('@/app/api/precos/versions/route')
 
     const res = await POST(

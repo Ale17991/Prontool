@@ -58,8 +58,6 @@ describe('T102 — new price version leaves existing appointments untouched', ()
 
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T112)
     const { POST } = await import('@/app/api/precos/versions/route')
     const res = await POST(
       new Request('http://localhost/api/precos/versions', {

@@ -34,13 +34,11 @@ describe('contract: planos endpoints', () => {
 
   describe('Route Handler modules', () => {
     it('exports GET and POST from src/app/api/planos/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T165)
       const mod = await import('@/app/api/planos/route')
       expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
       expect(typeof (mod as { POST?: unknown }).POST).toBe('function')
     })
     it('exports PATCH from src/app/api/planos/[id]/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T165)
       const mod = await import('@/app/api/planos/[id]/route')
       expect(typeof (mod as { PATCH?: unknown }).PATCH).toBe('function')
     })

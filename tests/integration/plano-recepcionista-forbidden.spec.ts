@@ -26,8 +26,6 @@ describe('T161 — recepcionista is forbidden from writing health plans', () => 
       tenantId,
       role: 'recepcionista',
     })
-
-    // @ts-expect-error — implementation pending (T165)
     const { POST } = await import('@/app/api/planos/route')
     const res = await POST(
       new Request('http://localhost/api/planos', {
@@ -58,8 +56,6 @@ describe('T161 — recepcionista is forbidden from writing health plans', () => 
       tenantId,
       role: 'recepcionista',
     })
-
-    // @ts-expect-error — implementation pending (T165)
     const { PATCH } = await import('@/app/api/planos/[id]/route')
     const res = await PATCH(
       new Request(`http://localhost/api/planos/${planId}`, {

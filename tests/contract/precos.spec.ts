@@ -66,17 +66,14 @@ describe('contract: precos endpoints', () => {
 
   describe('Route Handler modules', () => {
     it('exports GET from src/app/api/precos/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T111)
       const mod = await import('@/app/api/precos/route')
       expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
     })
     it('exports POST from src/app/api/precos/versions/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T112)
       const mod = await import('@/app/api/precos/versions/route')
       expect(typeof (mod as { POST?: unknown }).POST).toBe('function')
     })
     it('exports GET from src/app/api/precos/versions/[id]/history/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T113)
       const mod = await import('@/app/api/precos/versions/[id]/history/route')
       expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
     })

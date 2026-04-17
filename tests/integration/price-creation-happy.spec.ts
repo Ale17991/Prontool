@@ -34,8 +34,6 @@ describe('T101 — admin creates v1 then v2 with future valid_from', () => {
     const planId = await seedHealthPlan(tenantId, 'Unimed')
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T112)
     const { POST } = await import('@/app/api/precos/versions/route')
 
     const v1Res = await POST(

@@ -22,8 +22,6 @@ describe('T160 — TUSS-invalid procedure write is denied and audited', () => {
     const { tenantId } = await seedTenant('t160-unknown')
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T164)
     const { POST } = await import('@/app/api/procedimentos/route')
     const res = await POST(
       new Request('http://localhost/api/procedimentos', {
@@ -49,8 +47,6 @@ describe('T160 — TUSS-invalid procedure write is denied and audited', () => {
     await seedTussCode('80808080', { retired: true })
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T164)
     const { POST } = await import('@/app/api/procedimentos/route')
     const res = await POST(
       new Request('http://localhost/api/procedimentos', {

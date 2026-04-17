@@ -45,8 +45,6 @@ describe('T103 — optimistic concurrency: stale expected_head_id is rejected', 
 
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T112)
     const { POST } = await import('@/app/api/precos/versions/route')
 
     const winnerRes = await POST(make(jwt, procedureId, planId, v1, '2026-01-01', 25_000))

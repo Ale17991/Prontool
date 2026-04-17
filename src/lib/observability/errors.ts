@@ -73,3 +73,27 @@ export class TussCodeRetiredError extends DomainError {
     super('TUSS_CODE_RETIRED', `TUSS code ${code} retired on ${retiredOn}`, { meta: { code, retiredOn } })
   }
 }
+
+/**
+ * Raised when an admin tries to create a price version with a stale
+ * `expected_head_id` (FR-005a). Carries the current head id so the UI
+ * can refresh the form.
+ */
+export class PriceVersionConflictError extends DomainError {
+  constructor(currentHeadId: string | null, currentAmountCents?: number | null) {
+    super('PRICE_VERSION_CONFLICT', 'Price chain head changed since the form was loaded', {
+      status: 409,
+      meta: { current_head_id: currentHeadId, current_amount_cents: currentAmountCents },
+    })
+  }
+}
+
+/** Raised when a TUSS validation trigger rejects an insert. */
+export class TussCodeInvalidError extends DomainError {
+  constructor(code: string, message?: string) {
+    super('TUSS_CODE_INVALID', message ?? `TUSS code ${code} is invalid or retired`, {
+      status: 400,
+      meta: { code },
+    })
+  }
+}

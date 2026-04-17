@@ -19,7 +19,7 @@ export default function LoginPage() {
       const supabase = createSupabaseBrowserClient()
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
       if (authError) throw authError
-      router.push('/dashboard/atendimentos')
+      router.push('/atendimentos')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar')
     } finally {

@@ -22,8 +22,6 @@ describe('T106 — procedure with unknown TUSS is rejected by trigger', () => {
     const { tenantId } = await seedTenant('t106')
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T164)
     const { POST } = await import('@/app/api/procedimentos/route')
     const res = await POST(
       new Request('http://localhost/api/procedimentos', {

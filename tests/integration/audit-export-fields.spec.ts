@@ -46,8 +46,6 @@ describe('T169 — audit export carries every FR-019 field', () => {
     const tenantId = await seedAuditableState()
     const admin = await seedUser(tenantId, 'admin', 'admin-t169-json')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T170)
     const { GET } = await import('@/app/api/auditoria/export/route')
     const res = await GET(
       new Request('http://localhost/api/auditoria/export?format=json', {
@@ -69,8 +67,6 @@ describe('T169 — audit export carries every FR-019 field', () => {
     const tenantId = await seedAuditableState()
     const admin = await seedUser(tenantId, 'admin', 'admin-t169-csv')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
-
-    // @ts-expect-error — implementation pending (T170)
     const { GET } = await import('@/app/api/auditoria/export/route')
     const res = await GET(
       new Request('http://localhost/api/auditoria/export?format=csv', {

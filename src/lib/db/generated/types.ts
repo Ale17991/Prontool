@@ -1161,6 +1161,19 @@ export type Database = {
     }
     Functions: {
       auth_hook_custom_claims: { Args: { event: Json }; Returns: Json }
+      create_price_version: {
+        Args: {
+          p_actor_id: string
+          p_amount_cents: number
+          p_expected_head_id: string
+          p_plan_id: string
+          p_procedure_id: string
+          p_reason: string
+          p_tenant_id: string
+          p_valid_from: string
+        }
+        Returns: Json
+      }
       dec_text: { Args: { cipher: string }; Returns: string }
       dec_text_with_key: {
         Args: { cipher: string; key: string }
@@ -1188,6 +1201,10 @@ export type Database = {
       patient_enc_key: { Args: never; Returns: string }
       session_text: { Args: { key: string }; Returns: string }
       session_uuid: { Args: { key: string }; Returns: string }
+      test_truncate_all_mutable: {
+        Args: { wipe_catalog?: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

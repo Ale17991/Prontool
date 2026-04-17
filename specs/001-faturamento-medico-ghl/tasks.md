@@ -237,15 +237,15 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Domain
 
-- [ ] T108 [US2] Implement `src/lib/core/pricing/create-version.ts` — opens transaction, SELECT current head FOR UPDATE, compares to `expected_head_id`; INSERT new version with `previous_version_id=head.id`; throws `ConflictError` on mismatch; catches UNIQUE violation and maps to `ConflictError` with `current_head_id`
-- [ ] T109 [P] [US2] Implement `src/lib/core/pricing/list-heads.ts` — returns current head per (procedure, plan) with joined names for the dashboard
-- [ ] T110 [P] [US2] Implement `src/lib/core/pricing/history.ts` — full chain ordered by `valid_from DESC, created_at DESC`
+- [x] T108 [US2] Implement `src/lib/core/pricing/create-version.ts` — opens transaction, SELECT current head FOR UPDATE, compares to `expected_head_id`; INSERT new version with `previous_version_id=head.id`; throws `ConflictError` on mismatch; catches UNIQUE violation and maps to `ConflictError` with `current_head_id`
+- [x] T109 [P] [US2] Implement `src/lib/core/pricing/list-heads.ts` — returns current head per (procedure, plan) with joined names for the dashboard
+- [x] T110 [P] [US2] Implement `src/lib/core/pricing/history.ts` — full chain ordered by `valid_from DESC, created_at DESC`
 
 ### API
 
-- [ ] T111 [US2] Implement `src/app/api/precos/route.ts` GET — calls T109; supports query filters
-- [ ] T112 [US2] Implement `src/app/api/precos/versions/route.ts` POST — validates with Zod; calls T108; returns 409 on conflict; on `ConflictError` MUST call `audit.deny({ result: 'conflict', reason: 'conflito de concorrência', entity: 'price_versions', entity_id: currentHeadId })` before responding (FR-005b); returns 403 on role mismatch (audit via `require-role`)
-- [ ] T113 [US2] Implement `src/app/api/precos/versions/[id]/history/route.ts` GET — calls T110
+- [x] T111 [US2] Implement `src/app/api/precos/route.ts` GET — calls T109; supports query filters
+- [x] T112 [US2] Implement `src/app/api/precos/versions/route.ts` POST — validates with Zod; calls T108; returns 409 on conflict; on `ConflictError` MUST call `audit.deny({ result: 'conflict', reason: 'conflito de concorrência', entity: 'price_versions', entity_id: currentHeadId })` before responding (FR-005b); returns 403 on role mismatch (audit via `require-role`)
+- [x] T113 [US2] Implement `src/app/api/precos/versions/[id]/history/route.ts` GET — calls T110
 
 ### UI
 
@@ -259,15 +259,15 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T159 [P] [US2] Contract test `tests/contract/planos.spec.ts` against `contracts/planos.yaml`
 - [x] T160 [P] [US2] Integration test `tests/integration/procedure-tuss-invalid-rejected.spec.ts` — admin POST `/api/procedimentos` with unknown or retired TUSS → 400; nothing inserted; audit entry with `result='denied'`
 - [x] T161 [P] [US2] Integration test `tests/integration/plano-recepcionista-forbidden.spec.ts` — recepcionista POST/PATCH `/api/planos` → 403; audit records denial
-- [ ] T162 [P] [US2] Implement `src/lib/core/procedures/create.ts`, `list.ts`, `update-active.ts` (TUSS validation delegated to trigger from T026)
-- [ ] T163 [P] [US2] Implement `src/lib/core/plans/create.ts`, `list.ts`, `update-active.ts` (renome proibido; apenas `active` é mutável para preservar integridade histórica de relatórios)
-- [ ] T164 [US2] Implement `src/app/api/procedimentos/route.ts` (GET + POST) and `src/app/api/procedimentos/[id]/route.ts` (PATCH) — admin-only writes
-- [ ] T165 [US2] Implement `src/app/api/planos/route.ts` (GET + POST) and `src/app/api/planos/[id]/route.ts` (PATCH) — admin-only writes
+- [x] T162 [P] [US2] Implement `src/lib/core/procedures/create.ts`, `list.ts`, `update-active.ts` (TUSS validation delegated to trigger from T026)
+- [x] T163 [P] [US2] Implement `src/lib/core/plans/create.ts`, `list.ts`, `update-active.ts` (renome proibido; apenas `active` é mutável para preservar integridade histórica de relatórios)
+- [x] T164 [US2] Implement `src/app/api/procedimentos/route.ts` (GET + POST) and `src/app/api/procedimentos/[id]/route.ts` (PATCH) — admin-only writes
+- [x] T165 [US2] Implement `src/app/api/planos/route.ts` (GET + POST) and `src/app/api/planos/[id]/route.ts` (PATCH) — admin-only writes
 - [ ] T166 [US2] Create `src/app/(dashboard)/procedimentos/page.tsx` — list + add + toggle active (admin); recepcionista vê em modo read-only
 - [ ] T167 [US2] Create `src/app/(dashboard)/planos/page.tsx` — list + add + toggle active (admin); recepcionista read-only
 - [x] T168 [P] [US2] Contract test `tests/contract/auditoria.spec.ts` against `contracts/auditoria.yaml` (export CSV and JSON shapes)
 - [x] T169 [P] [US2] Integration test `tests/integration/audit-export-fields.spec.ts` — generates audit entries across several tracked tables; GET `/api/auditoria/export?format=csv` and `format=json`; asserts every required field (actor_id, actor_label, timestamp_utc, tenant_id, entity, entity_id, field, old_value, new_value, reason, ip, user_agent, result) appears in the output without transformation (validates FR-019)
-- [ ] T170 [US2] Implement `src/lib/core/audit/export.ts` + `src/app/api/auditoria/route.ts` (GET, paginated; admin-only via `require-role(['admin'])`) + `src/app/api/auditoria/export/route.ts` (CSV streaming via `Response` body stream and JSON via buffer); plus UI action in `src/app/(dashboard)/auditoria/page.tsx` with date/entity/result filters and download buttons
+- [x] T170 [US2] Implement `src/lib/core/audit/export.ts` + `src/app/api/auditoria/route.ts` (GET, paginated; admin-only via `require-role(['admin'])`) + `src/app/api/auditoria/export/route.ts` (CSV streaming via `Response` body stream and JSON via buffer); plus UI action in `src/app/(dashboard)/auditoria/page.tsx` with date/entity/result filters and download buttons
 
 **Checkpoint**: US1 + US2 both independently functional. Admin can manage prices, procedures, plans, and export the audit trail; webhook automation continues to work and uses the new prices for future appointments.
 

@@ -35,13 +35,11 @@ describe('contract: procedimentos endpoints', () => {
 
   describe('Route Handler modules', () => {
     it('exports GET and POST from src/app/api/procedimentos/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T164)
       const mod = await import('@/app/api/procedimentos/route')
       expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
       expect(typeof (mod as { POST?: unknown }).POST).toBe('function')
     })
     it('exports PATCH from src/app/api/procedimentos/[id]/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T164)
       const mod = await import('@/app/api/procedimentos/[id]/route')
       expect(typeof (mod as { PATCH?: unknown }).PATCH).toBe('function')
     })

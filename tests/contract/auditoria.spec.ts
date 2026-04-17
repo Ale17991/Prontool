@@ -57,12 +57,10 @@ describe('contract: auditoria endpoints', () => {
 
   describe('Route Handler modules', () => {
     it('exports GET from src/app/api/auditoria/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T170)
       const mod = await import('@/app/api/auditoria/route')
       expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
     })
     it('exports GET from src/app/api/auditoria/export/route.ts', async () => {
-      // @ts-expect-error — implementation pending (T170)
       const mod = await import('@/app/api/auditoria/export/route')
       expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
     })
