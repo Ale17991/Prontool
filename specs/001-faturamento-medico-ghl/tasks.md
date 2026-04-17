@@ -226,13 +226,13 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Tests for User Story 2
 
-- [ ] T100 [P] [US2] Contract test `tests/contract/precos.spec.ts` against `contracts/precos.yaml`
-- [ ] T101 [P] [US2] Integration test `tests/integration/price-creation-happy.spec.ts` — admin creates first version then new version with `valid_from` = next month; list endpoint returns correct head for today and future date
-- [ ] T102 [P] [US2] Integration test `tests/integration/price-future-does-not-affect-past.spec.ts` — seeded appointment; admin creates new price with past `valid_from`; asserts appointment `frozen_amount_cents` unchanged (reinforces US1 T069 at HTTP layer)
-- [ ] T103 [P] [US2] Integration test `tests/integration/price-optimistic-concurrency.spec.ts` — two sessions load same head id; first submits new version successfully; second submits with stale `expected_head_id` and receives 409 `PRICE_VERSION_CONFLICT`; audit log records the 409 with `result='conflict'`
-- [ ] T104 [P] [US2] Integration test `tests/integration/price-unique-collision.spec.ts` — two admins submit versions with exact same `valid_from` through a race that bypasses the chain head check; database UNIQUE constraint surfaces as 409 (belt-and-suspenders)
-- [ ] T105 [P] [US2] Integration test `tests/integration/price-recepcionista-forbidden.spec.ts` — recepcionista POSTs price version → 403; audit row with `result='denied'`
-- [ ] T106 [P] [US2] Integration test `tests/integration/price-tuss-invalid.spec.ts` — admin attempts to create procedure with unknown TUSS code → 400 from trigger; no row created
+- [x] T100 [P] [US2] Contract test `tests/contract/precos.spec.ts` against `contracts/precos.yaml`
+- [x] T101 [P] [US2] Integration test `tests/integration/price-creation-happy.spec.ts` — admin creates first version then new version with `valid_from` = next month; list endpoint returns correct head for today and future date
+- [x] T102 [P] [US2] Integration test `tests/integration/price-future-does-not-affect-past.spec.ts` — seeded appointment; admin creates new price with past `valid_from`; asserts appointment `frozen_amount_cents` unchanged (reinforces US1 T069 at HTTP layer)
+- [x] T103 [P] [US2] Integration test `tests/integration/price-optimistic-concurrency.spec.ts` — two sessions load same head id; first submits new version successfully; second submits with stale `expected_head_id` and receives 409 `PRICE_VERSION_CONFLICT`; audit log records the 409 with `result='conflict'`
+- [x] T104 [P] [US2] Integration test `tests/integration/price-unique-collision.spec.ts` — two admins submit versions with exact same `valid_from` through a race that bypasses the chain head check; database UNIQUE constraint surfaces as 409 (belt-and-suspenders)
+- [x] T105 [P] [US2] Integration test `tests/integration/price-recepcionista-forbidden.spec.ts` — recepcionista POSTs price version → 403; audit row with `result='denied'`
+- [x] T106 [P] [US2] Integration test `tests/integration/price-tuss-invalid.spec.ts` — admin attempts to create procedure with unknown TUSS code → 400 from trigger; no row created
 - [ ] T107 [P] [US2] E2E test `tests/e2e/price-change.spec.ts` — Playwright: admin logs in, opens price, edits, saves; reopens detail and verifies new head + history list
 
 ### Domain
@@ -255,18 +255,18 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Auxiliary cadastros (procedimentos + planos + auditoria) — belongs to US2 slice because admin must manage them to exercise US2 price flow
 
-- [ ] T158 [P] [US2] Contract test `tests/contract/procedimentos.spec.ts` against `contracts/procedimentos.yaml`
-- [ ] T159 [P] [US2] Contract test `tests/contract/planos.spec.ts` against `contracts/planos.yaml`
-- [ ] T160 [P] [US2] Integration test `tests/integration/procedure-tuss-invalid-rejected.spec.ts` — admin POST `/api/procedimentos` with unknown or retired TUSS → 400; nothing inserted; audit entry with `result='denied'`
-- [ ] T161 [P] [US2] Integration test `tests/integration/plano-recepcionista-forbidden.spec.ts` — recepcionista POST/PATCH `/api/planos` → 403; audit records denial
+- [x] T158 [P] [US2] Contract test `tests/contract/procedimentos.spec.ts` against `contracts/procedimentos.yaml`
+- [x] T159 [P] [US2] Contract test `tests/contract/planos.spec.ts` against `contracts/planos.yaml`
+- [x] T160 [P] [US2] Integration test `tests/integration/procedure-tuss-invalid-rejected.spec.ts` — admin POST `/api/procedimentos` with unknown or retired TUSS → 400; nothing inserted; audit entry with `result='denied'`
+- [x] T161 [P] [US2] Integration test `tests/integration/plano-recepcionista-forbidden.spec.ts` — recepcionista POST/PATCH `/api/planos` → 403; audit records denial
 - [ ] T162 [P] [US2] Implement `src/lib/core/procedures/create.ts`, `list.ts`, `update-active.ts` (TUSS validation delegated to trigger from T026)
 - [ ] T163 [P] [US2] Implement `src/lib/core/plans/create.ts`, `list.ts`, `update-active.ts` (renome proibido; apenas `active` é mutável para preservar integridade histórica de relatórios)
 - [ ] T164 [US2] Implement `src/app/api/procedimentos/route.ts` (GET + POST) and `src/app/api/procedimentos/[id]/route.ts` (PATCH) — admin-only writes
 - [ ] T165 [US2] Implement `src/app/api/planos/route.ts` (GET + POST) and `src/app/api/planos/[id]/route.ts` (PATCH) — admin-only writes
 - [ ] T166 [US2] Create `src/app/(dashboard)/procedimentos/page.tsx` — list + add + toggle active (admin); recepcionista vê em modo read-only
 - [ ] T167 [US2] Create `src/app/(dashboard)/planos/page.tsx` — list + add + toggle active (admin); recepcionista read-only
-- [ ] T168 [P] [US2] Contract test `tests/contract/auditoria.spec.ts` against `contracts/auditoria.yaml` (export CSV and JSON shapes)
-- [ ] T169 [P] [US2] Integration test `tests/integration/audit-export-fields.spec.ts` — generates audit entries across several tracked tables; GET `/api/auditoria/export?format=csv` and `format=json`; asserts every required field (actor_id, actor_label, timestamp_utc, tenant_id, entity, entity_id, field, old_value, new_value, reason, ip, user_agent, result) appears in the output without transformation (validates FR-019)
+- [x] T168 [P] [US2] Contract test `tests/contract/auditoria.spec.ts` against `contracts/auditoria.yaml` (export CSV and JSON shapes)
+- [x] T169 [P] [US2] Integration test `tests/integration/audit-export-fields.spec.ts` — generates audit entries across several tracked tables; GET `/api/auditoria/export?format=csv` and `format=json`; asserts every required field (actor_id, actor_label, timestamp_utc, tenant_id, entity, entity_id, field, old_value, new_value, reason, ip, user_agent, result) appears in the output without transformation (validates FR-019)
 - [ ] T170 [US2] Implement `src/lib/core/audit/export.ts` + `src/app/api/auditoria/route.ts` (GET, paginated; admin-only via `require-role(['admin'])`) + `src/app/api/auditoria/export/route.ts` (CSV streaming via `Response` body stream and JSON via buffer); plus UI action in `src/app/(dashboard)/auditoria/page.tsx` with date/entity/result filters and download buttons
 
 **Checkpoint**: US1 + US2 both independently functional. Admin can manage prices, procedures, plans, and export the audit trail; webhook automation continues to work and uses the new prices for future appointments.
