@@ -365,6 +365,66 @@ export type Database = {
           },
         ]
       }
+      clinical_records: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          file_url: string | null
+          id: string
+          patient_id: string
+          tenant_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          patient_id: string
+          tenant_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          patient_id?: string
+          tenant_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_commission_history: {
         Row: {
           created_at: string
@@ -1184,8 +1244,38 @@ export type Database = {
         Args: { key: string; plain: string }
         Returns: string
       }
+      get_patient_for_tenant: {
+        Args: { p_key: string; p_patient_id: string; p_tenant_id: string }
+        Returns: {
+          anonymized_at: string
+          birth_date: string
+          cpf: string
+          created_at: string
+          email: string
+          full_name: string
+          ghl_contact_id: string
+          id: string
+          phone: string
+          updated_at: string
+        }[]
+      }
       jwt_role: { Args: never; Returns: string }
       jwt_tenant_id: { Args: never; Returns: string }
+      list_patients_for_tenant: {
+        Args: { p_key: string; p_tenant_id: string }
+        Returns: {
+          anonymized_at: string
+          birth_date: string
+          cpf: string
+          created_at: string
+          email: string
+          full_name: string
+          ghl_contact_id: string
+          id: string
+          phone: string
+          updated_at: string
+        }[]
+      }
       log_audit_event: {
         Args: {
           p_entity: string
