@@ -51,8 +51,24 @@ describe('Principle V — RBAC matrix', () => {
     const recep = await seedUser(tenantId, 'recepcionista')
     const jwt = mintJwt({ userId: recep.userId, email: recep.email, tenantId, role: 'recepcionista' })
     const sb = rlsClient(jwt)
-    const { error } = await sb.from('health_plans').update({ active: false }).eq('id', planId)
-    expect(error).not.toBeNull()
+    // RLS silently filters out unauthorized rows instead of raising, so
+    // `.select()` after the update returns the rows that were actually
+    // touched. A blocked update returns an empty array.
+    const { data: updated } = await sb
+      .from('health_plans')
+      .update({ active: false })
+      .eq('id', planId)
+      .select('id, active')
+    expect(updated ?? []).toHaveLength(0)
+
+    // Belt-and-braces: confirm the row is unchanged via service role.
+    const sbSvc = serviceClient()
+    const { data: plan } = await sbSvc
+      .from('health_plans')
+      .select('active')
+      .eq('id', planId)
+      .single()
+    expect(plan?.active).toBe(true)
   })
 
   it('only admin reads audit_log', async () => {
