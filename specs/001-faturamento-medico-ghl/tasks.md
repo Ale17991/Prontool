@@ -200,10 +200,10 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### UI (dashboards needed to operate US1)
 
-- [ ] T093 [US1] Create `src/app/(dashboard)/atendimentos/page.tsx` — table of appointments from `appointments_effective`; filters; visual indicator for `estornado`
-- [ ] T094 [P] [US1] Create `src/app/(dashboard)/atendimentos/[id]/page.tsx` — detail view with audit history and reversal action (button enabled only for `admin`/`financeiro`)
-- [ ] T095 [P] [US1] Create `src/app/(dashboard)/alertas/page.tsx` — list of alerts with status filter; resolve button (admin)
-- [ ] T096 [P] [US1] Create `src/app/(dashboard)/dlq/page.tsx` — DLQ browser showing `failure_reason` and `payload_summary`; reprocess button (admin)
+- [x] T093 [US1] Create `src/app/(dashboard)/atendimentos/page.tsx` — table of appointments from `appointments_effective`; filters; visual indicator for `estornado`
+- [x] T094 [P] [US1] Create `src/app/(dashboard)/atendimentos/[id]/page.tsx` — detail view with audit history and reversal action (button enabled only for `admin`/`financeiro`)
+- [x] T095 [P] [US1] Create `src/app/(dashboard)/alertas/page.tsx` — list of alerts with status filter; resolve button (admin)
+- [x] T096 [P] [US1] Create `src/app/(dashboard)/dlq/page.tsx` — DLQ browser showing `failure_reason` and `payload_summary`; reprocess button (admin)
 
 ### Demo seed and dev tooling
 

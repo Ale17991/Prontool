@@ -17,29 +17,29 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </div>
         <nav style={{ display: 'grid', gap: 4 }}>
           {can(session.role, 'appointment.read') && (
-            <NavLink href="/dashboard/atendimentos" label="Atendimentos" />
+            <NavLink href="/atendimentos" label="Atendimentos" />
           )}
           {can(session.role, 'price.read') && (
-            <NavLink href="/dashboard/precos" label="Preços" />
+            <NavLink href="/precos" label="Preços" />
           )}
           {can(session.role, 'procedure.read') && (
-            <NavLink href="/dashboard/procedimentos" label="Procedimentos" />
+            <NavLink href="/procedimentos" label="Procedimentos" />
           )}
           {can(session.role, 'plan.read') && (
-            <NavLink href="/dashboard/planos" label="Planos" />
+            <NavLink href="/planos" label="Planos" />
           )}
           {can(session.role, 'doctor.read') && (
-            <NavLink href="/dashboard/medicos" label="Médicos" />
+            <NavLink href="/medicos" label="Médicos" />
           )}
           {can(session.role, 'report.read') && (
-            <NavLink href="/dashboard/relatorios/mensal" label="Relatório mensal" />
+            <NavLink href="/relatorios/mensal" label="Relatório mensal" />
           )}
           {can(session.role, 'alert.read') && (
-            <NavLink href="/dashboard/alertas" label="Alertas" />
+            <NavLink href="/alertas" label="Alertas" />
           )}
-          {can(session.role, 'dlq.read') && <NavLink href="/dashboard/dlq" label="DLQ" />}
+          {can(session.role, 'dlq.read') && <NavLink href="/dlq" label="DLQ" />}
           {can(session.role, 'audit.read') && (
-            <NavLink href="/dashboard/auditoria" label="Auditoria" />
+            <NavLink href="/auditoria" label="Auditoria" />
           )}
         </nav>
       </aside>
