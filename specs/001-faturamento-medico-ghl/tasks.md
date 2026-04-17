@@ -189,14 +189,14 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 - [x] T084 [US1] Implement `src/app/api/webhooks/ghl/route.ts` POST handler — identifies tenant from `X-GHL-Signature` header decoding (looks up `tenant_ghl_config.webhook_secret` that matches); verifies signature via T076; persists raw event via T078; enqueues QStash message via T045; returns 200 with `{ received, duplicate, raw_event_id }` in <1 s
 - [x] T085 [US1] Implement `src/app/api/workers/process-ghl-event/route.ts` POST handler — verifies QStash signature via T046; reads `rawEventId` from body; calls T083; returns 200 on success, 5xx on transient error (QStash retry), 200 on terminal failure already routed to DLQ
-- [ ] T086 [US1] Implement `src/app/api/atendimentos/route.ts` GET handler — lists from `appointments_effective` view with query filters (from, to, doctor_id, plan_id, status); respects RLS
-- [ ] T087 [US1] Implement `src/app/api/atendimentos/[id]/route.ts` GET handler — returns single appointment from `appointments_effective` + joined audit history
+- [x] T086 [US1] Implement `src/app/api/atendimentos/route.ts` GET handler — lists from `appointments_effective` view with query filters (from, to, doctor_id, plan_id, status); respects RLS
+- [x] T087 [US1] Implement `src/app/api/atendimentos/[id]/route.ts` GET handler — returns single appointment from `appointments_effective` + joined audit history
 - [x] T088a [US1] Implement `src/lib/core/appointments/reverse.ts` — domain module that inserts `appointment_reversals` with `reversal_amount_cents = -original_frozen_amount_cents`, enforces UNIQUE (single reversal per appointment) via catch of 23505 mapped to `ConflictError`, validates caller role via passed session, and sets `SET LOCAL app.actor_id` so audit trigger attributes correctly
 - [x] T088b [US1] Implement `src/app/api/atendimentos/[id]/reversal/route.ts` POST handler — thin wrapper that calls `require-role(['admin','financeiro'])` then delegates to `reverse.ts` (T088a); returns 201 on success, 409 on duplicate, 403 on role mismatch; audit via trigger
-- [ ] T089 [US1] Implement `src/app/api/alertas/route.ts` GET handler — lists alerts for current tenant with status filter
-- [ ] T090 [US1] Implement `src/app/api/alertas/[id]/resolve/route.ts` POST handler — sets alert `status='resolvido'`, records transition; admin only
-- [ ] T091 [US1] Implement `src/app/api/alertas/dlq/route.ts` GET handler — lists from `dlq_events` view
-- [ ] T092 [US1] Implement `src/app/api/alertas/dlq/[id]/reprocess/route.ts` POST handler — re-enqueues via QStash; transitions raw event from `dlq` to `processing`; admin only
+- [x] T089 [US1] Implement `src/app/api/alertas/route.ts` GET handler — lists alerts for current tenant with status filter
+- [x] T090 [US1] Implement `src/app/api/alertas/[id]/resolve/route.ts` POST handler — sets alert `status='resolvido'`, records transition; admin only
+- [x] T091 [US1] Implement `src/app/api/alertas/dlq/route.ts` GET handler — lists from `dlq_events` view
+- [x] T092 [US1] Implement `src/app/api/alertas/dlq/[id]/reprocess/route.ts` POST handler — re-enqueues via QStash; transitions raw event from `dlq` to `processing`; admin only
 
 ### UI (dashboards needed to operate US1)
 
