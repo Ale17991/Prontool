@@ -1,4 +1,4 @@
-export type { Database } from './generated/types'
+export type { Database, Json } from './generated/types'
 
 export type TenantRole = 'admin' | 'financeiro' | 'recepcionista' | 'profissional_saude'
 

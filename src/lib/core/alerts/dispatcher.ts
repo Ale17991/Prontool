@@ -1,7 +1,7 @@
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { sendAlertEmail } from '@/lib/integrations/email/resend-client'
 import { logger } from '@/lib/observability/logger'
-import type { AlertType } from '@/lib/db/types'
+import type { AlertType, Json } from '@/lib/db/types'
 
 export interface DispatchAlertInput {
   tenantId: string
@@ -54,8 +54,8 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
     .insert({
       tenant_id: input.tenantId,
       type: input.type,
-      subject_ref: input.subjectRef ?? {},
-      detail: input.detail,
+      subject_ref: (input.subjectRef ?? {}) as Json,
+      detail: input.detail as Json,
       status: 'aberto',
     })
     .select('id')

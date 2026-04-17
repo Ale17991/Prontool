@@ -10,33 +10,28 @@ import { logger } from '@/lib/observability/logger'
  *
  * Called by scripts/seed-tuss.ts at the end of each catalog refresh
  * (T032b) and exposed as a standalone utility for manual runs.
+ *
+ * Implementation note: this is a client-side join rather than a SQL RPC.
+ * Keeping the logic in TS lets us evolve it without a migration; a
+ * materialised view is a future optimisation if the scan becomes hot.
  */
 export async function detectDeprecatedTussCodes(): Promise<{
   scanned: number
   alerts: number
 }> {
   const supabase = createSupabaseServiceClient()
-
-  const { data, error } = await supabase.rpc('scan_deprecated_tuss_in_tenants').select('*')
-  if (error) {
-    // Fallback: raw SQL-equivalent via view-style join. The RPC above is
-    // optional — if not defined in migrations, do the join client-side.
-    logger.info({ err: error.message }, 'scan_deprecated_tuss_rpc_missing-falling-back')
-  }
-
-  const rows = data ?? (await fallbackScan(supabase))
+  const rows = await scanDeprecated(supabase)
 
   let alertCount = 0
   for (const row of rows) {
-    const r = row as { tenant_id: string; tuss_code: string; retired_on: string; procedure_ids: string[] }
     const result = await dispatchAlert({
-      tenantId: r.tenant_id,
+      tenantId: row.tenant_id,
       type: 'tuss_deprecated',
-      subjectRef: { tuss_code: r.tuss_code },
+      subjectRef: { tuss_code: row.tuss_code },
       detail: {
-        tuss_code: r.tuss_code,
-        retired_on: r.retired_on,
-        procedure_count: r.procedure_ids?.length ?? 0,
+        tuss_code: row.tuss_code,
+        retired_on: row.retired_on,
+        procedure_count: row.procedure_ids.length,
         action: 'review-and-deactivate',
       },
     })
@@ -47,7 +42,16 @@ export async function detectDeprecatedTussCodes(): Promise<{
   return { scanned: rows.length, alerts: alertCount }
 }
 
-async function fallbackScan(supabase: ReturnType<typeof createSupabaseServiceClient>) {
+interface DeprecatedGroup {
+  tenant_id: string
+  tuss_code: string
+  retired_on: string
+  procedure_ids: string[]
+}
+
+async function scanDeprecated(
+  supabase: ReturnType<typeof createSupabaseServiceClient>,
+): Promise<DeprecatedGroup[]> {
   const { data, error } = await supabase
     .from('procedures')
     .select('tenant_id, tuss_code, id')
@@ -59,9 +63,12 @@ async function fallbackScan(supabase: ReturnType<typeof createSupabaseServiceCli
     .not('valid_to', 'is', null)
     .lt('valid_to', new Date().toISOString().slice(0, 10))
   if (retErr) throw retErr
-  const retiredMap = new Map(retired.map((r) => [r.code, r.valid_to]))
+  const retiredMap = new Map<string, string>()
+  for (const r of retired) {
+    if (r.valid_to) retiredMap.set(r.code, r.valid_to)
+  }
 
-  const groups = new Map<string, { tenant_id: string; tuss_code: string; retired_on: string; procedure_ids: string[] }>()
+  const groups = new Map<string, DeprecatedGroup>()
   for (const p of data) {
     const retiredOn = retiredMap.get(p.tuss_code)
     if (!retiredOn) continue
