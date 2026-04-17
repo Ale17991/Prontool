@@ -23,9 +23,9 @@
     "supabase:reset": "supabase db reset",
     "supabase:diff": "supabase db diff",
     "supabase:gen-types": "supabase gen types typescript --local > src/lib/db/generated/types.ts",
-    "seed:tuss": "tsx scripts/seed-tuss.ts",
-    "seed:demo": "tsx supabase/seed/demo-tenant.ts",
-    "simulate:webhook": "tsx scripts/simulate-ghl-webhook.ts",
+    "seed:tuss": "tsx --env-file=.env.local scripts/seed-tuss.ts",
+    "seed:demo": "tsx --env-file=.env.local supabase/seed/demo-tenant.ts",
+    "simulate:webhook": "tsx --env-file=.env.local scripts/simulate-ghl-webhook.ts",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yaml,yml}\""
   },

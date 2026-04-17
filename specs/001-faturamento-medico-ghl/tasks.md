@@ -207,8 +207,8 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Demo seed and dev tooling
 
-- [ ] T097 [P] [US1] Create `supabase/seed/demo-tenant.ts` — seeds 1 tenant, 1 admin user, 1 recepcionista user, 3 procedures, 3 health plans (Unimed, Bradesco, Particular), 2 doctors with commissions, 5 price_versions, tenant_ghl_config with `webhook_secret='dev-shared-secret'`
-- [ ] T098 [P] [US1] Create `scripts/simulate-ghl-webhook.ts` — CLI that builds a signed payload matching the demo tenant's secret and POSTs to local `/api/webhooks/ghl`; used by `quickstart.md` Section 5
+- [x] T097 [P] [US1] Create `supabase/seed/demo-tenant.ts` — seeds 1 tenant, 1 admin user, 1 recepcionista user, 3 procedures, 3 health plans (Unimed, Bradesco, Particular), 2 doctors with commissions, 5 price_versions, tenant_ghl_config with `webhook_secret='dev-shared-secret'`
+- [x] T098 [P] [US1] Create `scripts/simulate-ghl-webhook.ts` — CLI that builds a signed payload matching the demo tenant's secret and POSTs to local `/api/webhooks/ghl`; used by `quickstart.md` Section 5
 
 ### Observability wiring
 

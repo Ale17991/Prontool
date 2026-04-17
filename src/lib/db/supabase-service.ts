@@ -28,7 +28,9 @@ function assertCallerAllowed(): void {
   // own isolation. In production we verify via call stack.
   if (process.env.NODE_ENV === 'test') return
 
-  const stack = new Error().stack ?? ''
+  // Normalize backslashes so the path-fragment allowlist works identically
+  // on Windows (backslashes in stack traces) and POSIX.
+  const stack = (new Error().stack ?? '').replace(/\\/g, '/')
   const allowed = ALLOWED_CALLER_FRAGMENTS.some((frag) => stack.includes(frag))
   if (!allowed) {
     throw new Error(
