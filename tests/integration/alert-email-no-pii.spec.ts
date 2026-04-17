@@ -36,13 +36,9 @@ describe('T074 — alert emails carry no patient PII', () => {
     payload.contact.custom_fields.patient_email = PATIENT.email
     delete (payload.contact.custom_fields as Record<string, string>).plano // force DLQ
 
-    // @ts-expect-error — impl pending T084
-
     const { POST: webhookPost } = await import('@/app/api/webhooks/ghl/route')
     const res = await webhookPost(buildSignedWebhookRequest(payload))
     const { raw_event_id } = (await res.json()) as { raw_event_id: string }
-
-    // @ts-expect-error — impl pending T085
 
     const { POST: workerPost } = await import('@/app/api/workers/process-ghl-event/route')
     await workerPost(

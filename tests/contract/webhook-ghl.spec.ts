@@ -91,10 +91,8 @@ describe('contract: POST /api/webhooks/ghl', () => {
 
   describe('Route Handler module', () => {
     it('exports POST from src/app/api/webhooks/ghl/route.ts', async () => {
-      // Red-first: this import fails until T084 creates the handler.
       // Behavioral assertions (DB writes, idempotency, 401 on bad signature)
       // live in tests/integration/webhook-*.spec.ts (T063–T070).
-      // @ts-expect-error — implementation pending (T084)
       const mod = await import('@/app/api/webhooks/ghl/route')
       expect(typeof (mod as { POST?: unknown }).POST).toBe('function')
     })

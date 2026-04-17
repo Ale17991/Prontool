@@ -49,8 +49,6 @@ describe('T063 — webhook happy path', () => {
 
     const payload = buildValidGhlPayload({ event_id: 'evt_happy_001' })
 
-    // @ts-expect-error — impl pending T084
-
     const { POST: webhookPost } = await import('@/app/api/webhooks/ghl/route')
     const webhookRes = await webhookPost(buildSignedWebhookRequest(payload))
     expect(webhookRes.status).toBe(200)
@@ -70,8 +68,6 @@ describe('T063 — webhook happy path', () => {
       .single()
     expect(rawRow).toBeTruthy()
     expect(rawRow!.ghl_event_id).toBe('evt_happy_001')
-
-    // @ts-expect-error — impl pending T085
 
     const { POST: workerPost } = await import('@/app/api/workers/process-ghl-event/route')
     const workerRes = await workerPost(

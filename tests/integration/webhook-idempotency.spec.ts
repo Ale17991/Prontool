@@ -48,8 +48,6 @@ describe('T064 — webhook idempotency', () => {
     const payload = buildValidGhlPayload({ event_id: 'evt_dedup_001' })
     const rawBody = JSON.stringify(payload)
 
-    // @ts-expect-error — impl pending T084
-
     const { POST: webhookPost } = await import('@/app/api/webhooks/ghl/route')
     const first = await webhookPost(buildSignedWebhookRequest(rawBody))
     const firstJson = (await first.json()) as { duplicate: boolean; raw_event_id: string }
@@ -61,8 +59,6 @@ describe('T064 — webhook idempotency', () => {
     expect(second.status).toBe(200)
     expect(secondJson.duplicate).toBe(true)
     expect(secondJson.raw_event_id).toBe(firstJson.raw_event_id)
-
-    // @ts-expect-error — impl pending T085
 
     const { POST: workerPost } = await import('@/app/api/workers/process-ghl-event/route')
     await workerPost(

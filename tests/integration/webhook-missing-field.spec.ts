@@ -28,14 +28,10 @@ describe('T065 — webhook missing required custom field', () => {
     const payload = buildValidGhlPayload({ event_id: 'evt_missing_plano' })
     delete (payload.contact.custom_fields as Record<string, string>).plano
 
-    // @ts-expect-error — impl pending T084
-
     const { POST: webhookPost } = await import('@/app/api/webhooks/ghl/route')
     const res = await webhookPost(buildSignedWebhookRequest(payload))
     expect(res.status).toBe(200)
     const { raw_event_id } = (await res.json()) as { raw_event_id: string }
-
-    // @ts-expect-error — impl pending T085
 
     const { POST: workerPost } = await import('@/app/api/workers/process-ghl-event/route')
     await workerPost(
@@ -48,8 +44,8 @@ describe('T065 — webhook missing required custom field', () => {
 
     const sb = serviceClient()
     const { data: raw } = await sb
-      .from('raw_webhook_events')
-      .select('processing_status, failure_reason')
+      .from('dlq_events')
+      .select('id, processing_status, failure_reason')
       .eq('id', raw_event_id)
       .single()
     expect(raw?.processing_status).toBe('dlq')

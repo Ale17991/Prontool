@@ -65,10 +65,8 @@ describe('T074a — patient upsert leaves existing appointments untouched', () =
       .eq('id', appointmentId)
       .single()
 
-    // @ts-expect-error — impl pending T081
-
-    const { upsertFromGhl } = await import('@/lib/core/patients/upsert-from-ghl')
-    await upsertFromGhl({
+    const { upsertPatientFromGhl } = await import('@/lib/core/patients/upsert-from-ghl')
+    await upsertPatientFromGhl(sb, {
       tenantId,
       ghlContactId: `contact-${patientId}`,
       fullName: 'Unchanged Name',

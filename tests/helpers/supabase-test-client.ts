@@ -28,38 +28,16 @@ export function rlsClient(jwt: string): SupabaseClient {
  */
 export async function resetDatabase(opts: { wipeCatalog?: boolean } = {}): Promise<void> {
   const sb = serviceClient()
-  const tables = [
-    'audit_log',
-    'alert_status_transitions',
-    'alerts',
-    'webhook_event_transitions',
-    'raw_webhook_events',
-    'appointment_reversals',
-    'appointments',
-    'price_versions',
-    'doctor_commission_history',
-    'doctors',
-    'patients',
-    'procedures',
-    'health_plans',
-    'tenant_ghl_config',
-    'user_tenants',
-    'tenants',
-  ]
-  for (const t of tables) {
-    const { error } = await sb.from(t).delete().neq('id', '00000000-0000-0000-0000-000000000000')
-    if (error && !error.message.includes('no rows')) {
-      // Some tables use composite PKs (user_tenants); fallback to raw SQL.
-      // RPC is optional; swallow its failure.
-      try {
-        await sb.rpc('truncate_all_mutable')
-      } catch {
-        /* ignore */
-      }
-    }
+  const { error } = await sb.rpc('test_truncate_all_mutable', {
+    wipe_catalog: opts.wipeCatalog ?? false,
+  })
+  if (error) {
+    throw new Error(
+      `resetDatabase failed: ${error.message}. Ensure migration 0020_test_helpers.sql is applied.`,
+    )
   }
-  if (opts.wipeCatalog) {
-    await sb.from('tuss_codes').delete().neq('code', '__none__')
-    await sb.from('tuss_catalog_versions').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-  }
+
+  // Also clear auth users — Supabase's auth schema isn't covered by the RPC.
+  const { data: users } = await sb.auth.admin.listUsers()
+  await Promise.all((users?.users ?? []).map((u) => sb.auth.admin.deleteUser(u.id)))
 }

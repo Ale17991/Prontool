@@ -76,12 +76,29 @@ export async function createAppointmentFromEvent(
     birthDate: extracted.patient.birthDate,
   })
 
-  const price = await resolvePrice(supabase, {
-    tenantId,
-    procedureId,
-    planId,
-    asOf: appointmentAt,
-  })
+  let price: Awaited<ReturnType<typeof resolvePrice>>
+  try {
+    price = await resolvePrice(supabase, {
+      tenantId,
+      procedureId,
+      planId,
+      asOf: appointmentAt,
+    })
+  } catch (err) {
+    if (err instanceof DomainError && err.code === 'APPOINTMENT_PRICE_MISSING') {
+      // Enrich with human-readable identifiers so the DLQ alert detail tells
+      // the operator exactly which plan/procedure combination needs a price.
+      throw new DomainError(err.code, err.message, {
+        status: err.statusHint,
+        meta: {
+          ...(err.meta ?? {}),
+          plan_name: extracted.plano,
+          tuss_code: extracted.tussCode,
+        },
+      })
+    }
+    throw err
+  }
   const commission = await resolveCommission(supabase, {
     tenantId,
     doctorId,

@@ -27,8 +27,6 @@ describe('T068 — webhook with bad signature', () => {
     const payload = buildValidGhlPayload({ event_id: 'evt_bad_sig' })
     const req = buildSignedWebhookRequest(payload, { signature: 'deadbeef'.repeat(8) })
 
-    // @ts-expect-error — impl pending T084
-
     const { POST: webhookPost } = await import('@/app/api/webhooks/ghl/route')
     const res = await webhookPost(req)
     expect(res.status).toBe(401)

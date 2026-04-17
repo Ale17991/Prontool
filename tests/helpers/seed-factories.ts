@@ -11,12 +11,10 @@ export interface SeededTenant {
 export async function seedTenant(slug = `tenant-${randomUUID().slice(0, 8)}`): Promise<SeededTenant> {
   const sb = serviceClient()
   const tenantId = randomUUID()
-  await sb.from('tenants').insert({
-    id: tenantId,
-    name: `Clínica ${slug}`,
-    slug,
-    status: 'active',
-  })
+  await sb
+    .from('tenants')
+    .insert({ id: tenantId, name: `Clínica ${slug}`, slug, status: 'active' })
+    .throwOnError()
   return { tenantId, slug }
 }
 
@@ -34,14 +32,17 @@ export async function seedUser(
   })
   if (error || !data.user) throw new Error(`createUser failed: ${error?.message}`)
 
-  await sb.from('user_tenants').insert({ user_id: data.user.id, tenant_id: tenantId, role })
+  await sb
+    .from('user_tenants')
+    .insert({ user_id: data.user.id, tenant_id: tenantId, role })
+    .throwOnError()
   return { userId: data.user.id, email, role }
 }
 
 export async function seedHealthPlan(tenantId: string, name = 'Unimode Teste'): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
-  await sb.from('health_plans').insert({ id, tenant_id: tenantId, name })
+  await sb.from('health_plans').insert({ id, tenant_id: tenantId, name }).throwOnError()
   return id
 }
 
@@ -71,19 +72,22 @@ export async function seedGhlConfig(tenantId: string, opts: GhlConfigSeed = {}):
       `seedGhlConfig: enc_text_with_key RPC missing or failed: ${error.message}. ` +
         'Ensure migration 0020_test_helpers.sql is applied.',
     )
-  await sb.from('tenant_ghl_config').insert({
-    tenant_id: tenantId,
-    webhook_secret_enc: enc as unknown as string,
-    trigger_stage_name: opts.triggerStageName ?? 'atendimento',
-    field_map_plano: opts.planoField ?? 'plano',
-    field_map_procedimento_tuss: opts.tussField ?? 'tuss',
-    field_map_medico_identifier: opts.medicoField ?? 'medico_id',
-    field_map_patient_name: 'patient_name',
-    field_map_patient_cpf: 'patient_cpf',
-    field_map_patient_phone: 'patient_phone',
-    field_map_patient_email: 'patient_email',
-    field_map_patient_birth_date: 'patient_birth_date',
-  })
+  await sb
+    .from('tenant_ghl_config')
+    .insert({
+      tenant_id: tenantId,
+      webhook_secret_enc: enc as unknown as string,
+      trigger_stage_name: opts.triggerStageName ?? 'atendimento',
+      field_map_plano: opts.planoField ?? 'plano',
+      field_map_procedimento_tuss: opts.tussField ?? 'tuss',
+      field_map_medico_identifier: opts.medicoField ?? 'medico_id',
+      field_map_patient_name: 'patient_name',
+      field_map_patient_cpf: 'patient_cpf',
+      field_map_patient_phone: 'patient_phone',
+      field_map_patient_email: 'patient_email',
+      field_map_patient_birth_date: 'patient_birth_date',
+    })
+    .throwOnError()
 }
 
 export async function seedTussCode(code: string, opts: { retired?: boolean } = {}): Promise<void> {
@@ -92,19 +96,29 @@ export async function seedTussCode(code: string, opts: { retired?: boolean } = {
   await sb
     .from('tuss_catalog_versions')
     .insert({ id: versionId, source_ref: 'seed', content_hash: 'test', code_count: 1 })
-  await sb.from('tuss_codes').upsert({
-    code,
-    description: `Test procedure ${code}`,
-    valid_from: '2020-01-01',
-    valid_to: opts.retired ? '2020-12-31' : null,
-    source_catalog_version_id: versionId,
-  })
+    .throwOnError()
+  await sb
+    .from('tuss_codes')
+    .upsert(
+      {
+        code,
+        description: `Test procedure ${code}`,
+        valid_from: '2020-01-01',
+        valid_to: opts.retired ? '2020-12-31' : null,
+        source_catalog_version_id: versionId,
+      },
+      { onConflict: 'code' },
+    )
+    .throwOnError()
 }
 
 export async function seedProcedure(tenantId: string, tussCode: string): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
-  await sb.from('procedures').insert({ id, tenant_id: tenantId, tuss_code: tussCode })
+  await sb
+    .from('procedures')
+    .insert({ id, tenant_id: tenantId, tuss_code: tussCode })
+    .throwOnError()
   return id
 }
 
@@ -114,21 +128,27 @@ export async function seedDoctor(
 ): Promise<{ doctorId: string; commissionId: string }> {
   const sb = serviceClient()
   const doctorId = randomUUID()
-  await sb.from('doctors').insert({
-    id: doctorId,
-    tenant_id: tenantId,
-    full_name: 'Dr. Teste',
-    crm: opts.crm ?? `CRM-${randomUUID().slice(0, 5)}`,
-  })
+  await sb
+    .from('doctors')
+    .insert({
+      id: doctorId,
+      tenant_id: tenantId,
+      full_name: 'Dr. Teste',
+      crm: opts.crm ?? `CRM-${randomUUID().slice(0, 5)}`,
+    })
+    .throwOnError()
   const commissionId = randomUUID()
-  await sb.from('doctor_commission_history').insert({
-    id: commissionId,
-    tenant_id: tenantId,
-    doctor_id: doctorId,
-    percentage_bps: opts.bps ?? 4000,
-    valid_from: '2020-01-01',
-    reason: 'initial',
-  })
+  await sb
+    .from('doctor_commission_history')
+    .insert({
+      id: commissionId,
+      tenant_id: tenantId,
+      doctor_id: doctorId,
+      percentage_bps: opts.bps ?? 4000,
+      valid_from: '2020-01-01',
+      reason: 'initial',
+    })
+    .throwOnError()
   return { doctorId, commissionId }
 }
 
@@ -142,16 +162,19 @@ export async function seedPriceVersion(args: {
 }): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
-  await sb.from('price_versions').insert({
-    id,
-    tenant_id: args.tenantId,
-    procedure_id: args.procedureId,
-    plan_id: args.planId,
-    amount_cents: args.amountCents,
-    valid_from: args.validFrom,
-    created_by: args.createdBy ?? randomUUID(),
-    reason: 'seed',
-  })
+  await sb
+    .from('price_versions')
+    .insert({
+      id,
+      tenant_id: args.tenantId,
+      procedure_id: args.procedureId,
+      plan_id: args.planId,
+      amount_cents: args.amountCents,
+      valid_from: args.validFrom,
+      created_by: args.createdBy ?? randomUUID(),
+      reason: 'seed',
+    })
+    .throwOnError()
   return id
 }
 
@@ -169,19 +192,22 @@ export async function seedAppointment(args: {
 }): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
-  await sb.from('appointments').insert({
-    id,
-    tenant_id: args.tenantId,
-    patient_id: args.patientId,
-    doctor_id: args.doctorId,
-    procedure_id: args.procedureId,
-    plan_id: args.planId,
-    frozen_amount_cents: args.amountCents,
-    frozen_commission_bps: args.commissionBps,
-    source_price_version_id: args.priceVersionId,
-    source_commission_history_id: args.commissionId,
-    appointment_at: args.at ?? new Date().toISOString(),
-  })
+  await sb
+    .from('appointments')
+    .insert({
+      id,
+      tenant_id: args.tenantId,
+      patient_id: args.patientId,
+      doctor_id: args.doctorId,
+      procedure_id: args.procedureId,
+      plan_id: args.planId,
+      frozen_amount_cents: args.amountCents,
+      frozen_commission_bps: args.commissionBps,
+      source_price_version_id: args.priceVersionId,
+      source_commission_history_id: args.commissionId,
+      appointment_at: args.at ?? new Date().toISOString(),
+    })
+    .throwOnError()
   return id
 }
 
@@ -194,13 +220,16 @@ export async function seedPatient(tenantId: string): Promise<string> {
   } catch {
     // RPC optional; when absent, seed via a helper that sets SET LOCAL.
   }
-  await sb.from('patients').insert({
-    id,
-    tenant_id: tenantId,
-    ghl_contact_id: `contact-${id}`,
-    // Minimal encrypted stubs; tests that need decryption set the key first.
-    full_name_enc: Buffer.from('stub'),
-    cpf_enc: Buffer.from('stub'),
-  })
+  await sb
+    .from('patients')
+    .insert({
+      id,
+      tenant_id: tenantId,
+      ghl_contact_id: `contact-${id}`,
+      // Minimal encrypted stubs; tests that need decryption set the key first.
+      full_name_enc: Buffer.from('stub') as unknown as string,
+      cpf_enc: Buffer.from('stub') as unknown as string,
+    })
+    .throwOnError()
   return id
 }

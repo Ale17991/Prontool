@@ -80,6 +80,8 @@ paths:
                 $ref: '#/components/schemas/Reversal'
         '403':
           description: Papel não autorizado (apenas admin e financeiro)
+        '404':
+          description: Atendimento não encontrado dentro do tenant chamador
         '409':
           description: Atendimento já foi revertido anteriormente
 components:
