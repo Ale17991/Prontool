@@ -21,6 +21,10 @@ const ALLOWED_CALLER_FRAGMENTS = [
   '/supabase/seed/',
   '/src/lib/core/catalog/',
   '/tests/',
+  // Dashboard SSR pages that need decrypted PII via SECURITY DEFINER RPCs
+  // scoped by session.tenantId (LGPD-sensitive patient fields stored as
+  // BYTEA and only decryptable via service_role).
+  '/src/app/(dashboard)/pacientes/',
 ]
 
 function assertCallerAllowed(): void {
