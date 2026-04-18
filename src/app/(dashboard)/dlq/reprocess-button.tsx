@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { RotateCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function ReprocessButton({ rawEventId }: { rawEventId: string }) {
   const router = useRouter()
@@ -23,21 +25,9 @@ export function ReprocessButton({ rawEventId }: { rawEventId: string }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={onReprocess}
-      disabled={pending}
-      style={{
-        padding: '4px 10px',
-        background: pending ? '#94a3b8' : '#2563eb',
-        color: 'white',
-        border: 'none',
-        borderRadius: 4,
-        cursor: pending ? 'wait' : 'pointer',
-        fontSize: 12,
-      }}
-    >
+    <Button type="button" size="sm" variant="outline" onClick={onReprocess} disabled={pending}>
+      <RotateCw className={pending ? 'mr-1 h-3 w-3 animate-spin' : 'mr-1 h-3 w-3'} />
       {pending ? '…' : 'Reprocessar'}
-    </button>
+    </Button>
   )
 }

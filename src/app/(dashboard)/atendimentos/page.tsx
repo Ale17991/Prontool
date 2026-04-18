@@ -1,7 +1,15 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { ChevronRight, Filter, Stethoscope } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatCurrency, formatDateTime } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,106 +52,134 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const { data: rawRows, error } = await query
   const rows = (rawRows ?? []) as AppointmentRow[]
 
-  return (
-    <div>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Atendimentos</h1>
-      <form
-        method="get"
-        style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'end' }}
-      >
-        <Field label="De" name="from" type="date" defaultValue={searchParams.from} />
-        <Field label="Até" name="to" type="date" defaultValue={searchParams.to} />
-        <label style={{ display: 'grid', fontSize: 12, color: '#475569' }}>
-          Status
-          <select name="status" defaultValue={statusFilter} style={inputStyle}>
-            <option value="todos">Todos</option>
-            <option value="ativo">Ativos</option>
-            <option value="estornado">Estornados</option>
-          </select>
-        </label>
-        <button type="submit" style={buttonStyle}>
-          Filtrar
-        </button>
-      </form>
+  const totalRevenue = rows.reduce(
+    (acc, r) => acc + (r.net_amount_cents ?? r.frozen_amount_cents ?? 0),
+    0,
+  )
+  const reversedCount = rows.filter((r) => r.effective_status === 'estornado').length
 
-      {error ? (
-        <p style={{ color: '#b91c1c' }}>Erro ao carregar: {error.message}</p>
-      ) : rows.length === 0 ? (
-        <p style={{ color: '#64748b' }}>Nenhum atendimento encontrado no período.</p>
-      ) : (
-        <table style={tableStyle}>
-          <thead>
-            <tr style={{ background: '#f1f5f9' }}>
-              <th style={thStyle}>Data</th>
-              <th style={thStyle}>Valor</th>
-              <th style={thStyle}>Comissão</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} style={{ borderTop: '1px solid #e2e8f0' }}>
-                <td style={tdStyle}>
-                  {r.appointment_at
-                    ? new Date(r.appointment_at).toLocaleString('pt-BR')
-                    : '—'}
-                </td>
-                <td style={tdStyle}>{formatCents(r.net_amount_cents ?? r.frozen_amount_cents)}</td>
-                <td style={tdStyle}>
-                  {formatCents(r.net_commission_cents ?? computeCommission(r))}
-                </td>
-                <td style={tdStyle}>
-                  <StatusBadge status={r.effective_status ?? 'ativo'} />
-                </td>
-                <td style={tdStyle}>
-                  {r.id ? (
-                    <Link href={`/atendimentos/${r.id}`} style={linkStyle}>
-                      Abrir
-                    </Link>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {rows.length} atendimento{rows.length === 1 ? '' : 's'} no período · Receita líquida{' '}
+            <span className="font-semibold text-slate-700">{formatCurrency(totalRevenue)}</span>
+            {reversedCount > 0 ? (
+              <>
+                {' '}
+                ·{' '}
+                <span className="font-semibold text-rose-600">
+                  {reversedCount} estornado{reversedCount === 1 ? '' : 's'}
+                </span>
+              </>
+            ) : null}
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Filter className="h-4 w-4 text-primary" />
+            Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="from" className="text-xs">
+                Data inicial
+              </Label>
+              <Input id="from" name="from" type="date" defaultValue={searchParams.from} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="to" className="text-xs">
+                Data final
+              </Label>
+              <Input id="to" name="to" type="date" defaultValue={searchParams.to} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="status" className="text-xs">
+                Status
+              </Label>
+              <select
+                id="status"
+                name="status"
+                defaultValue={statusFilter}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="todos">Todos</option>
+                <option value="ativo">Ativos</option>
+                <option value="estornado">Estornados</option>
+              </select>
+            </div>
+            <Button type="submit">Filtrar</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0">
+          {error ? (
+            <p className="px-6 py-8 text-sm text-rose-600">Erro ao carregar: {error.message}</p>
+          ) : rows.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+              <Stethoscope className="h-8 w-8 text-slate-300" />
+              <p className="text-sm font-medium text-slate-500">
+                Nenhum atendimento encontrado no período.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Valor líquido</TableHead>
+                  <TableHead>Comissão</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((r) => (
+                  <TableRow key={r.id ?? Math.random()} className="group">
+                    <TableCell className="font-medium text-slate-700">
+                      {formatDateTime(r.appointment_at)}
+                    </TableCell>
+                    <TableCell className="font-bold text-slate-900">
+                      {formatCurrency(r.net_amount_cents ?? r.frozen_amount_cents)}
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {formatCurrency(r.net_commission_cents ?? computeCommission(r))}
+                    </TableCell>
+                    <TableCell>
+                      {r.effective_status === 'estornado' ? (
+                        <Badge variant="destructive">estornado</Badge>
+                      ) : (
+                        <Badge variant="success">ativo</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {r.id ? (
+                        <Link
+                          href={`/atendimentos/${r.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          Abrir <ChevronRight className="h-3 w-3" />
+                        </Link>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const bg = status === 'estornado' ? '#fee2e2' : '#dcfce7'
-  const fg = status === 'estornado' ? '#991b1b' : '#166534'
-  return (
-    <span style={{ background: bg, color: fg, padding: '2px 8px', borderRadius: 999, fontSize: 12 }}>
-      {status}
-    </span>
-  )
-}
-
-function Field({
-  label,
-  name,
-  type,
-  defaultValue,
-}: {
-  label: string
-  name: string
-  type: string
-  defaultValue: string | undefined
-}) {
-  return (
-    <label style={{ display: 'grid', fontSize: 12, color: '#475569' }}>
-      {label}
-      <input name={name} type={type} defaultValue={defaultValue} style={inputStyle} />
-    </label>
-  )
-}
-
-function formatCents(cents: number | null | undefined): string {
-  if (cents === null || cents === undefined) return '—'
-  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 function computeCommission(row: {
@@ -153,31 +189,3 @@ function computeCommission(row: {
   if (row.frozen_amount_cents === null || row.frozen_commission_bps === null) return null
   return Math.round((row.frozen_amount_cents * row.frozen_commission_bps) / 10_000)
 }
-
-const inputStyle: React.CSSProperties = {
-  padding: '6px 8px',
-  border: '1px solid #cbd5e1',
-  borderRadius: 4,
-}
-const buttonStyle: React.CSSProperties = {
-  padding: '8px 14px',
-  background: '#2563eb',
-  color: 'white',
-  border: 'none',
-  borderRadius: 4,
-  cursor: 'pointer',
-}
-const tableStyle: React.CSSProperties = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  fontSize: 14,
-}
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '8px 10px',
-  fontWeight: 600,
-  fontSize: 12,
-  color: '#475569',
-}
-const tdStyle: React.CSSProperties = { padding: '8px 10px' }
-const linkStyle: React.CSSProperties = { color: '#2563eb', textDecoration: 'none' }

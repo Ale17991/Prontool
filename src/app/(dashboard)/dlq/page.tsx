@@ -1,15 +1,16 @@
 import { redirect } from 'next/navigation'
+import { AlertTriangle } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatDateTime } from '@/lib/utils'
 import { ReprocessButton } from './reprocess-button'
 
 export const dynamic = 'force-dynamic'
 
-// supabase-js types the Insert side of views with `never` for computed
-// columns, which poisons the inferred Row shape when TS falls back to
-// the second overload. A narrow DTO captures what the view actually
-// returns for this page without fighting the generated types.
 interface DlqRow {
   id: string | null
   ghl_event_id: string | null
@@ -34,62 +35,73 @@ export default async function DlqPage() {
   const canReprocess = can(session.role, 'dlq.reprocess')
 
   return (
-    <div>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Dead Letter Queue</h1>
-      <p style={{ color: '#64748b', marginBottom: 16, fontSize: 14 }}>
-        Eventos do GHL que falharam no processamento e aguardam intervenção.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Fila de erros</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Eventos do GHL que falharam no processamento e aguardam intervenção manual.
+          {rows.length > 0 ? (
+            <>
+              {' '}
+              <span className="font-semibold text-slate-700">
+                {rows.length} evento{rows.length === 1 ? '' : 's'} pendente{rows.length === 1 ? '' : 's'}.
+              </span>
+            </>
+          ) : null}
+        </p>
+      </div>
 
-      {error ? (
-        <p style={{ color: '#b91c1c' }}>Erro: {error.message}</p>
-      ) : rows.length === 0 ? (
-        <p style={{ color: '#64748b' }}>Nenhum evento na fila.</p>
-      ) : (
-        <table style={tableStyle}>
-          <thead>
-            <tr style={{ background: '#f1f5f9' }}>
-              <th style={thStyle}>Recebido</th>
-              <th style={thStyle}>GHL Event ID</th>
-              <th style={thStyle}>Motivo</th>
-              <th style={thStyle}>Resumo do payload</th>
-              <th style={thStyle}>Tentativas</th>
-              <th style={thStyle}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} style={{ borderTop: '1px solid #e2e8f0', verticalAlign: 'top' }}>
-                <td style={tdStyle}>
-                  {r.received_at ? new Date(r.received_at).toLocaleString('pt-BR') : '—'}
-                </td>
-                <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: 12 }}>
-                  {r.ghl_event_id}
-                </td>
-                <td style={tdStyle}>
-                  <span
-                    style={{
-                      background: '#fee2e2',
-                      color: '#991b1b',
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      fontSize: 12,
-                    }}
-                  >
-                    {r.failure_reason ?? 'unknown'}
-                  </span>
-                </td>
-                <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: 12, maxWidth: 320 }}>
-                  {renderPayloadSummary(r.payload)}
-                </td>
-                <td style={tdStyle}>{r.processing_attempt_count ?? 0}</td>
-                <td style={tdStyle}>
-                  {canReprocess && r.id ? <ReprocessButton rawEventId={r.id} /> : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <Card>
+        <CardContent className="p-0">
+          {error ? (
+            <p className="px-6 py-8 text-sm text-rose-600">Erro: {error.message}</p>
+          ) : rows.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+              <AlertTriangle className="h-8 w-8 text-emerald-300" />
+              <p className="text-sm font-medium text-slate-500">
+                Nenhum evento na fila — ingestão saudável.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Recebido</TableHead>
+                  <TableHead>GHL Event ID</TableHead>
+                  <TableHead>Motivo</TableHead>
+                  <TableHead>Resumo do payload</TableHead>
+                  <TableHead>Tentativas</TableHead>
+                  <TableHead className="text-right" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((r) => (
+                  <TableRow key={r.id ?? Math.random()} className="align-top">
+                    <TableCell className="text-slate-700">{formatDateTime(r.received_at)}</TableCell>
+                    <TableCell className="font-mono text-xs text-slate-600">
+                      {r.ghl_event_id ?? '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="destructive">{r.failure_reason ?? 'unknown'}</Badge>
+                    </TableCell>
+                    <TableCell className="max-w-sm">
+                      <span className="block break-words font-mono text-xs text-slate-600">
+                        {renderPayloadSummary(r.payload)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {r.processing_attempt_count ?? 0}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {canReprocess && r.id ? <ReprocessButton rawEventId={r.id} /> : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -104,13 +116,3 @@ function renderPayloadSummary(payload: unknown): string {
   if (contact && typeof contact['id'] === 'string') bits.push(`contact=${contact['id']}`)
   return bits.join(' · ') || JSON.stringify(payload).slice(0, 120)
 }
-
-const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collapse', fontSize: 14 }
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '8px 10px',
-  fontSize: 12,
-  color: '#475569',
-  fontWeight: 600,
-}
-const tdStyle: React.CSSProperties = { padding: '8px 10px' }

@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function ResolveButton({ alertId }: { alertId: string }) {
   const router = useRouter()
@@ -25,21 +27,16 @@ export function ResolveButton({ alertId }: { alertId: string }) {
   }
 
   return (
-    <button
+    <Button
       type="button"
+      size="sm"
+      variant="outline"
       onClick={onResolve}
       disabled={pending}
-      style={{
-        padding: '4px 10px',
-        background: pending ? '#94a3b8' : '#16a34a',
-        color: 'white',
-        border: 'none',
-        borderRadius: 4,
-        cursor: pending ? 'wait' : 'pointer',
-        fontSize: 12,
-      }}
+      className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
     >
+      <Check className="mr-1 h-3 w-3" />
       {pending ? '…' : 'Resolver'}
-    </button>
+    </Button>
   )
 }
