@@ -25,6 +25,11 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // scoped by session.tenantId (LGPD-sensitive patient fields stored as
   // BYTEA and only decryptable via service_role).
   '/src/app/(dashboard)/pacientes/',
+  // Monthly report aggregates across appointments_effective, health_plans
+  // and doctors. Service client spares an extra query-planner round-trip
+  // for the perf target (SC-004: < 30 s for 5 k rows) and keeps the page
+  // reusing the same aggregator as the export endpoints (SC-006 parity).
+  '/src/app/(dashboard)/relatorios/',
 ]
 
 function assertCallerAllowed(): void {

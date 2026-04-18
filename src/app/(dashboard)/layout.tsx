@@ -94,10 +94,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       label: 'Análise',
       items: [
         {
-          href: '/relatorios',
+          href: '/relatorios/mensal',
           label: 'Relatórios',
           icon: LayoutDashboard,
-          show: flags.relatorios && can(session.role, 'report.read'),
+          show: can(session.role, 'report.read'),
         },
         {
           href: '/comissoes',
