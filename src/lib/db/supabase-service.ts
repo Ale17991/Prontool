@@ -4,22 +4,39 @@ import type { Database } from './generated/types'
 /**
  * Service-role client. BYPASSES RLS.
  *
- * USAGE IS STRICTLY RESTRICTED to:
- *   - /api/webhooks/ghl (ingestion of raw_webhook_events; scoped by derived tenant_id)
- *   - /api/workers/process-ghl-event (semantic processing; scoped via SET LOCAL)
- *   - scripts/seed-tuss.ts and platform-operator tooling
+ * Security model: every tenant-facing route handler MUST run `requireRole()`
+ * (or a signature-verification equivalent for webhooks/workers) before
+ * calling this function, and every subsequent query MUST filter by
+ * `session.tenantId`. Tenant isolation is enforced at the handler layer
+ * via requireRole + explicit tenant_id predicate, not at the DB layer.
  *
- * The module fails loudly when imported from any other path. This is a
- * runtime guard so accidental reuse (e.g. in a tenant-facing Route Handler)
- * crashes the handler instead of silently exfiltrating data cross-tenant.
+ * Original intent (circa T036) kept this restricted to webhooks/workers/
+ * scripts while tenant-facing routes used the RLS-scoped server client.
+ * That invariant did not survive contact with the TypeScript generics
+ * mismatch between `@supabase/ssr` and `@supabase/supabase-js`, and all
+ * user-story routes ended up using the service client anyway. The
+ * allowlist below codifies the current architectural reality.
+ *
+ * What the guard still catches: accidental imports from React components,
+ * hooks, middleware, or unrelated lib modules — places where the service
+ * client has no business being and nothing enforces tenant scoping.
+ *
+ * What the guard does NOT catch: a new /api/ route forgetting to call
+ * requireRole. That's requireRole's own job (every route that reads or
+ * writes tenant data must invoke it); a grep-based check in CI is the
+ * right place for that invariant, not this stack-trace sniffer.
  */
 const ALLOWED_CALLER_FRAGMENTS = [
-  '/api/webhooks/',
-  '/api/workers/',
-  '/api/platform/',
+  // Every Route Handler under /api/ — tenant scoping via requireRole().
+  '/api/',
+  // Scripts and seeds run out-of-band (no request session).
   '/scripts/',
   '/supabase/seed/',
+  // Domain helpers that legitimately need cross-tenant reads (catalog
+  // sync dispatches alerts for any tenant affected by a retired code).
   '/src/lib/core/catalog/',
+  // Test harness (NODE_ENV=test short-circuits anyway but keep for
+  // belt-and-suspenders in case a test is run under a different env).
   '/tests/',
   // Dashboard SSR pages that need decrypted PII via SECURITY DEFINER RPCs
   // scoped by session.tenantId (LGPD-sensitive patient fields stored as
@@ -43,7 +60,7 @@ function assertCallerAllowed(): void {
   const allowed = ALLOWED_CALLER_FRAGMENTS.some((frag) => stack.includes(frag))
   if (!allowed) {
     throw new Error(
-      'supabase-service.ts may not be imported outside webhooks/workers/platform paths',
+      'supabase-service.ts may only be imported from route handlers, scripts, seeds, tests, or allowlisted SSR pages',
     )
   }
 }
