@@ -2,6 +2,13 @@ import { defineConfig } from 'vitest/config'
 import { resolve } from 'node:path'
 
 export default defineConfig({
+  // Match Next.js's default JSX transform so `.tsx` files without an
+  // explicit `import React from 'react'` line work under vitest's
+  // esbuild pipeline (classic JSX mode would fail with "React is not
+  // defined"). Production uses SWC's automatic runtime.
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     environment: 'node',
     globals: true,

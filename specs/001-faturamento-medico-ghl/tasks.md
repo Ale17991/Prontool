@@ -281,12 +281,12 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Tests for User Story 3
 
-- [ ] T117 [P] [US3] Contract test `tests/contract/medicos.spec.ts` against `contracts/medicos.yaml`
-- [ ] T118 [P] [US3] Integration test `tests/integration/doctor-create-list.spec.ts`
-- [ ] T119 [P] [US3] Integration test `tests/integration/commission-version-append-only.spec.ts` — new commission creates new `doctor_commission_history` row; UPDATE attempt on the existing row blocked by trigger
-- [ ] T120 [P] [US3] Integration test `tests/integration/commission-snapshot-preserved.spec.ts` — same as US1 T070 but through public API flow: change commission; older appointments unchanged
-- [ ] T121 [P] [US3] Integration test `tests/integration/doctor-rbac.spec.ts` — recepcionista receives 403 on POST `/api/medicos`, POST commission; audit records denial
-- [ ] T122 [P] [US3] Integration test `tests/integration/doctor-unique-crm.spec.ts` — second doctor with same CRM in same tenant → 409; different tenant → OK
+- [x] T117 [P] [US3] Contract test `tests/contract/medicos.spec.ts` against `contracts/medicos.yaml`
+- [x] T118 [P] [US3] Integration test `tests/integration/doctor-create-list.spec.ts`
+- [x] T119 [P] [US3] Integration test `tests/integration/commission-version-append-only.spec.ts` — new commission creates new `doctor_commission_history` row; UPDATE attempt on the existing row blocked by trigger
+- [x] T120 [P] [US3] Integration test `tests/integration/commission-snapshot-preserved.spec.ts` — same as US1 T070 but through public API flow: change commission; older appointments unchanged
+- [x] T121 [P] [US3] Integration test `tests/integration/doctor-rbac.spec.ts` — recepcionista receives 403 on POST `/api/medicos`, POST commission; audit records denial
+- [x] T122 [P] [US3] Integration test `tests/integration/doctor-unique-crm.spec.ts` — second doctor with same CRM in same tenant → 409; different tenant → OK
 
 ### Domain
 
@@ -317,13 +317,13 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Tests for User Story 4
 
-- [ ] T131 [P] [US4] Contract test `tests/contract/relatorios.spec.ts` against `contracts/relatorios.yaml`
-- [ ] T132 [P] [US4] Integration test `tests/integration/report-aggregation.spec.ts` — seed matrix of appointments; assert `revenue_by_plan`, `production_by_doctor`, `totals.net_revenue_cents`, `net_commission_cents` all match hand-calculated values; includes reversal case reducing totals
-- [ ] T133 [P] [US4] Integration test `tests/integration/report-snapshot-stability.spec.ts` — run report; change a price vigência futura; re-run for same period; totals unchanged
-- [ ] T134 [P] [US4] Integration test `tests/integration/report-export-parity.spec.ts` — compare JSON totals vs PDF extracted text vs Excel cell values; every number matches (validates SC-006)
-- [ ] T135 [P] [US4] Integration test `tests/integration/report-rbac.spec.ts` — recepcionista receives 403 on GET relatório and GET export
-- [ ] T136 [P] [US4] Integration test `tests/integration/report-empty-period.spec.ts` — month with zero appointments returns zeros, not error
-- [ ] T137 [P] [US4] Performance test `tests/integration/report-performance.spec.ts` — seed 5 000 appointments for a single tenant-month; assert GET `/api/relatorios/mensal` completes under 30 s (SC-004)
+- [x] T131 [P] [US4] Contract test `tests/contract/relatorios.spec.ts` against `contracts/relatorios.yaml`
+- [x] T132 [P] [US4] Integration test `tests/integration/report-aggregation.spec.ts` — seed matrix of appointments; assert `revenue_by_plan`, `production_by_doctor`, `totals.net_revenue_cents`, `net_commission_cents` all match hand-calculated values; includes reversal case reducing totals
+- [x] T133 [P] [US4] Integration test `tests/integration/report-snapshot-stability.spec.ts` — run report; change a price vigência futura; re-run for same period; totals unchanged
+- [x] T134 [P] [US4] Integration test `tests/integration/report-export-parity.spec.ts` — compare JSON totals vs PDF extracted text vs Excel cell values; every number matches (validates SC-006)
+- [x] T135 [P] [US4] Integration test `tests/integration/report-rbac.spec.ts` — recepcionista receives 403 on GET relatório and GET export
+- [x] T136 [P] [US4] Integration test `tests/integration/report-empty-period.spec.ts` — month with zero appointments returns zeros, not error
+- [x] T137 [P] [US4] Performance test `tests/integration/report-performance.spec.ts` — seed 5 000 appointments for a single tenant-month; assert GET `/api/relatorios/mensal` completes under 30 s (SC-004)
 - [ ] T138 [P] [US4] E2E test `tests/e2e/monthly-report-export.spec.ts` — Playwright: admin opens report, selects period, clicks Export PDF and Export Excel; downloads complete and files are non-empty
 
 ### Domain
@@ -349,8 +349,8 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 **Purpose**: Quality gates, performance validation against success criteria, operational readiness.
 
-- [ ] T145 [P] Run `pnpm lint` and fix any violations; enforce `no-console` outside `logger.ts`
-- [ ] T146 [P] Run `pnpm typecheck` and resolve any TypeScript errors
+- [x] T145 [P] Run `pnpm lint` and fix any violations; enforce `no-console` outside `logger.ts`
+- [x] T146 [P] Run `pnpm typecheck` and resolve any TypeScript errors
 - [ ] T147 [P] Performance validation against SC-001a/b/c — benchmark webhook endpoint under synthetic load (`k6` or similar); record p50/p95/p99; document in `docs/performance-report.md`
 - [ ] T148 [P] Performance validation against SC-004 (report under 30 s at 5 k appointments) already covered by T137; record numbers
 - [ ] T149 [P] Security review on all Route Handlers: verify every handler calls `require-role` or is explicitly public (webhook, worker); grep for direct `supabase-service.ts` imports outside allowed paths; run `/security-review` skill on diff

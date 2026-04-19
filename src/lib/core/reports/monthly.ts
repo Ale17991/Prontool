@@ -81,17 +81,29 @@ export async function buildMonthlyReport(
   const fromTs = `${input.from}T00:00:00Z`
   const toExclusiveTs = nextDayIso(input.to)
 
-  const { data: raw, error } = await supabase
-    .from('appointments_effective')
-    .select(
-      'id, plan_id, doctor_id, appointment_at, net_amount_cents, net_commission_cents, effective_status, health_plans(name), doctors(full_name)',
-    )
-    .eq('tenant_id', input.tenantId)
-    .gte('appointment_at', fromTs)
-    .lt('appointment_at', toExclusiveTs)
-  if (error) throw new Error(`buildMonthlyReport query failed: ${error.message}`)
-
-  const rows = (raw ?? []) as unknown as RowWithJoins[]
+  // Paginate: PostgREST caps each response at `db-max-rows` (default 1000
+  // locally; typically 1000 in Supabase cloud too). SC-004 expects the
+  // aggregator to process up to 5 000 appointments per tenant-month, so
+  // we loop with `.range()` until we see a short page.
+  const PAGE_SIZE = 1000
+  const rows: RowWithJoins[] = []
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('appointments_effective')
+      .select(
+        'id, plan_id, doctor_id, appointment_at, net_amount_cents, net_commission_cents, effective_status, health_plans(name), doctors(full_name)',
+      )
+      .eq('tenant_id', input.tenantId)
+      .gte('appointment_at', fromTs)
+      .lt('appointment_at', toExclusiveTs)
+      .order('appointment_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, from + PAGE_SIZE - 1)
+    if (error) throw new Error(`buildMonthlyReport query failed: ${error.message}`)
+    const page = (data ?? []) as unknown as RowWithJoins[]
+    rows.push(...page)
+    if (page.length < PAGE_SIZE) break
+  }
 
   const byPlan = new Map<string, RevenueByPlan>()
   const byDoctor = new Map<string, ProductionByDoctor>()
