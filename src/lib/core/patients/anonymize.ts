@@ -23,8 +23,19 @@ import { ConflictError, NotFoundError } from '@/lib/observability/errors'
 export interface AnonymizePatientInput {
   tenantId: string
   patientId: string
-  actorUserId: string
+  /**
+   * Tenant user that triggered the anonymization. Pass `null` for
+   * out-of-band runs (platform-operator retention sweep) — the audit
+   * row records `actor_label` instead.
+   */
+  actorUserId: string | null
   reason: string
+  /**
+   * Overrides the audit-row label. Defaults to `user:<actorUserId>` for
+   * tenant-driven calls. Platform retention should pass
+   * `'platform-operator'` (FR-010c, T171).
+   */
+  actorLabel?: string
 }
 
 export interface AnonymizeResult {
@@ -134,10 +145,12 @@ export async function anonymizePatient(
 
   // 4. Trilha explícita do motivo + ator (audit_log captura o resto via
   //    triggers mas o motivo precisa ser registrado).
+  const actorLabel =
+    input.actorLabel ?? (input.actorUserId ? `user:${input.actorUserId}` : 'unknown')
   const { error: auditErr } = await supabase.from('audit_log').insert({
     tenant_id: input.tenantId,
     actor_id: input.actorUserId,
-    actor_label: `user:${input.actorUserId}`,
+    actor_label: actorLabel,
     entity: 'patients',
     entity_id: input.patientId,
     field: 'anonymized_at',
