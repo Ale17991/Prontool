@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { resendSpy, qstashSpy } from './msw-spies'
+import { resendSpy, qstashSpy, resendArchive } from './msw-spies'
 
 /**
  * MSW server used across integration tests. Intercepts outbound calls to
@@ -25,12 +25,14 @@ interface QstashRequestBody {
 export const mswServer = setupServer(
   http.post('https://api.resend.com/emails', async ({ request }) => {
     const body = (await request.clone().json().catch(() => ({}))) as ResendRequestBody
-    resendSpy.record({
+    const call = {
       to: body.to,
       subject: body.subject,
       body: body.text ?? body.html,
       html: body.html,
-    })
+    }
+    resendSpy.record(call)
+    resendArchive.record(call)
     return HttpResponse.json({ id: `resend_mock_${Date.now()}` }, { status: 200 })
   }),
 

@@ -7,7 +7,7 @@ import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { mswServer } from './msw-server'
-import { resetAllSpies } from './msw-spies'
+import { resetAllSpies, resendArchive, piiRegistry } from './msw-spies'
 
 // Load .env.test if present, otherwise fall back to .env.local
 const envFile = ['.env.test', '.env.local'].find((f) => existsSync(join(process.cwd(), f)))
@@ -54,5 +54,25 @@ afterEach(() => {
 })
 
 afterAll(() => {
+  // Global PII scan (SC-013, T151): every Resend call captured during
+  // this test file is checked against the suite-wide PII registry —
+  // patient names, CPFs, phones, emails, birth dates seeded anywhere
+  // since the process started. A hit means a regression: an alert
+  // email embedded a value that FR-037 forbids. Failing here forces a
+  // fix before the suite can turn green.
+  const leaks: string[] = []
+  for (const call of resendArchive.calls) {
+    const haystack = [call.subject ?? '', call.body ?? '', call.html ?? ''].join('\n')
+    for (const token of piiRegistry.tokens) {
+      if (haystack.includes(token)) {
+        leaks.push(`subject="${call.subject ?? ''}" leaked token "${token}"`)
+      }
+    }
+  }
   mswServer.close()
+  if (leaks.length > 0) {
+    throw new Error(
+      `SC-013 violation — alert email contained seeded PII:\n  ${leaks.join('\n  ')}`,
+    )
+  }
 })

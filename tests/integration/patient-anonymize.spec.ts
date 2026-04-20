@@ -11,6 +11,7 @@ import {
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
+import { piiRegistry } from '@/tests/helpers/msw-spies'
 
 describe('POST /api/pacientes/[id]/anonymize — LGPD', () => {
   beforeEach(async () => {
@@ -27,6 +28,7 @@ describe('POST /api/pacientes/[id]/anonymize — LGPD', () => {
       cpf: '12345678901',
       phone: '+5511988887777',
     })
+    piiRegistry.register('Pedro Anônimo Silva', '12345678901', '+5511988887777')
     const admin = await seedUser(tenantId, 'admin')
 
     // Cria um registro de texto antes de anonimizar
@@ -100,6 +102,7 @@ describe('POST /api/pacientes/[id]/anonymize — LGPD', () => {
       fullName: 'Joana Teste',
       cpf: '99999999999',
     })
+    piiRegistry.register('Joana Teste', '99999999999')
     const recep = await seedUser(tenantId, 'recepcionista')
     const jwt = mintJwt({
       userId: recep.userId,

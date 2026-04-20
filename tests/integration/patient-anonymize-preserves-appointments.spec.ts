@@ -19,6 +19,7 @@ import {
   seedAppointment,
 } from '@/tests/helpers/seed-factories'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
+import { piiRegistry } from '@/tests/helpers/msw-spies'
 
 const TUSS = '10101012'
 const TOKEN = 'platform-operator-token-for-tests-32chars-min'
@@ -52,6 +53,12 @@ describe('T173 — anonymization preserves appointment ledger', () => {
       phone: '+5511933334444',
       email: 'maria@example.com',
     })
+    piiRegistry.register(
+      'Maria Identificável',
+      '99988877766',
+      '+5511933334444',
+      'maria@example.com',
+    )
 
     // 3 appointments across the month: amounts 30_000, 30_000, 30_000.
     const apt1 = await seedAppointment({
@@ -188,6 +195,7 @@ describe('T173 — anonymization preserves appointment ledger', () => {
       fullName: 'Quem',
       cpf: '11122233344',
     })
+    piiRegistry.register('11122233344')
 
     const { POST } = await import('@/app/api/platform/patients/[id]/anonymize/route')
     const res = await POST(

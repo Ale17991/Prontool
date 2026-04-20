@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedGhlConfig, seedUser } from '@/tests/helpers/seed-factories'
 import { buildSignedWebhookRequest, buildValidGhlPayload } from '@/tests/helpers/webhook-request'
+import { piiRegistry } from '@/tests/helpers/msw-spies'
 
 const PATIENT = {
   cpf: '98765432100',
@@ -35,6 +36,7 @@ describe('T074 — alert emails carry no patient PII', () => {
     payload.contact.custom_fields.patient_name = PATIENT.full_name
     payload.contact.custom_fields.patient_phone = PATIENT.phone
     payload.contact.custom_fields.patient_email = PATIENT.email
+    piiRegistry.register(PATIENT.cpf, PATIENT.full_name, PATIENT.phone, PATIENT.email)
     delete (payload.contact.custom_fields as Record<string, string>).plano // force DLQ
 
     const { POST: webhookPost } = await import('@/app/api/webhooks/ghl/route')

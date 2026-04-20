@@ -75,6 +75,14 @@ describe('T074a — patient upsert leaves existing appointments untouched', () =
       email: 'new-email@test.local',
       birthDate: '1990-01-01',
     })
+    const { piiRegistry } = await import('@/tests/helpers/msw-spies')
+    piiRegistry.register(
+      'Unchanged Name',
+      '00000000000',
+      '+5511900000000',
+      'new-email@test.local',
+      '1990-01-01',
+    )
 
     const { data: after } = await sb
       .from('appointments')

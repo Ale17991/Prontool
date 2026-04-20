@@ -9,6 +9,7 @@ import {
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
+import { piiRegistry } from '@/tests/helpers/msw-spies'
 
 describe('GET /api/pacientes — lista + busca', () => {
   beforeEach(async () => {
@@ -31,6 +32,12 @@ describe('GET /api/pacientes — lista + busca', () => {
       fullName: 'João Pedro Souza',
       cpf: '99988877766',
     })
+    piiRegistry.register(
+      'Maria Aparecida Silva',
+      '11122233344',
+      'João Pedro Souza',
+      '99988877766',
+    )
 
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })

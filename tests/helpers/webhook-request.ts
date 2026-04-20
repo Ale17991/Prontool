@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto'
+import { piiRegistry } from './msw-spies'
 
 /**
  * Canonical signing form pinned by the contract tests: HMAC-SHA256 of
@@ -37,9 +38,15 @@ export function signPayload(secret: string, timestamp: string, rawBody: string):
 /**
  * Standard happy-path GHL webhook payload shape used by the integration
  * tests. Custom fields map to the field names seeded by `seedGhlConfig`.
+ *
+ * Every patient_* field baked into the returned payload is auto-registered
+ * with `piiRegistry` so the end-of-file PII scanner (SC-013, T151) can
+ * verify no alert email ever echoed one back. Tests that mutate
+ * `contact.custom_fields.patient_*` after calling this helper must also
+ * call `piiRegistry.register(...)` explicitly with the new values.
  */
 export function buildValidGhlPayload(overrides: Partial<GhlTestPayload> = {}): GhlTestPayload {
-  return {
+  const payload: GhlTestPayload = {
     event_id: overrides.event_id ?? `evt_${Math.random().toString(36).slice(2, 10)}`,
     event_type: overrides.event_type ?? 'pipeline_stage_changed',
     occurred_at: overrides.occurred_at ?? new Date().toISOString(),
@@ -58,6 +65,15 @@ export function buildValidGhlPayload(overrides: Partial<GhlTestPayload> = {}): G
     },
     pipeline: overrides.pipeline ?? { id: 'p1', stage_name: 'atendimento' },
   }
+  const cf = payload.contact.custom_fields
+  piiRegistry.register(
+    cf.patient_name,
+    cf.patient_cpf,
+    cf.patient_phone,
+    cf.patient_email,
+    cf.patient_birth_date,
+  )
+  return payload
 }
 
 export interface GhlTestPayload {

@@ -3,10 +3,11 @@
  * Records calls as plain objects so integration tests can assert on what the
  * worker tried to send without needing live network access.
  *
- * This file is currently a stub — T082/T083/T085 will wire the real MSW
- * handlers that push entries into `resendSpy.calls` whenever a POST to
- * `https://api.resend.com/emails` is observed. Tests that reference these
- * spies (T065, T074) fail until then, which is the intended red-first state.
+ * `resendSpy` and `qstashSpy` reset between tests (afterEach in setup.ts).
+ * `resendArchive` and `piiRegistry` DO NOT reset — they accumulate across
+ * the whole suite so the global PII scan (T151, SC-013) can assert no
+ * email body ever contained any seeded PII token. See the `afterAll` hook
+ * in tests/helpers/setup.ts.
  */
 
 export interface ResendCall {
@@ -34,7 +35,32 @@ class CallRecorder<T> {
 export const resendSpy = new CallRecorder<ResendCall>()
 export const qstashSpy = new CallRecorder<QstashCall>()
 
+/**
+ * Suite-wide archive of every Resend call. Never reset; consumed by the
+ * end-of-file PII scanner in setup.ts.
+ */
+export const resendArchive = new CallRecorder<ResendCall>()
+
+/**
+ * PII tokens seeded somewhere in the suite. The scanner asserts none of
+ * these ever appear in `resendArchive`. Uses a Set for dedup. Tokens
+ * shorter than 3 chars are rejected to avoid meaningless matches.
+ */
+class PiiRegistry {
+  readonly tokens = new Set<string>()
+  register(...values: Array<string | null | undefined>): void {
+    for (const v of values) {
+      if (typeof v === 'string' && v.length >= 3) this.tokens.add(v)
+    }
+  }
+  reset(): void {
+    this.tokens.clear()
+  }
+}
+export const piiRegistry = new PiiRegistry()
+
 export function resetAllSpies(): void {
   resendSpy.reset()
   qstashSpy.reset()
+  // resendArchive and piiRegistry intentionally persist.
 }
