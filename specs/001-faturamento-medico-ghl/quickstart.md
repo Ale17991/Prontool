@@ -18,39 +18,52 @@ Guia rápido para subir o ambiente local e validar o fluxo ponta-a-ponta
 
 ```bash
 pnpm install
+pnpm dlx playwright install chromium   # só para rodar `pnpm test:e2e`
 cp .env.example .env.local
 ```
 
-Preencha `.env.local`:
+Preencha `.env.local` (a lista completa está em `.env.example`; os
+imprescindíveis para rodar a app localmente são):
 
 ```ini
-# Supabase local (gerados pelo `supabase start`)
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Supabase local — valores são impressos por `pnpm supabase:start`
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
-PATIENT_DATA_ENCRYPTION_KEY=<32-byte hex>
+SUPABASE_JWT_SECRET=...
+SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
-# QStash
+# pgcrypto para PII de paciente — 64 chars hex: `openssl rand -hex 32`
+PATIENT_DATA_ENCRYPTION_KEY=...
+
+# QStash (só obrigatório se você quiser o fluxo worker real; testes e E2E
+# driveam o worker in-process e não precisam)
 QSTASH_URL=https://qstash.upstash.io
 QSTASH_TOKEN=...
 QSTASH_CURRENT_SIGNING_KEY=...
 QSTASH_NEXT_SIGNING_KEY=...
 
-# Resend
+# Resend (idem — só para alertas reais; testes usam MSW)
 RESEND_API_KEY=...
 RESEND_FROM=alertas@dev.homio.com.br
 
-# GHL (valor exemplo; cada tenant terá seu secret em tenant_ghl_config)
+# GHL — cada tenant guarda o seu em tenant_ghl_config (encriptado). Este é
+# só o fallback do script de simulação.
 GHL_DEV_WEBHOOK_SECRET=dev-shared-secret
+
+# Platform operator (endpoint LGPD de anonimização e ops do catálogo TUSS)
+PLATFORM_OPERATOR_TOKEN=...
 ```
 
 ## 3. Subir banco local com Supabase CLI
 
 ```bash
-supabase start                          # sobe Postgres + Auth + Storage
-supabase db reset                       # aplica migrations em supabase/migrations/
-pnpm tsx scripts/seed-tuss.ts           # importa TUSS de charlesfgarcia/tabelas-ans
-pnpm tsx supabase/seed/demo-tenant.ts   # cria tenant demo + admin + preços
+pnpm supabase:start    # sobe Postgres + Auth + Storage em Docker
+pnpm supabase:reset    # aplica migrations em supabase/migrations/
+pnpm seed:tuss         # importa TUSS de charlesfgarcia/tabelas-ans
+pnpm seed:demo         # cria tenant demo + admin + preços
 ```
 
 Credenciais do tenant demo (já seedadas):
@@ -79,12 +92,12 @@ worker em `/api/workers/process-ghl-event`.
 Simule o webhook do GHL (o tenant demo tem `webhook_secret=dev-shared-secret`):
 
 ```bash
-pnpm tsx scripts/simulate-ghl-webhook.ts \
+pnpm tsx --env-file=.env.local scripts/simulate-ghl-webhook.ts \
   --tenant-slug clinica-demo \
   --event-id evt_0001 \
   --plano Unimed \
   --tuss 10101012 \
-  --medico-id dr-silva \
+  --medico-id CRM-12345 \
   --patient-name "Maria Teste" \
   --patient-cpf "123.456.789-00" \
   --patient-email "maria@test.com" \
@@ -182,7 +195,10 @@ pnpm supabase:gen-types      # regenera src/lib/db/types.ts
   executa `SET LOCAL app.actor_id = ...` antes do INSERT. Sem isso, o
   trigger grava `actor_id=null`.
 - **RLS bloqueando leitura legítima**: confirme que o JWT do usuário
-  contém `tenant_id` e `role` — log em `/api/_debug/jwt`.
+  contém `tenant_id` e `role` dentro do `app_metadata`. Você pode inspecionar
+  rodando `pnpm seed:demo` e batendo em `/auth/v1/token` do Supabase local
+  via curl com as credenciais do demo — o JWT retornado é um JWT padrão
+  (decode com `jwt.io` ou `node -e "console.log(JSON.parse(Buffer.from('<payload>','base64').toString()))"`).
 - **`exceljs` gerando arquivo corrompido**: garanta `res.headers.set(
   'Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')`
   e use `workbook.xlsx.writeBuffer()` (não `writeFile`).
