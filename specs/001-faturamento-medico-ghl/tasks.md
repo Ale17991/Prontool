@@ -212,7 +212,7 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Observability wiring
 
-- [ ] T099 [US1] Thread `trace_id` through the hot path: generated at webhook endpoint, added to QStash message headers, restored in worker; logged on every `logger.info`/`logger.error` call in `ingest-raw-event`, `process-event`, `create-from-event`
+- [x] T099 [US1] Thread `trace_id` through the hot path: generated at webhook endpoint, added to QStash message headers, restored in worker; logged on every `logger.info`/`logger.error` call in `ingest-raw-event`, `process-event`, `create-from-event`
 
 **Checkpoint**: US1 (MVP) fully functional and demonstrable. A webhook to a fresh tenant produces an appointment visible in the dashboard, with reversal, alerts dashboard, and DLQ reprocessing all working end-to-end.
 
@@ -249,9 +249,9 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### UI
 
-- [ ] T114 [US2] Create `src/app/(dashboard)/precos/page.tsx` — table of current prices; filters by procedure/plan; "New price" and row action "Edit"
-- [ ] T115 [P] [US2] Create `src/app/(dashboard)/precos/[id]/page.tsx` — detail + history + edit form that carries `expected_head_id` hidden; on 409 shows modal explaining conflict and reloads data
-- [ ] T116 [P] [US2] Create `src/app/(dashboard)/precos/novo/page.tsx` — form to create first version for a new (procedure, plan) combination
+- [x] T114 [US2] Create `src/app/(dashboard)/precos/page.tsx` — table of current prices; filters by procedure/plan; "New price" and row action "Edit"
+- [x] T115 [P] [US2] Create `src/app/(dashboard)/precos/[id]/page.tsx` — detail + history + edit form that carries `expected_head_id` hidden; on 409 shows modal explaining conflict and reloads data
+- [x] T116 [P] [US2] Create `src/app/(dashboard)/precos/novo/page.tsx` — form to create first version for a new (procedure, plan) combination
 
 ### Auxiliary cadastros (procedimentos + planos + auditoria) — belongs to US2 slice because admin must manage them to exercise US2 price flow
 
@@ -263,8 +263,8 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T163 [P] [US2] Implement `src/lib/core/plans/create.ts`, `list.ts`, `update-active.ts` (renome proibido; apenas `active` é mutável para preservar integridade histórica de relatórios)
 - [x] T164 [US2] Implement `src/app/api/procedimentos/route.ts` (GET + POST) and `src/app/api/procedimentos/[id]/route.ts` (PATCH) — admin-only writes
 - [x] T165 [US2] Implement `src/app/api/planos/route.ts` (GET + POST) and `src/app/api/planos/[id]/route.ts` (PATCH) — admin-only writes
-- [ ] T166 [US2] Create `src/app/(dashboard)/procedimentos/page.tsx` — list + add + toggle active (admin); recepcionista vê em modo read-only
-- [ ] T167 [US2] Create `src/app/(dashboard)/planos/page.tsx` — list + add + toggle active (admin); recepcionista read-only
+- [x] T166 [US2] Create `src/app/(dashboard)/procedimentos/page.tsx` — list + add + toggle active (admin); recepcionista vê em modo read-only
+- [x] T167 [US2] Create `src/app/(dashboard)/planos/page.tsx` — list + add + toggle active (admin); recepcionista read-only
 - [x] T168 [P] [US2] Contract test `tests/contract/auditoria.spec.ts` against `contracts/auditoria.yaml` (export CSV and JSON shapes)
 - [x] T169 [P] [US2] Integration test `tests/integration/audit-export-fields.spec.ts` — generates audit entries across several tracked tables; GET `/api/auditoria/export?format=csv` and `format=json`; asserts every required field (actor_id, actor_label, timestamp_utc, tenant_id, entity, entity_id, field, old_value, new_value, reason, ip, user_agent, result) appears in the output without transformation (validates FR-019)
 - [x] T170 [US2] Implement `src/lib/core/audit/export.ts` + `src/app/api/auditoria/route.ts` (GET, paginated; admin-only via `require-role(['admin'])`) + `src/app/api/auditoria/export/route.ts` (CSV streaming via `Response` body stream and JSON via buffer); plus UI action in `src/app/(dashboard)/auditoria/page.tsx` with date/entity/result filters and download buttons
@@ -290,20 +290,20 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Domain
 
-- [ ] T123 [P] [US3] Implement `src/lib/core/doctors/create.ts` (validates CRM format, optional `external_identifier`, creates initial `doctor_commission_history` row)
-- [ ] T124 [P] [US3] Implement `src/lib/core/doctors/list.ts` and `src/lib/core/doctors/update.ts` (update only allows `full_name`, `active`)
-- [ ] T125 [P] [US3] Implement `src/lib/core/commissions/create-version.ts` (new `doctor_commission_history` row; audit via trigger)
+- [x] T123 [P] [US3] Implement `src/lib/core/doctors/create.ts` (validates CRM format, optional `external_identifier`, creates initial `doctor_commission_history` row)
+- [x] T124 [P] [US3] Implement `src/lib/core/doctors/list.ts` and `src/lib/core/doctors/update.ts` (update only allows `full_name`, `active`)
+- [x] T125 [P] [US3] Implement `src/lib/core/commissions/create-version.ts` (new `doctor_commission_history` row; audit via trigger)
 
 ### API
 
-- [ ] T126 [US3] Implement `src/app/api/medicos/route.ts` GET + POST
-- [ ] T127 [US3] Implement `src/app/api/medicos/[id]/route.ts` GET + PATCH
-- [ ] T128 [US3] Implement `src/app/api/medicos/[id]/commission/route.ts` POST
+- [x] T126 [US3] Implement `src/app/api/medicos/route.ts` GET + POST
+- [x] T127 [US3] Implement `src/app/api/medicos/[id]/route.ts` GET + PATCH
+- [x] T128 [US3] Implement `src/app/api/medicos/[id]/commission/route.ts` POST
 
 ### UI
 
-- [ ] T129 [US3] Create `src/app/(dashboard)/medicos/page.tsx` (list + new)
-- [ ] T130 [P] [US3] Create `src/app/(dashboard)/medicos/[id]/page.tsx` (detail, commission history, new-commission form; admin-only controls)
+- [x] T129 [US3] Create `src/app/(dashboard)/medicos/page.tsx` (list + new)
+- [x] T130 [P] [US3] Create `src/app/(dashboard)/medicos/[id]/page.tsx` (detail, commission history, new-commission form; admin-only controls)
 
 **Checkpoint**: US1 + US2 + US3 independently functional.
 
@@ -328,18 +328,18 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 
 ### Domain
 
-- [ ] T139 [US4] Implement `src/lib/core/reports/monthly.ts` — queries `appointments_effective` with aggregation GROUP BY plan_id and GROUP BY doctor_id; returns the `MonthlyReport` shape from the contract
-- [ ] T140 [P] [US4] Implement `src/lib/core/reports/export-pdf.tsx` — `@react-pdf/renderer` components for cover + revenue table + production table + totals; consumes the same `MonthlyReport` DTO
-- [ ] T141 [P] [US4] Implement `src/lib/core/reports/export-excel.ts` — `exceljs` workbook with sheets "Receita por Plano", "Produção por Médico", "Totais"; same DTO source
+- [x] T139 [US4] Implement `src/lib/core/reports/monthly.ts` — queries `appointments_effective` with aggregation GROUP BY plan_id and GROUP BY doctor_id; returns the `MonthlyReport` shape from the contract
+- [x] T140 [P] [US4] Implement `src/lib/core/reports/export-pdf.tsx` — `@react-pdf/renderer` components for cover + revenue table + production table + totals; consumes the same `MonthlyReport` DTO
+- [x] T141 [P] [US4] Implement `src/lib/core/reports/export-excel.ts` — `exceljs` workbook with sheets "Receita por Plano", "Produção por Médico", "Totais"; same DTO source
 
 ### API
 
-- [ ] T142 [US4] Implement `src/app/api/relatorios/mensal/route.ts` GET — calls T139; `admin`/`financeiro` only
-- [ ] T143 [US4] Implement `src/app/api/relatorios/mensal/export/[formato]/route.ts` GET — dispatches to T140 or T141; streams response with correct MIME and `Content-Disposition: attachment`
+- [x] T142 [US4] Implement `src/app/api/relatorios/mensal/route.ts` GET — calls T139; `admin`/`financeiro` only
+- [x] T143 [US4] Implement `src/app/api/relatorios/mensal/export/[formato]/route.ts` GET — dispatches to T140 or T141; streams response with correct MIME and `Content-Disposition: attachment`
 
 ### UI
 
-- [ ] T144 [US4] Create `src/app/(dashboard)/relatorios/mensal/page.tsx` — period selector (default current month); tabs for revenue and production; "Exportar PDF" and "Exportar Excel" buttons
+- [x] T144 [US4] Create `src/app/(dashboard)/relatorios/mensal/page.tsx` — period selector (default current month); tabs for revenue and production; "Exportar PDF" and "Exportar Excel" buttons
 
 **Checkpoint**: All four user stories independently functional. MVP + full v1 feature scope complete.
 
