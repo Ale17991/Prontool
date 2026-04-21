@@ -166,7 +166,7 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T073 [P] [US1] Integration test `tests/integration/reversal-rbac.spec.ts` — recepcionista and profissional_saude receive 403 on reversal endpoint
 - [x] T074 [P] [US1] Integration test `tests/integration/alert-email-no-pii.spec.ts` — triggers a `webhook_rejected` alert involving a known patient; asserts the Resend payload body and subject contain no `cpf`, `full_name`, `phone`, `email` tokens (validates SC-013 / FR-037)
 - [x] T074a [P] [US1] Integration test `tests/integration/patient-update-no-appointment-drift.spec.ts` — create appointment for patient P; update P's phone/email via `upsert-from-ghl`; re-read appointment and assert `patient_id` unchanged, `frozen_amount_cents` unchanged, and nothing in `appointments` was mutated (validates FR-010b)
-- [ ] T075 [P] [US1] E2E test `tests/e2e/webhook-to-dashboard.spec.ts` — using Playwright, simulate webhook via API call, then navigate to `/dashboard/atendimentos` and assert the new row appears with correct values
+- [x] T075 [P] [US1] E2E test `tests/e2e/webhook-to-dashboard.spec.ts` — using Playwright, simulate webhook via API call, then navigate to `/dashboard/atendimentos` and assert the new row appears with correct values
 
 ### Integration layer (GHL & QStash)
 
@@ -233,7 +233,7 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T104 [P] [US2] Integration test `tests/integration/price-unique-collision.spec.ts` — two admins submit versions with exact same `valid_from` through a race that bypasses the chain head check; database UNIQUE constraint surfaces as 409 (belt-and-suspenders)
 - [x] T105 [P] [US2] Integration test `tests/integration/price-recepcionista-forbidden.spec.ts` — recepcionista POSTs price version → 403; audit row with `result='denied'`
 - [x] T106 [P] [US2] Integration test `tests/integration/price-tuss-invalid.spec.ts` — admin attempts to create procedure with unknown TUSS code → 400 from trigger; no row created
-- [ ] T107 [P] [US2] E2E test `tests/e2e/price-change.spec.ts` — Playwright: admin logs in, opens price, edits, saves; reopens detail and verifies new head + history list
+- [x] T107 [P] [US2] E2E test `tests/e2e/price-change.spec.ts` — Playwright: admin logs in, opens price, edits, saves; reopens detail and verifies new head + history list
 
 ### Domain
 
@@ -324,7 +324,7 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T135 [P] [US4] Integration test `tests/integration/report-rbac.spec.ts` — recepcionista receives 403 on GET relatório and GET export
 - [x] T136 [P] [US4] Integration test `tests/integration/report-empty-period.spec.ts` — month with zero appointments returns zeros, not error
 - [x] T137 [P] [US4] Performance test `tests/integration/report-performance.spec.ts` — seed 5 000 appointments for a single tenant-month; assert GET `/api/relatorios/mensal` completes under 30 s (SC-004)
-- [ ] T138 [P] [US4] E2E test `tests/e2e/monthly-report-export.spec.ts` — Playwright: admin opens report, selects period, clicks Export PDF and Export Excel; downloads complete and files are non-empty
+- [x] T138 [P] [US4] E2E test `tests/e2e/monthly-report-export.spec.ts` — Playwright: admin opens report, selects period, clicks Export PDF and Export Excel; downloads complete and files are non-empty
 
 ### Domain
 
