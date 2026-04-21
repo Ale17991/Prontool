@@ -132,6 +132,57 @@ export type Database = {
           },
         ]
       }
+      anamnesis_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          fields: Json
+          id: string
+          previous_version_id: string | null
+          tenant_id: string
+          title: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          fields: Json
+          id?: string
+          previous_version_id?: string | null
+          tenant_id: string
+          title: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          fields?: Json
+          id?: string
+          previous_version_id?: string | null
+          tenant_id?: string
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_templates_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "anamnesis_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamnesis_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_reversals: {
         Row: {
           appointment_id: string
@@ -367,6 +418,7 @@ export type Database = {
       }
       clinical_records: {
         Row: {
+          anamnesis_data: Json | null
           content: string | null
           created_at: string
           created_by: string
@@ -381,6 +433,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          anamnesis_data?: Json | null
           content?: string | null
           created_at?: string
           created_by: string
@@ -395,6 +448,7 @@ export type Database = {
           type: string
         }
         Update: {
+          anamnesis_data?: Json | null
           content?: string | null
           created_at?: string
           created_by?: string
@@ -507,6 +561,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "doctors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount_cents: number
+          category: string
+          competence_date: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string
+          frequency: string | null
+          id: string
+          recurring: boolean
+          supplier: string | null
+          tenant_id: string
+        }
+        Insert: {
+          amount_cents: number
+          category: string
+          competence_date: string
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description: string
+          frequency?: string | null
+          id?: string
+          recurring?: boolean
+          supplier?: string | null
+          tenant_id: string
+        }
+        Update: {
+          amount_cents?: number
+          category?: string
+          competence_date?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string
+          frequency?: string | null
+          id?: string
+          recurring?: boolean
+          supplier?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

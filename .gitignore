@@ -32,6 +32,10 @@ test-results/
 *.swp
 *.swo
 
+# AI scratch / local tool state
+.AIStudio/
+.claude/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db
