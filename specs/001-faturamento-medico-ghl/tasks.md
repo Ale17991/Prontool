@@ -354,7 +354,7 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T147 [P] Performance validation against SC-001a/b/c — benchmark webhook endpoint under synthetic load (`k6` or similar); record p50/p95/p99; document in `docs/performance-report.md`
 - [x] T148 [P] Performance validation against SC-004 (report under 30 s at 5 k appointments) already covered by T137; record numbers
 - [x] T149 [P] Security review on all Route Handlers: verify every handler calls `require-role` or is explicitly public (webhook, worker); grep for direct `supabase-service.ts` imports outside allowed paths; run `/security-review` skill on diff
-- [ ] T150 [P] Verify SC-011 — automated scan of `patients` row to confirm `*_enc` columns are bytea and never contain plaintext patterns (test `tests/integration/patient-encryption.spec.ts`)
+- [x] T150 [P] Verify SC-011 — automated scan of `patients` row to confirm `*_enc` columns are bytea and never contain plaintext patterns (test `tests/integration/patient-encryption.spec.ts`)
 - [x] T151 [P] Verify SC-013 — run the full test suite with Resend client captured; assert no captured e-mail body contains any PII tokens from a known seeded patient
 - [x] T152 [P] Document the charlesfgarcia/tabelas-ans license verification result in `docs/data-sources.md` and flip the production seed flag once approved by legal (resolves the R5 follow-up TODO from `plan.md`)
 - [x] T153 [P] Write `docs/operations.md` covering: on-call playbook for DLQ spikes, rotation of webhook secrets, TUSS catalog update procedure, alert-triage workflow
