@@ -52,6 +52,11 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // corresponding /api/ handlers.
   '/src/app/(dashboard)/analise/anamnese/',
   '/src/app/(dashboard)/analise/despesas/',
+  // Hub de convênios (/cadastros/precos) agrega contagem de price_versions
+  // por plano numa query só — mesmo padrão (tenant_id explícito). Idem
+  // /cadastros/planos/[id] que lista os procedimentos precificados do plano.
+  '/src/app/(dashboard)/cadastros/precos/',
+  '/src/app/(dashboard)/cadastros/planos/',
 ]
 
 function assertCallerAllowed(): void {

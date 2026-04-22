@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test'
 // Escrito como um test único para enxergar o fluxo inteiro num log só.
 
 test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', async ({ page }) => {
-  test.setTimeout(120_000)
+  test.setTimeout(300_000)
   const logs: string[] = []
   page.on('pageerror', (err) => logs.push(`[pageerror] ${err.message}`))
   page.on('console', (msg) => {
@@ -92,17 +92,59 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   // Data prevista: hoje
   const today = new Date().toISOString().slice(0, 10)
   await page.locator('#step_date').fill(today)
+
+  // Verificar preenchimento automático do valor estimado — paciente foi criado
+  // como "Particular" e o seed inclui Consulta × Particular R$ 400,00, então
+  // o PriceIndicator deve carregar e exibir o valor antes de submetermos.
+  const autoPriceLocator = page.locator('text=/R\\$\\s*400,00/').first()
+  await expect(autoPriceLocator).toBeVisible({ timeout: 15_000 })
+  console.log('[smoke] auto-price filled: R$ 400,00 (Consulta × Particular)')
+
   await page.getByRole('button', { name: /adicionar etapa/i }).click()
-  // Aguardar o form fechar e a etapa aparecer
   await page.waitForSelector('text=Sessão 1', { timeout: 45_000 })
   console.log('[smoke] treatment step created')
 
-  // ---- Verificar ficha clínica ----
+  // ---- Verificar ficha clínica (anamnese já aplicada) ----
   const anamneseBadge = page.getByText(/anamnese/i).first()
   await expect(anamneseBadge).toBeVisible({ timeout: 10_000 })
   const queixaResposta = page.getByText('Dor lombar há 3 dias').first()
   await expect(queixaResposta).toBeVisible({ timeout: 5_000 })
   console.log('[smoke] ficha clínica shows anamnese + response')
+
+  // ---- Adicionar registro de texto via UI ----
+  await page.getByRole('button', { name: /novo texto/i }).click()
+  await page.getByLabel(/^título$/i).fill('Evolução pós-consulta')
+  const noteContent = `Paciente relatou melhora parcial — smoke ${Date.now()}`
+  await page.getByLabel(/descrição/i).fill(noteContent)
+  await page.getByRole('button', { name: /salvar texto/i }).click()
+  await expect(page.getByText(noteContent)).toBeVisible({ timeout: 15_000 })
+  console.log('[smoke] text record added to ficha clínica')
+
+  // ---- Hub de convênios → abrir tabela de Unimed ----
+  await page.goto('/cadastros/planos')
+  await expect(page.getByRole('heading', { name: /convênios|Tabelas/i }).first()).toBeVisible({ timeout: 15_000 })
+  // Click the "Abrir" link on the Unimed row — Unimed é seedado.
+  const unimedRow = page.getByRole('row').filter({ hasText: /Unimed/i }).first()
+  await expect(unimedRow).toBeVisible({ timeout: 10_000 })
+  await unimedRow.getByRole('link', { name: /abrir/i }).click()
+  await page.waitForURL(/\/cadastros\/planos\/[0-9a-f-]{36}$/, { timeout: 30_000 })
+  await expect(page.getByRole('heading', { name: 'Unimed' })).toBeVisible({ timeout: 10_000 })
+  // Seed has price for Consulta × Unimed (R$ 250,00) and Proc B × Unimed (R$ 550,00)
+  await expect(page.getByText(/R\$\s*250,00/).first()).toBeVisible({ timeout: 10_000 })
+  console.log('[smoke] plano detail shows procedures + prices')
+
+  // ---- Relatório mensal ----
+  const now = new Date()
+  const yy = now.getUTCFullYear()
+  const mm = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const from = `${yy}-${mm}-01`
+  const lastDay = new Date(Date.UTC(yy, now.getUTCMonth() + 1, 0)).getUTCDate()
+  const to = `${yy}-${mm}-${String(lastDay).padStart(2, '0')}`
+  await page.goto(`/analise/relatorios/mensal?from=${from}&to=${to}`)
+  await expect(page.getByRole('heading', { name: 'Relatório mensal' })).toBeVisible({
+    timeout: 30_000,
+  })
+  console.log('[smoke] monthly report renders for current month')
 
   // ---- Relatório dos logs de erro capturados ----
   if (logs.length > 0) {
