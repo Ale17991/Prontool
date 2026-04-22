@@ -27,10 +27,14 @@ export default async function NovoPrecoPage() {
 
   const supabase = createSupabaseServerClient()
   const [procRes, planRes] = await Promise.all([
+    // Preço por convênio só faz sentido para procedimentos cobertos — os que
+    // têm covered_by_plan=false são sempre particulares (valor fica no
+    // procedimento, não em price_versions).
     supabase
       .from('procedures')
       .select('id, tuss_code, display_name')
       .eq('active', true)
+      .eq('covered_by_plan', true)
       .order('tuss_code'),
     supabase.from('health_plans').select('id, name').eq('active', true).order('name'),
   ])

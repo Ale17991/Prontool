@@ -12,6 +12,8 @@ export interface ListedProcedure {
   displayName: string | null
   active: boolean
   createdAt: string
+  defaultAmountCents: number | null
+  coveredByPlan: boolean
 }
 
 interface JoinedRow {
@@ -20,19 +22,24 @@ interface JoinedRow {
   display_name: string | null
   active: boolean
   created_at: string
+  default_amount_cents: number | null
+  covered_by_plan: boolean
   tuss_codes: { description: string } | null
 }
 
 export async function listProcedures(
   supabase: SupabaseClient<Database>,
-  args: { tenantId: string; includeInactive?: boolean },
+  args: { tenantId: string; includeInactive?: boolean; onlyCoveredByPlan?: boolean },
 ): Promise<ListedProcedure[]> {
   let q = supabase
     .from('procedures')
-    .select('id, tuss_code, display_name, active, created_at, tuss_codes!procedures_tuss_code_fkey(description)')
+    .select(
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description)',
+    )
     .eq('tenant_id', args.tenantId)
     .order('created_at', { ascending: false })
   if (!args.includeInactive) q = q.eq('active', true)
+  if (args.onlyCoveredByPlan) q = q.eq('covered_by_plan', true)
 
   const { data, error } = await q
   if (error) throw new Error(`listProcedures failed: ${error.message}`)
@@ -44,5 +51,7 @@ export async function listProcedures(
     displayName: r.display_name,
     active: r.active,
     createdAt: r.created_at,
+    defaultAmountCents: r.default_amount_cents,
+    coveredByPlan: r.covered_by_plan,
   }))
 }

@@ -44,7 +44,9 @@ export function PatientPlanEditor({
     const res = await fetch(`/api/pacientes/${patientId}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ plan_id: selected || null }),
+      body: JSON.stringify({
+        plan_id: selected === '' || selected === '__none__' ? null : selected,
+      }),
     })
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
@@ -83,27 +85,27 @@ export function PatientPlanEditor({
 
   return (
     <div className="flex items-center gap-2">
+      <Select value={selected || '__none__'} onValueChange={setSelected}>
+        <SelectTrigger className="h-8 w-56 text-xs">
+          <SelectValue placeholder="Selecione…" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none__">Sem plano (particular)</SelectItem>
+          {healthPlans.map((hp) => (
+            <SelectItem key={hp.id} value={hp.id}>
+              {hp.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       {healthPlans.length === 0 ? (
-        <p className="text-[11px] font-semibold text-amber-700">
-          Nenhum plano ativo.{' '}
-          <Link href="/cadastros/planos" className="underline">
-            Cadastrar
-          </Link>
-        </p>
-      ) : (
-        <Select value={selected} onValueChange={setSelected}>
-          <SelectTrigger className="h-8 w-56 text-xs">
-            <SelectValue placeholder="Selecione…" />
-          </SelectTrigger>
-          <SelectContent>
-            {healthPlans.map((hp) => (
-              <SelectItem key={hp.id} value={hp.id}>
-                {hp.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+        <Link
+          href="/cadastros/planos"
+          className="text-[10px] font-semibold text-amber-700 underline"
+        >
+          Cadastrar plano
+        </Link>
+      ) : null}
       <button
         type="button"
         onClick={save}

@@ -14,6 +14,8 @@ export const runtime = 'nodejs'
 const patchSchema = z.object({
   display_name: z.string().nullable().optional(),
   active: z.boolean().optional(),
+  default_amount_cents: z.number().int().nonnegative().nullable().optional(),
+  covered_by_plan: z.boolean().optional(),
 })
 
 export async function PATCH(
@@ -41,10 +43,22 @@ export async function PATCH(
       patch: {
         ...(parsed.data.display_name !== undefined ? { displayName: parsed.data.display_name } : {}),
         ...(parsed.data.active !== undefined ? { active: parsed.data.active } : {}),
+        ...(parsed.data.default_amount_cents !== undefined
+          ? { defaultAmountCents: parsed.data.default_amount_cents }
+          : {}),
+        ...(parsed.data.covered_by_plan !== undefined
+          ? { coveredByPlan: parsed.data.covered_by_plan }
+          : {}),
       },
     })
     return NextResponse.json(
-      { id: updated.id, display_name: updated.displayName, active: updated.active },
+      {
+        id: updated.id,
+        display_name: updated.displayName,
+        active: updated.active,
+        default_amount_cents: updated.defaultAmountCents,
+        covered_by_plan: updated.coveredByPlan,
+      },
       { status: 200 },
     )
   } catch (err) {

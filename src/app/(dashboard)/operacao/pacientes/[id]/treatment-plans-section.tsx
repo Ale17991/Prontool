@@ -48,9 +48,16 @@ export interface PlanDetailStep {
   scheduledDate: string | null
   completedAt: string | null
   createdAt: string
-  procedure: { id: string; tussCode: string; displayName: string | null }
+  procedure: {
+    id: string
+    tussCode: string
+    displayName: string | null
+    coveredByPlan: boolean
+    defaultAmountCents: number | null
+  }
   healthPlan: { id: string; name: string } | null
   currentPriceCents: number | null
+  priceSource: 'convenio' | 'particular' | null
   pricePlanId: string | null
 }
 
@@ -68,6 +75,8 @@ export interface ProcedureOption {
   id: string
   tussCode: string
   displayName: string | null
+  coveredByPlan: boolean
+  defaultAmountCents: number | null
 }
 
 export interface HealthPlanOption {
@@ -393,10 +402,12 @@ function PlanDetailBlock({
   const completed = detail.steps.filter((s) => s.status === 'concluido').length
   const cancelled = detail.steps.filter((s) => s.status === 'cancelado').length
 
-  const totalCents = pendingSteps.reduce(
-    (acc, s) => acc + (s.currentPriceCents ?? 0),
-    0,
-  )
+  const convenioCents = pendingSteps
+    .filter((s) => s.priceSource === 'convenio')
+    .reduce((acc, s) => acc + (s.currentPriceCents ?? 0), 0)
+  const particularCents = pendingSteps
+    .filter((s) => s.priceSource === 'particular')
+    .reduce((acc, s) => acc + (s.currentPriceCents ?? 0), 0)
   const unpricedCount = pendingSteps.filter((s) => s.currentPriceCents === null).length
 
   return (
@@ -417,13 +428,17 @@ function PlanDetailBlock({
         />
         <MiniStat
           label="Valor estimado"
-          value={formatCurrency(totalCents)}
+          value={
+            convenioCents > 0 || particularCents > 0
+              ? `Convênio: ${formatCurrency(convenioCents)} · Particular: ${formatCurrency(particularCents)}`
+              : pending === 0
+                ? '—'
+                : 'sem valor calculado'
+          }
           sub={
             unpricedCount > 0
-              ? `* valor parcial — ${unpricedCount} sem preço`
-              : pending === 0
-                ? 'nenhuma etapa pendente'
-                : undefined
+              ? `* valor parcial — ${unpricedCount} sem preço cadastrado`
+              : undefined
           }
           accent="slate"
         />
@@ -487,6 +502,83 @@ type PriceState =
   | { status: 'loading' }
   | { status: 'found'; amountCents: number }
   | { status: 'missing' }
+
+function PriceIndicator({
+  particularOnly,
+  shouldFallbackToParticular,
+  procedure,
+  priceState,
+}: {
+  particularOnly: boolean
+  shouldFallbackToParticular: boolean
+  procedure: ProcedureOption | null
+  priceState: PriceState
+}) {
+  if (!procedure) {
+    return (
+      <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        Selecione o procedimento para ver o valor estimado.
+      </p>
+    )
+  }
+
+  // Particular path (ou procedimento não-coberto, ou coberto sem plano de saúde
+  // escolhido): valor vem do default_amount_cents do procedimento.
+  if (particularOnly || shouldFallbackToParticular) {
+    if (procedure.defaultAmountCents !== null) {
+      return (
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+          {formatCurrency(procedure.defaultAmountCents)}
+          <span className="ml-2 font-normal text-amber-700/80">
+            (valor particular do procedimento)
+          </span>
+        </p>
+      )
+    }
+    return (
+      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+        Sem valor particular cadastrado neste procedimento.{' '}
+        <Link href="/cadastros/procedimentos" className="underline">
+          Cadastrar valor particular
+        </Link>
+      </p>
+    )
+  }
+
+  // Convênio path.
+  if (priceState.status === 'loading') {
+    return (
+      <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        Consultando preço vigente…
+      </p>
+    )
+  }
+  if (priceState.status === 'found') {
+    return (
+      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+        {formatCurrency(priceState.amountCents)}
+        <span className="ml-2 font-normal text-emerald-700/80">
+          (preço vigente para essa combinação)
+        </span>
+      </p>
+    )
+  }
+  if (priceState.status === 'missing') {
+    return (
+      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+        Sem preço cadastrado para este procedimento neste plano.{' '}
+        <Link href="/cadastros/precos/novo" className="underline">
+          Cadastrar preço
+        </Link>
+      </p>
+    )
+  }
+  return (
+    <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+      Selecione o plano para ver o valor do convênio.
+    </p>
+  )
+}
 
 function useFetchCurrentPrice({
   procedureId,
@@ -611,17 +703,29 @@ function StepRow({
           {step.completedAt ? ` · Concluído em ${formatDate(step.completedAt)}` : ''}
         </p>
         {step.status === 'pendente' ? (
-          <p
-            className={
-              step.currentPriceCents !== null
-                ? 'text-[11px] font-semibold text-slate-700'
-                : 'text-[11px] font-semibold text-amber-700'
-            }
-          >
-            {step.currentPriceCents !== null
-              ? `Valor estimado: ${formatCurrency(step.currentPriceCents)}`
-              : 'Sem preço cadastrado para este procedimento neste plano'}
-          </p>
+          step.currentPriceCents !== null ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[11px] font-semibold text-slate-700">
+                Valor estimado: {formatCurrency(step.currentPriceCents)}
+              </p>
+              {step.priceSource === 'particular' ? (
+                <Badge
+                  variant="outline"
+                  className="h-5 border-amber-300 px-1.5 text-[10px] text-amber-700"
+                >
+                  Particular
+                </Badge>
+              ) : step.priceSource === 'convenio' ? (
+                <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+                  Convênio
+                </Badge>
+              ) : null}
+            </div>
+          ) : (
+            <p className="text-[11px] font-semibold text-amber-700">
+              Sem preço cadastrado para este procedimento neste plano
+            </p>
+          )
         ) : null}
         {step.notes ? (
           <p className="mt-1 flex items-start gap-1.5 text-xs text-slate-600">
@@ -689,8 +793,20 @@ function AddStepForm({
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Preço vigente para (procedure, plan, hoje). null = não consultado ainda
-  // ou sem resultado; a gente deriva qual dos dois.
+  const selectedProcedure = procedures.find((p) => p.id === procedureId) ?? null
+  // Regra idêntica à de leitura em getTreatmentPlan — decide quando a etapa
+  // é particular (pula o fetch) versus convênio (fetch ao /api/precos/vigente).
+  const particularOnly = selectedProcedure && !selectedProcedure.coveredByPlan
+  // Usuário escolheu "Sem plano (particular)" explicitamente — não é UUID, então
+  // não dispara busca de convênio e cai no valor particular do procedimento.
+  const isSentinelNoPlan = healthPlanId === '__none__'
+  const effectivePlanForConvenio =
+    particularOnly || isSentinelNoPlan ? '' : healthPlanId
+  const shouldFallbackToParticular =
+    !!selectedProcedure &&
+    selectedProcedure.coveredByPlan &&
+    (!healthPlanId || isSentinelNoPlan)
+
   const [priceState, setPriceState] = useState<
     | { status: 'idle' }
     | { status: 'loading' }
@@ -698,10 +814,11 @@ function AddStepForm({
     | { status: 'missing' }
   >({ status: 'idle' })
 
-  // Busca preço sempre que procedure e plano estiverem definidos.
-  // useEffect via React quando muda o par. Simples: efeito encadeado.
-  // Usar import de useEffect foi omitido; puxamos aqui.
-  useFetchCurrentPrice({ procedureId, healthPlanId, setPriceState })
+  useFetchCurrentPrice({
+    procedureId,
+    healthPlanId: effectivePlanForConvenio,
+    setPriceState,
+  })
 
   // Typeahead simples para procedimento: filtra lista carregada.
   const [search, setSearch] = useState('')
@@ -735,7 +852,10 @@ function AddStepForm({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           procedure_id: procedureId,
-          health_plan_id: healthPlanId || null,
+          // Procedimento particular-only (ou "sem plano" explícito) não
+          // persiste plano — valor sempre vem do default_amount_cents.
+          health_plan_id:
+            particularOnly || isSentinelNoPlan || !healthPlanId ? null : healthPlanId,
           title: title.trim(),
           notes: notes.trim() || null,
           scheduled_date: scheduledDate || null,
@@ -800,54 +920,48 @@ function AddStepForm({
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="step_plan">
-          Plano de saúde
-          {patientPlanName ? (
-            <span className="ml-1 text-[10px] font-normal text-slate-400">
-              (padrão: {patientPlanName})
-            </span>
-          ) : null}
-        </Label>
-        <Select value={healthPlanId} onValueChange={setHealthPlanId}>
-          <SelectTrigger id="step_plan">
-            <SelectValue placeholder="Sem plano" />
-          </SelectTrigger>
-          <SelectContent>
-            {healthPlans.map((hp) => (
-              <SelectItem key={hp.id} value={hp.id}>
-                {hp.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {particularOnly ? (
+        <div className="space-y-1.5">
+          <Label>Plano de saúde</Label>
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+            Este procedimento é particular — sempre cobrado no valor particular,
+            independente do plano do paciente.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          <Label htmlFor="step_plan">
+            Plano de saúde
+            {patientPlanName ? (
+              <span className="ml-1 text-[10px] font-normal text-slate-400">
+                (padrão: {patientPlanName})
+              </span>
+            ) : null}
+          </Label>
+          <Select value={healthPlanId} onValueChange={setHealthPlanId}>
+            <SelectTrigger id="step_plan">
+              <SelectValue placeholder="Sem plano" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Sem plano (particular)</SelectItem>
+              {healthPlans.map((hp) => (
+                <SelectItem key={hp.id} value={hp.id}>
+                  {hp.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-1.5 md:col-span-2">
         <Label>Valor estimado</Label>
-        {priceState.status === 'found' ? (
-          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
-            {formatCurrency(priceState.amountCents)}
-            <span className="ml-2 font-normal text-emerald-700/80">
-              (preço vigente para essa combinação)
-            </span>
-          </p>
-        ) : priceState.status === 'loading' ? (
-          <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            Consultando preço vigente…
-          </p>
-        ) : priceState.status === 'missing' ? (
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-            Sem preço cadastrado para este procedimento neste plano.{' '}
-            <Link href="/cadastros/precos/novo" className="underline">
-              Cadastrar preço
-            </Link>
-          </p>
-        ) : (
-          <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            Selecione procedimento e plano para ver o valor estimado.
-          </p>
-        )}
+        <PriceIndicator
+          particularOnly={!!particularOnly}
+          shouldFallbackToParticular={shouldFallbackToParticular}
+          procedure={selectedProcedure}
+          priceState={priceState}
+        />
       </div>
 
       <div className="space-y-1.5">

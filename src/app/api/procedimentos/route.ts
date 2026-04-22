@@ -21,11 +21,17 @@ const querySchema = z.object({
     .union([z.string(), z.boolean()])
     .optional()
     .transform((v) => v === true || v === 'true'),
+  only_covered_by_plan: z
+    .union([z.string(), z.boolean()])
+    .optional()
+    .transform((v) => v === true || v === 'true'),
 })
 
 const createSchema = z.object({
   tuss_code: z.string().min(1),
   display_name: z.string().nullable().optional(),
+  default_amount_cents: z.number().int().nonnegative().nullable().optional(),
+  covered_by_plan: z.boolean().optional(),
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -45,6 +51,7 @@ export async function GET(req: Request): Promise<Response> {
     const list = await listProcedures(supabase, {
       tenantId: session.tenantId,
       includeInactive: parsed.data.include_inactive,
+      onlyCoveredByPlan: parsed.data.only_covered_by_plan,
     })
     return NextResponse.json(list, { status: 200 })
   } catch (err) {
@@ -72,6 +79,8 @@ export async function POST(req: Request): Promise<Response> {
         tenantId: session.tenantId,
         tussCode: parsed.data.tuss_code,
         displayName: parsed.data.display_name ?? null,
+        defaultAmountCents: parsed.data.default_amount_cents ?? null,
+        coveredByPlan: parsed.data.covered_by_plan ?? true,
       })
       return NextResponse.json(
         {
@@ -80,6 +89,8 @@ export async function POST(req: Request): Promise<Response> {
           display_name: created.displayName,
           active: created.active,
           created_at: created.createdAt,
+          default_amount_cents: created.defaultAmountCents,
+          covered_by_plan: created.coveredByPlan,
         },
         { status: 201 },
       )

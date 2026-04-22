@@ -30,6 +30,8 @@ export function NewProcedureForm() {
   const [results, setResults] = useState<TussHit[]>([])
   const [selected, setSelected] = useState<TussHit | null>(null)
   const [displayName, setDisplayName] = useState('')
+  const [defaultAmount, setDefaultAmount] = useState('')
+  const [coveredByPlan, setCoveredByPlan] = useState(true)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -68,6 +70,19 @@ export function NewProcedureForm() {
     setPending(true)
     setError(null)
     setSuccess(null)
+
+    let defaultAmountCents: number | null = null
+    const trimmedAmount = defaultAmount.trim().replace(',', '.')
+    if (trimmedAmount.length > 0) {
+      const parsed = Number(trimmedAmount)
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        setPending(false)
+        setError('Valor particular inválido.')
+        return
+      }
+      defaultAmountCents = Math.round(parsed * 100)
+    }
+
     try {
       const res = await fetch('/api/procedimentos', {
         method: 'POST',
@@ -75,6 +90,8 @@ export function NewProcedureForm() {
         body: JSON.stringify({
           tuss_code: selected.code,
           display_name: displayName.trim() || null,
+          default_amount_cents: defaultAmountCents,
+          covered_by_plan: coveredByPlan,
         }),
       })
       if (!res.ok) {
@@ -87,6 +104,8 @@ export function NewProcedureForm() {
       setSelected(null)
       setSearchValue('')
       setDisplayName('')
+      setDefaultAmount('')
+      setCoveredByPlan(true)
       setResults([])
       router.refresh()
     } catch (err) {
@@ -181,6 +200,38 @@ export function NewProcedureForm() {
           maxLength={120}
         />
       </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="default-amount" className="text-xs">
+          Valor particular (R$) <span className="text-slate-400">(opcional)</span>
+        </Label>
+        <Input
+          id="default-amount"
+          inputMode="decimal"
+          placeholder="Ex.: 180,00"
+          value={defaultAmount}
+          onChange={(e) => setDefaultAmount(e.target.value)}
+        />
+        <p className="text-[10px] text-slate-500">
+          Usado quando o paciente não tem plano ou o procedimento não é coberto.
+        </p>
+      </div>
+
+      <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs">
+        <input
+          type="checkbox"
+          checked={coveredByPlan}
+          onChange={(e) => setCoveredByPlan(e.target.checked)}
+          className="mt-0.5 h-4 w-4"
+        />
+        <span>
+          <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
+          <span className="block text-slate-500">
+            Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas
+            de preço por convênio e usa o valor particular acima no plano de tratamento.
+          </span>
+        </span>
+      </label>
 
       <Button type="submit" disabled={pending || !selected} className="w-full">
         {pending ? 'Salvando…' : 'Cadastrar procedimento'}

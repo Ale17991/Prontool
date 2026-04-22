@@ -797,8 +797,10 @@ export type Database = {
       procedures: {
         Row: {
           active: boolean
+          covered_by_plan: boolean
           created_at: string
           created_by: string | null
+          default_amount_cents: number | null
           display_name: string | null
           id: string
           tenant_id: string
@@ -806,8 +808,10 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          covered_by_plan?: boolean
           created_at?: string
           created_by?: string | null
+          default_amount_cents?: number | null
           display_name?: string | null
           id?: string
           tenant_id: string
@@ -815,8 +819,10 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          covered_by_plan?: boolean
           created_at?: string
           created_by?: string | null
+          default_amount_cents?: number | null
           display_name?: string | null
           id?: string
           tenant_id?: string

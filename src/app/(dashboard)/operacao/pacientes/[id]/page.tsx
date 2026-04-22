@@ -83,7 +83,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   const [proceduresRes, healthPlansRes] = await Promise.all([
     serviceClient
       .from('procedures')
-      .select('id, tuss_code, display_name')
+      .select('id, tuss_code, display_name, covered_by_plan, default_amount_cents')
       .eq('tenant_id', session.tenantId)
       .eq('active', true)
       .order('display_name', { ascending: true, nullsFirst: false })
@@ -99,6 +99,8 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     id: p.id,
     tussCode: p.tuss_code,
     displayName: p.display_name,
+    coveredByPlan: p.covered_by_plan,
+    defaultAmountCents: p.default_amount_cents,
   }))
   const healthPlansList: HealthPlanOption[] = (healthPlansRes.data ?? []).map((hp) => ({
     id: hp.id,

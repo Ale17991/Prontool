@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatDate } from '@/lib/utils'
 import { NewProcedureForm } from './new-procedure-form'
 import { ToggleActiveButton } from './toggle-active-button'
+import { ProcedureMetaEditor } from './procedure-meta-editor'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,8 @@ interface JoinedRow {
   display_name: string | null
   active: boolean
   created_at: string
+  default_amount_cents: number | null
+  covered_by_plan: boolean
   tuss_codes: { description: string } | null
 }
 
@@ -29,7 +32,7 @@ export default async function ProcedimentosPage() {
   const { data: rawRows, error } = await supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, tuss_codes!procedures_tuss_code_fkey(description)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description)',
     )
     .order('created_at', { ascending: false })
     .limit(500)
@@ -93,6 +96,7 @@ export default async function ProcedimentosPage() {
                   <TableRow>
                     <TableHead>TUSS</TableHead>
                     <TableHead>Descrição</TableHead>
+                    <TableHead>Cobertura / Particular</TableHead>
                     <TableHead>Cadastrado</TableHead>
                     <TableHead>Status</TableHead>
                     {canWrite ? <TableHead className="text-right" /> : null}
@@ -111,6 +115,35 @@ export default async function ProcedimentosPage() {
                         {r.display_name && r.tuss_codes?.description ? (
                           <p className="text-[11px] text-slate-500">{r.tuss_codes.description}</p>
                         ) : null}
+                      </TableCell>
+                      <TableCell>
+                        {canWrite ? (
+                          <ProcedureMetaEditor
+                            procedureId={r.id}
+                            defaultAmountCents={r.default_amount_cents}
+                            coveredByPlan={r.covered_by_plan}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 text-[11px]">
+                            <Badge
+                              variant={r.covered_by_plan ? 'secondary' : 'outline'}
+                              className={r.covered_by_plan ? '' : 'border-amber-300 text-amber-700'}
+                            >
+                              {r.covered_by_plan ? 'Coberto por planos' : 'Particular'}
+                            </Badge>
+                            <span className="text-slate-500">
+                              Part.:{' '}
+                              <span className="font-bold tabular-nums text-slate-700">
+                                {r.default_amount_cents !== null
+                                  ? new Intl.NumberFormat('pt-BR', {
+                                      style: 'currency',
+                                      currency: 'BRL',
+                                    }).format(r.default_amount_cents / 100)
+                                  : '—'}
+                              </span>
+                            </span>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-slate-700">{formatDate(r.created_at)}</TableCell>
                       <TableCell>

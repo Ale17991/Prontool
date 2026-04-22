@@ -12,6 +12,10 @@ export interface CreateProcedureInput {
   tenantId: string
   tussCode: string
   displayName?: string | null
+  /** Valor particular raiz em centavos. null = sem valor particular definido. */
+  defaultAmountCents?: number | null
+  /** false = procedimento é sempre particular (não aparece em tabelas por convênio). */
+  coveredByPlan?: boolean
 }
 
 export interface ProcedureRow {
@@ -20,6 +24,8 @@ export interface ProcedureRow {
   displayName: string | null
   active: boolean
   createdAt: string
+  defaultAmountCents: number | null
+  coveredByPlan: boolean
 }
 
 export async function createProcedure(
@@ -32,8 +38,10 @@ export async function createProcedure(
       tenant_id: input.tenantId,
       tuss_code: input.tussCode,
       display_name: input.displayName ?? null,
+      default_amount_cents: input.defaultAmountCents ?? null,
+      covered_by_plan: input.coveredByPlan ?? true,
     })
-    .select('id, tuss_code, display_name, active, created_at')
+    .select('id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan')
     .single()
 
   if (error) {
@@ -53,5 +61,7 @@ export async function createProcedure(
     displayName: data.display_name,
     active: data.active,
     createdAt: data.created_at,
+    defaultAmountCents: data.default_amount_cents,
+    coveredByPlan: data.covered_by_plan,
   }
 }

@@ -45,7 +45,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
       return
     }
     if (!planId) {
-      setError('Selecione um plano de saúde.')
+      setError('Selecione um plano de saúde ou "Sem plano (particular)".')
       return
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -64,7 +64,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           phone: phone.trim() || null,
           email: email.trim() || null,
           birth_date: birthDate || null,
-          plan_id: planId,
+          plan_id: planId === '__none__' ? null : planId,
         }),
       })
       const body = (await res.json().catch(() => ({}))) as {
@@ -143,27 +143,28 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         <Label htmlFor="plan_id">
           Plano de saúde <span className="text-rose-500">*</span>
         </Label>
+        <Select value={planId} onValueChange={setPlanId}>
+          <SelectTrigger id="plan_id">
+            <SelectValue placeholder="Selecione um plano…" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Sem plano (particular)</SelectItem>
+            {healthPlans.map((hp) => (
+              <SelectItem key={hp.id} value={hp.id}>
+                {hp.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {healthPlans.length === 0 ? (
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-            Nenhum plano de saúde ativo no tenant.{' '}
+          <p className="text-[11px] text-slate-500">
+            Nenhum plano ativo cadastrado.{' '}
             <Link href="/cadastros/planos" className="underline">
               Cadastrar plano
             </Link>
+            {' '}ou escolha &quot;Sem plano (particular)&quot;.
           </p>
-        ) : (
-          <Select value={planId} onValueChange={setPlanId}>
-            <SelectTrigger id="plan_id">
-              <SelectValue placeholder="Selecione um plano…" />
-            </SelectTrigger>
-            <SelectContent>
-              {healthPlans.map((hp) => (
-                <SelectItem key={hp.id} value={hp.id}>
-                  {hp.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        ) : null}
       </div>
 
       {error ? (
