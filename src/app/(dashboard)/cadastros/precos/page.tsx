@@ -1,224 +1,147 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ChevronRight, DollarSign, Filter, Plus } from 'lucide-react'
+import { ChevronRight, DollarSign, FileText } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
-import { createSupabaseServerClient } from '@/lib/db/supabase-server'
-import { can } from '@/lib/auth/rbac'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { formatCurrency } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
-interface PageProps {
-  searchParams: {
-    procedure_id?: string
-    plan_id?: string
-    as_of?: string
-  }
+interface PlanRow {
+  id: string
+  name: string
+  active: boolean
 }
 
-interface PriceRow {
-  id: string
+interface PriceVersionRow {
   procedure_id: string
   plan_id: string
   amount_cents: number
   valid_from: string
   created_at: string
-  procedures: { tuss_code: string; display_name: string | null } | null
-  health_plans: { name: string } | null
 }
 
-interface ProcedureOption {
-  id: string
-  tuss_code: string
-  display_name: string | null
-}
-
-interface PlanOption {
-  id: string
-  name: string
-}
-
-export default async function PrecosPage({ searchParams }: PageProps) {
+export default async function PrecosHubPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const asOf = (searchParams.as_of?.match(/^\d{4}-\d{2}-\d{2}$/) ? searchParams.as_of : null) ??
-    new Date().toISOString().slice(0, 10)
-  const supabase = createSupabaseServerClient()
+  const supabase = createSupabaseServiceClient()
+  const asOf = new Date().toISOString().slice(0, 10)
 
-  let q = supabase
-    .from('price_versions')
-    .select(
-      'id, procedure_id, plan_id, amount_cents, valid_from, created_at, procedures(tuss_code, display_name), health_plans(name)',
-    )
-    .lte('valid_from', asOf)
-    .order('valid_from', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(1000)
-  if (searchParams.procedure_id) q = q.eq('procedure_id', searchParams.procedure_id)
-  if (searchParams.plan_id) q = q.eq('plan_id', searchParams.plan_id)
-
-  const [pricesRes, proceduresRes, plansRes] = await Promise.all([
-    q,
-    supabase.from('procedures').select('id, tuss_code, display_name').eq('active', true).order('tuss_code'),
-    supabase.from('health_plans').select('id, name').eq('active', true).order('name'),
+  const [plansRes, pricesRes] = await Promise.all([
+    supabase
+      .from('health_plans')
+      .select('id, name, active')
+      .eq('tenant_id', session.tenantId)
+      .order('active', { ascending: false })
+      .order('name', { ascending: true }),
+    supabase
+      .from('price_versions')
+      .select('procedure_id, plan_id, amount_cents, valid_from, created_at')
+      .eq('tenant_id', session.tenantId)
+      .lte('valid_from', asOf)
+      .order('valid_from', { ascending: false })
+      .order('created_at', { ascending: false }),
   ])
+  if (plansRes.error) throw new Error(`plans lookup: ${plansRes.error.message}`)
+  if (pricesRes.error) throw new Error(`price lookup: ${pricesRes.error.message}`)
 
-  const rows = (pricesRes.data ?? []) as unknown as PriceRow[]
-  const procedures = (proceduresRes.data ?? []) as ProcedureOption[]
-  const plans = (plansRes.data ?? []) as PlanOption[]
+  const plans = (plansRes.data ?? []) as PlanRow[]
+  const prices = (pricesRes.data ?? []) as PriceVersionRow[]
 
-  // Reduce to one head per (procedure, plan)
-  const seen = new Set<string>()
-  const heads: PriceRow[] = []
-  for (const r of rows) {
-    const key = `${r.procedure_id}::${r.plan_id}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    heads.push(r)
+  // Para cada plano, reduz pra uma head por procedure_id (primeira ocorrência
+  // após o ORDER BY já é a vigente). Depois agrega contagem e ticket médio.
+  const stats = new Map<string, { count: number; total: number }>()
+  const seenPairs = new Set<string>()
+  for (const p of prices) {
+    const pairKey = `${p.plan_id}::${p.procedure_id}`
+    if (seenPairs.has(pairKey)) continue
+    seenPairs.add(pairKey)
+    const current = stats.get(p.plan_id) ?? { count: 0, total: 0 }
+    current.count += 1
+    current.total += p.amount_cents
+    stats.set(p.plan_id, current)
   }
-
-  const canWrite = can(session.role, 'price.write')
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">Tabela de preços</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {heads.length} combinação{heads.length === 1 ? '' : 'ões'} com preço vigente em{' '}
-            <span className="font-semibold text-slate-700">{formatDate(asOf)}</span>
-          </p>
-        </div>
-        {canWrite ? (
-          <Link
-            href="/cadastros/precos/novo"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4" />
-            Novo preço
-          </Link>
-        ) : null}
+      <div>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">
+          Tabelas de Convênio
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {plans.length} convênio{plans.length === 1 ? '' : 's'} cadastrado
+          {plans.length === 1 ? '' : 's'}. Cada convênio tem sua própria tabela de
+          procedimentos com valores — clique em um para gerenciar preços.
+        </p>
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Filter className="h-4 w-4 text-primary" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
-            <div className="space-y-1.5">
-              <Label htmlFor="procedure_id" className="text-xs">
-                Procedimento
-              </Label>
-              <select
-                id="procedure_id"
-                name="procedure_id"
-                defaultValue={searchParams.procedure_id ?? ''}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="">Todos</option>
-                {procedures.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.tuss_code} — {p.display_name ?? ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="plan_id" className="text-xs">
-                Convênio
-              </Label>
-              <select
-                id="plan_id"
-                name="plan_id"
-                defaultValue={searchParams.plan_id ?? ''}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="">Todos</option>
-                {plans.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="as_of" className="text-xs">
-                Vigência em
-              </Label>
-              <Input id="as_of" name="as_of" type="date" defaultValue={asOf} />
-            </div>
-            <Button type="submit">Filtrar</Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <Card>
         <CardContent className="p-0">
-          {pricesRes.error ? (
-            <p className="px-6 py-8 text-sm text-rose-600">Erro: {pricesRes.error.message}</p>
-          ) : heads.length === 0 ? (
+          {plans.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-              <DollarSign className="h-8 w-8 text-slate-300" />
+              <FileText className="h-8 w-8 text-slate-300" />
               <p className="text-sm font-medium text-slate-500">
-                Nenhum preço vigente nessa combinação.
+                Nenhum convênio cadastrado.{' '}
+                <Link href="/cadastros/planos" className="font-bold text-primary underline">
+                  Cadastrar o primeiro convênio
+                </Link>
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>TUSS / Procedimento</TableHead>
                   <TableHead>Convênio</TableHead>
-                  <TableHead>Valor vigente</TableHead>
-                  <TableHead>Desde</TableHead>
+                  <TableHead className="text-right">Procedimentos precificados</TableHead>
+                  <TableHead className="text-right">Ticket médio</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {heads.map((r) => {
-                  const future = r.valid_from > asOf
+                {plans.map((plan) => {
+                  const s = stats.get(plan.id) ?? { count: 0, total: 0 }
+                  const avg = s.count > 0 ? Math.round(s.total / s.count) : 0
                   return (
-                    <TableRow key={r.id} className="group">
+                    <TableRow key={plan.id} className="group">
                       <TableCell>
-                        <p className="font-mono text-xs font-bold text-primary">
-                          {r.procedures?.tuss_code ?? '—'}
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          {r.procedures?.display_name ?? ''}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                            <DollarSign className="h-4 w-4" />
+                          </div>
+                          <p className="font-bold text-slate-900">{plan.name}</p>
+                        </div>
                       </TableCell>
-                      <TableCell className="font-semibold text-slate-700">
-                        {r.health_plans?.name ?? '—'}
+                      <TableCell className="text-right font-bold tabular-nums text-slate-900">
+                        {s.count}
                       </TableCell>
-                      <TableCell className="font-black text-slate-900">
-                        {formatCurrency(r.amount_cents)}
+                      <TableCell className="text-right font-semibold tabular-nums text-slate-700">
+                        {s.count > 0 ? formatCurrency(avg) : '—'}
                       </TableCell>
-                      <TableCell className="text-slate-700">{formatDate(r.valid_from)}</TableCell>
                       <TableCell>
-                        {future ? (
-                          <Badge variant="warning">Agendado</Badge>
+                        {plan.active ? (
+                          <Badge variant="success">Ativo</Badge>
                         ) : (
-                          <Badge variant="success">Vigente</Badge>
+                          <Badge variant="secondary">Inativo</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Link
-                          href={`/cadastros/precos/${r.id}`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                          href={`/cadastros/planos/${plan.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
                         >
-                          Abrir <ChevronRight className="h-3 w-3" />
+                          Abrir tabela <ChevronRight className="h-3 w-3" />
                         </Link>
                       </TableCell>
                     </TableRow>

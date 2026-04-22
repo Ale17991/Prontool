@@ -436,11 +436,14 @@ function PriceIndicator({
   shouldFallbackToParticular,
   procedure,
   priceState,
+  planIdForMissingLink,
 }: {
   particularOnly: boolean
   shouldFallbackToParticular: boolean
   procedure: ProcedureOption | null
   priceState: PriceState
+  /** Quando o preço de convênio falta, linkamos direto para a tabela do plano. */
+  planIdForMissingLink: string | null
 }) {
   if (!procedure) {
     return (
@@ -487,10 +490,13 @@ function PriceIndicator({
     )
   }
   if (priceState.status === 'missing') {
+    const href = planIdForMissingLink
+      ? `/cadastros/planos/${planIdForMissingLink}`
+      : '/cadastros/planos'
     return (
       <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
         Sem preço cadastrado para este procedimento neste plano.{' '}
-        <Link href="/cadastros/precos/novo" className="underline">
+        <Link href={href} className="underline">
           Cadastrar preço
         </Link>
       </p>
@@ -699,6 +705,7 @@ function NewStepForm({
           shouldFallbackToParticular={shouldFallbackToParticular}
           procedure={selectedProcedure}
           priceState={priceState}
+          planIdForMissingLink={effectivePlanForConvenio || null}
         />
       </div>
 

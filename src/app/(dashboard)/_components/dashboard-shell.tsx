@@ -87,7 +87,7 @@ const CATEGORIES: readonly Category[] = [
     items: [
       {
         href: '/cadastros/precos',
-        label: 'Preços',
+        label: 'Tabelas de Convênio',
         icon: DollarSign,
         show: ({ role }) => can(role, 'price.read'),
       },
