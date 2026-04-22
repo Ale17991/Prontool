@@ -72,7 +72,7 @@ test('webhook posts land as appointments on /atendimentos', async ({ page, reque
   expect(after.count ?? 0).toBe(before + 1)
 
   await loginAsAdmin(page)
-  await page.goto('/atendimentos', { waitUntil: 'domcontentloaded' })
+  await page.goto('/operacao/atendimentos', { waitUntil: 'domcontentloaded' })
   await expect(page.locator('h1', { hasText: 'Atendimentos' })).toBeVisible({
     timeout: 30_000,
   })

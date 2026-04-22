@@ -41,12 +41,17 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // Dashboard SSR pages that need decrypted PII via SECURITY DEFINER RPCs
   // scoped by session.tenantId (LGPD-sensitive patient fields stored as
   // BYTEA and only decryptable via service_role).
-  '/src/app/(dashboard)/pacientes/',
+  '/src/app/(dashboard)/operacao/pacientes/',
   // Monthly report aggregates across appointments_effective, health_plans
   // and doctors. Service client spares an extra query-planner round-trip
   // for the perf target (SC-004: < 30 s for 5 k rows) and keeps the page
   // reusing the same aggregator as the export endpoints (SC-006 parity).
-  '/src/app/(dashboard)/relatorios/',
+  '/src/app/(dashboard)/analise/relatorios/',
+  // Anamnesis template list and expense list — same pattern as pacientes:
+  // getSession() + explicit tenant_id filter, sharing query shape with the
+  // corresponding /api/ handlers.
+  '/src/app/(dashboard)/analise/anamnese/',
+  '/src/app/(dashboard)/analise/despesas/',
 ]
 
 function assertCallerAllowed(): void {

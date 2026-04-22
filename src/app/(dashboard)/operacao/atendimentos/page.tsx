@@ -1,0 +1,191 @@
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { ChevronRight, Filter, Stethoscope } from 'lucide-react'
+import { getSession } from '@/lib/auth/get-session'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatCurrency, formatDateTime } from '@/lib/utils'
+
+export const dynamic = 'force-dynamic'
+
+interface PageProps {
+  searchParams: {
+    from?: string
+    to?: string
+    status?: 'ativo' | 'estornado' | 'todos'
+  }
+}
+
+interface AppointmentRow {
+  id: string | null
+  appointment_at: string | null
+  frozen_amount_cents: number | null
+  frozen_commission_bps: number | null
+  net_amount_cents: number | null
+  net_commission_cents: number | null
+  effective_status: string | null
+}
+
+export default async function AtendimentosPage({ searchParams }: PageProps) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  const supabase = createSupabaseServerClient()
+  let query = supabase
+    .from('appointments_effective')
+    .select(
+      'id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status',
+    )
+    .order('appointment_at', { ascending: false })
+    .limit(200)
+
+  if (searchParams.from) query = query.gte('appointment_at', searchParams.from)
+  if (searchParams.to) query = query.lte('appointment_at', searchParams.to)
+  const statusFilter = searchParams.status ?? 'todos'
+  if (statusFilter !== 'todos') query = query.eq('effective_status', statusFilter)
+
+  const { data: rawRows, error } = await query
+  const rows = (rawRows ?? []) as AppointmentRow[]
+
+  const totalRevenue = rows.reduce(
+    (acc, r) => acc + (r.net_amount_cents ?? r.frozen_amount_cents ?? 0),
+    0,
+  )
+  const reversedCount = rows.filter((r) => r.effective_status === 'estornado').length
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {rows.length} atendimento{rows.length === 1 ? '' : 's'} no período · Receita líquida{' '}
+            <span className="font-semibold text-slate-700">{formatCurrency(totalRevenue)}</span>
+            {reversedCount > 0 ? (
+              <>
+                {' '}
+                ·{' '}
+                <span className="font-semibold text-rose-600">
+                  {reversedCount} estornado{reversedCount === 1 ? '' : 's'}
+                </span>
+              </>
+            ) : null}
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Filter className="h-4 w-4 text-primary" />
+            Filtros
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="from" className="text-xs">
+                Data inicial
+              </Label>
+              <Input id="from" name="from" type="date" defaultValue={searchParams.from} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="to" className="text-xs">
+                Data final
+              </Label>
+              <Input id="to" name="to" type="date" defaultValue={searchParams.to} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="status" className="text-xs">
+                Status
+              </Label>
+              <select
+                id="status"
+                name="status"
+                defaultValue={statusFilter}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="todos">Todos</option>
+                <option value="ativo">Ativos</option>
+                <option value="estornado">Estornados</option>
+              </select>
+            </div>
+            <Button type="submit">Filtrar</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0">
+          {error ? (
+            <p className="px-6 py-8 text-sm text-rose-600">Erro ao carregar: {error.message}</p>
+          ) : rows.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+              <Stethoscope className="h-8 w-8 text-slate-300" />
+              <p className="text-sm font-medium text-slate-500">
+                Nenhum atendimento encontrado no período.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Valor líquido</TableHead>
+                  <TableHead>Comissão</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((r) => (
+                  <TableRow key={r.id ?? Math.random()} className="group">
+                    <TableCell className="font-medium text-slate-700">
+                      {formatDateTime(r.appointment_at)}
+                    </TableCell>
+                    <TableCell className="font-bold text-slate-900">
+                      {formatCurrency(r.net_amount_cents ?? r.frozen_amount_cents)}
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {formatCurrency(r.net_commission_cents ?? computeCommission(r))}
+                    </TableCell>
+                    <TableCell>
+                      {r.effective_status === 'estornado' ? (
+                        <Badge variant="destructive">estornado</Badge>
+                      ) : (
+                        <Badge variant="success">ativo</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {r.id ? (
+                        <Link
+                          href={`/operacao/atendimentos/${r.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          Abrir <ChevronRight className="h-3 w-3" />
+                        </Link>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function computeCommission(row: {
+  frozen_amount_cents: number | null
+  frozen_commission_bps: number | null
+}): number | null {
+  if (row.frozen_amount_cents === null || row.frozen_commission_bps === null) return null
+  return Math.round((row.frozen_amount_cents * row.frozen_commission_bps) / 10_000)
+}

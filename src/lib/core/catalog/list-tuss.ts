@@ -8,7 +8,7 @@ import type { Database } from '@/lib/db/types'
  *   2) prefixo do `code`
  *   3) substring na `description`
  *
- * Usado pelo typeahead da tela `/procedimentos` quando o admin vai
+ * Usado pelo typeahead da tela `/cadastros/procedimentos` quando o admin vai
  * cadastrar um procedimento novo. Não é tenant-scoped — o catálogo é
  * global e read-only (RLS deliberadamente desabilitado em 0028; o
  * conteúdo veio do catálogo público da ANS via `pnpm seed:tuss`).

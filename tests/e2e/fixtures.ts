@@ -89,7 +89,7 @@ export async function getDemoTenantId(sb: SupabaseClient<Database>): Promise<str
  * browser context so subsequent `page.goto` calls are already signed in.
  *
  * The timeout is generous because the Next.js dev server lazy-compiles
- * `/atendimentos` on first hit and supabase-js adds a round trip on top.
+ * `/operacao/atendimentos` on first hit and supabase-js adds a round trip on top.
  */
 export async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto('/login', { waitUntil: 'networkidle' })
@@ -105,7 +105,7 @@ export async function loginAsAdmin(page: Page): Promise<void> {
   // Wait for either the redirect or an inline error; fail fast with the
   // error text so we don't have to guess when the page stays on /login.
   const navPromise = page
-    .waitForURL((url) => url.pathname.startsWith('/atendimentos'), {
+    .waitForURL((url) => url.pathname.startsWith('/operacao/atendimentos'), {
       timeout: 60_000,
     })
     .then(() => 'ok' as const)

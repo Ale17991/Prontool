@@ -667,7 +667,7 @@ export type Database = {
           created_at: string
           email_enc: string | null
           full_name_enc: string
-          ghl_contact_id: string
+          ghl_contact_id: string | null
           id: string
           phone_enc: string | null
           tenant_id: string
@@ -680,7 +680,7 @@ export type Database = {
           created_at?: string
           email_enc?: string | null
           full_name_enc: string
-          ghl_contact_id: string
+          ghl_contact_id?: string | null
           id?: string
           phone_enc?: string | null
           tenant_id: string
@@ -693,7 +693,7 @@ export type Database = {
           created_at?: string
           email_enc?: string | null
           full_name_enc?: string
-          ghl_contact_id?: string
+          ghl_contact_id?: string | null
           id?: string
           phone_enc?: string | null
           tenant_id?: string
