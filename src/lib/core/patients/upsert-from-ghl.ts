@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
+import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
+import { logger } from '@/lib/observability/logger'
 
 /**
  * T081 — idempotent upsert of a patient row keyed by
@@ -12,6 +14,12 @@ import type { Database } from '@/lib/db/types'
  * `app.patient_encryption_key` to be populated first. The caller (the
  * worker Route Handler) is responsible for that SET — we validate it is
  * present by asking PG to echo the GUC before encrypting.
+ *
+ * Plan resolution: if the caller passes `planName` we look up the local
+ * `health_plans` row by (tenant_id, name) and persist `plan_id`. Unknown
+ * plans save as NULL and dispatch `ghl_sync_failed` — the patient is still
+ * created, and the admin is notified to either create the plan or fix the
+ * mapping. Passing `planId` explicitly skips the lookup.
  */
 export interface UpsertPatientInput {
   tenantId: string
@@ -21,12 +29,14 @@ export interface UpsertPatientInput {
   phone?: string | undefined
   email?: string | undefined
   birthDate?: string | undefined
+  planId?: string | null | undefined
+  planName?: string | null | undefined
 }
 
 export async function upsertPatientFromGhl(
   supabase: SupabaseClient<Database>,
   input: UpsertPatientInput,
-): Promise<{ patientId: string; created: boolean }> {
+): Promise<{ patientId: string; created: boolean; planResolved: boolean }> {
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required to encrypt patient PII')
 
@@ -37,6 +47,30 @@ export async function upsertPatientFromGhl(
     input.email ? encrypt(supabase, input.email, key) : Promise.resolve(null),
     input.birthDate ? encrypt(supabase, input.birthDate, key) : Promise.resolve(null),
   ])
+
+  let planId: string | null = input.planId ?? null
+  let planResolved = planId !== null
+  let unresolvedPlanName: string | null = null
+  if (!planId && input.planName) {
+    const lookup = await supabase
+      .from('health_plans')
+      .select('id')
+      .eq('tenant_id', input.tenantId)
+      .eq('name', input.planName)
+      .maybeSingle()
+    if (lookup.error) {
+      logger.warn(
+        { tenantId: input.tenantId, planName: input.planName, err: lookup.error.message },
+        'upsertPatientFromGhl-plan-lookup-failed',
+      )
+    }
+    if (lookup.data?.id) {
+      planId = lookup.data.id
+      planResolved = true
+    } else {
+      unresolvedPlanName = input.planName
+    }
+  }
 
   const upserted = await supabase
     .from('patients')
@@ -49,6 +83,7 @@ export async function upsertPatientFromGhl(
         phone_enc: phone,
         email_enc: email,
         birth_date_enc: birthDate,
+        plan_id: planId,
       },
       { onConflict: 'tenant_id,ghl_contact_id' },
     )
@@ -58,9 +93,31 @@ export async function upsertPatientFromGhl(
   if (upserted.error || !upserted.data) {
     throw new Error(`upsertPatientFromGhl failed: ${upserted.error?.message}`)
   }
+
+  if (unresolvedPlanName) {
+    try {
+      await dispatchAlert({
+        tenantId: input.tenantId,
+        type: 'ghl_sync_failed',
+        subjectRef: { patient_id: upserted.data.id, plan_name: unresolvedPlanName },
+        detail: {
+          route: 'upsertPatientFromGhl',
+          failure_reason: `Plano "${unresolvedPlanName}" não encontrado em health_plans`,
+          action: 'plan_lookup',
+        },
+      })
+    } catch (alertErr) {
+      logger.error(
+        { tenantId: input.tenantId, err: (alertErr as Error).message },
+        'upsert-plan-alert-dispatch-threw',
+      )
+    }
+  }
+
   return {
     patientId: upserted.data.id,
     created: upserted.data.created_at === upserted.data.updated_at,
+    planResolved,
   }
 }
 

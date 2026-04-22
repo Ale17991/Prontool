@@ -19,6 +19,7 @@ export interface PatientDetail {
   anonymizedAt: string | null
   createdAt: string
   updatedAt: string
+  healthPlan: { id: string; name: string } | null
 }
 
 export interface PatientFinancialSummary {
@@ -72,6 +73,18 @@ export async function getPatient(
   const row = rows[0]
   if (!row) throw new NotFoundError('patient', args.patientId)
 
+  // plan_id não é PII — fica fora do RPC de descriptografia. Select direto
+  // com embed do health_plans pra pegar o nome numa única ida ao banco.
+  const planResult = await supabase
+    .from('patients')
+    .select('plan_id, health_plans:plan_id ( id, name )')
+    .eq('tenant_id', args.tenantId)
+    .eq('id', args.patientId)
+    .maybeSingle()
+  const hp = (planResult.data?.health_plans ?? null) as
+    | { id: string; name: string }
+    | null
+
   const patient: PatientDetail = {
     id: row.id,
     ghlContactId: row.ghl_contact_id,
@@ -83,6 +96,7 @@ export async function getPatient(
     anonymizedAt: row.anonymized_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    healthPlan: hp,
   }
 
   const summary = await loadSummary(supabase, args.tenantId, args.patientId)

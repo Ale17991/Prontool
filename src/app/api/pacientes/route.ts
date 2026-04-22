@@ -44,6 +44,9 @@ const createSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use ISO AAAA-MM-DD')
     .optional()
     .nullable(),
+  // Obrigatório na UI mas nullable no backend pra não quebrar dados
+  // legados; a UI manda sempre que puder.
+  plan_id: z.string().uuid().optional().nullable(),
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -103,6 +106,7 @@ export async function POST(req: Request): Promise<Response> {
       phone: parsed.data.phone ?? undefined,
       email: parsed.data.email ?? undefined,
       birthDate: parsed.data.birth_date ?? undefined,
+      planId: parsed.data.plan_id ?? null,
     })
     return NextResponse.json(result, { status: 201 })
   } catch (err) {

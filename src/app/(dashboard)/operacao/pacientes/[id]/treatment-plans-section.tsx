@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, type FormEvent } from 'react'
+import Link from 'next/link'
+import { useEffect, useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckCircle2,
@@ -25,8 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-import { formatDate } from '@/lib/utils'
+import { cn, formatCurrency, formatDate } from '@/lib/utils'
 
 export interface PlanSummary {
   id: string
@@ -50,6 +50,8 @@ export interface PlanDetailStep {
   createdAt: string
   procedure: { id: string; tussCode: string; displayName: string | null }
   healthPlan: { id: string; name: string } | null
+  currentPriceCents: number | null
+  pricePlanId: string | null
 }
 
 export interface PlanDetail {
@@ -75,6 +77,9 @@ export interface HealthPlanOption {
 
 interface TreatmentPlansSectionProps {
   patientId: string
+  /** Plano de saúde padrão do paciente. Pré-preenche e calcula o valor estimado quando a etapa não tem plano próprio. */
+  patientPlanId: string | null
+  patientPlanName: string | null
   initialPlans: PlanSummary[]
   procedures: ProcedureOption[]
   healthPlans: HealthPlanOption[]
@@ -83,6 +88,8 @@ interface TreatmentPlansSectionProps {
 
 export function TreatmentPlansSection({
   patientId,
+  patientPlanId,
+  patientPlanName,
   initialPlans,
   procedures,
   healthPlans,
@@ -178,6 +185,8 @@ export function TreatmentPlansSection({
                 onToggle={() => toggleExpand(p.id)}
                 onStepChange={() => refresh(p.id)}
                 patientId={patientId}
+                patientPlanId={patientPlanId}
+                patientPlanName={patientPlanName}
               />
             ))}
           </div>
@@ -280,6 +289,8 @@ function PlanCard({
   onToggle,
   onStepChange,
   patientId,
+  patientPlanId,
+  patientPlanName,
 }: {
   plan: PlanSummary
   expanded: boolean
@@ -291,6 +302,8 @@ function PlanCard({
   onToggle: () => void
   onStepChange: () => void | Promise<void>
   patientId: string
+  patientPlanId: string | null
+  patientPlanName: string | null
 }) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -335,6 +348,8 @@ function PlanCard({
               canWrite={canWrite && plan.status === 'ativo'}
               onStepChange={onStepChange}
               patientId={patientId}
+              patientPlanId={patientPlanId}
+              patientPlanName={patientPlanName}
             />
           ) : null}
         </div>
@@ -359,6 +374,8 @@ function PlanDetailBlock({
   canWrite,
   onStepChange,
   patientId,
+  patientPlanId,
+  patientPlanName,
 }: {
   detail: PlanDetail
   procedures: ProcedureOption[]
@@ -366,12 +383,21 @@ function PlanDetailBlock({
   canWrite: boolean
   onStepChange: () => void | Promise<void>
   patientId: string
+  patientPlanId: string | null
+  patientPlanName: string | null
 }) {
   const [showAddStep, setShowAddStep] = useState(false)
 
-  const pending = detail.steps.filter((s) => s.status === 'pendente').length
+  const pendingSteps = detail.steps.filter((s) => s.status === 'pendente')
+  const pending = pendingSteps.length
   const completed = detail.steps.filter((s) => s.status === 'concluido').length
   const cancelled = detail.steps.filter((s) => s.status === 'cancelado').length
+
+  const totalCents = pendingSteps.reduce(
+    (acc, s) => acc + (s.currentPriceCents ?? 0),
+    0,
+  )
+  const unpricedCount = pendingSteps.filter((s) => s.currentPriceCents === null).length
 
   return (
     <div className="space-y-4">
@@ -381,13 +407,25 @@ function PlanDetailBlock({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <MiniStat label="Etapas" value={`${detail.steps.length}`} />
         <MiniStat label="Pendentes" value={`${pending}`} accent="amber" />
         <MiniStat
           label="Concluídas"
           value={`${completed}${cancelled ? ` · ${cancelled} canceladas` : ''}`}
           accent="emerald"
+        />
+        <MiniStat
+          label="Valor estimado"
+          value={formatCurrency(totalCents)}
+          sub={
+            unpricedCount > 0
+              ? `* valor parcial — ${unpricedCount} sem preço`
+              : pending === 0
+                ? 'nenhuma etapa pendente'
+                : undefined
+          }
+          accent="slate"
         />
       </div>
 
@@ -424,6 +462,8 @@ function PlanDetailBlock({
               }}
               patientId={patientId}
               planId={detail.id}
+              patientPlanId={patientPlanId}
+              patientPlanName={patientPlanName}
             />
           ) : (
             <Button
@@ -442,14 +482,58 @@ function PlanDetailBlock({
   )
 }
 
+type PriceState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'found'; amountCents: number }
+  | { status: 'missing' }
+
+function useFetchCurrentPrice({
+  procedureId,
+  healthPlanId,
+  setPriceState,
+}: {
+  procedureId: string
+  healthPlanId: string
+  setPriceState: (s: PriceState) => void
+}) {
+  useEffect(() => {
+    if (!procedureId || !healthPlanId) {
+      setPriceState({ status: 'idle' })
+      return
+    }
+    let cancelled = false
+    setPriceState({ status: 'loading' })
+    const qs = new URLSearchParams({ procedure_id: procedureId, plan_id: healthPlanId })
+    fetch(`/api/precos/vigente?${qs.toString()}`)
+      .then(async (r) => (r.ok ? ((await r.json()) as { amountCents: number | null }) : null))
+      .then((body) => {
+        if (cancelled) return
+        if (body && body.amountCents !== null) {
+          setPriceState({ status: 'found', amountCents: body.amountCents })
+        } else {
+          setPriceState({ status: 'missing' })
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPriceState({ status: 'missing' })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [procedureId, healthPlanId, setPriceState])
+}
+
 function MiniStat({
   label,
   value,
+  sub,
   accent,
 }: {
   label: string
   value: string
-  accent?: 'amber' | 'emerald'
+  sub?: string
+  accent?: 'amber' | 'emerald' | 'slate'
 }) {
   const accentCls =
     accent === 'amber'
@@ -461,6 +545,7 @@ function MiniStat({
     <div className="rounded-md bg-white px-3 py-2 shadow-sm">
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
       <p className={cn('mt-0.5 text-sm font-bold tabular-nums', accentCls)}>{value}</p>
+      {sub ? <p className="mt-0.5 text-[10px] text-amber-700">{sub}</p> : null}
     </div>
   )
 }
@@ -525,6 +610,19 @@ function StepRow({
           {step.scheduledDate ? `Previsto: ${formatDate(step.scheduledDate)}` : 'Sem data prevista'}
           {step.completedAt ? ` · Concluído em ${formatDate(step.completedAt)}` : ''}
         </p>
+        {step.status === 'pendente' ? (
+          <p
+            className={
+              step.currentPriceCents !== null
+                ? 'text-[11px] font-semibold text-slate-700'
+                : 'text-[11px] font-semibold text-amber-700'
+            }
+          >
+            {step.currentPriceCents !== null
+              ? `Valor estimado: ${formatCurrency(step.currentPriceCents)}`
+              : 'Sem preço cadastrado para este procedimento neste plano'}
+          </p>
+        ) : null}
         {step.notes ? (
           <p className="mt-1 flex items-start gap-1.5 text-xs text-slate-600">
             <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-slate-400" />
@@ -569,6 +667,8 @@ function AddStepForm({
   onAdded,
   patientId,
   planId,
+  patientPlanId,
+  patientPlanName,
 }: {
   procedures: ProcedureOption[]
   healthPlans: HealthPlanOption[]
@@ -576,14 +676,32 @@ function AddStepForm({
   onAdded: () => void | Promise<void>
   patientId: string
   planId: string
+  patientPlanId: string | null
+  patientPlanName: string | null
 }) {
   const [title, setTitle] = useState('')
   const [procedureId, setProcedureId] = useState('')
-  const [healthPlanId, setHealthPlanId] = useState<string>('')
+  // Pré-seleciona plano do paciente — o profissional pode trocar se a etapa
+  // específica usa outro plano.
+  const [healthPlanId, setHealthPlanId] = useState<string>(patientPlanId ?? '')
   const [scheduledDate, setScheduledDate] = useState('')
   const [notes, setNotes] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Preço vigente para (procedure, plan, hoje). null = não consultado ainda
+  // ou sem resultado; a gente deriva qual dos dois.
+  const [priceState, setPriceState] = useState<
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'found'; amountCents: number }
+    | { status: 'missing' }
+  >({ status: 'idle' })
+
+  // Busca preço sempre que procedure e plano estiverem definidos.
+  // useEffect via React quando muda o par. Simples: efeito encadeado.
+  // Usar import de useEffect foi omitido; puxamos aqui.
+  useFetchCurrentPrice({ procedureId, healthPlanId, setPriceState })
 
   // Typeahead simples para procedimento: filtra lista carregada.
   const [search, setSearch] = useState('')
@@ -683,7 +801,14 @@ function AddStepForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="step_plan">Plano de saúde (opcional)</Label>
+        <Label htmlFor="step_plan">
+          Plano de saúde
+          {patientPlanName ? (
+            <span className="ml-1 text-[10px] font-normal text-slate-400">
+              (padrão: {patientPlanName})
+            </span>
+          ) : null}
+        </Label>
         <Select value={healthPlanId} onValueChange={setHealthPlanId}>
           <SelectTrigger id="step_plan">
             <SelectValue placeholder="Sem plano" />
@@ -696,6 +821,33 @@ function AddStepForm({
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-1.5 md:col-span-2">
+        <Label>Valor estimado</Label>
+        {priceState.status === 'found' ? (
+          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+            {formatCurrency(priceState.amountCents)}
+            <span className="ml-2 font-normal text-emerald-700/80">
+              (preço vigente para essa combinação)
+            </span>
+          </p>
+        ) : priceState.status === 'loading' ? (
+          <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            Consultando preço vigente…
+          </p>
+        ) : priceState.status === 'missing' ? (
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+            Sem preço cadastrado para este procedimento neste plano.{' '}
+            <Link href="/cadastros/precos/novo" className="underline">
+              Cadastrar preço
+            </Link>
+          </p>
+        ) : (
+          <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            Selecione procedimento e plano para ver o valor estimado.
+          </p>
+        )}
       </div>
 
       <div className="space-y-1.5">

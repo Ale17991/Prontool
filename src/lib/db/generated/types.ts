@@ -670,6 +670,7 @@ export type Database = {
           ghl_contact_id: string | null
           id: string
           phone_enc: string | null
+          plan_id: string | null
           tenant_id: string
           updated_at: string
         }
@@ -683,6 +684,7 @@ export type Database = {
           ghl_contact_id?: string | null
           id?: string
           phone_enc?: string | null
+          plan_id?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -696,10 +698,18 @@ export type Database = {
           ghl_contact_id?: string | null
           id?: string
           phone_enc?: string | null
+          plan_id?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "patients_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "patients_tenant_id_fkey"
             columns: ["tenant_id"]

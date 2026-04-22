@@ -24,6 +24,7 @@ import {
   type HealthPlanOption,
   type ProcedureOption,
 } from './treatment-plans-section'
+import { PatientPlanEditor } from './patient-plan-editor'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -109,6 +110,8 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     session.role === 'financeiro' ||
     session.role === 'profissional_saude'
 
+  const canEditPatient = session.role === 'admin' || session.role === 'recepcionista'
+
   const isAnonymized = Boolean(patient.anonymizedAt)
   const initial = (patient.fullName || '?').charAt(0).toUpperCase()
   const age = calculateAge(patient.birthDate)
@@ -163,6 +166,20 @@ export default async function PacienteDetailPage({ params }: PageProps) {
                     GHL: {patient.ghlContactId}
                   </span>
                 </div>
+                {isAnonymized ? null : (
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Plano de saúde
+                    </span>
+                    <PatientPlanEditor
+                      patientId={patient.id}
+                      currentPlanId={patient.healthPlan?.id ?? null}
+                      currentPlanName={patient.healthPlan?.name ?? null}
+                      healthPlans={healthPlansList}
+                      canEdit={canEditPatient}
+                    />
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 md:grid-cols-3">
                 <ContactChip icon={Phone} label="Telefone" value={patient.phone} color="emerald" />
@@ -268,6 +285,8 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       {isAnonymized ? null : (
         <TreatmentPlansSection
           patientId={params.id}
+          patientPlanId={patient.healthPlan?.id ?? null}
+          patientPlanName={patient.healthPlan?.name ?? null}
           initialPlans={treatmentPlans}
           procedures={procedures}
           healthPlans={healthPlansList}

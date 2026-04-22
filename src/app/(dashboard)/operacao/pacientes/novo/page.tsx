@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { NewPatientForm } from './new-patient-form'
+import { NewPatientForm, type HealthPlanOption } from './new-patient-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,18 @@ export default async function NovoPacientePage() {
   const session = await getSession()
   if (!session) redirect('/login')
   if (!ALLOWED_ROLES.has(session.role)) redirect('/operacao/pacientes')
+
+  const supabase = createSupabaseServiceClient()
+  const plans = await supabase
+    .from('health_plans')
+    .select('id, name')
+    .eq('tenant_id', session.tenantId)
+    .eq('active', true)
+    .order('name', { ascending: true })
+  const healthPlans: HealthPlanOption[] = (plans.data ?? []).map((p) => ({
+    id: p.id,
+    name: p.name,
+  }))
 
   return (
     <div className="space-y-6">
@@ -38,7 +51,7 @@ export default async function NovoPacientePage() {
           <CardTitle className="text-sm">Dados do paciente</CardTitle>
         </CardHeader>
         <CardContent>
-          <NewPatientForm />
+          <NewPatientForm healthPlans={healthPlans} />
         </CardContent>
       </Card>
     </div>

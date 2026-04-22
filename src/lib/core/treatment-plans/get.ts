@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
+import { tryResolvePrice } from '@/lib/core/pricing/resolve-price'
 
 export interface TreatmentPlanStep {
   id: string
@@ -19,6 +20,10 @@ export interface TreatmentPlanStep {
     id: string
     name: string
   } | null
+  /** Resolved from price_versions para (procedure_id, step.plan_id ?? patient.plan_id, hoje). null = sem preço cadastrado. */
+  currentPriceCents: number | null
+  /** Plano usado no cálculo do currentPriceCents (step override ou patient default). null se nenhum. */
+  pricePlanId: string | null
 }
 
 export interface TreatmentPlanDetail {
@@ -34,6 +39,8 @@ export interface TreatmentPlanDetail {
 export interface GetTreatmentPlanInput {
   tenantId: string
   planId: string
+  /** Plano de saúde do paciente; usado como fallback pra resolver preço quando a etapa não define. */
+  patientPlanId?: string | null
 }
 
 /**
@@ -81,7 +88,28 @@ export async function getTreatmentPlan(
   }
   const raw = (stepsResult.data ?? []) as unknown as RawStep[]
 
-  const steps: TreatmentPlanStep[] = raw.map((s) => ({
+  // Resolve o preço vigente por etapa em paralelo. Usa o plano da etapa se
+  // houver; cai no plano padrão do paciente. null se nenhum dos dois existe.
+  const asOf = new Date()
+  const priced = await Promise.all(
+    raw.map(async (s) => {
+      if (!s.procedures) return { currentPriceCents: null, pricePlanId: null }
+      const planForPrice = s.health_plans?.id ?? input.patientPlanId ?? null
+      if (!planForPrice) return { currentPriceCents: null, pricePlanId: null }
+      const found = await tryResolvePrice(supabase, {
+        tenantId: input.tenantId,
+        procedureId: s.procedures.id,
+        planId: planForPrice,
+        asOf,
+      })
+      return {
+        currentPriceCents: found?.amountCents ?? null,
+        pricePlanId: planForPrice,
+      }
+    }),
+  )
+
+  const steps: TreatmentPlanStep[] = raw.map((s, idx) => ({
     id: s.id,
     title: s.title,
     notes: s.notes,
@@ -97,6 +125,8 @@ export async function getTreatmentPlan(
         }
       : { id: '', tussCode: '—', displayName: null },
     healthPlan: s.health_plans ? { id: s.health_plans.id, name: s.health_plans.name } : null,
+    currentPriceCents: priced[idx]!.currentPriceCents,
+    pricePlanId: priced[idx]!.pricePlanId,
   }))
 
   return {

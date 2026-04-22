@@ -18,9 +18,16 @@ export async function GET(
       { entity: 'treatment_plans', entityId: params.planId, route, request: req },
     )
     const supabase = createSupabaseServiceClient()
+    const patientPlan = await supabase
+      .from('patients')
+      .select('plan_id')
+      .eq('tenant_id', session.tenantId)
+      .eq('id', params.id)
+      .maybeSingle()
     const plan = await getTreatmentPlan(supabase, {
       tenantId: session.tenantId,
       planId: params.planId,
+      patientPlanId: patientPlan.data?.plan_id ?? null,
     })
     if (plan.patientId !== params.id) {
       return NextResponse.json(

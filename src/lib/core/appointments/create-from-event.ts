@@ -74,6 +74,8 @@ export async function createAppointmentFromEvent(
     phone: extracted.patient.phone,
     email: extracted.patient.email,
     birthDate: extracted.patient.birthDate,
+    // Plano já resolvido acima — evita segunda busca por nome.
+    planId,
   })
 
   let price: Awaited<ReturnType<typeof resolvePrice>>

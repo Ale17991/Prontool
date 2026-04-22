@@ -26,6 +26,8 @@ export interface CreateManualPatientInput {
   phone?: string | undefined
   email?: string | undefined
   birthDate?: string | undefined
+  /** Health plan chosen by the operator at creation time (obrigatório na UI; nullable no banco). */
+  planId?: string | null | undefined
   actorUserId: string
 }
 
@@ -83,6 +85,7 @@ export async function createPatientManually(
       phone_enc: phone,
       email_enc: email,
       birth_date_enc: birthDate,
+      plan_id: input.planId ?? null,
     })
     .select('id')
     .single()

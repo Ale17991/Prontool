@@ -57,3 +57,19 @@ export async function resolvePrice(
     validFrom: data.valid_from,
   }
 }
+
+/**
+ * Non-throwing variant for UI paths where "no price yet" is a legitimate
+ * state (e.g. treatment-plan estimates). Returns null when nothing matches.
+ */
+export async function tryResolvePrice(
+  supabase: SupabaseClient<Database>,
+  input: ResolvePriceInput,
+): Promise<ResolvedPrice | null> {
+  try {
+    return await resolvePrice(supabase, input)
+  } catch (err) {
+    if (err instanceof AppointmentPriceMissingError) return null
+    throw err
+  }
+}
