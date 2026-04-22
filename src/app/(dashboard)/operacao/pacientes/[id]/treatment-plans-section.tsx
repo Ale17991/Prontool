@@ -845,6 +845,10 @@ function AddStepForm({
       setError('Selecione um procedimento.')
       return
     }
+    if (!scheduledDate) {
+      setError('Informe a data prevista da etapa.')
+      return
+    }
     setPending(true)
     try {
       const res = await fetch(`/api/pacientes/${patientId}/planos/${planId}/steps`, {
@@ -965,10 +969,13 @@ function AddStepForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="step_date">Data prevista (opcional)</Label>
+        <Label htmlFor="step_date">
+          Data prevista <span className="text-rose-500">*</span>
+        </Label>
         <Input
           id="step_date"
           type="date"
+          required
           value={scheduledDate}
           onChange={(e) => setScheduledDate(e.target.value)}
         />

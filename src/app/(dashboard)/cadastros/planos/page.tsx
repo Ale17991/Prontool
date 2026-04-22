@@ -1,5 +1,6 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { FileText } from 'lucide-react'
+import { ChevronRight, FileText } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
@@ -91,12 +92,12 @@ export default async function PlanosPage() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Cadastrado em</TableHead>
                     <TableHead>Status</TableHead>
-                    {canWrite ? <TableHead className="text-right" /> : null}
+                    <TableHead className="text-right" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rows.map((p) => (
-                    <TableRow key={p.id}>
+                    <TableRow key={p.id} className="group">
                       <TableCell className="font-semibold text-slate-900">{p.name}</TableCell>
                       <TableCell className="text-slate-700">{formatDate(p.created_at)}</TableCell>
                       <TableCell>
@@ -106,11 +107,19 @@ export default async function PlanosPage() {
                           <Badge variant="secondary">Inativo</Badge>
                         )}
                       </TableCell>
-                      {canWrite ? (
-                        <TableCell className="text-right">
-                          <TogglePlanActive planId={p.id} active={p.active} />
-                        </TableCell>
-                      ) : null}
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          {canWrite ? (
+                            <TogglePlanActive planId={p.id} active={p.active} />
+                          ) : null}
+                          <Link
+                            href={`/cadastros/planos/${p.id}`}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                          >
+                            Abrir <ChevronRight className="h-3 w-3" />
+                          </Link>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
