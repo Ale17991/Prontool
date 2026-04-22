@@ -4,9 +4,7 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  FileText,
   Mail,
-  Paperclip,
   Phone,
   Receipt,
   ShieldAlert,
@@ -25,10 +23,11 @@ import {
   type ProcedureOption,
 } from './treatment-plans-section'
 import { PatientPlanEditor } from './patient-plan-editor'
+import { ClinicalRecordsSection } from './clinical-records-section'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { calculateAge, formatCurrency, formatDate, formatDateTime, formatFileSize } from '@/lib/utils'
+import { calculateAge, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -113,6 +112,8 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     session.role === 'profissional_saude'
 
   const canEditPatient = session.role === 'admin' || session.role === 'recepcionista'
+  const canWriteClinicalRecords =
+    session.role === 'admin' || session.role === 'financeiro'
 
   const isAnonymized = Boolean(patient.anonymizedAt)
   const initial = (patient.fullName || '?').charAt(0).toUpperCase()
@@ -296,70 +297,12 @@ export default async function PacienteDetailPage({ params }: PageProps) {
         />
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <FileText className="h-4 w-4 text-primary" />
-            Ficha clínica
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {records.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              Nenhum registro clínico ainda. Evoluções e documentos aparecerão aqui.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {records.map((r) => (
-                <div
-                  key={r.id}
-                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={
-                          r.type === 'texto'
-                            ? 'flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600'
-                            : 'flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600'
-                        }
-                      >
-                        {r.type === 'texto' ? (
-                          <FileText className="h-4 w-4" />
-                        ) : (
-                          <Paperclip className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{r.title}</p>
-                        <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">
-                          {formatDateTime(r.createdAt)} · por {r.createdBy.slice(0, 8)}
-                        </p>
-                      </div>
-                    </div>
-                    {r.type === 'arquivo' ? (
-                      <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">
-                        {formatFileSize(r.fileSizeBytes)}
-                      </span>
-                    ) : null}
-                  </div>
-                  {r.type === 'texto' && r.content ? (
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-                      {r.content}
-                    </p>
-                  ) : null}
-                  {r.type === 'arquivo' && r.fileName ? (
-                    <div className="mt-3 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                      <FileText className="h-3 w-3 text-slate-400" />
-                      <span className="font-mono">{r.fileName}</span>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ClinicalRecordsSection
+        patientId={params.id}
+        initialRecords={records}
+        canWrite={canWriteClinicalRecords && !isAnonymized}
+      />
+
     </div>
   )
 }

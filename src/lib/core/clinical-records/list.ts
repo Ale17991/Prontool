@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import type { ClinicalRecordRow } from './create'
+import type { AnamnesisSnapshot, ClinicalRecordRow } from './create'
 
 /**
  * Lista registros clínicos do paciente, ordem decrescente por
@@ -24,6 +24,7 @@ interface DbRow {
   file_name: string | null
   file_url: string | null
   file_size_bytes: number | null
+  anamnesis_data: unknown
   created_by: string
   created_at: string
   deleted_at: string | null
@@ -36,7 +37,7 @@ export async function listClinicalRecords(
   let q = supabase
     .from('clinical_records')
     .select(
-      'id, tenant_id, patient_id, title, type, content, file_name, file_url, file_size_bytes, created_by, created_at, deleted_at',
+      'id, tenant_id, patient_id, title, type, content, file_name, file_url, file_size_bytes, anamnesis_data, created_by, created_at, deleted_at',
     )
     .eq('tenant_id', input.tenantId)
     .eq('patient_id', input.patientId)
@@ -52,11 +53,12 @@ export async function listClinicalRecords(
     tenantId: r.tenant_id,
     patientId: r.patient_id,
     title: r.title,
-    type: r.type as 'texto' | 'arquivo',
+    type: r.type as 'texto' | 'arquivo' | 'anamnese',
     content: r.content,
     fileName: r.file_name,
     fileUrl: r.file_url,
     fileSizeBytes: r.file_size_bytes,
+    anamnesisData: (r.anamnesis_data ?? null) as AnamnesisSnapshot | null,
     createdBy: r.created_by,
     createdAt: r.created_at,
     deletedAt: r.deleted_at,

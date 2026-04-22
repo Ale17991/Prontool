@@ -14,16 +14,33 @@ export interface CreateTextRecordInput {
   actorUserId: string
 }
 
+export interface AnamnesisFieldSnapshot {
+  id: string
+  type: string
+  label: string
+  required?: boolean
+  options?: string[]
+}
+
+export interface AnamnesisSnapshot {
+  template_id: string
+  template_version: number
+  template_title: string
+  fields: AnamnesisFieldSnapshot[]
+  responses: Record<string, unknown>
+}
+
 export interface ClinicalRecordRow {
   id: string
   tenantId: string
   patientId: string
   title: string
-  type: 'texto' | 'arquivo'
+  type: 'texto' | 'arquivo' | 'anamnese'
   content: string | null
   fileName: string | null
   fileUrl: string | null
   fileSizeBytes: number | null
+  anamnesisData: AnamnesisSnapshot | null
   createdBy: string
   createdAt: string
   deletedAt: string | null
@@ -116,6 +133,7 @@ interface DbRow {
   file_name: string | null
   file_url: string | null
   file_size_bytes: number | null
+  anamnesis_data?: unknown
   created_by: string
   created_at: string
   deleted_at: string | null
@@ -127,11 +145,12 @@ function mapRow(r: DbRow): ClinicalRecordRow {
     tenantId: r.tenant_id,
     patientId: r.patient_id,
     title: r.title,
-    type: r.type as 'texto' | 'arquivo',
+    type: r.type as 'texto' | 'arquivo' | 'anamnese',
     content: r.content,
     fileName: r.file_name,
     fileUrl: r.file_url,
     fileSizeBytes: r.file_size_bytes,
+    anamnesisData: (r.anamnesis_data ?? null) as AnamnesisSnapshot | null,
     createdBy: r.created_by,
     createdAt: r.created_at,
     deletedAt: r.deleted_at,
