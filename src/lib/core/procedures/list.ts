@@ -16,7 +16,7 @@ export interface ListedProcedure {
   coveredByPlan: boolean
 }
 
-interface ProcedureRow {
+interface JoinedRow {
   id: string
   tuss_code: string
   display_name: string | null
@@ -24,20 +24,17 @@ interface ProcedureRow {
   created_at: string
   default_amount_cents: number | null
   covered_by_plan: boolean
+  tuss_codes: { description: string } | null
 }
 
 export async function listProcedures(
   supabase: SupabaseClient<Database>,
   args: { tenantId: string; includeInactive?: boolean; onlyCoveredByPlan?: boolean },
 ): Promise<ListedProcedure[]> {
-  // Não tentamos usar `tuss_codes!procedures_tuss_code_fkey(description)` como
-  // embed do PostgREST: `procedures.tuss_code` é só TEXT sem FK (ver
-  // migration 0004). Fazemos duas queries e juntamos em memória — o catálogo
-  // TUSS é compacto o suficiente para isso não importar.
   let q = supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description)',
     )
     .eq('tenant_id', args.tenantId)
     .order('created_at', { ascending: false })
@@ -47,37 +44,14 @@ export async function listProcedures(
   const { data, error } = await q
   if (error) throw new Error(`listProcedures failed: ${error.message}`)
 
-  const rows = (data ?? []) as unknown as ProcedureRow[]
-  if (rows.length === 0) return []
-
-  const uniqueCodes = Array.from(new Set(rows.map((r) => r.tuss_code)))
-  const descriptions = await fetchTussDescriptions(supabase, uniqueCodes)
-
-  return rows.map((r) => ({
+  return ((data ?? []) as unknown as JoinedRow[]).map((r) => ({
     id: r.id,
     tussCode: r.tuss_code,
-    tussDescription: descriptions.get(r.tuss_code) ?? null,
+    tussDescription: r.tuss_codes?.description ?? null,
     displayName: r.display_name,
     active: r.active,
     createdAt: r.created_at,
     defaultAmountCents: r.default_amount_cents,
     coveredByPlan: r.covered_by_plan,
   }))
-}
-
-async function fetchTussDescriptions(
-  supabase: SupabaseClient<Database>,
-  codes: string[],
-): Promise<Map<string, string>> {
-  const out = new Map<string, string>()
-  if (codes.length === 0) return out
-  const { data, error } = await supabase
-    .from('tuss_codes')
-    .select('code, description')
-    .in('code', codes)
-  if (error) throw new Error(`fetchTussDescriptions failed: ${error.message}`)
-  for (const row of (data ?? []) as unknown as Array<{ code: string; description: string }>) {
-    out.set(row.code, row.description)
-  }
-  return out
 }

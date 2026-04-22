@@ -836,6 +836,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "procedures_tuss_code_fkey"
+            columns: ["tuss_code"]
+            isOneToOne: false
+            referencedRelation: "tuss_codes"
+            referencedColumns: ["code"]
+          },
         ]
       }
       raw_webhook_events: {
