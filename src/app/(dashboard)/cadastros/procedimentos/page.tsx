@@ -13,7 +13,7 @@ import { ProcedureMetaEditor } from './procedure-meta-editor'
 
 export const dynamic = 'force-dynamic'
 
-interface JoinedRow {
+interface ProcedureRow {
   id: string
   tuss_code: string
   display_name: string | null
@@ -21,6 +21,9 @@ interface JoinedRow {
   created_at: string
   default_amount_cents: number | null
   covered_by_plan: boolean
+}
+
+interface JoinedRow extends ProcedureRow {
   tuss_codes: { description: string } | null
 }
 
@@ -29,14 +32,30 @@ export default async function ProcedimentosPage() {
   if (!session) redirect('/login')
 
   const supabase = createSupabaseServerClient()
+  // `procedures.tuss_code` não tem FK para `tuss_codes.code` (migration 0004),
+  // então não dá pra usar embed do PostgREST. Buscamos em duas queries.
   const { data: rawRows, error } = await supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan',
     )
     .order('created_at', { ascending: false })
     .limit(500)
-  const rows = (rawRows ?? []) as unknown as JoinedRow[]
+  const baseRows = (rawRows ?? []) as unknown as ProcedureRow[]
+
+  const uniqueCodes = Array.from(new Set(baseRows.map((r) => r.tuss_code)))
+  const { data: tussData, error: tussError } = uniqueCodes.length
+    ? await supabase.from('tuss_codes').select('code, description').in('code', uniqueCodes)
+    : { data: [] as Array<{ code: string; description: string }>, error: null }
+  const descMap = new Map<string, string>()
+  for (const t of (tussData ?? []) as Array<{ code: string; description: string }>) {
+    descMap.set(t.code, t.description)
+  }
+  const rows: JoinedRow[] = baseRows.map((r) => ({
+    ...r,
+    tuss_codes: descMap.has(r.tuss_code) ? { description: descMap.get(r.tuss_code)! } : null,
+  }))
+  const combinedError = error ?? tussError
 
   const canWrite = can(session.role, 'procedure.write')
   const activeCount = rows.filter((r) => r.active).length
@@ -81,8 +100,8 @@ export default async function ProcedimentosPage() {
             <CardTitle className="text-sm">Cadastrados</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {error ? (
-              <p className="px-6 pb-6 text-sm text-rose-600">Erro: {error.message}</p>
+            {combinedError ? (
+              <p className="px-6 pb-6 text-sm text-rose-600">Erro: {combinedError.message}</p>
             ) : rows.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <ListChecks className="h-8 w-8 text-slate-300" />
