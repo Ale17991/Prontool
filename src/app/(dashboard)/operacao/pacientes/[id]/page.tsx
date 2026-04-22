@@ -16,12 +16,12 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatient } from '@/lib/core/patients/get'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
-import { listTreatmentPlans } from '@/lib/core/treatment-plans/list'
+import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
 import {
-  TreatmentPlansSection,
+  TreatmentStepsSection,
   type HealthPlanOption,
   type ProcedureOption,
-} from './treatment-plans-section'
+} from './treatment-steps-section'
 import { PatientPlanEditor } from './patient-plan-editor'
 import { ClinicalRecordsSection } from './clinical-records-section'
 import { Badge } from '@/components/ui/badge'
@@ -74,9 +74,10 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     patientId: params.id,
   })
 
-  const treatmentPlans = await listTreatmentPlans(serviceClient, {
+  const treatmentSteps = await listTreatmentSteps(serviceClient, {
     tenantId: session.tenantId,
     patientId: params.id,
+    patientPlanId: patient.healthPlan?.id ?? null,
   })
 
   const [proceduresRes, healthPlansRes] = await Promise.all([
@@ -286,11 +287,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       </Card>
 
       {isAnonymized ? null : (
-        <TreatmentPlansSection
+        <TreatmentStepsSection
           patientId={params.id}
           patientPlanId={patient.healthPlan?.id ?? null}
           patientPlanName={patient.healthPlan?.name ?? null}
-          initialPlans={treatmentPlans}
+          initialSteps={treatmentSteps}
           procedures={procedures}
           healthPlans={healthPlansList}
           canWrite={canWriteTreatment}

@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { NotFoundError, ValidationError } from '@/lib/observability/errors'
+import { NotFoundError } from '@/lib/observability/errors'
 
-export interface AddTreatmentPlanStepInput {
+export interface CreateTreatmentStepInput {
   tenantId: string
-  planId: string
+  patientId: string
   procedureId: string
   healthPlanId?: string | null
   title: string
@@ -13,32 +13,27 @@ export interface AddTreatmentPlanStepInput {
   actorUserId: string
 }
 
-export interface AddTreatmentPlanStepResult {
+export interface CreateTreatmentStepResult {
   id: string
 }
 
 /**
- * Adiciona uma etapa ao plano. Valida tenant, existência do plano + status,
- * e que o procedure (+ plano de saúde, se informado) pertencem ao tenant.
- * Etapas em planos "concluido" ou "cancelado" não são permitidas.
+ * Cria uma etapa de tratamento direta no paciente (sem plano agregador,
+ * após migration 0035). Valida que paciente + procedimento + plano de
+ * saúde (se informado) pertencem ao tenant antes do insert.
  */
-export async function addTreatmentPlanStep(
+export async function createTreatmentStep(
   supabase: SupabaseClient<Database>,
-  input: AddTreatmentPlanStepInput,
-): Promise<AddTreatmentPlanStepResult> {
-  const plan = await supabase
-    .from('treatment_plans')
-    .select('id, status')
+  input: CreateTreatmentStepInput,
+): Promise<CreateTreatmentStepResult> {
+  const pat = await supabase
+    .from('patients')
+    .select('id')
     .eq('tenant_id', input.tenantId)
-    .eq('id', input.planId)
+    .eq('id', input.patientId)
     .maybeSingle()
-  if (plan.error) throw new Error(`plan lookup: ${plan.error.message}`)
-  if (!plan.data) throw new NotFoundError('treatment_plan', input.planId)
-  if (plan.data.status !== 'ativo') {
-    throw new ValidationError(
-      `Não é possível adicionar etapas a um plano ${plan.data.status}.`,
-    )
-  }
+  if (pat.error) throw new Error(`patient lookup: ${pat.error.message}`)
+  if (!pat.data) throw new NotFoundError('patient', input.patientId)
 
   const proc = await supabase
     .from('procedures')
@@ -64,7 +59,7 @@ export async function addTreatmentPlanStep(
     .from('treatment_plan_steps')
     .insert({
       tenant_id: input.tenantId,
-      treatment_plan_id: input.planId,
+      patient_id: input.patientId,
       procedure_id: input.procedureId,
       plan_id: input.healthPlanId ?? null,
       title: input.title.trim(),
@@ -75,6 +70,6 @@ export async function addTreatmentPlanStep(
     .select('id')
     .single()
 
-  if (error || !data) throw new Error(`addTreatmentPlanStep failed: ${error?.message}`)
+  if (error || !data) throw new Error(`createTreatmentStep failed: ${error?.message}`)
   return { id: data.id }
 }

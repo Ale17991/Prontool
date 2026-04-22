@@ -1,9 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { NotFoundError } from '@/lib/observability/errors'
 import { tryResolvePrice } from '@/lib/core/pricing/resolve-price'
 
-export interface TreatmentPlanStep {
+export interface TreatmentStep {
   id: string
   title: string
   notes: string | null
@@ -23,54 +22,34 @@ export interface TreatmentPlanStep {
     name: string
   } | null
   /**
-   * Preço resolvido em tempo de leitura pela regra:
-   *   1. procedure.coveredByPlan=false → particular (default_amount_cents, pode ser null)
+   * Preço resolvido em tempo de leitura seguindo:
+   *   1. procedure.coveredByPlan=false → particular
    *   2. coberto + step/patient plan → price_versions
-   *   3. coberto + sem plano → particular (default_amount_cents)
-   *   4. nenhum valor encontrado → null
+   *   3. coberto + sem plano → particular
+   *   4. nada → null
    */
   currentPriceCents: number | null
   priceSource: 'convenio' | 'particular' | null
   pricePlanId: string | null
 }
 
-export interface TreatmentPlanDetail {
-  id: string
-  patientId: string
-  title: string
-  description: string | null
-  status: 'ativo' | 'concluido' | 'cancelado'
-  createdAt: string
-  steps: TreatmentPlanStep[]
-}
-
-export interface GetTreatmentPlanInput {
+export interface ListTreatmentStepsInput {
   tenantId: string
-  planId: string
-  /** Plano de saúde do paciente; usado como fallback pra resolver preço quando a etapa não define. */
+  patientId: string
   patientPlanId?: string | null
 }
 
 /**
- * Carrega um plano com todas as etapas expandindo procedure (nome + TUSS) e
- * health_plan (nome). Usa join via select embedding do PostgREST — os FKs
- * procedure_id / plan_id resolvem as relações automaticamente.
+ * Lista todas as etapas de tratamento do paciente, expandindo `procedures`
+ * e `health_plans` via embed do PostgREST (há FK real nessas duas relações).
+ * Ordenação: pendentes com data prevista primeiro (data ascendente), depois
+ * pendentes sem data, depois finalizadas por `created_at` desc.
  */
-export async function getTreatmentPlan(
+export async function listTreatmentSteps(
   supabase: SupabaseClient<Database>,
-  input: GetTreatmentPlanInput,
-): Promise<TreatmentPlanDetail> {
-  const plan = await supabase
-    .from('treatment_plans')
-    .select('id, patient_id, title, description, status, created_at')
-    .eq('tenant_id', input.tenantId)
-    .eq('id', input.planId)
-    .maybeSingle()
-
-  if (plan.error) throw new Error(`get treatment plan: ${plan.error.message}`)
-  if (!plan.data) throw new NotFoundError('treatment_plan', input.planId)
-
-  const stepsResult = await supabase
+  input: ListTreatmentStepsInput,
+): Promise<TreatmentStep[]> {
+  const res = await supabase
     .from('treatment_plan_steps')
     .select(
       'id, title, notes, status, scheduled_date, completed_at, created_at, ' +
@@ -78,10 +57,11 @@ export async function getTreatmentPlan(
         'health_plans:plan_id ( id, name )',
     )
     .eq('tenant_id', input.tenantId)
-    .eq('treatment_plan_id', input.planId)
-    .order('created_at', { ascending: true })
+    .eq('patient_id', input.patientId)
+    .order('scheduled_date', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: false })
 
-  if (stepsResult.error) throw new Error(`list steps: ${stepsResult.error.message}`)
+  if (res.error) throw new Error(`listTreatmentSteps failed: ${res.error.message}`)
 
   type RawStep = {
     id: string
@@ -100,10 +80,8 @@ export async function getTreatmentPlan(
     } | null
     health_plans: { id: string; name: string } | null
   }
-  const raw = (stepsResult.data ?? []) as unknown as RawStep[]
+  const raw = (res.data ?? []) as unknown as RawStep[]
 
-  // Regra de preço por etapa (ver jsdoc em TreatmentPlanStep). Uses tryResolvePrice
-  // somente no caminho coberto-por-convênio; particular não faz round-trip SQL.
   const asOf = new Date()
   const priced = await Promise.all(
     raw.map(async (s) => {
@@ -111,7 +89,7 @@ export async function getTreatmentPlan(
         return { currentPriceCents: null, priceSource: null, pricePlanId: null } as const
       }
       const proc = s.procedures
-      // Caso 1: procedimento particular-only.
+      // Caso 1: particular-only
       if (!proc.covered_by_plan) {
         return {
           currentPriceCents: proc.default_amount_cents,
@@ -119,7 +97,7 @@ export async function getTreatmentPlan(
           pricePlanId: null,
         } as const
       }
-      // Caso 2: coberto + plano (step.plan_id > patient.plan_id).
+      // Caso 2: coberto + plano
       const planForPrice = s.health_plans?.id ?? input.patientPlanId ?? null
       if (planForPrice) {
         const found = await tryResolvePrice(supabase, {
@@ -135,15 +113,9 @@ export async function getTreatmentPlan(
             pricePlanId: planForPrice,
           } as const
         }
-        // Coberto + plano mas sem preço — não cai pra particular automaticamente;
-        // "sem preço cadastrado" é um sinal claro pro operador.
-        return {
-          currentPriceCents: null,
-          priceSource: null,
-          pricePlanId: planForPrice,
-        } as const
+        return { currentPriceCents: null, priceSource: null, pricePlanId: planForPrice } as const
       }
-      // Caso 3: coberto + sem plano do paciente → particular.
+      // Caso 3: coberto sem plano → particular
       return {
         currentPriceCents: proc.default_amount_cents,
         priceSource: proc.default_amount_cents !== null ? 'particular' : null,
@@ -152,11 +124,11 @@ export async function getTreatmentPlan(
     }),
   )
 
-  const steps: TreatmentPlanStep[] = raw.map((s, idx) => ({
+  return raw.map((s, idx) => ({
     id: s.id,
     title: s.title,
     notes: s.notes,
-    status: s.status as TreatmentPlanStep['status'],
+    status: s.status as TreatmentStep['status'],
     scheduledDate: s.scheduled_date,
     completedAt: s.completed_at,
     createdAt: s.created_at,
@@ -180,14 +152,4 @@ export async function getTreatmentPlan(
     priceSource: priced[idx]!.priceSource,
     pricePlanId: priced[idx]!.pricePlanId,
   }))
-
-  return {
-    id: plan.data.id,
-    patientId: plan.data.patient_id,
-    title: plan.data.title,
-    description: plan.data.description,
-    status: plan.data.status as TreatmentPlanDetail['status'],
-    createdAt: plan.data.created_at,
-    steps,
-  }
 }

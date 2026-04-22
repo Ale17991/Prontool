@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/observability/errors'
 
-export interface UpdateTreatmentPlanStepStatusInput {
+export interface UpdateTreatmentStepStatusInput {
   tenantId: string
   stepId: string
   status: 'concluido' | 'cancelado'
@@ -10,13 +10,13 @@ export interface UpdateTreatmentPlanStepStatusInput {
 }
 
 /**
- * Muda o status de uma etapa. Para 'concluido', carimba completed_at e
- * completed_by. Etapas já finalizadas (concluido/cancelado) não podem
- * ser re-transicionadas — append-only.
+ * Muda o status de uma etapa. Etapas já finalizadas (concluido/cancelado)
+ * não podem ser re-transicionadas — append-only a nível do status. Carimba
+ * completed_at/by quando status=concluido.
  */
-export async function updateTreatmentPlanStepStatus(
+export async function updateTreatmentStepStatus(
   supabase: SupabaseClient<Database>,
-  input: UpdateTreatmentPlanStepStatusInput,
+  input: UpdateTreatmentStepStatusInput,
 ): Promise<void> {
   if (input.status !== 'concluido' && input.status !== 'cancelado') {
     throw new ValidationError(`Status inválido: ${input.status as string}`)

@@ -976,13 +976,13 @@ export type Database = {
           created_by: string | null
           id: string
           notes: string | null
+          patient_id: string
           plan_id: string | null
           procedure_id: string
           scheduled_date: string | null
           status: string
           tenant_id: string
           title: string
-          treatment_plan_id: string
         }
         Insert: {
           completed_at?: string | null
@@ -991,13 +991,13 @@ export type Database = {
           created_by?: string | null
           id?: string
           notes?: string | null
+          patient_id: string
           plan_id?: string | null
           procedure_id: string
           scheduled_date?: string | null
           status?: string
           tenant_id: string
           title: string
-          treatment_plan_id: string
         }
         Update: {
           completed_at?: string | null
@@ -1006,15 +1006,22 @@ export type Database = {
           created_by?: string | null
           id?: string
           notes?: string | null
+          patient_id?: string
           plan_id?: string | null
           procedure_id?: string
           scheduled_date?: string | null
           status?: string
           tenant_id?: string
           title?: string
-          treatment_plan_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "treatment_plan_steps_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "treatment_plan_steps_plan_id_fkey"
             columns: ["plan_id"]
@@ -1031,61 +1038,6 @@ export type Database = {
           },
           {
             foreignKeyName: "treatment_plan_steps_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "treatment_plan_steps_treatment_plan_id_fkey"
-            columns: ["treatment_plan_id"]
-            isOneToOne: false
-            referencedRelation: "treatment_plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      treatment_plans: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          description: string | null
-          id: string
-          patient_id: string
-          status: string
-          tenant_id: string
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          patient_id: string
-          status?: string
-          tenant_id: string
-          title: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          patient_id?: string
-          status?: string
-          tenant_id?: string
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "treatment_plans_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "treatment_plans_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

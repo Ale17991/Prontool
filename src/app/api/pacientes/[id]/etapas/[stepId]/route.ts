@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { updateTreatmentPlanStepStatus } from '@/lib/core/treatment-plans/complete-step'
+import { updateTreatmentStepStatus } from '@/lib/core/treatment-steps/update-status'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -14,9 +14,9 @@ const patchSchema = z.object({
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string; planId: string; stepId: string } },
+  { params }: { params: { id: string; stepId: string } },
 ): Promise<Response> {
-  const route = `/api/pacientes/${params.id}/planos/${params.planId}/steps/${params.stepId}`
+  const route = `/api/pacientes/${params.id}/etapas/${params.stepId}`
   try {
     const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
       entity: 'treatment_plan_steps',
@@ -38,7 +38,7 @@ export async function PATCH(
       )
     }
     const supabase = createSupabaseServiceClient()
-    await updateTreatmentPlanStepStatus(supabase, {
+    await updateTreatmentStepStatus(supabase, {
       tenantId: session.tenantId,
       actorUserId: session.userId,
       stepId: params.stepId,
