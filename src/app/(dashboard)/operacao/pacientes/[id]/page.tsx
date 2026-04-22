@@ -18,6 +18,12 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatient } from '@/lib/core/patients/get'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
+import { listTreatmentPlans } from '@/lib/core/treatment-plans/list'
+import {
+  TreatmentPlansSection,
+  type HealthPlanOption,
+  type ProcedureOption,
+} from './treatment-plans-section'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -67,6 +73,41 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     tenantId: session.tenantId,
     patientId: params.id,
   })
+
+  const treatmentPlans = await listTreatmentPlans(serviceClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  })
+
+  const [proceduresRes, healthPlansRes] = await Promise.all([
+    serviceClient
+      .from('procedures')
+      .select('id, tuss_code, display_name')
+      .eq('tenant_id', session.tenantId)
+      .eq('active', true)
+      .order('display_name', { ascending: true, nullsFirst: false })
+      .limit(500),
+    serviceClient
+      .from('health_plans')
+      .select('id, name')
+      .eq('tenant_id', session.tenantId)
+      .eq('active', true)
+      .order('name', { ascending: true }),
+  ])
+  const procedures: ProcedureOption[] = (proceduresRes.data ?? []).map((p) => ({
+    id: p.id,
+    tussCode: p.tuss_code,
+    displayName: p.display_name,
+  }))
+  const healthPlansList: HealthPlanOption[] = (healthPlansRes.data ?? []).map((hp) => ({
+    id: hp.id,
+    name: hp.name,
+  }))
+
+  const canWriteTreatment =
+    session.role === 'admin' ||
+    session.role === 'financeiro' ||
+    session.role === 'profissional_saude'
 
   const isAnonymized = Boolean(patient.anonymizedAt)
   const initial = (patient.fullName || '?').charAt(0).toUpperCase()
@@ -223,6 +264,16 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           )}
         </CardContent>
       </Card>
+
+      {isAnonymized ? null : (
+        <TreatmentPlansSection
+          patientId={params.id}
+          initialPlans={treatmentPlans}
+          procedures={procedures}
+          healthPlans={healthPlansList}
+          canWrite={canWriteTreatment}
+        />
+      )}
 
       <Card>
         <CardHeader>
