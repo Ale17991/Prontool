@@ -9,7 +9,10 @@ import { toHttpResponse } from '@/lib/observability/http'
 /**
  * GET  /api/pacientes/{id}/registros  — lista registros (todos os papéis)
  * POST /api/pacientes/{id}/registros  — cria registro tipo `texto`
- *                                       (admin / financeiro)
+ *                                       (admin / financeiro / profissional_saude).
+ *                                       Profissionais da saúde precisam registrar
+ *                                       evolução clínica; admin/financeiro registram
+ *                                       atendimentos administrativos.
  */
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -49,7 +52,7 @@ export async function POST(
   { params }: { params: { id: string } },
 ): Promise<Response> {
   try {
-    const session = await requireRole(['admin', 'financeiro'], {
+    const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
       entity: 'clinical_records',
       entityId: params.id,
       route: `/api/pacientes/${params.id}/registros`,

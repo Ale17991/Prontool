@@ -114,7 +114,9 @@ export default async function PacienteDetailPage({ params }: PageProps) {
 
   const canEditPatient = session.role === 'admin' || session.role === 'recepcionista'
   const canWriteClinicalRecords =
-    session.role === 'admin' || session.role === 'financeiro'
+    session.role === 'admin' ||
+    session.role === 'financeiro' ||
+    session.role === 'profissional_saude'
 
   const isAnonymized = Boolean(patient.anonymizedAt)
   const initial = (patient.fullName || '?').charAt(0).toUpperCase()

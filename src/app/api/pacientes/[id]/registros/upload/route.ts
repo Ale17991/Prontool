@@ -8,7 +8,9 @@ import { toHttpResponse } from '@/lib/observability/http'
 /**
  * POST /api/pacientes/{id}/registros/upload — recebe multipart/form-data
  * com `title` (texto) e `file` (binário), faz upload pra Storage e cria
- * o registro com type='arquivo'. Permissão: admin / financeiro.
+ * o registro com type='arquivo'. Permissão: admin / financeiro /
+ * profissional_saude (mesmo set que a rota de texto — profissional pode
+ * anexar exames, pedidos, etc.).
  *
  * Body esperado:
  *   - title: string (mín 1, máx 200)
@@ -22,7 +24,7 @@ export async function POST(
   { params }: { params: { id: string } },
 ): Promise<Response> {
   try {
-    const session = await requireRole(['admin', 'financeiro'], {
+    const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
       entity: 'clinical_records',
       entityId: params.id,
       route: `/api/pacientes/${params.id}/registros/upload`,
