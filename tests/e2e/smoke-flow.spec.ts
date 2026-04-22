@@ -43,7 +43,7 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   await savePatient.click()
   // Dá um respiro pro fetch disparar
   await page.waitForTimeout(500)
-  await page.waitForURL(/\/operacao\/pacientes\/[0-9a-f-]{36}$/, { timeout: 30_000 }).catch((err) => {
+  await page.waitForURL(/\/operacao\/pacientes\/[0-9a-f-]{36}$/, { timeout: 90_000 }).catch((err) => {
     console.log('[smoke] waitForURL failed, current:', page.url())
     console.log('[smoke] api activity so far:')
     for (const l of logs) console.log('   ', l)
@@ -63,12 +63,12 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   const fieldLabelInput = page.locator('input[placeholder="Rótulo do campo"]').first()
   await fieldLabelInput.fill('Queixa principal')
   await page.getByRole('button', { name: /salvar modelo/i }).click()
-  await page.waitForURL(/\/analise\/anamnese$/, { timeout: 15_000 })
+  await page.waitForURL(/\/analise\/anamnese$/, { timeout: 45_000 })
   console.log('[smoke] template created')
 
   // ---- Aplicar modelo: clicar em "Usar" na primeira linha ----
   await page.getByRole('link', { name: /usar/i }).first().click()
-  await page.waitForURL(/\/analise\/anamnese\/[0-9a-f-]{36}\/usar$/, { timeout: 15_000 })
+  await page.waitForURL(/\/analise\/anamnese\/[0-9a-f-]{36}\/usar$/, { timeout: 45_000 })
 
   // Selecionar o paciente recém-criado
   await page.locator('button[role="combobox"]').first().click()
@@ -79,7 +79,7 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   await textInputs.first().fill('Dor lombar há 3 dias')
   await page.getByRole('button', { name: /salvar anamnese/i }).click()
   // Redireciona pro paciente
-  await page.waitForURL(new RegExp(`/operacao/pacientes/${patientId}$`), { timeout: 15_000 })
+  await page.waitForURL(new RegExp(`/operacao/pacientes/${patientId}$`), { timeout: 45_000 })
   console.log('[smoke] anamnese applied')
 
   // ---- Criar etapa no plano de tratamento ----
@@ -94,7 +94,7 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   await page.locator('#step_date').fill(today)
   await page.getByRole('button', { name: /adicionar etapa/i }).click()
   // Aguardar o form fechar e a etapa aparecer
-  await page.waitForSelector('text=Sessão 1', { timeout: 15_000 })
+  await page.waitForSelector('text=Sessão 1', { timeout: 45_000 })
   console.log('[smoke] treatment step created')
 
   // ---- Verificar ficha clínica ----

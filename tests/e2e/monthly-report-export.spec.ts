@@ -24,7 +24,7 @@ test('admin exports monthly report as PDF and Excel', async ({ page, request }) 
   await ensureDemoSeed()
 
   await loginAsAdmin(page)
-  await page.goto(`/relatorios/mensal?from=${PERIOD.from}&to=${PERIOD.to}`)
+  await page.goto(`/analise/relatorios/mensal?from=${PERIOD.from}&to=${PERIOD.to}`)
   await expect(page.getByRole('heading', { name: 'Relatório mensal' })).toBeVisible()
 
   // --- PDF ----------------------------------------------------------------

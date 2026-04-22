@@ -44,14 +44,30 @@ test('admin edits a price and history shows the previous version', async ({ page
     .eq('plan_id', target.plan_id)
   const versionsBefore = countBefore.count ?? 0
 
+  // Ao rodar de novo no mesmo dia, UNIQUE(valid_from) bate nos registros
+  // deixados por runs anteriores. Pega a head atual e avança um dia para
+  // garantir que a nova versão não colide com nenhuma existente.
+  const { data: headRow } = await sb
+    .from('price_versions')
+    .select('valid_from')
+    .eq('tenant_id', tenantId)
+    .eq('procedure_id', target.procedure_id)
+    .eq('plan_id', target.plan_id)
+    .order('valid_from', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const headValidFrom = headRow?.valid_from ?? new Date().toISOString().slice(0, 10)
+  const next = new Date(headValidFrom)
+  next.setUTCDate(next.getUTCDate() + 1)
+  const newValidFrom = next.toISOString().slice(0, 10)
+
   await loginAsAdmin(page)
-  await page.goto(`/precos/${target.id}`)
+  await page.goto(`/cadastros/precos/${target.id}`)
 
   const newAmountReais = `${(Math.floor(target.amount_cents / 100) + 50).toFixed(2).replace('.', ',')}`
-  const today = new Date().toISOString().slice(0, 10)
 
   await page.getByLabel('Novo valor (R$)').fill(newAmountReais)
-  await page.getByLabel('Vigência a partir de').fill(today)
+  await page.getByLabel('Vigência a partir de').fill(newValidFrom)
   await page.getByLabel('Motivo').fill('E2E price change')
 
   await Promise.all([
@@ -79,7 +95,7 @@ test('admin edits a price and history shows the previous version', async ({ page
     .toBe(versionsBefore + 1)
 
   // History card on the detail page should now list 2+ rows.
-  await page.goto(`/precos/${target.id}`)
+  await page.goto(`/cadastros/precos/${target.id}`)
   const historyRows = page.locator('table tbody tr')
   await expect(historyRows).toHaveCount(versionsBefore + 1)
 })
