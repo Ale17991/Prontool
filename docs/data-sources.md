@@ -7,22 +7,80 @@ got there, and the legal status of each source.
 
 ### What it is
 
-The TUSS "Tabela 22" (procedimentos e eventos em saúde) is a regulatory
-code table published by the **Agência Nacional de Saúde Suplementar
-(ANS)**, the Brazilian federal agency that regulates private health
-plans. Procedures that providers bill to health plans must reference a
-TUSS code.
+TUSS is a family of regulatory code tables published by the
+**Agência Nacional de Saúde Suplementar (ANS)**, the Brazilian federal
+agency that regulates private health plans. Providers billing health
+plans must reference TUSS codes for procedures, materials and
+medication.
+
+We ingest three of ANS's tables into `tuss_codes`:
+
+| Table | Name | Rows (as of 2026-04-23) |
+|------:|------|---:|
+| **22** | Procedimentos e eventos em saúde | 5.851 |
+| **19** | Materiais e OPME | 38.553 |
+| **20** | Medicamentos | 1.114 |
+
+The `tuss_codes.tuss_table` discriminator tells the app which table a
+given code came from. Collision testing (`scripts/check-tuss-collision.mjs`)
+confirmed that at the pinned upstream commit the three tables' code
+sets are disjoint, so `UNIQUE(code)` is kept global and no composite key
+is required in `procedures.tuss_code`. If a future reseed detects
+collision, the script exits non-zero and the schema must be migrated
+before the seed proceeds.
+
+Tables 18 (diárias/taxas/gases), 63 (OPME) and all remaining ANS
+tables are **not** supported — the upstream mirror does not publish
+them. If a clinic needs those, expect either a new upstream source or a
+direct ANS FTP/XLSX ingestion path, which is out of scope today.
 
 ### How we ingest it
 
-`pnpm seed:tuss` (script at `scripts/seed-tuss.ts`) downloads the JSON
-from a pinned ref of the GitHub mirror
+`pnpm seed:tuss:22 | :19 | :20 | :all` (script at `scripts/seed-tuss.ts`)
+downloads the JSON from a pinned ref of the GitHub mirror
 [`charlesfgarcia/tabelas-ans`](https://github.com/charlesfgarcia/tabelas-ans),
-normalizes it, and upserts into `tuss_codes` while recording a row in
-`tuss_catalog_versions` (commit SHA + content hash) so every import is
-auditable. The `detect-deprecated` post-step fans out alerts to
-tenants whose procedures reference codes whose `valid_to` just became
-non-null.
+normalizes it per-table shape (22 uses `procedimento`; 19 and 20 use
+`descricao` + `fabricante`), and upserts into `tuss_codes` while
+recording one row per table in `tuss_catalog_versions`
+(`source_ref = tabela_<N>@<sha>`, plus content hash) so every import is
+auditable. The `detect-deprecated` post-step runs once at the end and
+fans out alerts to tenants whose procedures reference codes whose
+`valid_to` just became non-null — works across all three tables.
+
+Before any reseed, run `node scripts/check-tuss-collision.mjs` to
+re-verify that the disjoint-codes invariant still holds at the current
+upstream commit.
+
+### Staleness — mirror may lag ANS
+
+The upstream mirror is a community project with no declared update
+cadence. ANS revises the rolling `Rol de Procedimentos` every few
+years and publishes terminology updates more frequently. Treat the
+mirror as **best-effort recency**:
+
+- Our `tuss_catalog_versions` row records the exact commit SHA we
+  imported, so we always know which snapshot is in play per tenant.
+- The production runbook should include a periodic check against the
+  official ANS publication (sensitive dates: Jan/Jul of each year) to
+  decide whether to reseed.
+- If the mirror falls behind ANS, the failure mode is **not** data
+  corruption — it's a benign lag: newly-published codes won't appear
+  in the typeahead until the next reseed, and existing codes keep
+  working. Detect-deprecated only flags things when a reseed actually
+  reveals a retired code upstream.
+
+### Reimport plan
+
+1. Watch the ANS publication page (or a downstream tracker) for a new
+   Rol or terminology update.
+2. Bump `TUSS_REPO_REF` (or the ref embedded in `scripts/seed-tuss.ts`)
+   to the mirror commit that reflects the new publication.
+3. Run `node scripts/check-tuss-collision.mjs` — must exit 0.
+4. Run `pnpm seed:tuss:all` in a staging tenant first; confirm
+   `tuss_catalog_versions` row count increments and `detect-deprecated`
+   alerts look sane.
+5. Promote to production with `SEED_TUSS_FORCE=1` (see License section
+   below — the force-flag remains a legal gate, not a technical one).
 
 ### License verification (2026-04-20)
 
@@ -36,10 +94,10 @@ with the `SEED_TUSS_FORCE=1` gate.
 
 ### Legal analysis (preliminary — pending DPO / legal signoff)
 
-- The **underlying data** (TUSS Tabela 22) is regulatory material
-  issued by a federal agency. Under Brazilian Law 9.610/98 Art. 8 IV,
-  "leis, decretos, regulamentos, decisões judiciais e demais atos
-  oficiais" are not protected by copyright.
+- The **underlying data** (TUSS tables 22, 19 and 20) is regulatory
+  material issued by a federal agency. Under Brazilian Law 9.610/98
+  Art. 8 IV, "leis, decretos, regulamentos, decisões judiciais e
+  demais atos oficiais" are not protected by copyright.
 - The **mirror repository** is a mechanical CSV→JSON transformation
   with no apparent creative expression to attract independent
   copyright. However, Brazilian law permits database-rights claims
