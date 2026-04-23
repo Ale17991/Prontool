@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { NewPatientForm, type HealthPlanOption } from './new-patient-form'
 
@@ -15,14 +15,15 @@ export default async function NovoPacientePage() {
   if (!session) redirect('/login')
   if (!ALLOWED_ROLES.has(session.role)) redirect('/operacao/pacientes')
 
-  const supabase = createSupabaseServiceClient()
+  const supabase = createSupabaseServerClient()
   const plans = await supabase
     .from('health_plans')
     .select('id, name')
-    .eq('tenant_id', session.tenantId)
     .eq('active', true)
     .order('name', { ascending: true })
-  const healthPlans: HealthPlanOption[] = (plans.data ?? []).map((p) => ({
+  const healthPlans: HealthPlanOption[] = (
+    (plans.data ?? []) as Array<{ id: string; name: string }>
+  ).map((p) => ({
     id: p.id,
     name: p.name,
   }))

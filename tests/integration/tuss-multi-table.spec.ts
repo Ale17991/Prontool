@@ -75,14 +75,13 @@ describe('GET /api/tuss-codes route handler', () => {
     expect(typeof (mod as { GET?: unknown }).GET).toBe('function')
   })
 
-  it('GET devolve Response sempre (mesmo sem auth)', async () => {
+  it('GET sem auth devolve 401 UNAUTHORIZED', async () => {
     const mod = await import('@/app/api/tuss-codes/route')
     const GET = (mod as { GET: (req: Request) => Promise<Response> }).GET
     const req = new Request('http://local/api/tuss-codes?table=22')
     const res = await GET(req)
-    // Sem cookies a rota não chega a bater na lógica de validação; só
-    // confirmamos que o handler retorna Response (não throw) — valida
-    // que toHttpResponse cobre todos os caminhos.
-    expect(res).toBeInstanceOf(Response)
+    expect(res.status).toBe(401)
+    const body = (await res.json()) as { error: { code: string } }
+    expect(body.error.code).toBe('UNAUTHORIZED')
   })
 })

@@ -11,12 +11,13 @@ import {
   Stethoscope,
   User,
 } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatient } from '@/lib/core/patients/get'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
 import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
+import type { Database } from '@/lib/db/types'
 import {
   TreatmentStepsSection,
   type HealthPlanOption,
@@ -47,10 +48,14 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const serviceClient = createSupabaseServiceClient()
+  // RLS + RPCs SECURITY DEFINER com grant para authenticated cobrem tudo
+  // que essa página lê. O cast abaixo alinha o tipo do @supabase/ssr com
+  // o SupabaseClient<Database> esperado pelos core helpers.
+  const supabase = createSupabaseServerClient()
+  const typedClient = supabase as unknown as SupabaseClient<Database>
   let detail
   try {
-    detail = await getPatient(serviceClient, {
+    detail = await getPatient(typedClient, {
       tenantId: session.tenantId,
       patientId: params.id,
     })
@@ -60,8 +65,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   }
   const { patient, summary } = detail
 
-  const serverClient = createSupabaseServerClient()
-  const { data: appointmentsRaw } = await serverClient
+  const { data: appointmentsRaw } = await supabase
     .from('appointments_effective')
     .select('id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status')
     .eq('patient_id', params.id)
@@ -69,40 +73,48 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     .limit(50)
   const appointments = (appointmentsRaw ?? []) as AppointmentRow[]
 
-  const records = await listClinicalRecords(serviceClient, {
+  const records = await listClinicalRecords(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
   })
 
-  const treatmentSteps = await listTreatmentSteps(serviceClient, {
+  const treatmentSteps = await listTreatmentSteps(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
     patientPlanId: patient.healthPlan?.id ?? null,
   })
 
   const [proceduresRes, healthPlansRes] = await Promise.all([
-    serviceClient
+    supabase
       .from('procedures')
       .select('id, tuss_code, display_name, covered_by_plan, default_amount_cents')
-      .eq('tenant_id', session.tenantId)
       .eq('active', true)
       .order('display_name', { ascending: true, nullsFirst: false })
       .limit(500),
-    serviceClient
+    supabase
       .from('health_plans')
       .select('id, name')
-      .eq('tenant_id', session.tenantId)
       .eq('active', true)
       .order('name', { ascending: true }),
   ])
-  const procedures: ProcedureOption[] = (proceduresRes.data ?? []).map((p) => ({
+  const procedures: ProcedureOption[] = (
+    (proceduresRes.data ?? []) as Array<{
+      id: string
+      tuss_code: string
+      display_name: string | null
+      covered_by_plan: boolean
+      default_amount_cents: number | null
+    }>
+  ).map((p) => ({
     id: p.id,
     tussCode: p.tuss_code,
     displayName: p.display_name,
     coveredByPlan: p.covered_by_plan,
     defaultAmountCents: p.default_amount_cents,
   }))
-  const healthPlansList: HealthPlanOption[] = (healthPlansRes.data ?? []).map((hp) => ({
+  const healthPlansList: HealthPlanOption[] = (
+    (healthPlansRes.data ?? []) as Array<{ id: string; name: string }>
+  ).map((hp) => ({
     id: hp.id,
     name: hp.name,
   }))

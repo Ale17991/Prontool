@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronRight, DollarSign, FileText } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -35,20 +35,20 @@ export default async function PrecosHubPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const supabase = createSupabaseServiceClient()
+  const supabase = createSupabaseServerClient()
   const asOf = new Date().toISOString().slice(0, 10)
 
+  // RLS filtra por tenant_id automaticamente via jwt_tenant_id() nas policies
+  // health_plans_read e price_versions_read — não precisa de .eq('tenant_id').
   const [plansRes, pricesRes] = await Promise.all([
     supabase
       .from('health_plans')
       .select('id, name, active')
-      .eq('tenant_id', session.tenantId)
       .order('active', { ascending: false })
       .order('name', { ascending: true }),
     supabase
       .from('price_versions')
       .select('procedure_id, plan_id, amount_cents, valid_from, created_at')
-      .eq('tenant_id', session.tenantId)
       .lte('valid_from', asOf)
       .order('valid_from', { ascending: false })
       .order('created_at', { ascending: false }),

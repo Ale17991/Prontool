@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation'
 import { Calculator, DollarSign, Download, FileText, LayoutDashboard, Receipt, Stethoscope, TrendingDown } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { buildMonthlyReport } from '@/lib/core/reports/monthly'
+import type { Database } from '@/lib/db/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,7 +28,10 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
   if (!can(session.role, 'report.read')) redirect('/operacao/atendimentos')
 
   const period = resolvePeriod(searchParams)
-  const supabase = createSupabaseServiceClient()
+  // RLS policies em appointments/appointment_reversals/health_plans/doctors
+  // filtram por jwt_tenant_id() — buildMonthlyReport ainda recebe tenantId
+  // pra manter a interface e rodar os explicit .eq que complementam a RLS.
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const report = await buildMonthlyReport(supabase, {
     tenantId: session.tenantId,
     from: period.from,

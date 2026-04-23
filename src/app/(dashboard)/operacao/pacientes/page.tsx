@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronRight, Plus, Search, User, Users } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { listPatients } from '@/lib/core/patients/list'
+import type { Database } from '@/lib/db/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -25,7 +27,11 @@ export default async function PacientesPage({ searchParams }: PageProps) {
   if (!session) redirect('/login')
 
   const page = Math.max(Number(searchParams.page ?? 1) || 1, 1)
-  const supabase = createSupabaseServiceClient()
+  // list_patients_for_tenant RPC é SECURITY DEFINER, grant EXECUTE
+  // concedido a authenticated — o server client (RLS) pode chamá-la.
+  // Cast necessário porque @supabase/ssr expõe tipos ligeiramente
+  // diferentes do @supabase/supabase-js que listPatients espera.
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const { items, total, pageSize } = await listPatients(supabase, {
     tenantId: session.tenantId,
     search: searchParams.q,

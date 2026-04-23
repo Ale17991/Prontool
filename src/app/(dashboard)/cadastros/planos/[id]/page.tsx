@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, DollarSign } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { can } from '@/lib/auth/rbac'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -23,17 +23,23 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const supabase = createSupabaseServiceClient()
+  const supabase = createSupabaseServerClient()
 
+  // RLS policies health_plans_read / procedures_read / price_versions_read
+  // filtram por tenant_id = jwt_tenant_id() — o filtro explícito sai.
   const planRes = await supabase
     .from('health_plans')
     .select('id, name, active, created_at')
-    .eq('tenant_id', session.tenantId)
     .eq('id', params.id)
     .maybeSingle()
   if (planRes.error) throw new Error(`plan lookup: ${planRes.error.message}`)
   if (!planRes.data) notFound()
-  const plan = planRes.data
+  const plan = planRes.data as {
+    id: string
+    name: string
+    active: boolean
+    created_at: string
+  }
 
   // Covered-by-plan active procedures — base set for the "Adicionar
   // procedimento" typeahead. Filtering out already-priced ones is done
@@ -41,13 +47,14 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   const procRes = await supabase
     .from('procedures')
     .select('id, tuss_code, display_name')
-    .eq('tenant_id', session.tenantId)
     .eq('active', true)
     .eq('covered_by_plan', true)
     .order('display_name', { ascending: true, nullsFirst: false })
     .limit(1000)
   if (procRes.error) throw new Error(`procedures lookup: ${procRes.error.message}`)
-  const procedures: ProcedureOption[] = (procRes.data ?? []).map((p) => ({
+  const procedures: ProcedureOption[] = (
+    (procRes.data ?? []) as Array<{ id: string; tuss_code: string; display_name: string | null }>
+  ).map((p) => ({
     id: p.id,
     tussCode: p.tuss_code,
     displayName: p.display_name,
@@ -59,7 +66,6 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   const pvRes = await supabase
     .from('price_versions')
     .select('id, procedure_id, amount_cents, valid_from, created_at')
-    .eq('tenant_id', session.tenantId)
     .eq('plan_id', params.id)
     .lte('valid_from', asOf)
     .order('valid_from', { ascending: false })
@@ -99,7 +105,6 @@ export default async function PlanoDetailPage({ params }: PageProps) {
     ? await supabase
         .from('procedures')
         .select('id, tuss_code, display_name, covered_by_plan, active')
-        .eq('tenant_id', session.tenantId)
         .in('id', headProcedureIds)
     : {
         data: [] as Array<{

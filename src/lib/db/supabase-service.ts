@@ -10,21 +10,19 @@ import type { Database } from './generated/types'
  * `session.tenantId`. Tenant isolation is enforced at the handler layer
  * via requireRole + explicit tenant_id predicate, not at the DB layer.
  *
- * Original intent (circa T036) kept this restricted to webhooks/workers/
- * scripts while tenant-facing routes used the RLS-scoped server client.
- * That invariant did not survive contact with the TypeScript generics
- * mismatch between `@supabase/ssr` and `@supabase/supabase-js`, and all
- * user-story routes ended up using the service client anyway. The
- * allowlist below codifies the current architectural reality.
+ * SSR pages should prefer `createSupabaseServerClient()` (RLS-bound).
+ * The allowlist below lists the exceptions — places where either the
+ * caller legitimately needs cross-tenant reads (catalog/scripts) or
+ * where the @supabase/ssr ↔ @supabase/supabase-js type mismatch still
+ * hasn't been worked around for that specific page (anamnese, despesas).
  *
- * What the guard still catches: accidental imports from React components,
- * hooks, middleware, or unrelated lib modules — places where the service
- * client has no business being and nothing enforces tenant scoping.
+ * What the guard catches: accidental imports from React components,
+ * hooks, middleware, or unrelated lib modules — places where the
+ * service client has no business being.
  *
  * What the guard does NOT catch: a new /api/ route forgetting to call
- * requireRole. That's requireRole's own job (every route that reads or
- * writes tenant data must invoke it); a grep-based check in CI is the
- * right place for that invariant, not this stack-trace sniffer.
+ * requireRole. `scripts/check-require-role.mjs` (pnpm lint:auth) covers
+ * that separately.
  */
 const ALLOWED_CALLER_FRAGMENTS = [
   // Every Route Handler under /api/ — tenant scoping via requireRole().
@@ -38,25 +36,14 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // Test harness (NODE_ENV=test short-circuits anyway but keep for
   // belt-and-suspenders in case a test is run under a different env).
   '/tests/',
-  // Dashboard SSR pages that need decrypted PII via SECURITY DEFINER RPCs
-  // scoped by session.tenantId (LGPD-sensitive patient fields stored as
-  // BYTEA and only decryptable via service_role).
-  '/src/app/(dashboard)/operacao/pacientes/',
-  // Monthly report aggregates across appointments_effective, health_plans
-  // and doctors. Service client spares an extra query-planner round-trip
-  // for the perf target (SC-004: < 30 s for 5 k rows) and keeps the page
-  // reusing the same aggregator as the export endpoints (SC-006 parity).
-  '/src/app/(dashboard)/analise/relatorios/',
   // Anamnesis template list and expense list — same pattern as pacientes:
   // getSession() + explicit tenant_id filter, sharing query shape with the
   // corresponding /api/ handlers.
   '/src/app/(dashboard)/analise/anamnese/',
   '/src/app/(dashboard)/analise/despesas/',
-  // Hub de convênios (/cadastros/precos) agrega contagem de price_versions
-  // por plano numa query só — mesmo padrão (tenant_id explícito). Idem
-  // /cadastros/planos/[id] que lista os procedimentos precificados do plano.
-  '/src/app/(dashboard)/cadastros/precos/',
-  '/src/app/(dashboard)/cadastros/planos/',
+  // Lista de atendimentos chama list_patients_for_tenant (SECURITY DEFINER)
+  // para mostrar o nome decriptado do paciente ao lado de cada atendimento.
+  '/src/app/(dashboard)/operacao/atendimentos/',
 ]
 
 function assertCallerAllowed(): void {
