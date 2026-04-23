@@ -17,6 +17,10 @@ interface DoctorRow {
   full_name: string
   crm: string
   external_identifier: string | null
+  role: string
+  specialty: string | null
+  council_name: string | null
+  council_number: string | null
   active: boolean
   created_at: string
 }
@@ -37,7 +41,9 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const supabase = createSupabaseServerClient()
   const { data: doctorRaw, error } = await supabase
     .from('doctors')
-    .select('id, full_name, crm, external_identifier, active, created_at')
+    .select(
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+    )
     .eq('id', params.id)
     .maybeSingle()
   if (error) throw new Error(error.message)
@@ -62,10 +68,10 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
     <div className="space-y-6">
       <div>
         <Link
-          href="/cadastros/medicos"
+          href="/cadastros/profissionais"
           className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
         >
-          <ArrowLeft className="h-3 w-3" /> Voltar para médicos
+          <ArrowLeft className="h-3 w-3" /> Voltar para profissionais
         </Link>
       </div>
 
@@ -82,8 +88,16 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
                     {doctor.full_name}
                   </h1>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                    {doctor.role && doctor.role !== 'profissional' ? (
+                      <span className="rounded bg-blue-50 px-2 py-0.5 font-bold text-blue-700">
+                        {doctor.role}
+                      </span>
+                    ) : null}
+                    {doctor.specialty ? (
+                      <span className="text-slate-600">{doctor.specialty}</span>
+                    ) : null}
                     <span className="rounded bg-slate-100 px-2 py-0.5 font-mono font-bold text-slate-600">
-                      CRM: {doctor.crm}
+                      {doctor.council_name ?? 'CRM'}: {doctor.council_number ?? doctor.crm}
                     </span>
                     {doctor.external_identifier ? (
                       <span className="font-mono text-[11px] text-slate-400">

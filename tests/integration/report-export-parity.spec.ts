@@ -119,7 +119,7 @@ describe('T134 — export parity JSON ↔ Excel ↔ PDF', () => {
       expect(xlsxRow!.count).toBe(jsonRow.appointment_count)
     }
 
-    const prodSheet = wb.getWorksheet('Produção por Médico')!
+    const prodSheet = wb.getWorksheet('Produção por Profissional')!
     const prodRows: Array<{
       name: string
       productionCents: number

@@ -69,7 +69,7 @@ export async function createCommissionVersion(
     if (error?.code === '23505') {
       throw new ConflictError(
         'COMMISSION_DUPLICATE_VALID_FROM',
-        `Já existe uma comissão registrada em ${input.validFrom} para este médico`,
+        `Já existe uma comissão registrada em ${input.validFrom} para este profissional`,
         { doctor_id: input.doctorId, valid_from: input.validFrom },
       )
     }

@@ -1,6 +1,6 @@
-﻿# My project Development Guidelines
+﻿# Pronttu Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-16
+Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-23
 
 ## Active Technologies
 

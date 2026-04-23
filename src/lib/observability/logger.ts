@@ -42,7 +42,7 @@ const baseOptions = {
     censor: '[redacted]',
   },
   timestamp: pino.stdTimeFunctions.isoTime,
-  base: { service: 'homio-faturamento' },
+  base: { service: 'pronttu' },
 }
 
 export const logger: Logger = isDev

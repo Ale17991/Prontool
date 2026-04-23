@@ -104,8 +104,8 @@ const CATEGORIES: readonly Category[] = [
         show: ({ role }) => can(role, 'plan.read'),
       },
       {
-        href: '/cadastros/medicos',
-        label: 'Médicos',
+        href: '/cadastros/profissionais',
+        label: 'Profissionais',
         icon: UserCheck,
         show: ({ role }) => can(role, 'doctor.read'),
       },
@@ -182,7 +182,7 @@ export function DashboardShell({ role, email, children }: DashboardShellProps) {
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
-          <span className="tracking-tight">Homio Faturamento</span>
+          <span className="tracking-tight">Pronttu</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">

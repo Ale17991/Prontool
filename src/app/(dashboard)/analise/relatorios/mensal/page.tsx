@@ -53,7 +53,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
             Relatório mensal
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Receita por plano, produção por médico e comissão líquida para o período. Os
+            Receita por plano, produção por profissional e comissão líquida para o período. Os
             totais já consideram estornos (appointments_effective).
           </p>
         </div>
@@ -199,7 +199,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <Receipt className="h-4 w-4 text-primary" />
-            Produção por médico
+            Produção por profissional
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -211,7 +211,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Médico</TableHead>
+                  <TableHead>Profissional</TableHead>
                   <TableHead className="text-right">Produção líquida</TableHead>
                   <TableHead className="text-right">Comissão líquida</TableHead>
                   <TableHead className="text-right">Atendimentos</TableHead>

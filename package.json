@@ -1,8 +1,8 @@
 {
-  "name": "homio-faturamento",
+  "name": "pronttu",
   "version": "0.1.0",
   "private": true,
-  "description": "Faturamento médico integrado ao GHL/Homio",
+  "description": "Sistema de gestão para clínicas e consultórios",
   "engines": {
     "node": ">=20"
   },

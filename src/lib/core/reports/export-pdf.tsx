@@ -131,7 +131,7 @@ export function MonthlyReportDocument({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório mensal · Homio Faturamento</Text>
+          <Text style={styles.eyebrow}>Relatório mensal · Pronttu</Text>
           <Text style={styles.title}>
             {formatDate(period.from)} – {formatDate(period.to)}
           </Text>
@@ -169,10 +169,10 @@ export function MonthlyReportDocument({
           )}
         </View>
 
-        <Text style={styles.sectionTitle}>Produção por médico</Text>
+        <Text style={styles.sectionTitle}>Produção por profissional</Text>
         <View style={styles.table}>
           <View style={styles.trHeader}>
-            <Text style={[styles.th, styles.cellName]}>Médico</Text>
+            <Text style={[styles.th, styles.cellName]}>Profissional</Text>
             <Text style={[styles.th, styles.cellMetric]}>Produção líquida</Text>
             <Text style={[styles.th, styles.cellMetric]}>Comissão líquida</Text>
             <Text style={[styles.th, styles.cellCount]}>Atend.</Text>

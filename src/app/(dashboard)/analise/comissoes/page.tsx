@@ -71,17 +71,17 @@ export default async function ComissoesPage() {
           </p>
         </div>
         <Link
-          href="/cadastros/medicos"
+          href="/cadastros/profissionais"
           className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-primary/90"
         >
-          Gerenciar médicos
+          Gerenciar profissionais
           <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard
-          label="Médicos ativos"
+          label="Profissionais ativos"
           value={heads.length.toString()}
         />
         <StatCard label="Comissão média" value={formatBps(averageBps)} />
@@ -93,7 +93,7 @@ export default async function ComissoesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <Calculator className="h-4 w-4 text-primary" />
-            Comissão vigente por médico
+            Comissão vigente por profissional
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -101,9 +101,9 @@ export default async function ComissoesPage() {
             <p className="px-6 pb-6 text-sm text-rose-600">Erro: {headsRes.error.message}</p>
           ) : heads.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-slate-500">
-              Nenhum médico ativo com comissão vigente. Cadastre em{' '}
-              <Link href="/cadastros/medicos" className="font-semibold text-primary underline">
-                Médicos
+              Nenhum profissional ativo com comissão vigente. Cadastre em{' '}
+              <Link href="/cadastros/profissionais" className="font-semibold text-primary underline">
+                Profissionais
               </Link>
               .
             </p>
@@ -111,8 +111,8 @@ export default async function ComissoesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Médico</TableHead>
-                  <TableHead>CRM</TableHead>
+                  <TableHead>Profissional</TableHead>
+                  <TableHead>Registro</TableHead>
                   <TableHead>Comissão</TableHead>
                   <TableHead>Desde</TableHead>
                   <TableHead className="text-right" />
@@ -134,7 +134,7 @@ export default async function ComissoesPage() {
                     <TableCell className="text-right">
                       {h.doctors?.id ? (
                         <Link
-                          href={`/cadastros/medicos/${h.doctors.id}`}
+                          href={`/cadastros/profissionais/${h.doctors.id}`}
                           className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
                         >
                           Abrir <ArrowRight className="h-3 w-3" />
@@ -166,7 +166,7 @@ export default async function ComissoesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Quando</TableHead>
-                  <TableHead>Médico</TableHead>
+                  <TableHead>Profissional</TableHead>
                   <TableHead>Percentual</TableHead>
                   <TableHead>Vigência</TableHead>
                   <TableHead>Motivo</TableHead>
@@ -183,7 +183,7 @@ export default async function ComissoesPage() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/cadastros/medicos/${r.doctor_id}`}
+                          href={`/cadastros/profissionais/${r.doctor_id}`}
                           className="font-semibold text-slate-900 hover:text-primary hover:underline"
                         >
                           {r.doctors?.full_name ?? '—'}

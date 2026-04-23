@@ -25,7 +25,7 @@ export interface AlertEmailInput {
 }
 
 export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: string | null }> {
-  const from = process.env.RESEND_FROM ?? 'alertas@dev.homio.com.br'
+  const from = process.env.RESEND_FROM ?? 'alertas@dev.pronttu.io'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   const html = renderAlertHtml({

@@ -18,6 +18,10 @@ interface DoctorRow {
   full_name: string
   crm: string
   external_identifier: string | null
+  role: string
+  specialty: string | null
+  council_name: string | null
+  council_number: string | null
   active: boolean
   created_at: string
 }
@@ -28,7 +32,7 @@ interface CommissionHead {
   valid_from: string
 }
 
-export default async function MedicosPage() {
+export default async function ProfissionaisPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
@@ -36,7 +40,9 @@ export default async function MedicosPage() {
   const [doctorsRes, headsRes] = await Promise.all([
     supabase
       .from('doctors')
-      .select('id, full_name, crm, external_identifier, active, created_at')
+      .select(
+        'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+      )
       .order('active', { ascending: false })
       .order('full_name', { ascending: true })
       .limit(500),
@@ -52,9 +58,9 @@ export default async function MedicosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">Médicos</h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Profissionais</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {doctors.length} médico{doctors.length === 1 ? '' : 's'} · {activeCount} ativo
+          {doctors.length} profissiona{doctors.length === 1 ? 'l' : 'is'} · {activeCount} ativo
           {activeCount === 1 ? '' : 's'} · comissões congeladas por atendimento
           (mudanças não afetam atendimentos anteriores)
         </p>
@@ -66,21 +72,21 @@ export default async function MedicosPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Stethoscope className="h-4 w-4 text-primary" />
-                Novo médico
+                Novo profissional
               </CardTitle>
             </CardHeader>
             <CardContent>
               <NewDoctorForm />
               <p className="mt-3 text-[11px] text-slate-500">
                 A comissão inicial vira a primeira linha do histórico (imutável). Para alterar
-                depois, use o botão “Nova comissão” no detalhe do médico.
+                depois, use o botão “Nova comissão” no detalhe do profissional.
               </p>
             </CardContent>
           </Card>
         ) : (
           <Card>
             <CardContent className="p-8 text-sm text-slate-500">
-              Seu perfil tem acesso somente de leitura aos médicos e comissões.
+              Seu perfil tem acesso somente de leitura aos profissionais e comissões.
             </CardContent>
           </Card>
         )}
@@ -96,7 +102,7 @@ export default async function MedicosPage() {
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <UserCheck className="h-8 w-8 text-slate-300" />
                 <p className="text-sm font-medium text-slate-500">
-                  Nenhum médico cadastrado ainda.
+                  Nenhum profissional cadastrado ainda.
                 </p>
               </div>
             ) : (
@@ -104,9 +110,10 @@ export default async function MedicosPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>CRM</TableHead>
+                    <TableHead>Função</TableHead>
+                    <TableHead>Especialidade</TableHead>
+                    <TableHead>Registro</TableHead>
                     <TableHead>Comissão vigente</TableHead>
-                    <TableHead>Cadastrado</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right" />
                   </TableRow>
@@ -114,6 +121,8 @@ export default async function MedicosPage() {
                 <TableBody>
                   {doctors.map((d) => {
                     const head = heads.get(d.id)
+                    const registro = d.council_number ?? d.crm
+                    const conselho = d.council_name
                     return (
                       <TableRow key={d.id} className="group">
                         <TableCell>
@@ -124,8 +133,17 @@ export default async function MedicosPage() {
                             </p>
                           ) : null}
                         </TableCell>
-                        <TableCell className="font-mono text-xs font-bold text-slate-700">
-                          {d.crm}
+                        <TableCell className="text-xs font-semibold text-slate-700">
+                          {d.role === 'profissional' ? '—' : d.role}
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-600">
+                          {d.specialty ?? '—'}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-slate-700">
+                          {conselho ? (
+                            <span className="font-bold">{conselho} </span>
+                          ) : null}
+                          {registro}
                         </TableCell>
                         <TableCell>
                           {head ? (
@@ -141,9 +159,6 @@ export default async function MedicosPage() {
                             <Badge variant="secondary">sem vigência</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-slate-700">
-                          {formatDate(d.created_at)}
-                        </TableCell>
                         <TableCell>
                           {d.active ? (
                             <Badge variant="success">Ativo</Badge>
@@ -157,7 +172,7 @@ export default async function MedicosPage() {
                               <ToggleActiveDoctor doctorId={d.id} active={d.active} />
                             ) : null}
                             <Link
-                              href={`/cadastros/medicos/${d.id}`}
+                              href={`/cadastros/profissionais/${d.id}`}
                               className="inline-flex items-center gap-1 text-xs font-bold text-primary"
                             >
                               Abrir <ChevronRight className="h-3 w-3" />

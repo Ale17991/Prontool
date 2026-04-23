@@ -19,6 +19,10 @@ export interface CreateDoctorInput {
   fullName: string
   crm: string
   externalIdentifier?: string | null
+  role?: string | null
+  specialty?: string | null
+  councilName?: string | null
+  councilNumber?: string | null
   initialPercentageBps: number
   initialValidFrom: string
   initialReason: string
@@ -30,6 +34,10 @@ export interface CreatedDoctor {
   fullName: string
   crm: string
   externalIdentifier: string | null
+  role: string
+  specialty: string | null
+  councilName: string | null
+  councilNumber: string | null
   active: boolean
   createdAt: string
   currentPercentageBps: number
@@ -54,6 +62,7 @@ export async function createDoctor(
     throw new ValidationError('Motivo da comissão deve ter ao menos 3 caracteres')
   }
 
+  const councilNumber = input.councilNumber?.trim() || crm
   const doctorInsert = await supabase
     .from('doctors')
     .insert({
@@ -61,17 +70,23 @@ export async function createDoctor(
       full_name: input.fullName.trim(),
       crm,
       external_identifier: input.externalIdentifier?.trim() || null,
+      role: input.role?.trim() || 'profissional',
+      specialty: input.specialty?.trim() || null,
+      council_name: input.councilName?.trim() || null,
+      council_number: councilNumber,
       created_by: input.actorUserId,
     })
-    .select('id, full_name, crm, external_identifier, active, created_at')
+    .select(
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+    )
     .single()
 
   if (doctorInsert.error) {
     if (doctorInsert.error.code === '23505') {
       // Could be the (tenant_id, crm) unique or the partial external_identifier unique.
       const msg = /external/i.test(doctorInsert.error.message)
-        ? `Identificador externo já usado por outro médico`
-        : `Já existe um médico com o CRM ${crm} neste tenant`
+        ? `Identificador externo já usado por outro profissional`
+        : `Já existe um profissional com o nº de registro ${crm} neste tenant`
       throw new ConflictError('DOCTOR_DUPLICATE', msg, {
         crm,
         external_identifier: input.externalIdentifier ?? null,
@@ -106,6 +121,10 @@ export async function createDoctor(
     fullName: doctor.full_name,
     crm: doctor.crm,
     externalIdentifier: doctor.external_identifier,
+    role: doctor.role,
+    specialty: doctor.specialty,
+    councilName: doctor.council_name,
+    councilNumber: doctor.council_number,
     active: doctor.active,
     createdAt: doctor.created_at,
     currentPercentageBps: commissionInsert.data.percentage_bps,

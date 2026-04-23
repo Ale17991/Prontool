@@ -12,6 +12,10 @@ export interface ListedDoctor {
   fullName: string
   crm: string
   externalIdentifier: string | null
+  role: string
+  specialty: string | null
+  councilName: string | null
+  councilNumber: string | null
   active: boolean
   createdAt: string
   currentPercentageBps: number | null
@@ -23,6 +27,10 @@ interface DoctorRow {
   full_name: string
   crm: string
   external_identifier: string | null
+  role: string
+  specialty: string | null
+  council_name: string | null
+  council_number: string | null
   active: boolean
   created_at: string
 }
@@ -39,7 +47,9 @@ export async function listDoctors(
 ): Promise<ListedDoctor[]> {
   let q = supabase
     .from('doctors')
-    .select('id, full_name, crm, external_identifier, active, created_at')
+    .select(
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+    )
     .eq('tenant_id', args.tenantId)
     .order('full_name', { ascending: true })
   if (!args.includeInactive) q = q.eq('active', true)
@@ -68,6 +78,10 @@ export async function listDoctors(
       fullName: d.full_name,
       crm: d.crm,
       externalIdentifier: d.external_identifier,
+      role: d.role,
+      specialty: d.specialty,
+      councilName: d.council_name,
+      councilNumber: d.council_number,
       active: d.active,
       createdAt: d.created_at,
       currentPercentageBps: h?.percentage_bps ?? null,

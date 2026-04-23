@@ -8,6 +8,6 @@ export default async function CadastrosPage() {
   if (can(session.role, 'price.read')) redirect('/cadastros/precos')
   if (can(session.role, 'procedure.read')) redirect('/cadastros/procedimentos')
   if (can(session.role, 'plan.read')) redirect('/cadastros/planos')
-  if (can(session.role, 'doctor.read')) redirect('/cadastros/medicos')
+  if (can(session.role, 'doctor.read')) redirect('/cadastros/profissionais')
   redirect('/configuracoes')
 }

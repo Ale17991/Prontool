@@ -60,7 +60,7 @@ export async function createPatientManually(
       fullName: input.fullName,
       phone: input.phone,
       email: input.email,
-      source: 'homio-faturamento:manual',
+      source: 'pronttu:manual',
     })
     if (out.configured) {
       ghlConfigured = true

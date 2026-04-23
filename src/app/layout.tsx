@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Faturamento Médico Homio',
-  description: 'Faturamento médico integrado ao GHL/Homio',
+  title: 'Pronttu',
+  description: 'Sistema de gestão para clínicas e consultórios',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -530,32 +530,44 @@ export type Database = {
       doctors: {
         Row: {
           active: boolean
+          council_name: string | null
+          council_number: string | null
           created_at: string
           created_by: string | null
           crm: string
           external_identifier: string | null
           full_name: string
           id: string
+          role: string
+          specialty: string | null
           tenant_id: string
         }
         Insert: {
           active?: boolean
+          council_name?: string | null
+          council_number?: string | null
           created_at?: string
           created_by?: string | null
           crm: string
           external_identifier?: string | null
           full_name: string
           id?: string
+          role?: string
+          specialty?: string | null
           tenant_id: string
         }
         Update: {
           active?: boolean
+          council_name?: string | null
+          council_number?: string | null
           created_at?: string
           created_by?: string | null
           crm?: string
           external_identifier?: string | null
           full_name?: string
           id?: string
+          role?: string
+          specialty?: string | null
           tenant_id?: string
         }
         Relationships: [

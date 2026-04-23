@@ -6,10 +6,36 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+const ROLE_OPTIONS = [
+  'Médico',
+  'Dentista',
+  'Fisioterapeuta',
+  'Psicólogo',
+  'Nutricionista',
+  'Fonoaudiólogo',
+  'Terapeuta Ocupacional',
+  'Enfermeiro',
+  'Outro',
+] as const
+
+const COUNCIL_OPTIONS = [
+  'CRM',
+  'CRO',
+  'CREFITO',
+  'CFP',
+  'CRN',
+  'CRFa',
+  'COREN',
+  'Outro',
+] as const
+
 export function NewDoctorForm() {
   const router = useRouter()
   const [fullName, setFullName] = useState('')
-  const [crm, setCrm] = useState('')
+  const [role, setRole] = useState<(typeof ROLE_OPTIONS)[number]>('Médico')
+  const [specialty, setSpecialty] = useState('')
+  const [councilName, setCouncilName] = useState<(typeof COUNCIL_OPTIONS)[number]>('CRM')
+  const [councilNumber, setCouncilNumber] = useState('')
   const [externalId, setExternalId] = useState('')
   const [percentStr, setPercentStr] = useState('')
   const [validFrom, setValidFrom] = useState(new Date().toISOString().slice(0, 10))
@@ -34,7 +60,14 @@ export function NewDoctorForm() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           full_name: fullName.trim(),
-          crm: crm.trim(),
+          // Nº de Registro entra em ambas as colunas: crm (legado, usado pelo
+          // webhook GHL e pela UNIQUE constraint por tenant) e council_number
+          // (nova, canônica). Dual-write preserva backward-compat.
+          crm: councilNumber.trim(),
+          council_number: councilNumber.trim(),
+          council_name: councilName,
+          role,
+          specialty: specialty.trim() || null,
           external_identifier: externalId.trim() || null,
           initial_percentage_bps: bps,
           initial_valid_from: validFrom,
@@ -45,7 +78,7 @@ export function NewDoctorForm() {
         const payload = (await res.json().catch(() => ({}))) as {
           error?: { message?: string }
         }
-        setError(payload.error?.message ?? 'CRM já cadastrado neste tenant.')
+        setError(payload.error?.message ?? 'Nº de registro já cadastrado neste tenant.')
         return
       }
       if (!res.ok) {
@@ -55,9 +88,10 @@ export function NewDoctorForm() {
         throw new Error(payload.error?.message ?? `HTTP ${res.status}`)
       }
       const created = (await res.json()) as { full_name: string }
-      setSuccess(`Médico ${created.full_name} cadastrado.`)
+      setSuccess(`Profissional ${created.full_name} cadastrado.`)
       setFullName('')
-      setCrm('')
+      setCouncilNumber('')
+      setSpecialty('')
       setExternalId('')
       setPercentStr('')
       setReason('Comissão inicial')
@@ -82,37 +116,89 @@ export function NewDoctorForm() {
           maxLength={200}
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          placeholder="Ex.: Dr. Silva Medeiros"
+          placeholder="Ex.: Ana Silva"
         />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="crm" className="text-xs">
-            CRM
+          <Label htmlFor="role" className="text-xs">
+            Função
+          </Label>
+          <select
+            id="role"
+            required
+            value={role}
+            onChange={(e) => setRole(e.target.value as typeof role)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {ROLE_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="specialty" className="text-xs">
+            Especialidade <span className="text-slate-400">(opcional)</span>
           </Label>
           <Input
-            id="crm"
+            id="specialty"
+            maxLength={120}
+            value={specialty}
+            onChange={(e) => setSpecialty(e.target.value)}
+            placeholder="Ex.: Ortopedia, Endodontia"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="council-name" className="text-xs">
+            Conselho
+          </Label>
+          <select
+            id="council-name"
+            required
+            value={councilName}
+            onChange={(e) => setCouncilName(e.target.value as typeof councilName)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {COUNCIL_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="council-number" className="text-xs">
+            Nº de Registro
+          </Label>
+          <Input
+            id="council-number"
             required
             minLength={1}
             maxLength={50}
-            value={crm}
-            onChange={(e) => setCrm(e.target.value)}
+            value={councilNumber}
+            onChange={(e) => setCouncilNumber(e.target.value)}
             placeholder="Ex.: 123456-SP"
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="external-id" className="text-xs">
-            Identificador externo <span className="text-slate-400">(GHL, opcional)</span>
-          </Label>
-          <Input
-            id="external-id"
-            maxLength={120}
-            value={externalId}
-            onChange={(e) => setExternalId(e.target.value)}
-            placeholder="custom field do GHL"
-          />
-        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="external-id" className="text-xs">
+          Identificador externo <span className="text-slate-400">(GHL, opcional)</span>
+        </Label>
+        <Input
+          id="external-id"
+          maxLength={120}
+          value={externalId}
+          onChange={(e) => setExternalId(e.target.value)}
+          placeholder="custom field do GHL"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -158,7 +244,7 @@ export function NewDoctorForm() {
       </div>
 
       <Button type="submit" disabled={pending} className="w-full">
-        {pending ? 'Salvando…' : 'Cadastrar médico'}
+        {pending ? 'Salvando…' : 'Cadastrar profissional'}
       </Button>
 
       {error ? (

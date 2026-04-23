@@ -40,10 +40,10 @@ export default function LoginPage() {
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-slate-900">
-              Homio Faturamento
-            </h1>
-            <p className="text-xs text-slate-500">Acesse com sua conta da clínica</p>
+            <h1 className="text-lg font-black tracking-tight text-slate-900">Pronttu</h1>
+            <p className="text-xs text-slate-500">
+              Gestão inteligente para clínicas e consultórios
+            </p>
           </div>
         </div>
 

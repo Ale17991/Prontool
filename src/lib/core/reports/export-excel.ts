@@ -16,7 +16,7 @@ export async function renderMonthlyReportExcel(
   opts: { tenantLabel?: string } = {},
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'Homio Faturamento'
+  wb.creator = 'Pronttu'
   wb.created = new Date()
 
   const BRL = '"R$" #,##0.00;[Red]-"R$" #,##0.00'
@@ -38,9 +38,9 @@ export async function renderMonthlyReportExcel(
   }
 
   // ---------------------------------------------------- Produção por médico
-  const prod = wb.addWorksheet('Produção por Médico')
+  const prod = wb.addWorksheet('Produção por Profissional')
   prod.columns = [
-    { header: 'Médico', key: 'name', width: 32 },
+    { header: 'Profissional', key: 'name', width: 32 },
     { header: 'Produção líquida (BRL)', key: 'production', width: 24, style: { numFmt: BRL } },
     { header: 'Comissão líquida (BRL)', key: 'commission', width: 24, style: { numFmt: BRL } },
     { header: 'Atendimentos', key: 'count', width: 16 },

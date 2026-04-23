@@ -14,6 +14,16 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+
+  // Rebrand 2026-04: /cadastros/medicos foi renomeado pra
+  // /cadastros/profissionais. 301 permanente preserva bookmarks.
+  // O webhook /api/medicos continua em /api/ (não é afetado por essa rota).
+  if (pathname === '/cadastros/medicos' || pathname.startsWith('/cadastros/medicos/')) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = pathname.replace('/cadastros/medicos', '/cadastros/profissionais')
+    return NextResponse.redirect(redirectUrl, 301)
+  }
+
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/login') ||
