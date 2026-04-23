@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/utils'
 import { NewProcedureForm } from './new-procedure-form'
 import { ToggleActiveButton } from './toggle-active-button'
 import { ProcedureMetaEditor } from './procedure-meta-editor'
+import { TussTableBadge, type TussTable } from './tuss-table-badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ interface JoinedRow {
   created_at: string
   default_amount_cents: number | null
   covered_by_plan: boolean
-  tuss_codes: { description: string } | null
+  tuss_codes: { description: string; tuss_table: string; manufacturer: string | null } | null
 }
 
 export default async function ProcedimentosPage() {
@@ -32,7 +33,7 @@ export default async function ProcedimentosPage() {
   const { data: rawRows, error } = await supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer)',
     )
     .order('created_at', { ascending: false })
     .limit(500)
@@ -107,7 +108,12 @@ export default async function ProcedimentosPage() {
                   {rows.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-mono text-xs font-bold text-primary">
-                        {r.tuss_code}
+                        <div className="flex items-center gap-1.5">
+                          {r.tuss_codes?.tuss_table ? (
+                            <TussTableBadge table={r.tuss_codes.tuss_table as TussTable} />
+                          ) : null}
+                          <span>{r.tuss_code}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <p className="font-semibold text-slate-900">
@@ -115,6 +121,9 @@ export default async function ProcedimentosPage() {
                         </p>
                         {r.display_name && r.tuss_codes?.description ? (
                           <p className="text-[11px] text-slate-500">{r.tuss_codes.description}</p>
+                        ) : null}
+                        {r.tuss_codes?.manufacturer ? (
+                          <p className="text-[11px] text-slate-400">{r.tuss_codes.manufacturer}</p>
                         ) : null}
                       </TableCell>
                       <TableCell>

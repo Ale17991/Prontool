@@ -16,15 +16,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { TussTableBadge, type TussTable, TUSS_TABLES } from './tuss-table-badge'
 
 interface TussHit {
   code: string
   description: string
-  terminologyChapter?: string | null
+  manufacturer?: string | null
+  tussTable?: TussTable
+  tussTableLabel?: string | null
 }
 
 export function NewProcedureForm() {
   const router = useRouter()
+  const [tussTable, setTussTable] = useState<TussTable>('22')
   const [open, setOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [results, setResults] = useState<TussHit[]>([])
@@ -36,6 +40,14 @@ export function NewProcedureForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+  // Trocar de tabela invalida a seleção atual — um código de uma tabela
+  // não faz sentido selecionado sob outra.
+  useEffect(() => {
+    setSelected(null)
+    setSearchValue('')
+    setResults([])
+  }, [tussTable])
+
   useEffect(() => {
     if (!searchValue.trim()) {
       setResults([])
@@ -45,7 +57,7 @@ export function NewProcedureForm() {
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `/api/tuss-codes?q=${encodeURIComponent(searchValue.trim())}&limit=30`,
+          `/api/tuss-codes?q=${encodeURIComponent(searchValue.trim())}&table=${tussTable}&limit=30`,
           { signal: ctrl.signal },
         )
         if (!res.ok) return
@@ -59,7 +71,7 @@ export function NewProcedureForm() {
       clearTimeout(timer)
       ctrl.abort()
     }
-  }, [searchValue])
+  }, [searchValue, tussTable])
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -118,6 +130,31 @@ export function NewProcedureForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-1.5">
+        <Label className="text-xs">Tipo de item</Label>
+        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de item TUSS">
+          {TUSS_TABLES.map((opt) => {
+            const active = tussTable === opt.value
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setTussTable(opt.value)}
+                className={cn(
+                  'rounded-md border px-3 py-2 text-left text-xs transition-colors',
+                  active ? opt.selectedClass : 'border-slate-200 bg-white hover:bg-slate-50',
+                )}
+              >
+                <span className="block font-bold text-slate-900">{opt.label}</span>
+                <span className="block text-[10px] text-slate-500">Tabela {opt.value}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
         <Label className="text-xs">Código TUSS</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -153,7 +190,7 @@ export function NewProcedureForm() {
                     {results.map((item) => (
                       <CommandItem
                         key={item.code}
-                        value={`${item.code} ${item.description}`}
+                        value={`${item.code} ${item.description} ${item.manufacturer ?? ''}`}
                         onSelect={() => {
                           setSelected(item)
                           setOpen(false)
@@ -166,8 +203,18 @@ export function NewProcedureForm() {
                             selected?.code === item.code ? 'opacity-100' : 'opacity-0',
                           )}
                         />
+                        {item.tussTable ? (
+                          <TussTableBadge table={item.tussTable} className="mr-2" />
+                        ) : null}
                         <span className="mr-2 font-bold text-slate-900">{item.code}</span>
-                        <span className="truncate text-slate-500">{item.description}</span>
+                        <span className="flex min-w-0 flex-col truncate">
+                          <span className="truncate text-slate-700">{item.description}</span>
+                          {item.manufacturer ? (
+                            <span className="truncate text-[10px] text-slate-400">
+                              {item.manufacturer}
+                            </span>
+                          ) : null}
+                        </span>
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -180,11 +227,17 @@ export function NewProcedureForm() {
 
       {selected ? (
         <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
-            Selecionado
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
+              Selecionado
+            </p>
+            {selected.tussTable ? <TussTableBadge table={selected.tussTable} /> : null}
+          </div>
           <p className="font-mono text-xs font-bold text-primary">{selected.code}</p>
           <p className="text-xs text-slate-700">{selected.description}</p>
+          {selected.manufacturer ? (
+            <p className="text-[11px] text-slate-500">{selected.manufacturer}</p>
+          ) : null}
         </div>
       ) : null}
 
