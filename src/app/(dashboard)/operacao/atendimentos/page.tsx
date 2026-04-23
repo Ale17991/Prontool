@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { ChevronRight, Filter, Stethoscope } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +24,7 @@ interface PageProps {
 
 interface AppointmentRow {
   id: string | null
+  patient_id: string | null
   appointment_at: string | null
   frozen_amount_cents: number | null
   frozen_commission_bps: number | null
@@ -39,7 +41,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   let query = supabase
     .from('appointments_effective')
     .select(
-      'id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status',
+      'id, patient_id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status',
     )
     .order('appointment_at', { ascending: false })
     .limit(200)
@@ -51,6 +53,25 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
 
   const { data: rawRows, error } = await query
   const rows = (rawRows ?? []) as AppointmentRow[]
+
+  const patientNames = new Map<string, string>()
+  const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (rows.length > 0 && encryptionKey) {
+    const patientIds = Array.from(
+      new Set(rows.map((r) => r.patient_id).filter((id): id is string => Boolean(id))),
+    )
+    if (patientIds.length > 0) {
+      const service = createSupabaseServiceClient()
+      const { data: patientsRaw } = await service.rpc('decrypt_patient_names_for_ids', {
+        p_tenant_id: session.tenantId,
+        p_patient_ids: patientIds,
+        p_key: encryptionKey,
+      })
+      for (const p of patientsRaw ?? []) {
+        patientNames.set(p.id, p.anonymized_at ? '[anonimizado]' : p.full_name || '—')
+      }
+    }
+  }
 
   const totalRevenue = rows.reduce(
     (acc, r) => acc + (r.net_amount_cents ?? r.frozen_amount_cents ?? 0),
@@ -136,6 +157,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
+                  <TableHead>Paciente</TableHead>
                   <TableHead>Valor líquido</TableHead>
                   <TableHead>Comissão</TableHead>
                   <TableHead>Status</TableHead>
@@ -147,6 +169,9 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                   <TableRow key={r.id ?? Math.random()} className="group">
                     <TableCell className="font-medium text-slate-700">
                       {formatDateTime(r.appointment_at)}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-900">
+                      {r.patient_id ? patientNames.get(r.patient_id) ?? '—' : '—'}
                     </TableCell>
                     <TableCell className="font-bold text-slate-900">
                       {formatCurrency(r.net_amount_cents ?? r.frozen_amount_cents)}

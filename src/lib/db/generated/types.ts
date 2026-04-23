@@ -1458,6 +1458,14 @@ export type Database = {
         Args: { cipher: string; key: string }
         Returns: string
       }
+      decrypt_patient_names_for_ids: {
+        Args: { p_key: string; p_patient_ids: string[]; p_tenant_id: string }
+        Returns: {
+          anonymized_at: string
+          full_name: string
+          id: string
+        }[]
+      }
       enc_text: { Args: { plain: string }; Returns: string }
       enc_text_with_key: {
         Args: { key: string; plain: string }
