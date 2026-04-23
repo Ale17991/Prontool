@@ -22,6 +22,7 @@ const querySchema = z.object({
     .union([z.string(), z.number()])
     .optional()
     .transform((v) => (v === undefined ? undefined : Number(v))),
+  table: z.enum(['22', '19', '20']).optional(),
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -42,6 +43,7 @@ export async function GET(req: Request): Promise<Response> {
     const results = await searchTussCatalog(supabase, {
       query: parsed.data.q,
       limit: parsed.data.limit,
+      table: parsed.data.table,
     })
     return NextResponse.json(results, { status: 200 })
   } catch (err) {
