@@ -90,7 +90,15 @@ export async function seedGhlConfig(tenantId: string, opts: GhlConfigSeed = {}):
     .throwOnError()
 }
 
-export async function seedTussCode(code: string, opts: { retired?: boolean } = {}): Promise<void> {
+export async function seedTussCode(
+  code: string,
+  opts: {
+    retired?: boolean
+    tussTable?: '22' | '19' | '20'
+    description?: string
+    manufacturer?: string | null
+  } = {},
+): Promise<void> {
   const sb = serviceClient()
   const versionId = randomUUID()
   await sb
@@ -102,7 +110,9 @@ export async function seedTussCode(code: string, opts: { retired?: boolean } = {
     .upsert(
       {
         code,
-        description: `Test procedure ${code}`,
+        description: opts.description ?? `Test procedure ${code}`,
+        tuss_table: opts.tussTable ?? '22',
+        manufacturer: opts.manufacturer ?? null,
         valid_from: '2020-01-01',
         valid_to: opts.retired ? '2020-12-31' : null,
         source_catalog_version_id: versionId,
