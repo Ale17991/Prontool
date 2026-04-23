@@ -1088,8 +1088,11 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          manufacturer: string | null
           source_catalog_version_id: string
           terminology_chapter: string | null
+          tuss_table: string
+          tuss_table_label: string | null
           valid_from: string
           valid_to: string | null
         }
@@ -1098,8 +1101,11 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          manufacturer?: string | null
           source_catalog_version_id: string
           terminology_chapter?: string | null
+          tuss_table?: string
+          tuss_table_label?: string | null
           valid_from: string
           valid_to?: string | null
         }
@@ -1108,8 +1114,11 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          manufacturer?: string | null
           source_catalog_version_id?: string
           terminology_chapter?: string | null
+          tuss_table?: string
+          tuss_table_label?: string | null
           valid_from?: string
           valid_to?: string | null
         }
