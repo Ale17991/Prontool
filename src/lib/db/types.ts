@@ -17,6 +17,6 @@ export type AlertType =
   | 'tuss_deprecated'
   | 'signature_failure'
   | 'rbac_denied'
-  | 'ghl_sync_failed'
+  | 'integration_sync_failed'
 
 export type AuditResult = 'success' | 'denied' | 'conflict'

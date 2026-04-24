@@ -1,5 +1,7 @@
 import type { z } from 'zod'
 import type { Logger } from 'pino'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/db/types'
 
 export type ProviderId =
   | 'ghl'
@@ -52,6 +54,12 @@ export interface AdapterContext<Config = unknown, Credentials = unknown> {
   provider: ProviderId
   config: Config
   credentials: Credentials
+  /**
+   * Supabase client for the adapter to write back integration-specific state
+   * (e.g. GHL writes `patients.ghl_contact_id` after a successful contact
+   * create). Adapters MUST only touch rows of the tenant in `tenantId`.
+   */
+  supabase: SupabaseClient<Database>
   logger: Logger
   now: () => Date
 }

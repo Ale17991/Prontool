@@ -1,23 +1,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
-import { createContactInGhl } from '@/lib/integrations/ghl/create-contact'
-import { logger } from '@/lib/observability/logger'
+import type { DispatchResult } from '@/lib/integrations/types'
+import { publishDomainEvent } from '@/lib/core/events/publish'
 
 /**
- * Manual patient creation (admin/recepção flow), independent of the GHL
- * webhook. Encrypts PII the same way as upsertPatientFromGhl, then tries
- * to mirror the contact into GHL via the Homio Operations proxy. Three
- * outcomes:
+ * Manual patient creation (admin/recepção flow). Encrypts PII locally, then
+ * publishes `patient.created` to the event bus. Adapters (GHL etc.) decide
+ * what to do with it; the bus returns per-provider dispatch results. In
+ * standalone mode (no enabled integrations) the publish is a noop and
+ * `integrations_dispatched` comes back empty — no outbound HTTP, no alerts.
  *
- *   - GHL configured + OK   → patient saved with ghl_contact_id, ghlSynced=true
- *   - GHL configured + fail → patient saved with ghl_contact_id=NULL,
- *                             `ghl_sync_failed` alert dispatched, ghlSynced=false
- *   - GHL NOT configured    → patient saved with ghl_contact_id=NULL,
- *                             no alert (the environment simply has no proxy)
- *
- * The local save always succeeds if the encryption RPC succeeds — GHL sync
- * is best-effort. Caller can re-sync later (future: reconciliation job).
+ * The local INSERT always succeeds if the encryption RPC succeeds — outbound
+ * sync is best-effort. Failures in any adapter become `integration_sync_failed`
+ * alerts emitted by the dispatcher.
  */
 export interface CreateManualPatientInput {
   tenantId: string
@@ -33,6 +28,11 @@ export interface CreateManualPatientInput {
 
 export interface CreateManualPatientResult {
   patientId: string
+  integrationsDispatched: DispatchResult[]
+  /**
+   * Back-compat: `true` iff the GHL adapter successfully created a contact.
+   * Prefer reading `integrationsDispatched` in new code.
+   */
   ghlSynced: boolean
   ghlContactId: string | null
 }
@@ -52,34 +52,11 @@ export async function createPatientManually(
     input.birthDate ? encrypt(supabase, input.birthDate, key) : Promise.resolve(null),
   ])
 
-  let ghlContactId: string | null = null
-  let ghlConfigured = false
-  let ghlError: unknown = null
-  try {
-    const out = await createContactInGhl({
-      fullName: input.fullName,
-      phone: input.phone,
-      email: input.email,
-      source: 'pronttu:manual',
-    })
-    if (out.configured) {
-      ghlConfigured = true
-      ghlContactId = out.ghlContactId
-    }
-  } catch (err) {
-    ghlConfigured = true
-    ghlError = err
-    logger.warn(
-      { tenantId: input.tenantId, err: (err as Error).message },
-      'ghl-contact-create-threw',
-    )
-  }
-
   const inserted = await supabase
     .from('patients')
     .insert({
       tenant_id: input.tenantId,
-      ghl_contact_id: ghlContactId,
+      ghl_contact_id: null,
       full_name_enc: name,
       cpf_enc: cpf,
       phone_enc: phone,
@@ -94,31 +71,38 @@ export async function createPatientManually(
     throw new Error(`createPatientManually insert failed: ${inserted.error?.message}`)
   }
 
-  if (ghlConfigured && ghlError) {
-    // Best-effort alert dispatch — don't fail the whole operation if the
-    // alert insert itself breaks (already logged above).
-    try {
-      await dispatchAlert({
-        tenantId: input.tenantId,
-        type: 'ghl_sync_failed',
-        subjectRef: { patient_id: inserted.data.id },
-        detail: {
-          route: 'createPatientManually',
-          failure_reason: (ghlError as Error).message.slice(0, 200),
-          action: 'create_contact',
-        },
-      })
-    } catch (alertErr) {
-      logger.error(
-        { tenantId: input.tenantId, err: (alertErr as Error).message },
-        'ghl-sync-failed-alert-dispatch-threw',
-      )
-    }
-  }
+  const patientId = inserted.data.id
+
+  const integrationsDispatched = await publishDomainEvent(supabase, input.tenantId, {
+    type: 'patient.created',
+    patient: {
+      id: patientId,
+      tenantId: input.tenantId,
+      fullName: input.fullName,
+      cpf: input.cpf,
+      email: input.email ?? null,
+      phone: input.phone ?? null,
+      birthDate: input.birthDate ?? null,
+      planId: input.planId ?? null,
+      ghlContactId: null,
+    },
+  })
+
+  // After fan-out, re-read ghl_contact_id — the GHL adapter writes it back
+  // in its handleDomainEvent when the contact is created successfully.
+  const reloaded = await supabase
+    .from('patients')
+    .select('ghl_contact_id')
+    .eq('id', patientId)
+    .single()
+  const ghlContactId = (reloaded.data?.ghl_contact_id ?? null) as string | null
+  const ghlResult = integrationsDispatched.find((d) => d.provider === 'ghl')
+  const ghlSynced = Boolean(ghlResult?.ok && ghlContactId)
 
   return {
-    patientId: inserted.data.id,
-    ghlSynced: ghlConfigured && ghlContactId !== null,
+    patientId,
+    integrationsDispatched,
+    ghlSynced,
     ghlContactId,
   }
 }

@@ -21,7 +21,7 @@ const DEFAULT_PATH: Record<AlertType, string> = {
   tuss_deprecated: '/dashboard/procedimentos',
   signature_failure: '/dashboard/alertas',
   rbac_denied: '/dashboard/auditoria',
-  ghl_sync_failed: '/dashboard/alertas',
+  integration_sync_failed: '/dashboard/alertas',
 }
 
 const DEDUP_WINDOW_MS = 60 * 60 * 1000 // 1 hour
@@ -122,7 +122,7 @@ function subjectFor(type: AlertType): string {
     case 'tuss_deprecated': return '[Pronttu] Código TUSS descontinuado em uso'
     case 'signature_failure': return '[Pronttu] Falha de assinatura em webhook'
     case 'rbac_denied': return '[Pronttu] Tentativa de acesso negada'
-    case 'ghl_sync_failed': return '[Pronttu] Contato não sincronizado com o GHL'
+    case 'integration_sync_failed': return '[Pronttu] Sync com integração externa falhou'
   }
 }
 
@@ -131,7 +131,7 @@ function renderSafeDetail(type: AlertType, detail: Record<string, unknown>): str
   const SAFE_KEYS = new Set([
     'event_id', 'raw_event_id', 'ghl_event_id', 'procedure_id', 'plan_id',
     'doctor_identifier', 'tuss_code', 'failure_reason', 'attempt_count',
-    'route', 'role', 'action', 'timestamp',
+    'route', 'role', 'action', 'timestamp', 'provider',
   ])
   const lines: string[] = [`Tipo: ${type}`]
   for (const [k, v] of Object.entries(detail)) {

@@ -61,6 +61,64 @@ export interface GhlConfigSeed {
  * the same key the production handler uses to decrypt. Tests that run before
  * that migration lands will fail with a clear error pointing here.
  */
+export interface GhlIntegrationSeed {
+  locationId?: string
+  operationsPat?: string
+  inboundWebhookSecret?: string
+  enabled?: boolean
+}
+
+/**
+ * Seeds a `tenant_integrations` row (provider='ghl') for US3 tests.
+ * Credentials are encrypted the same way the prod code expects.
+ */
+export async function seedGhlIntegration(
+  tenantId: string,
+  opts: GhlIntegrationSeed = {},
+): Promise<void> {
+  const sb = serviceClient()
+  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY not set')
+  const credentials = {
+    operations_pat: opts.operationsPat ?? 'pit-test-token',
+    inbound_webhook_secret: opts.inboundWebhookSecret ?? 'a'.repeat(48),
+  }
+  const { data: credsEnc, error: credsErr } = await sb.rpc('enc_text_with_key', {
+    plain: JSON.stringify(credentials),
+    key,
+  })
+  if (credsErr) throw new Error(`enc credentials failed: ${credsErr.message}`)
+  const { data: secretEnc, error: secretErr } = await sb.rpc('enc_text_with_key', {
+    plain: credentials.inbound_webhook_secret,
+    key,
+  })
+  if (secretErr) throw new Error(`enc webhook secret failed: ${secretErr.message}`)
+
+  const { data: user } = await sb.auth.admin.listUsers()
+  const createdBy = user?.users?.[0]?.id
+  if (!createdBy) throw new Error('seedGhlIntegration: no auth user to attribute')
+
+  await sb
+    .from('tenant_integrations')
+    .insert({
+      tenant_id: tenantId,
+      provider: 'ghl',
+      config: {
+        location_id: opts.locationId ?? 'abcTESTloc1234567890',
+        trigger_stage_name: 'Pagamento confirmado',
+        field_map_plano: 'plano',
+        field_map_procedimento_tuss: 'tuss',
+        field_map_profissional: 'medico',
+        field_map_valor: 'valor',
+      },
+      credentials_enc: credsEnc as unknown as string,
+      webhook_secret_enc: secretEnc as unknown as string,
+      enabled: opts.enabled ?? true,
+      created_by_user_id: createdBy,
+    })
+    .throwOnError()
+}
+
 export async function seedGhlConfig(tenantId: string, opts: GhlConfigSeed = {}): Promise<void> {
   const sb = serviceClient()
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY

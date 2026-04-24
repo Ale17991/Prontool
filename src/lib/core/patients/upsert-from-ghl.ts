@@ -98,9 +98,10 @@ export async function upsertPatientFromGhl(
     try {
       await dispatchAlert({
         tenantId: input.tenantId,
-        type: 'ghl_sync_failed',
+        type: 'integration_sync_failed',
         subjectRef: { patient_id: upserted.data.id, plan_name: unresolvedPlanName },
         detail: {
+          provider: 'ghl',
           route: 'upsertPatientFromGhl',
           failure_reason: `Plano "${unresolvedPlanName}" não encontrado em health_plans`,
           action: 'plan_lookup',
