@@ -1,8 +1,10 @@
 import type { IntegrationAdapter, ProviderId } from './types'
 import { ghlAdapter } from './ghl/adapter'
+import { genericWebhookAdapter } from './generic-webhook/adapter'
 
 const registryMap: Partial<Record<ProviderId, IntegrationAdapter<any, any>>> = {
   ghl: ghlAdapter,
+  generic_webhook: genericWebhookAdapter,
 }
 
 export function registerAdapter<C, K>(adapter: IntegrationAdapter<C, K>): void {

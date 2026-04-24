@@ -131,17 +131,17 @@ Monorepo Next.js — `src/app/` para rotas, `src/lib/` para domínio, `supabase/
 
 **Purpose**: `generic_webhook` adapter, webhook inbound generic route, cleanup migration, docs.
 
-- [ ] T044 [P] Create `src/lib/integrations/generic-webhook/adapter.ts` implementing `IntegrationAdapter` — `configSchema: { outbound_url, events[] }`, `credentialsSchema: { bearer_token? }`, `handleDomainEvent` POSTs `{ event: event.type, ...payload }` to `outbound_url` with optional Bearer, timeout 5s, and `redactCredentials` masking the token
-- [ ] T045 [P] Register `genericWebhookAdapter` in `src/lib/integrations/registry.ts`
-- [ ] T046 [P] Create `src/app/api/webhooks/[provider]/route.ts` dynamic route: lookup `registry[params.provider]` (404 if missing), call `adapter.extractTenantIdFromWebhook(req)` to get tenant, load integration row (`401 INVALID_SIGNATURE` if absent), delegate to `adapter.handleInboundWebhook(ctx, req)` per research.md R-005
-- [ ] T047 Update `src/app/api/webhooks/ghl/route.ts` to thin-forward to the dynamic handler with `params={provider:'ghl'}` — no behavior change for existing clients, per research.md R-005 back-compat
-- [ ] T048 [P] Implement `ghlAdapter.extractTenantIdFromWebhook` and `ghlAdapter.handleInboundWebhook` delegating to existing `verify-signature`, `raw_webhook_events` insert, and `createAppointmentFromEvent` pipeline — behavior identical to current `/api/webhooks/ghl/route.ts`
-- [ ] T049 [P] Integration test `tests/integration/integrations/ghl/inbound-webhook.spec.ts` (regression) asserting old flow still works after T047–T048 refactor — simulate webhook → atendimento criado, DLQ unchanged
-- [ ] T050 [P] Integration test `tests/integration/integrations/generic-webhook/outbound.spec.ts` — tenant with `generic_webhook` enabled, create patient → MSW intercepts configured URL and asserts payload shape
-- [ ] T051 [P] Write migration `supabase/migrations/0041_drop_tenant_ghl_config.sql` dropping the old table — deployed in a follow-up PR after 0040 is live and all call sites (T015 refactors, etc.) no longer read `tenant_ghl_config` directly
-- [ ] T052 [P] Add audit rule `scripts/check-require-role.mjs` extension (lint:auth) to also reject direct `process.env.GHL_*`, `SUPABASE_OPERATIONS_*`, etc. in `src/lib/integrations/<provider>/*.ts` — enforces research.md R-006 ("adapters never read env directly")
-- [ ] T053 [P] Manual validation: run through all 4 scenarios in `quickstart.md` (standalone, connect GHL, multi-provider fan-out, webhook inbound) and record results in PR description
-- [ ] T054 Update `CLAUDE.md` active-technologies section to mention `tenant_integrations` and the adapter registry as stable architectural primitives
+- [X] T044 [P] `src/lib/integrations/generic-webhook/adapter.ts` — outbound POST JSON para URL configurada; Bearer opcional; filtro por `events[]`; `redactCredentials` mascara token; timeout 5s
+- [X] T045 [P] `genericWebhookAdapter` registrado em `registry.ts`; `listProviders()` agora retorna `['ghl', 'generic_webhook']`
+- [X] T046 [P] `src/app/api/webhooks/[provider]/route.ts` — rota dinâmica; 404 PROVIDER_NOT_FOUND; 405 INBOUND_NOT_SUPPORTED quando adapter não tem `handleInboundWebhook`; delega para o adapter
+- [X] T047 `src/app/api/webhooks/ghl/route.ts` — thin-forward ao handler dinâmico com `params={provider:'ghl'}`; zero mudança de comportamento externo
+- [X] T048 [P] `ghlAdapter.handleInboundWebhook(supabase, req)` implementado — identifica tenant escaneando `tenant_integrations.webhook_secret_enc` (provider='ghl'), verifica HMAC, ingere raw_event, enfileira QStash best-effort; interface simplificada (supabase+req em vez de AdapterContext, porque tenant ainda não é conhecido no inbound)
+- [X] T049 [P] `tests/integration/integrations/ghl/inbound-webhook.spec.ts` — 4 cases: legacy `/api/webhooks/ghl` thin-forward, novo `/api/webhooks/[provider]` com ghl, provider desconhecido → 404, generic_webhook (sem inbound) → 405
+- [X] T050 [P] `tests/integration/integrations/generic-webhook/outbound.spec.ts` — 3 cases: payload shape + Bearer; multi-adapter fan-out GHL falha + generic OK (provando T035 por extensão); filtro `events[]` skip sem POST
+- [~] T051 [P] Migration `0041_drop_tenant_ghl_config.sql` escrita como **NOOP com banner "⚠️ DO NOT APPLY YET"** — `create-from-event.ts` + `extract-custom-fields.ts` ainda lêem os field_map_patient_* do tenant_ghl_config. Drop real em PR futuro depois de migrar aqueles path para `tenant_integrations.config`
+- [X] T052 [P] `scripts/check-require-role.mjs` estendido — scanner extra em `src/lib/integrations/**/*.ts` rejeitando `process.env.GHL_LOCATION_ID`, `HUBSPOT_*`, `RDSTATION_*`, `PIPEDRIVE_*`. Também removido fallback para `GHL_LOCATION_ID` em `create-contact.ts` e `create-note.ts` — `locationId` agora vem estritamente de `AdapterContext.config`
+- [~] T053 [P] Manual quickstart validation — deferred (precisa `pnpm dev` + browser); 49 testes automatizados (12 suites) cobrem os 4 cenários no nível de core/route
+- [X] T054 `CLAUDE.md` atualizado — seção "Integration architecture (feature 002)" adicionada documentando adapter pattern, event bus, standalone mode, inbound router, credenciais cifradas e config UI; migrations e tabelas tocadas documentadas
 
 ---
 

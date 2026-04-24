@@ -1,7 +1,17 @@
 import { z } from 'zod'
+import { NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database, Json } from '@/lib/db/types'
 import type { IntegrationAdapter, AdapterContext, DomainEvent } from '../types'
 import { createContactInGhl } from './create-contact'
 import { createNoteInGhl } from './create-note'
+import { verifyGhlSignature } from './verify-signature'
+import { ingestRawEvent } from '@/lib/core/webhooks/ingest-raw-event'
+import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
+import { enqueueGhlEvent } from '@/lib/integrations/queue/qstash-client'
+import { InvalidSignatureError } from '@/lib/observability/errors'
+import { mintTraceId } from '@/lib/observability/trace'
+import { logger } from '@/lib/observability/logger'
 
 // Public config shape — safe to return in GET /api/configuracoes/integracoes/ghl
 export const ghlConfigSchema = z.object({
@@ -45,11 +55,11 @@ export const ghlAdapter: IntegrationAdapter<GhlConfig, GhlCredentials> = {
   credentialsSchema: ghlCredentialsSchema,
   redactCredentials: redact,
 
-  async extractTenantIdFromWebhook(_req: Request): Promise<string | null> {
-    // US2 ships without the inbound-routing refactor (that's P4 / T046–T048).
-    // The legacy /api/webhooks/ghl/route.ts still resolves tenant via HMAC
-    // secret matching — this method is a placeholder for the polish phase.
-    return null
+  async handleInboundWebhook(
+    supabase: SupabaseClient<Database>,
+    req: Request,
+  ): Promise<Response> {
+    return handleGhlWebhook(supabase, req)
   },
 
   async handleDomainEvent(
@@ -134,6 +144,175 @@ function buildProxyCreds(
     operationsKey: envKey ?? ctx.credentials.operations_pat,
     locationId: ctx.config.location_id,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Inbound webhook handling (ported from src/app/api/webhooks/ghl/route.ts).
+// Identifies the tenant by scanning tenant_integrations rows with
+// provider='ghl', decrypting webhook_secret_enc, and matching the HMAC.
+// ---------------------------------------------------------------------------
+
+const payloadShape = z.object({ event_id: z.string().min(1) }).passthrough()
+
+async function handleGhlWebhook(
+  supabase: SupabaseClient<Database>,
+  req: Request,
+): Promise<Response> {
+  const traceId = mintTraceId()
+  const signature = req.headers.get('x-ghl-signature')
+  const timestamp = req.headers.get('x-ghl-timestamp')
+
+  let rawBody: string
+  try {
+    rawBody = await req.text()
+  } catch {
+    return NextResponse.json(
+      { error: { code: 'INVALID_BODY', message: 'Body is not readable' } },
+      { status: 400 },
+    )
+  }
+
+  const parsed = tryParse(rawBody)
+  if (!parsed) {
+    return NextResponse.json(
+      { error: { code: 'INVALID_BODY', message: 'Body is not valid JSON' } },
+      { status: 400 },
+    )
+  }
+  const shape = payloadShape.safeParse(parsed)
+  if (!shape.success) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'MISSING_EVENT_ID',
+          message: 'event_id is required',
+          issues: shape.error.issues,
+        },
+      },
+      { status: 400 },
+    )
+  }
+  const ghlEventId = shape.data.event_id
+
+  const tenantId = await identifyTenantBySignature(supabase, {
+    signature,
+    timestamp,
+    rawBody,
+  })
+
+  if (!tenantId) {
+    await notifySignatureFailure(supabase, { ghlEventId, traceId })
+    return NextResponse.json(
+      { error: { code: 'INVALID_SIGNATURE', message: 'Signature verification failed' } },
+      { status: 401 },
+    )
+  }
+
+  const headersObj: Record<string, string> = {}
+  req.headers.forEach((v, k) => {
+    if (k === 'x-ghl-signature' || k === 'x-ghl-timestamp' || k === 'authorization') return
+    headersObj[k] = v
+  })
+
+  const { rawEventId, duplicate } = await ingestRawEvent(supabase, {
+    tenantId,
+    ghlEventId,
+    payload: parsed as Json,
+    headers: headersObj as Json,
+  })
+
+  if (!duplicate) enqueueBestEffort({ rawEventId, tenantId, traceId })
+
+  logger.info(
+    { trace_id: traceId, tenant_id: tenantId, raw_event_id: rawEventId, duplicate },
+    'ghl-webhook-received',
+  )
+
+  return NextResponse.json(
+    { received: true, duplicate, raw_event_id: rawEventId },
+    { status: 200, headers: { 'x-trace-id': traceId } },
+  )
+}
+
+function tryParse(body: string): unknown | null {
+  try {
+    return JSON.parse(body)
+  } catch {
+    return null
+  }
+}
+
+async function identifyTenantBySignature(
+  supabase: SupabaseClient<Database>,
+  args: { signature: string | null; timestamp: string | null; rawBody: string },
+): Promise<string | null> {
+  if (!args.signature || !args.timestamp) return null
+
+  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY missing')
+
+  // Scan tenant_integrations rows for provider='ghl'. `webhook_secret_enc` is
+  // the HMAC key, stored in a dedicated column alongside config/credentials.
+  const { data: configs, error } = await supabase
+    .from('tenant_integrations')
+    .select('tenant_id, webhook_secret_enc')
+    .eq('provider', 'ghl')
+    .eq('enabled', true)
+  if (error) throw new Error(`tenant_integrations scan failed: ${error.message}`)
+  if (!configs || configs.length === 0) return null
+
+  for (const cfg of configs) {
+    if (!cfg.webhook_secret_enc) continue
+    const { data: decrypted, error: decErr } = await supabase.rpc('dec_text_with_key', {
+      cipher: cfg.webhook_secret_enc as unknown as string,
+      key,
+    })
+    if (decErr || typeof decrypted !== 'string') continue
+    try {
+      verifyGhlSignature({
+        signature: args.signature,
+        timestamp: args.timestamp,
+        rawBody: args.rawBody,
+        secret: decrypted,
+      })
+      return cfg.tenant_id
+    } catch (err) {
+      if (err instanceof InvalidSignatureError) continue
+      throw err
+    }
+  }
+  return null
+}
+
+async function notifySignatureFailure(
+  supabase: SupabaseClient<Database>,
+  ctx: { ghlEventId: string; traceId: string },
+): Promise<void> {
+  const { data: tenants, error } = await supabase
+    .from('tenant_integrations')
+    .select('tenant_id')
+    .eq('provider', 'ghl')
+    .eq('enabled', true)
+  if (error || !tenants) return
+  for (const { tenant_id: tenantId } of tenants) {
+    try {
+      await dispatchAlert({
+        tenantId,
+        type: 'signature_failure',
+        subjectRef: { ghl_event_id: ctx.ghlEventId },
+        detail: { ghl_event_id: ctx.ghlEventId, trace_id: ctx.traceId, provider: 'ghl' },
+      })
+    } catch (err) {
+      logger.error({ err, tenant_id: tenantId }, 'signature-failure-alert-dispatch-failed')
+    }
+  }
+}
+
+function enqueueBestEffort(args: { rawEventId: string; tenantId: string; traceId: string }): void {
+  if (process.env.NODE_ENV === 'test' || !process.env.QSTASH_TOKEN) return
+  enqueueGhlEvent(args).catch((err: unknown) => {
+    logger.error({ err, ...args }, 'qstash-enqueue-failed-after-durable-write')
+  })
 }
 
 function formatAppointmentNote(event: {

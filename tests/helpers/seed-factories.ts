@@ -146,6 +146,51 @@ export async function seedGhlConfig(tenantId: string, opts: GhlConfigSeed = {}):
       field_map_patient_birth_date: 'patient_birth_date',
     })
     .throwOnError()
+
+  // Mirror into tenant_integrations so inbound-webhook (now handled by the
+  // GHL adapter reading from the new table) sees the same secret. Parallels
+  // the INSERT path in migration 0040 for already-connected tenants.
+  let { data: users } = await sb.auth.admin.listUsers()
+  let createdBy = users?.users?.[0]?.id
+  if (!createdBy) {
+    // Tests that invoke seedGhlConfig before any seedUser need an auth user
+    // for the NOT NULL created_by_user_id column. Mint a throwaway one.
+    const { data, error } = await sb.auth.admin.createUser({
+      email: `system-seed-${randomUUID().slice(0, 6)}@test.local`,
+      password: 'test1234',
+      email_confirm: true,
+    })
+    if (error || !data.user) throw new Error(`seedGhlConfig: auth user bootstrap failed`)
+    createdBy = data.user.id
+  }
+  if (createdBy) {
+    const { data: credsEnc } = await sb.rpc('enc_text_with_key', {
+      plain: JSON.stringify({ operations_pat: 'seed-pat-token', inbound_webhook_secret: secret }),
+      key,
+    })
+    await sb
+      .from('tenant_integrations')
+      .upsert(
+        {
+          tenant_id: tenantId,
+          provider: 'ghl',
+          config: {
+            location_id: 'seedTESTloc123456789',
+            trigger_stage_name: opts.triggerStageName ?? 'atendimento',
+            field_map_plano: opts.planoField ?? 'plano',
+            field_map_procedimento_tuss: opts.tussField ?? 'tuss',
+            field_map_profissional: opts.medicoField ?? 'medico_id',
+            field_map_valor: 'valor',
+          },
+          credentials_enc: credsEnc as unknown as string,
+          webhook_secret_enc: enc as unknown as string,
+          enabled: true,
+          created_by_user_id: createdBy,
+        },
+        { onConflict: 'tenant_id,provider' },
+      )
+      .throwOnError()
+  }
 }
 
 export async function seedTussCode(

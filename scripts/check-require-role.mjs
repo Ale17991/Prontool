@@ -93,6 +93,57 @@ function main() {
     process.exit(1)
   }
   console.info(`[check-require-role] OK — ${files.length} handlers analisados, todos autenticam.`)
+
+  // ---- Integration adapters must not read provider secrets from env ----
+  //
+  // Per research.md R-006 (and FR-002 "mode é por tenant, não por env"),
+  // adapters under src/lib/integrations/<provider>/* must receive their
+  // credentials via AdapterContext, not via process.env.GHL_* /
+  // process.env.SUPABASE_OPERATIONS_* /etc. The GHL adapter keeps a
+  // legacy env fallback for the proxy URL+anon key (shared infra, not
+  // per-tenant secret); the lint rule only flags raw secret names.
+  const INTEGRATIONS_ROOT = join(__dirname, '..', 'src', 'lib', 'integrations')
+  const FORBIDDEN_ENV_RE = /process\.env\.(GHL_LOCATION_ID|HUBSPOT_[A-Z_]+|RDSTATION_[A-Z_]+|PIPEDRIVE_[A-Z_]+)/g
+  const adapterOffenders = []
+  for (const full of walkTS(INTEGRATIONS_ROOT)) {
+    const rel = full.replace(/\\/g, '/')
+    // Skip types.ts and registry.ts — they don't make outbound calls.
+    if (/\/types\.ts$/.test(rel) || /\/registry\.ts$/.test(rel)) continue
+    const src = readFileSync(full, 'utf8')
+    const hits = [...src.matchAll(FORBIDDEN_ENV_RE)]
+    if (hits.length > 0) {
+      adapterOffenders.push({ rel: rel.slice(rel.indexOf('/src/lib/') + 1), hits: hits.map((h) => h[1]) })
+    }
+  }
+  if (adapterOffenders.length > 0) {
+    console.error('\n[check-require-role] FALHA: adapters lendo secrets direto de env:')
+    for (const o of adapterOffenders) {
+      console.error(`  ${o.rel}  → ${o.hits.join(', ')}`)
+    }
+    console.error('')
+    console.error('  Credenciais por provider vivem em tenant_integrations.credentials_enc')
+    console.error('  e chegam ao adapter via AdapterContext. Envs globais ficam reservados')
+    console.error('  para infra compartilhada (SUPABASE_OPERATIONS_URL / ANON_KEY do proxy).')
+    process.exit(1)
+  }
+  console.info('[check-require-role] OK — adapters não lêem secrets de env diretamente.')
+}
+
+function walkTS(dir) {
+  const out = []
+  try {
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name)
+      if (statSync(full).isDirectory()) {
+        out.push(...walkTS(full))
+      } else if (/\.(ts|tsx)$/.test(name)) {
+        out.push(full)
+      }
+    }
+  } catch {
+    // Directory may not exist yet — that's fine.
+  }
+  return out
 }
 
 main()

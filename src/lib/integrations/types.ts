@@ -71,9 +71,16 @@ export interface IntegrationAdapter<Config = unknown, Credentials = unknown> {
   configSchema: z.ZodType<Config>
   credentialsSchema: z.ZodType<Credentials>
   redactCredentials(c: Credentials): Record<string, string>
-  extractTenantIdFromWebhook?(req: Request): Promise<string | null>
+  /**
+   * Adapter owns the full inbound webhook flow for its provider: tenant
+   * identification (often intertwined with signature verification, so it
+   * can't be separated upstream), payload persistence, and queuing. Given
+   * just the supabase client and the raw request, returns the HTTP response
+   * to send back to the caller. Router in /api/webhooks/[provider]/route.ts
+   * 404s when this is not implemented.
+   */
   handleInboundWebhook?(
-    ctx: AdapterContext<Config, Credentials>,
+    supabase: SupabaseClient<Database>,
     req: Request,
   ): Promise<Response>
   handleDomainEvent(

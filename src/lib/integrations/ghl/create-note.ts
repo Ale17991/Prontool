@@ -14,11 +14,11 @@ export interface CreateNoteInput {
  */
 export async function createNoteInGhl(
   input: CreateNoteInput,
-  creds: GhlProxyCredentials = {},
+  creds: GhlProxyCredentials,
 ): Promise<void> {
   const url = creds.operationsUrl ?? process.env.SUPABASE_OPERATIONS_URL
   const key = creds.operationsKey ?? process.env.SUPABASE_OPERATIONS_ANON_KEY
-  const locationId = creds.locationId ?? process.env.GHL_LOCATION_ID
+  const locationId = creds.locationId
   if (!url || !key || !locationId) {
     throw new Error('createNoteInGhl: missing proxy credentials (url/key/locationId)')
   }

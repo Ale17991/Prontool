@@ -34,8 +34,25 @@ const FIXTURES: Record<string, AdapterFixture> = {
       operations_pat: 'pit-token-xxxxxxxxxxxx',
       inbound_webhook_secret: 'a'.repeat(48),
     },
-    invalidConfig: { location_id: 'too-short' }, // pattern fail + missing fields
+    invalidConfig: { location_id: 'too-short' },
     invalidCredentials: { operations_pat: 'x', inbound_webhook_secret: 'short' },
+  },
+  generic_webhook: {
+    validConfig: {
+      // Exclude 'patient.created' so the contract test's makePatientEvent()
+      // hits the adapter's "event not subscribed" noop branch and doesn't
+      // try to POST to an external host.
+      outbound_url: 'https://hooks.example.com/pronttu',
+      events: ['appointment.created'],
+    },
+    validCredentials: {
+      bearer_token: 'some-long-bearer-token-abcdef',
+    },
+    invalidConfig: {
+      outbound_url: 'not-a-url',
+      events: [],
+    },
+    invalidCredentials: { bearer_token: 'x' },
   },
 }
 

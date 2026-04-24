@@ -31,26 +31,28 @@ export type CreateContactResult =
   | { configured: true; ghlContactId: string }
 
 export interface GhlProxyCredentials {
-  /** Base URL of the Homio Operations Supabase project. Env var when omitted. */
+  /** Base URL of the Homio Operations Supabase project. Env var when omitted (shared infra). */
   operationsUrl?: string
-  /** Bearer key for the proxy. Env var when omitted. */
+  /** Bearer key for the proxy. Env var when omitted (shared infra). */
   operationsKey?: string
-  /** GHL location id. Env var when omitted (US2 adapter supplies from tenant config). */
-  locationId?: string
+  /** GHL location id — MUST be provided by the adapter from tenant config. */
+  locationId: string
 }
 
 /**
- * Legacy env-backed call used by upsertPatientFromGhl and createPatientManually
- * until the full US3 event bus migration. When `creds` is provided the values
- * override the env vars — this is the path the US2 GHL adapter takes.
+ * Outbound GHL contact creation. Called by the GHL adapter with locationId
+ * sourced from tenant_integrations.config. `operationsUrl` and `operationsKey`
+ * fall back to env vars (the proxy is shared infra across tenants); if neither
+ * is configured, returns {configured:false} and the caller treats that as a
+ * skip, not a failure.
  */
 export async function createContactInGhl(
   input: CreateContactInput,
-  creds: GhlProxyCredentials = {},
+  creds: GhlProxyCredentials,
 ): Promise<CreateContactResult> {
   const url = creds.operationsUrl ?? process.env.SUPABASE_OPERATIONS_URL
   const key = creds.operationsKey ?? process.env.SUPABASE_OPERATIONS_ANON_KEY
-  const locationId = creds.locationId ?? process.env.GHL_LOCATION_ID
+  const locationId = creds.locationId
   if (!url || !key || !locationId) return { configured: false }
 
   const endpoint = `${url.replace(/\/+$/, '')}/functions/v1/create-contact`
