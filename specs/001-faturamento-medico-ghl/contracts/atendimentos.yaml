@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: Atendimentos
+  version: 1.0.0
+  description: |
+    Atendimentos são criados automaticamente pelo worker do webhook.
+    Expostos via GET com filtros; reversão via endpoint dedicado
+    (append-only, compensating record — FR-027–32).
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/atendimentos:
+    get:
+      summary: Lista atendimentos com valores efetivos (líquido + status)
+      operationId: listAppointments
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - name: doctor_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: plan_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [ativo, estornado, todos], default: todos }
+      responses:
+        '200':
+          description: Lista vinda da view appointments_effective
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentEffective'
+  /api/atendimentos/{id}:
+    get:
+      operationId: getAppointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AppointmentEffective' }
+  /api/atendimentos/{id}/reversal:
+    post:
+      summary: Registra reversão do atendimento (FR-027)
+      operationId: reverseAppointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 3 }
+      responses:
+        '201':
+          description: Reversão registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reversal'
+        '403':
+          description: Papel não autorizado (apenas admin e financeiro)
+        '404':
+          description: Atendimento não encontrado dentro do tenant chamador
+        '409':
+          description: Atendimento já foi revertido anteriormente
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AppointmentEffective:
+      type: object
+      required: [id, appointment_at, doctor_id, patient_id, procedure_id, plan_id,
+                 frozen_amount_cents, frozen_commission_bps, effective_status,
+                 net_amount_cents, net_commission_cents]
+      properties:
+        id: { type: string, format: uuid }
+        appointment_at: { type: string, format: date-time }
+        doctor_id: { type: string, format: uuid }
+        doctor_name: { type: string }
+        patient_id: { type: string, format: uuid }
+        patient_display_name: { type: string, description: Nome visível conforme role (decriptado via view) }
+        procedure_id: { type: string, format: uuid }
+        procedure_tuss_code: { type: string }
+        plan_id: { type: string, format: uuid }
+        plan_name: { type: string }
+        frozen_amount_cents: { type: integer, format: int64 }
+        frozen_commission_bps: { type: integer }
+        effective_status: { type: string, enum: [ativo, estornado] }
+        net_amount_cents: { type: integer, format: int64 }
+        net_commission_cents: { type: integer, format: int64 }
+        reversal_id: { type: string, format: uuid, nullable: true }
+        reversed_at: { type: string, format: date-time, nullable: true }
+    Reversal:
+      type: object
+      required: [id, appointment_id, reversal_amount_cents, reason, created_at, created_by]
+      properties:
+        id: { type: string, format: uuid }
+        appointment_id: { type: string, format: uuid }
+        reversal_amount_cents: { type: integer, format: int64, description: Valor negativo }
+        reason: { type: string }
+        created_at: { type: string, format: date-time }
+        created_by: { type: string, format: uuid }

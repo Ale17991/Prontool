@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: Médicos e Comissão
+  version: 1.0.0
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/medicos:
+    get:
+      summary: Lista médicos do tenant
+      operationId: listDoctors
+      parameters:
+        - name: include_inactive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Doctor'
+    post:
+      summary: Cadastra médico (admin apenas)
+      operationId: createDoctor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDoctorRequest'
+      responses:
+        '201':
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Doctor'
+        '403':
+          description: Papel não autorizado
+  /api/medicos/{id}:
+    get:
+      operationId: getDoctor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Doctor' }
+    patch:
+      summary: Atualiza campos não-sensíveis do médico (nome, ativo). Comissão via endpoint próprio.
+      operationId: updateDoctor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name: { type: string }
+                active: { type: boolean }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Doctor' }
+  /api/medicos/{id}/commission:
+    post:
+      summary: Cria nova versão de comissão (append-only); vale para atendimentos futuros
+      operationId: createCommissionVersion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [percentage_bps, valid_from, reason]
+              properties:
+                percentage_bps: { type: integer, minimum: 0, maximum: 10000 }
+                valid_from: { type: string, format: date }
+                reason: { type: string }
+      responses:
+        '201':
+          description: Nova versão de comissão criada
+        '403':
+          description: Papel não autorizado
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Doctor:
+      type: object
+      required: [id, full_name, crm, active, current_commission_bps]
+      properties:
+        id: { type: string, format: uuid }
+        full_name: { type: string }
+        crm: { type: string }
+        external_identifier: { type: string, nullable: true }
+        active: { type: boolean }
+        current_commission_bps: { type: integer, minimum: 0, maximum: 10000 }
+    CreateDoctorRequest:
+      type: object
+      required: [full_name, crm, initial_commission_bps]
+      properties:
+        full_name: { type: string }
+        crm: { type: string }
+        external_identifier: { type: string, nullable: true }
+        initial_commission_bps: { type: integer, minimum: 0, maximum: 10000 }

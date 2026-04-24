@@ -1,0 +1,17 @@
+{
+  "extends": ["next/core-web-vitals", "prettier"],
+  "rules": {
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "prefer-const": "error",
+    "eqeqeq": ["error", "always"],
+    "no-var": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/lib/observability/logger.ts", "tests/**/*.ts", "scripts/**/*.ts", "supabase/seed/**/*.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

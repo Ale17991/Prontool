@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: Alertas e DLQ
+  version: 1.0.0
+  description: |
+    Dashboard in-app de alertas operacionais (FR-033–37) e gestão da DLQ
+    de eventos de webhook (FR-008c).
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/alertas:
+    get:
+      summary: Lista alertas do tenant
+      operationId: listAlerts
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [aberto, resolvido, todos], default: aberto }
+        - name: type
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+  /api/alertas/{id}/resolve:
+    post:
+      summary: Marca alerta como resolvido (admin)
+      operationId: resolveAlert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string }
+      responses:
+        '200':
+          description: Alerta resolvido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Alert' }
+        '403':
+          description: Papel não autorizado
+  /api/alertas/dlq:
+    get:
+      summary: Lista eventos na DLQ do tenant
+      operationId: listDlq
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DlqEntry'
+  /api/alertas/dlq/{id}/reprocess:
+    post:
+      summary: Re-enfileira evento da DLQ para processamento semântico
+      operationId: reprocessDlqEvent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Enfileirado para reprocessamento
+        '403':
+          description: Papel não autorizado
+        '409':
+          description: Evento não está em status dlq
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Alert:
+      type: object
+      required: [id, type, status, created_at, detail]
+      properties:
+        id: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [dlq_event, webhook_rejected, tuss_deprecated, signature_failure, rbac_denied]
+        subject_ref: { type: object, additionalProperties: true }
+        detail: { type: object, additionalProperties: true }
+        status: { type: string, enum: [aberto, resolvido] }
+        created_at: { type: string, format: date-time }
+        resolved_at: { type: string, format: date-time, nullable: true }
+        resolved_by: { type: string, format: uuid, nullable: true }
+    DlqEntry:
+      type: object
+      required: [id, ghl_event_id, received_at, failure_reason]
+      properties:
+        id: { type: string, format: uuid }
+        ghl_event_id: { type: string }
+        received_at: { type: string, format: date-time }
+        last_processed_at: { type: string, format: date-time, nullable: true }
+        processing_attempt_count: { type: integer }
+        failure_reason: { type: string }
+        payload_summary:
+          type: object
+          description: Custom fields extraídos (sem PII); útil para diagnóstico
+          additionalProperties: true

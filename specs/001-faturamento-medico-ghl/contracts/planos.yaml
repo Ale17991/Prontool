@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: Planos de Saúde (cadastro de clínica)
+  version: 1.0.0
+  description: |
+    CRUD da lista de planos de saúde aceitos pela clínica. Escopo por
+    tenant — não há catálogo global. Writes restritos ao papel `admin`.
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/planos:
+    get:
+      summary: Lista planos do tenant
+      operationId: listHealthPlans
+      parameters:
+        - name: include_inactive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthPlan'
+    post:
+      summary: Cadastra plano (admin)
+      operationId: createHealthPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 1 }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthPlan' }
+        '403':
+          description: Papel não autorizado
+        '409':
+          description: Plano com mesmo nome já existe no tenant
+  /api/planos/{id}:
+    patch:
+      summary: Atualiza active (admin). Renomear plano é proibido (preserva integridade de relatórios históricos).
+      operationId: updateHealthPlan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                active: { type: boolean }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthPlan' }
+        '403':
+          description: Papel não autorizado
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    HealthPlan:
+      type: object
+      required: [id, name, active]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        active: { type: boolean }
+        created_at: { type: string, format: date-time }

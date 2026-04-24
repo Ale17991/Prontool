@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variáveis HSL — light mode. Inspirado no design do AI Studio (slate
+ * neutro + azul institucional). Mantenha em sync com tailwind.config.ts.
+ */
+@layer base {
+  :root {
+    --background: 210 40% 98%;            /* slate-50 */
+    --foreground: 222 47% 11%;            /* slate-900 */
+    --card: 0 0% 100%;                    /* white */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;               /* blue-600 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;             /* slate-100 */
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;      /* slate-500 */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;             /* rose-600 */
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;                /* slate-200 */
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.625rem;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+}

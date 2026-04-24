@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: GHL Webhook Ingestion
+  version: 1.0.0
+  description: |
+    Recebe eventos de mudança de etapa do pipeline GHL. Endpoint síncrono
+    que valida assinatura, persiste evento bruto e enfileira para
+    processamento semântico via QStash. Responde 200 rápido ao GHL após
+    gravação durável (FR-008a).
+servers:
+  - url: https://app.homio.com.br
+paths:
+  /api/webhooks/ghl:
+    post:
+      operationId: ingestGhlWebhook
+      summary: Recebe evento de mudança de etapa do GHL
+      description: |
+        Idempotente por (tenant_id, ghl_event_id). Reenvio da mesma
+        entrega não cria registros duplicados.
+      parameters:
+        - name: X-GHL-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+          description: HMAC-SHA256 do payload com o secret do tenant
+        - name: X-GHL-Timestamp
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Timestamp unix do envio; usado na assinatura para evitar replay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GhlWebhookPayload'
+      responses:
+        '200':
+          description: Evento aceito (novo ou duplicata); processamento semântico acontecerá async
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [received, duplicate, raw_event_id]
+                properties:
+                  received:
+                    type: boolean
+                  duplicate:
+                    type: boolean
+                  raw_event_id:
+                    type: string
+                    format: uuid
+        '400':
+          description: Payload inválido (estrutura)
+        '401':
+          description: Assinatura inválida ou tenant não identificado
+        '5XX':
+          description: Erro técnico — GHL deve retentar
+components:
+  schemas:
+    GhlWebhookPayload:
+      type: object
+      required: [event_id, event_type, contact]
+      properties:
+        event_id:
+          type: string
+          description: ID único do evento no GHL
+        event_type:
+          type: string
+          example: pipeline_stage_changed
+        occurred_at:
+          type: string
+          format: date-time
+        contact:
+          type: object
+          description: Contato do GHL com custom fields; nomes específicos vêm de `tenant_ghl_config`
+          additionalProperties: true
+        pipeline:
+          type: object
+          properties:
+            id:
+              type: string
+            stage_name:
+              type: string

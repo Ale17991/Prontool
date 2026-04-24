@@ -1,0 +1,109 @@
+openapi: 3.1.0
+info:
+  title: Relatórios Mensais
+  version: 1.0.0
+  description: |
+    Relatório financeiro mensal por clínica com receita por plano,
+    produção por médico e comissão líquida (FR-023–26).
+servers:
+  - url: https://app.homio.com.br
+security:
+  - bearerAuth: []
+paths:
+  /api/relatorios/mensal:
+    get:
+      summary: Relatório em JSON (somente leitura, idempotente)
+      operationId: getMonthlyReport
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Totais consolidados usando view appointments_effective
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyReport'
+        '403':
+          description: Papel não autorizado (apenas admin e financeiro)
+  /api/relatorios/mensal/export/{format}:
+    get:
+      summary: Exporta relatório em PDF ou Excel
+      operationId: exportMonthlyReport
+      parameters:
+        - name: format
+          in: path
+          required: true
+          schema: { type: string, enum: [pdf, excel] }
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Arquivo com os mesmos totais do JSON (FR-024, SC-006)
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    MonthlyReport:
+      type: object
+      required: [period, revenue_by_plan, production_by_doctor, totals]
+      properties:
+        period:
+          type: object
+          properties:
+            from: { type: string, format: date }
+            to: { type: string, format: date }
+        revenue_by_plan:
+          type: array
+          items:
+            type: object
+            required: [plan_id, plan_name, net_revenue_cents, appointment_count]
+            properties:
+              plan_id: { type: string, format: uuid }
+              plan_name: { type: string }
+              net_revenue_cents: { type: integer, format: int64 }
+              appointment_count: { type: integer }
+        production_by_doctor:
+          type: array
+          items:
+            type: object
+            required: [doctor_id, doctor_name, net_production_cents,
+                       net_commission_cents, appointment_count]
+            properties:
+              doctor_id: { type: string, format: uuid }
+              doctor_name: { type: string }
+              net_production_cents: { type: integer, format: int64 }
+              net_commission_cents: { type: integer, format: int64 }
+              appointment_count: { type: integer }
+        totals:
+          type: object
+          required: [net_revenue_cents, net_commission_cents, appointment_count, reversal_count]
+          properties:
+            net_revenue_cents: { type: integer, format: int64 }
+            net_commission_cents: { type: integer, format: int64 }
+            appointment_count: { type: integer }
+            reversal_count: { type: integer }
