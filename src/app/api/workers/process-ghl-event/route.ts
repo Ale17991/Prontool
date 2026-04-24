@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { verifyQstashSignature } from '@/lib/integrations/queue/verify-qstash-signature'
+import {
+  verifyQstashSignature,
+  isQstashSigningConfigured,
+} from '@/lib/integrations/queue/verify-qstash-signature'
 import { processWebhookEvent } from '@/lib/core/webhooks/process-event'
 import { InvalidSignatureError } from '@/lib/observability/errors'
 import { traceIdFromHeaders } from '@/lib/observability/trace'
@@ -28,6 +31,13 @@ export async function POST(req: Request): Promise<Response> {
   // QStash verification is skipped in test mode — tests drive the worker
   // directly with a synthetic body.
   if (process.env.NODE_ENV !== 'test') {
+    if (!isQstashSigningConfigured()) {
+      logger.warn({ trace_id: traceId }, 'qstash-signing-not-configured')
+      return NextResponse.json(
+        { error: { code: 'QSTASH_NOT_CONFIGURED', message: 'Worker disabled' } },
+        { status: 503 },
+      )
+    }
     try {
       await verifyQstashSignature({
         signature: req.headers.get('upstash-signature'),

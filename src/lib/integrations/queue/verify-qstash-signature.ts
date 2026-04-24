@@ -3,6 +3,13 @@ import { InvalidSignatureError } from '@/lib/observability/errors'
 
 let receiverSingleton: Receiver | null = null
 
+export function isQstashSigningConfigured(): boolean {
+  return (
+    Boolean(process.env.QSTASH_CURRENT_SIGNING_KEY) &&
+    Boolean(process.env.QSTASH_NEXT_SIGNING_KEY)
+  )
+}
+
 function getReceiver(): Receiver {
   if (receiverSingleton) return receiverSingleton
   const current = process.env.QSTASH_CURRENT_SIGNING_KEY

@@ -3,10 +3,12 @@ import { logger } from '@/lib/observability/logger'
 
 let resendSingleton: Resend | null = null
 
-function getResend(): Resend {
+export function isResendConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY)
+}
+
+function getResend(key: string): Resend {
   if (resendSingleton) return resendSingleton
-  const key = process.env.RESEND_API_KEY
-  if (!key) throw new Error('RESEND_API_KEY missing')
   resendSingleton = new Resend(key)
   return resendSingleton
 }
@@ -25,6 +27,15 @@ export interface AlertEmailInput {
 }
 
 export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: string | null }> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    logger.warn(
+      { tenantId: input.tenantId, subject: input.subject },
+      'resend-not-configured-skipping-email',
+    )
+    return { id: null }
+  }
+
   const from = process.env.RESEND_FROM ?? 'alertas@dev.pronttu.io'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
@@ -35,7 +46,7 @@ export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: stri
   })
 
   try {
-    const res = await getResend().emails.send({
+    const res = await getResend(key).emails.send({
       from,
       to: input.to,
       subject: input.subject,
