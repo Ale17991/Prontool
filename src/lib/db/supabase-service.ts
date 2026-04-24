@@ -24,6 +24,10 @@ import type { Database } from './generated/types'
  * requireRole. `scripts/check-require-role.mjs` (pnpm lint:auth) covers
  * that separately.
  */
+// Fragments must match both dev and prod stack-trace shapes:
+//   dev:  /src/app/(dashboard)/.../page.tsx
+//   prod: /var/task/.next/server/app/(dashboard)/.../page.js
+// So we drop the `/src` prefix and rely on the route-shaped tail.
 const ALLOWED_CALLER_FRAGMENTS = [
   // Every Route Handler under /api/ — tenant scoping via requireRole().
   '/api/',
@@ -32,18 +36,18 @@ const ALLOWED_CALLER_FRAGMENTS = [
   '/supabase/seed/',
   // Domain helpers that legitimately need cross-tenant reads (catalog
   // sync dispatches alerts for any tenant affected by a retired code).
-  '/src/lib/core/catalog/',
+  '/lib/core/catalog/',
   // Test harness (NODE_ENV=test short-circuits anyway but keep for
   // belt-and-suspenders in case a test is run under a different env).
   '/tests/',
   // Anamnesis template list and expense list — same pattern as pacientes:
   // getSession() + explicit tenant_id filter, sharing query shape with the
   // corresponding /api/ handlers.
-  '/src/app/(dashboard)/analise/anamnese/',
-  '/src/app/(dashboard)/analise/despesas/',
+  '/app/(dashboard)/analise/anamnese/',
+  '/app/(dashboard)/analise/despesas/',
   // Lista de atendimentos chama list_patients_for_tenant (SECURITY DEFINER)
   // para mostrar o nome decriptado do paciente ao lado de cada atendimento.
-  '/src/app/(dashboard)/operacao/atendimentos/',
+  '/app/(dashboard)/operacao/atendimentos/',
 ]
 
 function assertCallerAllowed(): void {
