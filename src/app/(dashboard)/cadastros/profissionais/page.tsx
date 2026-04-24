@@ -1,15 +1,16 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronRight, Stethoscope, UserCheck } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatBps, formatDate } from '@/lib/utils'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
+import type { Database } from '@/lib/db/types'
 import { NewDoctorForm } from './new-doctor-form'
 import { ToggleActiveDoctor } from './toggle-active-doctor'
 
@@ -39,7 +40,7 @@ export default async function ProfissionaisPage() {
   if (!session) redirect('/login')
 
   const supabase = createSupabaseServerClient()
-  const service = createSupabaseServiceClient()
+  const rls = supabase as unknown as SupabaseClient<Database>
   const [doctorsRes, headsRes, integrations] = await Promise.all([
     supabase
       .from('doctors')
@@ -50,7 +51,7 @@ export default async function ProfissionaisPage() {
       .order('full_name', { ascending: true })
       .limit(500),
     supabase.from('doctor_commission_current').select('doctor_id, percentage_bps, valid_from'),
-    getEnabledIntegrations(service, session.tenantId),
+    getEnabledIntegrations(rls, session.tenantId),
   ])
   const hasGhlIntegration = integrations.some((i) => i.provider === 'ghl')
   const doctors = (doctorsRes.data ?? []) as DoctorRow[]

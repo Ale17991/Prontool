@@ -1,6 +1,9 @@
 import type { IntegrationAdapter, ProviderId } from './types'
+import { ghlAdapter } from './ghl/adapter'
 
-const registryMap: Partial<Record<ProviderId, IntegrationAdapter<any, any>>> = {}
+const registryMap: Partial<Record<ProviderId, IntegrationAdapter<any, any>>> = {
+  ghl: ghlAdapter,
+}
 
 export function registerAdapter<C, K>(adapter: IntegrationAdapter<C, K>): void {
   registryMap[adapter.provider] = adapter

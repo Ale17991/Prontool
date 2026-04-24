@@ -30,12 +30,27 @@ export type CreateContactResult =
   | { configured: false }
   | { configured: true; ghlContactId: string }
 
+export interface GhlProxyCredentials {
+  /** Base URL of the Homio Operations Supabase project. Env var when omitted. */
+  operationsUrl?: string
+  /** Bearer key for the proxy. Env var when omitted. */
+  operationsKey?: string
+  /** GHL location id. Env var when omitted (US2 adapter supplies from tenant config). */
+  locationId?: string
+}
+
+/**
+ * Legacy env-backed call used by upsertPatientFromGhl and createPatientManually
+ * until the full US3 event bus migration. When `creds` is provided the values
+ * override the env vars — this is the path the US2 GHL adapter takes.
+ */
 export async function createContactInGhl(
   input: CreateContactInput,
+  creds: GhlProxyCredentials = {},
 ): Promise<CreateContactResult> {
-  const url = process.env.SUPABASE_OPERATIONS_URL
-  const key = process.env.SUPABASE_OPERATIONS_ANON_KEY
-  const locationId = process.env.GHL_LOCATION_ID
+  const url = creds.operationsUrl ?? process.env.SUPABASE_OPERATIONS_URL
+  const key = creds.operationsKey ?? process.env.SUPABASE_OPERATIONS_ANON_KEY
+  const locationId = creds.locationId ?? process.env.GHL_LOCATION_ID
   if (!url || !key || !locationId) return { configured: false }
 
   const endpoint = `${url.replace(/\/+$/, '')}/functions/v1/create-contact`
@@ -58,7 +73,7 @@ export async function createContactInGhl(
     body: JSON.stringify(body),
     // The proxy is co-located with Supabase so a tight timeout is fine;
     // AbortSignal.timeout keeps a stuck call from blocking the request path.
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(5000),
   })
 
   if (!res.ok) {

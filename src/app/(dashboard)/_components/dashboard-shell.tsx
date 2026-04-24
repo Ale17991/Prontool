@@ -28,6 +28,10 @@ import { cn } from '@/lib/utils'
 import { can } from '@/lib/auth/rbac'
 import { listFeatureFlags, type FeatureName } from '@/lib/feature-flags'
 import type { TenantRole } from '@/lib/db/types'
+import {
+  SidebarIntegrationsBadge,
+  type SidebarIntegrationBadgeItem,
+} from './sidebar-integrations-badge'
 
 interface NavItem {
   href: string
@@ -161,10 +165,16 @@ const CATEGORIES: readonly Category[] = [
 interface DashboardShellProps {
   role: TenantRole
   email: string | null
+  integrations?: SidebarIntegrationBadgeItem[]
   children: ReactNode
 }
 
-export function DashboardShell({ role, email, children }: DashboardShellProps) {
+export function DashboardShell({
+  role,
+  email,
+  integrations = [],
+  children,
+}: DashboardShellProps) {
   const pathname = usePathname() ?? ''
   const flags = listFeatureFlags()
   const ctx: NavContext = { role, flags }
@@ -212,6 +222,7 @@ export function DashboardShell({ role, email, children }: DashboardShellProps) {
         </nav>
 
         <div className="mt-auto border-t border-white/5 pt-6">
+          <SidebarIntegrationsBadge integrations={integrations} />
           <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2 text-slate-400">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
               {email?.slice(0, 1) ?? '?'}

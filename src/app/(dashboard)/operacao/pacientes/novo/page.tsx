@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
+import type { Database } from '@/lib/db/types'
 import { NewPatientForm, type HealthPlanOption } from './new-patient-form'
 
 export const dynamic = 'force-dynamic'
@@ -30,8 +31,8 @@ export default async function NovoPacientePage() {
     name: p.name,
   }))
 
-  const service = createSupabaseServiceClient()
-  const integrations = await getEnabledIntegrations(service, session.tenantId)
+  const rls = supabase as unknown as SupabaseClient<Database>
+  const integrations = await getEnabledIntegrations(rls, session.tenantId)
   const hasIntegrations = integrations.length > 0
 
   return (
