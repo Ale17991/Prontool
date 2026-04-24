@@ -180,9 +180,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
                       {age !== null ? ` (${age} anos)` : ''}
                     </span>
                   ) : null}
-                  <span className="font-mono text-[11px] text-slate-400">
-                    GHL: {patient.ghlContactId}
-                  </span>
+                  {patient.ghlContactId ? (
+                    <span className="font-mono text-[11px] text-slate-400">
+                      GHL: {patient.ghlContactId}
+                    </span>
+                  ) : null}
                 </div>
                 {isAnonymized ? null : (
                   <div className="mt-3 flex items-center gap-3">

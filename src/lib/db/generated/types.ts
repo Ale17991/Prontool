@@ -957,6 +957,50 @@ export type Database = {
           },
         ]
       }
+      tenant_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by_user_id: string
+          credentials_enc: string
+          enabled: boolean
+          provider: string
+          tenant_id: string
+          updated_at: string
+          webhook_secret_enc: string | null
+        }
+        Insert: {
+          config: Json
+          created_at?: string
+          created_by_user_id: string
+          credentials_enc: string
+          enabled?: boolean
+          provider: string
+          tenant_id: string
+          updated_at?: string
+          webhook_secret_enc?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by_user_id?: string
+          credentials_enc?: string
+          enabled?: boolean
+          provider?: string
+          tenant_id?: string
+          updated_at?: string
+          webhook_secret_enc?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_integrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string

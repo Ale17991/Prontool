@@ -14,11 +14,11 @@ export default async function ConfiguracoesPage() {
       title="Configurações"
       subtitle="Administração do tenant, integrações e preferências"
       icon={Settings}
-      description="Este é o hub central para configurações do tenant — webhook do GHL, chaves de integração, preferências de usuários, papéis e feature flags. O escopo abaixo é o que está previsto; nada aqui é funcional ainda."
+      description="Hub central para configurações do tenant — integrações externas, chaves de criptografia, preferências de usuários, papéis e feature flags. O escopo abaixo é o que está previsto; nada aqui é funcional ainda."
       plannedScope={[
         'Gerenciar usuários, papéis e convites do tenant',
-        'Rotação de segredo do webhook GHL e chave de criptografia de PII',
-        'Configurar integração com GHL (location id, proxy de operações)',
+        'Rotação de chave de criptografia de PII',
+        'Conectar integrações externas (GoHighLevel, HubSpot, RD Station, Pipedrive, webhook genérico)',
         'Toggle de feature flags por tenant',
         'Preferências de e-mail e destinatários de alertas operacionais',
       ]}

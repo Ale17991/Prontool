@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ChevronRight, Filter, Stethoscope } from 'lucide-react'
+import { ChevronRight, Filter, Plus, Stethoscope } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
@@ -98,6 +98,14 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             ) : null}
           </p>
         </div>
+        {session.role === 'admin' || session.role === 'recepcionista' ? (
+          <Button asChild>
+            <Link href="/operacao/atendimentos/novo">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo atendimento
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       <Card>

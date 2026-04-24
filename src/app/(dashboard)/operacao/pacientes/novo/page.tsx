@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getEnabledIntegrations } from '@/lib/core/integrations/config'
 import { NewPatientForm, type HealthPlanOption } from './new-patient-form'
 
 export const dynamic = 'force-dynamic'
@@ -28,6 +30,10 @@ export default async function NovoPacientePage() {
     name: p.name,
   }))
 
+  const service = createSupabaseServiceClient()
+  const integrations = await getEnabledIntegrations(service, session.tenantId)
+  const hasIntegrations = integrations.length > 0
+
   return (
     <div className="space-y-6">
       <div>
@@ -41,9 +47,9 @@ export default async function NovoPacientePage() {
           Novo paciente
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          PII criptografada localmente. O contato é mirrorado para o GHL em melhor-esforço —
-          se a integração estiver indisponível, o paciente é salvo mesmo assim e um alerta
-          operacional é aberto.
+          {hasIntegrations
+            ? 'PII criptografada localmente. O contato é mirrorado para as integrações ativas em melhor-esforço — se alguma estiver indisponível, o paciente é salvo mesmo assim e um alerta operacional é aberto.'
+            : 'PII criptografada localmente.'}
         </p>
       </div>
 

@@ -190,14 +190,14 @@ export function NewDoctorForm() {
 
       <div className="space-y-1.5">
         <Label htmlFor="external-id" className="text-xs">
-          Identificador externo <span className="text-slate-400">(GHL, opcional)</span>
+          Identificador externo <span className="text-slate-400">(opcional)</span>
         </Label>
         <Input
           id="external-id"
           maxLength={120}
           value={externalId}
           onChange={(e) => setExternalId(e.target.value)}
-          placeholder="custom field do GHL"
+          placeholder="ID em sistema externo (CRM, prontuário, etc.)"
         />
       </div>
 

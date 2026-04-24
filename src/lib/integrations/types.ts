@@ -1,0 +1,81 @@
+import type { z } from 'zod'
+import type { Logger } from 'pino'
+
+export type ProviderId =
+  | 'ghl'
+  | 'hubspot'
+  | 'rdstation'
+  | 'pipedrive'
+  | 'generic_webhook'
+
+export interface PatientSnapshot {
+  id: string
+  tenantId: string
+  fullName: string
+  cpf: string
+  email: string | null
+  phone: string | null
+  birthDate: string | null
+  planId: string | null
+  ghlContactId: string | null
+}
+
+export interface AppointmentSnapshot {
+  id: string
+  tenantId: string
+  patientId: string
+  doctorId: string
+  procedureId: string
+  procedureTussCode: string
+  planId: string
+  appointmentAt: string
+  frozenAmountCents: number
+  source: 'ghl' | 'manual'
+}
+
+export type DomainEvent =
+  | { type: 'patient.created'; patient: PatientSnapshot }
+  | {
+      type: 'appointment.created'
+      appointment: AppointmentSnapshot
+      patient: PatientSnapshot
+    }
+  | {
+      type: 'appointment.reversed'
+      original: AppointmentSnapshot
+      reversal: AppointmentSnapshot
+      reason: string
+    }
+
+export interface AdapterContext<Config = unknown, Credentials = unknown> {
+  tenantId: string
+  provider: ProviderId
+  config: Config
+  credentials: Credentials
+  logger: Logger
+  now: () => Date
+}
+
+export interface IntegrationAdapter<Config = unknown, Credentials = unknown> {
+  provider: ProviderId
+  label: string
+  description: string
+  configSchema: z.ZodType<Config>
+  credentialsSchema: z.ZodType<Credentials>
+  redactCredentials(c: Credentials): Record<string, string>
+  extractTenantIdFromWebhook?(req: Request): Promise<string | null>
+  handleInboundWebhook?(
+    ctx: AdapterContext<Config, Credentials>,
+    req: Request,
+  ): Promise<Response>
+  handleDomainEvent(
+    ctx: AdapterContext<Config, Credentials>,
+    event: DomainEvent,
+  ): Promise<void>
+}
+
+export interface DispatchResult {
+  provider: ProviderId
+  ok: boolean
+  detail: string
+}
