@@ -704,6 +704,111 @@ export type Database = {
           },
         ]
       }
+      patient_allergies: {
+        Row: {
+          deleted_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          reported_at: string
+          reported_by: string
+          severity: string
+          substance: string
+          tenant_id: string
+        }
+        Insert: {
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          reported_at?: string
+          reported_by: string
+          severity?: string
+          substance: string
+          tenant_id: string
+        }
+        Update: {
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          reported_at?: string
+          reported_by?: string
+          severity?: string
+          substance?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_allergies_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_allergies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_history: {
+        Row: {
+          category: string
+          created_at: string
+          date_reported: string | null
+          deleted_at: string | null
+          description: string
+          id: string
+          notes: string | null
+          patient_id: string
+          reported_by: string
+          tenant_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          date_reported?: string | null
+          deleted_at?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          reported_by: string
+          tenant_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date_reported?: string | null
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          reported_by?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_history_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address_cep_enc: string | null

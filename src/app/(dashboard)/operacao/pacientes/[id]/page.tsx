@@ -31,6 +31,9 @@ import { PatientCleanupButton } from './cleanup-button'
 import { FinanceiroSection } from './financeiro-section'
 import { listPaymentsForPatient } from '@/lib/core/payments/list'
 import { DiagnosticsSection } from './diagnosticos-section'
+import { MedicalHistorySection } from './medical-history-section'
+import { listAllergies } from '@/lib/core/patient-medical/allergies'
+import { listHistory } from '@/lib/core/patient-medical/history'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -94,6 +97,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     tenantId: session.tenantId,
     patientId: params.id,
   })
+
+  const [allergies, medicalHistory] = await Promise.all([
+    listAllergies(typedClient, { tenantId: session.tenantId, patientId: params.id }),
+    listHistory(typedClient, { tenantId: session.tenantId, patientId: params.id }),
+  ])
 
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
     supabase
@@ -256,6 +264,15 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           patientId={params.id}
           address={patient.address}
           canEdit={canEditPatient}
+        />
+      )}
+
+      {isAnonymized ? null : (
+        <MedicalHistorySection
+          patientId={params.id}
+          initialAllergies={allergies}
+          initialHistory={medicalHistory}
+          canWrite={canWriteClinicalRecords}
         />
       )}
 
