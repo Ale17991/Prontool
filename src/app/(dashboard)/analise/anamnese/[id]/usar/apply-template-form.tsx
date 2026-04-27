@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Save } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -29,12 +30,26 @@ export interface TemplateField {
   label: string
   required: boolean
   options?: string[]
+  is_default?: boolean
 }
 
-interface PatientOption {
+export interface PatientOption {
   id: string
   fullName: string
   cpf: string
+  phone?: string | null
+  email?: string | null
+  birthDate?: string | null
+  healthPlanName?: string | null
+  address?: {
+    cep: string | null
+    street: string | null
+    number: string | null
+    complement: string | null
+    neighborhood: string | null
+    city: string | null
+    state: string | null
+  }
 }
 
 interface ApplyTemplateFormProps {
@@ -45,12 +60,60 @@ interface ApplyTemplateFormProps {
 
 type ResponseValue = string | number | string[] | null
 
+/**
+ * Mapeia o id do campo padrão pra um valor extraído do paciente.
+ * Usado tanto pelo apply standalone quanto pela versão inline na ficha
+ * clínica do paciente — qualquer mudança aqui propaga pra ambos.
+ */
+export function prefillResponsesFromPatient(
+  fields: { id: string; is_default?: boolean }[],
+  p: PatientOption | null,
+): Record<string, ResponseValue> {
+  if (!p) return {}
+  const formatAddress = (a: PatientOption['address']): string | null => {
+    if (!a) return null
+    const line1 = [a.street, a.number].filter(Boolean).join(', ')
+    const compl = a.complement ? ` — ${a.complement}` : ''
+    const line2 = [a.neighborhood, a.city, a.state].filter(Boolean).join(' · ')
+    const full = [line1 + compl, line2].filter(Boolean).join('\n')
+    return full || null
+  }
+  const formatCep = (raw: string | null | undefined): string | null => {
+    if (!raw) return null
+    const d = raw.replace(/\D/g, '')
+    return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : raw
+  }
+  const map: Record<string, ResponseValue> = {
+    default_nome: p.fullName ?? null,
+    default_cpf: p.cpf ?? null,
+    default_telefone: p.phone ?? null,
+    default_email: p.email ?? null,
+    default_data_nasc: p.birthDate ?? null,
+    default_plano: p.healthPlanName ?? null,
+    default_cep: formatCep(p.address?.cep),
+    default_endereco: formatAddress(p.address),
+  }
+  const out: Record<string, ResponseValue> = {}
+  for (const f of fields) {
+    if (!f.is_default) continue
+    const v = map[f.id]
+    if (v !== undefined && v !== null && v !== '') out[f.id] = v
+  }
+  return out
+}
+
 export function ApplyTemplateForm({ templateId, fields, patients }: ApplyTemplateFormProps) {
   const router = useRouter()
   const [patientId, setPatientId] = useState<string>('')
   const [responses, setResponses] = useState<Record<string, ResponseValue>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function handlePatientChange(nextId: string) {
+    setPatientId(nextId)
+    const selected = patients.find((p) => p.id === nextId) ?? null
+    setResponses(prefillResponsesFromPatient(fields, selected))
+  }
 
   function setValue(fieldId: string, value: ResponseValue) {
     setResponses((prev) => ({ ...prev, [fieldId]: value }))
@@ -111,7 +174,7 @@ export function ApplyTemplateForm({ templateId, fields, patients }: ApplyTemplat
         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
           Paciente
         </label>
-        <Select value={patientId} onValueChange={setPatientId}>
+        <Select value={patientId} onValueChange={handlePatientChange}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione um paciente…" />
           </SelectTrigger>
@@ -124,6 +187,12 @@ export function ApplyTemplateForm({ templateId, fields, patients }: ApplyTemplat
             ))}
           </SelectContent>
         </Select>
+        {patientId ? (
+          <p className="text-[10px] text-slate-500">
+            Campos padrão pré-preenchidos a partir do cadastro deste paciente — você
+            pode editar antes de salvar.
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-5 border-t border-slate-100 pt-5">
@@ -134,6 +203,7 @@ export function ApplyTemplateForm({ templateId, fields, patients }: ApplyTemplat
             value={responses[field.id]}
             onChange={(v) => setValue(field.id, v)}
             onToggleOption={(opt, checked) => toggleCheckbox(field.id, opt, checked)}
+            isDefault={field.is_default ?? false}
           />
         ))}
       </div>
@@ -159,16 +229,28 @@ function FieldInput({
   value,
   onChange,
   onToggleOption,
+  isDefault,
 }: {
   field: TemplateField
   value: ResponseValue | undefined
   onChange: (v: ResponseValue) => void
   onToggleOption: (option: string, checked: boolean) => void
+  isDefault?: boolean
 }) {
   const label = (
-    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-      {field.label}
-      {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
+    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+      <span>
+        {field.label}
+        {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
+      </span>
+      {isDefault ? (
+        <Badge
+          variant="secondary"
+          className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
+        >
+          Padrão
+        </Badge>
+      ) : null}
     </label>
   )
 

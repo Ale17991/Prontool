@@ -33,6 +33,7 @@ const fieldSchema = z.object({
   label: z.string().min(1),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
+  is_default: z.boolean().optional(),
 })
 
 const createSchema = z.object({

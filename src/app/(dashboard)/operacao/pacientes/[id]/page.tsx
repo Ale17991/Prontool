@@ -26,6 +26,7 @@ import {
 } from './treatment-steps-section'
 import { PatientPlanEditor } from './patient-plan-editor'
 import { ClinicalRecordsSection } from './clinical-records-section'
+import { AddressEditor } from './address-editor'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -238,6 +239,14 @@ export default async function PacienteDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {isAnonymized ? null : (
+        <AddressEditor
+          patientId={params.id}
+          address={patient.address}
+          canEdit={canEditPatient}
+        />
+      )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <SummaryCard
           label="Atendimentos"
@@ -340,6 +349,19 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       <ClinicalRecordsSection
         patientId={params.id}
         patientName={isAnonymized ? '[anonimizado]' : patient.fullName || null}
+        patientPrefill={
+          isAnonymized
+            ? undefined
+            : {
+                fullName: patient.fullName || null,
+                cpf: patient.cpf || null,
+                phone: patient.phone,
+                email: patient.email,
+                birthDate: patient.birthDate,
+                healthPlanName: patient.healthPlan?.name ?? null,
+                address: patient.address,
+              }
+        }
         initialRecords={records}
         canWrite={canWriteClinicalRecords && !isAnonymized}
         canApplyAnamnesis={canApplyAnamnesis && !isAnonymized}

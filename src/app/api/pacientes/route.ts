@@ -34,6 +34,19 @@ const cpfDigits = z
   .transform((s) => s.replace(/\D/g, ''))
   .refine((s) => s.length === 11, 'CPF deve ter 11 dígitos')
 
+const addressSchema = z
+  .object({
+    cep: z.string().trim().max(20).optional().nullable(),
+    street: z.string().trim().max(200).optional().nullable(),
+    number: z.string().trim().max(20).optional().nullable(),
+    complement: z.string().trim().max(200).optional().nullable(),
+    neighborhood: z.string().trim().max(200).optional().nullable(),
+    city: z.string().trim().max(120).optional().nullable(),
+    state: z.string().trim().max(2).optional().nullable(),
+  })
+  .optional()
+  .nullable()
+
 const createSchema = z.object({
   full_name: z.string().trim().min(2).max(200),
   cpf: cpfDigits,
@@ -47,6 +60,7 @@ const createSchema = z.object({
   // Obrigatório na UI mas nullable no backend pra não quebrar dados
   // legados; a UI manda sempre que puder.
   plan_id: z.string().uuid().optional().nullable(),
+  address: addressSchema,
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -107,6 +121,7 @@ export async function POST(req: Request): Promise<Response> {
       email: parsed.data.email ?? undefined,
       birthDate: parsed.data.birth_date ?? undefined,
       planId: parsed.data.plan_id ?? null,
+      address: parsed.data.address ?? undefined,
     })
     return NextResponse.json(result, { status: 201 })
   } catch (err) {

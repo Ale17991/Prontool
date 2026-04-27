@@ -3,20 +3,38 @@ import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatient } from '@/lib/core/patients/get'
+import { updatePatientAddress } from '@/lib/core/patients/update-address'
 import { NotFoundError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
  * GET   /api/pacientes/{id} — detalhe + sumário financeiro agregado.
- * PATCH /api/pacientes/{id} — atualiza campos mutáveis (hoje só plan_id).
- *                             Admin/recepcionista apenas.
+ * PATCH /api/pacientes/{id} — atualiza campos mutáveis (plan_id e/ou
+ *                             endereço). Admin/recepcionista apenas.
  */
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const patchSchema = z.object({
-  plan_id: z.string().uuid().nullable(),
-})
+const addressPatchSchema = z
+  .object({
+    cep: z.string().trim().max(20).optional().nullable(),
+    street: z.string().trim().max(200).optional().nullable(),
+    number: z.string().trim().max(20).optional().nullable(),
+    complement: z.string().trim().max(200).optional().nullable(),
+    neighborhood: z.string().trim().max(200).optional().nullable(),
+    city: z.string().trim().max(120).optional().nullable(),
+    state: z.string().trim().max(2).optional().nullable(),
+  })
+  .partial()
+
+const patchSchema = z
+  .object({
+    plan_id: z.string().uuid().nullable().optional(),
+    address: addressPatchSchema.optional(),
+  })
+  .refine((v) => v.plan_id !== undefined || v.address !== undefined, {
+    message: 'Informe plan_id ou address para atualizar.',
+  })
 
 export async function GET(
   req: Request,
@@ -72,27 +90,37 @@ export async function PATCH(
 
     const supabase = createSupabaseServiceClient()
 
-    // Se plan_id foi informado, valida que pertence ao tenant.
-    if (parsed.data.plan_id) {
-      const hp = await supabase
-        .from('health_plans')
-        .select('id')
+    if (parsed.data.plan_id !== undefined) {
+      // Se plan_id foi informado (incl. null), valida e atualiza.
+      if (parsed.data.plan_id) {
+        const hp = await supabase
+          .from('health_plans')
+          .select('id')
+          .eq('tenant_id', session.tenantId)
+          .eq('id', parsed.data.plan_id)
+          .maybeSingle()
+        if (hp.error) throw new Error(`health plan lookup: ${hp.error.message}`)
+        if (!hp.data) throw new NotFoundError('health_plan', parsed.data.plan_id)
+      }
+
+      const update = await supabase
+        .from('patients')
+        .update({ plan_id: parsed.data.plan_id })
         .eq('tenant_id', session.tenantId)
-        .eq('id', parsed.data.plan_id)
+        .eq('id', params.id)
+        .select('id')
         .maybeSingle()
-      if (hp.error) throw new Error(`health plan lookup: ${hp.error.message}`)
-      if (!hp.data) throw new NotFoundError('health_plan', parsed.data.plan_id)
+      if (update.error) throw new Error(`patient patch: ${update.error.message}`)
+      if (!update.data) throw new NotFoundError('patient', params.id)
     }
 
-    const update = await supabase
-      .from('patients')
-      .update({ plan_id: parsed.data.plan_id })
-      .eq('tenant_id', session.tenantId)
-      .eq('id', params.id)
-      .select('id')
-      .maybeSingle()
-    if (update.error) throw new Error(`patient patch: ${update.error.message}`)
-    if (!update.data) throw new NotFoundError('patient', params.id)
+    if (parsed.data.address !== undefined) {
+      await updatePatientAddress(supabase, {
+        tenantId: session.tenantId,
+        patientId: params.id,
+        address: parsed.data.address,
+      })
+    }
 
     return NextResponse.json({ ok: true }, { status: 200 })
   } catch (err) {

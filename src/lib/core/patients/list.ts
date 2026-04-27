@@ -20,6 +20,15 @@ export interface PatientListItem {
   phone: string | null
   email: string | null
   birthDate: string | null
+  address: {
+    cep: string | null
+    street: string | null
+    number: string | null
+    complement: string | null
+    neighborhood: string | null
+    city: string | null
+    state: string | null
+  }
   anonymizedAt: string | null
   createdAt: string
   updatedAt: string
@@ -47,6 +56,13 @@ interface RpcRow {
   phone: string | null
   email: string | null
   birth_date: string | null
+  address_cep: string | null
+  address_street: string | null
+  address_number: string | null
+  address_complement: string | null
+  address_neighborhood: string | null
+  address_city: string | null
+  address_state: string | null
   anonymized_at: string | null
   created_at: string
   updated_at: string
@@ -93,6 +109,15 @@ function toItem(r: RpcRow): PatientListItem {
     phone: r.phone,
     email: r.email,
     birthDate: r.birth_date,
+    address: {
+      cep: r.address_cep,
+      street: r.address_street,
+      number: r.address_number,
+      complement: r.address_complement,
+      neighborhood: r.address_neighborhood,
+      city: r.address_city,
+      state: r.address_state,
+    },
     anonymizedAt: r.anonymized_at,
     createdAt: r.created_at,
     updatedAt: r.updated_at,

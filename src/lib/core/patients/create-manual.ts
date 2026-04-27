@@ -14,6 +14,16 @@ import { publishDomainEvent } from '@/lib/core/events/publish'
  * sync is best-effort. Failures in any adapter become `integration_sync_failed`
  * alerts emitted by the dispatcher.
  */
+export interface CreateManualPatientAddress {
+  cep?: string | null
+  street?: string | null
+  number?: string | null
+  complement?: string | null
+  neighborhood?: string | null
+  city?: string | null
+  state?: string | null
+}
+
 export interface CreateManualPatientInput {
   tenantId: string
   fullName: string
@@ -21,6 +31,7 @@ export interface CreateManualPatientInput {
   phone?: string | undefined
   email?: string | undefined
   birthDate?: string | undefined
+  address?: CreateManualPatientAddress | undefined
   /** Health plan chosen by the operator at creation time (obrigatório na UI; nullable no banco). */
   planId?: string | null | undefined
   actorUserId: string
@@ -44,12 +55,36 @@ export async function createPatientManually(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required to encrypt patient PII')
 
-  const [name, cpf, phone, email, birthDate] = await Promise.all([
+  const addr = input.address ?? {}
+  const optEnc = (v: string | null | undefined) =>
+    v && v.trim() ? encrypt(supabase, v.trim(), key) : Promise.resolve(null)
+
+  const [
+    name,
+    cpf,
+    phone,
+    email,
+    birthDate,
+    addrCep,
+    addrStreet,
+    addrNumber,
+    addrComplement,
+    addrNeighborhood,
+    addrCity,
+    addrState,
+  ] = await Promise.all([
     encrypt(supabase, input.fullName, key),
     encrypt(supabase, input.cpf, key),
     input.phone ? encrypt(supabase, input.phone, key) : Promise.resolve(null),
     input.email ? encrypt(supabase, input.email, key) : Promise.resolve(null),
     input.birthDate ? encrypt(supabase, input.birthDate, key) : Promise.resolve(null),
+    optEnc(addr.cep),
+    optEnc(addr.street),
+    optEnc(addr.number),
+    optEnc(addr.complement),
+    optEnc(addr.neighborhood),
+    optEnc(addr.city),
+    optEnc(addr.state),
   ])
 
   const inserted = await supabase
@@ -62,6 +97,13 @@ export async function createPatientManually(
       phone_enc: phone,
       email_enc: email,
       birth_date_enc: birthDate,
+      address_cep_enc: addrCep,
+      address_street_enc: addrStreet,
+      address_number_enc: addrNumber,
+      address_complement_enc: addrComplement,
+      address_neighborhood_enc: addrNeighborhood,
+      address_city_enc: addrCity,
+      address_state_enc: addrState,
       plan_id: input.planId ?? null,
     })
     .select('id')

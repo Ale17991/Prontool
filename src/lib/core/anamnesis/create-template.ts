@@ -17,6 +17,12 @@ export interface AnamnesisField {
   label: string
   required: boolean
   options?: string[]
+  /**
+   * Marca campos pré-populados pelo builder (nome, CPF, endereço, etc.) que
+   * devem ser pré-preenchidos a partir do cadastro do paciente quando a
+   * anamnese é aplicada.
+   */
+  is_default?: boolean
 }
 
 export interface CreateTemplateInput {

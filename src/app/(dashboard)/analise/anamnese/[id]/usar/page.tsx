@@ -74,6 +74,11 @@ export default async function UsarAnamneseTemplatePage({ params }: PageProps) {
                 id: p.id,
                 fullName: p.fullName || '(sem nome)',
                 cpf: p.cpf,
+                phone: p.phone,
+                email: p.email,
+                birthDate: p.birthDate,
+                healthPlanName: null,
+                address: p.address,
               }))}
             />
           )}

@@ -34,9 +34,28 @@ import type {
   ClinicalRecordRow,
 } from '@/lib/core/clinical-records/create'
 
+export interface AnamnesePatientPrefill {
+  fullName: string | null
+  cpf: string | null
+  phone: string | null
+  email: string | null
+  birthDate: string | null
+  healthPlanName: string | null
+  address: {
+    cep: string | null
+    street: string | null
+    number: string | null
+    complement: string | null
+    neighborhood: string | null
+    city: string | null
+    state: string | null
+  }
+}
+
 interface Props {
   patientId: string
   patientName?: string | null
+  patientPrefill?: AnamnesePatientPrefill
   initialRecords: ClinicalRecordRow[]
   canWrite: boolean
   canApplyAnamnesis: boolean
@@ -47,6 +66,7 @@ type Pane = null | 'texto' | 'arquivo' | 'anamnese'
 export function ClinicalRecordsSection({
   patientId,
   patientName,
+  patientPrefill,
   initialRecords,
   canWrite,
   canApplyAnamnesis,
@@ -148,6 +168,7 @@ export function ClinicalRecordsSection({
           {pane === 'anamnese' && canApplyAnamnesis ? (
             <NewAnamneseForm
               patientId={patientId}
+              patientPrefill={patientPrefill}
               onCreated={async () => {
                 setPane(null)
                 await refresh()
@@ -629,11 +650,49 @@ interface TemplateRow {
 
 type ResponseValue = string | number | string[] | null
 
+function buildPrefillFromPatient(
+  fields: AnamnesisFieldSnapshot[],
+  prefill: AnamnesePatientPrefill | undefined,
+): Record<string, ResponseValue> {
+  if (!prefill) return {}
+  const formatAddress = (a: AnamnesePatientPrefill['address']): string | null => {
+    const line1 = [a.street, a.number].filter(Boolean).join(', ')
+    const compl = a.complement ? ` — ${a.complement}` : ''
+    const line2 = [a.neighborhood, a.city, a.state].filter(Boolean).join(' · ')
+    const full = [line1 + compl, line2].filter(Boolean).join('\n')
+    return full || null
+  }
+  const formatCep = (raw: string | null | undefined): string | null => {
+    if (!raw) return null
+    const d = raw.replace(/\D/g, '')
+    return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : raw
+  }
+  const map: Record<string, ResponseValue> = {
+    default_nome: prefill.fullName ?? null,
+    default_cpf: prefill.cpf ?? null,
+    default_telefone: prefill.phone ?? null,
+    default_email: prefill.email ?? null,
+    default_data_nasc: prefill.birthDate ?? null,
+    default_plano: prefill.healthPlanName ?? null,
+    default_cep: formatCep(prefill.address.cep),
+    default_endereco: formatAddress(prefill.address),
+  }
+  const out: Record<string, ResponseValue> = {}
+  for (const f of fields) {
+    if (!f.is_default) continue
+    const v = map[f.id]
+    if (v !== undefined && v !== null && v !== '') out[f.id] = v
+  }
+  return out
+}
+
 function NewAnamneseForm({
   patientId,
+  patientPrefill,
   onCreated,
 }: {
   patientId: string
+  patientPrefill?: AnamnesePatientPrefill
   onCreated: () => void | Promise<void>
 }) {
   const [templates, setTemplates] = useState<TemplateRow[] | null>(null)
@@ -679,6 +738,15 @@ function NewAnamneseForm({
 
   const selected = templates?.find((t) => t.id === templateId) ?? null
   const fields = selected?.fields ?? []
+
+  // Quando troca o template, refaz pré-fill com defaults do paciente.
+  useEffect(() => {
+    if (!selected) {
+      setResponses({})
+      return
+    }
+    setResponses(buildPrefillFromPatient(selected.fields ?? [], patientPrefill))
+  }, [selected, patientPrefill])
 
   function setValue(fieldId: string, value: ResponseValue) {
     setResponses((prev) => ({ ...prev, [fieldId]: value }))
@@ -822,9 +890,19 @@ function FieldInput({
 }) {
   const type = field.type as FieldType
   const label = (
-    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-      {field.label}
-      {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
+    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+      <span>
+        {field.label}
+        {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
+      </span>
+      {field.is_default ? (
+        <Badge
+          variant="secondary"
+          className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
+        >
+          Padrão
+        </Badge>
+      ) : null}
     </label>
   )
 

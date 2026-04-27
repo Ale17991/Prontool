@@ -20,6 +20,7 @@ export interface AnamnesisFieldSnapshot {
   label: string
   required?: boolean
   options?: string[]
+  is_default?: boolean
 }
 
 export interface AnamnesisSnapshot {

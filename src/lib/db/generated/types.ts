@@ -673,6 +673,13 @@ export type Database = {
       }
       patients: {
         Row: {
+          address_cep_enc: string | null
+          address_city_enc: string | null
+          address_complement_enc: string | null
+          address_neighborhood_enc: string | null
+          address_number_enc: string | null
+          address_state_enc: string | null
+          address_street_enc: string | null
           anonymized_at: string | null
           birth_date_enc: string | null
           cpf_enc: string
@@ -687,6 +694,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address_cep_enc?: string | null
+          address_city_enc?: string | null
+          address_complement_enc?: string | null
+          address_neighborhood_enc?: string | null
+          address_number_enc?: string | null
+          address_state_enc?: string | null
+          address_street_enc?: string | null
           anonymized_at?: string | null
           birth_date_enc?: string | null
           cpf_enc: string
@@ -701,6 +715,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address_cep_enc?: string | null
+          address_city_enc?: string | null
+          address_complement_enc?: string | null
+          address_neighborhood_enc?: string | null
+          address_number_enc?: string | null
+          address_state_enc?: string | null
+          address_street_enc?: string | null
           anonymized_at?: string | null
           birth_date_enc?: string | null
           cpf_enc?: string
@@ -1540,6 +1561,13 @@ export type Database = {
       get_patient_for_tenant: {
         Args: { p_key: string; p_patient_id: string; p_tenant_id: string }
         Returns: {
+          address_cep: string
+          address_city: string
+          address_complement: string
+          address_neighborhood: string
+          address_number: string
+          address_state: string
+          address_street: string
           anonymized_at: string
           birth_date: string
           cpf: string
@@ -1557,6 +1585,13 @@ export type Database = {
       list_patients_for_tenant: {
         Args: { p_key: string; p_tenant_id: string }
         Returns: {
+          address_cep: string
+          address_city: string
+          address_complement: string
+          address_neighborhood: string
+          address_number: string
+          address_state: string
+          address_street: string
           anonymized_at: string
           birth_date: string
           cpf: string

@@ -8,6 +8,16 @@ import { NotFoundError } from '@/lib/observability/errors'
  * agregado de `appointments_effective` (totais, contagens, último
  * atendimento). PII vira placeholder quando o paciente foi anonimizado.
  */
+export interface PatientAddress {
+  cep: string | null
+  street: string | null
+  number: string | null
+  complement: string | null
+  neighborhood: string | null
+  city: string | null
+  state: string | null
+}
+
 export interface PatientDetail {
   id: string
   ghlContactId: string
@@ -16,6 +26,7 @@ export interface PatientDetail {
   phone: string | null
   email: string | null
   birthDate: string | null
+  address: PatientAddress
   anonymizedAt: string | null
   createdAt: string
   updatedAt: string
@@ -44,6 +55,13 @@ interface RpcRow {
   phone: string | null
   email: string | null
   birth_date: string | null
+  address_cep: string | null
+  address_street: string | null
+  address_number: string | null
+  address_complement: string | null
+  address_neighborhood: string | null
+  address_city: string | null
+  address_state: string | null
   anonymized_at: string | null
   created_at: string
   updated_at: string
@@ -93,6 +111,15 @@ export async function getPatient(
     phone: row.phone,
     email: row.email,
     birthDate: row.birth_date,
+    address: {
+      cep: row.address_cep,
+      street: row.address_street,
+      number: row.address_number,
+      complement: row.address_complement,
+      neighborhood: row.address_neighborhood,
+      city: row.address_city,
+      state: row.address_state,
+    },
     anonymizedAt: row.anonymized_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

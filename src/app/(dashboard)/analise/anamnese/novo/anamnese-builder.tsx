@@ -45,7 +45,19 @@ interface Field {
   label: string
   required: boolean
   options?: string[]
+  is_default?: boolean
 }
+
+const DEFAULT_FIELDS: Field[] = [
+  { id: 'default_nome', type: 'texto_curto', label: 'Nome completo', required: true, is_default: true },
+  { id: 'default_cpf', type: 'texto_curto', label: 'CPF', required: true, is_default: true },
+  { id: 'default_telefone', type: 'texto_curto', label: 'Telefone', required: true, is_default: true },
+  { id: 'default_email', type: 'texto_curto', label: 'Email', required: false, is_default: true },
+  { id: 'default_data_nasc', type: 'data', label: 'Data de nascimento', required: false, is_default: true },
+  { id: 'default_plano', type: 'texto_curto', label: 'Plano de saúde', required: false, is_default: true },
+  { id: 'default_cep', type: 'texto_curto', label: 'CEP', required: false, is_default: true },
+  { id: 'default_endereco', type: 'texto_longo', label: 'Endereço completo', required: false, is_default: true },
+]
 
 const FIELD_TYPES: Array<{
   type: FieldType
@@ -70,6 +82,11 @@ export function AnamneseBuilder() {
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  // Defaults pré-marcados (controlados via includedDefaults). Custom fields
+  // ficam num array separado pra preservar ordem das duas seções.
+  const [includedDefaults, setIncludedDefaults] = useState<Record<string, boolean>>(
+    Object.fromEntries(DEFAULT_FIELDS.map((d) => [d.id, true])),
+  )
   const [fields, setFields] = useState<Field[]>([])
   const [activeTab, setActiveTab] = useState<'build' | 'preview'>('build')
 
@@ -101,17 +118,23 @@ export function AnamneseBuilder() {
     setFields(next)
   }
 
+  function buildFinalFields(): Field[] {
+    const includedDefaultsList = DEFAULT_FIELDS.filter((d) => includedDefaults[d.id])
+    return [...includedDefaultsList, ...fields]
+  }
+
   async function handleSave() {
     setError(null)
     if (!title.trim()) {
       setError('Informe o título do modelo.')
       return
     }
-    if (fields.length === 0) {
+    const finalFields = buildFinalFields()
+    if (finalFields.length === 0) {
       setError('Adicione pelo menos um campo ao modelo.')
       return
     }
-    for (const f of fields) {
+    for (const f of finalFields) {
       if (!f.label.trim()) {
         setError('Todo campo precisa de um rótulo.')
         return
@@ -130,7 +153,7 @@ export function AnamneseBuilder() {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || null,
-          fields,
+          fields: finalFields,
         }),
       })
       if (!res.ok) {
@@ -255,11 +278,73 @@ export function AnamneseBuilder() {
                   />
                 </Card>
 
+                <Card className="space-y-3 p-5">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      Campos padrão
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Pré-preenchidos a partir do cadastro do paciente quando aplicado.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {DEFAULT_FIELDS.map((d) => {
+                      const included = includedDefaults[d.id] ?? true
+                      return (
+                        <label
+                          key={d.id}
+                          className={cn(
+                            'flex items-center justify-between gap-3 rounded-md border bg-white px-3 py-2 transition-colors',
+                            included
+                              ? 'border-blue-200 bg-blue-50/30'
+                              : 'border-slate-200 opacity-70',
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={included}
+                              onChange={(e) =>
+                                setIncludedDefaults((prev) => ({
+                                  ...prev,
+                                  [d.id]: e.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4"
+                            />
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {d.label}
+                                {d.required ? (
+                                  <span className="ml-1 text-rose-500">*</span>
+                                ) : null}
+                              </p>
+                              <p className="text-[10px] text-slate-500">
+                                Tipo: {d.type.replace('_', ' ')}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge
+                            variant="secondary"
+                            className="h-5 bg-blue-100 px-2 text-[10px] text-blue-800"
+                          >
+                            Padrão
+                          </Badge>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </Card>
+
                 {fields.length === 0 ? (
-                  <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-16 text-center">
+                  <div className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center">
                     <Layers className="h-8 w-8 text-slate-300" />
                     <p className="text-sm font-semibold text-slate-500">
-                      Selecione um tipo de campo no painel à esquerda para começar.
+                      Os campos padrão acima já estão prontos.
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Para adicionar campos personalizados, escolha um tipo no painel
+                      à esquerda.
                     </p>
                   </div>
                 ) : (
@@ -403,15 +488,23 @@ export function AnamneseBuilder() {
                     ) : null}
                   </div>
                   <div className="space-y-4">
-                    {fields.length === 0 ? (
-                      <p className="text-sm text-slate-400">Nenhum campo adicionado.</p>
+                    {buildFinalFields().length === 0 ? (
+                      <p className="text-sm text-slate-400">Nenhum campo selecionado.</p>
                     ) : (
-                      fields.map((field) => (
+                      buildFinalFields().map((field) => (
                         <div key={field.id} className="space-y-1">
                           <label className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-700">
                             {field.label}
                             {field.required ? (
                               <span className="text-rose-500">*</span>
+                            ) : null}
+                            {field.is_default ? (
+                              <Badge
+                                variant="secondary"
+                                className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
+                              >
+                                Padrão
+                              </Badge>
                             ) : null}
                           </label>
                           <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-400">
