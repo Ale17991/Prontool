@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, Calendar, DollarSign, History, Percent, Receipt } from 'lucide-react'
+import { ArrowLeft, Calendar, DollarSign, History, Percent, Receipt, Stethoscope } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
@@ -22,6 +22,7 @@ interface AppointmentDetail {
   effective_status: string | null
   reversal_id: string | null
   reversed_at: string | null
+  procedures: { tuss_code: string; display_name: string | null } | null
 }
 
 interface AuditRow {
@@ -46,11 +47,11 @@ export default async function AtendimentoDetailPage({
   const { data: appointmentRaw, error } = await supabase
     .from('appointments_effective')
     .select(
-      'id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status, reversal_id, reversed_at',
+      'id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status, reversal_id, reversed_at, procedures:procedure_id(tuss_code, display_name)',
     )
     .eq('id', params.id)
     .maybeSingle()
-  const appointment = appointmentRaw as AppointmentDetail | null
+  const appointment = appointmentRaw as unknown as AppointmentDetail | null
 
   if (error) throw new Error(`appointment read failed: ${error.message}`)
   if (!appointment) notFound()
@@ -97,6 +98,11 @@ export default async function AtendimentoDetailPage({
           icon={Calendar}
           label="Data do atendimento"
           value={formatDateTime(appointment.appointment_at)}
+        />
+        <SummaryCard
+          icon={Stethoscope}
+          label="Procedimento"
+          value={formatProcedure(appointment.procedures)}
         />
         <SummaryCard
           icon={DollarSign}
@@ -182,6 +188,14 @@ interface SummaryCardProps {
   label: string
   value: string
   accent?: boolean
+}
+
+function formatProcedure(
+  procedure: { tuss_code: string; display_name: string | null } | null,
+): string {
+  if (!procedure) return '—'
+  if (procedure.display_name) return `${procedure.tuss_code} · ${procedure.display_name}`
+  return procedure.tuss_code
 }
 
 function SummaryCard({ icon: Icon, label, value, accent }: SummaryCardProps) {

@@ -31,6 +31,7 @@ interface AppointmentRow {
   net_amount_cents: number | null
   net_commission_cents: number | null
   effective_status: string | null
+  procedures: { tuss_code: string; display_name: string | null } | null
 }
 
 export default async function AtendimentosPage({ searchParams }: PageProps) {
@@ -41,7 +42,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   let query = supabase
     .from('appointments_effective')
     .select(
-      'id, patient_id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status',
+      'id, patient_id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status, procedures:procedure_id(tuss_code, display_name)',
     )
     .order('appointment_at', { ascending: false })
     .limit(200)
@@ -52,7 +53,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   if (statusFilter !== 'todos') query = query.eq('effective_status', statusFilter)
 
   const { data: rawRows, error } = await query
-  const rows = (rawRows ?? []) as AppointmentRow[]
+  const rows = (rawRows ?? []) as unknown as AppointmentRow[]
 
   const patientNames = new Map<string, string>()
   const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
@@ -166,6 +167,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Paciente</TableHead>
+                  <TableHead>Procedimento</TableHead>
                   <TableHead>Valor líquido</TableHead>
                   <TableHead>Comissão</TableHead>
                   <TableHead>Status</TableHead>
@@ -180,6 +182,20 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                     </TableCell>
                     <TableCell className="font-medium text-slate-900">
                       {r.patient_id ? patientNames.get(r.patient_id) ?? '—' : '—'}
+                    </TableCell>
+                    <TableCell className="text-slate-700">
+                      {r.procedures ? (
+                        <span>
+                          <span className="font-mono text-xs text-slate-500">
+                            {r.procedures.tuss_code}
+                          </span>
+                          {r.procedures.display_name ? (
+                            <span className="ml-2">{r.procedures.display_name}</span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </TableCell>
                     <TableCell className="font-bold text-slate-900">
                       {formatCurrency(r.net_amount_cents ?? r.frozen_amount_cents)}

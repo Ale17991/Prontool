@@ -33,7 +33,7 @@ export default async function NovoAtendimentoPage() {
       .order('full_name', { ascending: true }),
     supabase
       .from('procedures')
-      .select('id, tuss_code')
+      .select('id, tuss_code, display_name')
       .order('tuss_code', { ascending: true }),
     listPatients(service, { tenantId: session.tenantId, pageSize: 100 }),
   ])
@@ -45,8 +45,15 @@ export default async function NovoAtendimentoPage() {
     (doctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
   ).map((d) => ({ id: d.id, label: d.full_name }))
   const procedures: FormOption[] = (
-    (proceduresRes.data ?? []) as Array<{ id: string; tuss_code: string }>
-  ).map((p) => ({ id: p.id, label: p.tuss_code }))
+    (proceduresRes.data ?? []) as Array<{
+      id: string
+      tuss_code: string
+      display_name: string | null
+    }>
+  ).map((p) => ({
+    id: p.id,
+    label: p.display_name ? `${p.tuss_code} · ${p.display_name}` : p.tuss_code,
+  }))
   const patients: FormOption[] = patientsRes.items.map((p) => ({
     id: p.id,
     label: `${p.fullName} · CPF ${p.cpf}`,
