@@ -180,14 +180,14 @@ export default async function PacienteDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/operacao/pacientes"
           className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
         >
           <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!isAnonymized ? <PrintChartButton patientId={params.id} /> : null}
           {session.role === 'admin' && !isAnonymized ? (
             <PatientCleanupButton patientId={params.id} />
