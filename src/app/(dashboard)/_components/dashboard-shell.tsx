@@ -121,7 +121,7 @@ const CATEGORIES: readonly Category[] = [
     icon: LayoutDashboard,
     items: [
       {
-        href: '/analise/relatorios/mensal',
+        href: '/analise/relatorios',
         label: 'Relatórios',
         icon: LayoutDashboard,
         show: ({ role, flags }) => flags.relatorios && can(role, 'report.read'),

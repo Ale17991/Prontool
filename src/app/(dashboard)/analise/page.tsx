@@ -7,7 +7,7 @@ export default async function AnalisePage() {
   const session = await getSession()
   if (!session) redirect('/login')
   const flags = listFeatureFlags()
-  if (flags.relatorios && can(session.role, 'report.read')) redirect('/analise/relatorios/mensal')
+  if (flags.relatorios && can(session.role, 'report.read')) redirect('/analise/relatorios')
   if (flags.comissoes && can(session.role, 'doctor.read')) redirect('/analise/comissoes')
   if (flags.despesas && session.role === 'admin') redirect('/analise/despesas')
   if (flags.anamnese && session.role === 'admin') redirect('/analise/anamnese')
