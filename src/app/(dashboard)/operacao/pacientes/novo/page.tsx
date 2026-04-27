@@ -4,14 +4,27 @@ import { ChevronLeft } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
 import type { Database } from '@/lib/db/types'
-import { NewPatientForm, type HealthPlanOption } from './new-patient-form'
+import {
+  NewPatientPageClient,
+  type AnamnesisTemplateOption,
+  type HealthPlanOption,
+} from './new-patient-page-client'
 
 export const dynamic = 'force-dynamic'
 
 const ALLOWED_ROLES = new Set(['admin', 'recepcionista'])
+
+interface TemplateRow {
+  id: string
+  title: string
+  description: string | null
+  version: number
+  fields: unknown
+  active: boolean
+}
 
 export default async function NovoPacientePage() {
   const session = await getSession()
@@ -19,17 +32,42 @@ export default async function NovoPacientePage() {
   if (!ALLOWED_ROLES.has(session.role)) redirect('/operacao/pacientes')
 
   const supabase = createSupabaseServerClient()
-  const plans = await supabase
-    .from('health_plans')
-    .select('id, name')
-    .eq('active', true)
-    .order('name', { ascending: true })
+  const [plansRes, templatesRes] = await Promise.all([
+    supabase
+      .from('health_plans')
+      .select('id, name')
+      .eq('active', true)
+      .order('name', { ascending: true }),
+    supabase
+      .from('anamnesis_templates')
+      .select('id, title, description, version, fields, active')
+      .eq('tenant_id', session.tenantId)
+      .eq('active', true)
+      .order('title', { ascending: true })
+      .order('version', { ascending: false }),
+  ])
+
   const healthPlans: HealthPlanOption[] = (
-    (plans.data ?? []) as Array<{ id: string; name: string }>
-  ).map((p) => ({
-    id: p.id,
-    name: p.name,
-  }))
+    (plansRes.data ?? []) as Array<{ id: string; name: string }>
+  ).map((p) => ({ id: p.id, name: p.name }))
+
+  // Dedupe por title — só a versão mais recente. Como o select já vem
+  // ordered (title asc, version desc), o primeiro de cada title é a v
+  // mais recente.
+  const seenTitle = new Set<string>()
+  const templates: AnamnesisTemplateOption[] = []
+  for (const t of (templatesRes.data ?? []) as TemplateRow[]) {
+    if (seenTitle.has(t.title)) continue
+    if (!Array.isArray(t.fields) || t.fields.length === 0) continue
+    seenTitle.add(t.title)
+    templates.push({
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      version: t.version,
+      fields: t.fields as AnamnesisTemplateOption['fields'],
+    })
+  }
 
   const rls = supabase as unknown as SupabaseClient<Database>
   const integrations = await getEnabledIntegrations(rls, session.tenantId)
@@ -55,11 +93,11 @@ export default async function NovoPacientePage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Dados do paciente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <NewPatientForm healthPlans={healthPlans} />
+        <CardContent className="pt-6">
+          <NewPatientPageClient
+            healthPlans={healthPlans}
+            templates={templates}
+          />
         </CardContent>
       </Card>
     </div>
