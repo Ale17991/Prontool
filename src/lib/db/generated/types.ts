@@ -419,6 +419,30 @@ export type Database = {
           },
         ]
       }
+      cid10_codes: {
+        Row: {
+          chapter: string | null
+          code: string
+          created_at: string
+          description: string
+          id: string
+        }
+        Insert: {
+          chapter?: string | null
+          code: string
+          created_at?: string
+          description: string
+          id?: string
+        }
+        Update: {
+          chapter?: string | null
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+        }
+        Relationships: []
+      }
       clinical_records: {
         Row: {
           anamnesis_data: Json | null

@@ -30,6 +30,7 @@ import { AddressEditor } from './address-editor'
 import { PatientCleanupButton } from './cleanup-button'
 import { FinanceiroSection } from './financeiro-section'
 import { listPaymentsForPatient } from '@/lib/core/payments/list'
+import { DiagnosticsSection } from './diagnosticos-section'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -367,6 +368,8 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           }
         />
       )}
+
+      {isAnonymized ? null : <DiagnosticsSection records={records} />}
 
       <ClinicalRecordsSection
         patientId={params.id}

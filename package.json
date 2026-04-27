@@ -33,6 +33,8 @@
     "seed:tuss:prod:19": "tsx --env-file=.env.production.local scripts/seed-tuss.ts --table 19",
     "seed:tuss:prod:20": "tsx --env-file=.env.production.local scripts/seed-tuss.ts --table 20",
     "seed:tuss:prod:all": "tsx --env-file=.env.production.local scripts/seed-tuss.ts --table all",
+    "seed:cid10": "tsx --env-file=.env.local scripts/seed-cid10.ts",
+    "seed:cid10:prod": "tsx --env-file=.env.production.local scripts/seed-cid10.ts",
     "seed:demo": "tsx --env-file=.env.local supabase/seed/demo-tenant.ts",
     "simulate:webhook": "tsx --env-file=.env.local scripts/simulate-ghl-webhook.ts",
     "bench:webhook": "tsx --env-file=.env.local scripts/bench-webhook.ts",
