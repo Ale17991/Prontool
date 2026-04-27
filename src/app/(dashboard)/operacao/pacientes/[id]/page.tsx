@@ -33,6 +33,7 @@ import { listPaymentsForPatient } from '@/lib/core/payments/list'
 import { DiagnosticsSection } from './diagnosticos-section'
 import { MedicalHistorySection } from './medical-history-section'
 import { VitalSignsSection } from './vital-signs-section'
+import { PrintChartButton } from './print-chart-button'
 import { listAllergies } from '@/lib/core/patient-medical/allergies'
 import { listHistory } from '@/lib/core/patient-medical/history'
 import { listVitalSigns } from '@/lib/core/patient-medical/vital-signs'
@@ -186,9 +187,12 @@ export default async function PacienteDetailPage({ params }: PageProps) {
         >
           <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
         </Link>
-        {session.role === 'admin' && !isAnonymized ? (
-          <PatientCleanupButton patientId={params.id} />
-        ) : null}
+        <div className="flex items-center gap-2">
+          {!isAnonymized ? <PrintChartButton patientId={params.id} /> : null}
+          {session.role === 'admin' && !isAnonymized ? (
+            <PatientCleanupButton patientId={params.id} />
+          ) : null}
+        </div>
       </div>
 
       {isAnonymized ? (
