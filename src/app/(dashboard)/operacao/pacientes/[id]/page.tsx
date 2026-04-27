@@ -28,6 +28,8 @@ import { PatientPlanEditor } from './patient-plan-editor'
 import { ClinicalRecordsSection } from './clinical-records-section'
 import { AddressEditor } from './address-editor'
 import { PatientCleanupButton } from './cleanup-button'
+import { FinanceiroSection } from './financeiro-section'
+import { listPaymentsForPatient } from '@/lib/core/payments/list'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -85,6 +87,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     tenantId: session.tenantId,
     patientId: params.id,
     patientPlanId: patient.healthPlan?.id ?? null,
+  })
+
+  const payments = await listPaymentsForPatient(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
   })
 
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
@@ -347,6 +354,17 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           healthPlans={healthPlansList}
           doctors={doctorsList}
           canWrite={canWriteTreatment}
+        />
+      )}
+
+      {isAnonymized ? null : (
+        <FinanceiroSection
+          patientId={params.id}
+          initialRecords={payments.records}
+          initialSummary={payments.summary}
+          canRecordPayment={
+            session.role === 'admin' || session.role === 'financeiro'
+          }
         />
       )}
 

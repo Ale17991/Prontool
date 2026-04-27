@@ -27,6 +27,25 @@ export interface NewAppointmentFormProps {
   plans: FormOption[]
 }
 
+type PaymentMethod =
+  | 'dinheiro'
+  | 'pix'
+  | 'cartao_credito'
+  | 'cartao_debito'
+  | 'boleto'
+  | 'convenio'
+  | 'outro'
+
+const METHOD_OPTIONS: Array<{ value: PaymentMethod; label: string }> = [
+  { value: 'pix', label: 'PIX' },
+  { value: 'dinheiro', label: 'Dinheiro' },
+  { value: 'cartao_credito', label: 'Cartão de crédito' },
+  { value: 'cartao_debito', label: 'Cartão de débito' },
+  { value: 'boleto', label: 'Boleto' },
+  { value: 'convenio', label: 'Convênio' },
+  { value: 'outro', label: 'Outro' },
+]
+
 export function NewAppointmentForm({
   patients,
   doctors,
@@ -43,6 +62,32 @@ export function NewAppointmentForm({
   const [observacoes, setObservacoes] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
+
+  // Pagamento
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix')
+  const [installmentsCount, setInstallmentsCount] = useState<number>(1)
+  const [installmentDates, setInstallmentDates] = useState<string[]>([])
+  const [paymentStatus, setPaymentStatus] = useState<'pago' | 'pendente'>('pago')
+  const [paymentPaidAt, setPaymentPaidAt] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  )
+
+  // Recalcula datas das parcelas quando o número muda.
+  useEffect(() => {
+    if (installmentsCount <= 0) return
+    const today = new Date()
+    const next: string[] = []
+    for (let i = 0; i < installmentsCount; i++) {
+      const d = new Date(today)
+      d.setMonth(d.getMonth() + i)
+      const y = d.getFullYear()
+      const m = `${d.getMonth() + 1}`.padStart(2, '0')
+      const day = `${d.getDate()}`.padStart(2, '0')
+      next.push(`${y}-${m}-${day}`)
+    }
+    setInstallmentDates(next)
+  }, [installmentsCount])
 
   // Sugere o valor vigente quando (plano, procedimento) mudam.
   useEffect(() => {
@@ -95,6 +140,7 @@ export function NewAppointmentForm({
     if (observacoes.trim()) payload.observacoes = observacoes.trim().slice(0, 500)
 
     setPending(true)
+    setWarning(null)
     try {
       const res = await fetch('/api/atendimentos/manual', {
         method: 'POST',
@@ -109,6 +155,49 @@ export function NewAppointmentForm({
         setError(body.error?.message ?? 'Falha ao registrar atendimento.')
         return
       }
+
+      // Cria pagamento associado ao atendimento.
+      const totalCents =
+        amountReais.trim().length > 0
+          ? Math.round(Number(amountReais.replace(',', '.')) * 100)
+          : null
+      if (totalCents !== null && totalCents > 0) {
+        const installments = installmentDates.map((due, idx) => {
+          const base = Math.floor(totalCents / installmentsCount)
+          const remainder = totalCents - base * installmentsCount
+          return {
+            installment_number: idx + 1,
+            amount_cents: idx === 0 ? base + remainder : base,
+            due_date: due,
+          }
+        })
+        const payRes = await fetch('/api/pagamentos', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            patient_id: patientId,
+            appointment_id: body.appointment_id,
+            total_amount_cents: totalCents,
+            payment_method: paymentMethod,
+            installments,
+            initial_status: paymentStatus,
+            paid_at:
+              paymentStatus === 'pago'
+                ? new Date(paymentPaidAt).toISOString()
+                : null,
+          }),
+        })
+        if (!payRes.ok) {
+          const payBody = (await payRes.json().catch(() => ({}))) as {
+            error?: { message?: string }
+          }
+          // Atendimento já foi salvo — não bloqueia, mas avisa.
+          setWarning(
+            `Atendimento salvo, mas o pagamento falhou: ${payBody.error?.message ?? 'erro desconhecido'}. Registre manualmente em /operacao/pacientes/${patientId}.`,
+          )
+        }
+      }
+
       router.push(`/operacao/atendimentos/${body.appointment_id}`)
       router.refresh()
     } finally {
@@ -218,8 +307,105 @@ export function NewAppointmentForm({
         />
       </div>
 
+      <div className="md:col-span-2 mt-2 rounded-lg border border-slate-200 bg-slate-50/40 p-4">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          Pagamento
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="payment_method">Método</Label>
+            <Select
+              value={paymentMethod}
+              onValueChange={(v) => setPaymentMethod(v as PaymentMethod)}
+            >
+              <SelectTrigger id="payment_method">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {METHOD_OPTIONS.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="installments_count">Parcelas</Label>
+            <Input
+              id="installments_count"
+              type="number"
+              min={1}
+              max={60}
+              value={installmentsCount}
+              onChange={(e) => setInstallmentsCount(Math.max(1, Number(e.target.value) || 1))}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="payment_status">Status</Label>
+            <Select
+              value={paymentStatus}
+              onValueChange={(v) => setPaymentStatus(v as 'pago' | 'pendente')}
+            >
+              <SelectTrigger id="payment_status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pago">Pago</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {paymentStatus === 'pago' ? (
+            <div className="space-y-1.5 md:col-span-3">
+              <Label htmlFor="payment_paid_at">Data do pagamento</Label>
+              <Input
+                id="payment_paid_at"
+                type="date"
+                value={paymentPaidAt}
+                onChange={(e) => setPaymentPaidAt(e.target.value)}
+                className="md:max-w-xs"
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {installmentsCount > 1 ? (
+          <div className="mt-4 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Datas de vencimento
+            </p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              {installmentDates.map((d, i) => (
+                <div key={i} className="space-y-1">
+                  <Label htmlFor={`due_${i}`} className="text-[11px]">
+                    Parcela {i + 1}
+                  </Label>
+                  <Input
+                    id={`due_${i}`}
+                    type="date"
+                    value={d}
+                    onChange={(e) => {
+                      const next = [...installmentDates]
+                      next[i] = e.target.value
+                      setInstallmentDates(next)
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <p className="mt-3 text-[11px] text-slate-500">
+          Se o valor estiver vazio, o pagamento NÃO é registrado — só o atendimento.
+        </p>
+      </div>
+
       {error ? (
         <p className="md:col-span-2 text-sm text-rose-600">{error}</p>
+      ) : null}
+      {warning ? (
+        <p className="md:col-span-2 text-sm text-amber-700">{warning}</p>
       ) : null}
 
       <div className="md:col-span-2 flex items-center justify-end gap-2">

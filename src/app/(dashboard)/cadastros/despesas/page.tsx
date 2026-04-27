@@ -33,6 +33,8 @@ type ExpenseCategory =
   | 'materiais'
   | 'pessoal'
   | 'servicos'
+  | 'impostos'
+  | 'manutencao'
   | 'outros'
 
 interface DespesasPageProps {
@@ -47,6 +49,8 @@ const VALID_CATEGORIES = new Set([
   'materiais',
   'pessoal',
   'servicos',
+  'impostos',
+  'manutencao',
   'outros',
 ])
 
@@ -142,6 +146,8 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                   <SelectItem value="materiais">Materiais</SelectItem>
                   <SelectItem value="pessoal">Pessoal</SelectItem>
                   <SelectItem value="servicos">Serviços</SelectItem>
+                  <SelectItem value="impostos">Impostos</SelectItem>
+                  <SelectItem value="manutencao">Manutenção</SelectItem>
                   <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
@@ -239,6 +245,8 @@ function categoryBadge(cat: string): string {
     materiais: 'bg-emerald-50 text-emerald-700',
     pessoal: 'bg-blue-50 text-blue-700',
     servicos: 'bg-rose-50 text-rose-700',
+    impostos: 'bg-purple-50 text-purple-700',
+    manutencao: 'bg-orange-50 text-orange-700',
     outros: 'bg-slate-100 text-slate-700',
   }
   return map[cat] ?? map.outros!

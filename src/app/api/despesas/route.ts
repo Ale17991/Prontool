@@ -18,7 +18,7 @@ export const runtime = 'nodejs'
 
 const querySchema = z.object({
   category: z
-    .enum(['aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'outros', 'all'])
+    .enum(['aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'impostos', 'manutencao', 'outros', 'all'])
     .optional(),
   start_date: z
     .string()
@@ -31,7 +31,7 @@ const querySchema = z.object({
 })
 
 const createSchema = z.object({
-  category: z.enum(['aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'outros']),
+  category: z.enum(['aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'impostos', 'manutencao', 'outros']),
   description: z.string().min(2).max(500),
   supplier: z.string().max(200).optional().nullable(),
   amount_cents: z.number().int().positive(),

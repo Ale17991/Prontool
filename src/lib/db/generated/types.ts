@@ -755,6 +755,143 @@ export type Database = {
           },
         ]
       }
+      payment_records: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          installments: number
+          notes: string | null
+          paid_amount_cents: number
+          paid_at: string | null
+          patient_id: string
+          payment_method: string
+          payment_status: string
+          tenant_id: string
+          total_amount_cents: number
+          treatment_step_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          installments?: number
+          notes?: string | null
+          paid_amount_cents?: number
+          paid_at?: string | null
+          patient_id: string
+          payment_method: string
+          payment_status?: string
+          tenant_id: string
+          total_amount_cents: number
+          treatment_step_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          installments?: number
+          notes?: string | null
+          paid_amount_cents?: number
+          paid_at?: string | null
+          patient_id?: string
+          payment_method?: string
+          payment_status?: string
+          tenant_id?: string
+          total_amount_cents?: number
+          treatment_step_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_records_treatment_step_id_fkey"
+            columns: ["treatment_step_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_plan_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_installments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          due_date: string
+          id: string
+          installment_number: number
+          paid_amount_cents: number
+          paid_at: string | null
+          payment_method: string | null
+          payment_record_id: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_number: number
+          paid_amount_cents?: number
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_record_id: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          paid_amount_cents?: number
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_record_id?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_installments_payment_record_id_fkey"
+            columns: ["payment_record_id"]
+            isOneToOne: false
+            referencedRelation: "payment_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_installments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_versions: {
         Row: {
           amount_cents: number

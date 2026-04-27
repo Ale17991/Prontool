@@ -96,6 +96,8 @@ export function NewExpenseForm() {
             <SelectItem value="materiais">Materiais</SelectItem>
             <SelectItem value="pessoal">Pessoal</SelectItem>
             <SelectItem value="servicos">Serviços</SelectItem>
+            <SelectItem value="impostos">Impostos</SelectItem>
+            <SelectItem value="manutencao">Manutenção</SelectItem>
             <SelectItem value="outros">Outros</SelectItem>
           </SelectContent>
         </Select>

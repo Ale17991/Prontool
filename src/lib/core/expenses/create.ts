@@ -8,6 +8,8 @@ export type ExpenseCategory =
   | 'materiais'
   | 'pessoal'
   | 'servicos'
+  | 'impostos'
+  | 'manutencao'
   | 'outros'
 
 export type ExpenseFrequency = 'mensal' | 'semanal' | 'anual'

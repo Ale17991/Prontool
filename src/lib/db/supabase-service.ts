@@ -44,7 +44,7 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // getSession() + explicit tenant_id filter, sharing query shape with the
   // corresponding /api/ handlers.
   '/app/(dashboard)/cadastros/anamnese/',
-  '/app/(dashboard)/analise/despesas/',
+  '/app/(dashboard)/cadastros/despesas/',
   // Lista de atendimentos chama list_patients_for_tenant (SECURITY DEFINER)
   // para mostrar o nome decriptado do paciente ao lado de cada atendimento.
   '/app/(dashboard)/operacao/atendimentos/',
