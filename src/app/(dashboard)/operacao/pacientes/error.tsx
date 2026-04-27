@@ -18,6 +18,12 @@ export default function PacientesError({
 
   const isMissingKey = /PATIENT_DATA_ENCRYPTION_KEY/.test(error.message)
   const isPermission = /permission denied/i.test(error.message)
+  const isMissingFunction =
+    /Could not find the function|schema cache|function .* does not exist|PGRST202/i.test(
+      error.message,
+    )
+  const isDecryptFailure =
+    /pgp_sym_decrypt|Wrong key or corrupt data|decryption failed/i.test(error.message)
 
   return (
     <div className="space-y-6">
@@ -38,19 +44,72 @@ export default function PacientesError({
                 A variável <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">PATIENT_DATA_ENCRYPTION_KEY</code>{' '}
                 não está configurada no ambiente. Peça ao administrador para defini-la nas variáveis de ambiente da Vercel.
               </p>
+            ) : isMissingFunction ? (
+              <p className="text-xs text-slate-600">
+                A função <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">list_patients_for_tenant</code>{' '}
+                não foi encontrada no banco. Aplique as migrations mais recentes em produção (em especial{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">0044_ensure_patient_rpcs</code>) com{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+              </p>
             ) : isPermission ? (
               <p className="text-xs text-slate-600">
                 Permissões do banco insuficientes para descriptografar pacientes. Aplique as migrations mais recentes
-                (incluindo <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">0043_grant_patient_rpcs_to_authenticated</code>).
+                (incluindo <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">0044_ensure_patient_rpcs</code>).
+              </p>
+            ) : isDecryptFailure ? (
+              <p className="text-xs text-slate-600">
+                Falha ao descriptografar PII. A chave{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">PATIENT_DATA_ENCRYPTION_KEY</code>{' '}
+                configurada na Vercel não bate com a que cifrou os dados em prod. Use o mesmo valor do GUC{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">app.patient_encryption_key</code>.
               </p>
             ) : (
-              <p className="text-xs text-slate-600">
-                Erro inesperado ao consultar pacientes. Tente novamente em alguns segundos. Se persistir, verifique os logs.
-              </p>
+              <div className="space-y-2 text-xs text-slate-600">
+                <p>Erro inesperado ao consultar pacientes.</p>
+                <p>
+                  Em produção, o detalhe do erro é ocultado aqui — consulte os runtime logs da
+                  Vercel pelo digest abaixo. Causas comuns:
+                </p>
+                <ul className="ml-4 list-disc space-y-1 text-left">
+                  <li>
+                    Migrations não aplicadas em prod —{' '}
+                    <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">
+                      supabase db push
+                    </code>{' '}
+                    para garantir{' '}
+                    <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">
+                      0044_ensure_patient_rpcs
+                    </code>
+                    .
+                  </li>
+                  <li>
+                    Variável{' '}
+                    <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">
+                      PATIENT_DATA_ENCRYPTION_KEY
+                    </code>{' '}
+                    ausente ou divergente do GUC{' '}
+                    <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">
+                      app.patient_encryption_key
+                    </code>
+                    .
+                  </li>
+                  <li>Auth hook custom claims não habilitado (sem tenant_id no JWT).</li>
+                </ul>
+              </div>
             )}
-            {error.digest ? (
-              <p className="font-mono text-[10px] text-slate-400">digest: {error.digest}</p>
-            ) : null}
+            <details className="mx-auto mt-2 max-w-md rounded-md bg-slate-50 px-3 py-2 text-left">
+              <summary className="cursor-pointer text-[11px] font-semibold text-slate-600">
+                Detalhes técnicos
+              </summary>
+              <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-[10px] text-slate-700">
+                {error.message || '(sem mensagem)'}
+              </pre>
+              {error.digest ? (
+                <p className="mt-1 font-mono text-[10px] text-slate-400">
+                  digest: {error.digest}
+                </p>
+              ) : null}
+            </details>
           </div>
           <Button onClick={reset} variant="outline" className="mt-2">
             <RotateCcw className="mr-2 h-3.5 w-3.5" />
