@@ -431,6 +431,8 @@ export type Database = {
           file_url: string | null
           id: string
           patient_id: string
+          soap_data: Json | null
+          assessment_cids: Json | null
           tenant_id: string
           title: string
           type: string
@@ -446,6 +448,8 @@ export type Database = {
           file_url?: string | null
           id?: string
           patient_id: string
+          soap_data?: Json | null
+          assessment_cids?: Json | null
           tenant_id: string
           title: string
           type: string
@@ -461,6 +465,8 @@ export type Database = {
           file_url?: string | null
           id?: string
           patient_id?: string
+          soap_data?: Json | null
+          assessment_cids?: Json | null
           tenant_id?: string
           title?: string
           type?: string

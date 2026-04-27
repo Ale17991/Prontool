@@ -3,7 +3,10 @@ import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
-import { createTextClinicalRecord } from '@/lib/core/clinical-records/create'
+import {
+  createEvolutionRecord,
+  createTextClinicalRecord,
+} from '@/lib/core/clinical-records/create'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -17,10 +20,32 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const createSchema = z.object({
+const cidSchema = z.object({
+  code: z.string().min(1).max(16),
+  description: z.string().min(1).max(500),
+})
+
+const soapSchema = z.object({
+  subjective: z.string().min(1, 'Campo Subjetivo (S) é obrigatório').max(8000),
+  objective: z.string().max(8000).optional().nullable(),
+  assessment: z.string().min(1, 'Campo Avaliação (A) é obrigatório').max(8000),
+  plan: z.string().max(8000).optional().nullable(),
+  assessment_cids: z.array(cidSchema).optional(),
+})
+
+const textSchema = z.object({
+  type: z.literal('texto').optional(),
   title: z.string().min(1).max(200),
   content: z.string().min(1),
 })
+
+const evolutionSchema = z.object({
+  type: z.literal('evolucao'),
+  title: z.string().min(1).max(200).optional(),
+  soap_data: soapSchema,
+})
+
+const createSchema = z.union([textSchema, evolutionSchema])
 
 export async function GET(
   req: Request,
@@ -62,12 +87,37 @@ export async function POST(
     if (!parsed.success) {
       return NextResponse.json(
         {
-          error: { code: 'INVALID_BODY', message: 'title e content são obrigatórios' },
+          error: {
+            code: 'INVALID_BODY',
+            message: 'Payload inválido',
+            issues: parsed.error.issues,
+          },
         },
         { status: 400 },
       )
     }
     const supabase = createSupabaseServiceClient()
+
+    if ('soap_data' in parsed.data) {
+      const soap = parsed.data.soap_data
+      const created = await createEvolutionRecord(supabase, {
+        tenantId: session.tenantId,
+        patientId: params.id,
+        title:
+          parsed.data.title ??
+          `Evolução SOAP — ${new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
+        soap: {
+          subjective: soap.subjective,
+          objective: soap.objective ?? null,
+          assessment: soap.assessment,
+          plan: soap.plan ?? null,
+          assessment_cids: soap.assessment_cids ?? [],
+        },
+        actorUserId: session.userId,
+      })
+      return NextResponse.json(created, { status: 201 })
+    }
+
     const created = await createTextClinicalRecord(supabase, {
       tenantId: session.tenantId,
       patientId: params.id,

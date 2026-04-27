@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   FileText,
   Loader2,
+  NotebookPen,
   Paperclip,
   Plus,
   Printer,
@@ -33,6 +34,7 @@ import type {
   AnamnesisFieldSnapshot,
   AnamnesisSnapshot,
   ClinicalRecordRow,
+  SoapData,
 } from '@/lib/core/clinical-records/create'
 
 export interface AnamnesePatientPrefill {
@@ -63,7 +65,7 @@ interface Props {
   canDeleteAnamnese: boolean
 }
 
-type Pane = null | 'texto' | 'arquivo' | 'anamnese'
+type Pane = null | 'texto' | 'arquivo' | 'anamnese' | 'evolucao'
 
 export function ClinicalRecordsSection({
   patientId,
@@ -144,6 +146,21 @@ export function ClinicalRecordsSection({
                   Fazer anamnese
                 </Button>
               ) : null}
+              {canWrite ? (
+                <Button
+                  size="sm"
+                  variant={pane === 'evolucao' ? 'default' : 'outline'}
+                  onClick={() => setPane(pane === 'evolucao' ? null : 'evolucao')}
+                  className="gap-1.5"
+                >
+                  {pane === 'evolucao' ? (
+                    <X className="h-3.5 w-3.5" />
+                  ) : (
+                    <NotebookPen className="h-3.5 w-3.5" />
+                  )}
+                  Nova evolução
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </CardHeader>
@@ -172,6 +189,16 @@ export function ClinicalRecordsSection({
             <NewAnamneseForm
               patientId={patientId}
               patientPrefill={patientPrefill}
+              onCreated={async () => {
+                setPane(null)
+                await refresh()
+              }}
+            />
+          ) : null}
+
+          {pane === 'evolucao' && canWrite ? (
+            <NewEvolutionForm
+              patientId={patientId}
               onCreated={async () => {
                 setPane(null)
                 await refresh()
@@ -250,7 +277,9 @@ function RecordItem({
   onDeleted: () => void | Promise<void>
 }) {
   const isAnamnese = record.type === 'anamnese' && record.anamnesisData
-  const [expanded, setExpanded] = useState(!isAnamnese)
+  const isSoap = record.type === 'evolucao' && record.soapData
+  const collapsible = Boolean(isAnamnese || isSoap)
+  const [expanded, setExpanded] = useState(!collapsible)
   const [printing, setPrinting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -305,14 +334,14 @@ function RecordItem({
       <div className="flex items-start justify-between gap-4">
         <button
           type="button"
-          onClick={isAnamnese ? () => setExpanded((v) => !v) : undefined}
+          onClick={collapsible ? () => setExpanded((v) => !v) : undefined}
           className={cn(
             'flex min-w-0 flex-1 items-start gap-3 text-left',
-            isAnamnese ? 'cursor-pointer' : 'cursor-default',
+            collapsible ? 'cursor-pointer' : 'cursor-default',
           )}
-          aria-expanded={isAnamnese ? expanded : undefined}
+          aria-expanded={collapsible ? expanded : undefined}
         >
-          {isAnamnese ? (
+          {collapsible ? (
             <span className="mt-1.5 shrink-0 text-slate-400 print:hidden">
               {expanded ? (
                 <ChevronDown className="h-3.5 w-3.5" />
@@ -338,7 +367,7 @@ function RecordItem({
               {formatFileSize(record.fileSizeBytes)}
             </span>
           ) : null}
-          {isAnamnese ? (
+          {collapsible ? (
             <Button
               size="sm"
               variant="outline"
@@ -403,6 +432,23 @@ function RecordItem({
           {expanded ? <AnamneseView snapshot={record.anamnesisData} /> : null}
         </>
       ) : null}
+
+      {isSoap && record.soapData ? (
+        <>
+          <div data-print-only="show" className="mt-4 border-b border-slate-300 pb-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Pronttu — evolução clínica SOAP
+            </p>
+            <p className="mt-1 text-base font-bold text-slate-900">
+              Paciente: {patientName ?? '—'}
+            </p>
+            <p className="text-[11px] text-slate-600">
+              Registrada em {formatDateTime(record.createdAt)}
+            </p>
+          </div>
+          {expanded ? <SoapView soap={record.soapData} /> : null}
+        </>
+      ) : null}
     </div>
   )
 }
@@ -419,6 +465,13 @@ function TypeIcon({ type }: { type: ClinicalRecordRow['type'] }) {
     return (
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
         <Paperclip className="h-4 w-4" />
+      </div>
+    )
+  }
+  if (type === 'evolucao') {
+    return (
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+        <NotebookPen className="h-4 w-4" />
       </div>
     )
   }
@@ -444,10 +497,63 @@ function TypeBadge({ type }: { type: ClinicalRecordRow['type'] }) {
       </Badge>
     )
   }
+  if (type === 'evolucao') {
+    return (
+      <Badge variant="secondary" className="h-5 bg-blue-100 px-1.5 text-[10px] text-blue-800">
+        Evolução SOAP
+      </Badge>
+    )
+  }
   return (
     <Badge variant="secondary" className="h-5 bg-emerald-100 px-1.5 text-[10px] text-emerald-800">
       Anamnese
     </Badge>
+  )
+}
+
+function SoapView({ soap }: { soap: SoapData }) {
+  const sections: Array<{ key: keyof SoapData; label: string; letter: string }> = [
+    { key: 'subjective', label: 'Subjetivo', letter: 'S' },
+    { key: 'objective', label: 'Objetivo', letter: 'O' },
+    { key: 'assessment', label: 'Avaliação', letter: 'A' },
+    { key: 'plan', label: 'Plano', letter: 'P' },
+  ]
+  return (
+    <div className="mt-3 space-y-3 rounded-lg bg-blue-50/40 p-3 print:bg-white print:p-0">
+      {sections.map((s) => {
+        const value = soap[s.key]
+        if (typeof value !== 'string' || !value.trim()) return null
+        return (
+          <div key={s.letter}>
+            <p className="text-[10px] font-black uppercase tracking-widest text-blue-700">
+              <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded bg-blue-600 text-[9px] text-white">
+                {s.letter}
+              </span>
+              {s.label}
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{value}</p>
+          </div>
+        )
+      })}
+      {soap.assessment_cids && soap.assessment_cids.length > 0 ? (
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-700">
+            CIDs vinculados
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {soap.assessment_cids.map((c) => (
+              <span
+                key={c.code}
+                className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] text-blue-800"
+              >
+                <span className="font-mono font-bold">{c.code}</span>
+                <span>{c.description}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -750,6 +856,246 @@ function buildPrefillFromPatient(
     if (v !== undefined && v !== null && v !== '') out[f.id] = v
   }
   return out
+}
+
+// ---------------------------------------------------------------------------
+// New evolution (SOAP) form
+// ---------------------------------------------------------------------------
+
+interface CidOption {
+  code: string
+  description: string
+}
+
+function NewEvolutionForm({
+  patientId,
+  onCreated,
+}: {
+  patientId: string
+  onCreated: () => void | Promise<void>
+}) {
+  const [subjective, setSubjective] = useState('')
+  const [objective, setObjective] = useState('')
+  const [assessment, setAssessment] = useState('')
+  const [plan, setPlan] = useState('')
+  const [cidQuery, setCidQuery] = useState('')
+  const [cidResults, setCidResults] = useState<CidOption[] | null>(null)
+  const [cidSelected, setCidSelected] = useState<CidOption[]>([])
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Busca CID-10 com debounce.
+  useEffect(() => {
+    const q = cidQuery.trim()
+    if (q.length < 2) {
+      setCidResults(null)
+      return
+    }
+    let cancelled = false
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/cid10?q=${encodeURIComponent(q)}`)
+        if (!res.ok) {
+          if (!cancelled) setCidResults([])
+          return
+        }
+        const body = (await res.json()) as { items: CidOption[] }
+        if (!cancelled) setCidResults(body.items ?? [])
+      } catch {
+        if (!cancelled) setCidResults([])
+      }
+    }, 250)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [cidQuery])
+
+  function addCid(opt: CidOption) {
+    if (cidSelected.some((c) => c.code === opt.code)) return
+    setCidSelected((prev) => [...prev, opt])
+    setCidQuery('')
+    setCidResults(null)
+  }
+
+  function removeCid(code: string) {
+    setCidSelected((prev) => prev.filter((c) => c.code !== code))
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    setError(null)
+    if (subjective.trim().length < 1) {
+      setError('Preencha o campo Subjetivo (S).')
+      return
+    }
+    if (assessment.trim().length < 1) {
+      setError('Preencha o campo Avaliação (A).')
+      return
+    }
+    setPending(true)
+    try {
+      const res = await fetch(`/api/pacientes/${patientId}/registros`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          type: 'evolucao',
+          soap_data: {
+            subjective: subjective.trim(),
+            objective: objective.trim() || null,
+            assessment: assessment.trim(),
+            plan: plan.trim() || null,
+            assessment_cids: cidSelected,
+          },
+        }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: { message?: string }
+        }
+        setError(body.error?.message ?? 'Falha ao salvar evolução.')
+        return
+      }
+      setSubjective('')
+      setObjective('')
+      setAssessment('')
+      setPlan('')
+      setCidSelected([])
+      await onCreated()
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-slate-50/50 p-4"
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="soap_s">
+          <span className="font-bold text-blue-700">S</span> — Subjetivo{' '}
+          <span className="text-rose-500">*</span>
+        </Label>
+        <Textarea
+          id="soap_s"
+          autoFocus
+          className="min-h-[80px]"
+          placeholder="Queixa do paciente, história da doença atual…"
+          value={subjective}
+          onChange={(e) => setSubjective(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="soap_o">
+          <span className="font-bold text-blue-700">O</span> — Objetivo
+        </Label>
+        <Textarea
+          id="soap_o"
+          className="min-h-[80px]"
+          placeholder="Exame físico, sinais vitais, resultados de exames…"
+          value={objective}
+          onChange={(e) => setObjective(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="soap_a">
+          <span className="font-bold text-blue-700">A</span> — Avaliação{' '}
+          <span className="text-rose-500">*</span>
+        </Label>
+        <Textarea
+          id="soap_a"
+          className="min-h-[80px]"
+          placeholder="Hipótese diagnóstica, raciocínio clínico…"
+          value={assessment}
+          onChange={(e) => setAssessment(e.target.value)}
+        />
+        <div className="space-y-1.5">
+          <Label htmlFor="soap_cid" className="text-[11px]">
+            Vincular CID-10
+          </Label>
+          <Input
+            id="soap_cid"
+            placeholder="Buscar por código (ex.: J06) ou descrição (ex.: gripe)…"
+            value={cidQuery}
+            onChange={(e) => setCidQuery(e.target.value)}
+          />
+          {cidResults !== null ? (
+            <div className="max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-white text-xs">
+              {cidResults.length === 0 ? (
+                <p className="px-3 py-2 text-slate-400">
+                  Nenhum resultado. Tente outro termo.
+                </p>
+              ) : (
+                cidResults.map((c) => (
+                  <button
+                    type="button"
+                    key={c.code}
+                    onClick={() => addCid(c)}
+                    className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-blue-50"
+                  >
+                    <span className="font-mono font-bold text-blue-700">
+                      {c.code}
+                    </span>
+                    <span className="text-slate-700">{c.description}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : null}
+          {cidSelected.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {cidSelected.map((c) => (
+                <span
+                  key={c.code}
+                  className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] text-blue-800"
+                >
+                  <span className="font-mono font-bold">{c.code}</span>
+                  <span className="max-w-[200px] truncate">{c.description}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeCid(c.code)}
+                    className="ml-1 text-blue-500 hover:text-blue-700"
+                    aria-label={`Remover ${c.code}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="soap_p">
+          <span className="font-bold text-blue-700">P</span> — Plano
+        </Label>
+        <Textarea
+          id="soap_p"
+          className="min-h-[80px]"
+          placeholder="Conduta terapêutica, prescrições, retorno…"
+          value={plan}
+          onChange={(e) => setPlan(e.target.value)}
+        />
+      </div>
+
+      {error ? (
+        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+          {error}
+        </div>
+      ) : null}
+      <div className="flex justify-end">
+        <Button type="submit" size="sm" disabled={pending} className="gap-2">
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <NotebookPen className="h-3.5 w-3.5" />
+          )}
+          Salvar evolução
+        </Button>
+      </div>
+    </form>
+  )
 }
 
 function NewAnamneseForm({
