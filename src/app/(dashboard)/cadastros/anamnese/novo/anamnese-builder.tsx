@@ -57,6 +57,7 @@ const DEFAULT_FIELDS: Field[] = [
   { id: 'default_plano', type: 'texto_curto', label: 'Plano de saúde', required: false, is_default: true },
   { id: 'default_cep', type: 'texto_curto', label: 'CEP', required: false, is_default: true },
   { id: 'default_endereco', type: 'texto_longo', label: 'Endereço completo', required: false, is_default: true },
+  { id: 'default_alergias', type: 'texto_longo', label: 'Alergias conhecidas', required: true, is_default: true },
 ]
 
 const FIELD_TYPES: Array<{

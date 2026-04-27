@@ -53,6 +53,11 @@ export interface AnamnesePatientPrefill {
     city: string | null
     state: string | null
   }
+  allergies: Array<{
+    substance: string
+    severity: 'leve' | 'moderada' | 'grave'
+    notes: string | null
+  }>
 }
 
 interface Props {
@@ -839,6 +844,17 @@ function buildPrefillFromPatient(
     const d = raw.replace(/\D/g, '')
     return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : raw
   }
+  const formatAllergies = (
+    list: AnamnesePatientPrefill['allergies'],
+  ): string | null => {
+    if (!list || list.length === 0) return null
+    return list
+      .map((a) => {
+        const head = `${a.substance} (${a.severity})`
+        return a.notes ? `${head} — ${a.notes}` : head
+      })
+      .join('\n')
+  }
   const map: Record<string, ResponseValue> = {
     default_nome: prefill.fullName ?? null,
     default_cpf: prefill.cpf ?? null,
@@ -848,6 +864,7 @@ function buildPrefillFromPatient(
     default_plano: prefill.healthPlanName ?? null,
     default_cep: formatCep(prefill.address.cep),
     default_endereco: formatAddress(prefill.address),
+    default_alergias: formatAllergies(prefill.allergies),
   }
   const out: Record<string, ResponseValue> = {}
   for (const f of fields) {

@@ -419,6 +419,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
                 birthDate: patient.birthDate,
                 healthPlanName: patient.healthPlan?.name ?? null,
                 address: patient.address,
+                allergies: allergies.map((a) => ({
+                  substance: a.substance,
+                  severity: a.severity,
+                  notes: a.notes,
+                })),
               }
         }
         initialRecords={records}
