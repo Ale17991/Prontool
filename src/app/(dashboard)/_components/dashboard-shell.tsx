@@ -92,12 +92,6 @@ const CATEGORIES: readonly Category[] = [
     icon: BookOpen,
     items: [
       {
-        href: '/cadastros/precos',
-        label: 'Tabelas de Convênio',
-        icon: DollarSign,
-        show: ({ role }) => can(role, 'price.read'),
-      },
-      {
         href: '/cadastros/procedimentos',
         label: 'Procedimentos',
         icon: ListChecks,
@@ -105,8 +99,8 @@ const CATEGORIES: readonly Category[] = [
       },
       {
         href: '/cadastros/planos',
-        label: 'Planos',
-        icon: FileText,
+        label: 'Convênios',
+        icon: DollarSign,
         show: ({ role }) => can(role, 'plan.read'),
       },
       {
@@ -116,16 +110,16 @@ const CATEGORIES: readonly Category[] = [
         show: ({ role }) => can(role, 'doctor.read'),
       },
       {
-        href: '/cadastros/despesas',
-        label: 'Despesas',
-        icon: TrendingDown,
-        show: ({ role, flags }) => flags.despesas && role === 'admin',
-      },
-      {
         href: '/cadastros/anamnese',
         label: 'Modelos de Anamnese',
         icon: ClipboardCheck,
         show: ({ role, flags }) => flags.anamnese && role === 'admin',
+      },
+      {
+        href: '/cadastros/despesas',
+        label: 'Despesas',
+        icon: TrendingDown,
+        show: ({ role, flags }) => flags.despesas && role === 'admin',
       },
     ],
   },
