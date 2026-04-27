@@ -1037,6 +1037,7 @@ export type Database = {
           completed_by: string | null
           created_at: string
           created_by: string | null
+          doctor_id: string | null
           id: string
           notes: string | null
           patient_id: string
@@ -1052,6 +1053,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          doctor_id?: string | null
           id?: string
           notes?: string | null
           patient_id: string
@@ -1067,6 +1069,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          doctor_id?: string | null
           id?: string
           notes?: string | null
           patient_id?: string
@@ -1078,6 +1081,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "treatment_plan_steps_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "treatment_plan_steps_patient_id_fkey"
             columns: ["patient_id"]

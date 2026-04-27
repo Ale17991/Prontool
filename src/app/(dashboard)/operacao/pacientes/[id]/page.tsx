@@ -20,6 +20,7 @@ import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
 import type { Database } from '@/lib/db/types'
 import {
   TreatmentStepsSection,
+  type DoctorOption,
   type HealthPlanOption,
   type ProcedureOption,
 } from './treatment-steps-section'
@@ -84,7 +85,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     patientPlanId: patient.healthPlan?.id ?? null,
   })
 
-  const [proceduresRes, healthPlansRes] = await Promise.all([
+  const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
     supabase
       .from('procedures')
       .select('id, tuss_code, display_name, covered_by_plan, default_amount_cents')
@@ -96,6 +97,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       .select('id, name')
       .eq('active', true)
       .order('name', { ascending: true }),
+    supabase
+      .from('doctors')
+      .select('id, full_name, role, specialty')
+      .eq('active', true)
+      .order('full_name', { ascending: true }),
   ])
   const procedures: ProcedureOption[] = (
     (proceduresRes.data ?? []) as Array<{
@@ -117,6 +123,19 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   ).map((hp) => ({
     id: hp.id,
     name: hp.name,
+  }))
+  const doctorsList: DoctorOption[] = (
+    (doctorsRes.data ?? []) as Array<{
+      id: string
+      full_name: string
+      role: string | null
+      specialty: string | null
+    }>
+  ).map((d) => ({
+    id: d.id,
+    fullName: d.full_name,
+    role: d.role,
+    specialty: d.specialty,
   }))
 
   const canWriteTreatment =
@@ -313,6 +332,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           initialSteps={treatmentSteps}
           procedures={procedures}
           healthPlans={healthPlansList}
+          doctors={doctorsList}
           canWrite={canWriteTreatment}
         />
       )}

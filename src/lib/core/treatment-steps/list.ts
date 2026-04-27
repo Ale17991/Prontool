@@ -17,6 +17,12 @@ export interface TreatmentStep {
     coveredByPlan: boolean
     defaultAmountCents: number | null
   }
+  doctor: {
+    id: string
+    fullName: string
+    role: string | null
+    specialty: string | null
+  } | null
   healthPlan: {
     id: string
     name: string
@@ -54,6 +60,7 @@ export async function listTreatmentSteps(
     .select(
       'id, title, notes, status, scheduled_date, completed_at, created_at, ' +
         'procedures:procedure_id ( id, tuss_code, display_name, covered_by_plan, default_amount_cents ), ' +
+        'doctors:doctor_id ( id, full_name, role, specialty ), ' +
         'health_plans:plan_id ( id, name )',
     )
     .eq('tenant_id', input.tenantId)
@@ -77,6 +84,12 @@ export async function listTreatmentSteps(
       display_name: string | null
       covered_by_plan: boolean
       default_amount_cents: number | null
+    } | null
+    doctors: {
+      id: string
+      full_name: string
+      role: string | null
+      specialty: string | null
     } | null
     health_plans: { id: string; name: string } | null
   }
@@ -147,6 +160,14 @@ export async function listTreatmentSteps(
           coveredByPlan: true,
           defaultAmountCents: null,
         },
+    doctor: s.doctors
+      ? {
+          id: s.doctors.id,
+          fullName: s.doctors.full_name,
+          role: s.doctors.role,
+          specialty: s.doctors.specialty,
+        }
+      : null,
     healthPlan: s.health_plans ? { id: s.health_plans.id, name: s.health_plans.name } : null,
     currentPriceCents: priced[idx]!.currentPriceCents,
     priceSource: priced[idx]!.priceSource,

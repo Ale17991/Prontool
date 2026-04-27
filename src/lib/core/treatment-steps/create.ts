@@ -6,6 +6,7 @@ export interface CreateTreatmentStepInput {
   tenantId: string
   patientId: string
   procedureId: string
+  doctorId: string
   healthPlanId?: string | null
   title: string
   notes?: string | null
@@ -55,12 +56,22 @@ export async function createTreatmentStep(
     if (!hp.data) throw new NotFoundError('health_plan', input.healthPlanId)
   }
 
+  const doc = await supabase
+    .from('doctors')
+    .select('id, active')
+    .eq('tenant_id', input.tenantId)
+    .eq('id', input.doctorId)
+    .maybeSingle()
+  if (doc.error) throw new Error(`doctor lookup: ${doc.error.message}`)
+  if (!doc.data) throw new NotFoundError('doctor', input.doctorId)
+
   const { data, error } = await supabase
     .from('treatment_plan_steps')
     .insert({
       tenant_id: input.tenantId,
       patient_id: input.patientId,
       procedure_id: input.procedureId,
+      doctor_id: input.doctorId,
       plan_id: input.healthPlanId ?? null,
       title: input.title.trim(),
       notes: input.notes?.trim() || null,

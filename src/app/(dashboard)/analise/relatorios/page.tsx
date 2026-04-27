@@ -61,9 +61,26 @@ export default async function RelatoriosPage({ searchParams }: PageProps) {
   const canExport = can(session.role, 'report.export')
   const exportQs = `from=${period.from}&to=${period.to}`
 
+  const isEmpty =
+    report.totals.appointmentCount === 0 && report.totals.totalExpensesCents === 0
+
   return (
     <div className="space-y-8">
       <PeriodHeader period={period} canExport={canExport} exportQs={exportQs} />
+
+      {isEmpty ? (
+        <Card>
+          <CardContent className="px-6 py-10 text-center text-sm text-slate-600">
+            <p className="font-bold text-slate-900">
+              Nenhum atendimento ou despesa neste período.
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Período {formatDate(period.from)} até {formatDate(period.to)}. Tente um
+              intervalo mais amplo (12 meses ou YTD) usando os botões acima.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <RevenueSection report={report} />
 
@@ -161,34 +178,49 @@ function QuickRangeButtons({ period }: { period: { from: string; to: string } })
   const now = new Date()
   const thisMonth = monthRange(now)
   const lastMonth = monthRange(new Date(now.getFullYear(), now.getMonth() - 1, 1))
-  const isThisMonth = period.from === thisMonth.from && period.to === thisMonth.to
-  const isLastMonth = period.from === lastMonth.from && period.to === lastMonth.to
+  const last3 = lastNMonthsRange(now, 3)
+  const ytd = ytdRange(now)
+  const last12 = lastNMonthsRange(now, 12)
+
+  const presets: Array<{ label: string; range: { from: string; to: string } }> = [
+    { label: 'Este mês', range: thisMonth },
+    { label: 'Mês anterior', range: lastMonth },
+    { label: '3 meses', range: last3 },
+    { label: 'Ano (YTD)', range: ytd },
+    { label: '12 meses', range: last12 },
+  ]
   return (
-    <div className="flex gap-2">
-      <a
-        href={`/analise/relatorios?from=${thisMonth.from}&to=${thisMonth.to}`}
-        className={cn(
-          'rounded-md border px-3 py-2 text-xs font-bold transition-colors',
-          isThisMonth
-            ? 'border-primary bg-primary text-white'
-            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
-        )}
-      >
-        Este mês
-      </a>
-      <a
-        href={`/analise/relatorios?from=${lastMonth.from}&to=${lastMonth.to}`}
-        className={cn(
-          'rounded-md border px-3 py-2 text-xs font-bold transition-colors',
-          isLastMonth
-            ? 'border-primary bg-primary text-white'
-            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
-        )}
-      >
-        Mês anterior
-      </a>
+    <div className="flex flex-wrap gap-2">
+      {presets.map((p) => {
+        const active = period.from === p.range.from && period.to === p.range.to
+        return (
+          <a
+            key={p.label}
+            href={`/analise/relatorios?from=${p.range.from}&to=${p.range.to}`}
+            className={cn(
+              'rounded-md border px-3 py-2 text-xs font-bold transition-colors',
+              active
+                ? 'border-primary bg-primary text-white'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
+            )}
+          >
+            {p.label}
+          </a>
+        )
+      })}
     </div>
   )
+}
+
+function lastNMonthsRange(ref: Date, months: number): { from: string; to: string } {
+  const to = new Date(ref.getFullYear(), ref.getMonth() + 1, 0)
+  const from = new Date(ref.getFullYear(), ref.getMonth() - months + 1, 1)
+  return { from: toYmd(from), to: toYmd(to) }
+}
+
+function ytdRange(ref: Date): { from: string; to: string } {
+  const from = new Date(ref.getFullYear(), 0, 1)
+  return { from: toYmd(from), to: toYmd(ref) }
 }
 
 function RevenueSection({ report }: { report: FinancialReport }) {

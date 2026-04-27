@@ -42,6 +42,12 @@ export interface TreatmentStepDTO {
     coveredByPlan: boolean
     defaultAmountCents: number | null
   }
+  doctor: {
+    id: string
+    fullName: string
+    role: string | null
+    specialty: string | null
+  } | null
   healthPlan: { id: string; name: string } | null
   currentPriceCents: number | null
   priceSource: 'convenio' | 'particular' | null
@@ -61,6 +67,13 @@ export interface HealthPlanOption {
   name: string
 }
 
+export interface DoctorOption {
+  id: string
+  fullName: string
+  role: string | null
+  specialty: string | null
+}
+
 type StatusFilter = 'all' | 'pendente' | 'concluido' | 'cancelado'
 
 interface Props {
@@ -70,6 +83,7 @@ interface Props {
   initialSteps: TreatmentStepDTO[]
   procedures: ProcedureOption[]
   healthPlans: HealthPlanOption[]
+  doctors: DoctorOption[]
   canWrite: boolean
 }
 
@@ -80,6 +94,7 @@ export function TreatmentStepsSection({
   initialSteps,
   procedures,
   healthPlans,
+  doctors,
   canWrite,
 }: Props) {
   const router = useRouter()
@@ -168,6 +183,7 @@ export function TreatmentStepsSection({
             patientPlanName={patientPlanName}
             procedures={procedures}
             healthPlans={healthPlans}
+            doctors={doctors}
             onCreated={async () => {
               setShowForm(false)
               await refresh()
@@ -322,6 +338,23 @@ function StepRow({
           <span className="font-mono">{procLabel}</span>
           {step.healthPlan ? ` · Plano: ${step.healthPlan.name}` : ''}
         </p>
+        {step.doctor ? (
+          <p className="text-[11px] text-slate-600">
+            <span className="font-semibold text-slate-800">
+              Profissional: {step.doctor.fullName}
+            </span>
+            {step.doctor.role || step.doctor.specialty ? (
+              <span className="text-slate-500">
+                {step.doctor.role ? ` · ${step.doctor.role}` : ''}
+                {step.doctor.specialty ? ` · ${step.doctor.specialty}` : ''}
+              </span>
+            ) : null}
+          </p>
+        ) : (
+          <p className="text-[11px] italic text-slate-400">
+            Sem profissional atribuído
+          </p>
+        )}
         <p className="text-[11px] text-slate-500">
           <Calendar className="mr-1 inline h-3 w-3" />
           {step.scheduledDate ? `Prevista: ${formatDate(step.scheduledDate)}` : 'Sem data prevista'}
@@ -515,6 +548,7 @@ function NewStepForm({
   patientPlanName,
   procedures,
   healthPlans,
+  doctors,
   onCreated,
 }: {
   patientId: string
@@ -522,10 +556,12 @@ function NewStepForm({
   patientPlanName: string | null
   procedures: ProcedureOption[]
   healthPlans: HealthPlanOption[]
+  doctors: DoctorOption[]
   onCreated: () => void | Promise<void>
 }) {
   const [title, setTitle] = useState('')
   const [procedureId, setProcedureId] = useState('')
+  const [doctorId, setDoctorId] = useState('')
   const [healthPlanId, setHealthPlanId] = useState<string>(patientPlanId ?? '__none__')
   const [scheduledDate, setScheduledDate] = useState('')
   const [notes, setNotes] = useState('')
@@ -573,6 +609,10 @@ function NewStepForm({
       setError('Selecione um procedimento.')
       return
     }
+    if (!doctorId) {
+      setError('Selecione o profissional responsável.')
+      return
+    }
     if (!scheduledDate) {
       setError('Informe a data prevista.')
       return
@@ -584,6 +624,7 @@ function NewStepForm({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           procedure_id: procedureId,
+          doctor_id: doctorId,
           health_plan_id:
             particularOnly || isSentinelNoPlan || !healthPlanId ? null : healthPlanId,
           title: title.trim(),
@@ -650,6 +691,39 @@ function NewStepForm({
             ))
           )}
         </div>
+      </div>
+
+      <div className="space-y-1.5 md:col-span-2">
+        <Label htmlFor="step_doctor">
+          Profissional responsável <span className="text-rose-500">*</span>
+        </Label>
+        {doctors.length === 0 ? (
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+            Nenhum profissional ativo cadastrado.{' '}
+            <Link href="/cadastros/profissionais" className="underline">
+              Cadastrar profissional
+            </Link>
+          </p>
+        ) : (
+          <Select value={doctorId} onValueChange={setDoctorId}>
+            <SelectTrigger id="step_doctor">
+              <SelectValue placeholder="Selecione um profissional…" />
+            </SelectTrigger>
+            <SelectContent>
+              {doctors.map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.fullName}
+                  {d.role || d.specialty ? (
+                    <span className="text-slate-500">
+                      {d.role ? ` — ${d.role}` : ''}
+                      {d.specialty ? ` — ${d.specialty}` : ''}
+                    </span>
+                  ) : null}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {particularOnly ? (

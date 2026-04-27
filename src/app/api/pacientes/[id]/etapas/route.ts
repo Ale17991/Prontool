@@ -11,6 +11,7 @@ export const runtime = 'nodejs'
 
 const createSchema = z.object({
   procedure_id: z.string().uuid(),
+  doctor_id: z.string().uuid({ message: 'Selecione um profissional responsável' }),
   health_plan_id: z.string().uuid().optional().nullable(),
   title: z.string().trim().min(1).max(200),
   notes: z.string().trim().max(2000).optional().nullable(),
@@ -81,6 +82,7 @@ export async function POST(
       actorUserId: session.userId,
       patientId: params.id,
       procedureId: parsed.data.procedure_id,
+      doctorId: parsed.data.doctor_id,
       healthPlanId: parsed.data.health_plan_id ?? null,
       title: parsed.data.title,
       notes: parsed.data.notes ?? null,
