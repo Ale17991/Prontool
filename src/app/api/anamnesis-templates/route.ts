@@ -50,14 +50,19 @@ export async function GET(req: Request): Promise<Response> {
       { entity: 'anamnesis_templates', route: '/api/anamnesis-templates', request: req },
     )
 
+    const url = new URL(req.url)
+    const includeInactive = url.searchParams.get('include_inactive') === '1'
+
     const supabase = createSupabaseServiceClient()
-    const { data, error } = await supabase
+    let q = supabase
       .from('anamnesis_templates')
       .select('*')
       .eq('tenant_id', session.tenantId)
       .order('title', { ascending: true })
       .order('version', { ascending: false })
+    if (!includeInactive) q = q.eq('active', true)
 
+    const { data, error } = await q
     if (error) throw new Error(`list anamnesis templates: ${error.message}`)
     return NextResponse.json(data ?? [], { status: 200 })
   } catch (err) {

@@ -17,7 +17,7 @@ interface PageProps {
 export default async function UsarAnamneseTemplatePage({ params }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (!can(session.role, 'anamnesis.write')) redirect('/analise/anamnese')
+  if (!can(session.role, 'anamnesis.write')) redirect('/cadastros/anamnese')
 
   const supabase = createSupabaseServiceClient()
 
@@ -43,7 +43,7 @@ export default async function UsarAnamneseTemplatePage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Link
-          href="/analise/anamnese"
+          href="/cadastros/anamnese"
           className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800"
         >
           <ChevronLeft className="h-3 w-3" /> Voltar aos modelos

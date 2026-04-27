@@ -11,6 +11,7 @@ import {
   Paperclip,
   Plus,
   Printer,
+  Trash2,
   Upload,
   X,
 } from 'lucide-react'
@@ -59,6 +60,7 @@ interface Props {
   initialRecords: ClinicalRecordRow[]
   canWrite: boolean
   canApplyAnamnesis: boolean
+  canDeleteAnamnese: boolean
 }
 
 type Pane = null | 'texto' | 'arquivo' | 'anamnese'
@@ -70,6 +72,7 @@ export function ClinicalRecordsSection({
   initialRecords,
   canWrite,
   canApplyAnamnesis,
+  canDeleteAnamnese,
 }: Props) {
   const router = useRouter()
   const [records, setRecords] = useState<ClinicalRecordRow[]>(initialRecords)
@@ -184,7 +187,14 @@ export function ClinicalRecordsSection({
           ) : (
             <div className="space-y-3">
               {records.map((r) => (
-                <RecordItem key={r.id} record={r} patientName={patientName ?? null} />
+                <RecordItem
+                  key={r.id}
+                  record={r}
+                  patientId={patientId}
+                  patientName={patientName ?? null}
+                  canDeleteAnamnese={canDeleteAnamnese}
+                  onDeleted={refresh}
+                />
               ))}
             </div>
           )}
@@ -228,14 +238,50 @@ function PrintStyles() {
 
 function RecordItem({
   record,
+  patientId,
   patientName,
+  canDeleteAnamnese,
+  onDeleted,
 }: {
   record: ClinicalRecordRow
+  patientId: string
   patientName: string | null
+  canDeleteAnamnese: boolean
+  onDeleted: () => void | Promise<void>
 }) {
   const isAnamnese = record.type === 'anamnese' && record.anamnesisData
   const [expanded, setExpanded] = useState(!isAnamnese)
   const [printing, setPrinting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function handleDelete() {
+    if (
+      !confirm(
+        'Tem certeza? Esta anamnese será removida da ficha do paciente.\n\n' +
+          'Para auditoria, a linha continua no banco com soft-delete (deleted_at).',
+      )
+    ) {
+      return
+    }
+    setDeleteError(null)
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/pacientes/${patientId}/registros/${record.id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: { message?: string }
+        }
+        setDeleteError(body.error?.message ?? 'Falha ao remover anamnese.')
+        return
+      }
+      await onDeleted()
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   function handlePrint() {
     setExpanded(true)
@@ -304,8 +350,28 @@ function RecordItem({
               PDF
             </Button>
           ) : null}
+          {isAnamnese && canDeleteAnamnese ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleDelete()}
+              disabled={deleting}
+              className="h-7 gap-1 px-2 text-[11px] text-rose-600 hover:text-rose-700 print:hidden"
+              title="Remover da ficha (soft-delete; admin only)"
+            >
+              {deleting ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Trash2 className="h-3 w-3" />
+              )}
+              Remover
+            </Button>
+          ) : null}
         </div>
       </div>
+      {deleteError ? (
+        <p className="mt-2 text-[11px] font-semibold text-rose-700">{deleteError}</p>
+      ) : null}
 
       {record.type === 'texto' && record.content ? (
         <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
@@ -814,7 +880,7 @@ function NewAnamneseForm({
           <p className="text-xs text-slate-500">
             Nenhum modelo cadastrado.{' '}
             <a
-              href="/analise/anamnese/novo"
+              href="/cadastros/anamnese/novo"
               className="font-semibold text-primary underline"
               target="_blank"
               rel="noreferrer"

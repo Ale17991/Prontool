@@ -54,7 +54,7 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   console.log('[smoke] patient created:', patientId)
 
   // ---- Criar modelo de anamnese (usar a tela do builder) ----
-  await page.goto('/analise/anamnese/novo')
+  await page.goto('/cadastros/anamnese/novo')
   await page.getByPlaceholder(/título/i).first().fill(`Template Smoke ${Date.now()}`)
 
   // Adicionar um campo texto curto

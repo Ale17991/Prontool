@@ -22,13 +22,18 @@ export async function applyAnamnesisToPatient(
 ) {
   const { data: template, error: tErr } = await supabase
     .from('anamnesis_templates')
-    .select('id, tenant_id, title, version, fields')
+    .select('id, tenant_id, title, version, fields, active')
     .eq('id', input.templateId)
     .eq('tenant_id', input.tenantId)
     .maybeSingle()
 
   if (tErr) throw new Error(`apply anamnesis lookup failed: ${tErr.message}`)
   if (!template) throw new NotFoundError('anamnesis_template', input.templateId)
+  if (!template.active) {
+    throw new ValidationError(
+      'Modelo de anamnese inativo — reative em Cadastros → Modelos de Anamnese ou escolha outro.',
+    )
+  }
 
   // Validação básica dos obrigatórios antes do insert — o CHECK do DB só
   // garante que o JSONB está presente, não que os required estão preenchidos.

@@ -10,7 +10,6 @@ export default async function AnalisePage() {
   if (flags.relatorios && can(session.role, 'report.read')) redirect('/analise/relatorios')
   if (flags.comissoes && can(session.role, 'doctor.read')) redirect('/analise/comissoes')
   if (flags.despesas && session.role === 'admin') redirect('/analise/despesas')
-  if (flags.anamnese && session.role === 'admin') redirect('/analise/anamnese')
   if (can(session.role, 'audit.read')) redirect('/analise/auditoria')
   redirect('/configuracoes')
 }

@@ -113,6 +113,12 @@ const CATEGORIES: readonly Category[] = [
         icon: UserCheck,
         show: ({ role }) => can(role, 'doctor.read'),
       },
+      {
+        href: '/cadastros/anamnese',
+        label: 'Modelos de Anamnese',
+        icon: ClipboardCheck,
+        show: ({ role, flags }) => flags.anamnese && role === 'admin',
+      },
     ],
   },
   {
@@ -137,12 +143,6 @@ const CATEGORIES: readonly Category[] = [
         label: 'Despesas',
         icon: TrendingDown,
         show: ({ role, flags }) => flags.despesas && role === 'admin',
-      },
-      {
-        href: '/analise/anamnese',
-        label: 'Modelos de Anamnese',
-        icon: ClipboardCheck,
-        show: ({ role, flags }) => flags.anamnese && role === 'admin',
       },
       {
         href: '/analise/auditoria',

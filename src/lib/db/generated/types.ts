@@ -134,6 +134,7 @@ export type Database = {
       }
       anamnesis_templates: {
         Row: {
+          active: boolean
           created_at: string
           created_by: string
           description: string | null
@@ -145,6 +146,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          active?: boolean
           created_at?: string
           created_by: string
           description?: string | null
@@ -156,6 +158,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          active?: boolean
           created_at?: string
           created_by?: string
           description?: string | null
@@ -1058,6 +1061,7 @@ export type Database = {
           completed_by: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           doctor_id: string | null
           id: string
           notes: string | null
@@ -1074,6 +1078,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           doctor_id?: string | null
           id?: string
           notes?: string | null
@@ -1090,6 +1095,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           doctor_id?: string | null
           id?: string
           notes?: string | null

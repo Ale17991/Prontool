@@ -27,6 +27,7 @@ import {
 import { PatientPlanEditor } from './patient-plan-editor'
 import { ClinicalRecordsSection } from './clinical-records-section'
 import { AddressEditor } from './address-editor'
+import { PatientCleanupButton } from './cleanup-button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -159,13 +160,16 @@ export default async function PacienteDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between gap-2">
         <Link
           href="/operacao/pacientes"
           className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
         >
           <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
         </Link>
+        {session.role === 'admin' && !isAnonymized ? (
+          <PatientCleanupButton patientId={params.id} />
+        ) : null}
       </div>
 
       {isAnonymized ? (
@@ -365,6 +369,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
         initialRecords={records}
         canWrite={canWriteClinicalRecords && !isAnonymized}
         canApplyAnamnesis={canApplyAnamnesis && !isAnonymized}
+        canDeleteAnamnese={session.role === 'admin' && !isAnonymized}
       />
 
     </div>
