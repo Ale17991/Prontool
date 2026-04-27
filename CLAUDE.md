@@ -1,8 +1,10 @@
-# Pronttu Development Guidelines
+﻿# Pronttu Development Guidelines
 
 Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-24
 
 ## Active Technologies
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
+- N/A — feature de UI pura, não persiste nada (003-responsive-design)
 
 - TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Pino 9, React 18.3, Radix UI, TailwindCSS 3.4 (002-ghl-optional-standalone)
 - PostgreSQL via Supabase (local stack: `supabase start` :54321) com RLS por `tenant_id`. Tabelas de integrações multi-provider: `tenant_integrations` (source-of-truth de "o tenant está conectado?" — zero linhas = standalone), `alerts` (type `integration_sync_failed` com `detail.provider`), `audit_log` (`event_type` `integration.{connect,reconfigure,disconnect}`). Tabela legada `tenant_ghl_config` ainda é lida pelo worker de ingestão GHL — drop planejado (migration 0041 já existe como NOOP placeholder). (002-ghl-optional-standalone)
@@ -48,6 +50,7 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 003-responsive-design: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react
 
 - 002-ghl-optional-standalone: adapter registry multi-plataforma + event bus + standalone parity. GHL passa a ser um plugin; outros providers podem entrar sem tocar em core.
 

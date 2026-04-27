@@ -1,10 +1,30 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
+/**
+ * Table com indicador visual de scroll horizontal: gradient fade na borda
+ * direita do wrapper sugere que há mais conteúdo lateral quando a tabela
+ * ultrapassa a largura disponível. CSS-only, no-op JS.
+ *
+ * Trade-off: o gradient direito fica sempre visível, mesmo quando
+ * scrollado até o fim ou quando a tabela cabe inteira no wrapper. É
+ * imperceptível visualmente em telas largas (24px de fade transparente
+ * na borda) mas dá o "affordance" em mobile sem precisar de listener.
+ */
 export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
-      <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
+    <div className="relative w-full">
+      <div className="relative w-full overflow-x-auto">
+        <table
+          ref={ref}
+          className={cn('w-full caption-bottom text-sm', className)}
+          {...props}
+        />
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white via-white/70 to-transparent md:hidden"
+      />
     </div>
   ),
 )

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   AlertTriangle,
   Bell,
@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   ListChecks,
   Lock,
+  Menu,
   Search,
   ScrollText,
   Settings,
@@ -28,6 +29,7 @@ import { cn } from '@/lib/utils'
 import { can } from '@/lib/auth/rbac'
 import { listFeatureFlags, type FeatureName } from '@/lib/feature-flags'
 import type { TenantRole } from '@/lib/db/types'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import {
   SidebarIntegrationsBadge,
   type SidebarIntegrationBadgeItem,
@@ -156,8 +158,6 @@ const CATEGORIES: readonly Category[] = [
     id: 'configuracoes',
     label: 'Configurações',
     icon: Settings,
-    // Single landing page for now; tabs render empty and the page itself
-    // shows the ComingSoon placeholder.
     items: [],
   },
 ]
@@ -178,6 +178,7 @@ export function DashboardShell({
   const pathname = usePathname() ?? ''
   const flags = listFeatureFlags()
   const ctx: NavContext = { role, flags }
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const primaryCategories = CATEGORIES.filter((c) => c.id !== 'configuracoes')
   const configCategory = CATEGORIES.find((c) => c.id === 'configuracoes')!
@@ -185,62 +186,55 @@ export function DashboardShell({
   const activeCategory = CATEGORIES.find((c) => isUnder(pathname, `/${c.id}`))
   const visibleTabs = (activeCategory?.items ?? []).filter((it) => it.show(ctx))
 
+  // Conteúdo da sidebar — usado tanto no aside fixo (≥md) quanto dentro do
+  // Sheet drawer (<md).
+  const sidebarInner = (
+    <SidebarInner
+      ctx={ctx}
+      pathname={pathname}
+      primaryCategories={primaryCategories}
+      configCategory={configCategory}
+      integrations={integrations}
+      email={email}
+      role={role}
+      onNavigate={() => setDrawerOpen(false)}
+    />
+  )
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans">
-      <aside className="z-20 flex w-64 shrink-0 flex-col bg-slate-900 p-6 shadow-xl">
-        <div className="mb-10 flex items-center gap-3 text-xl font-bold text-white">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
-            <Stethoscope className="h-5 w-5 text-white" />
-          </div>
-          <span className="tracking-tight">Pronttu</span>
-        </div>
-
-        <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
-          {primaryCategories.map((cat) => {
-            const href = defaultHrefFor(cat, ctx)
-            if (!href) return null
-            const active = isUnder(pathname, `/${cat.id}`)
-            return (
-              <SidebarLink
-                key={cat.id}
-                href={href}
-                label={cat.label}
-                icon={cat.icon}
-                active={active}
-              />
-            )
-          })}
-
-          <div className="my-3 h-px bg-white/5" aria-hidden />
-
-          <SidebarLink
-            href="/configuracoes"
-            label={configCategory.label}
-            icon={configCategory.icon}
-            active={isUnder(pathname, '/configuracoes')}
-          />
-        </nav>
-
-        <div className="mt-auto border-t border-white/5 pt-6">
-          <SidebarIntegrationsBadge integrations={integrations} />
-          <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2 text-slate-400">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
-              {email?.slice(0, 1) ?? '?'}
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate text-xs font-semibold text-white">{email ?? '—'}</p>
-              <p className="truncate text-[10px] text-slate-500">{labelForRole(role)}</p>
-            </div>
-          </div>
-        </div>
+      {/* Sidebar fixa (≥md) */}
+      <aside className="z-20 hidden w-64 shrink-0 flex-col bg-slate-900 p-6 shadow-xl md:flex">
+        {sidebarInner}
       </aside>
 
+      {/* Drawer mobile (<md) */}
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent
+          side="left"
+          className="flex w-72 max-w-[80vw] flex-col bg-slate-900 p-6 sm:max-w-[80vw]"
+        >
+          <SheetTitle className="sr-only">Navegação</SheetTitle>
+          {sidebarInner}
+        </SheetContent>
+      </Sheet>
+
       <main className="flex min-w-0 flex-1 flex-col bg-slate-50">
-        <header className="z-10 flex h-[72px] shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8 shadow-sm">
-          <h1 className="text-lg font-bold tracking-tight text-slate-900">
-            {activeCategory?.label ?? 'Painel'}
-          </h1>
-          <div className="flex items-center gap-4">
+        <header className="z-10 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 shadow-sm md:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Abrir menu"
+              className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 md:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h1 className="truncate text-lg font-bold tracking-tight text-slate-900">
+              {activeCategory?.label ?? 'Painel'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 md:gap-4">
             <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
@@ -249,23 +243,26 @@ export function DashboardShell({
                 className="w-64 rounded-xl border border-slate-200 bg-slate-100 py-2 pl-10 pr-4 text-xs outline-none transition-all focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
               />
             </div>
-            <button className="relative rounded-xl bg-slate-100 p-2.5 text-slate-500 transition-colors hover:bg-slate-200">
+            <button
+              className="relative rounded-xl bg-slate-100 p-2.5 text-slate-500 transition-colors hover:bg-slate-200"
+              aria-label="Notificações"
+            >
               <Bell className="h-4 w-4" />
             </button>
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="hidden h-6 w-px bg-slate-200 md:block" />
             <Link
               href="/login"
-              className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95"
+              className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95"
               title="Sair"
             >
               <Lock className="h-3 w-3" />
-              Sair
+              <span className="hidden sm:inline">Sair</span>
             </Link>
           </div>
         </header>
 
         {visibleTabs.length > 0 ? (
-          <div className="flex shrink-0 items-center gap-1 border-b border-slate-200 bg-white px-8">
+          <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-slate-200 bg-white px-4 [&::-webkit-scrollbar]:hidden md:px-8">
             {visibleTabs.map((tab) => (
               <CategoryTab
                 key={tab.href}
@@ -278,9 +275,81 @@ export function DashboardShell({
           </div>
         ) : null}
 
-        <div className="flex-1 overflow-y-auto p-8">{children}</div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>
     </div>
+  )
+}
+
+function SidebarInner({
+  ctx,
+  pathname,
+  primaryCategories,
+  configCategory,
+  integrations,
+  email,
+  role,
+  onNavigate,
+}: {
+  ctx: NavContext
+  pathname: string
+  primaryCategories: Category[]
+  configCategory: Category
+  integrations: SidebarIntegrationBadgeItem[]
+  email: string | null
+  role: TenantRole
+  onNavigate: () => void
+}) {
+  return (
+    <>
+      <div className="mb-10 flex items-center gap-3 text-xl font-bold text-white">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
+          <Stethoscope className="h-5 w-5 text-white" />
+        </div>
+        <span className="tracking-tight">Pronttu</span>
+      </div>
+
+      <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
+        {primaryCategories.map((cat) => {
+          const href = defaultHrefFor(cat, ctx)
+          if (!href) return null
+          const active = isUnder(pathname, `/${cat.id}`)
+          return (
+            <SidebarLink
+              key={cat.id}
+              href={href}
+              label={cat.label}
+              icon={cat.icon}
+              active={active}
+              onNavigate={onNavigate}
+            />
+          )
+        })}
+
+        <div className="my-3 h-px bg-white/5" aria-hidden />
+
+        <SidebarLink
+          href="/configuracoes"
+          label={configCategory.label}
+          icon={configCategory.icon}
+          active={isUnder(pathname, '/configuracoes')}
+          onNavigate={onNavigate}
+        />
+      </nav>
+
+      <div className="mt-auto border-t border-white/5 pt-6">
+        <SidebarIntegrationsBadge integrations={integrations} />
+        <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2 text-slate-400">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
+            {email?.slice(0, 1) ?? '?'}
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <p className="truncate text-xs font-semibold text-white">{email ?? '—'}</p>
+            <p className="truncate text-[10px] text-slate-500">{labelForRole(role)}</p>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -289,15 +358,18 @@ function SidebarLink({
   label,
   icon: Icon,
   active,
+  onNavigate,
 }: {
   href: string
   label: string
   icon: LucideIcon
   active: boolean
+  onNavigate?: () => void
 }) {
   return (
     <Link
       href={href as never}
+      onClick={onNavigate}
       className={cn(
         'flex items-center gap-3 rounded-xl px-4 py-2.5 text-[13px] font-medium transition-all duration-200',
         active
@@ -322,12 +394,28 @@ function CategoryTab({
   icon: LucideIcon
   active: boolean
 }) {
+  const ref = useRef<HTMLAnchorElement>(null)
+
+  // Quando a aba ativa entra em viewport (page load ou path change),
+  // garante que ela está visível dentro do scroll horizontal da tab bar
+  // (FR-009 / SC-003).
+  useEffect(() => {
+    if (active && ref.current) {
+      ref.current.scrollIntoView({
+        inline: 'nearest',
+        block: 'nearest',
+        behavior: 'smooth',
+      })
+    }
+  }, [active])
+
   return (
     <Link
+      ref={ref}
       href={href as never}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'inline-flex items-center gap-2 border-b-2 px-4 py-3 text-[12px] font-bold uppercase tracking-widest transition-colors',
+        'inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-[12px] font-bold uppercase tracking-widest transition-colors md:px-4',
         active
           ? 'border-primary text-slate-900'
           : 'border-transparent text-slate-500 hover:text-slate-800',
