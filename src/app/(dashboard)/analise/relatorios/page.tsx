@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { FinancialRevenueChart } from './financial-revenue-chart'
+import { ReportsSubNav } from './reports-sub-nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +68,8 @@ export default async function RelatoriosPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-8">
       <PeriodHeader period={period} canExport={canExport} exportQs={exportQs} />
+
+      <ReportsSubNav active="dashboard" />
 
       {isEmpty ? (
         <Card>
