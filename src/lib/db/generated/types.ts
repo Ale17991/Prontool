@@ -1497,6 +1497,86 @@ export type Database = {
           },
         ]
       }
+      vital_signs: {
+        Row: {
+          appointment_id: string | null
+          bmi: number | null
+          created_at: string
+          diastolic_bp: number | null
+          heart_rate: number | null
+          height_cm: number | null
+          id: string
+          measured_at: string
+          measured_by: string
+          notes: string | null
+          oxygen_saturation: number | null
+          patient_id: string
+          respiratory_rate: number | null
+          systolic_bp: number | null
+          temperature_celsius: number | null
+          tenant_id: string
+          weight_grams: number | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          diastolic_bp?: number | null
+          heart_rate?: number | null
+          height_cm?: number | null
+          id?: string
+          measured_at?: string
+          measured_by: string
+          notes?: string | null
+          oxygen_saturation?: number | null
+          patient_id: string
+          respiratory_rate?: number | null
+          systolic_bp?: number | null
+          temperature_celsius?: number | null
+          tenant_id: string
+          weight_grams?: number | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          diastolic_bp?: number | null
+          heart_rate?: number | null
+          height_cm?: number | null
+          id?: string
+          measured_at?: string
+          measured_by?: string
+          notes?: string | null
+          oxygen_saturation?: number | null
+          patient_id?: string
+          respiratory_rate?: number | null
+          systolic_bp?: number | null
+          temperature_celsius?: number | null
+          tenant_id?: string
+          weight_grams?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vital_signs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vital_signs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vital_signs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_tenants: {
         Row: {
           created_at: string
