@@ -129,6 +129,9 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     session.role === 'admin' ||
     session.role === 'financeiro' ||
     session.role === 'profissional_saude'
+  // /api/anamnesis-templates/[id]/apply só aceita admin (route.ts:22). Se
+  // expandirem o RBAC depois, este gate sobe junto.
+  const canApplyAnamnesis = session.role === 'admin'
 
   const isAnonymized = Boolean(patient.anonymizedAt)
   const initial = (patient.fullName || '?').charAt(0).toUpperCase()
@@ -316,8 +319,10 @@ export default async function PacienteDetailPage({ params }: PageProps) {
 
       <ClinicalRecordsSection
         patientId={params.id}
+        patientName={isAnonymized ? '[anonimizado]' : patient.fullName || null}
         initialRecords={records}
         canWrite={canWriteClinicalRecords && !isAnonymized}
+        canApplyAnamnesis={canApplyAnamnesis && !isAnonymized}
       />
 
     </div>

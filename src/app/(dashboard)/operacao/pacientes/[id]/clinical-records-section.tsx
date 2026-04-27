@@ -1,13 +1,16 @@
 'use client'
 
-import { useState, useTransition, type FormEvent } from 'react'
+import { useEffect, useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  ChevronDown,
+  ChevronRight,
   ClipboardCheck,
   FileText,
   Loader2,
   Paperclip,
   Plus,
+  Printer,
   Upload,
   X,
 } from 'lucide-react'
@@ -17,6 +20,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { cn, formatDateTime, formatFileSize } from '@/lib/utils'
 import type {
   AnamnesisFieldSnapshot,
@@ -26,13 +36,21 @@ import type {
 
 interface Props {
   patientId: string
+  patientName?: string | null
   initialRecords: ClinicalRecordRow[]
   canWrite: boolean
+  canApplyAnamnesis: boolean
 }
 
-type Pane = null | 'texto' | 'arquivo'
+type Pane = null | 'texto' | 'arquivo' | 'anamnese'
 
-export function ClinicalRecordsSection({ patientId, initialRecords, canWrite }: Props) {
+export function ClinicalRecordsSection({
+  patientId,
+  patientName,
+  initialRecords,
+  canWrite,
+  canApplyAnamnesis,
+}: Props) {
   const router = useRouter()
   const [records, setRecords] = useState<ClinicalRecordRow[]>(initialRecords)
   const [pane, setPane] = useState<Pane>(null)
@@ -48,80 +66,194 @@ export function ClinicalRecordsSection({ patientId, initialRecords, canWrite }: 
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <FileText className="h-4 w-4 text-primary" />
-          Ficha clínica
-        </CardTitle>
-        {canWrite ? (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={pane === 'texto' ? 'default' : 'outline'}
-              onClick={() => setPane(pane === 'texto' ? null : 'texto')}
-              className="gap-1.5"
-            >
-              {pane === 'texto' ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-              Novo texto
-            </Button>
-            <Button
-              size="sm"
-              variant={pane === 'arquivo' ? 'default' : 'outline'}
-              onClick={() => setPane(pane === 'arquivo' ? null : 'arquivo')}
-              className="gap-1.5"
-            >
-              {pane === 'arquivo' ? <X className="h-3.5 w-3.5" /> : <Upload className="h-3.5 w-3.5" />}
-              Subir arquivo
-            </Button>
-          </div>
-        ) : null}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {pane === 'texto' && canWrite ? (
-          <NewTextForm
-            patientId={patientId}
-            onCreated={async () => {
-              setPane(null)
-              await refresh()
-            }}
-          />
-        ) : null}
+    <>
+      <PrintStyles />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <FileText className="h-4 w-4 text-primary" />
+            Ficha clínica
+          </CardTitle>
+          {canWrite || canApplyAnamnesis ? (
+            <div className="flex flex-wrap items-center gap-2 print:hidden">
+              {canWrite ? (
+                <Button
+                  size="sm"
+                  variant={pane === 'texto' ? 'default' : 'outline'}
+                  onClick={() => setPane(pane === 'texto' ? null : 'texto')}
+                  className="gap-1.5"
+                >
+                  {pane === 'texto' ? (
+                    <X className="h-3.5 w-3.5" />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5" />
+                  )}
+                  Novo texto
+                </Button>
+              ) : null}
+              {canWrite ? (
+                <Button
+                  size="sm"
+                  variant={pane === 'arquivo' ? 'default' : 'outline'}
+                  onClick={() => setPane(pane === 'arquivo' ? null : 'arquivo')}
+                  className="gap-1.5"
+                >
+                  {pane === 'arquivo' ? (
+                    <X className="h-3.5 w-3.5" />
+                  ) : (
+                    <Upload className="h-3.5 w-3.5" />
+                  )}
+                  Subir arquivo
+                </Button>
+              ) : null}
+              {canApplyAnamnesis ? (
+                <Button
+                  size="sm"
+                  variant={pane === 'anamnese' ? 'default' : 'outline'}
+                  onClick={() => setPane(pane === 'anamnese' ? null : 'anamnese')}
+                  className="gap-1.5"
+                >
+                  {pane === 'anamnese' ? (
+                    <X className="h-3.5 w-3.5" />
+                  ) : (
+                    <ClipboardCheck className="h-3.5 w-3.5" />
+                  )}
+                  Fazer anamnese
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {pane === 'texto' && canWrite ? (
+            <NewTextForm
+              patientId={patientId}
+              onCreated={async () => {
+                setPane(null)
+                await refresh()
+              }}
+            />
+          ) : null}
 
-        {pane === 'arquivo' && canWrite ? (
-          <UploadFileForm
-            patientId={patientId}
-            onUploaded={async () => {
-              setPane(null)
-              await refresh()
-            }}
-          />
-        ) : null}
+          {pane === 'arquivo' && canWrite ? (
+            <UploadFileForm
+              patientId={patientId}
+              onUploaded={async () => {
+                setPane(null)
+                await refresh()
+              }}
+            />
+          ) : null}
 
-        {records.length === 0 ? (
-          <p className="py-6 text-center text-sm text-slate-500">
-            Nenhum registro clínico ainda. {canWrite ? 'Adicione o primeiro acima.' : null}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {records.map((r) => (
-              <RecordItem key={r.id} record={r} />
-            ))}
-          </div>
-        )}
-        {isPending ? (
-          <p className="text-[11px] text-slate-400">Atualizando…</p>
-        ) : null}
-      </CardContent>
-    </Card>
+          {pane === 'anamnese' && canApplyAnamnesis ? (
+            <NewAnamneseForm
+              patientId={patientId}
+              onCreated={async () => {
+                setPane(null)
+                await refresh()
+              }}
+            />
+          ) : null}
+
+          {records.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-500">
+              Nenhum registro clínico ainda.{' '}
+              {canWrite || canApplyAnamnesis ? 'Adicione o primeiro acima.' : null}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {records.map((r) => (
+                <RecordItem key={r.id} record={r} patientName={patientName ?? null} />
+              ))}
+            </div>
+          )}
+          {isPending ? (
+            <p className="text-[11px] text-slate-400 print:hidden">Atualizando…</p>
+          ) : null}
+        </CardContent>
+      </Card>
+    </>
   )
 }
 
-function RecordItem({ record }: { record: ClinicalRecordRow }) {
+function PrintStyles() {
+  // Estilos só aplicados durante window.print(). Quando o body recebe a classe
+  // `printing-anamnese`, escondemos tudo da tela exceto o item marcado com
+  // data-print-anamnese-target. O atributo é setado pelo handler de print.
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <style jsx global>{`
+      @media print {
+        body.printing-anamnese > *:not([data-print-anamnese-target='true']) {
+          display: none !important;
+        }
+        body.printing-anamnese [data-print-anamnese-target='true'] {
+          position: fixed !important;
+          inset: 0 !important;
+          background: white !important;
+          padding: 24px !important;
+          overflow: visible !important;
+          z-index: 9999 !important;
+        }
+        body.printing-anamnese [data-print-anamnese-target='true'] [data-print-only='show'] {
+          display: block !important;
+        }
+        [data-print-only='show'] {
+          display: none;
+        }
+      }
+    `}</style>
+  )
+}
+
+function RecordItem({
+  record,
+  patientName,
+}: {
+  record: ClinicalRecordRow
+  patientName: string | null
+}) {
+  const isAnamnese = record.type === 'anamnese' && record.anamnesisData
+  const [expanded, setExpanded] = useState(!isAnamnese)
+  const [printing, setPrinting] = useState(false)
+
+  function handlePrint() {
+    setExpanded(true)
+    setPrinting(true)
+    document.body.classList.add('printing-anamnese')
+    const cleanup = () => {
+      document.body.classList.remove('printing-anamnese')
+      setPrinting(false)
+      window.removeEventListener('afterprint', cleanup)
+    }
+    window.addEventListener('afterprint', cleanup)
+    // Aguarda 1 frame pra garantir que o DOM aplicou o expand antes de imprimir.
+    requestAnimationFrame(() => window.print())
+  }
+
+  return (
+    <div
+      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      data-print-anamnese-target={printing ? 'true' : undefined}
+    >
       <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
+        <button
+          type="button"
+          onClick={isAnamnese ? () => setExpanded((v) => !v) : undefined}
+          className={cn(
+            'flex min-w-0 flex-1 items-start gap-3 text-left',
+            isAnamnese ? 'cursor-pointer' : 'cursor-default',
+          )}
+          aria-expanded={isAnamnese ? expanded : undefined}
+        >
+          {isAnamnese ? (
+            <span className="mt-1.5 shrink-0 text-slate-400 print:hidden">
+              {expanded ? (
+                <ChevronDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5" />
+              )}
+            </span>
+          ) : null}
           <TypeIcon type={record.type} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -132,12 +264,26 @@ function RecordItem({ record }: { record: ClinicalRecordRow }) {
               {formatDateTime(record.createdAt)} · por {record.createdBy.slice(0, 8)}
             </p>
           </div>
+        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {record.type === 'arquivo' && record.fileSizeBytes ? (
+            <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">
+              {formatFileSize(record.fileSizeBytes)}
+            </span>
+          ) : null}
+          {isAnamnese ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handlePrint}
+              className="h-7 gap-1 px-2 text-[11px] print:hidden"
+              title="Exportar PDF (via diálogo de impressão)"
+            >
+              <Printer className="h-3 w-3" />
+              PDF
+            </Button>
+          ) : null}
         </div>
-        {record.type === 'arquivo' && record.fileSizeBytes ? (
-          <span className="shrink-0 text-[10px] font-medium uppercase tracking-widest text-slate-400">
-            {formatFileSize(record.fileSizeBytes)}
-          </span>
-        ) : null}
       </div>
 
       {record.type === 'texto' && record.content ? (
@@ -153,8 +299,22 @@ function RecordItem({ record }: { record: ClinicalRecordRow }) {
         </div>
       ) : null}
 
-      {record.type === 'anamnese' && record.anamnesisData ? (
-        <AnamneseView snapshot={record.anamnesisData} />
+      {isAnamnese && record.anamnesisData ? (
+        <>
+          {/* Cabeçalho extra que só aparece em mídia de impressão */}
+          <div data-print-only="show" className="mt-4 border-b border-slate-300 pb-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Pronttu — anamnese
+            </p>
+            <p className="mt-1 text-base font-bold text-slate-900">
+              Paciente: {patientName ?? '—'}
+            </p>
+            <p className="text-[11px] text-slate-600">
+              Registrada em {formatDateTime(record.createdAt)}
+            </p>
+          </div>
+          {expanded ? <AnamneseView snapshot={record.anamnesisData} /> : null}
+        </>
       ) : null}
     </div>
   )
@@ -184,10 +344,18 @@ function TypeIcon({ type }: { type: ClinicalRecordRow['type'] }) {
 
 function TypeBadge({ type }: { type: ClinicalRecordRow['type'] }) {
   if (type === 'texto') {
-    return <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">Texto</Badge>
+    return (
+      <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+        Texto
+      </Badge>
+    )
   }
   if (type === 'arquivo') {
-    return <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">Arquivo</Badge>
+    return (
+      <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+        Arquivo
+      </Badge>
+    )
   }
   return (
     <Badge variant="secondary" className="h-5 bg-emerald-100 px-1.5 text-[10px] text-emerald-800">
@@ -200,7 +368,7 @@ function AnamneseView({ snapshot }: { snapshot: AnamnesisSnapshot }) {
   const fields = snapshot.fields ?? []
   const responses = snapshot.responses ?? {}
   return (
-    <div className="mt-3 space-y-3 rounded-lg bg-slate-50 p-3">
+    <div className="mt-3 space-y-3 rounded-lg bg-slate-50 p-3 print:bg-white print:p-0">
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
         Modelo: {snapshot.template_title} · v{snapshot.template_version}
       </p>
@@ -209,7 +377,10 @@ function AnamneseView({ snapshot }: { snapshot: AnamnesisSnapshot }) {
       ) : (
         <dl className="space-y-2">
           {fields.map((f) => (
-            <div key={f.id} className="grid grid-cols-1 gap-0.5 md:grid-cols-[1fr_2fr] md:gap-4">
+            <div
+              key={f.id}
+              className="grid grid-cols-1 gap-0.5 md:grid-cols-[1fr_2fr] md:gap-4"
+            >
               <dt className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                 {f.label}
                 {f.required ? <span className="ml-1 text-rose-500">*</span> : null}
@@ -247,6 +418,10 @@ function AnamneseResponse({
   }
   return <span>{str}</span>
 }
+
+// ---------------------------------------------------------------------------
+// New text + file forms (inalterados)
+// ---------------------------------------------------------------------------
 
 function NewTextForm({
   patientId,
@@ -323,7 +498,11 @@ function NewTextForm({
       ) : null}
       <div className="flex justify-end">
         <Button type="submit" size="sm" disabled={pending} className="gap-2">
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
           Salvar texto
         </Button>
       </div>
@@ -415,10 +594,357 @@ function UploadFileForm({
       ) : null}
       <div className="flex justify-end">
         <Button type="submit" size="sm" disabled={pending} className="gap-2">
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
           Subir arquivo
         </Button>
       </div>
     </form>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// New anamnese form
+// ---------------------------------------------------------------------------
+
+type FieldType =
+  | 'texto_curto'
+  | 'texto_longo'
+  | 'checkbox'
+  | 'radio'
+  | 'select'
+  | 'data'
+  | 'numero'
+
+interface TemplateRow {
+  id: string
+  title: string
+  description: string | null
+  version: number
+  fields: AnamnesisFieldSnapshot[] | null
+}
+
+type ResponseValue = string | number | string[] | null
+
+function NewAnamneseForm({
+  patientId,
+  onCreated,
+}: {
+  patientId: string
+  onCreated: () => void | Promise<void>
+}) {
+  const [templates, setTemplates] = useState<TemplateRow[] | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [templateId, setTemplateId] = useState<string>('')
+  const [responses, setResponses] = useState<Record<string, ResponseValue>>({})
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch('/api/anamnesis-templates')
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({}))) as {
+            error?: { message?: string }
+          }
+          throw new Error(body.error?.message ?? `HTTP ${res.status}`)
+        }
+        const raw = (await res.json()) as TemplateRow[]
+        // Backend já ordena title asc, version desc — pegamos o primeiro de
+        // cada title (= versão mais recente) e só consideramos com fields.
+        const seen = new Set<string>()
+        const latest = raw.filter((t) => {
+          if (seen.has(t.title)) return false
+          if (!Array.isArray(t.fields) || t.fields.length === 0) return false
+          seen.add(t.title)
+          return true
+        })
+        if (!cancelled) setTemplates(latest)
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(err instanceof Error ? err.message : 'Falha ao carregar modelos.')
+          setTemplates([])
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const selected = templates?.find((t) => t.id === templateId) ?? null
+  const fields = selected?.fields ?? []
+
+  function setValue(fieldId: string, value: ResponseValue) {
+    setResponses((prev) => ({ ...prev, [fieldId]: value }))
+  }
+
+  function toggleCheckbox(fieldId: string, option: string, checked: boolean) {
+    const current = (responses[fieldId] as string[] | undefined) ?? []
+    const next = checked ? [...current, option] : current.filter((o) => o !== option)
+    setValue(fieldId, next)
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setError(null)
+    if (!selected) {
+      setError('Selecione um modelo.')
+      return
+    }
+    for (const f of fields) {
+      if (!f.required) continue
+      const v = responses[f.id]
+      const empty =
+        v === undefined ||
+        v === null ||
+        v === '' ||
+        (Array.isArray(v) && v.length === 0)
+      if (empty) {
+        setError(`Preencha o campo obrigatório: ${f.label}`)
+        return
+      }
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/anamnesis-templates/${selected.id}/apply`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ patient_id: patientId, responses }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: { message?: string }
+        }
+        setError(body.error?.message ?? 'Falha ao salvar a anamnese.')
+        return
+      }
+      setTemplateId('')
+      setResponses({})
+      await onCreated()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-slate-50/50 p-4"
+    >
+      <div className="space-y-1.5">
+        <Label>Modelo de anamnese</Label>
+        {templates === null ? (
+          <p className="text-xs text-slate-500">Carregando modelos…</p>
+        ) : templates.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            Nenhum modelo cadastrado.{' '}
+            <a
+              href="/analise/anamnese/novo"
+              className="font-semibold text-primary underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Criar primeiro modelo
+            </a>
+            .
+          </p>
+        ) : (
+          <Select value={templateId} onValueChange={setTemplateId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um modelo…" />
+            </SelectTrigger>
+            <SelectContent>
+              {templates.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.title}
+                  <span className="ml-2 text-[10px] text-slate-400">v{t.version}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {loadError ? (
+          <p className="text-[11px] text-rose-600">{loadError}</p>
+        ) : null}
+      </div>
+
+      {selected ? (
+        <div className="space-y-4 border-t border-slate-200 pt-4">
+          {fields.map((field) => (
+            <FieldInput
+              key={field.id}
+              field={field}
+              value={responses[field.id]}
+              onChange={(v) => setValue(field.id, v)}
+              onToggleOption={(opt, checked) => toggleCheckbox(field.id, opt, checked)}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="flex justify-end">
+        <Button type="submit" size="sm" disabled={submitting || !selected} className="gap-2">
+          {submitting ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ClipboardCheck className="h-3.5 w-3.5" />
+          )}
+          Salvar anamnese
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function FieldInput({
+  field,
+  value,
+  onChange,
+  onToggleOption,
+}: {
+  field: AnamnesisFieldSnapshot
+  value: ResponseValue | undefined
+  onChange: (v: ResponseValue) => void
+  onToggleOption: (option: string, checked: boolean) => void
+}) {
+  const type = field.type as FieldType
+  const label = (
+    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+      {field.label}
+      {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
+    </label>
+  )
+
+  if (type === 'texto_longo') {
+    return (
+      <div className="space-y-1.5">
+        {label}
+        <Textarea
+          value={(value as string | undefined) ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+          className="min-h-[96px]"
+        />
+      </div>
+    )
+  }
+
+  if (type === 'data') {
+    return (
+      <div className="space-y-1.5">
+        {label}
+        <Input
+          type="date"
+          value={(value as string | undefined) ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    )
+  }
+
+  if (type === 'numero') {
+    return (
+      <div className="space-y-1.5">
+        {label}
+        <Input
+          type="number"
+          value={(value as string | undefined) ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </div>
+    )
+  }
+
+  if (type === 'select') {
+    const opts = field.options ?? []
+    return (
+      <div className="space-y-1.5">
+        {label}
+        <Select
+          value={(value as string | undefined) ?? ''}
+          onValueChange={(v) => onChange(v)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione…" />
+          </SelectTrigger>
+          <SelectContent>
+            {opts.map((opt) => (
+              <SelectItem key={opt} value={opt}>
+                {opt}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    )
+  }
+
+  if (type === 'radio') {
+    const opts = field.options ?? []
+    return (
+      <div className="space-y-2">
+        {label}
+        <div className="flex flex-col gap-2">
+          {opts.map((opt) => (
+            <label key={opt} className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name={field.id}
+                value={opt}
+                checked={value === opt}
+                onChange={() => onChange(opt)}
+                className="h-4 w-4"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (type === 'checkbox') {
+    const opts = field.options ?? []
+    const checked = (value as string[] | undefined) ?? []
+    return (
+      <div className="space-y-2">
+        {label}
+        <div className="flex flex-col gap-2">
+          {opts.map((opt) => (
+            <label key={opt} className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={checked.includes(opt)}
+                onChange={(e) => onToggleOption(opt, e.target.checked)}
+                className="h-4 w-4"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {label}
+      <Input
+        value={(value as string | undefined) ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
   )
 }
