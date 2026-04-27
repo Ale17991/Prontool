@@ -30,8 +30,8 @@ description: "Task list for Responsividade total (mobile, tablet e desktop)"
 **Purpose**: Adicionar dependência de UI nova e capturar baseline visual antes de qualquer mudança.
 
 - [ ] T001 Capturar screenshots baseline em `tests/e2e/__screenshots__/baseline/` rodando o sistema em viewport 1280×720 nas 4 páginas-chave (login, lista de pacientes, ficha de paciente, dashboard financeira) — sem alterar código. Esses screenshots viram o oracle de regressão.
-- [ ] T002 [P] Adicionar `Sheet` do shadcn/ui em `src/components/ui/sheet.tsx` (cópia do registry shadcn — `sheet.tsx` é built on `@radix-ui/react-dialog`, sem precisar instalar pacote novo já que `@radix-ui/react-dialog` está nas dependencies via Dialog).
-- [ ] T003 [P] Verificar `tailwind.config.ts` tem as animations `accordion-down`, `slide-in-from-left`, `fade-in`, `fade-out` necessárias para o Sheet (provavelmente já existem via shadcn) — se faltar, adicionar.
+- [X] T002 [P] Adicionar `Sheet` do shadcn/ui em `src/components/ui/sheet.tsx` (cópia do registry shadcn — `sheet.tsx` é built on `@radix-ui/react-dialog`, sem precisar instalar pacote novo já que `@radix-ui/react-dialog` está nas dependencies via Dialog).
+- [X] T003 [P] Verificar `tailwind.config.ts` tem as animations `accordion-down`, `slide-in-from-left`, `fade-in`, `fade-out` necessárias para o Sheet (provavelmente já existem via shadcn) — se faltar, adicionar.
 
 ---
 
@@ -41,8 +41,8 @@ description: "Task list for Responsividade total (mobile, tablet e desktop)"
 
 **⚠️ CRITICAL**: Phase 2 desbloqueia US2 (modais responsivos) sem precisar tocar em cada modal individual. Phase 3+ pode começar em paralelo após Phase 2.
 
-- [ ] T004 [P] Atualizar `src/components/ui/dialog.tsx` — `DialogContent` ganha `max-h-[90dvh] overflow-y-auto` e padding muda de `p-6` para `p-4 sm:p-6`. Verificar visualmente que os 5 modais existentes (cleanup-button, print-chart-button, RecordPaymentDialog do financeiro-section, SOAP form é inline-não-modal) continuam funcionando em viewport 1280px (zero regressão visual via Playwright em T020).
-- [ ] T005 [P] Atualizar `src/components/ui/table.tsx` — wrapper externo ganha `position: relative` e dois pseudo-elementos com `linear-gradient` na borda esquerda e direita (CSS-only, via `before:` e `after:` Tailwind classes), `pointer-events-none`. Gradient sempre visível quando há overflow horizontal (sem listener JS por simplicidade — pode ser refinado depois).
+- [X] T004 [P] Atualizar `src/components/ui/dialog.tsx` — `DialogContent` ganha `max-h-[90dvh] overflow-y-auto` e padding muda de `p-6` para `p-4 sm:p-6`. Verificar visualmente que os 5 modais existentes (cleanup-button, print-chart-button, RecordPaymentDialog do financeiro-section, SOAP form é inline-não-modal) continuam funcionando em viewport 1280px (zero regressão visual via Playwright em T020).
+- [X] T005 [P] Atualizar `src/components/ui/table.tsx` — wrapper externo ganha `position: relative` e dois pseudo-elementos com `linear-gradient` na borda esquerda e direita (CSS-only, via `before:` e `after:` Tailwind classes), `pointer-events-none`. Gradient sempre visível quando há overflow horizontal (sem listener JS por simplicidade — pode ser refinado depois).
 
 **Checkpoint**: Após Phase 2, qualquer modal que abrir em mobile/tablet com conteúdo alto vai scrollar internamente. Qualquer tabela com scroll horizontal mostra indicador visual.
 
@@ -56,14 +56,14 @@ description: "Task list for Responsividade total (mobile, tablet e desktop)"
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Em `src/app/(dashboard)/_components/dashboard-shell.tsx`, importar Sheet, SheetContent, SheetTitle, SheetTrigger de `@/components/ui/sheet`. Adicionar `Menu` de `lucide-react` e estado local `const [drawerOpen, setDrawerOpen] = useState(false)`.
-- [ ] T007 [US1] Em `dashboard-shell.tsx`, transformar `<aside class="z-20 flex w-64 shrink-0 ...">` em condicional: em viewport ≥md, manter como sidebar fixa atual (`hidden md:flex`); em <md, esconder e usar Sheet com `<SheetContent side="left" className="w-72 max-w-[80vw] bg-slate-900 p-6">`. O conteúdo da nav (categorias, divider, link Configurações, integrations badge, user pill) é o MESMO em ambos — extrair em sub-componente `<SidebarInner>` para não duplicar.
-- [ ] T008 [US1] Em `dashboard-shell.tsx`, adicionar botão hamburger no `<header>` antes do título: `<button className="md:hidden ..." onClick={() => setDrawerOpen(true)} aria-label="Abrir menu"><Menu className="h-5 w-5" /></button>`. Sheet é controlado por `open={drawerOpen} onOpenChange={setDrawerOpen}`.
-- [ ] T009 [US1] Em `dashboard-shell.tsx`, no `<SidebarLink>`, adicionar `onClick={() => setDrawerOpen(false)}` para auto-fechar drawer ao navegar (FR-005). Verificar que o link continua navegando normalmente (Next.js Link prefetch).
-- [ ] T010 [US1] Em `dashboard-shell.tsx`, adicionar `<SheetTitle className="sr-only">Navegação</SheetTitle>` dentro do `<SheetContent>` (acessibilidade — Radix exige title pra screen readers).
-- [ ] T011 [US1] Em `dashboard-shell.tsx`, ajustar padding global: `<header>` muda `px-8` → `px-4 md:px-8`; tab bar wrapper muda `px-8` → `px-4 md:px-8`; conteúdo principal muda `p-8` → `p-4 md:p-8`. Search input do header já tem `hidden md:block`, manter.
-- [ ] T012 [US1] Em `dashboard-shell.tsx`, na tab bar, transformar `<div className="flex shrink-0 items-center gap-1 border-b ... bg-white px-4 md:px-8">` em scrollable: adicionar `overflow-x-auto` + `[&::-webkit-scrollbar]:hidden` (esconder scrollbar visual em desktop) e `whitespace-nowrap` em cada `<CategoryTab>` para evitar wrap.
-- [ ] T013 [US1] Em `dashboard-shell.tsx`, no componente `CategoryTab`, adicionar `useEffect` que, quando `active === true`, chama `ref.current?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })` no mount — garante que a aba ativa fica visível ao carregar (FR-009).
+- [X] T006 [US1] Em `src/app/(dashboard)/_components/dashboard-shell.tsx`, importar Sheet, SheetContent, SheetTitle, SheetTrigger de `@/components/ui/sheet`. Adicionar `Menu` de `lucide-react` e estado local `const [drawerOpen, setDrawerOpen] = useState(false)`.
+- [X] T007 [US1] Em `dashboard-shell.tsx`, transformar `<aside class="z-20 flex w-64 shrink-0 ...">` em condicional: em viewport ≥md, manter como sidebar fixa atual (`hidden md:flex`); em <md, esconder e usar Sheet com `<SheetContent side="left" className="w-72 max-w-[80vw] bg-slate-900 p-6">`. O conteúdo da nav (categorias, divider, link Configurações, integrations badge, user pill) é o MESMO em ambos — extrair em sub-componente `<SidebarInner>` para não duplicar.
+- [X] T008 [US1] Em `dashboard-shell.tsx`, adicionar botão hamburger no `<header>` antes do título: `<button className="md:hidden ..." onClick={() => setDrawerOpen(true)} aria-label="Abrir menu"><Menu className="h-5 w-5" /></button>`. Sheet é controlado por `open={drawerOpen} onOpenChange={setDrawerOpen}`.
+- [X] T009 [US1] Em `dashboard-shell.tsx`, no `<SidebarLink>`, adicionar `onClick={() => setDrawerOpen(false)}` para auto-fechar drawer ao navegar (FR-005). Verificar que o link continua navegando normalmente (Next.js Link prefetch).
+- [X] T010 [US1] Em `dashboard-shell.tsx`, adicionar `<SheetTitle className="sr-only">Navegação</SheetTitle>` dentro do `<SheetContent>` (acessibilidade — Radix exige title pra screen readers).
+- [X] T011 [US1] Em `dashboard-shell.tsx`, ajustar padding global: `<header>` muda `px-8` → `px-4 md:px-8`; tab bar wrapper muda `px-8` → `px-4 md:px-8`; conteúdo principal muda `p-8` → `p-4 md:p-8`. Search input do header já tem `hidden md:block`, manter.
+- [X] T012 [US1] Em `dashboard-shell.tsx`, na tab bar, transformar `<div className="flex shrink-0 items-center gap-1 border-b ... bg-white px-4 md:px-8">` em scrollable: adicionar `overflow-x-auto` + `[&::-webkit-scrollbar]:hidden` (esconder scrollbar visual em desktop) e `whitespace-nowrap` em cada `<CategoryTab>` para evitar wrap.
+- [X] T013 [US1] Em `dashboard-shell.tsx`, no componente `CategoryTab`, adicionar `useEffect` que, quando `active === true`, chama `ref.current?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })` no mount — garante que a aba ativa fica visível ao carregar (FR-009).
 
 **Checkpoint**: User Story 1 funciona — app navegável em 360px, drawer abre/fecha, abas scrollam, padding correto.
 
@@ -79,8 +79,8 @@ description: "Task list for Responsividade total (mobile, tablet e desktop)"
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Em `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`, ajustar o action bar do header: trocar `<div className="flex items-center justify-between gap-2">` por `<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">`. Os botões Voltar / Imprimir / Limpar dados ficam empilhados em <640px e lado-a-lado em ≥640px (FR-018).
-- [ ] T015 [US2] Em `pacientes/[id]/page.tsx`, garantir que o segundo div interno (`<div className="flex items-center gap-2">` que agrupa PrintChartButton + PatientCleanupButton) tenha `flex-wrap` — em viewport bem estreito, os botões fazem wrap em vez de cortar.
+- [X] T014 [US2] Em `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`, ajustar o action bar do header: trocar `<div className="flex items-center justify-between gap-2">` por `<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">`. Os botões Voltar / Imprimir / Limpar dados ficam empilhados em <640px e lado-a-lado em ≥640px (FR-018).
+- [X] T015 [US2] Em `pacientes/[id]/page.tsx`, garantir que o segundo div interno (`<div className="flex items-center gap-2">` que agrupa PrintChartButton + PatientCleanupButton) tenha `flex-wrap` — em viewport bem estreito, os botões fazem wrap em vez de cortar.
 
 **Checkpoint**: User Story 2 funciona — modais base já cobertos pelo Phase 2; action bar do paciente já não corta em mobile.
 
@@ -96,9 +96,9 @@ description: "Task list for Responsividade total (mobile, tablet e desktop)"
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Criar `tests/e2e/responsive-snapshots.spec.ts` com Playwright + `toHaveScreenshot()`. Capturar 4 páginas-chave em viewport 1280×720: `/login`, `/operacao/pacientes`, `/operacao/pacientes/[id]` (com seed de paciente), `/analise/relatorios`. Comparar contra baseline gravado em T001.
-- [ ] T017 [US3] No mesmo arquivo `responsive-snapshots.spec.ts`, adicionar testes complementares em viewports `375×812` (iPhone) e `768×1024` (iPad portrait) com a flag de snapshot inicial — esses screenshots viram **novo baseline** para futuras regressões. Não comparam com desktop.
-- [ ] T018 [US3] Adicionar entrada no `package.json` em `scripts`: `"test:visual": "playwright test tests/e2e/responsive-snapshots.spec.ts"`. Documentar em `quickstart.md` como rodar.
+- [X] T016 [US3] Criar `tests/e2e/responsive-snapshots.spec.ts` com Playwright + `toHaveScreenshot()`. Capturar 4 páginas-chave em viewport 1280×720: `/login`, `/operacao/pacientes`, `/operacao/pacientes/[id]` (com seed de paciente), `/analise/relatorios`. Comparar contra baseline gravado em T001.
+- [X] T017 [US3] No mesmo arquivo `responsive-snapshots.spec.ts`, adicionar testes complementares em viewports `375×812` (iPhone) e `768×1024` (iPad portrait) com a flag de snapshot inicial — esses screenshots viram **novo baseline** para futuras regressões. Não comparam com desktop.
+- [X] T018 [US3] Adicionar entrada no `package.json` em `scripts`: `"test:visual": "playwright test tests/e2e/responsive-snapshots.spec.ts"`. Documentar em `quickstart.md` como rodar.
 - [ ] T019 [US3] Rodar `pnpm test:e2e tests/e2e/smoke-flow.spec.ts` — smoke flow existente (criar tenant, criar paciente, aplicar anamnese) precisa passar sem mudanças. Esta validação prova que mudanças de layout não quebraram fluxos funcionais (FR-022).
 
 **Checkpoint**: User Story 3 valida — desktop intacto, mobile/tablet com novo baseline, smoke flow passa.
@@ -110,7 +110,7 @@ description: "Task list for Responsividade total (mobile, tablet e desktop)"
 **Purpose**: Validação manual final + cleanup.
 
 - [ ] T020 Rodar checklist manual completa de `quickstart.md` — todos os checkboxes nos 3 viewports (360, 768, 1280). Documentar qualquer issue encontrada como follow-up.
-- [ ] T021 [P] `pnpm typecheck && pnpm lint && pnpm lint:auth` — todos retornam 0.
+- [X] T021 [P] `pnpm typecheck && pnpm lint && pnpm lint:auth` — todos retornam 0.
 - [ ] T022 [P] Atualizar `CLAUDE.md` (se necessário) com aviso sobre breakpoint `md` (768px) como cutoff mobile/desktop oficial do projeto.
 - [ ] T023 Commit final + PR para master com message: `feat: responsividade total mobile/tablet/desktop`. PR description linka spec.md e quickstart.md, lista os 6 FRs (US1) + 2 FRs (US2) + 4 tasks de regressão (US3).
 
