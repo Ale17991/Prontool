@@ -20,8 +20,12 @@ export async function renderByPlanExcel(
   resumo.getRow(1).font = { bold: true }
   if (opts.tenantLabel) resumo.addRow({ metric: 'Tenant', value: opts.tenantLabel })
   resumo.addRow({ metric: 'Plano', value: detail.plan.name })
-  resumo.addRow({ metric: 'Período de', value: detail.period.from })
-  resumo.addRow({ metric: 'Período até', value: detail.period.to })
+  const addDate = (label: string, ymd: string) => {
+    const r = resumo.addRow({ metric: label, value: new Date(`${ymd}T12:00:00Z`) })
+    r.getCell('value').numFmt = 'dd/mm/yyyy'
+  }
+  addDate('Período de', detail.period.from)
+  addDate('Período até', detail.period.to)
   resumo.addRow({})
   resumo.addRow({ metric: 'Total de procedimentos', value: detail.totals.procedureCount })
   const moneyRow = resumo.addRow({

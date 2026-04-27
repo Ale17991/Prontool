@@ -29,10 +29,14 @@ export async function renderFinancialReportExcel(
   ]
   summary.getRow(1).font = { bold: true }
   if (opts.tenantLabel) summary.addRow({ metric: 'Tenant', value: opts.tenantLabel })
-  summary.addRow({ metric: 'Período de', value: report.period.from })
-  summary.addRow({ metric: 'Período até', value: report.period.to })
-  summary.addRow({ metric: 'Período anterior de', value: report.previousPeriod.from })
-  summary.addRow({ metric: 'Período anterior até', value: report.previousPeriod.to })
+  const dateRow = (label: string, ymd: string) => {
+    const r = summary.addRow({ metric: label, value: new Date(`${ymd}T12:00:00Z`) })
+    r.getCell('value').numFmt = 'dd/mm/yyyy'
+  }
+  dateRow('Período de', report.period.from)
+  dateRow('Período até', report.period.to)
+  dateRow('Período anterior de', report.previousPeriod.from)
+  dateRow('Período anterior até', report.previousPeriod.to)
   summary.addRow({})
   const moneyRow = (label: string, cents: number) => {
     const r = summary.addRow({ metric: label, value: cents / 100 })

@@ -64,8 +64,12 @@ export async function renderMonthlyReportExcel(
   totals.getRow(1).font = { bold: true }
 
   if (opts.tenantLabel) totals.addRow({ metric: 'Tenant', value: opts.tenantLabel })
-  totals.addRow({ metric: 'Período de', value: report.period.from })
-  totals.addRow({ metric: 'Período até', value: report.period.to })
+  const addDate = (label: string, ymd: string) => {
+    const row = totals.addRow({ metric: label, value: new Date(`${ymd}T12:00:00Z`) })
+    row.getCell('value').numFmt = 'dd/mm/yyyy'
+  }
+  addDate('Período de', report.period.from)
+  addDate('Período até', report.period.to)
   totals.addRow({})
 
   const addMoney = (label: string, cents: number) => {

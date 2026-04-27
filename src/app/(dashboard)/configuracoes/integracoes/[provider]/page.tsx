@@ -76,7 +76,7 @@ export default async function ProviderDetailPage({ params }: Params) {
 
       {connected ? (
         <p className="text-xs text-slate-500">
-          Conectado desde {row?.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : '—'}. Valores
+          Conectado desde {row?.created_at ? new Date(row.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—'}. Valores
           secretos nunca são retornados em claro; digite novamente para rotacionar.
         </p>
       ) : null}

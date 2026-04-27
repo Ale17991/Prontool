@@ -326,7 +326,7 @@ function formatAppointmentNote(event: {
   })
   return [
     'Atendimento registrado no Pronttu',
-    `Data: ${when.toLocaleString('pt-BR')}`,
+    `Data: ${when.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
     `Paciente: ${event.patient.fullName}`,
     event.appointment.procedureTussCode
       ? `Procedimento (TUSS): ${event.appointment.procedureTussCode}`
