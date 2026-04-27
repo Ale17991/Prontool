@@ -492,6 +492,12 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
           bundle.anamneses.map((r) => {
             const a = r.anamnesisData
             if (!a) return null
+            // Campos is_default (nome, CPF, plano, alergias etc.) já
+            // aparecem nas seções 1 (Dados do paciente) e 2 (Alergias).
+            // Filtro apenas na exibição — snapshot continua completo
+            // em anamnesis_data.
+            const customFields = (a.fields ?? []).filter((f) => !f.is_default)
+            if (customFields.length === 0) return null
             return (
               <View key={r.id} style={styles.block} wrap={false}>
                 <View style={styles.blockHeader}>
@@ -500,7 +506,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
                   </Text>
                   <Text style={styles.subtle}>{formatDateTime(r.createdAt)}</Text>
                 </View>
-                {(a.fields ?? []).map((f) => {
+                {customFields.map((f) => {
                   const v = a.responses?.[f.id]
                   const display =
                     v === undefined || v === null || v === ''

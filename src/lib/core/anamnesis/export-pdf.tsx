@@ -58,6 +58,13 @@ const styles = StyleSheet.create({
 export interface AnamnesisPdfField {
   id: string
   label: string
+  /**
+   * Se `true`, o campo é "default" (nome, CPF, plano, alergias etc.) —
+   * filtrado da seção de respostas porque os dados já aparecem no
+   * cabeçalho do PDF e em outras seções do prontuário. Snapshot fonte
+   * continua íntegro; só a exibição é filtrada.
+   */
+  is_default?: boolean
 }
 
 export interface AnamnesisPdfInput {
@@ -97,14 +104,16 @@ export function AnamnesisPdfDocument(input: AnamnesisPdfInput) {
           </Text>
         </View>
 
-        {input.fields.map((field) => (
-          <View key={field.id} style={styles.section} wrap={false}>
-            <Text style={styles.fieldLabel}>{field.label}</Text>
-            <Text style={styles.fieldValue}>
-              {renderAnswer(input.responses[field.id])}
-            </Text>
-          </View>
-        ))}
+        {input.fields
+          .filter((field) => !field.is_default)
+          .map((field) => (
+            <View key={field.id} style={styles.section} wrap={false}>
+              <Text style={styles.fieldLabel}>{field.label}</Text>
+              <Text style={styles.fieldValue}>
+                {renderAnswer(input.responses[field.id])}
+              </Text>
+            </View>
+          ))}
 
         <View style={styles.footer}>
           <Text style={{ fontSize: 8, color: '#64748b' }}>

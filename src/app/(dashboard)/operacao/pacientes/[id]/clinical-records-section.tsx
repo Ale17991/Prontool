@@ -563,7 +563,11 @@ function SoapView({ soap }: { soap: SoapData }) {
 }
 
 function AnamneseView({ snapshot }: { snapshot: AnamnesisSnapshot }) {
-  const fields = snapshot.fields ?? []
+  // Campos is_default (nome, CPF, telefone, plano, alergias etc.) são
+  // dados do paciente que já aparecem no header e nas seções da ficha
+  // (Alergias, Endereço, Plano). Repetir aqui é redundante. Snapshot
+  // continua íntegro em anamnesisData — filtro é só na exibição.
+  const fields = (snapshot.fields ?? []).filter((f) => !f.is_default)
   const responses = snapshot.responses ?? {}
   return (
     <div className="mt-3 space-y-3 rounded-lg bg-slate-50 p-3 print:bg-white print:p-0">
@@ -571,7 +575,10 @@ function AnamneseView({ snapshot }: { snapshot: AnamnesisSnapshot }) {
         Modelo: {snapshot.template_title} · v{snapshot.template_version}
       </p>
       {fields.length === 0 ? (
-        <p className="text-xs text-slate-500">Nenhum campo no snapshot deste modelo.</p>
+        <p className="text-xs text-slate-500">
+          Esta anamnese só tem campos padrão (nome, CPF, plano, etc.) — os
+          dados aparecem no header e nas seções da ficha.
+        </p>
       ) : (
         <dl className="space-y-2">
           {fields.map((f) => (
