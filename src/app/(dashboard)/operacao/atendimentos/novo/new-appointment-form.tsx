@@ -66,12 +66,20 @@ export function NewAppointmentForm({
   const [appointmentAt, setAppointmentAt] = useState(
     () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
   )
-  const [durationMinutes, setDurationMinutes] = useState<number>(30)
+  const [endTime, setEndTime] = useState<string>(() => {
+    // default = início + 30 min
+    const start = normalizeInitialAt(initialAppointmentAt) ?? localIsoNow()
+    return addMinutesToHHMM(start.slice(11), 30)
+  })
   const [amountReais, setAmountReais] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
+  const [conflictWarning, setConflictWarning] = useState<string | null>(null)
+
+  // Duracao derivada de start/end.
+  const durationMinutes = computeDurationMinutes(appointmentAt, endTime)
 
   // Pagamento
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix')
@@ -97,6 +105,64 @@ export function NewAppointmentForm({
     }
     setInstallmentDates(next)
   }, [installmentsCount])
+
+  // Pre-check de conflito de horario com debounce.
+  useEffect(() => {
+    if (!doctorId || !appointmentAt || !endTime) {
+      setConflictWarning(null)
+      return
+    }
+    const startIso = new Date(appointmentAt).toISOString()
+    const endIso = computeEndIso(appointmentAt, endTime)
+    if (!endIso || new Date(endIso).getTime() <= new Date(startIso).getTime()) {
+      setConflictWarning(null)
+      return
+    }
+    const ctrl = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          doctor_id: doctorId,
+          start: startIso,
+          end: endIso,
+        })
+        const res = await fetch(`/api/atendimentos/check-conflict?${params.toString()}`, {
+          signal: ctrl.signal,
+        })
+        if (!res.ok) {
+          setConflictWarning(null)
+          return
+        }
+        const body = (await res.json()) as
+          | { conflict: false }
+          | {
+              conflict: true
+              with: { patient_name: string; start_at: string; end_at: string }
+            }
+        if (body.conflict) {
+          const startLocal = new Date(body.with.start_at).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+          const endLocal = new Date(body.with.end_at).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+          setConflictWarning(
+            `Conflito com ${body.with.patient_name} das ${startLocal} às ${endLocal}.`,
+          )
+        } else {
+          setConflictWarning(null)
+        }
+      } catch {
+        // abort ou rede — silencioso
+      }
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      ctrl.abort()
+    }
+  }, [doctorId, appointmentAt, endTime])
 
   // Sugere o valor vigente quando (plano, procedimento) mudam.
   useEffect(() => {
@@ -128,6 +194,15 @@ export function NewAppointmentForm({
       return
     }
     const whenIso = new Date(appointmentAt).toISOString()
+    const endIso = computeEndIso(appointmentAt, endTime)
+    if (!endIso || new Date(endIso).getTime() <= new Date(whenIso).getTime()) {
+      setError('Hora de fim deve ser depois do início.')
+      return
+    }
+    if (conflictWarning) {
+      setError(conflictWarning + ' Ajuste o horário antes de salvar.')
+      return
+    }
     // Datas futuras sao permitidas — o atendimento entra como 'agendado'
     // na agenda e migra para 'ativo' automaticamente quando o horario chega.
 
@@ -157,10 +232,17 @@ export function NewAppointmentForm({
       })
       const body = (await res.json().catch(() => ({}))) as {
         appointment_id?: string
-        error?: { message?: string }
+        error?: { code?: string; message?: string }
       }
       if (!res.ok || !body.appointment_id) {
-        setError(body.error?.message ?? 'Falha ao registrar atendimento.')
+        if (res.status === 409 || body.error?.code === 'APPOINTMENT_CONFLICT') {
+          setError(
+            body.error?.message ??
+              'Conflito de horário com outro atendimento deste profissional.',
+          )
+        } else {
+          setError(body.error?.message ?? 'Falha ao registrar atendimento.')
+        }
         return
       }
 
@@ -274,28 +356,27 @@ export function NewAppointmentForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="appointment_at">Data e hora</Label>
+        <Label htmlFor="appointment_at">Data e hora de início</Label>
         <Input
           id="appointment_at"
           type="datetime-local"
+          required
           value={appointmentAt}
           onChange={(e) => setAppointmentAt(e.target.value)}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="duration_minutes">Duração (min)</Label>
+        <Label htmlFor="end_time">Hora de fim</Label>
         <Input
-          id="duration_minutes"
-          type="number"
-          min={5}
-          max={480}
-          step={5}
-          value={durationMinutes}
-          onChange={(e) => setDurationMinutes(Number(e.target.value) || 30)}
+          id="end_time"
+          type="time"
+          required
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
         />
         <p className="text-[11px] text-slate-500">
-          Usado para o calendário; 5 a 480 minutos.
+          Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span>
         </p>
       </div>
 
@@ -419,6 +500,14 @@ export function NewAppointmentForm({
         </p>
       </div>
 
+      {conflictWarning ? (
+        <div
+          role="alert"
+          className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"
+        >
+          {conflictWarning}
+        </div>
+      ) : null}
       {error ? (
         <p className="md:col-span-2 text-sm text-rose-600">{error}</p>
       ) : null}
@@ -427,7 +516,7 @@ export function NewAppointmentForm({
       ) : null}
 
       <div className="md:col-span-2 flex items-center justify-end gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || !!conflictWarning}>
           {pending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -459,6 +548,46 @@ function normalizeInitialAt(raw: string | undefined): string | null {
   // Validacao basica de formato.
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(truncated)) return null
   return truncated
+}
+
+function addMinutesToHHMM(hhmm: string, minutes: number): string {
+  const m = /^(\d{2}):(\d{2})$/.exec(hhmm)
+  if (!m) return '00:30'
+  const total = parseInt(m[1] ?? '0', 10) * 60 + parseInt(m[2] ?? '0', 10) + minutes
+  const norm = ((total % 1440) + 1440) % 1440
+  const hh = `${Math.floor(norm / 60)}`.padStart(2, '0')
+  const mm = `${norm % 60}`.padStart(2, '0')
+  return `${hh}:${mm}`
+}
+
+function computeDurationMinutes(startDateTime: string, endHHMM: string): number {
+  const m = /^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})$/.exec(startDateTime)
+  const e = /^(\d{2}):(\d{2})$/.exec(endHHMM)
+  if (!m || !e) return 30
+  const startMin = parseInt(m[1] ?? '0', 10) * 60 + parseInt(m[2] ?? '0', 10)
+  const endMin = parseInt(e[1] ?? '0', 10) * 60 + parseInt(e[2] ?? '0', 10)
+  let diff = endMin - startMin
+  if (diff <= 0) diff += 1440 // cruza meia-noite
+  return diff
+}
+
+function computeEndIso(startDateTimeLocal: string, endHHMM: string): string | null {
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(startDateTimeLocal)
+  const e = /^(\d{2}):(\d{2})$/.exec(endHHMM)
+  if (!m || !e) return null
+  // ISO local "YYYY-MM-DDTHH:MM" → Date local → ISO UTC.
+  const datePart = m[1]
+  const startTime = `${m[2]}:${m[3]}`
+  const startMin = parseInt(m[2] ?? '0', 10) * 60 + parseInt(m[3] ?? '0', 10)
+  const endMin = parseInt(e[1] ?? '0', 10) * 60 + parseInt(e[2] ?? '0', 10)
+  let dayOffset = 0
+  if (endMin <= startMin) dayOffset = 1
+  const endDate = new Date(`${datePart}T${endHHMM}:00`)
+  if (Number.isNaN(endDate.getTime())) return null
+  if (dayOffset) endDate.setDate(endDate.getDate() + 1)
+  // ignore startTime — only used to detect day rollover
+  void startTime
+  return endDate.toISOString()
 }
 
 function clampDuration(n: number): number {

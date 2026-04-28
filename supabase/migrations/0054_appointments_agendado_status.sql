@@ -15,10 +15,12 @@
 --   2. Futuro vira 'agendado'.
 --   3. Caso contrario, 'ativo'.
 --
--- A view e CREATE OR REPLACE: Postgres exige que a lista de colunas e tipos
--- nao mude. effective_status continua TEXT, agora com 3 valores possiveis.
+-- A migration 0053 adicionou `duration_minutes` em appointments, o que muda
+-- a expansao de `a.*` na view. Postgres CREATE OR REPLACE VIEW exige ordem
+-- e tipos identicos, entao DROP+CREATE para acomodar a coluna nova.
 
-CREATE OR REPLACE VIEW public.appointments_effective AS
+DROP VIEW IF EXISTS public.appointments_effective;
+CREATE VIEW public.appointments_effective AS
 SELECT
   a.*,
   CASE

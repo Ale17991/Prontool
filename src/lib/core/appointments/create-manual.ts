@@ -149,7 +149,19 @@ export async function createAppointmentManually(
   }
 
   if (inserted.error || !inserted.data) {
-    throw new Error(`createAppointmentManually insert failed: ${inserted.error?.message}`)
+    const msg = inserted.error?.message ?? ''
+    // Trigger appointments_create_slot_lock levanta SQLSTATE 23P01 com prefixo
+    // APPOINTMENT_CONFLICT quando ha overlap com outro atendimento ativo do
+    // mesmo profissional. Convertemos para DomainError 409 — toHttpResponse
+    // ja mapeia para HTTP 409 com payload.
+    if (/APPOINTMENT_CONFLICT/i.test(msg) || /exclusion_violation/i.test(msg)) {
+      throw new DomainError(
+        'APPOINTMENT_CONFLICT',
+        'Já existe atendimento para este profissional no horário escolhido.',
+        { status: 409 },
+      )
+    }
+    throw new Error(`createAppointmentManually insert failed: ${msg}`)
   }
 
   return {
