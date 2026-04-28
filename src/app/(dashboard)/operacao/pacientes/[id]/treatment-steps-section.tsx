@@ -120,15 +120,6 @@ export function TreatmentStepsSection({
     return { total: steps.length, pendente: pend, concluido: done, cancelado: canc }
   }, [steps])
 
-  const pendingSteps = steps.filter((s) => s.status === 'pendente')
-  const convenioCents = pendingSteps
-    .filter((s) => s.priceSource === 'convenio')
-    .reduce((acc, s) => acc + (s.currentPriceCents ?? 0), 0)
-  const particularCents = pendingSteps
-    .filter((s) => s.priceSource === 'particular')
-    .reduce((acc, s) => acc + (s.currentPriceCents ?? 0), 0)
-  const unpricedCount = pendingSteps.filter((s) => s.currentPriceCents === null).length
-
   const visibleSteps =
     filter === 'all' ? steps : steps.filter((s) => s.status === filter)
 
@@ -152,28 +143,13 @@ export function TreatmentStepsSection({
         ) : null}
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-3 gap-3">
           <MiniStat label="Total" value={counts.total.toString()} />
           <MiniStat label="Pendentes" value={counts.pendente.toString()} accent="amber" />
           <MiniStat
             label="Concluídas"
             value={`${counts.concluido}${counts.cancelado ? ` · ${counts.cancelado} canc.` : ''}`}
             accent="emerald"
-          />
-          <MiniStat
-            label="Valor estimado (pendentes)"
-            value={
-              convenioCents > 0 || particularCents > 0
-                ? `Convênio: ${formatCurrency(convenioCents)} · Particular: ${formatCurrency(particularCents)}`
-                : counts.pendente === 0
-                  ? '—'
-                  : 'sem valor calculado'
-            }
-            sub={
-              unpricedCount > 0
-                ? `* valor parcial — ${unpricedCount} sem preço cadastrado`
-                : undefined
-            }
           />
         </div>
 
@@ -872,17 +848,6 @@ function NewStepForm({
           {conflictWarning}
         </div>
       ) : null}
-
-      <div className="space-y-1.5 md:col-span-2">
-        <Label>Valor estimado</Label>
-        <PriceIndicator
-          particularOnly={!!particularOnly}
-          shouldFallbackToParticular={shouldFallbackToParticular}
-          procedure={selectedProcedure}
-          priceState={priceState}
-          planIdForMissingLink={effectivePlanForConvenio || null}
-        />
-      </div>
 
       <div className="space-y-1.5 md:col-span-2">
         <Label htmlFor="step_notes">Observações (opcional)</Label>

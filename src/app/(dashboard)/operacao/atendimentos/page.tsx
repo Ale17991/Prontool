@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import {
   getDayRange,
   getMonthRange,
@@ -42,13 +42,12 @@ interface PageProps {
 interface AppointmentRow {
   id: string | null
   patient_id: string | null
+  doctor_id: string | null
   appointment_at: string | null
-  frozen_amount_cents: number | null
-  frozen_commission_bps: number | null
-  net_amount_cents: number | null
-  net_commission_cents: number | null
+  duration_minutes: number | null
   effective_status: string | null
   procedures: { tuss_code: string; display_name: string | null } | null
+  doctors: { full_name: string | null } | null
 }
 
 export default async function AtendimentosPage({ searchParams }: PageProps) {
@@ -157,7 +156,9 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   let query = supabase
     .from('appointments_effective')
     .select(
-      'id, patient_id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status, procedures:procedure_id(tuss_code, display_name)',
+      'id, patient_id, doctor_id, appointment_at, duration_minutes, effective_status, ' +
+        'procedures:procedure_id(tuss_code, display_name), ' +
+        'doctors:doctor_id(full_name)',
     )
     .order('appointment_at', { ascending: false })
     .limit(200)
@@ -191,11 +192,26 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     }
   }
 
-  const totalRevenue = rows.reduce(
-    (acc, r) => acc + (r.net_amount_cents ?? r.frozen_amount_cents ?? 0),
-    0,
-  )
   const reversedCount = rows.filter((r) => r.effective_status === 'estornado').length
+
+  // Carrega contagem de alergias por paciente (badge na lista). Apenas
+  // exibicao clinica — nao bloqueia render se a query falhar.
+  const allergyCount = new Map<string, number>()
+  if (rows.length > 0) {
+    const patientIds = Array.from(
+      new Set(rows.map((r) => r.patient_id).filter((id): id is string => Boolean(id))),
+    )
+    if (patientIds.length > 0) {
+      const { data: allergyRows } = await supabase
+        .from('patient_allergies')
+        .select('patient_id')
+        .in('patient_id', patientIds)
+        .is('deleted_at', null)
+      for (const a of (allergyRows ?? []) as Array<{ patient_id: string }>) {
+        allergyCount.set(a.patient_id, (allergyCount.get(a.patient_id) ?? 0) + 1)
+      }
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -203,8 +219,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {rows.length} atendimento{rows.length === 1 ? '' : 's'} no período · Receita líquida{' '}
-            <span className="font-semibold text-slate-700">{formatCurrency(totalRevenue)}</span>
+            {rows.length} atendimento{rows.length === 1 ? '' : 's'} no período
             {reversedCount > 0 ? (
               <>
                 {' '}
@@ -291,68 +306,90 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
+                  <TableHead>Início</TableHead>
+                  <TableHead>Fim</TableHead>
                   <TableHead>Paciente</TableHead>
                   <TableHead>Procedimento</TableHead>
-                  <TableHead>Valor líquido</TableHead>
-                  <TableHead>Comissão</TableHead>
+                  <TableHead>Profissional</TableHead>
+                  <TableHead>Alergias</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id ?? Math.random()} className="group">
-                    <TableCell className="font-medium text-slate-700">
-                      {formatDateTime(r.appointment_at)}
-                    </TableCell>
-                    <TableCell className="font-medium text-slate-900">
-                      {r.patient_id ? patientNames.get(r.patient_id) ?? '—' : '—'}
-                    </TableCell>
-                    <TableCell className="text-slate-700">
-                      {r.procedures ? (
-                        <span>
-                          <span className="font-mono text-xs text-slate-500">
-                            {r.procedures.tuss_code}
+                {rows.map((r) => {
+                  const startMs = r.appointment_at ? new Date(r.appointment_at).getTime() : null
+                  const endIso =
+                    startMs !== null
+                      ? new Date(startMs + (r.duration_minutes ?? 30) * 60_000).toISOString()
+                      : null
+                  const allergyN = r.patient_id ? allergyCount.get(r.patient_id) ?? 0 : 0
+                  return (
+                    <TableRow key={r.id ?? Math.random()} className="group">
+                      <TableCell className="font-medium text-slate-700">
+                        {formatDateTime(r.appointment_at)}
+                      </TableCell>
+                      <TableCell className="font-medium text-slate-700">
+                        {endIso ? formatDateTime(endIso).split(' ').pop() : '—'}
+                      </TableCell>
+                      <TableCell className="font-medium text-slate-900">
+                        {r.patient_id ? patientNames.get(r.patient_id) ?? '—' : '—'}
+                      </TableCell>
+                      <TableCell className="text-slate-700">
+                        {r.procedures ? (
+                          <span>
+                            <span className="font-mono text-xs text-slate-500">
+                              {r.procedures.tuss_code}
+                            </span>
+                            {r.procedures.display_name ? (
+                              <span className="ml-2">{r.procedures.display_name}</span>
+                            ) : null}
                           </span>
-                          {r.procedures.display_name ? (
-                            <span className="ml-2">{r.procedures.display_name}</span>
-                          ) : null}
-                        </span>
-                      ) : (
-                        '—'
-                      )}
-                    </TableCell>
-                    <TableCell className="font-bold text-slate-900">
-                      {formatCurrency(r.net_amount_cents ?? r.frozen_amount_cents)}
-                    </TableCell>
-                    <TableCell className="text-slate-700">
-                      {formatCurrency(r.net_commission_cents ?? computeCommission(r))}
-                    </TableCell>
-                    <TableCell>
-                      {r.effective_status === 'estornado' ? (
-                        <Badge variant="destructive">estornado</Badge>
-                      ) : r.effective_status === 'agendado' ||
-                        (r.appointment_at && new Date(r.appointment_at).getTime() > Date.now()) ? (
-                        <Badge variant="secondary" className="border-sky-200 bg-sky-50 text-sky-800">
-                          agendado
-                        </Badge>
-                      ) : (
-                        <Badge variant="success">ativo</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {r.id ? (
-                        <Link
-                          href={`/operacao/atendimentos/${r.id}`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
-                        >
-                          Abrir <ChevronRight className="h-3 w-3" />
-                        </Link>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        ) : (
+                          '—'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-700">
+                        {r.doctors?.full_name ?? '—'}
+                      </TableCell>
+                      <TableCell>
+                        {allergyN > 0 ? (
+                          <Badge variant="destructive">
+                            {allergyN === 1 ? '1 alergia' : `${allergyN} alergias`}
+                          </Badge>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">NKDA</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.effective_status === 'estornado' ? (
+                          <Badge variant="destructive">estornado</Badge>
+                        ) : r.effective_status === 'agendado' ||
+                          (r.appointment_at &&
+                            new Date(r.appointment_at).getTime() > Date.now()) ? (
+                          <Badge
+                            variant="secondary"
+                            className="border-sky-200 bg-sky-50 text-sky-800"
+                          >
+                            agendado
+                          </Badge>
+                        ) : (
+                          <Badge variant="success">ativo</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {r.id ? (
+                          <Link
+                            href={`/operacao/atendimentos/${r.id}`}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            Abrir <ChevronRight className="h-3 w-3" />
+                          </Link>
+                        ) : null}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           )}
@@ -362,10 +399,3 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   )
 }
 
-function computeCommission(row: {
-  frozen_amount_cents: number | null
-  frozen_commission_bps: number | null
-}): number | null {
-  if (row.frozen_amount_cents === null || row.frozen_commission_bps === null) return null
-  return Math.round((row.frozen_amount_cents * row.frozen_commission_bps) / 10_000)
-}

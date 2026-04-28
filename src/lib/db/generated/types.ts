@@ -352,6 +352,7 @@ export type Database = {
           frozen_amount_cents: number
           frozen_commission_bps: number
           id: string
+          observacoes: string | null
           patient_id: string
           plan_id: string
           procedure_id: string
@@ -369,6 +370,7 @@ export type Database = {
           frozen_amount_cents: number
           frozen_commission_bps: number
           id?: string
+          observacoes?: string | null
           patient_id: string
           plan_id: string
           procedure_id: string
@@ -386,6 +388,7 @@ export type Database = {
           frozen_amount_cents?: number
           frozen_commission_bps?: number
           id?: string
+          observacoes?: string | null
           patient_id?: string
           plan_id?: string
           procedure_id?: string

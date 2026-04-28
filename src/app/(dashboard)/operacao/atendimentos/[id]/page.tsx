@@ -1,14 +1,31 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, Calendar, DollarSign, History, Percent, Receipt, Stethoscope } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  ClipboardList,
+  Clock,
+  DollarSign,
+  History,
+  Percent,
+  Receipt,
+  ShieldAlert,
+  Stethoscope,
+  User,
+} from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/db/types'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatBps, formatCurrency, formatDateTime } from '@/lib/utils'
+import { listAllergies, type PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
 import { ReversalForm } from './reversal-form'
 import { MarkRealizedForm } from './mark-realized-form'
 
@@ -16,7 +33,11 @@ export const dynamic = 'force-dynamic'
 
 interface AppointmentDetail {
   id: string | null
+  patient_id: string | null
+  doctor_id: string | null
   appointment_at: string | null
+  duration_minutes: number | null
+  observacoes: string | null
   frozen_amount_cents: number | null
   frozen_commission_bps: number | null
   net_amount_cents: number | null
@@ -25,6 +46,8 @@ interface AppointmentDetail {
   reversal_id: string | null
   reversed_at: string | null
   procedures: { tuss_code: string; display_name: string | null } | null
+  doctors: { full_name: string | null } | null
+  health_plans: { name: string | null } | null
 }
 
 interface AuditRow {
@@ -45,11 +68,16 @@ export default async function AtendimentoDetailPage({
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const supabase = createSupabaseServerClient()
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const { data: appointmentRaw, error } = await supabase
     .from('appointments_effective')
     .select(
-      'id, appointment_at, frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, effective_status, reversal_id, reversed_at, procedures:procedure_id(tuss_code, display_name)',
+      'id, patient_id, doctor_id, appointment_at, duration_minutes, observacoes, ' +
+        'frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, ' +
+        'effective_status, reversal_id, reversed_at, ' +
+        'procedures:procedure_id(tuss_code, display_name), ' +
+        'doctors:doctor_id(full_name), ' +
+        'health_plans:plan_id(name)',
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -57,6 +85,34 @@ export default async function AtendimentoDetailPage({
 
   if (error) throw new Error(`appointment read failed: ${error.message}`)
   if (!appointment) notFound()
+
+  // Nome do paciente (descriptografado em batch).
+  let patientName = '—'
+  const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (appointment.patient_id && encryptionKey) {
+    const service = createSupabaseServiceClient()
+    const { data } = await service.rpc('decrypt_patient_names_for_ids', {
+      p_tenant_id: session.tenantId,
+      p_patient_ids: [appointment.patient_id],
+      p_key: encryptionKey,
+    })
+    type DecryptRow = { id: string; full_name: string | null; anonymized_at: string | null }
+    const dec = ((data ?? []) as DecryptRow[])[0]
+    if (dec) patientName = dec.anonymized_at ? '[anonimizado]' : dec.full_name ?? '—'
+  }
+
+  // Alergias do paciente (Card de destaque).
+  let allergies: PatientAllergyDTO[] = []
+  if (appointment.patient_id) {
+    try {
+      allergies = await listAllergies(supabase, {
+        tenantId: session.tenantId,
+        patientId: appointment.patient_id,
+      })
+    } catch {
+      // best-effort — nao bloqueia render do detalhe
+    }
+  }
 
   const { data: auditRaw } = await supabase
     .from('audit_log')
@@ -80,6 +136,14 @@ export default async function AtendimentoDetailPage({
         ? 'agendado'
         : 'ativo'
   const canReverse = can(session.role, 'appointment.reverse') && status !== 'estornado'
+
+  // Hora fim derivada de inicio + duracao.
+  const endIso = appointment.appointment_at
+    ? new Date(
+        new Date(appointment.appointment_at).getTime() +
+          (appointment.duration_minutes ?? 30) * 60_000,
+      ).toISOString()
+    : null
 
   return (
     <div className="space-y-6">
@@ -114,34 +178,42 @@ export default async function AtendimentoDetailPage({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        <SummaryCard
-          icon={Calendar}
-          label="Data do atendimento"
-          value={formatDateTime(appointment.appointment_at)}
-        />
-        <SummaryCard
-          icon={Stethoscope}
-          label="Procedimento"
-          value={formatProcedure(appointment.procedures)}
-        />
-        <SummaryCard
-          icon={DollarSign}
-          label="Valor congelado"
-          value={formatCurrency(appointment.frozen_amount_cents)}
-        />
-        <SummaryCard
-          icon={Percent}
-          label="Comissão congelada"
-          value={formatBps(appointment.frozen_commission_bps)}
-        />
-        <SummaryCard
-          icon={Receipt}
-          label="Valor líquido"
-          value={formatCurrency(appointment.net_amount_cents)}
-          accent={status === 'estornado'}
-        />
-      </div>
+      {/* ---- Dados clínicos (foco principal) ---- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <ClipboardList className="h-4 w-4 text-primary" />
+            Dados clínicos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <ClinicalRow icon={Calendar} label="Início">
+            {formatDateTime(appointment.appointment_at)}
+          </ClinicalRow>
+          <ClinicalRow icon={Clock} label="Fim">
+            {endIso ? formatDateTime(endIso) : '—'}
+          </ClinicalRow>
+          <ClinicalRow icon={User} label="Paciente">
+            <span className="font-bold">{patientName}</span>
+          </ClinicalRow>
+          <ClinicalRow icon={Stethoscope} label="Profissional">
+            {appointment.doctors?.full_name ?? '—'}
+          </ClinicalRow>
+          <ClinicalRow icon={ClipboardList} label="Procedimento">
+            {formatProcedure(appointment.procedures)}
+          </ClinicalRow>
+          <ClinicalRow icon={ClipboardList} label="Observações">
+            {appointment.observacoes?.trim() ? (
+              <span className="whitespace-pre-wrap">{appointment.observacoes}</span>
+            ) : (
+              <span className="text-slate-400">—</span>
+            )}
+          </ClinicalRow>
+        </CardContent>
+      </Card>
+
+      {/* ---- Card de destaque: alergias do paciente ---- */}
+      <AllergiesCard allergies={allergies} />
 
       {status === 'agendado' && appointment.id &&
         (session.role === 'admin' || session.role === 'profissional_saude') ? (
@@ -173,6 +245,44 @@ export default async function AtendimentoDetailPage({
           </CardContent>
         </Card>
       ) : null}
+
+      {/* ---- Dados financeiros (colapsável, no final) ---- */}
+      <details className="group rounded-lg border border-slate-200 bg-white">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-700">
+          <span className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-slate-400" />
+            Dados financeiros
+          </span>
+          <span className="text-xs font-medium text-slate-400 group-open:hidden">
+            mostrar
+          </span>
+          <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
+            ocultar
+          </span>
+        </summary>
+        <div className="border-t border-slate-100 p-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <ClinicalRow icon={DollarSign} label="Valor congelado">
+              {formatCurrency(appointment.frozen_amount_cents)}
+            </ClinicalRow>
+            <ClinicalRow icon={Percent} label="Comissão congelada">
+              {formatBps(appointment.frozen_commission_bps)}
+            </ClinicalRow>
+            <ClinicalRow icon={Receipt} label="Valor líquido">
+              <span
+                className={
+                  status === 'estornado' ? 'font-black text-rose-600' : 'font-black'
+                }
+              >
+                {formatCurrency(appointment.net_amount_cents)}
+              </span>
+            </ClinicalRow>
+            <ClinicalRow icon={Stethoscope} label="Plano">
+              {appointment.health_plans?.name ?? '—'}
+            </ClinicalRow>
+          </div>
+        </div>
+      </details>
 
       <Card>
         <CardHeader>
@@ -220,13 +330,6 @@ export default async function AtendimentoDetailPage({
   )
 }
 
-interface SummaryCardProps {
-  icon: typeof Calendar
-  label: string
-  value: string
-  accent?: boolean
-}
-
 function formatProcedure(
   procedure: { tuss_code: string; display_name: string | null } | null,
 ): string {
@@ -235,25 +338,90 @@ function formatProcedure(
   return procedure.tuss_code
 }
 
-function SummaryCard({ icon: Icon, label, value, accent }: SummaryCardProps) {
+function ClinicalRow({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof Calendar
+  label: string
+  children: React.ReactNode
+}) {
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
-          <Icon className="h-4 w-4" />
-        </div>
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+    <div className="flex gap-3">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
           {label}
         </p>
-        <p
+        <div className="mt-0.5 text-sm text-slate-700">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
+  if (allergies.length === 0) {
+    return (
+      <Card className="border-emerald-200 bg-emerald-50/40">
+        <CardContent className="flex items-center gap-3 p-4">
+          <ShieldAlert className="h-5 w-5 text-emerald-600" />
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+              Alergias do paciente
+            </p>
+            <p className="text-sm font-bold text-emerald-900">NKDA — sem alergias registradas</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const grave = allergies.filter((a) => a.severity === 'grave').length
+  const accent = grave > 0 ? 'rose' : 'amber'
+
+  return (
+    <Card
+      className={
+        accent === 'rose'
+          ? 'border-rose-200 bg-rose-50/40'
+          : 'border-amber-200 bg-amber-50/40'
+      }
+    >
+      <CardHeader className="pb-2">
+        <CardTitle
           className={
-            accent
-              ? 'text-xl font-black tracking-tight text-rose-600'
-              : 'text-xl font-black tracking-tight text-slate-900'
+            accent === 'rose'
+              ? 'flex items-center gap-2 text-sm text-rose-900'
+              : 'flex items-center gap-2 text-sm text-amber-900'
           }
         >
-          {value}
-        </p>
+          <AlertTriangle
+            className={accent === 'rose' ? 'h-4 w-4 text-rose-600' : 'h-4 w-4 text-amber-600'}
+          />
+          Alergias do paciente — {allergies.length} registrada
+          {allergies.length === 1 ? '' : 's'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5 pt-0">
+        {allergies.map((a) => (
+          <div key={a.id} className="flex items-center gap-2 text-xs">
+            <Badge
+              variant={a.severity === 'grave' ? 'destructive' : 'secondary'}
+              className={
+                a.severity === 'grave'
+                  ? ''
+                  : a.severity === 'moderada'
+                    ? 'border-amber-300 bg-amber-100 text-amber-900'
+                    : 'border-slate-300 bg-slate-100 text-slate-700'
+              }
+            >
+              {a.severity}
+            </Badge>
+            <span className="font-bold text-slate-900">{a.substance}</span>
+            {a.notes ? <span className="text-slate-600">— {a.notes}</span> : null}
+          </div>
+        ))}
       </CardContent>
     </Card>
   )

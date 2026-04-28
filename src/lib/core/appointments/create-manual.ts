@@ -121,6 +121,7 @@ export async function createAppointmentManually(
     frozen_commission_bps: commission.percentageBps,
     appointment_at: when.toISOString(),
     source: 'manual',
+    observacoes: input.observacoes ?? null,
   }
 
   // Tenta inserir com duration_minutes (migration 0053). Se a coluna nao
@@ -136,14 +137,33 @@ export async function createAppointmentManually(
     .select('id')
     .single()
 
+  // Fallbacks graciosos para colunas adicionadas em migrations posteriores
+  // que talvez ainda nao tenham aplicado em todos os ambientes.
   if (
     inserted.error &&
-    /duration_minutes/i.test(inserted.error.message) &&
+    /(duration_minutes|observacoes)/i.test(inserted.error.message) &&
     /does not exist/i.test(inserted.error.message)
   ) {
+    // Remove campos opcionais e tenta de novo. O atendimento e gravado;
+    // perdem-se apenas duracao customizada e observacoes (na UI essas
+    // viram default/empty na leitura).
+    const fallbackRow = {
+      tenant_id: baseRow.tenant_id,
+      patient_id: baseRow.patient_id,
+      doctor_id: baseRow.doctor_id,
+      procedure_id: baseRow.procedure_id,
+      plan_id: baseRow.plan_id,
+      source_price_version_id: baseRow.source_price_version_id,
+      source_commission_history_id: baseRow.source_commission_history_id,
+      source_raw_event_id: baseRow.source_raw_event_id,
+      frozen_amount_cents: baseRow.frozen_amount_cents,
+      frozen_commission_bps: baseRow.frozen_commission_bps,
+      appointment_at: baseRow.appointment_at,
+      source: baseRow.source,
+    }
     inserted = await supabase
       .from('appointments')
-      .insert(baseRow as never)
+      .insert(fallbackRow as never)
       .select('id')
       .single()
   }
