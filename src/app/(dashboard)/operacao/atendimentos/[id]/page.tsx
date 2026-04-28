@@ -70,21 +70,7 @@ export default async function AtendimentoDetailPage({
   if (!session) redirect('/login')
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
-  const { data: appointmentRaw, error } = await supabase
-    .from('appointments_effective')
-    .select(
-      'id, patient_id, doctor_id, plan_id, appointment_at, duration_minutes, observacoes, ' +
-        'frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, ' +
-        'effective_status, reversal_id, reversed_at, ' +
-        'procedures:procedure_id(tuss_code, display_name), ' +
-        'doctors:doctor_id(full_name), ' +
-        'health_plans:plan_id(name)',
-    )
-    .eq('id', params.id)
-    .maybeSingle()
-  const appointment = appointmentRaw as unknown as AppointmentDetail | null
-
-  if (error) throw new Error(`appointment read failed: ${error.message}`)
+  const appointment = await loadAppointmentDetail(supabase, params.id)
   if (!appointment) notFound()
 
   // Nome do paciente (descriptografado em batch).
@@ -338,6 +324,90 @@ export default async function AtendimentoDetailPage({
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+/**
+ * Carrega o detalhe do atendimento de `appointments_effective` com fallback
+ * gracioso para colunas opcionais que podem nao existir em todos os ambientes:
+ *   - `observacoes` (introduzida na feature 005)
+ *   - `duration_minutes` (introduzida na migration 0053)
+ *
+ * Em vez de falhar com 500, dropa cada coluna ausente e tenta de novo.
+ */
+async function loadAppointmentDetail(
+  supabase: SupabaseClient<Database>,
+  id: string,
+): Promise<AppointmentDetail | null> {
+  const baseColumns =
+    'id, patient_id, doctor_id, plan_id, appointment_at, ' +
+    'frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, ' +
+    'effective_status, reversal_id, reversed_at, ' +
+    'procedures:procedure_id(tuss_code, display_name), ' +
+    'doctors:doctor_id(full_name), ' +
+    'health_plans:plan_id(name)'
+
+  // Tenta com todas as colunas opcionais; cai gradativamente.
+  const attempts: Array<{ select: string; opt: { duration: boolean; obs: boolean } }> = [
+    {
+      select: `${baseColumns}, duration_minutes, observacoes`,
+      opt: { duration: true, obs: true },
+    },
+    { select: `${baseColumns}, duration_minutes`, opt: { duration: true, obs: false } },
+    { select: `${baseColumns}, observacoes`, opt: { duration: false, obs: true } },
+    { select: baseColumns, opt: { duration: false, obs: false } },
+  ]
+
+  for (const attempt of attempts) {
+    const result = await supabase
+      .from('appointments_effective')
+      .select(attempt.select)
+      .eq('id', id)
+      .maybeSingle()
+    if (!result.error) {
+      if (!result.data) return null
+      const row = result.data as unknown as Record<string, unknown>
+      return {
+        id: (row.id as string | null) ?? null,
+        patient_id: (row.patient_id as string | null) ?? null,
+        doctor_id: (row.doctor_id as string | null) ?? null,
+        plan_id: (row.plan_id as string | null) ?? null,
+        appointment_at: (row.appointment_at as string | null) ?? null,
+        duration_minutes: attempt.opt.duration
+          ? ((row.duration_minutes as number | null) ?? null)
+          : null,
+        observacoes: attempt.opt.obs ? ((row.observacoes as string | null) ?? null) : null,
+        frozen_amount_cents: (row.frozen_amount_cents as number | null) ?? null,
+        frozen_commission_bps: (row.frozen_commission_bps as number | null) ?? null,
+        net_amount_cents: (row.net_amount_cents as number | null) ?? null,
+        net_commission_cents: (row.net_commission_cents as number | null) ?? null,
+        effective_status: (row.effective_status as string | null) ?? null,
+        reversal_id: (row.reversal_id as string | null) ?? null,
+        reversed_at: (row.reversed_at as string | null) ?? null,
+        procedures: (row.procedures as AppointmentDetail['procedures']) ?? null,
+        doctors: (row.doctors as AppointmentDetail['doctors']) ?? null,
+        health_plans: (row.health_plans as AppointmentDetail['health_plans']) ?? null,
+      }
+    }
+    if (
+      isMissingColumnError(result.error.message, 'observacoes') ||
+      isMissingColumnError(result.error.message, 'duration_minutes')
+    ) {
+      continue
+    }
+    throw new Error(`appointment read failed: ${result.error.message}`)
+  }
+  throw new Error('appointment read failed: no compatible select')
+}
+
+function isMissingColumnError(message: string, column: string): boolean {
+  if (!message) return false
+  const lower = message.toLowerCase()
+  const col = column.toLowerCase()
+  return (
+    lower.includes(`column ${col}`) ||
+    lower.includes(`"${col}" does not exist`) ||
+    (lower.includes(col) && lower.includes('does not exist'))
   )
 }
 
