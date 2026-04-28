@@ -191,6 +191,17 @@ function formatDate(value: string | null | undefined): string {
   return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 }
 
+function formatStatus(status: 'ativo' | 'em_acompanhamento' | 'resolvido'): string {
+  switch (status) {
+    case 'ativo':
+      return 'Ativo'
+    case 'em_acompanhamento':
+      return 'Em acompanhamento'
+    case 'resolvido':
+      return 'Resolvido'
+  }
+}
+
 function ageFrom(birth: string | null): string {
   if (!birth) return '—'
   const d = new Date(birth)
@@ -410,23 +421,26 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
         {/* ============== 5. Diagnósticos (CIDs) ============== */}
         <Text style={styles.sectionTitle}>5. Diagnósticos (CID-10)</Text>
         {bundle.diagnostics.length === 0 ? (
-          <Text style={styles.empty}>Nenhum CID registrado em evoluções.</Text>
+          <Text style={styles.empty}>Nenhum diagnóstico cadastrado.</Text>
         ) : (
           <View style={styles.table}>
             <View style={styles.trHeader}>
               <Text style={[styles.th, { flex: 0.6 }]}>Código</Text>
               <Text style={[styles.th, { flex: 3 }]}>Descrição</Text>
-              <Text style={[styles.th, { flex: 0.6 }]}>Ocorr.</Text>
-              <Text style={[styles.th, { flex: 1 }]}>Última anotação</Text>
+              <Text style={[styles.th, { flex: 1 }]}>Status</Text>
+              <Text style={[styles.th, { flex: 1 }]}>Diagnosticado em</Text>
             </View>
-            {bundle.diagnostics.map((c) => (
-              <View key={c.code} style={styles.tr}>
+            {bundle.diagnostics.map((c, idx) => (
+              <View key={`${c.code}-${idx}`} style={styles.tr}>
                 <Text style={[styles.td, { flex: 0.6, fontFamily: 'Helvetica-Bold' }]}>
                   {c.code}
                 </Text>
-                <Text style={[styles.td, { flex: 3 }]}>{c.description}</Text>
-                <Text style={[styles.td, { flex: 0.6 }]}>{c.count}</Text>
-                <Text style={[styles.td, { flex: 1 }]}>{formatDate(c.latestAt)}</Text>
+                <Text style={[styles.td, { flex: 3 }]}>
+                  {c.description}
+                  {c.additionalNotes ? `\n${c.additionalNotes}` : ''}
+                </Text>
+                <Text style={[styles.td, { flex: 1 }]}>{formatStatus(c.status)}</Text>
+                <Text style={[styles.td, { flex: 1 }]}>{formatDate(c.diagnosedAt)}</Text>
               </View>
             ))}
           </View>

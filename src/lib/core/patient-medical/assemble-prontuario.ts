@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getPatient, type PatientDetail } from '@/lib/core/patients/get'
 import { listAllergies, type PatientAllergyDTO } from './allergies'
+import { listDiagnoses, type PatientDiagnosisDTO } from './diagnoses'
 import { listHistory, type PatientHistoryDTO } from './history'
 import { listVitalSigns, type VitalSignsDTO } from './vital-signs'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
@@ -22,8 +23,10 @@ export interface ProntuarioAppointmentRow {
 export interface ProntuarioCidEntry {
   code: string
   description: string
-  latestAt: string
-  count: number
+  /** Data do diagnóstico (campo `diagnosed_at` em `patient_diagnoses`). */
+  diagnosedAt: string
+  status: 'ativo' | 'em_acompanhamento' | 'resolvido'
+  additionalNotes: string | null
 }
 
 export interface ProntuarioBundle {
@@ -65,26 +68,38 @@ export async function assemblePatientChart(
     patientId: input.patientId,
   })
 
-  const [allergies, history, vitalSignsAll, records, steps, appointments, tenantRow] =
-    await Promise.all([
-      listAllergies(supabase, { tenantId: input.tenantId, patientId: input.patientId }),
-      listHistory(supabase, { tenantId: input.tenantId, patientId: input.patientId }),
-      listVitalSigns(supabase, {
-        tenantId: input.tenantId,
-        patientId: input.patientId,
-        limit: 200,
-      }),
-      listClinicalRecords(supabase, {
-        tenantId: input.tenantId,
-        patientId: input.patientId,
-      }),
-      listTreatmentSteps(supabase, {
-        tenantId: input.tenantId,
-        patientId: input.patientId,
-      }),
-      fetchAppointments(supabase, input.tenantId, input.patientId),
-      fetchTenant(supabase, input.tenantId),
-    ])
+  const [
+    allergies,
+    history,
+    vitalSignsAll,
+    records,
+    steps,
+    appointments,
+    tenantRow,
+    diagnosesAll,
+  ] = await Promise.all([
+    listAllergies(supabase, { tenantId: input.tenantId, patientId: input.patientId }),
+    listHistory(supabase, { tenantId: input.tenantId, patientId: input.patientId }),
+    listVitalSigns(supabase, {
+      tenantId: input.tenantId,
+      patientId: input.patientId,
+      limit: 200,
+    }),
+    listClinicalRecords(supabase, {
+      tenantId: input.tenantId,
+      patientId: input.patientId,
+    }),
+    listTreatmentSteps(supabase, {
+      tenantId: input.tenantId,
+      patientId: input.patientId,
+    }),
+    fetchAppointments(supabase, input.tenantId, input.patientId),
+    fetchTenant(supabase, input.tenantId),
+    listDiagnoses(supabase, {
+      tenantId: input.tenantId,
+      patientId: input.patientId,
+    }).catch(() => [] as PatientDiagnosisDTO[]),
+  ])
 
   const fromIso = input.from ? `${input.from}T00:00:00Z` : null
   const toExclusive = input.to ? nextDayIso(input.to) : null
@@ -107,27 +122,20 @@ export async function assemblePatientChart(
     inWindow(a.appointmentAt),
   )
 
-  // Diagnósticos: dedupe por code, baseado APENAS nas evoluções da janela.
-  const cidMap = new Map<string, ProntuarioCidEntry>()
-  for (const r of evolutions) {
-    for (const c of r.soapData?.assessment_cids ?? []) {
-      const existing = cidMap.get(c.code)
-      if (!existing) {
-        cidMap.set(c.code, {
-          code: c.code,
-          description: c.description,
-          latestAt: r.createdAt,
-          count: 1,
-        })
-      } else {
-        existing.count += 1
-        if (r.createdAt > existing.latestAt) existing.latestAt = r.createdAt
-      }
-    }
-  }
-  const diagnostics = Array.from(cidMap.values()).sort((a, b) =>
-    a.latestAt > b.latestAt ? -1 : 1,
-  )
+  // Diagnósticos: lê direto de `patient_diagnoses` (replicando feature
+  // 0060). Filtra pela janela temporal pela data do diagnóstico.
+  const diagnostics: ProntuarioCidEntry[] = diagnosesAll
+    .filter((d) => {
+      const iso = `${d.diagnosedAt}T00:00:00Z`
+      return inWindow(iso)
+    })
+    .map((d) => ({
+      code: d.cid10Code,
+      description: d.cid10Description,
+      diagnosedAt: d.diagnosedAt,
+      status: d.status,
+      additionalNotes: d.additionalNotes,
+    }))
 
   return {
     tenantName: tenantRow?.name ?? 'Pronttu',

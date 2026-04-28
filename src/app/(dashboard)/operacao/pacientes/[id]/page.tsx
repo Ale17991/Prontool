@@ -35,6 +35,7 @@ import { MedicalHistorySection } from './medical-history-section'
 import { VitalSignsSection } from './vital-signs-section'
 import { PrintChartButton } from './print-chart-button'
 import { listAllergies } from '@/lib/core/patient-medical/allergies'
+import { listDiagnoses } from '@/lib/core/patient-medical/diagnoses'
 import { listHistory } from '@/lib/core/patient-medical/history'
 import { listVitalSigns } from '@/lib/core/patient-medical/vital-signs'
 import { Badge } from '@/components/ui/badge'
@@ -101,10 +102,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     patientId: params.id,
   })
 
-  const [allergies, medicalHistory, vitalSigns] = await Promise.all([
+  const [allergies, medicalHistory, vitalSigns, diagnoses] = await Promise.all([
     listAllergies(typedClient, { tenantId: session.tenantId, patientId: params.id }),
     listHistory(typedClient, { tenantId: session.tenantId, patientId: params.id }),
     listVitalSigns(typedClient, { tenantId: session.tenantId, patientId: params.id }),
+    listDiagnoses(typedClient, { tenantId: session.tenantId, patientId: params.id }),
   ])
 
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
@@ -403,7 +405,14 @@ export default async function PacienteDetailPage({ params }: PageProps) {
         />
       )}
 
-      {isAnonymized ? null : <DiagnosticsSection records={records} />}
+      {isAnonymized ? null : (
+        <DiagnosticsSection
+          patientId={params.id}
+          initialDiagnoses={diagnoses}
+          canWrite={session.role === 'admin' || session.role === 'profissional_saude'}
+          canDelete={session.role === 'admin'}
+        />
+      )}
 
       <ClinicalRecordsSection
         patientId={params.id}

@@ -980,6 +980,31 @@ function NewEvolutionForm({
         setError(body.error?.message ?? 'Falha ao salvar evolução.')
         return
       }
+
+      // Sugere registrar os CIDs como diagnósticos formais. Best-effort
+      // — falha silenciosa por CID não bloqueia o fluxo da evolução.
+      if (cidSelected.length > 0) {
+        const msg =
+          cidSelected.length === 1
+            ? `Adicionar ${cidSelected[0]!.code} aos diagnósticos do paciente?`
+            : `Adicionar os ${cidSelected.length} CIDs selecionados aos diagnósticos do paciente?`
+        if (confirm(msg)) {
+          await Promise.all(
+            cidSelected.map((c) =>
+              fetch(`/api/pacientes/${patientId}/diagnosticos`, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({
+                  cid10_code: c.code,
+                  cid10_description: c.description,
+                  status: 'ativo',
+                }),
+              }).catch(() => undefined),
+            ),
+          )
+        }
+      }
+
       setSubjective('')
       setObjective('')
       setAssessment('')

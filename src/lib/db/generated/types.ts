@@ -935,6 +935,63 @@ export type Database = {
           },
         ]
       }
+      patient_diagnoses: {
+        Row: {
+          additional_notes: string | null
+          cid10_code: string
+          cid10_description: string
+          created_at: string
+          deleted_at: string | null
+          diagnosed_at: string
+          diagnosed_by: string
+          id: string
+          patient_id: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          cid10_code: string
+          cid10_description: string
+          created_at?: string
+          deleted_at?: string | null
+          diagnosed_at?: string
+          diagnosed_by: string
+          id?: string
+          patient_id: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          cid10_code?: string
+          cid10_description?: string
+          created_at?: string
+          deleted_at?: string | null
+          diagnosed_at?: string
+          diagnosed_by?: string
+          id?: string
+          patient_id?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_diagnoses_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_diagnoses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_history: {
         Row: {
           category: string
