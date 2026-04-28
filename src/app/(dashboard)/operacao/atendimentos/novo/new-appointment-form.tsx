@@ -214,7 +214,7 @@ export function NewAppointmentForm({
     if (!procedureId) return
     if (particular) {
       const proc = procedures.find((p) => p.id === procedureId)
-      if (proc?.defaultAmountCents != null && amountReais === '') {
+      if (proc?.defaultAmountCents !== null && proc?.defaultAmountCents !== undefined && amountReais === '') {
         setAmountReais((proc.defaultAmountCents / 100).toFixed(2))
       }
       return
@@ -255,7 +255,7 @@ export function NewAppointmentForm({
       const overrideValid =
         amountReais.trim().length > 0 &&
         Number(amountReais.replace(',', '.').replace(/\./g, '')) > 0
-      if ((proc?.defaultAmountCents == null || proc.defaultAmountCents <= 0) && !overrideValid) {
+      if ((proc?.defaultAmountCents === null || proc?.defaultAmountCents === undefined || proc.defaultAmountCents <= 0) && !overrideValid) {
         setError(
           'Valor particular não cadastrado para este procedimento. Informe o valor manualmente.',
         )
