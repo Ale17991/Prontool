@@ -82,10 +82,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.45.2",
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitest/coverage-v8": "^1.6.0",
+    "adm-zip": "^0.5.17",
     "autoprefixer": "^10.4",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.5",
