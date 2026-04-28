@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { getSession } from '@/lib/auth/get-session'
+import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { checkConflict } from '@/lib/core/appointments/check-conflict'
@@ -29,13 +29,14 @@ const querySchema = z.object({
 
 export async function GET(req: Request): Promise<Response> {
   try {
-    const session = await getSession()
-    if (!session) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHENTICATED', message: 'sessao requerida' } },
-        { status: 401 },
-      )
-    }
+    const session = await requireRole(
+      ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],
+      {
+        entity: 'appointments',
+        route: '/api/atendimentos/check-conflict',
+        request: req,
+      },
+    )
 
     const url = new URL(req.url)
     const parsed = querySchema.safeParse({
