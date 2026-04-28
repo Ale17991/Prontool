@@ -96,6 +96,8 @@ export interface LaneAssignment<T extends LaneAssignable> {
   block: T
   lane: number // 0..MAX_LANES-1
   totalLanes: number // quantas lanes em uso simultaneo nesse cluster
+  /** True quando o bloco se sobrepoe a outro do mesmo agrupador (US4 — visual). */
+  conflict?: boolean
 }
 
 export interface LaneResult<T extends LaneAssignable> {
@@ -189,4 +191,34 @@ export function parseIsoDate(s: string | undefined | null): Date | null {
 export function isoDate(d: Date): string {
   const pad = (n: number) => `${n}`.padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+/**
+ * Defesa em profundidade (US4): marca blocos sobrepostos do MESMO agrupador
+ * (ex.: mesmo doctor) como conflict=true para o calendario destacar.
+ *
+ * Em uso normal a EXCLUDE constraint impede a entrada de slot_locks
+ * conflitantes — entao isso so dispara para conflitos preexistentes (dado
+ * legado, insercao forcada). Visualizacao em vermelho e o backup.
+ */
+export function detectVisualConflicts<T extends LaneAssignable>(
+  assignments: LaneAssignment<T>[],
+  groupKey: (block: T) => string,
+): void {
+  // O(n^2) por dia — n tipicamente <= 20 na pratica. Aceitavel.
+  for (let i = 0; i < assignments.length; i++) {
+    for (let j = i + 1; j < assignments.length; j++) {
+      const a = assignments[i]
+      const b = assignments[j]
+      if (!a || !b) continue
+      if (groupKey(a.block) !== groupKey(b.block)) continue
+      const overlap =
+        a.block.start.getTime() < b.block.end.getTime() &&
+        a.block.end.getTime() > b.block.start.getTime()
+      if (overlap) {
+        a.conflict = true
+        b.conflict = true
+      }
+    }
+  }
 }

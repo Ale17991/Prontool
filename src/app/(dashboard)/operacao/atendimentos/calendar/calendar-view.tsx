@@ -9,6 +9,7 @@ import {
   CALENDAR_HOUR_START,
   CALENDAR_SLOT_HEIGHT_REM,
   assignLanes,
+  detectVisualConflicts,
   toDateTimeLocalValue,
   type WeekRange,
 } from '@/lib/utils/calendar'
@@ -135,6 +136,8 @@ export function CalendarView({ range, appointments }: Props) {
             const isToday = isSameDay(d, today)
             const blocks = blocksPerDay.get(isoKey(d)) ?? []
             const lanes = assignLanes(blocks)
+            // US4: marca blocos conflitantes do mesmo doctor (visual fallback).
+            detectVisualConflicts(lanes.visible, (b) => b.appointment.doctorId)
             return (
               <div
                 key={`col-${dayIdx}`}

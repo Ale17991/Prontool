@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AppointmentWeekRow } from '@/lib/core/appointments/list-week'
 import type { LaneAssignment } from '@/lib/utils/calendar'
@@ -42,6 +43,8 @@ export function CalendarBlock({ assignment }: Props) {
       className={cn(
         'absolute z-10 flex flex-col gap-0.5 overflow-hidden rounded-md border px-1.5 py-1 text-[11px] shadow-sm transition-colors',
         statusClass,
+        // US4 — defesa em profundidade contra dado conflitante.
+        assignment.conflict && 'ring-2 ring-rose-500 ring-offset-1',
       )}
       style={{
         top: `${pos.topRem}rem`,
@@ -49,8 +52,17 @@ export function CalendarBlock({ assignment }: Props) {
         left: `calc(${leftPercent}% + 2px)`,
         width: `calc(${widthPercent}% - 4px)`,
       }}
-      title={`${a.patientName} · ${a.procedureLabel}`}
+      title={
+        assignment.conflict
+          ? `Conflito detectado · ${a.patientName} · ${a.procedureLabel}`
+          : `${a.patientName} · ${a.procedureLabel}`
+      }
     >
+      {assignment.conflict ? (
+        <span className="absolute right-0.5 top-0.5">
+          <AlertTriangle className="h-3 w-3 text-rose-600" />
+        </span>
+      ) : null}
       <span className="truncate font-bold leading-tight">{a.patientName}</span>
       <span className="truncate leading-tight opacity-80">{a.procedureLabel}</span>
     </Link>
