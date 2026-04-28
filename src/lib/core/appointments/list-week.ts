@@ -43,6 +43,16 @@ interface RawRow {
   procedures: { tuss_code: string | null; display_name: string | null } | null
 }
 
+const SELECT_WITH_DURATION =
+  'id, patient_id, doctor_id, procedure_id, appointment_at, duration_minutes, effective_status, ' +
+  'doctors:doctor_id(full_name), ' +
+  'procedures:procedure_id(tuss_code, display_name)'
+
+const SELECT_WITHOUT_DURATION =
+  'id, patient_id, doctor_id, procedure_id, appointment_at, effective_status, ' +
+  'doctors:doctor_id(full_name), ' +
+  'procedures:procedure_id(tuss_code, display_name)'
+
 export async function listAppointmentsForWeek(
   supabase: SupabaseClient<Database>,
   input: ListWeekInput,
@@ -53,26 +63,30 @@ export async function listAppointmentsForWeek(
     encryptionKey?: string
   },
 ): Promise<AppointmentWeekRow[]> {
-  let query = supabase
-    .from('appointments_effective')
-    .select(
-      'id, patient_id, doctor_id, procedure_id, appointment_at, duration_minutes, effective_status, ' +
-        'doctors:doctor_id(full_name), ' +
-        'procedures:procedure_id(tuss_code, display_name)',
-    )
-    .eq('tenant_id', input.tenantId)
-    .gte('appointment_at', input.weekStart.toISOString())
-    .lte('appointment_at', input.weekEnd.toISOString())
-    .order('appointment_at', { ascending: true })
-    .limit(500)
-
-  if (input.doctorIds && input.doctorIds.length > 0) {
-    query = query.in('doctor_id', input.doctorIds)
+  // Tenta a forma completa (com duration_minutes). Se a migration 0053 nao
+  // foi aplicada no ambiente atual, a coluna nao existe — caimos no SELECT
+  // alternativo e cada linha cai no DEFAULT_DURATION_MINUTES.
+  async function runQuery(select: string) {
+    let q = supabase
+      .from('appointments_effective')
+      .select(select)
+      .eq('tenant_id', input.tenantId)
+      .gte('appointment_at', input.weekStart.toISOString())
+      .lte('appointment_at', input.weekEnd.toISOString())
+      .order('appointment_at', { ascending: true })
+      .limit(500)
+    if (input.doctorIds && input.doctorIds.length > 0) {
+      q = q.in('doctor_id', input.doctorIds)
+    }
+    return q
   }
 
-  const { data, error } = await query
-  if (error) throw new Error(`appointments week fetch failed: ${error.message}`)
-  const rows = (data ?? []) as unknown as RawRow[]
+  let result = await runQuery(SELECT_WITH_DURATION)
+  if (result.error && isMissingColumnError(result.error.message, 'duration_minutes')) {
+    result = await runQuery(SELECT_WITHOUT_DURATION)
+  }
+  if (result.error) throw new Error(`appointments week fetch failed: ${result.error.message}`)
+  const rows = (result.data ?? []) as unknown as RawRow[]
   if (rows.length === 0) return []
 
   // Descriptografia de nomes em batch (mesmo padrao da pagina Lista).
@@ -107,4 +121,19 @@ export async function listAppointmentsForWeek(
       durationMinutes: r.duration_minutes ?? DEFAULT_DURATION_MINUTES,
       effectiveStatus: (r.effective_status === 'estornado' ? 'estornado' : 'ativo'),
     }))
+}
+
+/**
+ * Reconhece os erros do PostgREST/Postgres quando uma coluna nao existe.
+ * Cobre tanto o JSON parsing error code 42703 quanto a mensagem textual
+ * "column ... does not exist".
+ */
+function isMissingColumnError(message: string, column: string): boolean {
+  if (!message) return false
+  const lower = message.toLowerCase()
+  return (
+    lower.includes(`column ${column.toLowerCase()}`) ||
+    lower.includes(`"${column.toLowerCase()}" does not exist`) ||
+    (lower.includes(column.toLowerCase()) && lower.includes('does not exist'))
+  )
 }

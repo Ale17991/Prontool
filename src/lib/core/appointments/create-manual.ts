@@ -110,25 +110,45 @@ export async function createAppointmentManually(
   const overridden =
     input.amountCentsOverride !== undefined && input.amountCentsOverride !== price.amountCents
 
-  const inserted = await supabase
+  const baseRow = {
+    tenant_id: input.tenantId,
+    patient_id: input.patientId,
+    doctor_id: input.doctorId,
+    procedure_id: input.procedureId,
+    plan_id: input.planId,
+    source_price_version_id: price.priceVersionId,
+    source_commission_history_id: commission.commissionHistoryId,
+    source_raw_event_id: null,
+    frozen_amount_cents: amountToFreeze,
+    frozen_commission_bps: commission.percentageBps,
+    appointment_at: when.toISOString(),
+    source: 'manual',
+  }
+
+  // Tenta inserir com duration_minutes (migration 0053). Se a coluna nao
+  // existir no ambiente atual (migration ainda nao aplicada), tenta de novo
+  // sem o campo — preserva o registro do atendimento e perde apenas a
+  // duracao customizada (UI cai no default de 30 min na leitura).
+  let inserted = await supabase
     .from('appointments')
     .insert({
-      tenant_id: input.tenantId,
-      patient_id: input.patientId,
-      doctor_id: input.doctorId,
-      procedure_id: input.procedureId,
-      plan_id: input.planId,
-      source_price_version_id: price.priceVersionId,
-      source_commission_history_id: commission.commissionHistoryId,
-      source_raw_event_id: null,
-      frozen_amount_cents: amountToFreeze,
-      frozen_commission_bps: commission.percentageBps,
-      appointment_at: when.toISOString(),
+      ...baseRow,
       duration_minutes: input.durationMinutes ?? null,
-      source: 'manual',
     } as never)
     .select('id')
     .single()
+
+  if (
+    inserted.error &&
+    /duration_minutes/i.test(inserted.error.message) &&
+    /does not exist/i.test(inserted.error.message)
+  ) {
+    inserted = await supabase
+      .from('appointments')
+      .insert(baseRow as never)
+      .select('id')
+      .single()
+  }
 
   if (inserted.error || !inserted.data) {
     throw new Error(`createAppointmentManually insert failed: ${inserted.error?.message}`)
