@@ -736,6 +736,9 @@ export type Database = {
           description: string
           frequency: string | null
           id: string
+          receipt_file_name: string | null
+          receipt_file_size: number | null
+          receipt_file_url: string | null
           recurring: boolean
           supplier: string | null
           tenant_id: string
@@ -751,6 +754,9 @@ export type Database = {
           description: string
           frequency?: string | null
           id?: string
+          receipt_file_name?: string | null
+          receipt_file_size?: number | null
+          receipt_file_url?: string | null
           recurring?: boolean
           supplier?: string | null
           tenant_id: string
@@ -766,6 +772,9 @@ export type Database = {
           description?: string
           frequency?: string | null
           id?: string
+          receipt_file_name?: string | null
+          receipt_file_size?: number | null
+          receipt_file_url?: string | null
           recurring?: boolean
           supplier?: string | null
           tenant_id?: string

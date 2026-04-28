@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { NewExpenseForm } from './new-expense-form'
+import { ReceiptActions } from './receipt-actions'
 import { SoftDeleteExpenseButton } from './soft-delete-button'
 
 export const dynamic = 'force-dynamic'
@@ -175,43 +176,61 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                     <TableHead>Categoria</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Comprovante</TableHead>
                     <TableHead className="text-right" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenses.map((e) => (
-                    <TableRow key={e.id} className="group">
-                      <TableCell>
-                        <p className="font-semibold text-slate-900">
-                          {formatDate(e.competence_date)}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={categoryBadge(e.category)}>
-                          {e.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <p className="font-medium text-slate-900">{e.description}</p>
-                        {e.supplier ? (
-                          <p className="text-[11px] text-slate-500">
-                            Fornecedor: {e.supplier}
+                  {expenses.map((e) => {
+                    type ExpenseRowExtras = {
+                      receipt_file_name: string | null
+                      receipt_file_url: string | null
+                    }
+                    const extras = e as unknown as ExpenseRowExtras
+                    const hasReceipt = !!extras.receipt_file_url
+                    return (
+                      <TableRow key={e.id} className="group">
+                        <TableCell>
+                          <p className="font-semibold text-slate-900">
+                            {formatDate(e.competence_date)}
                           </p>
-                        ) : null}
-                        {e.recurring ? (
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
-                            Recorrente · {e.frequency}
-                          </p>
-                        ) : null}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-slate-900 tabular-nums">
-                        {formatCurrency(e.amount_cents)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {canDelete ? <SoftDeleteExpenseButton id={e.id} /> : null}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={categoryBadge(e.category)}>
+                            {e.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <p className="font-medium text-slate-900">{e.description}</p>
+                          {e.supplier ? (
+                            <p className="text-[11px] text-slate-500">
+                              Fornecedor: {e.supplier}
+                            </p>
+                          ) : null}
+                          {e.recurring ? (
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
+                              Recorrente · {e.frequency}
+                            </p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-slate-900 tabular-nums">
+                          {formatCurrency(e.amount_cents)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <ReceiptActions
+                            expenseId={e.id}
+                            hasReceipt={hasReceipt}
+                            fileName={extras.receipt_file_name}
+                            canWrite={canWrite}
+                            canDelete={canDelete}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {canDelete ? <SoftDeleteExpenseButton id={e.id} /> : null}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             )}
