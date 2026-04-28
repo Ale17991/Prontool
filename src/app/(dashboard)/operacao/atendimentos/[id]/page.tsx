@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatBps, formatCurrency, formatDateTime } from '@/lib/utils'
 import { ReversalForm } from './reversal-form'
+import { MarkRealizedForm } from './mark-realized-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -141,6 +142,22 @@ export default async function AtendimentoDetailPage({
           accent={status === 'estornado'}
         />
       </div>
+
+      {status === 'agendado' && appointment.id &&
+        (session.role === 'admin' || session.role === 'profissional_saude') ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Marcar como realizado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-sm text-slate-500">
+              Confirma que o atendimento foi realizado. A etapa vinculada do plano de
+              tratamento (se houver) é marcada como concluída automaticamente.
+            </p>
+            <MarkRealizedForm appointmentId={appointment.id} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {canReverse && appointment.id ? (
         <Card>

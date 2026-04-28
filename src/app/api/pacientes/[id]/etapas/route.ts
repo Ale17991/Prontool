@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
 import { createTreatmentStep } from '@/lib/core/treatment-steps/create'
+import { createStepWithAppointment } from '@/lib/core/treatment-steps/create-with-appointment'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,10 @@ const createSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use ISO AAAA-MM-DD')
     .optional()
     .nullable(),
+  // Novos campos da feature 005: horario obrigatorio quando ambos vierem.
+  // Compat: se ambos ausentes, legado (sem appointment vinculado).
+  start_time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+  end_time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
 })
 
 export async function GET(
@@ -33,7 +38,6 @@ export async function GET(
       { entity: 'treatment_plan_steps', route, request: req },
     )
     const supabase = createSupabaseServiceClient()
-    // Busca o plano do paciente pra usar como fallback na resolução de preço.
     const pat = await supabase
       .from('patients')
       .select('plan_id')
@@ -77,6 +81,29 @@ export async function POST(
       )
     }
     const supabase = createSupabaseServiceClient()
+
+    // Caminho NOVO: scheduled_date + start_time + end_time presentes →
+    // RPC create_step_with_appointment cria appointment + step linkados.
+    const hasSchedule =
+      parsed.data.scheduled_date && parsed.data.start_time && parsed.data.end_time
+    if (hasSchedule) {
+      const result = await createStepWithAppointment(supabase, {
+        tenantId: session.tenantId,
+        actorUserId: session.userId,
+        patientId: params.id,
+        procedureId: parsed.data.procedure_id,
+        doctorId: parsed.data.doctor_id,
+        healthPlanId: parsed.data.health_plan_id ?? null,
+        title: parsed.data.title,
+        notes: parsed.data.notes ?? null,
+        scheduledDate: parsed.data.scheduled_date as string,
+        startTime: parsed.data.start_time as string,
+        endTime: parsed.data.end_time as string,
+      })
+      return NextResponse.json(result, { status: 201 })
+    }
+
+    // Caminho LEGADO: sem horario → cria etapa solta (sem appointment).
     const step = await createTreatmentStep(supabase, {
       tenantId: session.tenantId,
       actorUserId: session.userId,

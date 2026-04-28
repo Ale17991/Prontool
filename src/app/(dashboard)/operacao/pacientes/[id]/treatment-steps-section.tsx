@@ -542,10 +542,71 @@ function NewStepForm({
   const [doctorId, setDoctorId] = useState('')
   const [healthPlanId, setHealthPlanId] = useState<string>(patientPlanId ?? '__none__')
   const [scheduledDate, setScheduledDate] = useState('')
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
   const [notes, setNotes] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [conflictWarning, setConflictWarning] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+
+  // Pre-check de conflito de horario quando doctor + scheduled_date + start + end mudam.
+  useEffect(() => {
+    if (!doctorId || !scheduledDate || !startTime || !endTime) {
+      setConflictWarning(null)
+      return
+    }
+    const startIso = combineDateTimeToIso(scheduledDate, startTime)
+    const endIso = combineDateTimeToIso(scheduledDate, endTime, startTime)
+    if (!startIso || !endIso || new Date(endIso).getTime() <= new Date(startIso).getTime()) {
+      setConflictWarning(null)
+      return
+    }
+    const ctrl = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          doctor_id: doctorId,
+          start: startIso,
+          end: endIso,
+        })
+        const res = await fetch(`/api/atendimentos/check-conflict?${params.toString()}`, {
+          signal: ctrl.signal,
+        })
+        if (!res.ok) {
+          setConflictWarning(null)
+          return
+        }
+        const body = (await res.json()) as
+          | { conflict: false }
+          | {
+              conflict: true
+              with: { patient_name: string; start_at: string; end_at: string }
+            }
+        if (body.conflict) {
+          const startLocal = new Date(body.with.start_at).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+          const endLocal = new Date(body.with.end_at).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+          setConflictWarning(
+            `Conflito com ${body.with.patient_name} das ${startLocal} às ${endLocal}.`,
+          )
+        } else {
+          setConflictWarning(null)
+        }
+      } catch {
+        // abort or network — silencioso
+      }
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      ctrl.abort()
+    }
+  }, [doctorId, scheduledDate, startTime, endTime])
 
   const selectedProcedure = procedures.find((p) => p.id === procedureId) ?? null
   const particularOnly = selectedProcedure && !selectedProcedure.coveredByPlan
@@ -595,6 +656,18 @@ function NewStepForm({
       setError('Informe a data prevista.')
       return
     }
+    if (!startTime || !endTime) {
+      setError('Informe horário de início e fim.')
+      return
+    }
+    if (toMinutes(endTime) <= toMinutes(startTime)) {
+      setError('Hora de fim deve ser depois do início.')
+      return
+    }
+    if (conflictWarning) {
+      setError(conflictWarning + ' Ajuste o horário antes de salvar.')
+      return
+    }
     setPending(true)
     try {
       const res = await fetch(`/api/pacientes/${patientId}/etapas`, {
@@ -608,17 +681,34 @@ function NewStepForm({
           title: title.trim(),
           notes: notes.trim() || null,
           scheduled_date: scheduledDate,
+          start_time: startTime,
+          end_time: endTime,
         }),
       })
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
-        setError(body.error?.message ?? 'Falha ao adicionar etapa.')
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: { code?: string; message?: string }
+        }
+        if (res.status === 409 || body.error?.code === 'APPOINTMENT_CONFLICT') {
+          setError(
+            body.error?.message ??
+              'Conflito de horário com outro atendimento deste profissional.',
+          )
+        } else {
+          setError(body.error?.message ?? 'Falha ao adicionar etapa.')
+        }
         return
       }
       await onCreated()
     } finally {
       setPending(false)
     }
+  }
+
+  function toMinutes(hhmm: string): number {
+    const m = /^(\d{2}):(\d{2})$/.exec(hhmm)
+    if (!m) return 0
+    return parseInt(m[1] ?? '0', 10) * 60 + parseInt(m[2] ?? '0', 10)
   }
 
   return (
@@ -734,6 +824,55 @@ function NewStepForm({
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="step_start">
+            Hora início <span className="text-rose-500">*</span>
+          </Label>
+          <Input
+            id="step_start"
+            type="time"
+            required
+            value={startTime}
+            onChange={(e) => {
+              setStartTime(e.target.value)
+              // Sugere fim = inicio + 30 min se ainda nao houver
+              if (!endTime && e.target.value) {
+                const m = /^(\d{2}):(\d{2})$/.exec(e.target.value)
+                if (m) {
+                  const total = parseInt(m[1] ?? '0', 10) * 60 + parseInt(m[2] ?? '0', 10) + 30
+                  const norm = ((total % 1440) + 1440) % 1440
+                  const hh = `${Math.floor(norm / 60)}`.padStart(2, '0')
+                  const mm = `${norm % 60}`.padStart(2, '0')
+                  setEndTime(`${hh}:${mm}`)
+                }
+              }
+            }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="step_end">
+            Hora fim <span className="text-rose-500">*</span>
+          </Label>
+          <Input
+            id="step_end"
+            type="time"
+            required
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {conflictWarning ? (
+        <div
+          role="alert"
+          className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"
+        >
+          {conflictWarning}
+        </div>
+      ) : null}
+
       <div className="space-y-1.5 md:col-span-2">
         <Label>Valor estimado</Label>
         <PriceIndicator
@@ -762,11 +901,33 @@ function NewStepForm({
       ) : null}
 
       <div className="md:col-span-2 flex justify-end">
-        <Button type="submit" size="sm" disabled={pending} className="gap-2">
+        <Button type="submit" size="sm" disabled={pending || !!conflictWarning} className="gap-2">
           {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
           Adicionar etapa
         </Button>
       </div>
     </form>
   )
+}
+
+/**
+ * Combina data (YYYY-MM-DD) + hora (HH:MM), interpretado em fuso local,
+ * em ISO UTC. Se `referenceStart` for fornecido e `time` for menor, assume
+ * que cruzou meia-noite e adiciona 1 dia.
+ */
+function combineDateTimeToIso(
+  date: string,
+  time: string,
+  referenceStart?: string,
+): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+  if (!/^\d{2}:\d{2}$/.test(time)) return null
+  const dt = new Date(`${date}T${time}:00`)
+  if (Number.isNaN(dt.getTime())) return null
+  if (referenceStart && /^\d{2}:\d{2}$/.test(referenceStart)) {
+    const startMin = parseInt(referenceStart.slice(0, 2), 10) * 60 + parseInt(referenceStart.slice(3), 10)
+    const endMin = parseInt(time.slice(0, 2), 10) * 60 + parseInt(time.slice(3), 10)
+    if (endMin <= startMin) dt.setDate(dt.getDate() + 1)
+  }
+  return dt.toISOString()
 }

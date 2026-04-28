@@ -164,6 +164,32 @@ export async function createAppointmentManually(
     throw new Error(`createAppointmentManually insert failed: ${msg}`)
   }
 
+  // Auto-link FIFO: se existe etapa pendente do mesmo (patient, procedure)
+  // sem appointment vinculado, cria o vinculo (column-guard relaxado aceita
+  // SET appointment_id quando OLD e NULL — one-shot link).
+  // Falha silenciosa: vincular e nice-to-have, atendimento ja foi criado.
+  try {
+    const linkable = await supabase
+      .from('treatment_plan_steps')
+      .select('id')
+      .eq('tenant_id', input.tenantId)
+      .eq('patient_id', input.patientId)
+      .eq('procedure_id', input.procedureId)
+      .eq('status', 'pendente')
+      .is('appointment_id', null)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (linkable.data) {
+      await supabase
+        .from('treatment_plan_steps')
+        .update({ appointment_id: inserted.data.id } as never)
+        .eq('id', linkable.data.id)
+    }
+  } catch {
+    // ignora — atendimento foi criado, vinculo opcional
+  }
+
   return {
     appointmentId: inserted.data.id,
     frozenAmountCents: amountToFreeze,
