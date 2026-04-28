@@ -30,7 +30,7 @@ interface PageProps {
   searchParams: {
     from?: string
     to?: string
-    status?: 'ativo' | 'estornado' | 'todos'
+    status?: 'agendado' | 'ativo' | 'estornado' | 'todos'
     view?: 'list' | 'cal'
     week?: string
     grain?: 'day' | 'week' | 'month'
@@ -252,6 +252,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="todos">Todos</option>
+                <option value="agendado">Agendados</option>
                 <option value="ativo">Ativos</option>
                 <option value="estornado">Estornados</option>
               </select>
@@ -317,6 +318,11 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                     <TableCell>
                       {r.effective_status === 'estornado' ? (
                         <Badge variant="destructive">estornado</Badge>
+                      ) : r.effective_status === 'agendado' ||
+                        (r.appointment_at && new Date(r.appointment_at).getTime() > Date.now()) ? (
+                        <Badge variant="secondary" className="border-sky-200 bg-sky-50 text-sky-800">
+                          agendado
+                        </Badge>
                       ) : (
                         <Badge variant="success">ativo</Badge>
                       )}

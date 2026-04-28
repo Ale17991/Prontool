@@ -32,7 +32,9 @@ export function CalendarBlock({ assignment }: Props) {
   const statusClass =
     a.effectiveStatus === 'estornado'
       ? 'bg-rose-100 border-rose-300 text-rose-900 hover:bg-rose-200'
-      : 'bg-blue-100 border-blue-300 text-blue-900 hover:bg-blue-200'
+      : a.effectiveStatus === 'agendado'
+        ? 'bg-sky-50 border-sky-200 text-sky-900 hover:bg-sky-100'
+        : 'bg-blue-100 border-blue-300 text-blue-900 hover:bg-blue-200'
 
   return (
     <Link

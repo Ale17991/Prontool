@@ -128,10 +128,8 @@ export function NewAppointmentForm({
       return
     }
     const whenIso = new Date(appointmentAt).toISOString()
-    if (new Date(whenIso).getTime() > Date.now()) {
-      setError('A data do atendimento não pode estar no futuro.')
-      return
-    }
+    // Datas futuras sao permitidas — o atendimento entra como 'agendado'
+    // na agenda e migra para 'ativo' automaticamente quando o horario chega.
 
     const payload: Record<string, unknown> = {
       patient_id: patientId,

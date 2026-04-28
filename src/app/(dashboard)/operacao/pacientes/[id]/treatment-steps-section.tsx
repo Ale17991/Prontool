@@ -335,10 +335,12 @@ function StepRow({
           <p className="text-sm font-bold text-slate-900">{step.title}</p>
           <StatusBadge status={step.status} />
         </div>
-        <p className="text-[11px] text-slate-600">
-          <span className="font-mono">{procLabel}</span>
-          {step.healthPlan ? ` · Plano: ${step.healthPlan.name}` : ''}
-        </p>
+        <ul className="space-y-0.5 text-[11px] text-slate-600">
+          <li className="flex items-baseline gap-1.5">
+            <span className="text-slate-400">Procedimento:</span>
+            <span className="font-medium text-slate-700">{procLabel}</span>
+          </li>
+        </ul>
         {step.doctor ? (
           <p className="text-[11px] text-slate-600">
             <span className="font-semibold text-slate-800">
@@ -361,31 +363,6 @@ function StepRow({
           {step.scheduledDate ? `Prevista: ${formatDate(step.scheduledDate)}` : 'Sem data prevista'}
           {step.completedAt ? ` · Concluída em ${formatDate(step.completedAt)}` : ''}
         </p>
-        {step.status === 'pendente' ? (
-          step.currentPriceCents !== null ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-[11px] font-semibold text-slate-700">
-                Valor estimado: {formatCurrency(step.currentPriceCents)}
-              </p>
-              {step.priceSource === 'particular' ? (
-                <Badge
-                  variant="outline"
-                  className="h-5 border-amber-300 px-1.5 text-[10px] text-amber-700"
-                >
-                  Particular
-                </Badge>
-              ) : step.priceSource === 'convenio' ? (
-                <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
-                  Convênio
-                </Badge>
-              ) : null}
-            </div>
-          ) : (
-            <p className="text-[11px] font-semibold text-amber-700">
-              Sem preço cadastrado para este procedimento neste plano
-            </p>
-          )
-        ) : null}
         {step.notes ? (
           <p className="mt-1 flex items-start gap-1.5 text-xs text-slate-600">
             <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-slate-400" />

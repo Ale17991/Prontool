@@ -65,8 +65,20 @@ export default async function AtendimentoDetailPage({
     .order('timestamp_utc', { ascending: true })
   const audit = (auditRaw ?? []) as AuditRow[]
 
-  const status = appointment.effective_status ?? 'ativo'
-  const canReverse = can(session.role, 'appointment.reverse') && status === 'ativo'
+  // Fallback de seguranca: ambientes sem a migration 0054 retornam apenas
+  // 'ativo'/'estornado'. Calculamos 'agendado' por timestamp para que o
+  // detalhe funcione em qualquer estado do schema.
+  const rawStatus = appointment.effective_status ?? 'ativo'
+  const isFuture =
+    appointment.appointment_at !== null &&
+    new Date(appointment.appointment_at).getTime() > Date.now()
+  const status =
+    rawStatus === 'estornado'
+      ? 'estornado'
+      : rawStatus === 'agendado' || isFuture
+        ? 'agendado'
+        : 'ativo'
+  const canReverse = can(session.role, 'appointment.reverse') && status !== 'estornado'
 
   return (
     <div className="space-y-6">
@@ -86,6 +98,13 @@ export default async function AtendimentoDetailPage({
         {status === 'estornado' ? (
           <Badge variant="destructive" className="self-start">
             Estornado
+          </Badge>
+        ) : status === 'agendado' ? (
+          <Badge
+            variant="secondary"
+            className="self-start border-sky-200 bg-sky-50 text-sky-800"
+          >
+            Agendado
           </Badge>
         ) : (
           <Badge variant="success" className="self-start">

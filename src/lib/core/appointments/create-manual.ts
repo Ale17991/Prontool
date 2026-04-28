@@ -50,11 +50,9 @@ export async function createAppointmentManually(
   if (Number.isNaN(when.getTime())) {
     throw new DomainError('INVALID_BODY', 'appointment_at is not a valid ISO timestamp')
   }
-  if (when.getTime() > Date.now()) {
-    throw new DomainError('APPOINTMENT_IN_FUTURE', 'Atendimento não pode estar no futuro', {
-      status: 400,
-    })
-  }
+  // Datas no futuro sao permitidas — viram atendimentos com status 'agendado'
+  // na view appointments_effective. Quando NOW() ultrapassa o appointment_at,
+  // o status muda para 'ativo' automaticamente (sem UPDATE no registro).
 
   // Validate every FK lives in the same tenant. Cross-tenant → 404 per contract.
   await Promise.all([

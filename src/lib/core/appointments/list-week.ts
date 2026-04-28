@@ -28,7 +28,7 @@ export interface AppointmentWeekRow {
   procedureLabel: string
   appointmentAt: string
   durationMinutes: number
-  effectiveStatus: 'ativo' | 'estornado'
+  effectiveStatus: 'agendado' | 'ativo' | 'estornado'
 }
 
 interface RawRow {
@@ -108,19 +108,33 @@ export async function listAppointmentsForWeek(
 
   return rows
     .filter((r) => r.id && r.appointment_at && r.doctor_id && r.procedure_id && r.patient_id)
-    .map<AppointmentWeekRow>((r) => ({
-      id: r.id as string,
-      patientId: r.patient_id as string,
-      patientName: patientNames.get(r.patient_id as string) ?? '—',
-      doctorId: r.doctor_id as string,
-      doctorName: r.doctors?.full_name ?? '—',
-      procedureId: r.procedure_id as string,
-      procedureLabel:
-        r.procedures?.display_name?.trim() || r.procedures?.tuss_code || '—',
-      appointmentAt: r.appointment_at as string,
-      durationMinutes: r.duration_minutes ?? DEFAULT_DURATION_MINUTES,
-      effectiveStatus: (r.effective_status === 'estornado' ? 'estornado' : 'ativo'),
-    }))
+    .map<AppointmentWeekRow>((r) => {
+      const at = r.appointment_at as string
+      // Fallback de seguranca: ambientes que ainda nao receberam a migration
+      // 0054 (view com clausula 'agendado') retornam apenas ativo|estornado.
+      // Calculamos 'agendado' aqui pelo timestamp para que a UI funcione em
+      // qualquer estado da migration.
+      const rawStatus = r.effective_status === 'estornado' ? 'estornado' : 'ativo'
+      const status =
+        rawStatus === 'estornado'
+          ? 'estornado'
+          : r.effective_status === 'agendado' || new Date(at).getTime() > Date.now()
+            ? 'agendado'
+            : 'ativo'
+      return {
+        id: r.id as string,
+        patientId: r.patient_id as string,
+        patientName: patientNames.get(r.patient_id as string) ?? '—',
+        doctorId: r.doctor_id as string,
+        doctorName: r.doctors?.full_name ?? '—',
+        procedureId: r.procedure_id as string,
+        procedureLabel:
+          r.procedures?.display_name?.trim() || r.procedures?.tuss_code || '—',
+        appointmentAt: at,
+        durationMinutes: r.duration_minutes ?? DEFAULT_DURATION_MINUTES,
+        effectiveStatus: status,
+      }
+    })
 }
 
 /**
