@@ -310,6 +310,14 @@ function StepRow({
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-bold text-slate-900">{step.title}</p>
           <StatusBadge status={step.status} />
+          {step.healthPlan === null ? (
+            <Badge
+              variant="secondary"
+              className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
+            >
+              Particular
+            </Badge>
+          ) : null}
         </div>
         <ul className="space-y-0.5 text-[11px] text-slate-600">
           <li className="flex items-baseline gap-1.5">
@@ -516,7 +524,9 @@ function NewStepForm({
   const [title, setTitle] = useState('')
   const [procedureId, setProcedureId] = useState('')
   const [doctorId, setDoctorId] = useState('')
-  const [healthPlanId, setHealthPlanId] = useState<string>(patientPlanId ?? '__none__')
+  const [healthPlanId, setHealthPlanId] = useState<string>(patientPlanId ?? '')
+  const [particular, setParticular] = useState<boolean>(patientPlanId === null)
+  const [particularUserOverride, setParticularUserOverride] = useState(false)
   const [scheduledDate, setScheduledDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
@@ -585,14 +595,22 @@ function NewStepForm({
   }, [doctorId, scheduledDate, startTime, endTime])
 
   const selectedProcedure = procedures.find((p) => p.id === procedureId) ?? null
-  const particularOnly = selectedProcedure && !selectedProcedure.coveredByPlan
-  const isSentinelNoPlan = healthPlanId === '__none__'
-  const effectivePlanForConvenio =
-    particularOnly || isSentinelNoPlan ? '' : healthPlanId
-  const shouldFallbackToParticular =
-    !!selectedProcedure &&
-    selectedProcedure.coveredByPlan &&
-    (!healthPlanId || isSentinelNoPlan)
+  const particularLocked = selectedProcedure ? !selectedProcedure.coveredByPlan : false
+  const effectiveParticular = particularLocked || particular
+  const effectivePlanForConvenio = effectiveParticular ? '' : healthPlanId
+  const shouldFallbackToParticular = false  // legado — particular agora e explicito
+
+  // Auto-detect: procedimento nao coberto -> lock particular
+  // Sem override manual: ajusta de acordo com paciente.
+  useEffect(() => {
+    if (particularLocked) {
+      setParticular(true)
+      setParticularUserOverride(false)
+      return
+    }
+    if (particularUserOverride) return
+    setParticular(patientPlanId === null)
+  }, [particularLocked, patientPlanId, particularUserOverride])
 
   const [priceState, setPriceState] = useState<PriceState>({ status: 'idle' })
   useFetchCurrentPrice({
@@ -652,8 +670,7 @@ function NewStepForm({
         body: JSON.stringify({
           procedure_id: procedureId,
           doctor_id: doctorId,
-          health_plan_id:
-            particularOnly || isSentinelNoPlan || !healthPlanId ? null : healthPlanId,
+          health_plan_id: effectiveParticular ? null : healthPlanId || null,
           title: title.trim(),
           notes: notes.trim() || null,
           scheduled_date: scheduledDate,
@@ -754,29 +771,41 @@ function NewStepForm({
         )}
       </div>
 
-      {particularOnly ? (
-        <div className="space-y-1.5">
-          <Label>Plano de saúde</Label>
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-            Procedimento particular — sempre cobrado no valor particular.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-1.5">
-          <Label htmlFor="step_plan">
-            Plano de saúde
-            {patientPlanName ? (
-              <span className="ml-1 text-[10px] font-normal text-slate-400">
-                (padrão do paciente: {patientPlanName})
+      <div className="space-y-1.5">
+        <Label htmlFor="step_plan">
+          Plano de saúde
+          {patientPlanName && !effectiveParticular ? (
+            <span className="ml-1 text-[10px] font-normal text-slate-400">
+              (padrão do paciente: {patientPlanName})
+            </span>
+          ) : null}
+        </Label>
+        <label className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs text-amber-900">
+          <input
+            type="checkbox"
+            checked={effectiveParticular}
+            disabled={particularLocked}
+            onChange={(e) => {
+              setParticular(e.target.checked)
+              setParticularUserOverride(true)
+            }}
+            className="h-4 w-4 rounded border-amber-300"
+          />
+          <span>
+            <span className="font-bold">Atendimento particular</span>
+            {particularLocked ? (
+              <span className="ml-1 text-amber-700">
+                (procedimento não coberto por plano)
               </span>
             ) : null}
-          </Label>
+          </span>
+        </label>
+        {effectiveParticular ? null : (
           <Select value={healthPlanId} onValueChange={setHealthPlanId}>
             <SelectTrigger id="step_plan">
               <SelectValue placeholder="Selecione…" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">Sem plano (particular)</SelectItem>
               {healthPlans.map((hp) => (
                 <SelectItem key={hp.id} value={hp.id}>
                   {hp.name}
@@ -784,8 +813,8 @@ function NewStepForm({
               ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="step_date">

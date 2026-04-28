@@ -21,6 +21,10 @@ export interface LocalProcedureOption {
   id: string
   tussCode: string
   displayName: string | null
+  /** Procedimento e coberto pelo plano? Quando false, agendamento sempre vira particular. */
+  coveredByPlan?: boolean
+  /** Valor particular cadastrado em cents — null se nao cadastrado. */
+  defaultAmountCents?: number | null
 }
 
 export interface LocalProcedureTypeaheadProps {

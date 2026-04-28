@@ -35,6 +35,7 @@ interface AppointmentDetail {
   id: string | null
   patient_id: string | null
   doctor_id: string | null
+  plan_id: string | null
   appointment_at: string | null
   duration_minutes: number | null
   observacoes: string | null
@@ -72,7 +73,7 @@ export default async function AtendimentoDetailPage({
   const { data: appointmentRaw, error } = await supabase
     .from('appointments_effective')
     .select(
-      'id, patient_id, doctor_id, appointment_at, duration_minutes, observacoes, ' +
+      'id, patient_id, doctor_id, plan_id, appointment_at, duration_minutes, observacoes, ' +
         'frozen_amount_cents, frozen_commission_bps, net_amount_cents, net_commission_cents, ' +
         'effective_status, reversal_id, reversed_at, ' +
         'procedures:procedure_id(tuss_code, display_name), ' +
@@ -160,22 +161,32 @@ export default async function AtendimentoDetailPage({
           </h1>
           <p className="mt-1 font-mono text-xs text-slate-400">{appointment.id}</p>
         </div>
-        {status === 'estornado' ? (
-          <Badge variant="destructive" className="self-start">
-            Estornado
-          </Badge>
-        ) : status === 'agendado' ? (
-          <Badge
-            variant="secondary"
-            className="self-start border-sky-200 bg-sky-50 text-sky-800"
-          >
-            Agendado
-          </Badge>
-        ) : (
-          <Badge variant="success" className="self-start">
-            Ativo
-          </Badge>
-        )}
+        <div className="flex flex-col items-end gap-1.5">
+          {status === 'estornado' ? (
+            <Badge variant="destructive" className="self-start">
+              Estornado
+            </Badge>
+          ) : status === 'agendado' ? (
+            <Badge
+              variant="secondary"
+              className="self-start border-sky-200 bg-sky-50 text-sky-800"
+            >
+              Agendado
+            </Badge>
+          ) : (
+            <Badge variant="success" className="self-start">
+              Ativo
+            </Badge>
+          )}
+          {appointment.plan_id === null ? (
+            <Badge
+              variant="secondary"
+              className="self-start border-amber-200 bg-amber-50 text-amber-800"
+            >
+              Particular
+            </Badge>
+          ) : null}
+        </div>
       </div>
 
       {/* ---- Dados clínicos (foco principal) ---- */}

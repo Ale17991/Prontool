@@ -354,11 +354,11 @@ export type Database = {
           id: string
           observacoes: string | null
           patient_id: string
-          plan_id: string
+          plan_id: string | null
           procedure_id: string
           source: string
           source_commission_history_id: string
-          source_price_version_id: string
+          source_price_version_id: string | null
           source_raw_event_id: string | null
           tenant_id: string
         }
@@ -372,11 +372,11 @@ export type Database = {
           id?: string
           observacoes?: string | null
           patient_id: string
-          plan_id: string
+          plan_id?: string | null
           procedure_id: string
           source?: string
           source_commission_history_id: string
-          source_price_version_id: string
+          source_price_version_id?: string | null
           source_raw_event_id?: string | null
           tenant_id: string
         }
@@ -390,11 +390,11 @@ export type Database = {
           id?: string
           observacoes?: string | null
           patient_id?: string
-          plan_id?: string
+          plan_id?: string | null
           procedure_id?: string
           source?: string
           source_commission_history_id?: string
-          source_price_version_id?: string
+          source_price_version_id?: string | null
           source_raw_event_id?: string | null
           tenant_id?: string
         }
@@ -717,6 +717,66 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "doctors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_receipts: {
+        Row: {
+          content_type: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deleted_reason: string | null
+          expense_id: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          storage_path: string
+          tenant_id: string
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          content_type: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
+          expense_id: string
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          storage_path: string
+          tenant_id: string
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          content_type?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deleted_reason?: string | null
+          expense_id?: string
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          storage_path?: string
+          tenant_id?: string
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_receipts_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_receipts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

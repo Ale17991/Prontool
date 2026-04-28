@@ -24,8 +24,13 @@ export interface FormOption {
   label: string
 }
 
+export interface PatientFormOption extends FormOption {
+  /** Plano de saude do paciente; null = paciente particular sempre. */
+  planId: string | null
+}
+
 export interface NewAppointmentFormProps {
-  patients: FormOption[]
+  patients: PatientFormOption[]
   doctors: FormOption[]
   procedures: LocalProcedureOption[]
   plans: FormOption[]
@@ -63,6 +68,9 @@ export function NewAppointmentForm({
   const [doctorId, setDoctorId] = useState('')
   const [procedureId, setProcedureId] = useState('')
   const [planId, setPlanId] = useState('')
+  const [particular, setParticular] = useState(false)
+  const [particularLocked, setParticularLocked] = useState(false)
+  const [particularUserOverride, setParticularUserOverride] = useState(false)
   const [appointmentAt, setAppointmentAt] = useState(
     () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
   )
@@ -89,6 +97,41 @@ export function NewAppointmentForm({
   const [paymentPaidAt, setPaymentPaidAt] = useState(() =>
     new Date().toISOString().slice(0, 10),
   )
+
+  // Auto-detect "Atendimento particular":
+  //   - procedimento com covered_by_plan = false → forca particular (lock).
+  //   - paciente sem plano → particular default (sem lock; user pode mudar).
+  //   - paciente com plano + procedimento coberto → desmarcado (default).
+  // Override manual do user prevalece (sai do auto-detect).
+  useEffect(() => {
+    const selectedPatient = patients.find((p) => p.id === patientId)
+    const selectedProcedure = procedures.find((p) => p.id === procedureId)
+
+    // Lock: procedimento nao coberto sempre forca particular.
+    if (selectedProcedure && selectedProcedure.coveredByPlan === false) {
+      setParticular(true)
+      setParticularLocked(true)
+      setParticularUserOverride(false)
+      return
+    }
+    setParticularLocked(false)
+
+    // Sem override manual, deduz pelo paciente.
+    if (particularUserOverride) return
+    if (!selectedPatient) {
+      setParticular(false)
+      return
+    }
+    setParticular(selectedPatient.planId === null)
+  }, [patientId, procedureId, patients, procedures, particularUserOverride])
+
+  // Pre-seleciona plano do paciente quando aplicavel.
+  useEffect(() => {
+    if (particular || planId) return
+    const selectedPatient = patients.find((p) => p.id === patientId)
+    if (selectedPatient?.planId) setPlanId(selectedPatient.planId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patientId, particular])
 
   // Recalcula datas das parcelas quando o número muda.
   useEffect(() => {
@@ -164,9 +207,19 @@ export function NewAppointmentForm({
     }
   }, [doctorId, appointmentAt, endTime])
 
-  // Sugere o valor vigente quando (plano, procedimento) mudam.
+  // Sugere o valor:
+  //   - Convenio (planId presente, !particular): busca /api/precos/vigente
+  //   - Particular: usa procedure.defaultAmountCents
   useEffect(() => {
-    if (!planId || !procedureId) return
+    if (!procedureId) return
+    if (particular) {
+      const proc = procedures.find((p) => p.id === procedureId)
+      if (proc?.defaultAmountCents != null && amountReais === '') {
+        setAmountReais((proc.defaultAmountCents / 100).toFixed(2))
+      }
+      return
+    }
+    if (!planId) return
     ;(async () => {
       try {
         const params = new URLSearchParams({
@@ -184,14 +237,30 @@ export function NewAppointmentForm({
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planId, procedureId])
+  }, [planId, procedureId, particular])
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
-    if (!patientId || !doctorId || !procedureId || !planId) {
-      setError('Preencha paciente, profissional, procedimento e plano.')
+    if (!patientId || !doctorId || !procedureId) {
+      setError('Preencha paciente, profissional e procedimento.')
       return
+    }
+    if (!particular && !planId) {
+      setError('Selecione o plano de saude ou marque "Atendimento particular".')
+      return
+    }
+    if (particular) {
+      const proc = procedures.find((p) => p.id === procedureId)
+      const overrideValid =
+        amountReais.trim().length > 0 &&
+        Number(amountReais.replace(',', '.').replace(/\./g, '')) > 0
+      if ((proc?.defaultAmountCents == null || proc.defaultAmountCents <= 0) && !overrideValid) {
+        setError(
+          'Valor particular não cadastrado para este procedimento. Informe o valor manualmente.',
+        )
+        return
+      }
     }
     const whenIso = new Date(appointmentAt).toISOString()
     const endIso = computeEndIso(appointmentAt, endTime)
@@ -210,7 +279,7 @@ export function NewAppointmentForm({
       patient_id: patientId,
       doctor_id: doctorId,
       procedure_id: procedureId,
-      plan_id: planId,
+      plan_id: particular ? null : planId,
       appointment_at: whenIso,
       duration_minutes: clampDuration(durationMinutes),
     }
@@ -341,18 +410,40 @@ export function NewAppointmentForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="plan_id">Plano</Label>
-        <Select value={planId} onValueChange={setPlanId}>
-          <SelectTrigger id="plan_id">
-            <SelectValue placeholder="Selecione…" />
-          </SelectTrigger>
-          <SelectContent>
-            {plans.map((hp) => (
-              <SelectItem key={hp.id} value={hp.id}>
-                {hp.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <label className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs text-amber-900">
+          <input
+            type="checkbox"
+            checked={particular}
+            disabled={particularLocked}
+            onChange={(e) => {
+              setParticular(e.target.checked)
+              setParticularUserOverride(true)
+            }}
+            className="h-4 w-4 rounded border-amber-300"
+          />
+          <span>
+            <span className="font-bold">Atendimento particular</span>
+            {particularLocked ? (
+              <span className="ml-1 text-amber-700">
+                (procedimento não coberto por plano)
+              </span>
+            ) : null}
+          </span>
+        </label>
+        {particular ? null : (
+          <Select value={planId} onValueChange={setPlanId}>
+            <SelectTrigger id="plan_id">
+              <SelectValue placeholder="Selecione…" />
+            </SelectTrigger>
+            <SelectContent>
+              {plans.map((hp) => (
+                <SelectItem key={hp.id} value={hp.id}>
+                  {hp.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-1.5">

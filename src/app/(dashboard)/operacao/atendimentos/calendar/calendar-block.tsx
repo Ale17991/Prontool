@@ -63,7 +63,14 @@ export function CalendarBlock({ assignment }: Props) {
           <AlertTriangle className="h-3 w-3 text-rose-600" />
         </span>
       ) : null}
-      <span className="truncate font-bold leading-tight">{a.patientName}</span>
+      <span className="truncate font-bold leading-tight">
+        {a.patientName}
+        {a.planId === null ? (
+          <span className="ml-1 inline-block rounded border border-amber-300 bg-amber-100 px-1 text-[8px] font-bold uppercase tracking-wider text-amber-900">
+            P
+          </span>
+        ) : null}
+      </span>
       <span className="truncate leading-tight opacity-80">{a.procedureLabel}</span>
     </Link>
   )

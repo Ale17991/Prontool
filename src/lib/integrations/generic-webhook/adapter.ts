@@ -130,7 +130,7 @@ function snakeAppointment(a: {
   doctorId: string
   procedureId: string
   procedureTussCode: string
-  planId: string
+  planId: string | null
   appointmentAt: string
   frozenAmountCents: number
   source: 'ghl' | 'manual'

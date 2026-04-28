@@ -38,7 +38,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       .order('full_name', { ascending: true }),
     supabase
       .from('procedures')
-      .select('id, tuss_code, display_name')
+      .select('id, tuss_code, display_name, covered_by_plan, default_amount_cents')
       .order('tuss_code', { ascending: true }),
     listPatients(service, { tenantId: session.tenantId, pageSize: 100 }),
   ])
@@ -54,15 +54,32 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       id: string
       tuss_code: string
       display_name: string | null
+      covered_by_plan: boolean | null
+      default_amount_cents: number | null
     }>
   ).map((p) => ({
     id: p.id,
     tussCode: p.tuss_code,
     displayName: p.display_name,
+    coveredByPlan: p.covered_by_plan ?? true,
+    defaultAmountCents: p.default_amount_cents,
   }))
-  const patients: FormOption[] = patientsRes.items.map((p) => ({
+  // Para auto-detect "Particular": carregar plan_id de cada paciente em batch.
+  const patientPlanIds = new Map<string, string | null>()
+  if (patientsRes.items.length > 0) {
+    const ids = patientsRes.items.map((p) => p.id)
+    const { data: planRows } = await supabase
+      .from('patients')
+      .select('id, plan_id')
+      .in('id', ids)
+    for (const row of (planRows ?? []) as Array<{ id: string; plan_id: string | null }>) {
+      patientPlanIds.set(row.id, row.plan_id)
+    }
+  }
+  const patients = patientsRes.items.map((p) => ({
     id: p.id,
     label: `${p.fullName} · CPF ${p.cpf}`,
+    planId: patientPlanIds.get(p.id) ?? null,
   }))
 
   return (

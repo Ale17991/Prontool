@@ -21,7 +21,7 @@ const bodySchema = z.object({
   patient_id: z.string().uuid(),
   doctor_id: z.string().uuid(),
   procedure_id: z.string().uuid(),
-  plan_id: z.string().uuid(),
+  plan_id: z.string().uuid().nullable(),
   appointment_at: z.string().datetime(),
   amount_cents_override: z.number().int().min(0).optional(),
   duration_minutes: z.number().int().min(5).max(480).optional(),

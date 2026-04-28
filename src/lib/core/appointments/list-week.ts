@@ -29,6 +29,8 @@ export interface AppointmentWeekRow {
   appointmentAt: string
   durationMinutes: number
   effectiveStatus: 'agendado' | 'ativo' | 'estornado'
+  /** Null = atendimento particular. */
+  planId: string | null
 }
 
 interface RawRow {
@@ -36,6 +38,7 @@ interface RawRow {
   patient_id: string | null
   doctor_id: string | null
   procedure_id: string | null
+  plan_id: string | null
   appointment_at: string | null
   duration_minutes: number | null
   effective_status: string | null
@@ -44,12 +47,12 @@ interface RawRow {
 }
 
 const SELECT_WITH_DURATION =
-  'id, patient_id, doctor_id, procedure_id, appointment_at, duration_minutes, effective_status, ' +
+  'id, patient_id, doctor_id, procedure_id, plan_id, appointment_at, duration_minutes, effective_status, ' +
   'doctors:doctor_id(full_name), ' +
   'procedures:procedure_id(tuss_code, display_name)'
 
 const SELECT_WITHOUT_DURATION =
-  'id, patient_id, doctor_id, procedure_id, appointment_at, effective_status, ' +
+  'id, patient_id, doctor_id, procedure_id, plan_id, appointment_at, effective_status, ' +
   'doctors:doctor_id(full_name), ' +
   'procedures:procedure_id(tuss_code, display_name)'
 
@@ -133,6 +136,7 @@ export async function listAppointmentsForWeek(
         appointmentAt: at,
         durationMinutes: r.duration_minutes ?? DEFAULT_DURATION_MINUTES,
         effectiveStatus: status,
+        planId: r.plan_id,
       }
     })
 }

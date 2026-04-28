@@ -29,7 +29,8 @@ export interface AppointmentSnapshot {
   doctorId: string
   procedureId: string
   procedureTussCode: string
-  planId: string
+  /** Null em atendimento particular. */
+  planId: string | null
   appointmentAt: string
   frozenAmountCents: number
   source: 'ghl' | 'manual'

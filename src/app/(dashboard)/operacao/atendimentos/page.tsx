@@ -43,6 +43,7 @@ interface AppointmentRow {
   id: string | null
   patient_id: string | null
   doctor_id: string | null
+  plan_id: string | null
   appointment_at: string | null
   duration_minutes: number | null
   effective_status: string | null
@@ -156,7 +157,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   let query = supabase
     .from('appointments_effective')
     .select(
-      'id, patient_id, doctor_id, appointment_at, duration_minutes, effective_status, ' +
+      'id, patient_id, doctor_id, plan_id, appointment_at, duration_minutes, effective_status, ' +
         'procedures:procedure_id(tuss_code, display_name), ' +
         'doctors:doctor_id(full_name)',
     )
@@ -362,20 +363,30 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                         )}
                       </TableCell>
                       <TableCell>
-                        {r.effective_status === 'estornado' ? (
-                          <Badge variant="destructive">estornado</Badge>
-                        ) : r.effective_status === 'agendado' ||
-                          (r.appointment_at &&
-                            new Date(r.appointment_at).getTime() > Date.now()) ? (
-                          <Badge
-                            variant="secondary"
-                            className="border-sky-200 bg-sky-50 text-sky-800"
-                          >
-                            agendado
-                          </Badge>
-                        ) : (
-                          <Badge variant="success">ativo</Badge>
-                        )}
+                        <div className="flex flex-col items-start gap-1">
+                          {r.effective_status === 'estornado' ? (
+                            <Badge variant="destructive">estornado</Badge>
+                          ) : r.effective_status === 'agendado' ||
+                            (r.appointment_at &&
+                              new Date(r.appointment_at).getTime() > Date.now()) ? (
+                            <Badge
+                              variant="secondary"
+                              className="border-sky-200 bg-sky-50 text-sky-800"
+                            >
+                              agendado
+                            </Badge>
+                          ) : (
+                            <Badge variant="success">ativo</Badge>
+                          )}
+                          {r.plan_id === null ? (
+                            <Badge
+                              variant="secondary"
+                              className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
+                            >
+                              particular
+                            </Badge>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         {r.id ? (

@@ -23,7 +23,8 @@ export interface CreateManualAppointmentInput {
   patientId: string
   doctorId: string
   procedureId: string
-  planId: string
+  /** UUID do plano OU null = atendimento particular. */
+  planId: string | null
   /** ISO-8601 UTC. */
   appointmentAt: string
   amountCentsOverride?: number
@@ -36,10 +37,13 @@ export interface CreateManualAppointmentResult {
   appointmentId: string
   frozenAmountCents: number
   frozenCommissionBps: number
-  priceVersionId: string
+  /** Null em atendimento particular. */
+  priceVersionId: string | null
   commissionHistoryId: string
   amountWasOverridden: boolean
+  /** Em atendimento particular: default_amount_cents do procedimento (ou 0 se ausente). */
   vigenteAmountCents: number
+  isParticular: boolean
 }
 
 export async function createAppointmentManually(
@@ -54,8 +58,11 @@ export async function createAppointmentManually(
   // na view appointments_effective. Quando NOW() ultrapassa o appointment_at,
   // o status muda para 'ativo' automaticamente (sem UPDATE no registro).
 
+  const isParticular = input.planId === null
+
   // Validate every FK lives in the same tenant. Cross-tenant → 404 per contract.
-  await Promise.all([
+  // health_plan check pulado quando particular.
+  const fkChecks: Array<Promise<void>> = [
     ensureBelongsToTenant(supabase, 'patients', input.patientId, input.tenantId, 'PATIENT_NOT_FOUND'),
     ensureBelongsToTenant(supabase, 'doctors', input.doctorId, input.tenantId, 'DOCTOR_NOT_FOUND'),
     ensureBelongsToTenant(
@@ -65,13 +72,19 @@ export async function createAppointmentManually(
       input.tenantId,
       'PROCEDURE_NOT_FOUND',
     ),
-    ensureBelongsToTenant(supabase, 'health_plans', input.planId, input.tenantId, 'PLAN_NOT_FOUND'),
-  ])
+  ]
+  if (input.planId) {
+    fkChecks.push(
+      ensureBelongsToTenant(supabase, 'health_plans', input.planId, input.tenantId, 'PLAN_NOT_FOUND'),
+    )
+  }
+  await Promise.all(fkChecks)
 
-  // Validate the procedure's TUSS code is still vigente.
+  // Validate the procedure's TUSS code is still vigente + carrega default_amount_cents
+  // (usado como sugestao em atendimento particular).
   const procedure = await supabase
     .from('procedures')
-    .select('tuss_code')
+    .select('tuss_code, default_amount_cents')
     .eq('id', input.procedureId)
     .single()
   if (procedure.error || !procedure.data) {
@@ -91,30 +104,48 @@ export async function createAppointmentManually(
     throw new TussCodeRetiredError(tussCode, tuss.data.valid_to)
   }
 
-  const price = await resolvePrice(supabase, {
-    tenantId: input.tenantId,
-    procedureId: input.procedureId,
-    planId: input.planId,
-    asOf: when,
-  })
+  // Resolve preco + comissao. Particular pula price_versions.
   const commission = await resolveCommission(supabase, {
     tenantId: input.tenantId,
     doctorId: input.doctorId,
     asOf: when,
   })
 
+  let priceVersionId: string | null = null
+  let vigenteAmountCents = 0
+  if (input.planId !== null) {
+    const price = await resolvePrice(supabase, {
+      tenantId: input.tenantId,
+      procedureId: input.procedureId,
+      planId: input.planId,
+      asOf: when,
+    })
+    priceVersionId = price.priceVersionId
+    vigenteAmountCents = price.amountCents
+  } else {
+    // Particular: usa default_amount_cents do procedimento como sugestao.
+    vigenteAmountCents = (procedure.data.default_amount_cents as number | null) ?? 0
+  }
+
   const amountToFreeze =
-    input.amountCentsOverride !== undefined ? input.amountCentsOverride : price.amountCents
+    input.amountCentsOverride !== undefined ? input.amountCentsOverride : vigenteAmountCents
+  if (amountToFreeze <= 0) {
+    throw new DomainError(
+      'PARTICULAR_AMOUNT_REQUIRED',
+      'Valor obrigatorio. Procedimento sem valor particular cadastrado e nenhum override foi informado.',
+      { status: 400 },
+    )
+  }
   const overridden =
-    input.amountCentsOverride !== undefined && input.amountCentsOverride !== price.amountCents
+    input.amountCentsOverride !== undefined && input.amountCentsOverride !== vigenteAmountCents
 
   const baseRow = {
     tenant_id: input.tenantId,
     patient_id: input.patientId,
     doctor_id: input.doctorId,
     procedure_id: input.procedureId,
-    plan_id: input.planId,
-    source_price_version_id: price.priceVersionId,
+    plan_id: input.planId, // null em atendimento particular
+    source_price_version_id: priceVersionId, // null em atendimento particular
     source_commission_history_id: commission.commissionHistoryId,
     source_raw_event_id: null,
     frozen_amount_cents: amountToFreeze,
@@ -214,10 +245,11 @@ export async function createAppointmentManually(
     appointmentId: inserted.data.id,
     frozenAmountCents: amountToFreeze,
     frozenCommissionBps: commission.percentageBps,
-    priceVersionId: price.priceVersionId,
+    priceVersionId,
     commissionHistoryId: commission.commissionHistoryId,
     amountWasOverridden: overridden,
-    vigenteAmountCents: price.amountCents,
+    vigenteAmountCents,
+    isParticular,
   }
 }
 

@@ -68,54 +68,60 @@ export async function createStepWithAppointment(
     ensureBelongsToTenant(supabase, 'procedures', input.procedureId, input.tenantId, 'PROCEDURE_NOT_FOUND'),
   ])
 
-  // Resolve plano de saude — se ausente, cria etapa avulsa (preco fica null).
-  // Mas a RPC exige plan_id. Se ausente, usamos plano default do paciente.
-  let planIdForPricing = input.healthPlanId
-  if (!planIdForPricing) {
-    const pat = await supabase
-      .from('patients')
-      .select('plan_id')
-      .eq('id', input.patientId)
-      .eq('tenant_id', input.tenantId)
-      .maybeSingle()
-    planIdForPricing = pat.data?.plan_id ?? null
-  }
-  if (!planIdForPricing) {
-    throw new DomainError(
-      'HEALTH_PLAN_REQUIRED',
-      'Plano de saude obrigatorio (paciente nao tem plano default)',
-      { status: 400 },
-    )
-  }
+  // Resolve preco. healthPlanId === null = particular (usa default_amount_cents
+  // do procedimento). healthPlanId UUID = convenio (busca em price_versions).
+  const isParticular = input.healthPlanId === null
 
-  const [price, commission] = await Promise.all([
-    resolvePrice(supabase, {
+  const commission = await resolveCommission(supabase, {
+    tenantId: input.tenantId,
+    doctorId: input.doctorId,
+    asOf: startAt,
+  })
+
+  let priceVersionId: string | null = null
+  let amountCents = 0
+  if (input.healthPlanId !== null) {
+    const price = await resolvePrice(supabase, {
       tenantId: input.tenantId,
       procedureId: input.procedureId,
-      planId: planIdForPricing,
+      planId: input.healthPlanId,
       asOf: startAt,
-    }),
-    resolveCommission(supabase, {
-      tenantId: input.tenantId,
-      doctorId: input.doctorId,
-      asOf: startAt,
-    }),
-  ])
+    })
+    priceVersionId = price.priceVersionId
+    amountCents = price.amountCents
+  } else {
+    // Particular: usa default_amount_cents do procedimento.
+    const proc = await supabase
+      .from('procedures')
+      .select('default_amount_cents')
+      .eq('id', input.procedureId)
+      .eq('tenant_id', input.tenantId)
+      .maybeSingle()
+    amountCents = (proc.data?.default_amount_cents as number | null) ?? 0
+    if (amountCents <= 0) {
+      throw new DomainError(
+        'PARTICULAR_AMOUNT_REQUIRED',
+        'Procedimento sem valor particular cadastrado. Cadastre default_amount_cents antes de criar etapa particular.',
+        { status: 400 },
+      )
+    }
+  }
+  void isParticular  // placeholder semantico; usado pela UI via plan_id null
 
   const { data, error } = await supabase.rpc('create_step_with_appointment', {
     p_tenant_id: input.tenantId,
     p_patient_id: input.patientId,
     p_procedure_id: input.procedureId,
     p_doctor_id: input.doctorId,
-    p_plan_id: planIdForPricing,
+    p_plan_id: input.healthPlanId as never, // RPC aceita null apos 0059
     p_appointment_at: startAt.toISOString(),
     p_duration_minutes: durationMin,
     p_title: input.title.trim(),
     p_notes: input.notes?.trim() ?? '',
     p_created_by: input.actorUserId,
-    p_amount_cents: price.amountCents,
+    p_amount_cents: amountCents,
     p_commission_bps: commission.percentageBps,
-    p_price_version_id: price.priceVersionId,
+    p_price_version_id: priceVersionId as never, // null em particular
     p_commission_history_id: commission.commissionHistoryId,
   })
 
