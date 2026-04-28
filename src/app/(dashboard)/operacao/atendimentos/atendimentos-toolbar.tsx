@@ -60,14 +60,18 @@ export function AtendimentosToolbar({
   }
 
   function setView(next: 'list' | 'cal') {
-    // Persiste preferencia por dispositivo via cookie (server le em SSR).
+    // Calendario e o default — so persistimos cookie quando o usuario
+    // explicitamente escolhe Lista. Ao voltar para Calendario, apagamos
+    // o cookie para o default global voltar a valer (ate em outras maquinas).
     if (typeof document !== 'undefined') {
-      document.cookie = `pronttu_atendimentos_view=${next}; path=/; max-age=31536000; samesite=lax`
+      if (next === 'list') {
+        document.cookie = 'pronttu_atendimentos_view=list; path=/; max-age=31536000; samesite=lax'
+      } else {
+        // Apaga cookie definindo max-age=0.
+        document.cookie = 'pronttu_atendimentos_view=; path=/; max-age=0; samesite=lax'
+      }
     }
-    // Cal e default global, mas com cookie='cal' precisamos enviar explicito
-    // na URL pra UI ser consistente em links compartilhaveis. Mantemos
-    // querystring como override e cookie como persistencia.
-    pushQuery({ view: next })
+    pushQuery({ view: next === 'cal' ? null : 'list' })
   }
 
   function navigate(direction: 'prev' | 'next') {
@@ -121,47 +125,51 @@ export function AtendimentosToolbar({
         </button>
       </div>
 
-      {view === 'cal' ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={goToday} className="h-9">
-            Hoje
-          </Button>
-          <div className="inline-flex items-center rounded-md border border-slate-200 bg-white">
-            <button
-              type="button"
-              onClick={() => navigate('prev')}
-              className="flex h-9 w-9 items-center justify-center text-slate-500 hover:bg-slate-50"
-              aria-label="Anterior"
+      <div className="flex flex-wrap items-center gap-2">
+        {view === 'cal' ? (
+          <>
+            <Button variant="outline" size="sm" onClick={goToday} className="h-9">
+              Hoje
+            </Button>
+            <div className="inline-flex items-center rounded-md border border-slate-200 bg-white">
+              <button
+                type="button"
+                onClick={() => navigate('prev')}
+                className="flex h-9 w-9 items-center justify-center text-slate-500 hover:bg-slate-50"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('next')}
+                className="flex h-9 w-9 items-center justify-center text-slate-500 hover:bg-slate-50"
+                aria-label="Próximo"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <span className="text-sm font-bold text-slate-800">{headerLabel}</span>
+            <Select
+              value={effectiveGrain}
+              onValueChange={(v) => setGrain(v as Grain)}
+              disabled={isMobile}
             >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('next')}
-              className="flex h-9 w-9 items-center justify-center text-slate-500 hover:bg-slate-50"
-              aria-label="Próximo"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-          <span className="text-sm font-bold text-slate-800">{headerLabel}</span>
-          <Select
-            value={effectiveGrain}
-            onValueChange={(v) => setGrain(v as Grain)}
-            disabled={isMobile}
-          >
-            <SelectTrigger className="h-9 w-28 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Dia</SelectItem>
-              <SelectItem value="week">Semana</SelectItem>
-              <SelectItem value="month">Mês</SelectItem>
-            </SelectContent>
-          </Select>
-          <DoctorFilter doctors={doctorOptions} selected={selectedDoctors} />
-        </div>
-      ) : null}
+              <SelectTrigger className="h-9 w-28 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Dia</SelectItem>
+                <SelectItem value="week">Semana</SelectItem>
+                <SelectItem value="month">Mês</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        ) : null}
+        {/* Filtro de profissional disponivel em ambas as views — persiste
+            entre alternancias atraves do querystring `?doctors=`. */}
+        <DoctorFilter doctors={doctorOptions} selected={selectedDoctors} />
+      </div>
     </div>
   )
 }

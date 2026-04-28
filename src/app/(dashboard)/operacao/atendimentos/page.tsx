@@ -166,6 +166,8 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   if (searchParams.to) query = query.lte('appointment_at', searchParams.to)
   const statusFilter = searchParams.status ?? 'todos'
   if (statusFilter !== 'todos') query = query.eq('effective_status', statusFilter)
+  // Filtro multi-profissional vindo do toolbar (mesmo querystring usado no Calendario).
+  if (selectedDoctors.length > 0) query = query.in('doctor_id', selectedDoctors)
 
   const { data: rawRows, error } = await query
   const rows = (rawRows ?? []) as unknown as AppointmentRow[]
