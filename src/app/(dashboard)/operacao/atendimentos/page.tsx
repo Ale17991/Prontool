@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { ChevronRight, Filter, Plus, Stethoscope } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -54,7 +55,18 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const view = searchParams.view === 'cal' ? 'cal' : 'list'
+  // View default por dispositivo: querystring tem precedencia, senao cookie,
+  // senao 'cal' (default global da feature 005). Toolbar escreve o cookie ao
+  // alternar para persistir a preferencia entre recargas.
+  const cookieView = cookies().get('pronttu_atendimentos_view')?.value
+  const view: 'list' | 'cal' =
+    searchParams.view === 'cal'
+      ? 'cal'
+      : searchParams.view === 'list'
+        ? 'list'
+        : cookieView === 'list'
+          ? 'list'
+          : 'cal'
   const grain = searchParams.grain ?? 'week'
   const weekDate = parseIsoDate(searchParams.week) ?? new Date()
   const selectedDoctors = (searchParams.doctors ?? '')

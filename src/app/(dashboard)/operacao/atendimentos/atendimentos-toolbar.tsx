@@ -60,7 +60,14 @@ export function AtendimentosToolbar({
   }
 
   function setView(next: 'list' | 'cal') {
-    pushQuery({ view: next === 'list' ? null : 'cal' })
+    // Persiste preferencia por dispositivo via cookie (server le em SSR).
+    if (typeof document !== 'undefined') {
+      document.cookie = `pronttu_atendimentos_view=${next}; path=/; max-age=31536000; samesite=lax`
+    }
+    // Cal e default global, mas com cookie='cal' precisamos enviar explicito
+    // na URL pra UI ser consistente em links compartilhaveis. Mantemos
+    // querystring como override e cookie como persistencia.
+    pushQuery({ view: next })
   }
 
   function navigate(direction: 'prev' | 'next') {
