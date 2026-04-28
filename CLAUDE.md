@@ -1,6 +1,6 @@
 ﻿# Pronttu Development Guidelines
 
-Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-24
+Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-27
 
 ## Active Technologies
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
@@ -56,7 +56,7 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
-- 006-comprovantes-particular: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router), React 18.3, `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind CSS 3.4, shadcn/ui, `lucide-react`, `date-fns` 4.1.
+- 006-comprovantes-particular: nova tabela `expense_receipts` (1:N com `expenses`, soft-delete admin-only, audit triggers); `appointments.plan_id` agora `NULL` para particular + `enforce_appointment_preconditions` v2 (branch convênio/particular usa `procedure.default_amount_cents`); endpoints plurais `/api/despesas/[id]/comprovantes` (POST multi, GET, DELETE); badge "Particular" em listas, calendário e detalhe de atendimento.
 - 005-agenda-plano-integracao: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router), React 18.3, `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind CSS 3.4, shadcn/ui, `date-fns` 4.1, Pino 9.
 - 004-calendario-atendimentos: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router), React 18.3, `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind CSS 3.4, shadcn/ui (Radix primitives), `date-fns` 4.1, `framer-motion` 12, `lucide-react`.
 
