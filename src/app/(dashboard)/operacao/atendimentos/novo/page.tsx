@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ChevronLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { listPatients } from '@/lib/core/patients/list'
 import { NewAppointmentForm, type FormOption } from './new-appointment-form'
@@ -12,7 +13,11 @@ export const dynamic = 'force-dynamic'
 
 const ALLOWED_ROLES = new Set(['admin', 'recepcionista'])
 
-export default async function NovoAtendimentoPage() {
+interface PageProps {
+  searchParams: { at?: string }
+}
+
+export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
   if (!ALLOWED_ROLES.has(session.role)) redirect('/operacao/atendimentos')
@@ -44,7 +49,7 @@ export default async function NovoAtendimentoPage() {
   const doctors: FormOption[] = (
     (doctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
   ).map((d) => ({ id: d.id, label: d.full_name }))
-  const procedures: FormOption[] = (
+  const procedures = (
     (proceduresRes.data ?? []) as Array<{
       id: string
       tuss_code: string
@@ -52,7 +57,8 @@ export default async function NovoAtendimentoPage() {
     }>
   ).map((p) => ({
     id: p.id,
-    label: p.display_name ? `${p.tuss_code} · ${p.display_name}` : p.tuss_code,
+    tussCode: p.tuss_code,
+    displayName: p.display_name,
   }))
   const patients: FormOption[] = patientsRes.items.map((p) => ({
     id: p.id,
@@ -62,13 +68,13 @@ export default async function NovoAtendimentoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link
-          href="/operacao/atendimentos"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800"
-        >
-          <ChevronLeft className="h-3 w-3" /> Voltar aos atendimentos
-        </Link>
-        <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+        <Button asChild variant="outline" size="sm" className="h-8 gap-1.5">
+          <Link href="/operacao/atendimentos">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Voltar
+          </Link>
+        </Button>
+        <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
           Novo atendimento
         </h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -87,6 +93,7 @@ export default async function NovoAtendimentoPage() {
             doctors={doctors}
             procedures={procedures}
             plans={plans}
+            initialAppointmentAt={searchParams.at}
           />
         </CardContent>
       </Card>

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ChevronRight, Filter, Plus, Stethoscope } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/db/types'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
@@ -11,6 +13,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
+import {
+  getDayRange,
+  getMonthRange,
+  getWeekRange,
+  parseIsoDate,
+} from '@/lib/utils/calendar'
+import { listAppointmentsForWeek } from '@/lib/core/appointments/list-week'
+import { AtendimentosToolbar } from './atendimentos-toolbar'
+import { CalendarView } from './calendar/calendar-view'
+import type { DoctorFilterOption } from './calendar/doctor-filter'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +31,10 @@ interface PageProps {
     from?: string
     to?: string
     status?: 'ativo' | 'estornado' | 'todos'
+    view?: 'list' | 'cal'
+    week?: string
+    grain?: 'day' | 'week' | 'month'
+    doctors?: string
   }
 }
 
@@ -38,7 +54,94 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  const supabase = createSupabaseServerClient()
+  const view = searchParams.view === 'cal' ? 'cal' : 'list'
+  const grain = searchParams.grain ?? 'week'
+  const weekDate = parseIsoDate(searchParams.week) ?? new Date()
+  const selectedDoctors = (searchParams.doctors ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+
+  // Lista de profissionais do tenant para o filtro do calendario.
+  const { data: doctorsRaw } = await supabase
+    .from('doctors')
+    .select('id, full_name, active')
+    .order('active', { ascending: false })
+    .order('full_name', { ascending: true })
+  const doctorOptions: DoctorFilterOption[] = (
+    (doctorsRaw ?? []) as Array<{ id: string; full_name: string; active: boolean | null }>
+  ).map((d) => ({
+    id: d.id,
+    fullName: d.full_name,
+    active: d.active !== false,
+  }))
+
+  if (view === 'cal') {
+    const range =
+      grain === 'day'
+        ? getDayRange(weekDate)
+        : grain === 'month'
+          ? getMonthRange(weekDate)
+          : getWeekRange(weekDate)
+
+    const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
+    const service = encryptionKey ? createSupabaseServiceClient() : undefined
+    const appointments = await listAppointmentsForWeek(
+      supabase,
+      {
+        tenantId: session.tenantId,
+        weekStart: range.start,
+        weekEnd: range.end,
+        doctorIds: selectedDoctors.length > 0 ? selectedDoctors : undefined,
+      },
+      { serviceClient: service, encryptionKey },
+    )
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {appointments.length} no período selecionado
+              {selectedDoctors.length > 0 ? (
+                <>
+                  {' '}
+                  · filtrado por{' '}
+                  <span className="font-semibold text-slate-700">
+                    {selectedDoctors.length} profissional
+                    {selectedDoctors.length === 1 ? '' : 'is'}
+                  </span>
+                </>
+              ) : null}
+            </p>
+          </div>
+          {session.role === 'admin' || session.role === 'recepcionista' ? (
+            <Button asChild>
+              <Link href="/operacao/atendimentos/novo">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo atendimento
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+
+        <AtendimentosToolbar
+          view={view}
+          weekDate={weekDate}
+          grain={grain}
+          doctorOptions={doctorOptions}
+          selectedDoctors={selectedDoctors}
+        />
+
+        <CalendarView range={range} appointments={appointments} />
+      </div>
+    )
+  }
+
+  // ---- Visualização Lista (default) ----
   let query = supabase
     .from('appointments_effective')
     .select(
@@ -108,6 +211,14 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
           </Button>
         ) : null}
       </div>
+
+      <AtendimentosToolbar
+        view={view}
+        weekDate={weekDate}
+        grain={grain}
+        doctorOptions={doctorOptions}
+        selectedDoctors={selectedDoctors}
+      />
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">

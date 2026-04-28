@@ -27,6 +27,8 @@ export interface CreateManualAppointmentInput {
   /** ISO-8601 UTC. */
   appointmentAt: string
   amountCentsOverride?: number
+  /** Duracao em minutos, 5-480. Quando ausente, persiste NULL e a leitura usa default 30. */
+  durationMinutes?: number
   observacoes?: string
 }
 
@@ -122,8 +124,9 @@ export async function createAppointmentManually(
       frozen_amount_cents: amountToFreeze,
       frozen_commission_bps: commission.percentageBps,
       appointment_at: when.toISOString(),
+      duration_minutes: input.durationMinutes ?? null,
       source: 'manual',
-    })
+    } as never)
     .select('id')
     .single()
 

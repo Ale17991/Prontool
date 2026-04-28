@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatBps, formatCurrency, formatDateTime } from '@/lib/utils'
@@ -71,13 +72,13 @@ export default async function AtendimentoDetailPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Link
-            href="/operacao/atendimentos"
-            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-          >
-            <ArrowLeft className="h-3 w-3" /> Voltar para atendimentos
-          </Link>
-          <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+          <Button asChild variant="outline" size="sm" className="h-8 gap-1.5">
+            <Link href="/operacao/atendimentos">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Voltar
+            </Link>
+          </Button>
+          <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
             Atendimento
           </h1>
           <p className="mt-1 font-mono text-xs text-slate-400">{appointment.id}</p>

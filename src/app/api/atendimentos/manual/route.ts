@@ -24,6 +24,7 @@ const bodySchema = z.object({
   plan_id: z.string().uuid(),
   appointment_at: z.string().datetime(),
   amount_cents_override: z.number().int().min(0).optional(),
+  duration_minutes: z.number().int().min(5).max(480).optional(),
   observacoes: z.string().trim().max(500).optional(),
 })
 
@@ -59,6 +60,7 @@ export async function POST(req: Request): Promise<Response> {
       planId: parsed.data.plan_id,
       appointmentAt: parsed.data.appointment_at,
       amountCentsOverride: parsed.data.amount_cents_override,
+      durationMinutes: parsed.data.duration_minutes,
       observacoes: parsed.data.observacoes,
     })
 

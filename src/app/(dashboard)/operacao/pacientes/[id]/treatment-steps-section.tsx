@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
+import { LocalProcedureTypeahead } from '@/components/tuss/local-procedure-typeahead'
 
 export interface TreatmentStepDTO {
   id: string
@@ -665,36 +666,16 @@ function NewStepForm({
         <Label htmlFor="step_proc_search">
           Procedimento <span className="text-rose-500">*</span>
         </Label>
-        <Input
+        <LocalProcedureTypeahead
           id="step_proc_search"
-          placeholder="Buscar por TUSS ou nome…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          options={procedures.map((p) => ({
+            id: p.id,
+            tussCode: p.tussCode,
+            displayName: p.displayName,
+          }))}
+          value={procedureId}
+          onChange={setProcedureId}
         />
-        <div className="max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-slate-50/50 text-xs">
-          {filtered.length === 0 ? (
-            <p className="px-3 py-2 text-slate-400">Nenhum procedimento encontrado.</p>
-          ) : (
-            filtered.map((p) => (
-              <button
-                type="button"
-                key={p.id}
-                onClick={() => setProcedureId(p.id)}
-                className={cn(
-                  'flex w-full items-start justify-between gap-2 px-3 py-2 text-left hover:bg-white',
-                  p.id === procedureId ? 'bg-white font-bold text-primary' : 'text-slate-600',
-                )}
-              >
-                <span className="line-clamp-2 min-w-0 flex-1 whitespace-normal break-words">
-                  {p.displayName ?? '(sem nome)'}
-                </span>
-                <span className="ml-2 shrink-0 font-mono text-[10px] text-slate-500">
-                  {p.tussCode}
-                </span>
-              </button>
-            ))
-          )}
-        </div>
       </div>
 
       <div className="space-y-1.5 md:col-span-2">

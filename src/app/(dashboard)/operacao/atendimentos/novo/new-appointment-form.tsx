@@ -14,6 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  LocalProcedureTypeahead,
+  type LocalProcedureOption,
+} from '@/components/tuss/local-procedure-typeahead'
 
 export interface FormOption {
   id: string
@@ -23,8 +27,9 @@ export interface FormOption {
 export interface NewAppointmentFormProps {
   patients: FormOption[]
   doctors: FormOption[]
-  procedures: FormOption[]
+  procedures: LocalProcedureOption[]
   plans: FormOption[]
+  initialAppointmentAt?: string
 }
 
 type PaymentMethod =
@@ -51,13 +56,17 @@ export function NewAppointmentForm({
   doctors,
   procedures,
   plans,
+  initialAppointmentAt,
 }: NewAppointmentFormProps) {
   const router = useRouter()
   const [patientId, setPatientId] = useState('')
   const [doctorId, setDoctorId] = useState('')
   const [procedureId, setProcedureId] = useState('')
   const [planId, setPlanId] = useState('')
-  const [appointmentAt, setAppointmentAt] = useState(() => localIsoNow())
+  const [appointmentAt, setAppointmentAt] = useState(
+    () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
+  )
+  const [durationMinutes, setDurationMinutes] = useState<number>(30)
   const [amountReais, setAmountReais] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [pending, setPending] = useState(false)
@@ -130,6 +139,7 @@ export function NewAppointmentForm({
       procedure_id: procedureId,
       plan_id: planId,
       appointment_at: whenIso,
+      duration_minutes: clampDuration(durationMinutes),
     }
     if (amountReais) {
       const cents = Math.round(Number(amountReais.replace(',', '.')) * 100)
@@ -241,18 +251,12 @@ export function NewAppointmentForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="procedure_id">Procedimento (TUSS)</Label>
-        <Select value={procedureId} onValueChange={setProcedureId}>
-          <SelectTrigger id="procedure_id">
-            <SelectValue placeholder="Selecione…" />
-          </SelectTrigger>
-          <SelectContent>
-            {procedures.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <LocalProcedureTypeahead
+          id="procedure_id"
+          options={procedures}
+          value={procedureId}
+          onChange={setProcedureId}
+        />
       </div>
 
       <div className="space-y-1.5">
@@ -279,6 +283,22 @@ export function NewAppointmentForm({
           value={appointmentAt}
           onChange={(e) => setAppointmentAt(e.target.value)}
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="duration_minutes">Duração (min)</Label>
+        <Input
+          id="duration_minutes"
+          type="number"
+          min={5}
+          max={480}
+          step={5}
+          value={durationMinutes}
+          onChange={(e) => setDurationMinutes(Number(e.target.value) || 30)}
+        />
+        <p className="text-[11px] text-slate-500">
+          Usado para o calendário; 5 a 480 minutos.
+        </p>
       </div>
 
       <div className="space-y-1.5">
@@ -432,4 +452,20 @@ function localIsoNow(): string {
   const d = new Date()
   const pad = (n: number) => `${n}`.padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function normalizeInitialAt(raw: string | undefined): string | null {
+  if (!raw) return null
+  // Aceita tanto "YYYY-MM-DDTHH:MM" quanto ISO completo com offset.
+  const truncated = raw.length >= 16 ? raw.slice(0, 16) : raw
+  // Validacao basica de formato.
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(truncated)) return null
+  return truncated
+}
+
+function clampDuration(n: number): number {
+  if (!Number.isFinite(n)) return 30
+  if (n < 5) return 5
+  if (n > 480) return 480
+  return Math.round(n)
 }

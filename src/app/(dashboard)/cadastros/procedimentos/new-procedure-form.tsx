@@ -2,37 +2,21 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronsUpDown } from 'lucide-react'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { TussTableBadge, type TussTable, TUSS_TABLES } from './tuss-table-badge'
-
-interface TussHit {
-  code: string
-  description: string
-  manufacturer?: string | null
-  tussTable?: TussTable
-  tussTableLabel?: string | null
-}
+import {
+  TussTableBadge,
+  type TussTable,
+  TUSS_TABLES,
+} from './tuss-table-badge'
+import { TussTypeahead, type TussTypeaheadValue } from '@/components/tuss/tuss-typeahead'
 
 export function NewProcedureForm() {
   const router = useRouter()
   const [tussTable, setTussTable] = useState<TussTable>('22')
-  const [open, setOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [results, setResults] = useState<TussHit[]>([])
-  const [selected, setSelected] = useState<TussHit | null>(null)
+  const [selected, setSelected] = useState<TussTypeaheadValue | null>(null)
   const [displayName, setDisplayName] = useState('')
   const [defaultAmount, setDefaultAmount] = useState('')
   const [coveredByPlan, setCoveredByPlan] = useState(true)
@@ -40,38 +24,10 @@ export function NewProcedureForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  // Trocar de tabela invalida a seleção atual — um código de uma tabela
-  // não faz sentido selecionado sob outra.
+  // Trocar de tabela invalida a seleção atual.
   useEffect(() => {
     setSelected(null)
-    setSearchValue('')
-    setResults([])
   }, [tussTable])
-
-  useEffect(() => {
-    if (!searchValue.trim()) {
-      setResults([])
-      return
-    }
-    const ctrl = new AbortController()
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/tuss-codes?q=${encodeURIComponent(searchValue.trim())}&table=${tussTable}&limit=30`,
-          { signal: ctrl.signal },
-        )
-        if (!res.ok) return
-        const data = (await res.json()) as TussHit[]
-        setResults(data)
-      } catch {
-        // ignore abort / network errors — user can retry
-      }
-    }, 250)
-    return () => {
-      clearTimeout(timer)
-      ctrl.abort()
-    }
-  }, [searchValue, tussTable])
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -114,11 +70,9 @@ export function NewProcedureForm() {
       }
       setSuccess(`Procedimento ${selected.code} cadastrado.`)
       setSelected(null)
-      setSearchValue('')
       setDisplayName('')
       setDefaultAmount('')
       setCoveredByPlan(true)
-      setResults([])
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -155,78 +109,15 @@ export function NewProcedureForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs">Código TUSS</Label>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between font-normal"
-            >
-              <span className="truncate">
-                {selected ? `${selected.code} — ${selected.description}` : 'Buscar por código ou nome…'}
-              </span>
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            className="w-[min(720px,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0"
-          >
-            <Command shouldFilter={false}>
-              <CommandInput
-                placeholder="Digite para buscar…"
-                value={searchValue}
-                onValueChange={setSearchValue}
-              />
-              <CommandList>
-                <CommandEmpty className="py-6 text-center text-xs text-slate-500">
-                  {searchValue.trim() ? 'Nenhum resultado.' : 'Digite ao menos 2 caracteres.'}
-                </CommandEmpty>
-                {results.length > 0 ? (
-                  <CommandGroup heading="Catálogo TUSS">
-                    {results.map((item) => (
-                      <CommandItem
-                        key={item.code}
-                        value={`${item.code} ${item.description} ${item.manufacturer ?? ''}`}
-                        onSelect={() => {
-                          setSelected(item)
-                          setOpen(false)
-                        }}
-                        className="cursor-pointer items-start py-2 text-xs"
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 mt-0.5 h-4 w-4 shrink-0 text-primary',
-                            selected?.code === item.code ? 'opacity-100' : 'opacity-0',
-                          )}
-                        />
-                        {item.tussTable ? (
-                          <TussTableBadge table={item.tussTable} className="mr-2 mt-0.5 shrink-0" />
-                        ) : null}
-                        <span className="mr-2 mt-0.5 shrink-0 font-bold text-slate-900">
-                          {item.code}
-                        </span>
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="line-clamp-2 whitespace-normal break-words text-slate-700">
-                            {item.description}
-                          </span>
-                          {item.manufacturer ? (
-                            <span className="line-clamp-2 whitespace-normal break-words text-[10px] text-slate-400">
-                              {item.manufacturer}
-                            </span>
-                          ) : null}
-                        </span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ) : null}
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Label className="text-xs" htmlFor="tuss-typeahead">
+          Código TUSS
+        </Label>
+        <TussTypeahead
+          id="tuss-typeahead"
+          table={tussTable}
+          value={selected}
+          onChange={setSelected}
+        />
       </div>
 
       {selected ? (
@@ -235,7 +126,7 @@ export function NewProcedureForm() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
               Selecionado
             </p>
-            {selected.tussTable ? <TussTableBadge table={selected.tussTable} /> : null}
+            <TussTableBadge table={selected.tussTable} />
           </div>
           <p className="font-mono text-xs font-bold text-primary">{selected.code}</p>
           <p className="text-xs text-slate-700">{selected.description}</p>
