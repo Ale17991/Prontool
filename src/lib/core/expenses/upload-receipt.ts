@@ -2,21 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { DomainError, NotFoundError, ValidationError } from '@/lib/observability/errors'
 
-/**
- * Upload do comprovante de uma despesa para o bucket `expense-receipts`.
- * Path: {tenant_id}/{expense_id}/{filename}.
- *
- * Limites:
- *   - 10 MB por arquivo (alinhado ao CHECK em expenses.receipt_file_size)
- *   - tipos: PDF, JPG, JPEG, PNG (validacao por extensao + content-type)
- *
- * Atomicidade: upload primeiro, depois UPDATE. Se o UPDATE falhar,
- * tenta remover o objeto para evitar arquivo orfao.
- *
- * Substituicao: se a despesa ja tem comprovante, apaga o anterior antes
- * de subir o novo (mantem trilha de auditoria via audit_log gerado pelos
- * triggers de expenses).
- */
 const BUCKET = 'expense-receipts'
 const MAX_BYTES = 10 * 1024 * 1024
 const ALLOWED_EXT = new Set(['pdf', 'jpg', 'jpeg', 'png'])
@@ -37,12 +22,20 @@ export interface UploadReceiptInput {
 }
 
 export interface UploadReceiptResult {
+  receiptId: string
   expenseId: string
   fileName: string
-  fileUrl: string
-  fileSize: number
+  storagePath: string
+  fileSizeBytes: number
+  contentType: string
 }
 
+/**
+ * Upload de um comprovante (1 entry em `expense_receipts`).
+ * Path: {tenant_id}/{expense_id}/{filename}. Conflito de nome resolve com sufixo `-N`.
+ *
+ * Atomicidade: storage primeiro, INSERT depois. Se INSERT falhar, remove o objeto.
+ */
 export async function uploadExpenseReceipt(
   supabase: SupabaseClient<Database>,
   input: UploadReceiptInput,
@@ -55,25 +48,25 @@ export async function uploadExpenseReceipt(
     })
   }
 
-  const safeName = sanitizeFilename(input.fileName)
-  const ext = safeName.split('.').pop()?.toLowerCase() ?? ''
+  const safeBase = sanitizeFilename(input.fileName)
+  const ext = safeBase.split('.').pop()?.toLowerCase() ?? ''
   if (!ALLOWED_EXT.has(ext)) {
     throw new ValidationError(
       'Tipo de arquivo nao suportado. Use PDF, JPG, JPEG ou PNG.',
       { extension: ext },
     )
   }
-  if (input.contentType && !ALLOWED_MIME.has(input.contentType.toLowerCase())) {
+  const contentType = (input.contentType || '').toLowerCase()
+  if (contentType && !ALLOWED_MIME.has(contentType)) {
     throw new ValidationError(
       'Content-type nao suportado. Use PDF, JPG, JPEG ou PNG.',
       { content_type: input.contentType },
     )
   }
 
-  // Verifica que a despesa existe e pertence ao tenant.
   const expense = await supabase
     .from('expenses')
-    .select('id, receipt_file_url, deleted_at')
+    .select('id, deleted_at')
     .eq('id', input.expenseId)
     .eq('tenant_id', input.tenantId)
     .maybeSingle()
@@ -89,126 +82,81 @@ export async function uploadExpenseReceipt(
     )
   }
 
-  const path = `${input.tenantId}/${input.expenseId}/${safeName}`
+  const finalName = await resolveUniqueName(supabase, {
+    tenantId: input.tenantId,
+    expenseId: input.expenseId,
+    baseName: safeBase,
+  })
+  const storagePath = `${input.tenantId}/${input.expenseId}/${finalName}`
 
-  // Se ja existia comprovante, apaga primeiro (substituicao).
-  const previousPath = expense.data.receipt_file_url
-  if (previousPath && previousPath !== path) {
-    await supabase.storage
-      .from(BUCKET)
-      .remove([previousPath])
-      .catch(() => undefined)
-  }
-
-  const upload = await supabase.storage.from(BUCKET).upload(path, input.file, {
-    upsert: true,
-    contentType: input.contentType || 'application/octet-stream',
+  const upload = await supabase.storage.from(BUCKET).upload(storagePath, input.file, {
+    upsert: false,
+    contentType: contentType || 'application/octet-stream',
   })
   if (upload.error) throw new Error(`storage upload failed: ${upload.error.message}`)
 
-  // UPDATE da despesa para registrar o comprovante.
-  const updated = await supabase
-    .from('expenses')
-    .update({
-      receipt_file_name: safeName,
-      receipt_file_url: path,
-      receipt_file_size: size,
+  const inserted = await supabase
+    .from('expense_receipts')
+    .insert({
+      tenant_id: input.tenantId,
+      expense_id: input.expenseId,
+      file_name: finalName,
+      storage_path: storagePath,
+      file_size_bytes: size,
+      content_type: contentType || 'application/octet-stream',
+      uploaded_by: input.actorUserId,
     })
-    .eq('id', input.expenseId)
-    .eq('tenant_id', input.tenantId)
-    .select('id')
+    .select('id, file_name, storage_path, file_size_bytes, content_type')
     .single()
 
-  if (updated.error || !updated.data) {
-    // Cleanup do storage se o UPDATE falhar.
+  if (inserted.error || !inserted.data) {
     await supabase.storage
       .from(BUCKET)
-      .remove([path])
+      .remove([storagePath])
       .catch(() => undefined)
-    throw new Error(`expense receipt update failed: ${updated.error?.message}`)
+    throw new Error(`expense_receipts insert failed: ${inserted.error?.message}`)
   }
 
   return {
+    receiptId: inserted.data.id,
     expenseId: input.expenseId,
-    fileName: safeName,
-    fileUrl: path,
-    fileSize: size,
+    fileName: inserted.data.file_name,
+    storagePath: inserted.data.storage_path,
+    fileSizeBytes: inserted.data.file_size_bytes,
+    contentType: inserted.data.content_type,
   }
 }
 
-export async function removeExpenseReceipt(
+export const uploadReceipt = uploadExpenseReceipt
+
+async function resolveUniqueName(
   supabase: SupabaseClient<Database>,
-  args: { tenantId: string; expenseId: string },
-): Promise<void> {
-  const expense = await supabase
-    .from('expenses')
-    .select('id, receipt_file_url')
-    .eq('id', args.expenseId)
+  args: { tenantId: string; expenseId: string; baseName: string },
+): Promise<string> {
+  const existing = await supabase
+    .from('expense_receipts')
+    .select('file_name')
     .eq('tenant_id', args.tenantId)
-    .maybeSingle()
-  if (expense.error) throw new Error(`expense lookup: ${expense.error.message}`)
-  if (!expense.data) throw new NotFoundError('expense', args.expenseId)
-  if (!expense.data.receipt_file_url) {
-    throw new DomainError(
-      'NO_RECEIPT',
-      'Despesa nao tem comprovante anexado',
-      { status: 404 },
-    )
+    .eq('expense_id', args.expenseId)
+    .is('deleted_at', null)
+  if (existing.error) {
+    throw new Error(`expense_receipts list: ${existing.error.message}`)
   }
+  const taken = new Set((existing.data ?? []).map((r) => r.file_name))
+  if (!taken.has(args.baseName)) return args.baseName
 
-  const path = expense.data.receipt_file_url
-
-  // Apaga do storage primeiro; se falhar, mantem a row consistente.
-  const removed = await supabase.storage.from(BUCKET).remove([path])
-  if (removed.error) {
-    throw new Error(`storage remove failed: ${removed.error.message}`)
+  const dot = args.baseName.lastIndexOf('.')
+  const stem = dot > 0 ? args.baseName.slice(0, dot) : args.baseName
+  const ext = dot > 0 ? args.baseName.slice(dot) : ''
+  for (let i = 1; i < 1000; i++) {
+    const candidate = `${stem}-${i}${ext}`
+    if (!taken.has(candidate)) return candidate
   }
-
-  const updated = await supabase
-    .from('expenses')
-    .update({
-      receipt_file_name: null,
-      receipt_file_url: null,
-      receipt_file_size: null,
-    })
-    .eq('id', args.expenseId)
-    .eq('tenant_id', args.tenantId)
-  if (updated.error) {
-    throw new Error(`expense receipt clear failed: ${updated.error.message}`)
-  }
-}
-
-export async function getExpenseReceiptSignedUrl(
-  supabase: SupabaseClient<Database>,
-  args: { tenantId: string; expenseId: string; expiresIn?: number },
-): Promise<{ url: string; fileName: string }> {
-  const expense = await supabase
-    .from('expenses')
-    .select('id, receipt_file_url, receipt_file_name')
-    .eq('id', args.expenseId)
-    .eq('tenant_id', args.tenantId)
-    .maybeSingle()
-  if (expense.error) throw new Error(`expense lookup: ${expense.error.message}`)
-  if (!expense.data) throw new NotFoundError('expense', args.expenseId)
-  if (!expense.data.receipt_file_url) {
-    throw new DomainError(
-      'NO_RECEIPT',
-      'Despesa nao tem comprovante anexado',
-      { status: 404 },
-    )
-  }
-
-  const signed = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(expense.data.receipt_file_url, args.expiresIn ?? 60)
-  if (signed.error || !signed.data?.signedUrl) {
-    throw new Error(`signed URL failed: ${signed.error?.message}`)
-  }
-
-  return {
-    url: signed.data.signedUrl,
-    fileName: expense.data.receipt_file_name ?? 'comprovante',
-  }
+  throw new DomainError(
+    'RECEIPT_NAME_EXHAUSTED',
+    'Limite de variacoes de nome atingido',
+    { status: 409 },
+  )
 }
 
 function sanitizeFilename(name: string): string {

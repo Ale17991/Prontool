@@ -33,7 +33,7 @@ export function NewExpenseForm() {
   )
   const [recurring, setRecurring] = useState(false)
   const [frequency, setFrequency] = useState('mensal')
-  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [receiptFiles, setReceiptFiles] = useState<File[]>([])
   const receiptInputRef = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,8 +54,9 @@ export function NewExpenseForm() {
       return
     }
 
-    if (receiptFile && receiptFile.size > RECEIPT_MAX_BYTES) {
-      setError('Comprovante excede 10 MB.')
+    const oversize = receiptFiles.find((f) => f.size > RECEIPT_MAX_BYTES)
+    if (oversize) {
+      setError(`Comprovante "${oversize.name}" excede 10 MB.`)
       return
     }
 
@@ -83,33 +84,49 @@ export function NewExpenseForm() {
       }
       const created = (await res.json().catch(() => ({}))) as { id?: string }
 
-      // Upload de comprovante (opcional). Se falhar, a despesa fica criada
-      // sem comprovante — usuario pode anexar depois pela lista.
-      if (receiptFile && created.id) {
+      // Upload de comprovantes (opcional). Se falhar, a despesa fica criada
+      // sem comprovantes — usuario pode anexar depois pela lista.
+      let uploadFailedMsg: string | null = null
+      if (receiptFiles.length > 0 && created.id) {
         const fd = new FormData()
-        fd.set('file', receiptFile)
-        const upload = await fetch(`/api/despesas/${created.id}/comprovante`, {
+        for (const f of receiptFiles) fd.append('files', f)
+        const upload = await fetch(`/api/despesas/${created.id}/comprovantes`, {
           method: 'POST',
           body: fd,
         })
-        if (!upload.ok) {
+        if (!upload.ok && upload.status !== 207) {
           const body = (await upload.json().catch(() => ({}))) as {
             error?: { message?: string }
           }
-          setError(
-            `Despesa cadastrada, mas o comprovante falhou: ${body.error?.message ?? 'erro desconhecido'}. Anexe pela lista.`,
-          )
-          router.refresh()
-          return
+          uploadFailedMsg = body.error?.message ?? 'erro desconhecido'
+        } else {
+          const body = (await upload.json().catch(() => ({}))) as {
+            failed?: Array<{ file_name: string; error?: { message?: string } }>
+          }
+          if (body.failed?.length) {
+            uploadFailedMsg = body.failed
+              .map((f) => `${f.file_name}: ${f.error?.message ?? 'falha'}`)
+              .join(' · ')
+          }
         }
       }
 
-      setSuccess(receiptFile ? 'Despesa cadastrada com comprovante.' : 'Despesa cadastrada.')
+      if (uploadFailedMsg) {
+        setError(
+          `Despesa cadastrada, mas alguns comprovantes falharam: ${uploadFailedMsg}. Anexe pela lista.`,
+        )
+      } else {
+        setSuccess(
+          receiptFiles.length > 0
+            ? `Despesa cadastrada com ${receiptFiles.length} comprovante${receiptFiles.length === 1 ? '' : 's'}.`
+            : 'Despesa cadastrada.',
+        )
+      }
       setDescription('')
       setSupplier('')
       setAmount('')
       setRecurring(false)
-      setReceiptFile(null)
+      setReceiptFiles([])
       if (receiptInputRef.current) receiptInputRef.current.value = ''
       router.refresh()
     } finally {
@@ -219,46 +236,55 @@ export function NewExpenseForm() {
 
       <div>
         <Label htmlFor="expense-receipt" className="text-[11px] font-bold uppercase text-slate-500">
-          Comprovante (opcional)
+          Comprovantes (opcional)
         </Label>
-        {receiptFile ? (
-          <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
-            <Paperclip className="h-3.5 w-3.5 shrink-0 text-slate-500" />
-            <span className="flex-1 truncate text-slate-700">{receiptFile.name}</span>
-            <span className="shrink-0 text-slate-400">
-              {(receiptFile.size / 1024).toFixed(0)} KB
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setReceiptFile(null)
-                if (receiptInputRef.current) receiptInputRef.current.value = ''
-              }}
-              className="text-slate-400 hover:text-rose-600"
-              aria-label="Remover comprovante"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <Input
-            id="expense-receipt"
-            ref={receiptInputRef}
-            type="file"
-            accept={RECEIPT_ACCEPT}
-            onChange={(e) => {
-              const f = e.target.files?.[0] ?? null
-              if (f && f.size > RECEIPT_MAX_BYTES) {
-                setError('Comprovante excede 10 MB.')
-                e.target.value = ''
-                return
-              }
-              setReceiptFile(f)
-            }}
-          />
-        )}
+        {receiptFiles.length > 0 ? (
+          <ul className="space-y-1">
+            {receiptFiles.map((f, idx) => (
+              <li
+                key={`${f.name}-${idx}`}
+                className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs"
+              >
+                <Paperclip className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                <span className="flex-1 truncate text-slate-700">{f.name}</span>
+                <span className="shrink-0 text-slate-400">
+                  {(f.size / 1024).toFixed(0)} KB
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReceiptFiles((prev) => prev.filter((_, i) => i !== idx))
+                  }}
+                  className="text-slate-400 hover:text-rose-600"
+                  aria-label="Remover comprovante"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <Input
+          id="expense-receipt"
+          ref={receiptInputRef}
+          type="file"
+          multiple
+          accept={RECEIPT_ACCEPT}
+          className={receiptFiles.length > 0 ? 'mt-2' : ''}
+          onChange={(e) => {
+            const incoming = Array.from(e.target.files ?? [])
+            const oversize = incoming.find((f) => f.size > RECEIPT_MAX_BYTES)
+            if (oversize) {
+              setError(`Comprovante "${oversize.name}" excede 10 MB.`)
+              e.target.value = ''
+              return
+            }
+            setReceiptFiles((prev) => [...prev, ...incoming])
+            e.target.value = ''
+          }}
+        />
         <p className="mt-1 text-[11px] text-slate-400">
-          PDF, JPG ou PNG até 10 MB.
+          PDF, JPG ou PNG até 10 MB cada. Você pode adicionar vários.
         </p>
       </div>
 

@@ -1,9 +1,13 @@
 import { redirect } from 'next/navigation'
-import { TrendingDown, Activity, CreditCard, CalendarDays } from 'lucide-react'
+import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
 import { listExpenses } from '@/lib/core/expenses/list'
+import {
+  countReceiptsByExpense,
+  listReceiptsForExpense,
+} from '@/lib/core/expenses/list-receipts'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { NewExpenseForm } from './new-expense-form'
-import { ReceiptActions } from './receipt-actions'
+import { ReceiptList, type ReceiptItem } from './receipt-list'
 import { SoftDeleteExpenseButton } from './soft-delete-button'
 
 export const dynamic = 'force-dynamic'
@@ -73,6 +77,36 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
 
   const canWrite = can(session.role, 'expense.write')
   const canDelete = session.role === 'admin'
+
+  const receiptCounts = await countReceiptsByExpense(supabase, {
+    tenantId: session.tenantId,
+    expenseIds: expenses.map((e) => e.id),
+  })
+  const receiptsByExpense = new Map<string, ReceiptItem[]>()
+  await Promise.all(
+    expenses.map(async (e) => {
+      if ((receiptCounts.get(e.id) ?? 0) === 0) {
+        receiptsByExpense.set(e.id, [])
+        return
+      }
+      const list = await listReceiptsForExpense(supabase, {
+        tenantId: session.tenantId,
+        expenseId: e.id,
+      })
+      receiptsByExpense.set(
+        e.id,
+        list.map((r) => ({
+          id: r.id,
+          file_name: r.fileName,
+          storage_path: r.storagePath,
+          file_size_bytes: r.fileSizeBytes,
+          content_type: r.contentType,
+          uploaded_at: r.uploadedAt,
+          uploaded_by: r.uploadedBy,
+        })),
+      )
+    }),
+  )
 
   const totalAmount = expenses.reduce((acc, curr) => acc + Number(curr.amount_cents), 0)
   const avgAmount = expenses.length > 0 ? Math.round(totalAmount / expenses.length) : 0
@@ -182,14 +216,10 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                 </TableHeader>
                 <TableBody>
                   {expenses.map((e) => {
-                    type ExpenseRowExtras = {
-                      receipt_file_name: string | null
-                      receipt_file_url: string | null
-                    }
-                    const extras = e as unknown as ExpenseRowExtras
-                    const hasReceipt = !!extras.receipt_file_url
+                    const receiptCount = receiptCounts.get(e.id) ?? 0
+                    const receipts = receiptsByExpense.get(e.id) ?? []
                     return (
-                      <TableRow key={e.id} className="group">
+                      <TableRow key={e.id} className="group align-top">
                         <TableCell>
                           <p className="font-semibold text-slate-900">
                             {formatDate(e.competence_date)}
@@ -216,14 +246,27 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                         <TableCell className="text-right font-bold text-slate-900 tabular-nums">
                           {formatCurrency(e.amount_cents)}
                         </TableCell>
-                        <TableCell className="text-right">
-                          <ReceiptActions
-                            expenseId={e.id}
-                            hasReceipt={hasReceipt}
-                            fileName={extras.receipt_file_name}
-                            canWrite={canWrite}
-                            canDelete={canDelete}
-                          />
+                        <TableCell className="min-w-[260px]">
+                          <details className="group/receipts">
+                            <summary className="flex cursor-pointer list-none items-center justify-end gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900">
+                              <Paperclip className="h-3 w-3" />
+                              {receiptCount > 0 ? (
+                                <span>{receiptCount}</span>
+                              ) : (
+                                <span className="italic text-slate-400">
+                                  {canWrite ? 'anexar' : 'sem'}
+                                </span>
+                              )}
+                            </summary>
+                            <div className="mt-2">
+                              <ReceiptList
+                                expenseId={e.id}
+                                initialReceipts={receipts}
+                                canWrite={canWrite}
+                                canDelete={canDelete}
+                              />
+                            </div>
+                          </details>
                         </TableCell>
                         <TableCell className="text-right">
                           {canDelete ? <SoftDeleteExpenseButton id={e.id} /> : null}
