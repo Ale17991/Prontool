@@ -35,6 +35,7 @@ test-results/
 # AI scratch / local tool state
 .AIStudio/
 .claude/settings.local.json
+.tmp/
 
 # OS
 .DS_Store

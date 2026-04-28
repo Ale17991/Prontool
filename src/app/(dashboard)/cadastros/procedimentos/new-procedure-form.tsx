@@ -173,7 +173,7 @@ export function NewProcedureForm() {
           </PopoverTrigger>
           <PopoverContent
             align="start"
-            className="w-[var(--radix-popover-trigger-width)] p-0"
+            className="w-[min(720px,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0"
           >
             <Command shouldFilter={false}>
               <CommandInput
@@ -195,22 +195,26 @@ export function NewProcedureForm() {
                           setSelected(item)
                           setOpen(false)
                         }}
-                        className="cursor-pointer py-2 text-xs"
+                        className="cursor-pointer items-start py-2 text-xs"
                       >
                         <Check
                           className={cn(
-                            'mr-2 h-4 w-4 text-primary',
+                            'mr-2 mt-0.5 h-4 w-4 shrink-0 text-primary',
                             selected?.code === item.code ? 'opacity-100' : 'opacity-0',
                           )}
                         />
                         {item.tussTable ? (
-                          <TussTableBadge table={item.tussTable} className="mr-2" />
+                          <TussTableBadge table={item.tussTable} className="mr-2 mt-0.5 shrink-0" />
                         ) : null}
-                        <span className="mr-2 font-bold text-slate-900">{item.code}</span>
-                        <span className="flex min-w-0 flex-col truncate">
-                          <span className="truncate text-slate-700">{item.description}</span>
+                        <span className="mr-2 mt-0.5 shrink-0 font-bold text-slate-900">
+                          {item.code}
+                        </span>
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="line-clamp-2 whitespace-normal break-words text-slate-700">
+                            {item.description}
+                          </span>
                           {item.manufacturer ? (
-                            <span className="truncate text-[10px] text-slate-400">
+                            <span className="line-clamp-2 whitespace-normal break-words text-[10px] text-slate-400">
                               {item.manufacturer}
                             </span>
                           ) : null}

@@ -671,7 +671,7 @@ function NewStepForm({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <div className="max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-slate-50/50 text-xs">
+        <div className="max-h-60 overflow-y-auto rounded-md border border-slate-200 bg-slate-50/50 text-xs">
           {filtered.length === 0 ? (
             <p className="px-3 py-2 text-slate-400">Nenhum procedimento encontrado.</p>
           ) : (
@@ -681,12 +681,16 @@ function NewStepForm({
                 key={p.id}
                 onClick={() => setProcedureId(p.id)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-white',
+                  'flex w-full items-start justify-between gap-2 px-3 py-2 text-left hover:bg-white',
                   p.id === procedureId ? 'bg-white font-bold text-primary' : 'text-slate-600',
                 )}
               >
-                <span className="truncate">{p.displayName ?? '(sem nome)'}</span>
-                <span className="ml-2 font-mono text-[10px] text-slate-500">{p.tussCode}</span>
+                <span className="line-clamp-2 min-w-0 flex-1 whitespace-normal break-words">
+                  {p.displayName ?? '(sem nome)'}
+                </span>
+                <span className="ml-2 shrink-0 font-mono text-[10px] text-slate-500">
+                  {p.tussCode}
+                </span>
               </button>
             ))
           )}
