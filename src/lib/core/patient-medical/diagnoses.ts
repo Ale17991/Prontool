@@ -72,6 +72,9 @@ function isMissingRelationError(message: string, relation: string): boolean {
     lower.includes(`relation "${rel}"`) ||
     lower.includes(`relation public.${rel}`) ||
     (lower.includes(rel) && lower.includes('does not exist')) ||
+    // PostgREST schema cache miss (com ou sem prefixo public.):
+    // "Could not find the table 'public.patient_diagnoses' in the schema cache"
+    (lower.includes('could not find the table') && lower.includes(rel)) ||
     lower.includes('pgrst204') ||
     lower.includes('pgrst205')
   )
