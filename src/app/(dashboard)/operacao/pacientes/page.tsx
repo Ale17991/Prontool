@@ -33,6 +33,7 @@ export default async function PacientesPage({ searchParams }: PageProps) {
   // diferentes do @supabase/supabase-js que listPatients espera.
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   let listResult
+  let listError: { message: string; cause: string } | null = null
   try {
     listResult = await listPatients(supabase, {
       tenantId: session.tenantId,
@@ -41,16 +42,19 @@ export default async function PacientesPage({ searchParams }: PageProps) {
       pageSize: 25,
     })
   } catch (err) {
-    // Em producao, o Next.js esconde a mensagem em error boundary e mostra
-    // apenas o digest. Logar aqui em console.error garante que o detalhe
-    // chegue nos runtime logs da Vercel correlacionado pelo digest.
+    // Em producao, o Next.js esconde a mensagem do throw via error.tsx.
+    // Para admins, evitamos o throw e renderizamos a causa inline — assim
+    // nao precisamos do digest pra debugar. Tambem logamos pra Vercel.
+    const message = err instanceof Error ? err.message : String(err)
     console.error('[pacientes-list] listPatients failed', {
       tenantId: session.tenantId,
       role: session.role,
-      message: err instanceof Error ? err.message : String(err),
+      message,
       stack: err instanceof Error ? err.stack : undefined,
     })
-    throw err
+    if (session.role !== 'admin') throw err
+    listError = { message, cause: classifyCause(message) }
+    listResult = { items: [], total: 0, page: 1, pageSize: 25 }
   }
   const { items, total, pageSize } = listResult
 
@@ -92,6 +96,20 @@ export default async function PacientesPage({ searchParams }: PageProps) {
         </form>
         </div>
       </div>
+
+      {listError ? (
+        <Card className="border-rose-200 bg-rose-50/40">
+          <CardContent className="space-y-2 p-4 text-sm">
+            <p className="font-bold text-rose-900">
+              Falha ao carregar pacientes (visível só para admin):
+            </p>
+            <p className="font-mono text-[11px] text-rose-800">{listError.cause}</p>
+            <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-white px-3 py-2 font-mono text-[11px] text-slate-700">
+              {listError.message}
+            </pre>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardContent className="p-0">
@@ -162,6 +180,32 @@ export default async function PacientesPage({ searchParams }: PageProps) {
       ) : null}
     </div>
   )
+}
+
+/** Classifica a mensagem real em uma causa-raiz humanamente útil. */
+function classifyCause(msg: string): string {
+  if (/PATIENT_DATA_ENCRYPTION_KEY/.test(msg)) {
+    return 'PATIENT_DATA_ENCRYPTION_KEY ausente nas envs da Vercel.'
+  }
+  if (/Could not find the function|PGRST202|PGRST203|function .* does not exist/i.test(msg)) {
+    return 'RPC list_patients_for_tenant não existe — aplicar migration 0044 em prod.'
+  }
+  if (/relation .* does not exist|PGRST204|PGRST205/i.test(msg)) {
+    return 'Tabela referenciada não existe — aplicar migrations pendentes em prod.'
+  }
+  if (/column .* does not exist|42703/i.test(msg)) {
+    return 'Coluna referenciada não existe — aplicar migrations pendentes em prod.'
+  }
+  if (/pgp_sym_decrypt|Wrong key or corrupt data|decryption failed/i.test(msg)) {
+    return 'PATIENT_DATA_ENCRYPTION_KEY divergente da chave que cifrou os dados em prod.'
+  }
+  if (/permission denied/i.test(msg)) {
+    return 'permission denied — RLS ou GRANT faltando para authenticated.'
+  }
+  if (/jwt_tenant_id|tenant_id is null|JWT|claim/i.test(msg)) {
+    return 'JWT sem tenant_id — habilitar auth hook custom claims no Supabase.'
+  }
+  return 'Causa não identificada — ver mensagem completa abaixo.'
 }
 
 function Pagination({
