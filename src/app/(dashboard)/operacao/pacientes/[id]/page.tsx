@@ -58,6 +58,46 @@ interface PageProps {
   params: { id: string }
 }
 
+/**
+ * Renderizada quando getPatient falha mas o usuario e admin — mostra
+ * apenas as causas das falhas. Para nao-admins o throw original sobe.
+ */
+function FailuresOnlyView({
+  failures,
+}: {
+  failures: Array<{ section: string; message: string }>
+}) {
+  return (
+    <div className="space-y-6">
+      <Link
+        href="/operacao/pacientes"
+        className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
+      >
+        <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
+      </Link>
+      <Card className="border-rose-200 bg-rose-50/40">
+        <CardContent className="space-y-2 p-4 text-sm">
+          <p className="font-bold text-rose-900">
+            {failures.length} secao(oes) falharam (visivel so para admin):
+          </p>
+          <ul className="space-y-2">
+            {failures.map((f, idx) => (
+              <li key={`${f.section}-${idx}`} className="space-y-1">
+                <p className="font-mono text-[11px] font-bold text-rose-800">
+                  {f.section}
+                </p>
+                <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-white px-2 py-1 font-mono text-[11px] text-slate-700">
+                  {f.message}
+                </pre>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 interface AppointmentRow {
   id: string | null
   appointment_at: string | null
@@ -75,7 +115,28 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   // o SupabaseClient<Database> esperado pelos core helpers.
   const supabase = createSupabaseServerClient()
   const typedClient = supabase as unknown as SupabaseClient<Database>
-  let detail
+
+  // Cada secao roda em try/catch independente. Se uma migration nao
+  // estiver em prod, a secao volta vazia e o erro e logado/exibido para
+  // admin — em vez de quebrar a pagina inteira via error boundary.
+  const failures: Array<{ section: string; message: string }> = []
+  function recordFailure(section: string, err: unknown): void {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[paciente-detail] ${section} failed`, {
+      patientId: params.id,
+      message,
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    failures.push({ section, message })
+  }
+  function safeFail<T>(section: string, fallback: T) {
+    return (err: unknown): T => {
+      recordFailure(section, err)
+      return fallback
+    }
+  }
+
+  let detail: Awaited<ReturnType<typeof getPatient>> | null = null
   try {
     detail = await getPatient(typedClient, {
       tenantId: session.tenantId,
@@ -83,26 +144,13 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     })
   } catch (err) {
     if (err instanceof Error && err.message.includes('not found')) notFound()
-    throw err
+    recordFailure('patient', err)
+    if (session.role !== 'admin') throw err
+  }
+  if (!detail) {
+    return <FailuresOnlyView failures={failures} />
   }
   const { patient, summary } = detail
-
-  // Cada secao roda em try/catch independente. Se uma migration nao
-  // estiver em prod, a secao volta vazia e o erro e logado/exibido para
-  // admin — em vez de quebrar a pagina inteira via error boundary.
-  const failures: Array<{ section: string; message: string }> = []
-  function safeFail<T>(section: string, fallback: T) {
-    return (err: unknown): T => {
-      const message = err instanceof Error ? err.message : String(err)
-      console.error(`[paciente-detail] ${section} failed`, {
-        patientId: params.id,
-        message,
-        stack: err instanceof Error ? err.stack : undefined,
-      })
-      failures.push({ section, message })
-      return fallback
-    }
-  }
 
   const appointmentsPromise: Promise<AppointmentRow[]> = (async () => {
     const res = await supabase
