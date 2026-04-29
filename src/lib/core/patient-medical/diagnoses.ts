@@ -52,8 +52,29 @@ export async function listDiagnoses(
     .order('created_at', { ascending: false })
   if (!args.includeDeleted) q = q.is('deleted_at', null)
   const { data, error } = await q
-  if (error) throw new Error(`listDiagnoses failed: ${error.message}`)
+  if (error) {
+    // Migration 0060 pode nao estar aplicada em prod. Em vez de derrubar
+    // toda a pagina de detalhe do paciente (que faz Promise.all com isso),
+    // tratamos como "nenhum diagnostico" para que a UI continue funcionando.
+    if (isMissingRelationError(error.message, 'patient_diagnoses')) {
+      return []
+    }
+    throw new Error(`listDiagnoses failed: ${error.message}`)
+  }
   return ((data ?? []) as unknown as DbRow[]).map(toDto)
+}
+
+function isMissingRelationError(message: string, relation: string): boolean {
+  if (!message) return false
+  const lower = message.toLowerCase()
+  const rel = relation.toLowerCase()
+  return (
+    lower.includes(`relation "${rel}"`) ||
+    lower.includes(`relation public.${rel}`) ||
+    (lower.includes(rel) && lower.includes('does not exist')) ||
+    lower.includes('pgrst204') ||
+    lower.includes('pgrst205')
+  )
 }
 
 export interface CreateDiagnosisInput {
