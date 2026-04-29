@@ -19,11 +19,19 @@ export default function PacientesError({
   const isMissingKey = /PATIENT_DATA_ENCRYPTION_KEY/.test(error.message)
   const isPermission = /permission denied/i.test(error.message)
   const isMissingFunction =
-    /Could not find the function|schema cache|function .* does not exist|PGRST202/i.test(
+    /Could not find the function|schema cache|function .* does not exist|PGRST202|PGRST203|list_patients_for_tenant/i.test(
       error.message,
     )
+  const isMissingTable =
+    /relation .* does not exist|table .* does not exist|PGRST204|PGRST205/i.test(
+      error.message,
+    )
+  const isMissingColumn =
+    /column .* does not exist|42703/i.test(error.message)
   const isDecryptFailure =
     /pgp_sym_decrypt|Wrong key or corrupt data|decryption failed/i.test(error.message)
+  const isAuthIssue =
+    /jwt_tenant_id|tenant_id is null|JWT|claim/i.test(error.message)
 
   return (
     <div className="space-y-6">
@@ -50,6 +58,24 @@ export default function PacientesError({
                 não foi encontrada no banco. Aplique as migrations mais recentes em produção (em especial{' '}
                 <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">0044_ensure_patient_rpcs</code>) com{' '}
                 <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+              </p>
+            ) : isMissingTable ? (
+              <p className="text-xs text-slate-600">
+                Uma tabela referenciada por essa página ainda não existe em produção. Aplique as
+                migrations pendentes com{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+              </p>
+            ) : isMissingColumn ? (
+              <p className="text-xs text-slate-600">
+                Uma coluna referenciada por essa página ainda não existe em produção. Aplique as
+                migrations pendentes com{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+              </p>
+            ) : isAuthIssue ? (
+              <p className="text-xs text-slate-600">
+                Token JWT sem <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">tenant_id</code>{' '}
+                custom claim. Verifique se o auth hook está habilitado em Supabase &gt; Authentication
+                &gt; Hooks.
               </p>
             ) : isPermission ? (
               <p className="text-xs text-slate-600">

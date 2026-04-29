@@ -32,12 +32,27 @@ export default async function PacientesPage({ searchParams }: PageProps) {
   // Cast necessário porque @supabase/ssr expõe tipos ligeiramente
   // diferentes do @supabase/supabase-js que listPatients espera.
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
-  const { items, total, pageSize } = await listPatients(supabase, {
-    tenantId: session.tenantId,
-    search: searchParams.q,
-    page,
-    pageSize: 25,
-  })
+  let listResult
+  try {
+    listResult = await listPatients(supabase, {
+      tenantId: session.tenantId,
+      search: searchParams.q,
+      page,
+      pageSize: 25,
+    })
+  } catch (err) {
+    // Em producao, o Next.js esconde a mensagem em error boundary e mostra
+    // apenas o digest. Logar aqui em console.error garante que o detalhe
+    // chegue nos runtime logs da Vercel correlacionado pelo digest.
+    console.error('[pacientes-list] listPatients failed', {
+      tenantId: session.tenantId,
+      role: session.role,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    throw err
+  }
+  const { items, total, pageSize } = listResult
 
   const totalPages = Math.max(Math.ceil(total / pageSize), 1)
   const canCreate = session.role === 'admin' || session.role === 'recepcionista'
