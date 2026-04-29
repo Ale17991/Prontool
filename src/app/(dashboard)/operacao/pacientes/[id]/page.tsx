@@ -34,10 +34,19 @@ import { DiagnosticsSection } from './diagnosticos-section'
 import { MedicalHistorySection } from './medical-history-section'
 import { VitalSignsSection } from './vital-signs-section'
 import { PrintChartButton } from './print-chart-button'
-import { listAllergies } from '@/lib/core/patient-medical/allergies'
-import { listDiagnoses } from '@/lib/core/patient-medical/diagnoses'
-import { listHistory } from '@/lib/core/patient-medical/history'
-import { listVitalSigns } from '@/lib/core/patient-medical/vital-signs'
+import { listAllergies, type PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
+import {
+  listDiagnoses,
+  type PatientDiagnosisDTO,
+} from '@/lib/core/patient-medical/diagnoses'
+import { listHistory, type PatientHistoryDTO } from '@/lib/core/patient-medical/history'
+import { listVitalSigns, type VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
+import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
+import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
+import type {
+  PaymentRecordDTO,
+  PatientFinancialSummary,
+} from '@/lib/core/payments/list'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -78,35 +87,92 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   }
   const { patient, summary } = detail
 
-  const { data: appointmentsRaw } = await supabase
-    .from('appointments_effective')
-    .select('id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status')
-    .eq('patient_id', params.id)
-    .order('appointment_at', { ascending: false })
-    .limit(50)
-  const appointments = (appointmentsRaw ?? []) as AppointmentRow[]
+  // Cada secao roda em try/catch independente. Se uma migration nao
+  // estiver em prod, a secao volta vazia e o erro e logado/exibido para
+  // admin — em vez de quebrar a pagina inteira via error boundary.
+  const failures: Array<{ section: string; message: string }> = []
+  function safeFail<T>(section: string, fallback: T) {
+    return (err: unknown): T => {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(`[paciente-detail] ${section} failed`, {
+        patientId: params.id,
+        message,
+        stack: err instanceof Error ? err.stack : undefined,
+      })
+      failures.push({ section, message })
+      return fallback
+    }
+  }
 
-  const records = await listClinicalRecords(typedClient, {
+  const appointmentsPromise: Promise<AppointmentRow[]> = (async () => {
+    const res = await supabase
+      .from('appointments_effective')
+      .select('id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status')
+      .eq('patient_id', params.id)
+      .order('appointment_at', { ascending: false })
+      .limit(50)
+    if (res.error) throw new Error(res.error.message)
+    return (res.data ?? []) as AppointmentRow[]
+  })().catch(safeFail<AppointmentRow[]>('appointments', []))
+
+  const recordsPromise: Promise<ClinicalRecordRow[]> = listClinicalRecords(
+    typedClient,
+    { tenantId: session.tenantId, patientId: params.id },
+  ).catch(safeFail<ClinicalRecordRow[]>('clinical-records', []))
+
+  const treatmentStepsPromise: Promise<TreatmentStep[]> = listTreatmentSteps(
+    typedClient,
+    {
+      tenantId: session.tenantId,
+      patientId: params.id,
+      patientPlanId: patient.healthPlan?.id ?? null,
+    },
+  ).catch(safeFail<TreatmentStep[]>('treatment-steps', []))
+
+  const paymentsFallback: Awaited<ReturnType<typeof listPaymentsForPatient>> = {
+    records: [] as PaymentRecordDTO[],
+    summary: {} as PatientFinancialSummary,
+  }
+  const paymentsPromise = listPaymentsForPatient(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
-  })
+  }).catch(safeFail<typeof paymentsFallback>('payments', paymentsFallback))
 
-  const treatmentSteps = await listTreatmentSteps(typedClient, {
+  const allergiesPromise: Promise<PatientAllergyDTO[]> = listAllergies(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
-    patientPlanId: patient.healthPlan?.id ?? null,
-  })
-
-  const payments = await listPaymentsForPatient(typedClient, {
+  }).catch(safeFail<PatientAllergyDTO[]>('allergies', []))
+  const historyPromise: Promise<PatientHistoryDTO[]> = listHistory(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
-  })
+  }).catch(safeFail<PatientHistoryDTO[]>('history', []))
+  const vitalSignsPromise: Promise<VitalSignsDTO[]> = listVitalSigns(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  }).catch(safeFail<VitalSignsDTO[]>('vital-signs', []))
+  const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  }).catch(safeFail<PatientDiagnosisDTO[]>('diagnoses', []))
 
-  const [allergies, medicalHistory, vitalSigns, diagnoses] = await Promise.all([
-    listAllergies(typedClient, { tenantId: session.tenantId, patientId: params.id }),
-    listHistory(typedClient, { tenantId: session.tenantId, patientId: params.id }),
-    listVitalSigns(typedClient, { tenantId: session.tenantId, patientId: params.id }),
-    listDiagnoses(typedClient, { tenantId: session.tenantId, patientId: params.id }),
+  const [
+    appointments,
+    records,
+    treatmentSteps,
+    payments,
+    allergies,
+    medicalHistory,
+    vitalSigns,
+    diagnoses,
+  ] = await Promise.all([
+    appointmentsPromise,
+    recordsPromise,
+    treatmentStepsPromise,
+    paymentsPromise,
+    allergiesPromise,
+    historyPromise,
+    vitalSignsPromise,
+    diagnosesPromise,
   ])
 
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
@@ -180,6 +246,8 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   const initial = (patient.fullName || '?').charAt(0).toUpperCase()
   const age = calculateAge(patient.birthDate)
 
+  const showFailuresCard = session.role === 'admin' && failures.length > 0
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -196,6 +264,28 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           ) : null}
         </div>
       </div>
+
+      {showFailuresCard ? (
+        <Card className="border-rose-200 bg-rose-50/40">
+          <CardContent className="space-y-2 p-4 text-sm">
+            <p className="font-bold text-rose-900">
+              {failures.length} seção(ões) falharam (visível só para admin):
+            </p>
+            <ul className="space-y-2">
+              {failures.map((f) => (
+                <li key={f.section} className="space-y-1">
+                  <p className="font-mono text-[11px] font-bold text-rose-800">
+                    {f.section}
+                  </p>
+                  <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-white px-2 py-1 font-mono text-[11px] text-slate-700">
+                    {f.message}
+                  </pre>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {isAnonymized ? (
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
