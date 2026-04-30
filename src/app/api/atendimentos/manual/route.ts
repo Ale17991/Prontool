@@ -17,6 +17,12 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+const materialItemSchema = z.object({
+  tuss_code: z.string().min(1).max(20),
+  tuss_description: z.string().min(1).max(500),
+  quantity: z.number().int().positive().default(1),
+})
+
 const bodySchema = z.object({
   patient_id: z.string().uuid(),
   doctor_id: z.string().uuid(),
@@ -26,6 +32,8 @@ const bodySchema = z.object({
   amount_cents_override: z.number().int().min(0).optional(),
   duration_minutes: z.number().int().min(5).max(480).optional(),
   observacoes: z.string().trim().max(500).optional(),
+  /** Materiais opcionais (TUSS tabela 19). Feature 007. */
+  materiais: z.array(materialItemSchema).max(50).optional(),
 })
 
 export async function POST(req: Request): Promise<Response> {
@@ -51,6 +59,14 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const supabase = createSupabaseServiceClient()
+    const materialsInput = parsed.data.materiais
+      ? parsed.data.materiais.map((m) => ({
+          tussCode: m.tuss_code,
+          tussDescription: m.tuss_description,
+          quantity: m.quantity,
+        }))
+      : undefined
+
     const result = await createAppointmentManually(supabase, {
       tenantId: session.tenantId,
       actorUserId: session.userId,
@@ -62,6 +78,7 @@ export async function POST(req: Request): Promise<Response> {
       amountCentsOverride: parsed.data.amount_cents_override,
       durationMinutes: parsed.data.duration_minutes,
       observacoes: parsed.data.observacoes,
+      materials: materialsInput,
     })
 
     // Build snapshots for the event bus. Patient/appointment detail is
@@ -108,6 +125,7 @@ export async function POST(req: Request): Promise<Response> {
         frozen_commission_bps: result.frozenCommissionBps,
         appointment_at: parsed.data.appointment_at,
         integrations_dispatched: integrationsDispatched,
+        ...(result.materialsCount !== undefined ? { materials_count: result.materialsCount } : {}),
       },
       { status: 201 },
     )

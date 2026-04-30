@@ -26,6 +26,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatBps, formatCurrency, formatDateTime } from '@/lib/utils'
 import { listAllergies, type PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
+import {
+  listAppointmentMaterials,
+  type AppointmentMaterial,
+} from '@/lib/core/appointments/materials'
 import { ReversalForm } from './reversal-form'
 import { MarkRealizedForm } from './mark-realized-form'
 
@@ -98,6 +102,17 @@ export default async function AtendimentoDetailPage({
       })
     } catch {
       // best-effort — nao bloqueia render do detalhe
+    }
+  }
+
+  // Materiais utilizados (feature 007). Best-effort — render vazia
+  // se a migration 0061 ainda nao aplicou.
+  let materials: AppointmentMaterial[] = []
+  if (appointment.id) {
+    try {
+      materials = await listAppointmentMaterials(supabase, { appointmentId: appointment.id })
+    } catch {
+      // ignore — sub-bloco nao renderiza
     }
   }
 
@@ -211,6 +226,30 @@ export default async function AtendimentoDetailPage({
 
       {/* ---- Card de destaque: alergias do paciente ---- */}
       <AllergiesCard allergies={allergies} />
+
+      {materials.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Materiais utilizados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1.5">
+              {materials.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex flex-wrap items-center gap-2 rounded border border-slate-200 bg-slate-50/40 px-2.5 py-1.5 text-xs"
+                >
+                  <span className="font-mono font-bold text-slate-900">{m.tussCode}</span>
+                  <span className="min-w-0 flex-1 text-slate-700">{m.tussDescription}</span>
+                  <span className="rounded bg-slate-200 px-2 py-0.5 text-[11px] text-slate-700">
+                    Qtd {m.quantity}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {status === 'agendado' && appointment.id &&
         (session.role === 'admin' || session.role === 'profissional_saude') ? (

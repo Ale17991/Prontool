@@ -18,6 +18,11 @@ import {
   LocalProcedureTypeahead,
   type LocalProcedureOption,
 } from '@/components/tuss/local-procedure-typeahead'
+import {
+  MateriaisEditor,
+  validateMaterials,
+  type MaterialDraft,
+} from '@/components/atendimentos/materiais-editor'
 
 export interface FormOption {
   id: string
@@ -67,6 +72,7 @@ export function NewAppointmentForm({
   const [patientId, setPatientId] = useState('')
   const [doctorId, setDoctorId] = useState('')
   const [procedureId, setProcedureId] = useState('')
+  const [materiais, setMateriais] = useState<MaterialDraft[]>([])
   const [planId, setPlanId] = useState('')
   const [particular, setParticular] = useState(false)
   const [particularLocked, setParticularLocked] = useState(false)
@@ -291,6 +297,20 @@ export function NewAppointmentForm({
     }
     if (observacoes.trim()) payload.observacoes = observacoes.trim().slice(0, 500)
 
+    // Materiais opcionais (feature 007). Validacao local antes do submit.
+    if (materiais.length > 0) {
+      const validated = validateMaterials(materiais)
+      if (!validated) {
+        setError('Algum material está com quantidade inválida. Corrija antes de salvar.')
+        return
+      }
+      payload.materiais = validated.map((m) => ({
+        tuss_code: m.tussCode,
+        tuss_description: m.tussDescription,
+        quantity: m.quantity,
+      }))
+    }
+
     setPending(true)
     setWarning(null)
     try {
@@ -407,6 +427,8 @@ export function NewAppointmentForm({
           onChange={setProcedureId}
         />
       </div>
+
+      <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
 
       <div className="space-y-1.5">
         <Label htmlFor="plan_id">Plano</Label>

@@ -31,6 +31,12 @@ export interface CreateManualAppointmentInput {
   /** Duracao em minutos, 5-480. Quando ausente, persiste NULL e a leitura usa default 30. */
   durationMinutes?: number
   observacoes?: string
+  /**
+   * Materiais opcionais (TUSS tabela 19). Quando informado e nao-vazio,
+   * o atendimento e criado via RPC create_appointment_with_materials
+   * (atomicidade garantida pela transacao implicita do PostgreSQL).
+   */
+  materials?: Array<{ tussCode: string; tussDescription: string; quantity: number }>
 }
 
 export interface CreateManualAppointmentResult {
@@ -44,6 +50,8 @@ export interface CreateManualAppointmentResult {
   /** Em atendimento particular: default_amount_cents do procedimento (ou 0 se ausente). */
   vigenteAmountCents: number
   isParticular: boolean
+  /** Quando o input incluiu `materials`, quantidade efetivamente persistida. */
+  materialsCount?: number
 }
 
 export async function createAppointmentManually(
@@ -155,6 +163,93 @@ export async function createAppointmentManually(
     observacoes: input.observacoes ?? null,
   }
 
+  // Caminho com materiais (feature 007): cria appointment + N rows em
+  // appointment_materials atomicamente via RPC. Pre-validacao TUSS
+  // aqui (defesa redundante ao trigger SQL) para erro mais cedo.
+  const hasMaterials = !!input.materials && input.materials.length > 0
+  if (hasMaterials) {
+    const codes = input.materials!.map((m) => m.tussCode)
+    const valid = await supabase
+      .from('tuss_codes')
+      .select('code')
+      .in('code', codes)
+      .eq('tuss_table', '19')
+      .is('valid_to', null)
+    if (valid.error) {
+      // Se a coluna tuss_table nao existir (improvavel — migration 0037 antiga)
+      // ou houver erro genuino, falha cedo.
+      throw new Error(`pre-validate materials TUSS failed: ${valid.error.message}`)
+    }
+    const validSet = new Set((valid.data ?? []).map((r) => r.code as string))
+    const invalid = codes.filter((c) => !validSet.has(c))
+    if (invalid.length > 0) {
+      throw new DomainError(
+        'MATERIAL_TUSS_INVALID',
+        `Códigos TUSS inválidos ou não vigentes: ${invalid.join(', ')}`,
+        { status: 400 },
+      )
+    }
+
+    const rpc = await supabase.rpc('create_appointment_with_materials' as never, {
+      p_tenant_id: input.tenantId,
+      p_patient_id: input.patientId,
+      p_doctor_id: input.doctorId,
+      p_procedure_id: input.procedureId,
+      p_plan_id: input.planId,
+      p_source_price_version_id: priceVersionId,
+      p_source_commission_history_id: commission.commissionHistoryId,
+      p_frozen_amount_cents: amountToFreeze,
+      p_frozen_commission_bps: commission.percentageBps,
+      p_appointment_at: when.toISOString(),
+      p_duration_minutes: input.durationMinutes ?? null,
+      p_observacoes: input.observacoes ?? null,
+      p_source: 'manual',
+      p_actor: input.actorUserId,
+      p_materials: input.materials!.map((m) => ({
+        tuss_code: m.tussCode,
+        tuss_description: m.tussDescription,
+        quantity: m.quantity,
+      })),
+    } as never)
+
+    if (rpc.error) {
+      const msg = rpc.error.message ?? ''
+      if (/APPOINTMENT_CONFLICT/i.test(msg) || /exclusion_violation/i.test(msg)) {
+        throw new DomainError(
+          'APPOINTMENT_CONFLICT',
+          'Já existe atendimento para este profissional no horário escolhido.',
+          { status: 409 },
+        )
+      }
+      if (/MATERIAL_TUSS_INVALID/i.test(msg)) {
+        throw new DomainError(
+          'MATERIAL_TUSS_INVALID',
+          'Código TUSS não pertence à tabela de materiais ou não está vigente.',
+          { status: 400 },
+        )
+      }
+      throw new Error(`createAppointmentWithMaterials RPC failed: ${msg}`)
+    }
+
+    const data = rpc.data as { appointment_id: string; materials_count: number } | null
+    if (!data?.appointment_id) {
+      throw new Error('createAppointmentWithMaterials: empty response')
+    }
+
+    return {
+      appointmentId: data.appointment_id,
+      frozenAmountCents: amountToFreeze,
+      frozenCommissionBps: commission.percentageBps,
+      priceVersionId,
+      commissionHistoryId: commission.commissionHistoryId,
+      amountWasOverridden: overridden,
+      vigenteAmountCents,
+      isParticular,
+      materialsCount: data.materials_count,
+    }
+  }
+
+  // Caminho atual (sem materiais) — preservado backward-compatible.
   // Tenta inserir com duration_minutes (migration 0053). Se a coluna nao
   // existir no ambiente atual (migration ainda nao aplicada), tenta de novo
   // sem o campo — preserva o registro do atendimento e perde apenas a
