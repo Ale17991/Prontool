@@ -28,7 +28,7 @@ Profissional que acabou de realizar um procedimento precisa documentar os materi
 
 ### User Story 2 - Linguagem do sistema acessível para profissionais não técnicos (Priority: P2)
 
-Recepcionistas, dentistas e médicos que usam o Pronttu não são desenvolvedores. Termos como "estornar", "reverter", "tenant", "webhook", "DLQ", "soft delete", "schema cache" e mensagens de erro com `digest: 5af3e9...` confundem o usuário e fazem com que ele abra chamado em vez de resolver sozinho. A interface inteira deve ser revisada para que cada texto visível use português claro, alinhado ao vocabulário do consultório.
+Recepcionistas, dentistas e médicos que usam o Prontool não são desenvolvedores. Termos como "estornar", "reverter", "tenant", "webhook", "DLQ", "soft delete", "schema cache" e mensagens de erro com `digest: 5af3e9...` confundem o usuário e fazem com que ele abra chamado em vez de resolver sozinho. A interface inteira deve ser revisada para que cada texto visível use português claro, alinhado ao vocabulário do consultório.
 
 **Why this priority**: Toca todas as telas, mas não é bloqueante (o sistema funciona). Tem impacto direto em redução de tickets de suporte e curva de aprendizado de novos usuários. Maior que P3 porque afeta toda a base; menor que P1 porque não cria capacidade nova.
 

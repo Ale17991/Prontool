@@ -120,7 +120,7 @@ O column-guard de `treatment_plan_steps` precisa relaxar para permitir UPDATE em
 
 ## R-008: Cookie de preferência de view
 
-**Decisão**: Cookie `pronttu_atendimentos_view` (httpOnly: false, sameSite: lax, max-age: 1 ano). Server lê via `cookies()` em `next/headers`. Client escreve via `document.cookie` ao alternar.
+**Decisão**: Cookie `prontool_atendimentos_view` (httpOnly: false, sameSite: lax, max-age: 1 ano). Server lê via `cookies()` em `next/headers`. Client escreve via `document.cookie` ao alternar.
 
 **Rationale**:
 - SSR-friendly: server decide a view default sem flicker.

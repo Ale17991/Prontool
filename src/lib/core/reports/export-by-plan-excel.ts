@@ -8,7 +8,7 @@ export async function renderByPlanExcel(
   opts: { tenantLabel?: string } = {},
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'Pronttu'
+  wb.creator = 'Prontool'
   wb.created = new Date()
 
   // ----- Resumo

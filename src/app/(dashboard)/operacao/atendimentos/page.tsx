@@ -58,7 +58,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   // View default por dispositivo: querystring tem precedencia, senao cookie,
   // senao 'cal' (default global da feature 005). Toolbar escreve o cookie ao
   // alternar para persistir a preferencia entre recargas.
-  const cookieView = cookies().get('pronttu_atendimentos_view')?.value
+  const cookieView = cookies().get('prontool_atendimentos_view')?.value
   const view: 'list' | 'cal' =
     searchParams.view === 'cal'
       ? 'cal'

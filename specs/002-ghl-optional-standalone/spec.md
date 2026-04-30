@@ -3,15 +3,15 @@
 **Feature Branch**: `002-ghl-optional-standalone`
 **Created**: 2026-04-23
 **Status**: Draft
-**Input**: User description: "Tornar o Pronttu completamente independente do GoHighLevel, mantendo integração opcional para quem usa. O sistema deve funcionar 100% standalone e também em conjunto com GHL quando configurado."
+**Input**: User description: "Tornar o Prontool completamente independente do GoHighLevel, mantendo integração opcional para quem usa. O sistema deve funcionar 100% standalone e também em conjunto com GHL quando configurado."
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 — Clínica standalone usa o Pronttu sem GHL (Priority: P1)
+### User Story 1 — Clínica standalone usa o Prontool sem GHL (Priority: P1)
 
-Uma clínica que não é cliente do GoHighLevel — ou que ainda não decidiu se vai adotar — faz onboarding no Pronttu, cadastra seus profissionais, planos de saúde e procedimentos, e passa a operar: cadastra pacientes manualmente, registra atendimentos realizados, acompanha comissões e emite o relatório mensal. Em nenhum momento a clínica vê menções ao GHL, avisos de "integração pendente" ou erros relacionados a webhooks.
+Uma clínica que não é cliente do GoHighLevel — ou que ainda não decidiu se vai adotar — faz onboarding no Prontool, cadastra seus profissionais, planos de saúde e procedimentos, e passa a operar: cadastra pacientes manualmente, registra atendimentos realizados, acompanha comissões e emite o relatório mensal. Em nenhum momento a clínica vê menções ao GHL, avisos de "integração pendente" ou erros relacionados a webhooks.
 
-**Why this priority**: Este é o valor novo mais alto: sem ele, o Pronttu só serve para clínicas que já usam GHL (universo pequeno). Tornar o GHL opcional multiplica o mercado potencial e é pré-requisito para os cenários 2 e 3 — o código precisa aceitar a ausência de configuração GHL antes de qualquer melhoria de integração.
+**Why this priority**: Este é o valor novo mais alto: sem ele, o Prontool só serve para clínicas que já usam GHL (universo pequeno). Tornar o GHL opcional multiplica o mercado potencial e é pré-requisito para os cenários 2 e 3 — o código precisa aceitar a ausência de configuração GHL antes de qualquer melhoria de integração.
 
 **Independent Test**: Um tenant novo é provisionado sem linha em `tenant_ghl_config`. A clínica cadastra 2 pacientes manualmente, registra 5 atendimentos, gera o relatório mensal e navega por todas as telas do dashboard. Sucesso = zero erros, zero banners de GHL, zero falhas de validação.
 
@@ -26,7 +26,7 @@ Uma clínica que não é cliente do GoHighLevel — ou que ainda não decidiu se
 
 ### User Story 2 — Admin conecta ou desconecta a integração GHL (Priority: P2)
 
-Um admin de uma clínica que já usa (ou quer passar a usar) o GoHighLevel vai na tela de Configurações do Pronttu, encontra a seção "Integração GoHighLevel", preenche o webhook secret e os field mappings, clica em "Conectar" e vê o indicador mudar para "Conectado". Mais tarde, se quiser desligar, clica em "Desconectar" e o indicador volta a "Não configurado".
+Um admin de uma clínica que já usa (ou quer passar a usar) o GoHighLevel vai na tela de Configurações do Prontool, encontra a seção "Integração GoHighLevel", preenche o webhook secret e os field mappings, clica em "Conectar" e vê o indicador mudar para "Conectado". Mais tarde, se quiser desligar, clica em "Desconectar" e o indicador volta a "Não configurado".
 
 **Why this priority**: Sem este fluxo, o cliente precisaria de suporte manual (DBA rodando SQL) para ligar/desligar a integração. É o que transforma o "opcional" em algo self-service. Fica abaixo do P1 porque sem o P1 o sistema já não funciona para parte do mercado.
 
@@ -43,7 +43,7 @@ Um admin de uma clínica que já usa (ou quer passar a usar) o GoHighLevel vai n
 
 ### User Story 3 — Integração GHL sincroniza em background quando conectada (Priority: P3)
 
-Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhooks entram, pacientes criados manualmente são espelhados para o GHL como contatos, e atendimentos registrados geram notas no contato correspondente. O admin não precisa tocar em nada — só vê o resultado: contatos sincronizados do lado do GHL. Se algum push falhar, um alerta operacional entra no painel (padrão atual) e o paciente/atendimento continua salvo no Pronttu.
+Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhooks entram, pacientes criados manualmente são espelhados para o GHL como contatos, e atendimentos registrados geram notas no contato correspondente. O admin não precisa tocar em nada — só vê o resultado: contatos sincronizados do lado do GHL. Se algum push falhar, um alerta operacional entra no painel (padrão atual) e o paciente/atendimento continua salvo no Prontool.
 
 **Why this priority**: Benefício incremental para quem já usa GHL. Fica depois do P2 porque depende do P2 (tenant precisa estar conectado antes de ter sync), e fica depois do P1 porque o fluxo webhook-in (principal valor GHL hoje) já existe.
 
@@ -52,7 +52,7 @@ Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhoo
 **Acceptance Scenarios**:
 
 1. **Given** tenant com GHL conectado e credenciais válidas, **When** recepção cadastra um novo paciente, **Then** a aplicação tenta criar o contato no GHL em melhor-esforço e registra o `ghl_contact_id` retornado (quando sucesso).
-2. **Given** a sincronização falhar (rede/API GHL indisponível), **When** o paciente é salvo, **Then** o paciente aparece normalmente no Pronttu, um alerta do tipo `ghl_sync_failed` é aberto no painel operacional, e o admin pode retomar manualmente depois.
+2. **Given** a sincronização falhar (rede/API GHL indisponível), **When** o paciente é salvo, **Then** o paciente aparece normalmente no Prontool, um alerta do tipo `ghl_sync_failed` é aberto no painel operacional, e o admin pode retomar manualmente depois.
 3. **Given** tenant com GHL conectado, **When** um atendimento é registrado manualmente para um paciente com `ghl_contact_id`, **Then** uma nota é postada no contato GHL contendo data, profissional, procedimento e valor.
 4. **Given** tenant sem GHL conectado (ou com integração desligada), **When** recepção cadastra paciente ou registra atendimento, **Then** nenhuma chamada a GHL é tentada, nenhum alerta de sync é gerado e o fluxo conclui em tempo normal.
 
@@ -114,10 +114,10 @@ Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhoo
 - **Modo determinado por dados, não flag**: A presença de linha em `tenant_ghl_config` é o único sinal para o app saber se o tenant está conectado ao GHL. Não há flag `ghl_enabled` a nível de env var ou constituição — o estado vive no banco, por tenant.
 - **"Agendamento" = registro de atendimento realizado**: O termo "agendamento manual" no brief do usuário é interpretado como "criar um registro de atendimento via UI, incluindo data/hora, sem depender do webhook". Não está em escopo um calendário de slots futuros, lembretes, confirmação de comparecimento etc. — isso seria um feature distinto.
 - **Campo `source` em appointments**: Já existe e aceita novos valores sem migração estrutural — apenas o código passa a escrever `'manual'` no fluxo novo.
-- **GHL conectado = contato via API, não webhook out**: Sincronização outbound (Pronttu → GHL) continua usando a integração via proxy existente (`src/lib/integrations/ghl/create-contact.ts`). Não há subscription de webhook-out nova.
+- **GHL conectado = contato via API, não webhook out**: Sincronização outbound (Prontool → GHL) continua usando a integração via proxy existente (`src/lib/integrations/ghl/create-contact.ts`). Não há subscription de webhook-out nova.
 - **Notas vs Oportunidades**: Registro de atendimento no GHL será feito como **nota no contato** (simples, robusto, reaproveita API atual). Criação de "oportunidade" fica como feature futuro se houver demanda — envolve pipeline/stage configuráveis.
 - **Tela de integração é admin-only**: Role `admin` é a única com permissão `integration.write`. Outros papéis (financeiro, recepcionista, profissional_saude) nem vêem a seção.
 - **LGPD não muda**: Criptografia de PII, retenção, anonimização e trilha de auditoria seguem as regras atuais. Passar de conectado → standalone não dispara nenhuma ação retroativa sobre dados de pacientes.
 - **Webhook endpoint público**: `/api/webhooks/ghl` segue público (autentica pela assinatura), independente do tenant ter config ou não. Sem config = resposta rápida 401, sem side-effects.
-- **Dependência de integração externa**: Requer que a API do GHL (via proxy `homio-operations`) permaneça disponível para o cenário com GHL conectado. Quedas do GHL são tratadas como degradação com alerta, não como bug do Pronttu.
+- **Dependência de integração externa**: Requer que a API do GHL (via proxy `homio-operations`) permaneça disponível para o cenário com GHL conectado. Quedas do GHL são tratadas como degradação com alerta, não como bug do Prontool.
 - **Não há migração de dados**: Tenants existentes com `tenant_ghl_config` continuam conectados. Tenants existentes sem a linha já estão em modo standalone por default — a única mudança real é remover UI/logs que hoje assumem GHL implicitamente.

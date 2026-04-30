@@ -52,8 +52,8 @@ export default async function IntegracoesListPage() {
           Integrações
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Conecte o Pronttu a plataformas externas. Uma integração por provider, ativação por
-          tenant. Falhas em uma integração não afetam as demais.
+          Conecte o Prontool a plataformas externas. Uma integração por provider, ativação por
+          clínica. Falhas em uma integração não afetam as demais.
         </p>
       </div>
 

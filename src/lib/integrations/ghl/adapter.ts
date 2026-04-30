@@ -50,7 +50,7 @@ export const ghlAdapter: IntegrationAdapter<GhlConfig, GhlCredentials> = {
   provider: 'ghl',
   label: 'GoHighLevel',
   description:
-    'CRM e automação de marketing. Contato criado no Pronttu é espelhado como contact; atendimento vira nota.',
+    'CRM e automação de marketing. Contato criado no Prontool é espelhado como contact; atendimento vira nota.',
   configSchema: ghlConfigSchema,
   credentialsSchema: ghlCredentialsSchema,
   redactCredentials: redact,
@@ -75,7 +75,7 @@ export const ghlAdapter: IntegrationAdapter<GhlConfig, GhlCredentials> = {
             fullName: event.patient.fullName,
             phone: event.patient.phone ?? undefined,
             email: event.patient.email ?? undefined,
-            source: 'pronttu:manual',
+            source: 'prontool:manual',
           },
           proxyCreds,
         )
@@ -325,7 +325,7 @@ function formatAppointmentNote(event: {
     currency: 'BRL',
   })
   return [
-    'Atendimento registrado no Pronttu',
+    'Atendimento registrado no Prontool',
     `Data: ${when.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
     `Paciente: ${event.patient.fullName}`,
     event.appointment.procedureTussCode

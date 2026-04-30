@@ -65,10 +65,10 @@ export function AtendimentosToolbar({
     // o cookie para o default global voltar a valer (ate em outras maquinas).
     if (typeof document !== 'undefined') {
       if (next === 'list') {
-        document.cookie = 'pronttu_atendimentos_view=list; path=/; max-age=31536000; samesite=lax'
+        document.cookie = 'prontool_atendimentos_view=list; path=/; max-age=31536000; samesite=lax'
       } else {
         // Apaga cookie definindo max-age=0.
-        document.cookie = 'pronttu_atendimentos_view=; path=/; max-age=0; samesite=lax'
+        document.cookie = 'prontool_atendimentos_view=; path=/; max-age=0; samesite=lax'
       }
     }
     pushQuery({ view: next === 'cal' ? null : 'list' })

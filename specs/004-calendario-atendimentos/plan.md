@@ -5,7 +5,7 @@
 
 ## Summary
 
-Quatro entregas independentes na operação clínica da Pronttu, ancoradas em uma única branch para que evoluam juntas mas se sustentem isoladamente:
+Quatro entregas independentes na operação clínica da Prontool, ancoradas em uma única branch para que evoluam juntas mas se sustentem isoladamente:
 
 1. **Calendário semanal de atendimentos com filtro multi-profissional** — view alternativa em `/operacao/atendimentos`, lendo o mesmo `appointments_effective` da Lista, renderizando blocos posicionados por hora/duração com cores por status. Acrescenta `duration_minutes` ao schema (default 30) e expõe filtro de profissional persistido em querystring.
 2. **Typeahead TUSS com nome completo + "Ver em lista"** — popover já amplo (delivered em commit anterior); falta uniformizar nos demais formulários e adicionar drawer "Ver em lista" paginado a 20.

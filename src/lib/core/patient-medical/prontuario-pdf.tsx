@@ -607,7 +607,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
         <View style={styles.footer} fixed>
           <View style={styles.footerRow}>
             <Text>
-              Prontuário gerado em {generated} pelo sistema Pronttu.
+              Prontuário gerado em {generated} pelo sistema Prontool.
             </Text>
             <Text
               render={({ pageNumber, totalPages }) =>

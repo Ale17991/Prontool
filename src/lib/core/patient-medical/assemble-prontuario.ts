@@ -138,7 +138,7 @@ export async function assemblePatientChart(
     }))
 
   return {
-    tenantName: tenantRow?.name ?? 'Pronttu',
+    tenantName: tenantRow?.name ?? 'Prontool',
     generatedAt: new Date().toISOString(),
     period: { from: input.from ?? null, to: input.to ?? null },
     patient: detail.patient,

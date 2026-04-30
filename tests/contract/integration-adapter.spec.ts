@@ -42,7 +42,7 @@ const FIXTURES: Record<string, AdapterFixture> = {
       // Exclude 'patient.created' so the contract test's makePatientEvent()
       // hits the adapter's "event not subscribed" noop branch and doesn't
       // try to POST to an external host.
-      outbound_url: 'https://hooks.example.com/pronttu',
+      outbound_url: 'https://hooks.example.com/prontool',
       events: ['appointment.created'],
     },
     validCredentials: {

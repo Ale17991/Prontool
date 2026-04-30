@@ -1,4 +1,4 @@
-# Pronttu MVP — sistema completo de gestão clínica com integração GHL opcional
+# Prontool MVP — sistema completo de gestão clínica com integração GHL opcional
 
 **Branch de origem**: `002-ghl-optional-standalone` &rarr; **destino**: `master`
 **Inclui**: feature `001-faturamento-medico-ghl` (base completa) + feature `002-ghl-optional-standalone` (standalone parity + multi-plataforma)
@@ -12,10 +12,10 @@
 
 ## Sumário executivo
 
-O Pronttu sai deste PR como um **sistema de gestão para clínicas e consultórios** com duas grandes capacidades:
+O Prontool sai deste PR como um **sistema de gestão para clínicas e consultórios** com duas grandes capacidades:
 
 1. **Core de faturamento médico** (feature 001) — tabela de preços versionada append-only, catálogo TUSS oficial, comissões por profissional, atendimentos com valores congelados, relatório mensal, pacientes com PII criptografada, auditoria completa e RBAC.
-2. **Modo standalone + integrações multi-plataforma** (feature 002) — o Pronttu opera 100% independente de qualquer CRM externo, e também conecta de forma opcional ao GoHighLevel, HubSpot (placeholder), RD Station (placeholder), Pipedrive (placeholder) ou a um webhook genérico — via um *registry* de adapters pluggáveis.
+2. **Modo standalone + integrações multi-plataforma** (feature 002) — o Prontool opera 100% independente de qualquer CRM externo, e também conecta de forma opcional ao GoHighLevel, HubSpot (placeholder), RD Station (placeholder), Pipedrive (placeholder) ou a um webhook genérico — via um *registry* de adapters pluggáveis.
 
 ## Feature 001 — Base de faturamento médico
 

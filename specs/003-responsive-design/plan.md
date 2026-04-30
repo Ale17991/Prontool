@@ -5,7 +5,7 @@
 
 ## Summary
 
-Tornar o Pronttu utilizável em qualquer viewport entre 360px e 1920px sem regressão visual no desktop atual. Implementação restrita a componentes de layout e estilos: a sidebar permanente vira drawer off-canvas (Sheet do shadcn/ui) controlado por hamburger em <768px; tab bar de categoria ganha overflow-x-auto com auto-scroll para a aba ativa; Dialog base ganha `max-h-[90vh] overflow-y-auto`; padding global do shell muda de `p-8` fixo para `p-4 md:p-8`; tabelas ganham indicador visual de scroll horizontal via fade gradients nas bordas; action bars que faltavam wrap recebem `flex-wrap` ou `flex-col md:flex-row`. Zero mudanças em backend, banco, APIs, ou regras de RBAC.
+Tornar o Prontool utilizável em qualquer viewport entre 360px e 1920px sem regressão visual no desktop atual. Implementação restrita a componentes de layout e estilos: a sidebar permanente vira drawer off-canvas (Sheet do shadcn/ui) controlado por hamburger em <768px; tab bar de categoria ganha overflow-x-auto com auto-scroll para a aba ativa; Dialog base ganha `max-h-[90vh] overflow-y-auto`; padding global do shell muda de `p-8` fixo para `p-4 md:p-8`; tabelas ganham indicador visual de scroll horizontal via fade gradients nas bordas; action bars que faltavam wrap recebem `flex-wrap` ou `flex-col md:flex-row`. Zero mudanças em backend, banco, APIs, ou regras de RBAC.
 
 ## Technical Context
 

@@ -159,7 +159,7 @@ export function FinancialReportDocument({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório financeiro · Pronttu</Text>
+          <Text style={styles.eyebrow}>Relatório financeiro · Prontool</Text>
           <Text style={styles.title}>
             {formatDate(period.from)} – {formatDate(period.to)}
           </Text>
@@ -328,7 +328,7 @@ export function FinancialReportDocument({
 
         <Text style={styles.footer}>
           Gerado em {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} ·
-          Pronttu — relatório financeiro consolidado.
+          Prontool — relatório financeiro consolidado.
         </Text>
       </Page>
     </Document>

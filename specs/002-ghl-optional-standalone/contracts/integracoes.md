@@ -29,7 +29,7 @@ Retorna status agregado de **todos** os providers registrados para o tenant da s
     {
       "provider": "generic_webhook",
       "label": "Webhook genérico",
-      "description": "Dispara POST JSON para uma URL configurada a cada evento do Pronttu",
+      "description": "Dispara POST JSON para uma URL configurada a cada evento do Prontool",
       "connected": false,
       "enabled": false,
       "connected_since": null
@@ -152,7 +152,7 @@ Provider `generic_webhook` exemplo:
 ```json
 {
   "config": {
-    "outbound_url": "https://hooks.minhaempresa.com/pronttu",
+    "outbound_url": "https://hooks.minhaempresa.com/prontool",
     "events": ["patient.created", "appointment.created"]
   },
   "credentials": {

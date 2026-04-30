@@ -117,12 +117,12 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
 
 function subjectFor(type: AlertType): string {
   switch (type) {
-    case 'dlq_event': return '[Pronttu] Evento do GHL aguardando correção'
-    case 'webhook_rejected': return '[Pronttu] Webhook GHL rejeitado'
-    case 'tuss_deprecated': return '[Pronttu] Código TUSS descontinuado em uso'
-    case 'signature_failure': return '[Pronttu] Falha de assinatura em webhook'
-    case 'rbac_denied': return '[Pronttu] Tentativa de acesso negada'
-    case 'integration_sync_failed': return '[Pronttu] Sync com integração externa falhou'
+    case 'dlq_event': return '[Prontool] Evento do GHL aguardando correção'
+    case 'webhook_rejected': return '[Prontool] Webhook GHL rejeitado'
+    case 'tuss_deprecated': return '[Prontool] Código TUSS descontinuado em uso'
+    case 'signature_failure': return '[Prontool] Falha de assinatura em webhook'
+    case 'rbac_denied': return '[Prontool] Tentativa de acesso negada'
+    case 'integration_sync_failed': return '[Prontool] Sync com integração externa falhou'
   }
 }
 

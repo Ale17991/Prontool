@@ -20,7 +20,7 @@ import { mintJwt } from '@/tests/helpers/jwt-helper'
 import { mswServer } from '@/tests/helpers/msw-server'
 
 const OPS_URL = 'http://127.0.0.1:54397'
-const GENERIC_URL = 'http://127.0.0.1:54396/pronttu-events'
+const GENERIC_URL = 'http://127.0.0.1:54396/prontool-events'
 
 async function seedGenericWebhookIntegration(
   tenantId: string,

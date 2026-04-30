@@ -5,7 +5,7 @@
 
 ## Summary
 
-Tornar o Pronttu 100% utilizável sem nenhuma integração externa e, ao mesmo tempo, **abrir** a arquitetura para conectar a **múltiplas plataformas** (CRM/marketing: GHL, HubSpot, RD Station, Pipedrive, e webhook genérico) de forma pluggable. GHL é apenas o primeiro provider do registry.
+Tornar o Prontool 100% utilizável sem nenhuma integração externa e, ao mesmo tempo, **abrir** a arquitetura para conectar a **múltiplas plataformas** (CRM/marketing: GHL, HubSpot, RD Station, Pipedrive, e webhook genérico) de forma pluggable. GHL é apenas o primeiro provider do registry.
 
 Princípios da arquitetura:
 

@@ -3,7 +3,7 @@
 **Feature Branch**: `003-responsive-design`
 **Created**: 2026-04-27
 **Status**: Draft
-**Input**: User description: "Tornar o Pronttu totalmente responsivo para tablets e celulares. O sistema precisa funcionar perfeitamente em telas de 360px (celular) até 1920px (desktop). Problemas: sidebar fixa de 256px sempre visível (crítico), tab bar de navegação sem overflow (alto), modais sem max-h+overflow (médio), padding p-8 fixo (médio), tabelas sem indicador de scroll (baixo), action bar da ficha do paciente sem flex-col (baixo)."
+**Input**: User description: "Tornar o Prontool totalmente responsivo para tablets e celulares. O sistema precisa funcionar perfeitamente em telas de 360px (celular) até 1920px (desktop). Problemas: sidebar fixa de 256px sempre visível (crítico), tab bar de navegação sem overflow (alto), modais sem max-h+overflow (médio), padding p-8 fixo (médio), tabelas sem indicador de scroll (baixo), action bar da ficha do paciente sem flex-col (baixo)."
 
 ## User Scenarios & Testing *(mandatory)*
 

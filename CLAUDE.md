@@ -1,4 +1,4 @@
-﻿# Pronttu Development Guidelines
+﻿# Prontool Development Guidelines
 
 Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-27
 

@@ -131,7 +131,7 @@ export function MonthlyReportDocument({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório mensal · Pronttu</Text>
+          <Text style={styles.eyebrow}>Relatório mensal · Prontool</Text>
           <Text style={styles.title}>
             {formatDate(period.from)} – {formatDate(period.to)}
           </Text>

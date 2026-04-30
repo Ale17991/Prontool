@@ -90,18 +90,18 @@ Objetivo: validar arquitetura multi-provider.
 
 1. Tenant com **GHL** + **generic_webhook** ambos conectados.
    - GHL apontando para o mock local do proxy (`:54322`).
-   - generic_webhook apontando para `http://localhost:4000/pronttu-events` (qualquer servidor de sua escolha).
+   - generic_webhook apontando para `http://localhost:4000/prontool-events` (qualquer servidor de sua escolha).
 2. Cadastrar paciente manual:
    - Response: `integrations_dispatched: [{ provider: 'ghl', ok: true, ... }, { provider: 'generic_webhook', ok: true, ... }]`.
    - Mock GHL recebe `POST /functions/v1/create-contact`.
-   - Server em `:4000` recebe `POST /pronttu-events` com body `{ event: 'patient.created', patient: {...} }`.
+   - Server em `:4000` recebe `POST /prontool-events` com body `{ event: 'patient.created', patient: {...} }`.
 3. Derrubar o server `:4000` e cadastrar outro paciente:
    - Response: `integrations_dispatched: [{ provider: 'ghl', ok: true }, { provider: 'generic_webhook', ok: false, detail: 'ECONNREFUSED' }]`.
    - Paciente persistido normalmente.
    - Alerta `integration_sync_failed` criado somente com `detail.provider='generic_webhook'`. Nenhum alerta para GHL.
 4. Registrar atendimento manual:
    - GHL cria nota no contato.
-   - generic_webhook recebe `POST /pronttu-events` com `{ event: 'appointment.created', appointment: {...}, patient: {...} }`.
+   - generic_webhook recebe `POST /prontool-events` com `{ event: 'appointment.created', appointment: {...}, patient: {...} }`.
 
 ## Scenário 4 — Webhook inbound multi-provider (P4)
 

@@ -16,7 +16,7 @@ export async function renderMonthlyReportExcel(
   opts: { tenantLabel?: string } = {},
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'Pronttu'
+  wb.creator = 'Prontool'
   wb.created = new Date()
 
   const BRL = '"R$" #,##0.00;[Red]-"R$" #,##0.00'

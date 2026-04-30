@@ -107,8 +107,8 @@ Single Next.js project — `src/`, `tests/`, `supabase/`, `scripts/` na raiz. De
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Modificar `src/app/(dashboard)/operacao/atendimentos/page.tsx`: ler cookie `pronttu_atendimentos_view` via `cookies()` de `next/headers`. Se ausente, default `'cal'`. O searchParam `?view=` ainda tem precedência (override de URL). Renderizar a view correspondente.
-- [ ] T027 [US3] Modificar `src/app/(dashboard)/operacao/atendimentos/atendimentos-toolbar.tsx`: ao alternar Lista/Calendário, escrever cookie via `document.cookie = 'pronttu_atendimentos_view=cal; path=/; max-age=31536000; samesite=lax'` (ou `list`). Manter o push para querystring para compartilhar URL.
+- [ ] T026 [P] [US3] Modificar `src/app/(dashboard)/operacao/atendimentos/page.tsx`: ler cookie `prontool_atendimentos_view` via `cookies()` de `next/headers`. Se ausente, default `'cal'`. O searchParam `?view=` ainda tem precedência (override de URL). Renderizar a view correspondente.
+- [ ] T027 [US3] Modificar `src/app/(dashboard)/operacao/atendimentos/atendimentos-toolbar.tsx`: ao alternar Lista/Calendário, escrever cookie via `document.cookie = 'prontool_atendimentos_view=cal; path=/; max-age=31536000; samesite=lax'` (ou `list`). Manter o push para querystring para compartilhar URL.
 
 **Checkpoint**: US3 entregue.
 

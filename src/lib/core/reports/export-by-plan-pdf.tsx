@@ -152,7 +152,7 @@ export function ByPlanReportDocument({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório por plano · Pronttu</Text>
+          <Text style={styles.eyebrow}>Relatório por plano · Prontool</Text>
           <Text style={styles.title}>{detail.plan.name}</Text>
           <Text style={styles.subtitle}>
             {tenantLabel ?? ''}

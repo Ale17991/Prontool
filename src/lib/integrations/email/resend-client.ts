@@ -36,7 +36,7 @@ export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: stri
     return { id: null }
   }
 
-  const from = process.env.RESEND_FROM ?? 'alertas@dev.pronttu.io'
+  const from = process.env.RESEND_FROM ?? 'alertas@dev.prontool.io'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   const html = renderAlertHtml({

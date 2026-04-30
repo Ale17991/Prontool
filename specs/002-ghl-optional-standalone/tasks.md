@@ -46,7 +46,7 @@ Monorepo Next.js — `src/app/` para rotas, `src/lib/` para domínio, `supabase/
 
 ---
 
-## Phase 3: User Story 1 — Clínica standalone usa o Pronttu sem GHL (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 — Clínica standalone usa o Prontool sem GHL (Priority: P1) 🎯 MVP
 
 **Goal**: Novo tenant sem linhas em `tenant_integrations` cadastra pacientes, registra atendimentos, gera relatório. Zero chamadas externas, zero badges de integração, zero alertas.
 
@@ -69,7 +69,7 @@ Monorepo Next.js — `src/app/` para rotas, `src/lib/` para domínio, `supabase/
 - [~] T020 [US1] Layout wiring of `getEnabledIntegrations` — **deferred to US2**. Current sidebar has no GHL/integration references, so standalone mode shows no leak without explicit wiring
 - [X] T021 [US1] Audited `(dashboard)/**/*.tsx` and fixed leaks: `configuracoes/page.tsx` (planned-scope copy), `operacao/pacientes/novo/page.tsx` (subtitle conditional on `hasIntegrations`), `cadastros/profissionais/page.tsx` (GHL label conditional on `hasGhlIntegration`), `operacao/pacientes/[id]/page.tsx` (GHL line only rendered when `ghlContactId` non-null), `cadastros/profissionais/new-doctor-form.tsx` (relabeled "Identificador externo" without GHL mention)
 
-**Checkpoint**: User Story 1 é entregável. Pode fazer deploy só com T001–T021 e ter um Pronttu standalone completamente funcional. US2/US3 são incrementais.
+**Checkpoint**: User Story 1 é entregável. Pode fazer deploy só com T001–T021 e ter um Prontool standalone completamente funcional. US2/US3 são incrementais.
 
 ---
 
@@ -210,7 +210,7 @@ Task: "Sidebar badge component (empty-render case)"            # T019
 
 1. Phase 1 + Phase 2 (~10 tasks, mostly scaffolding + one migration).
 2. Phase 3 / US1 (~11 tasks including 4 tests).
-3. **STOP** — you have a Pronttu que funciona 100% sem GHL. Deployable.
+3. **STOP** — you have a Prontool que funciona 100% sem GHL. Deployable.
 
 ### Incremental delivery
 
