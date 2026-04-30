@@ -40,7 +40,7 @@ export function ReversalForm({ appointmentId }: { appointmentId: string }) {
   return (
     <form onSubmit={onSubmit} className="grid max-w-xl gap-3">
       <div className="space-y-1.5">
-        <Label htmlFor="reason">Motivo da reversão</Label>
+        <Label htmlFor="reason">Motivo do cancelamento</Label>
         <Textarea
           id="reason"
           required
@@ -57,7 +57,7 @@ export function ReversalForm({ appointmentId }: { appointmentId: string }) {
         disabled={pending || reason.trim().length < 3}
         className="justify-self-start"
       >
-        {pending ? 'Registrando…' : 'Registrar reversão'}
+        {pending ? 'Cancelando…' : 'Cancelar atendimento'}
       </Button>
       {error ? (
         <p className="rounded-md border border-rose-100 bg-rose-50 p-3 text-xs font-medium text-rose-700">

@@ -126,7 +126,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
         />
         <SummaryCard
           icon={TrendingDown}
-          label="Estornos"
+          label="Cancelamentos"
           value={report.totals.reversalCount.toString()}
           accent={report.totals.reversalCount > 0}
         />

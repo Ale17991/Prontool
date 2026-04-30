@@ -226,7 +226,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                 {' '}
                 ·{' '}
                 <span className="font-semibold text-rose-600">
-                  {reversedCount} estornado{reversedCount === 1 ? '' : 's'}
+                  {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
                 </span>
               </>
             ) : null}
@@ -284,7 +284,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                 <option value="todos">Todos</option>
                 <option value="agendado">Agendados</option>
                 <option value="ativo">Ativos</option>
-                <option value="estornado">Estornados</option>
+                <option value="estornado">Cancelados</option>
               </select>
             </div>
             <Button type="submit">Filtrar</Button>
@@ -359,13 +359,18 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                             {allergyN === 1 ? '1 alergia' : `${allergyN} alergias`}
                           </Badge>
                         ) : (
-                          <span className="text-[11px] text-slate-400">NKDA</span>
+                          <span
+                            className="text-[11px] text-slate-400"
+                            title="NKDA — No Known Drug Allergies"
+                          >
+                            Sem alergias
+                          </span>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col items-start gap-1">
                           {r.effective_status === 'estornado' ? (
-                            <Badge variant="destructive">estornado</Badge>
+                            <Badge variant="destructive">cancelado</Badge>
                           ) : r.effective_status === 'agendado' ||
                             (r.appointment_at &&
                               new Date(r.appointment_at).getTime() > Date.now()) ? (

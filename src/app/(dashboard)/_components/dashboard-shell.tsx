@@ -80,7 +80,7 @@ const CATEGORIES: readonly Category[] = [
       },
       {
         href: '/operacao/dlq',
-        label: 'Fila de erros',
+        label: 'Pendências',
         icon: AlertTriangle,
         show: ({ role }) => can(role, 'dlq.read'),
       },

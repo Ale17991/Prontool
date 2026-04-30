@@ -18,7 +18,7 @@ export async function renderByPlanExcel(
     { header: 'Valor', key: 'value', width: 30 },
   ]
   resumo.getRow(1).font = { bold: true }
-  if (opts.tenantLabel) resumo.addRow({ metric: 'Tenant', value: opts.tenantLabel })
+  if (opts.tenantLabel) resumo.addRow({ metric: 'Clínica', value: opts.tenantLabel })
   resumo.addRow({ metric: 'Plano', value: detail.plan.name })
   const addDate = (label: string, ymd: string) => {
     const r = resumo.addRow({ metric: label, value: new Date(`${ymd}T12:00:00Z`) })

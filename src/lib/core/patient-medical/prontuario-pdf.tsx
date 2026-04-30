@@ -274,7 +274,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
         {/* ============== 2. Alergias ============== */}
         <Text style={styles.sectionTitle}>2. Alergias</Text>
         {bundle.allergies.length === 0 ? (
-          <Text style={styles.empty}>Sem alergias registradas (NKDA).</Text>
+          <Text style={styles.empty}>Sem alergias conhecidas.</Text>
         ) : (
           <View>
             {bundle.allergies.map((a) => (

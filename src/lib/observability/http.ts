@@ -35,7 +35,12 @@ export function toHttpResponse(err: unknown, context: Record<string, unknown> = 
 
   logger.error({ ...context, error: message }, 'unhandled-error')
   return NextResponse.json(
-    { error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
+    {
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Algo deu errado. Tente novamente em alguns segundos.',
+      },
+    },
     { status: 500 },
   )
 }

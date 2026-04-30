@@ -165,7 +165,7 @@ export default async function AtendimentoDetailPage({
         <div className="flex flex-col items-end gap-1.5">
           {status === 'estornado' ? (
             <Badge variant="destructive" className="self-start">
-              Estornado
+              Cancelado
             </Badge>
           ) : status === 'agendado' ? (
             <Badge
@@ -255,7 +255,7 @@ export default async function AtendimentoDetailPage({
         (session.role === 'admin' || session.role === 'profissional_saude') ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Marcar como realizado</CardTitle>
+            <CardTitle className="text-base">Confirmar atendimento</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-sm text-slate-500">
@@ -270,12 +270,12 @@ export default async function AtendimentoDetailPage({
       {canReverse && appointment.id ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Registrar reversão</CardTitle>
+            <CardTitle className="text-base">Cancelar atendimento</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-sm text-slate-500">
-              Insere um registro compensatório negativo. O atendimento original é preservado, e
-              a operação fica registrada na trilha de auditoria.
+              Registra o cancelamento. O atendimento original é preservado e a
+              operação fica registrada no histórico.
             </p>
             <ReversalForm appointmentId={appointment.id} />
           </CardContent>
@@ -490,7 +490,12 @@ function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
             <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
               Alergias do paciente
             </p>
-            <p className="text-sm font-bold text-emerald-900">NKDA — sem alergias registradas</p>
+            <p
+              className="text-sm font-bold text-emerald-900"
+              title="NKDA — No Known Drug Allergies"
+            >
+              Sem alergias conhecidas
+            </p>
           </div>
         </CardContent>
       </Card>

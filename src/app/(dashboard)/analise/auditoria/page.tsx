@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDateTime } from '@/lib/utils'
+import { entityToLabel } from '@/lib/utils/audit-labels'
 
 export const dynamic = 'force-dynamic'
 
@@ -202,7 +203,7 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
                       {r.actor_label ?? '—'}
                     </TableCell>
                     <TableCell>
-                      <p className="font-semibold text-slate-900">{r.entity ?? '—'}</p>
+                      <p className="font-semibold text-slate-900">{entityToLabel(r.entity)}</p>
                       {r.entity_id ? (
                         <p className="font-mono text-[10px] text-slate-400">
                           {r.entity_id.slice(0, 8)}

@@ -63,7 +63,7 @@ export async function renderMonthlyReportExcel(
   ]
   totals.getRow(1).font = { bold: true }
 
-  if (opts.tenantLabel) totals.addRow({ metric: 'Tenant', value: opts.tenantLabel })
+  if (opts.tenantLabel) totals.addRow({ metric: 'Clínica', value: opts.tenantLabel })
   const addDate = (label: string, ymd: string) => {
     const row = totals.addRow({ metric: label, value: new Date(`${ymd}T12:00:00Z`) })
     row.getCell('value').numFmt = 'dd/mm/yyyy'
@@ -79,7 +79,7 @@ export async function renderMonthlyReportExcel(
   addMoney('Receita líquida total', report.totals.netRevenueCents)
   addMoney('Comissão líquida total', report.totals.netCommissionCents)
   totals.addRow({ metric: 'Atendimentos', value: report.totals.appointmentCount })
-  totals.addRow({ metric: 'Estornos', value: report.totals.reversalCount })
+  totals.addRow({ metric: 'Cancelamentos', value: report.totals.reversalCount })
 
   const arr = await wb.xlsx.writeBuffer()
   return Buffer.from(arr)

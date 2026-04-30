@@ -366,7 +366,7 @@ function StepRow({
             className="h-7 gap-1 px-2 text-[11px]"
           >
             <CheckCircle2 className="h-3 w-3" />
-            Concluir
+            Finalizar
           </Button>
           <Button
             size="sm"

@@ -37,9 +37,9 @@ export default async function DlqPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">Fila de erros</h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Pendências</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Eventos do GHL que falharam no processamento e aguardam intervenção manual.
+          Eventos da integração que falharam no processamento e aguardam revisão.
           {rows.length > 0 ? (
             <>
               {' '}

@@ -210,7 +210,7 @@ export function MonthlyReportDocument({
             <Text style={styles.totalsValue}>{totals.appointmentCount}</Text>
           </View>
           <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>Estornos</Text>
+            <Text style={styles.totalsLabel}>Cancelamentos</Text>
             <Text style={styles.totalsValue}>{totals.reversalCount}</Text>
           </View>
         </View>

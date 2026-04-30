@@ -65,12 +65,12 @@ export function MarkRealizedForm({ appointmentId }: { appointmentId: string }) {
           {pending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Marcando…
+              Confirmando…
             </>
           ) : (
             <>
               <CheckCircle2 className="h-4 w-4" />
-              Marcar realizado
+              Confirmar atendimento
             </>
           )}
         </Button>

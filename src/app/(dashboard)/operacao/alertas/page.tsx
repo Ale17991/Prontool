@@ -28,8 +28,8 @@ interface AlertRow {
 }
 
 const TYPE_LABEL: Record<string, string> = {
-  dlq_event: 'Evento na DLQ',
-  webhook_rejected: 'Webhook rejeitado',
+  dlq_event: 'Pendência de integração',
+  webhook_rejected: 'Evento rejeitado pela integração',
   tuss_deprecated: 'TUSS descontinuado',
   signature_failure: 'Assinatura inválida',
   rbac_denied: 'Acesso negado',

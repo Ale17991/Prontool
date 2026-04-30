@@ -28,7 +28,7 @@ export async function renderFinancialReportExcel(
     { header: 'Valor', key: 'value', width: 22 },
   ]
   summary.getRow(1).font = { bold: true }
-  if (opts.tenantLabel) summary.addRow({ metric: 'Tenant', value: opts.tenantLabel })
+  if (opts.tenantLabel) summary.addRow({ metric: 'Clínica', value: opts.tenantLabel })
   const dateRow = (label: string, ymd: string) => {
     const r = summary.addRow({ metric: label, value: new Date(`${ymd}T12:00:00Z`) })
     r.getCell('value').numFmt = 'dd/mm/yyyy'

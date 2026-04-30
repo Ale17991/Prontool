@@ -119,31 +119,32 @@ Repositório Next.js monolito:
 
 ### Helper Layer
 
-- [ ] T080 [US2] Criar `src/lib/utils/audit-labels.ts` exportando `eventTypeToLabel(eventType: string): string` com mapa: `appointment.created → "Atendimento criado"`, `appointment.reversed → "Cancelamento de atendimento"`, `appointment.realized → "Atendimento confirmado"`, `appointment_material.created → "Material adicionado"`, `patient.created → "Paciente cadastrado"`, `integration.connect → "Integração conectada"`, `integration.reconfigure → "Integração reconfigurada"`, `integration.disconnect → "Integração desconectada"`, `integration_sync_failed → "Falha de sincronização de integração"` (e quaisquer outros encontrados em `audit_log`). Fallback retorna o `eventType` literal. Inspecionar `src/lib/core/events/publish.ts` e `src/lib/core/integrations/credentials.ts` para listar event types existentes.
-- [ ] T081 [P] [US2] Unit test em `tests/unit/audit-labels.spec.ts`: cada event type conhecido mapeia para a string esperada; tipo desconhecido cai no fallback.
+- [X] T080 [US2] Criar `src/lib/utils/audit-labels.ts` exportando `eventTypeToLabel(eventType: string): string` com mapa: `appointment.created → "Atendimento criado"`, `appointment.reversed → "Cancelamento de atendimento"`, `appointment.realized → "Atendimento confirmado"`, `appointment_material.created → "Material adicionado"`, `patient.created → "Paciente cadastrado"`, `integration.connect → "Integração conectada"`, `integration.reconfigure → "Integração reconfigurada"`, `integration.disconnect → "Integração desconectada"`, `integration_sync_failed → "Falha de sincronização de integração"` (e quaisquer outros encontrados em `audit_log`). Fallback retorna o `eventType` literal. Inclui também `entityToLabel()` e `GENERIC_ERROR_MESSAGE`.
+- [X] T081 [P] [US2] Unit test em `tests/unit/audit-labels.spec.ts`: cada event type conhecido mapeia para a string esperada; tipo desconhecido cai no fallback.
 
 ### File-by-file rewrites (UI)
 
-- [ ] T090 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`: substituir "Reverter atendimento" → "Cancelar atendimento" (label de botão/menu), "Estornado"/"Revertido" → "Cancelado" (badge), "Marcar como realizado" → "Confirmar atendimento" (action label, se presente). Respeitar gênero (atendimento = masculino).
-- [ ] T091 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/page.tsx`: badges de status — "Estornado" → "Cancelado", coluna "Revertido em" → "Cancelado em" se aplicável.
-- [ ] T092 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/atendimentos-toolbar.tsx`: revisar toolbar — labels de filtro e ações.
-- [ ] T093 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`: revisar todas as strings expostas; "Tenant" → "Clínica" se aparecer; revisar tooltips e labels.
-- [ ] T094 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/medical-history-section.tsx`: "NKDA" → "Sem alergias conhecidas" como texto principal; manter "NKDA" apenas em tooltip secundário ou helper text para profissionais.
-- [ ] T095 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/treatment-steps-section.tsx`: "Concluir etapa" → "Finalizar etapa". Outros termos técnicos.
-- [ ] T096 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/error.tsx`: substituir mensagem por "Algo deu errado. Tente novamente em alguns segundos." Remover renderização de `error.digest`. Mover `console.error('[pacientes/error]', error.message, { digest: error.digest })` (vai para Pino na Vercel sem ser exibido). Para `DomainError` com `code` específico (ex.: `APPOINTMENT_CONFLICT`), continuar exibindo a mensagem específica do erro — só erros sem código tratado caem na mensagem genérica.
-- [ ] T097 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/page.tsx`: revisar mensagens de listagem e filtros.
-- [ ] T098 [P] [US2] Editar `src/app/(dashboard)/operacao/alertas/page.tsx`: "DLQ"/"Dead Letter Queue"/"Fila de erros" → "Pendências" (ou "Fila de reprocessamento" no header). "Webhook" → não exibir ao usuário (substituir por "evento de integração" ou suprimir).
-- [ ] T099 [P] [US2] Editar `src/app/(dashboard)/operacao/dlq/page.tsx`: alterar `<h1>` ou título da página de "DLQ" para "Pendências". URL/rota `/operacao/dlq` permanece (ajuste interno preservado).
-- [ ] T100 [P] [US2] Editar `src/app/(dashboard)/operacao/dlq/reprocess-button.tsx`: revisar texto do botão e mensagens de feedback.
-- [ ] T101 [P] [US2] Editar `src/app/(dashboard)/_components/dashboard-shell.tsx` (sidebar): revisar nomes dos itens de menu — "DLQ" → "Pendências"; remover/renomear "Webhooks" se aparecer como link visível ao usuário não-admin (manter para admin se necessário, com label técnico aceitável apenas em página dedicada).
-- [ ] T102 [P] [US2] Verificar e (se existir) editar `src/app/error.tsx` raiz: aplicar mesmo padrão de T096 (mensagem genérica, sem digest visível).
-- [ ] T103 [P] [US2] Verificar e (se existir) editar `src/app/not-found.tsx` raiz e `src/app/(dashboard)/**/not-found.tsx`: garantir mensagens em PT-BR claro.
-- [ ] T104 [P] [US2] Editar `src/lib/core/patient-medical/assemble-prontuario.ts`: revisar quaisquer strings que vão pro PDF (cabeçalhos, labels). "NKDA" → "Sem alergias conhecidas".
-- [ ] T105 [P] [US2] Editar `src/lib/core/patient-medical/prontuario-pdf.tsx`: revisar strings do JSX renderizado no PDF.
-- [ ] T106 [P] [US2] Editar `src/lib/core/reports/export-financial-excel.ts`: revisar cabeçalhos de planilha — "Estornado" → "Cancelado", "Reversão" → "Cancelamento", etc. Manter coluna `tenant_id` em arquivos técnicos (admin), mas qualquer texto de cabeçalho português → "Clínica".
-- [ ] T107 [P] [US2] Editar `src/lib/core/reports/export-by-plan-excel.ts`: idem T106.
-- [ ] T108 [P] [US2] Editar `src/lib/core/reports/export-excel.ts`: idem T106.
-- [ ] T109 [US2] Verificar página `/operacao/auditoria` (descobrir caminho — provável `src/app/(dashboard)/operacao/auditoria/page.tsx` ou via `src/app/(dashboard)/cadastros/`): integrar helper `eventTypeToLabel()` de T080 para renderizar `event_type` como string amigável. **Banco e API permanecem com event_type técnico** — só renderização traduz.
+- [X] T090 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`: "Estornado" → "Cancelado" no badge; "Marcar como realizado" → "Confirmar atendimento" + "Registrar reversão" → "Cancelar atendimento" + "NKDA — sem alergias" → "Sem alergias conhecidas".
+- [X] T091 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/page.tsx`: filtro "Estornados" → "Cancelados"; contador "X estornado" → "X cancelado"; badge "estornado" → "cancelado"; tooltip NKDA atualizado.
+- [X] T092 [P] [US2] Reversal/realized forms: `reversal-form.tsx` → "Motivo do cancelamento" + "Cancelar atendimento"; `mark-realized-form.tsx` → "Confirmar atendimento".
+- [X] T093 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`: SummaryCard "Estornados" → "Cancelados"; badge "Estornado" → "Cancelado".
+- [X] T094 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/medical-history-section.tsx`: "Sem alergias registradas (NKDA)" → "Sem alergias conhecidas" (com tooltip NKDA preservado).
+- [X] T095 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/treatment-steps-section.tsx`: botão "Concluir" → "Finalizar".
+- [X] T096 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/error.tsx`: "Erro inesperado" → "Algo deu errado. Tente novamente em alguns segundos."; removido digest visível; texto "consulte os runtime logs ... pelo digest abaixo" reescrito.
+- [X] T097 [P] [US2] `src/app/(dashboard)/operacao/pacientes/page.tsx` — strings já amigáveis; admin-only diagnostic FailuresOnlyView mantém termos técnicos por design (escopo admin-developer per spec assumption).
+- [X] T098 [P] [US2] Editar `src/app/(dashboard)/operacao/alertas/page.tsx`: "Evento na DLQ" → "Pendência de integração"; "Webhook rejeitado" → "Evento rejeitado pela integração".
+- [X] T099 [P] [US2] Editar `src/app/(dashboard)/operacao/dlq/page.tsx`: h1 "Fila de erros" → "Pendências"; texto descritivo ajustado.
+- [ ] T100 [P] [US2] `src/app/(dashboard)/operacao/dlq/reprocess-button.tsx` — sem strings problemáticas detectadas no grep; **NO-OP**.
+- [X] T101 [P] [US2] Editar `src/app/(dashboard)/_components/dashboard-shell.tsx`: sidebar item "Fila de erros" → "Pendências".
+- [ ] T102 [P] [US2] `src/app/error.tsx` raiz não existe — Next.js usa fallback default. **NO-OP** (não há arquivo a editar).
+- [ ] T103 [P] [US2] `src/app/not-found.tsx` raiz e variações em (dashboard) não existem — **NO-OP**.
+- [ ] T104 [P] [US2] `src/lib/core/patient-medical/assemble-prontuario.ts` — não tem strings PT-BR para usuário (só código). **NO-OP**.
+- [X] T105 [P] [US2] Editar `src/lib/core/patient-medical/prontuario-pdf.tsx`: "Sem alergias registradas (NKDA)" → "Sem alergias conhecidas".
+- [X] T106 [P] [US2] Editar `src/lib/core/reports/export-financial-excel.ts`: rótulo "Tenant" → "Clínica".
+- [X] T107 [P] [US2] Editar `src/lib/core/reports/export-by-plan-excel.ts`: rótulo "Tenant" → "Clínica".
+- [X] T108 [P] [US2] Editar `src/lib/core/reports/export-excel.ts`: "Tenant" → "Clínica" + "Estornos" → "Cancelamentos". Adicionado também `src/lib/core/reports/export-pdf.tsx`: "Estornos" → "Cancelamentos".
+- [X] T109 [US2] `src/app/(dashboard)/analise/auditoria/page.tsx`: integrado `entityToLabel()` para renderizar coluna `entity` traduzida. Banco mantém termos técnicos.
+- [X] T110 [US2] **EXTRA**: `src/lib/observability/http.ts`: mensagem genérica de fallback 500 trocada de "Internal server error" para "Algo deu errado. Tente novamente em alguns segundos." (FR-021).
 
 ### Validation pass
 

@@ -452,7 +452,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           sub={`${summary.activeAppointmentCount} ativo${summary.activeAppointmentCount === 1 ? '' : 's'}`}
         />
         <SummaryCard
-          label="Estornados"
+          label="Cancelados"
           value={summary.reversedAppointmentCount.toString()}
           accent={summary.reversedAppointmentCount > 0}
         />
@@ -508,7 +508,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
                     </TableCell>
                     <TableCell>
                       {a.effective_status === 'estornado' ? (
-                        <Badge variant="destructive">Estornado</Badge>
+                        <Badge variant="destructive">Cancelado</Badge>
                       ) : (
                         <Badge variant="success">Ativo</Badge>
                       )}

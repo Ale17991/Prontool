@@ -13,7 +13,8 @@ export default function PacientesError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('pacientes-page-error', error)
+    // digest fica nos logs do servidor (Pino na Vercel) — nao exibido ao usuario.
+    console.error('pacientes-page-error', error.message, { digest: error.digest })
   }, [error])
 
   const isMissingKey = /PATIENT_DATA_ENCRYPTION_KEY/.test(error.message)
@@ -91,10 +92,10 @@ export default function PacientesError({
               </p>
             ) : (
               <div className="space-y-2 text-xs text-slate-600">
-                <p>Erro inesperado ao consultar pacientes.</p>
+                <p>Algo deu errado. Tente novamente em alguns segundos.</p>
                 <p>
-                  Em produção, o detalhe do erro é ocultado aqui — consulte os runtime logs da
-                  Vercel pelo digest abaixo. Causas comuns:
+                  Se o problema persistir, peça ao administrador para verificar os logs do
+                  servidor. Causas comuns:
                 </p>
                 <ul className="ml-4 list-disc space-y-1 text-left">
                   <li>
@@ -130,11 +131,6 @@ export default function PacientesError({
               <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-[10px] text-slate-700">
                 {error.message || '(sem mensagem)'}
               </pre>
-              {error.digest ? (
-                <p className="mt-1 font-mono text-[10px] text-slate-400">
-                  digest: {error.digest}
-                </p>
-              ) : null}
             </details>
           </div>
           <Button onClick={reset} variant="outline" className="mt-2">
