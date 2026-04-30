@@ -5,12 +5,14 @@ import {
   Calendar,
   Clock,
   Mail,
+  MessageCircle,
   Phone,
   Receipt,
   ShieldAlert,
   Stethoscope,
   User,
 } from 'lucide-react'
+import { buildWhatsAppUrl } from '@/lib/utils/whatsapp'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
@@ -392,7 +394,17 @@ export default async function PacienteDetailPage({ params }: PageProps) {
                 )}
               </div>
               <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 md:grid-cols-3">
-                <ContactChip icon={Phone} label="Telefone" value={patient.phone} color="emerald" />
+                <div className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <ContactChip
+                      icon={Phone}
+                      label="Telefone"
+                      value={patient.phone}
+                      color="emerald"
+                    />
+                  </div>
+                  <WhatsAppButton phone={patient.phone} />
+                </div>
                 <ContactChip icon={Mail} label="Email" value={patient.email} color="blue" />
                 <ContactChip
                   icon={Clock}
@@ -580,6 +592,34 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       />
 
     </div>
+  )
+}
+
+function WhatsAppButton({ phone }: { phone: string | null | undefined }) {
+  const url = buildWhatsAppUrl(phone)
+  if (!url) {
+    return (
+      <span
+        title="Sem telefone cadastrado"
+        aria-disabled="true"
+        className="inline-flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md bg-slate-100 px-3 text-xs font-bold text-slate-400"
+      >
+        <MessageCircle className="h-3.5 w-3.5" />
+        WhatsApp
+      </span>
+    )
+  }
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex h-9 items-center gap-1.5 rounded-md bg-green-600 px-3 text-xs font-bold text-white transition hover:bg-green-700"
+      title="Abrir conversa no WhatsApp"
+    >
+      <MessageCircle className="h-3.5 w-3.5" />
+      WhatsApp
+    </a>
   )
 }
 
