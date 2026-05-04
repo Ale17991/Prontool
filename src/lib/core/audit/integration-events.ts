@@ -6,6 +6,11 @@ export type IntegrationEventType =
   | 'integration.connect'
   | 'integration.reconfigure'
   | 'integration.disconnect'
+  | 'integration.refresh_success'
+  | 'integration.refresh_failed'
+  | 'oauth.signature_failure_marketplace'
+  | 'oauth.state_mismatch'
+  | 'sso.login'
 
 export interface RecordIntegrationEventInput {
   type: IntegrationEventType
@@ -69,5 +74,48 @@ export async function recordIntegrationEvent(
   })
   if (error) {
     throw new Error(`recordIntegrationEvent insert failed: ${error.message}`)
+  }
+}
+
+/**
+ * Helpers leves para os event_types da Feature 008 que não carregam
+ * "before/after credentials" (refresh, signature failure, etc.). Mantém
+ * `recordIntegrationEvent` acima reservado para connect/reconfigure/
+ * disconnect, onde o redact via adapter faz sentido.
+ */
+export interface RecordSimpleEventInput {
+  type: IntegrationEventType
+  tenantId: string
+  provider: ProviderId
+  actorUserId: string | null
+  actorLabel?: string | null
+  reason: string
+  /** Detalhe seguro (sem secrets, sem PII bruta). */
+  detail?: Record<string, unknown>
+  ip?: string | null
+  userAgent?: string | null
+  result?: 'success' | 'denied' | 'conflict'
+}
+
+export async function recordSimpleIntegrationEvent(
+  supabase: SupabaseClient<Database>,
+  input: RecordSimpleEventInput,
+): Promise<void> {
+  const { error } = await supabase.from('audit_log').insert({
+    tenant_id: input.tenantId,
+    actor_id: input.actorUserId,
+    actor_label: input.actorLabel ?? null,
+    entity: 'tenant_integrations',
+    entity_id: input.tenantId,
+    field: `${input.type}:${input.provider}`,
+    old_value: null,
+    new_value: input.detail ? JSON.stringify(input.detail) : null,
+    reason: input.reason,
+    ip: input.ip ?? null,
+    user_agent: input.userAgent ?? null,
+    result: input.result ?? 'success',
+  })
+  if (error) {
+    throw new Error(`recordSimpleIntegrationEvent insert failed: ${error.message}`)
   }
 }
