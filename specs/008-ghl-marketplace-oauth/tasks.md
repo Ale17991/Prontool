@@ -27,10 +27,10 @@ Aplicação web Next.js monolítica — `src/app`, `src/lib`, `tests/`, `supabas
 
 **Purpose**: Inicialização da feature — schema, env, lint, types — sem ainda escrever lógica nova.
 
-- [ ] T001 Criar migration `supabase/migrations/0062_ghl_oauth_marketplace.sql` exatamente conforme `data-model.md` (alters em `tenant_integrations`: `status TEXT`, `connected_at TIMESTAMPTZ`, `location_id TEXT GENERATED`; índice unique parcial `tenant_integrations_unique_active_location_id`; tabela nova `integration_sync_log` com RLS read-only-tenant + trigger imutabilidade `BEFORE UPDATE OR DELETE`)
-- [ ] T002 [P] Atualizar regra `pnpm lint:auth` (script em `scripts/lint-auth.*` ou ESLint custom rule existente) para permitir leitura de `process.env.GHL_*` e `process.env.GHL_SSO_*` exclusivamente em `src/lib/integrations/ghl/oauth/**`; demais paths continuam proibidos
-- [ ] T003 [P] Adicionar variáveis ao `.env.example` (na raiz): `GHL_CLIENT_ID`, `GHL_CLIENT_SECRET`, `GHL_REDIRECT_URI`, `GHL_SCOPES`, `GHL_MARKETPLACE_SHARED_SECRET`, `GHL_SSO_JWKS_URL` com comentários apontando para `quickstart.md`
-- [ ] T004 Rodar `pnpm supabase:reset && pnpm supabase:gen-types` para atualizar `src/lib/db/generated/*` com as novas colunas e tabela; commitar tipos gerados
+- [X] T001 Criar migration `supabase/migrations/0062_ghl_oauth_marketplace.sql` exatamente conforme `data-model.md` (alters em `tenant_integrations`: `status TEXT`, `connected_at TIMESTAMPTZ`, `location_id TEXT GENERATED`; índice unique parcial `tenant_integrations_unique_active_location_id`; tabela nova `integration_sync_log` com RLS read-only-tenant + trigger imutabilidade `BEFORE UPDATE OR DELETE`)
+- [X] T002 [P] Atualizar regra `pnpm lint:auth` (script em `scripts/lint-auth.*` ou ESLint custom rule existente) para permitir leitura de `process.env.GHL_*` e `process.env.GHL_SSO_*` exclusivamente em `src/lib/integrations/ghl/oauth/**`; demais paths continuam proibidos
+- [X] T003 [P] Adicionar variáveis ao `.env.example` (na raiz): `GHL_CLIENT_ID`, `GHL_CLIENT_SECRET`, `GHL_REDIRECT_URI`, `GHL_SCOPES`, `GHL_MARKETPLACE_SHARED_SECRET`, `GHL_SSO_JWKS_URL` com comentários apontando para `quickstart.md`
+- [X] T004 Rodar `pnpm supabase:reset && pnpm supabase:gen-types` para atualizar `src/lib/db/generated/*` com as novas colunas e tabela; commitar tipos gerados
 
 **Checkpoint Phase 1**: schema atualizado localmente, env documentado, lint:auth ajustado, tipos TS regenerados.
 

@@ -32,10 +32,12 @@ const ROOT = join(__dirname, '..', 'src', 'app', 'api')
 // Qualquer handler abaixo DEVE autenticar via outro mecanismo; mantemos
 // a lista curta e justificada pra que novas exceções sejam deliberadas.
 const AUTH_EXEMPT_PREFIXES = [
-  'webhooks/',  // HMAC do GHL (tenant_ghl_config.webhook_secret_enc)
-  'workers/',   // assinatura QStash (QSTASH_CURRENT_SIGNING_KEY)
-  'platform/',  // PLATFORM_OPERATOR_TOKEN (ops globais cross-tenant)
-  'health',     // público por design (middleware.ts PUBLIC_PATHS)
+  'webhooks/',          // HMAC do GHL (tenant_ghl_config.webhook_secret_enc)
+  'workers/',           // assinatura QStash (QSTASH_CURRENT_SIGNING_KEY)
+  'platform/',          // PLATFORM_OPERATOR_TOKEN (ops globais cross-tenant)
+  'health',             // público por design (middleware.ts PUBLIC_PATHS)
+  'oauth/ghl/callback', // state HMAC + cookie (feature 008)
+  'sso/ghl',            // GHL Marketplace context_token JWT (feature 008)
 ]
 
 const HTTP_VERB_RE = /export\s+(?:async\s+)?function\s+(GET|POST|PATCH|PUT|DELETE|HEAD|OPTIONS)\s*\(/g
@@ -103,16 +105,35 @@ function main() {
   // legacy env fallback for the proxy URL+anon key (shared infra, not
   // per-tenant secret); the lint rule only flags raw secret names.
   const INTEGRATIONS_ROOT = join(__dirname, '..', 'src', 'lib', 'integrations')
+  // Generic per-provider secrets (GHL legacy LOCATION_ID + future placeholders).
   const FORBIDDEN_ENV_RE = /process\.env\.(GHL_LOCATION_ID|HUBSPOT_[A-Z_]+|RDSTATION_[A-Z_]+|PIPEDRIVE_[A-Z_]+)/g
+  // GHL OAuth/Marketplace/SSO env vars (feature 008): allowed ONLY inside the
+  // oauth/ capsule (src/lib/integrations/ghl/oauth/**). Any other adapter file
+  // reading these is a regression — credentials per-tenant come via
+  // AdapterContext / withGhlAuth, not env.
+  const FORBIDDEN_OAUTH_ENV_RE = /process\.env\.(GHL_CLIENT_ID|GHL_CLIENT_SECRET|GHL_REDIRECT_URI|GHL_SCOPES|GHL_MARKETPLACE_SHARED_SECRET|GHL_SSO_[A-Z_]+)/g
   const adapterOffenders = []
   for (const full of walkTS(INTEGRATIONS_ROOT)) {
     const rel = full.replace(/\\/g, '/')
     // Skip types.ts and registry.ts — they don't make outbound calls.
     if (/\/types\.ts$/.test(rel) || /\/registry\.ts$/.test(rel)) continue
+
     const src = readFileSync(full, 'utf8')
     const hits = [...src.matchAll(FORBIDDEN_ENV_RE)]
     if (hits.length > 0) {
       adapterOffenders.push({ rel: rel.slice(rel.indexOf('/src/lib/') + 1), hits: hits.map((h) => h[1]) })
+    }
+
+    // GHL OAuth env: permitido somente em src/lib/integrations/ghl/oauth/**
+    const isInsideOauthCapsule = /\/src\/lib\/integrations\/ghl\/oauth\//.test(rel)
+    if (!isInsideOauthCapsule) {
+      const oauthHits = [...src.matchAll(FORBIDDEN_OAUTH_ENV_RE)]
+      if (oauthHits.length > 0) {
+        adapterOffenders.push({
+          rel: rel.slice(rel.indexOf('/src/lib/') + 1),
+          hits: oauthHits.map((h) => h[1]),
+        })
+      }
     }
   }
   if (adapterOffenders.length > 0) {

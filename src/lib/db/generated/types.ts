@@ -238,6 +238,68 @@ export type Database = {
           },
         ]
       }
+      appointment_materials: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          created_by: string
+          id: string
+          quantity: number
+          tenant_id: string
+          tuss_code: string
+          tuss_description: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          quantity?: number
+          tenant_id: string
+          tuss_code: string
+          tuss_description: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          quantity?: number
+          tenant_id?: string
+          tuss_code?: string
+          tuss_description?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_materials_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_materials_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_materials_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_materials_tuss_code_fkey"
+            columns: ["tuss_code"]
+            isOneToOne: false
+            referencedRelation: "tuss_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       appointment_reversals: {
         Row: {
           appointment_id: string
@@ -884,6 +946,50 @@ export type Database = {
           },
         ]
       }
+      integration_sync_log: {
+        Row: {
+          detail: Json | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          kind: string
+          occurred_at: string
+          provider: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          detail?: Json | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          kind: string
+          occurred_at?: string
+          provider: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          detail?: Json | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          kind?: string
+          occurred_at?: string
+          provider?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_allergies: {
         Row: {
           deleted_at: string | null
@@ -1500,33 +1606,42 @@ export type Database = {
       tenant_integrations: {
         Row: {
           config: Json
+          connected_at: string
           created_at: string
           created_by_user_id: string
           credentials_enc: string
           enabled: boolean
+          location_id: string | null
           provider: string
+          status: string
           tenant_id: string
           updated_at: string
           webhook_secret_enc: string | null
         }
         Insert: {
           config: Json
+          connected_at?: string
           created_at?: string
           created_by_user_id: string
           credentials_enc: string
           enabled?: boolean
+          location_id?: string | null
           provider: string
+          status?: string
           tenant_id: string
           updated_at?: string
           webhook_secret_enc?: string | null
         }
         Update: {
           config?: Json
+          connected_at?: string
           created_at?: string
           created_by_user_id?: string
           credentials_enc?: string
           enabled?: boolean
+          location_id?: string | null
           provider?: string
+          status?: string
           tenant_id?: string
           updated_at?: string
           webhook_secret_enc?: string | null
@@ -2158,7 +2273,31 @@ export type Database = {
       }
     }
     Functions: {
+      attach_materials_to_appointment: {
+        Args: { p_actor: string; p_appointment_id: string; p_materials: Json }
+        Returns: Json
+      }
       auth_hook_custom_claims: { Args: { event: Json }; Returns: Json }
+      create_appointment_with_materials: {
+        Args: {
+          p_actor: string
+          p_appointment_at: string
+          p_doctor_id: string
+          p_duration_minutes: number
+          p_frozen_amount_cents: number
+          p_frozen_commission_bps: number
+          p_materials: Json
+          p_observacoes: string
+          p_patient_id: string
+          p_plan_id: string
+          p_procedure_id: string
+          p_source: string
+          p_source_commission_history_id: string
+          p_source_price_version_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
       create_price_version: {
         Args: {
           p_actor_id: string
