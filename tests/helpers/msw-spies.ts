@@ -36,6 +36,85 @@ export const resendSpy = new CallRecorder<ResendCall>()
 export const qstashSpy = new CallRecorder<QstashCall>()
 
 /**
+ * Feature 008 — GHL OAuth token endpoint spy + per-test response override.
+ *
+ * Cada chamada a `https://services.leadconnectorhq.com/oauth/token` é
+ * registrada em `ghlOauthTokenSpy.calls`. Por default o mock responde 200
+ * com `defaultGhlTokenResponse()`. Tests podem sobrescrever o próximo N
+ * responses via `ghlOauthTokenSpy.queueResponse({ status, body })`.
+ */
+export interface GhlOauthTokenCall {
+  body: URLSearchParams
+  bodyRaw: string
+  headers: Record<string, string>
+}
+
+export interface GhlOauthTokenResponse {
+  status: number
+  body: Record<string, unknown> | string
+}
+
+class OauthTokenSpy {
+  readonly calls: GhlOauthTokenCall[] = []
+  private queue: GhlOauthTokenResponse[] = []
+  reset(): void {
+    this.calls.length = 0
+    this.queue.length = 0
+  }
+  record(call: GhlOauthTokenCall): void {
+    this.calls.push(call)
+  }
+  queueResponse(res: GhlOauthTokenResponse): void {
+    this.queue.push(res)
+  }
+  nextResponse(): GhlOauthTokenResponse {
+    return this.queue.shift() ?? defaultGhlTokenResponse()
+  }
+}
+
+export const ghlOauthTokenSpy = new OauthTokenSpy()
+
+export function defaultGhlTokenResponse(): GhlOauthTokenResponse {
+  return {
+    status: 200,
+    body: {
+      access_token: `at_test_${Math.random().toString(36).slice(2)}_xxxxxxxxxxxxxxxxxxxxxx`,
+      refresh_token: `rt_test_${Math.random().toString(36).slice(2)}_xxxxxxxxxxxxxxxxxxxxxx`,
+      expires_in: 86400,
+      scope: 'contacts.readonly contacts.write',
+      userType: 'Location',
+      locationId: 'loc_test_default',
+      companyId: 'comp_test_default',
+      userId: 'usr_test_default',
+    },
+  }
+}
+
+/**
+ * Helper para tests: gera uma resposta com `locationId` configurável.
+ */
+export function makeGhlTokenResponse(overrides: {
+  locationId?: string
+  companyId?: string
+  userId?: string
+  expiresIn?: number
+  scope?: string
+} = {}): GhlOauthTokenResponse {
+  const base = defaultGhlTokenResponse().body as Record<string, unknown>
+  return {
+    status: 200,
+    body: {
+      ...base,
+      locationId: overrides.locationId ?? 'loc_test_default',
+      companyId: overrides.companyId ?? 'comp_test_default',
+      userId: overrides.userId ?? 'usr_test_default',
+      expires_in: overrides.expiresIn ?? 86400,
+      scope: overrides.scope ?? 'contacts.readonly contacts.write',
+    },
+  }
+}
+
+/**
  * Suite-wide archive of every Resend call. Never reset; consumed by the
  * end-of-file PII scanner in setup.ts.
  */
@@ -62,5 +141,6 @@ export const piiRegistry = new PiiRegistry()
 export function resetAllSpies(): void {
   resendSpy.reset()
   qstashSpy.reset()
+  ghlOauthTokenSpy.reset()
   // resendArchive and piiRegistry intentionally persist.
 }

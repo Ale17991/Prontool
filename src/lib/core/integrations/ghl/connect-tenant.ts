@@ -161,23 +161,28 @@ export async function connectGhlTenant(
     detail: { source: input.source, location_id: input.location.id },
   })
 
-  // Post-connect setup roda em background (não bloqueia callback/install).
-  // Em US3 o stub vira o orchestrator real (custom_fields + webhooks).
-  // Erros internos são absorvidos pelo orchestrator e gravados em
-  // sync-log; aqui só capturamos o fire-and-forget reject.
-  void runPostConnectSetup(supabase, input.tenantId, input.credentials.access_token).catch(
-    (err: unknown) => {
-      logger.error(
-        { err, tenant_id: input.tenantId },
-        'post-connect-setup-fire-and-forget-failed',
-      )
-      void recordSyncFailure(supabase, input.tenantId, {
-        kind: 'connect',
-        errorCode: 'POST_CONNECT_FAILED',
-        errorMessage: err instanceof Error ? err.message : String(err),
-      }).catch(() => {})
-    },
-  )
+  // Post-connect setup roda em background em produção (não bloqueia
+  // callback/install). Em testes (`NODE_ENV=test`) aguardamos para
+  // evitar Promise leakage entre testes — o stub é instantâneo e o real
+  // (US3) usa MSW, então não atrasa a suíte significativamente.
+  const postConnect = runPostConnectSetup(
+    supabase,
+    input.tenantId,
+    input.credentials.access_token,
+  ).catch((err: unknown) => {
+    logger.error(
+      { err, tenant_id: input.tenantId },
+      'post-connect-setup-fire-and-forget-failed',
+    )
+    void recordSyncFailure(supabase, input.tenantId, {
+      kind: 'connect',
+      errorCode: 'POST_CONNECT_FAILED',
+      errorMessage: err instanceof Error ? err.message : String(err),
+    }).catch(() => {})
+  })
+  if (process.env.NODE_ENV === 'test') {
+    await postConnect
+  }
 
   return {
     tenantId: input.tenantId,

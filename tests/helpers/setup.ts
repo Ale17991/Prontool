@@ -28,6 +28,16 @@ if (envFile) {
 ;(process.env as Record<string, string>).NODE_ENV = 'test'
 process.env.LOG_LEVEL ??= 'warn'
 
+// Feature 008 — defaults seguros para tests não exigirem .env.test custom.
+// Produção lê de variáveis reais; aqui usamos placeholders e a suíte
+// intercepta `services.leadconnectorhq.com` via MSW.
+process.env.GHL_CLIENT_ID ??= 'test_client_id'
+process.env.GHL_CLIENT_SECRET ??= 'test_client_secret_minimum_length_xxx'
+process.env.GHL_REDIRECT_URI ??= 'http://localhost:3000/api/oauth/ghl/callback'
+process.env.GHL_SCOPES ??= 'contacts.readonly,contacts.write,custom-fields.readonly,custom-fields.write,locations.readonly,opportunities.write,webhooks.readonly,webhooks.write'
+process.env.GHL_MARKETPLACE_SHARED_SECRET ??= 'test_marketplace_shared_secret_min_32_chars_xxxx'
+process.env.GHL_SSO_JWKS_URL ??= 'https://services.leadconnectorhq.com/.well-known/jwks.json'
+
 beforeAll(() => {
   // Confirm Supabase local is up; if not, surface a clear error.
   // We deliberately don't start it automatically — developers should

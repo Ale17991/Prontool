@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { resendSpy, qstashSpy, resendArchive } from './msw-spies'
+import { resendSpy, qstashSpy, resendArchive, ghlOauthTokenSpy } from './msw-spies'
 
 /**
  * MSW server used across integration tests. Intercepts outbound calls to
@@ -40,5 +40,21 @@ export const mswServer = setupServer(
     const body = await request.clone().json().catch(() => null)
     qstashSpy.record({ url: request.url, body })
     return HttpResponse.json({ messageId: `qstash_mock_${Date.now()}` }, { status: 200 })
+  }),
+
+  // Feature 008 — GHL OAuth token endpoint.
+  http.post('https://services.leadconnectorhq.com/oauth/token', async ({ request }) => {
+    const bodyRaw = await request.clone().text()
+    const body = new URLSearchParams(bodyRaw)
+    const headers: Record<string, string> = {}
+    request.headers.forEach((v, k) => {
+      headers[k] = v
+    })
+    ghlOauthTokenSpy.record({ body, bodyRaw, headers })
+    const next = ghlOauthTokenSpy.nextResponse()
+    if (typeof next.body === 'string') {
+      return new HttpResponse(next.body, { status: next.status })
+    }
+    return HttpResponse.json(next.body, { status: next.status })
   }),
 )
