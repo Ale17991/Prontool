@@ -10,22 +10,55 @@ import { getAdapter } from '@/lib/integrations/registry'
 import { getIntegrationConfig } from '@/lib/core/integrations/config'
 import type { Database } from '@/lib/db/types'
 import { ProviderForm, type JsonSchema } from './provider-form'
+import { GhlOAuthPanel } from './ghl-oauth-panel'
 
 export const dynamic = 'force-dynamic'
 
-type Params = { params: { provider: string } }
+interface PageProps {
+  params: { provider: string }
+  searchParams?: { status?: string; warnings?: string | string[] }
+}
 
-export default async function ProviderDetailPage({ params }: Params) {
+export default async function ProviderDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (session.role !== 'admin') redirect('/configuracoes')
 
   const adapter = getAdapter(params.provider)
   if (!adapter) notFound()
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
-  const row = await getIntegrationConfig(supabase, session.tenantId, adapter.provider)
 
+  // GHL recebe painel custom (Feature 008 OAuth flow). Outros providers
+  // continuam no fluxo legado de ProviderForm (Feature 002).
+  if (params.provider === 'ghl') {
+    const callbackWarnings = parseWarningsParam(searchParams?.warnings)
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link
+            href="/configuracoes/integracoes"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800"
+          >
+            <ChevronLeft className="h-3 w-3" /> Voltar às integrações
+          </Link>
+        </div>
+        <GhlOAuthPanel
+          tenantId={session.tenantId}
+          role={session.role}
+          supabase={supabase}
+          callbackStatus={searchParams?.status}
+          callbackWarnings={callbackWarnings}
+        />
+      </div>
+    )
+  }
+
+  // Caminho legado para providers não-GHL — admin only.
+  if (session.role !== 'admin') redirect('/configuracoes')
+  const row = await getIntegrationConfig(supabase, session.tenantId, adapter.provider)
   const connected = Boolean(row)
 
   return (
@@ -82,6 +115,15 @@ export default async function ProviderDetailPage({ params }: Params) {
       ) : null}
     </div>
   )
+}
+
+function parseWarningsParam(p: string | string[] | undefined): string[] {
+  if (!p) return []
+  if (Array.isArray(p)) return p
+  return p
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
 }
 
 // Adapter schemas are Zod; JSON Schema shape is computed by the route handler,
