@@ -56,6 +56,18 @@ export async function middleware(req: NextRequest) {
   // Touching getUser refreshes the session and triggers cookie writes
   // on the response when the access token rotates.
   await supabase.auth.getUser()
+
+  // Feature 008: quando a sessão veio do SSO do GHL, permite iframe
+  // pelo domínio gohighlevel.com via CSP frame-ancestors. Sem o cookie
+  // marker, mantém default seguro (frame-ancestors 'none' aplicado por
+  // outras camadas).
+  const ssoOrigin = req.cookies.get('prontool_sso_origin')?.value
+  if (ssoOrigin === 'ghl') {
+    res.headers.set(
+      'Content-Security-Policy',
+      "frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com",
+    )
+  }
   return res
 }
 

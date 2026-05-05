@@ -3,6 +3,7 @@ import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
 import { customFieldsSetup } from '@/lib/integrations/ghl/oauth/custom-fields-setup'
 import { webhooksSetup } from '@/lib/integrations/ghl/oauth/webhooks-setup'
+import { customMenuSetup } from '@/lib/integrations/ghl/oauth/custom-menu-setup'
 import { getIntegrationConfig } from '@/lib/core/integrations/config'
 
 /**
@@ -71,7 +72,26 @@ export async function runPostConnectSetup(
     allWarnings.push('webhooks_setup_skipped_no_base_url')
   }
 
-  // 3. Custom menu (US5 — entra em T054, default no-op aqui).
+  // 3. Custom Menu (US5) — best-effort, fallback gracioso. NUNCA bloqueia.
+  if (baseUrl) {
+    try {
+      const menu = await customMenuSetup(
+        supabase,
+        tenantId,
+        accessToken,
+        locationId,
+        baseUrl,
+      )
+      if (menu.status === 'unsupported') allWarnings.push('custom_menu_unsupported')
+      if (menu.status === 'failed') allWarnings.push('custom_menu_failed')
+    } catch (err) {
+      logger.error(
+        { tenant_id: tenantId, err: err instanceof Error ? err.message : String(err) },
+        'post-connect-custom-menu-failed',
+      )
+      allWarnings.push('custom_menu_setup_failed')
+    }
+  }
 
   return { warnings: allWarnings }
 }
