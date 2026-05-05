@@ -21,7 +21,7 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 
 - TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel). (001-faturamento-medico-ghl)
 
-## Integration architecture (feature 002)
+## Integration architecture (features 002, 008)
 
 - **Plugin adapter pattern**: `src/lib/integrations/<provider>/adapter.ts` implementa `IntegrationAdapter<Config, Credentials>` (veja `src/lib/integrations/types.ts`). Registrado em `src/lib/integrations/registry.ts`. Providers hoje: `ghl` (inbound + outbound) e `generic_webhook` (outbound). Placeholders: hubspot, rdstation, pipedrive.
 - **Event bus**: core publica `DomainEvent` (`patient.created`, `appointment.created`, `appointment.reversed`) via `src/lib/core/events/publish.ts`. `dispatch.ts` faz fan-out `Promise.allSettled` com timeout 5 s por adapter; falhas geram alerta `integration_sync_failed` com `detail.provider`.
@@ -29,6 +29,14 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - **Inbound webhooks**: `/api/webhooks/[provider]` rota dinâmica delega para `adapter.handleInboundWebhook(supabase, req)`. `/api/webhooks/ghl` mantido como thin-forward por back-compat.
 - **Credenciais**: JSON serializado e cifrado em `tenant_integrations.credentials_enc` via `enc_text_with_key`. Adapter decripta via `src/lib/core/integrations/credentials.ts`. Lint:auth rejeita `process.env.GHL_*` / `HUBSPOT_*` / etc. em arquivos de adapter.
 - **Config UI**: `/configuracoes/integracoes` + `/configuracoes/integracoes/[provider]`, admin-only. Schema do form vem do `configSchema` / `credentialsSchema` do adapter serializado como JSON Schema pela rota.
+
+### Feature 008 — GHL Marketplace OAuth 2.0 (extensão)
+
+- **Cápsula `oauth/`** em `src/lib/integrations/ghl/oauth/` é o **único** lugar autorizado a ler `process.env.GHL_CLIENT_ID/SECRET/REDIRECT_URI/SCOPES/MARKETPLACE_SHARED_SECRET/SSO_*`. Adapter (`adapter.ts`, `create-contact.ts`, `create-note.ts`, `update-contact.ts`) recebe `accessToken` via `withGhlAuth(supabase, tenantId)` que faz auto-refresh com CAS sobre `updated_at` (sem advisory lock, incompatível com pgBouncer transaction-mode).
+- **Marketplace lifecycle**: `/api/oauth/ghl/{authorize,callback,refresh}` para conexão manual; `/api/webhooks/ghl/{install,uninstall}` (HMAC-SHA256 + janela ±5min) para o Marketplace. Ambos convergem em `connectGhlTenant`/`disconnectGhlTenant` em `src/lib/core/integrations/ghl/`.
+- **Post-connect setup**: `runPostConnectSetup` (em `src/lib/core/integrations/ghl/post-connect-setup.ts`) orquestra `customFieldsSetup` (6 fields, sufixa "(Prontool)" em colisão de tipo) + `webhooksSetup` (3 hooks) + `customMenuSetup` (best-effort). Roda fire-and-forget em produção, `await` em testes.
+- **Tabela `integration_sync_log`** (migration 0062) é append-only com RLS read-only-tenant; populada via `recordSyncSuccess/Failure` em `src/lib/core/integrations/ghl/sync-log.ts` com PII mascarada (`mask-pii.ts`). UI lê últimas 10 entradas em `/configuracoes/integracoes/ghl`.
+- **SSO/Custom Menu** (US5): `/api/sso/ghl` valida JWT contexto via JWKS (`verify-sso-token.ts` — RS256 com `crypto.createPublicKey({format:'jwk'})`, sem `jose`). Auto-login completo (mintar JWT Supabase) é follow-up.
 
 ## Project Structure
 

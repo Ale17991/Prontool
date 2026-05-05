@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { getIntegrationConfig } from '@/lib/core/integrations/config'
+import { decryptCredentials } from '@/lib/core/integrations/credentials'
 import { listRecentSyncLog } from '@/lib/core/integrations/ghl/sync-log'
 import {
   GHL_CUSTOM_FIELD_DEFINITIONS,
   GHL_CUSTOM_FIELD_SLUGS,
+  ghlOAuthCredentialsSchema,
   type GhlConfigV2,
   type GhlCustomFieldSlug,
 } from '@/lib/integrations/ghl/oauth/types'
@@ -64,6 +66,18 @@ export async function GhlOAuthPanel({
     .filter(([, id]) => Boolean(id))
     .map(([event, id]) => ({ event, id: String(id) }))
 
+  // Detecta tenants em formato legacy Feature 002 (ainda têm
+  // `operations_pat` em credentials_enc, sem `access_token`). Banner
+  // pede Reconectar para migrar para OAuth 2.0.
+  let isLegacyTenant = false
+  if (row && (row as unknown as { status?: string }).status === 'connected') {
+    try {
+      await decryptCredentials(supabase, row, ghlOAuthCredentialsSchema)
+    } catch {
+      isLegacyTenant = true
+    }
+  }
+
   const syncLog = await listRecentSyncLog(supabase, tenantId, 10)
   const isAdmin = role === 'admin'
 
@@ -86,6 +100,25 @@ export async function GhlOAuthPanel({
           </p>
         </div>
       </div>
+
+      {isLegacyTenant ? (
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <AlertTriangle className="h-4 w-4 mt-0.5" />
+          <div>
+            <p className="font-semibold">Reconexão necessária</p>
+            <p className="text-xs mt-1">
+              Sua conexão GHL está no formato antigo (proxy compartilhado).
+              Reconecte para migrar para o OAuth 2.0 oficial — pacientes,
+              atendimentos e custom fields são preservados.
+            </p>
+            {isAdmin ? (
+              <Button asChild size="sm" className="mt-2" variant="default">
+                <Link href="/api/oauth/ghl/authorize">Reconectar agora</Link>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {callbackStatus === 'connected' ? (
         <div className="flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
