@@ -1608,7 +1608,7 @@ export type Database = {
           config: Json
           connected_at: string
           created_at: string
-          created_by_user_id: string
+          created_by_user_id: string | null
           credentials_enc: string
           enabled: boolean
           location_id: string | null
@@ -1622,7 +1622,7 @@ export type Database = {
           config: Json
           connected_at?: string
           created_at?: string
-          created_by_user_id: string
+          created_by_user_id?: string | null
           credentials_enc: string
           enabled?: boolean
           location_id?: string | null
@@ -1636,7 +1636,7 @@ export type Database = {
           config?: Json
           connected_at?: string
           created_at?: string
-          created_by_user_id?: string
+          created_by_user_id?: string | null
           credentials_enc?: string
           enabled?: boolean
           location_id?: string | null

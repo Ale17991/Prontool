@@ -114,10 +114,10 @@ export async function connectGhlTenant(
     enabled: true,
     status: 'connected',
     connected_at: new Date().toISOString(),
-    // created_by_user_id é NOT NULL na tabela. Em install usamos um sentinela
-    // — a coluna espera UUID, então preservamos o existente OU o tenant_id
-    // como fallback (linkagem fraca; admin verifica via audit_log).
-    created_by_user_id: input.actorUserId ?? input.tenantId,
+    // Migration 0063 tornou created_by_user_id nullable. Em manual_connect
+    // gravamos o user_id do admin; em marketplace_install fica null e a
+    // origem fica em audit_log.actor_label.
+    created_by_user_id: input.actorUserId,
   }
   const { error: upsertErr } = await supabase
     .from('tenant_integrations')
