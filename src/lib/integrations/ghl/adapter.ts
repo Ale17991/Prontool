@@ -12,47 +12,50 @@ import { enqueueGhlEvent } from '@/lib/integrations/queue/qstash-client'
 import { InvalidSignatureError } from '@/lib/observability/errors'
 import { mintTraceId } from '@/lib/observability/trace'
 import { logger } from '@/lib/observability/logger'
+import { withGhlAuth } from './oauth/with-auth'
+import {
+  ghlConfigV2Schema,
+  ghlOAuthCredentialsSchema,
+  type GhlConfigV2,
+  type GhlOAuthCredentials,
+} from './oauth/types'
+import { recordSyncSuccess, recordSyncFailure } from '@/lib/core/integrations/ghl/sync-log'
 
-// Public config shape — safe to return in GET /api/configuracoes/integracoes/ghl
-export const ghlConfigSchema = z.object({
-  location_id: z
-    .string()
-    .regex(/^[A-Za-z0-9]{10,40}$/, 'Location ID deve ter 10–40 caracteres alfanuméricos'),
-  trigger_stage_name: z.string().trim().min(1).max(100),
-  field_map_plano: z.string().trim().min(1).max(60),
-  field_map_procedimento_tuss: z.string().trim().min(1).max(60),
-  field_map_profissional: z.string().trim().min(1).max(60),
-  field_map_valor: z.string().trim().max(60),
-})
-export type GhlConfig = z.infer<typeof ghlConfigSchema>
+/**
+ * Feature 008 — GHL adapter v2: OAuth direto contra services.leadconnectorhq.com.
+ *
+ * Substitui o caminho proxy (Homio Operations) por chamada Bearer com
+ * `withGhlAuth` por trás (auto-refresh + token_expired handling). Mantém
+ * a interface `IntegrationAdapter` da Feature 002 — registry e dispatcher
+ * não mudam.
+ *
+ * `redactCredentials` retorna apenas campos seguros: `expires_at`, `scopes`,
+ * `location_id`. Tokens NUNCA aparecem.
+ */
 
-// Secret shape — NEVER returned in GET, always cifrado em tenant_integrations.credentials_enc
-export const ghlCredentialsSchema = z.object({
-  operations_pat: z.string().min(10).max(200),
-  inbound_webhook_secret: z.string().min(32).max(128),
-})
-export type GhlCredentials = z.infer<typeof ghlCredentialsSchema>
-
-function redact(c: GhlCredentials): Record<string, string> {
+function redact(_c: GhlOAuthCredentials): Record<string, string> {
+  // Nenhum campo de credentials é ecoado — todos viram sentinela. Metadata
+  // não-sensível (sub_account_name, scopes concedidos, expires_at) fica em
+  // `tenant_integrations.config` e em audit_log, NÃO em credentials_enc.
   return {
-    operations_pat: '***',
-    inbound_webhook_secret: '***',
+    access_token: '***',
+    refresh_token: '***',
+    expires_at: '***',
+    scopes: '***',
+    location_id: '***',
+    company_id: '***',
+    user_id: '***',
+    user_type: '***',
   }
 }
 
-/**
- * GHL adapter. P3 responsibilities (handleDomainEvent wiring patient/appointment
- * events to the Homio-Operations proxy) land in T039. For US2 (this PR) the
- * adapter is registered with a noop handler so connect/disconnect UX + auditing
- * can ship before outbound fan-out is turned on.
- */
-export const ghlAdapter: IntegrationAdapter<GhlConfig, GhlCredentials> = {
+export const ghlAdapter: IntegrationAdapter<GhlConfigV2, GhlOAuthCredentials> = {
   provider: 'ghl',
   label: 'GoHighLevel',
   description:
-    'CRM e automação de marketing. Contato criado no Prontool é espelhado como contact; atendimento vira nota.',
-  configSchema: ghlConfigSchema,
-  credentialsSchema: ghlCredentialsSchema,
+    'CRM e automação de marketing. Contato sincronizado via OAuth 2.0; atendimento vira nota.',
+  configSchema: ghlConfigV2Schema as unknown as z.ZodType<GhlConfigV2>,
+  credentialsSchema: ghlOAuthCredentialsSchema as unknown as z.ZodType<GhlOAuthCredentials>,
   redactCredentials: redact,
 
   async handleInboundWebhook(
@@ -63,60 +66,100 @@ export const ghlAdapter: IntegrationAdapter<GhlConfig, GhlCredentials> = {
   },
 
   async handleDomainEvent(
-    ctx: AdapterContext<GhlConfig, GhlCredentials>,
+    ctx: AdapterContext<GhlConfigV2, GhlOAuthCredentials>,
     event: DomainEvent,
   ): Promise<void> {
-    const proxyCreds = buildProxyCreds(ctx)
+    // withGhlAuth re-lê tokens e refresca se necessário. Em token_expired
+    // grava sync-log e retorna sem tentar GHL (operação local concluiu).
+    const auth = await withGhlAuth(ctx.supabase, ctx.tenantId)
+    if (auth.kind !== 'connected') {
+      await recordSyncFailure(ctx.supabase, ctx.tenantId, {
+        kind: kindFor(event),
+        errorCode: auth.kind === 'token_expired' ? 'TOKEN_EXPIRED' : 'NOT_CONNECTED',
+        errorMessage:
+          auth.kind === 'token_expired'
+            ? 'Refresh token revoked or invalid; reconnect required.'
+            : 'No active GHL integration for this tenant.',
+        detail: { event_type: event.type },
+      })
+      return
+    }
 
     switch (event.type) {
       case 'patient.created': {
-        const out = await createContactInGhl(
-          {
-            fullName: event.patient.fullName,
-            phone: event.patient.phone ?? undefined,
-            email: event.patient.email ?? undefined,
-            source: 'prontool:manual',
-          },
-          proxyCreds,
-        )
-        if (!out.configured) {
-          throw new Error('ghl_proxy_not_configured: operations_url/key missing')
-        }
-        // Write back the contact id so future events (appointment.created)
-        // know where to attach the note.
-        const upd = await ctx.supabase
-          .from('patients')
-          .update({ ghl_contact_id: out.ghlContactId })
-          .eq('id', event.patient.id)
-          .eq('tenant_id', ctx.tenantId)
-        if (upd.error) {
-          throw new Error(`patients.ghl_contact_id update failed: ${upd.error.message}`)
+        try {
+          const out = await createContactInGhl({
+            accessToken: auth.accessToken,
+            locationId: ctx.config.location_id,
+            customFieldIds: ctx.config.custom_field_ids,
+            patient: {
+              fullName: event.patient.fullName,
+              email: event.patient.email,
+              phone: event.patient.phone,
+              cpf: event.patient.cpf,
+            },
+          })
+          // Write back so future appointment events can attach notes.
+          const upd = await ctx.supabase
+            .from('patients')
+            .update({ ghl_contact_id: out.ghlContactId })
+            .eq('id', event.patient.id)
+            .eq('tenant_id', ctx.tenantId)
+          if (upd.error) {
+            throw new Error(`patients.ghl_contact_id update failed: ${upd.error.message}`)
+          }
+          await recordSyncSuccess(ctx.supabase, ctx.tenantId, {
+            kind: 'outbound_contact',
+            detail: { patient_id: event.patient.id, ghl_contact_id: out.ghlContactId },
+          })
+        } catch (err) {
+          await recordSyncFailure(ctx.supabase, ctx.tenantId, {
+            kind: 'outbound_contact',
+            errorCode: 'GHL_OUTBOUND_FAILED',
+            errorMessage: err instanceof Error ? err.message : String(err),
+            detail: { patient_id: event.patient.id },
+          })
+          throw err // propaga para dispatcher (que dispatchAlert).
         }
         return
       }
 
       case 'appointment.created': {
         if (!event.patient.ghlContactId) {
-          // Patient was created before GHL was connected (or sync failed).
-          // No contact to attach a note to — treat as success with a noop.
+          // Patient pre-dates the connection or sync failed; skip.
           ctx.logger.info(
             { patient_id: event.patient.id },
             'ghl-adapter-skip-note-no-contact',
           )
           return
         }
-        await createNoteInGhl(
-          {
+        try {
+          await createNoteInGhl({
+            accessToken: auth.accessToken,
             contactId: event.patient.ghlContactId,
             body: formatAppointmentNote(event),
-          },
-          proxyCreds,
-        )
+          })
+          await recordSyncSuccess(ctx.supabase, ctx.tenantId, {
+            kind: 'outbound_note',
+            detail: {
+              appointment_id: event.appointment.id,
+              ghl_contact_id: event.patient.ghlContactId,
+            },
+          })
+        } catch (err) {
+          await recordSyncFailure(ctx.supabase, ctx.tenantId, {
+            kind: 'outbound_note',
+            errorCode: 'GHL_OUTBOUND_FAILED',
+            errorMessage: err instanceof Error ? err.message : String(err),
+            detail: { appointment_id: event.appointment.id },
+          })
+          throw err
+        }
         return
       }
 
       case 'appointment.reversed': {
-        // US3 scope: just log. Full reversal note wire-up is polish.
+        // Out of v1 scope — log only.
         ctx.logger.debug(
           { appointment_id: event.original.id },
           'ghl-adapter-skip-reversal-note',
@@ -127,29 +170,22 @@ export const ghlAdapter: IntegrationAdapter<GhlConfig, GhlCredentials> = {
   },
 }
 
-// Keep utility exports available for the US3 wiring and for tests.
 export { createContactInGhl, createNoteInGhl }
 
-function buildProxyCreds(
-  ctx: AdapterContext<GhlConfig, GhlCredentials>,
-): { operationsUrl?: string; operationsKey?: string; locationId: string } {
-  // URL of the Homio-Operations proxy + bearer key are infra-shared across
-  // tenants (one Edge Function serves all tenants); they still live in env
-  // vars. Per-tenant bits are `location_id` (config) and `operations_pat`
-  // (credentials). The PAT is currently forwarded as the Bearer to the proxy
-  // when operationsKey env var is absent.
-  const envKey = process.env.SUPABASE_OPERATIONS_ANON_KEY
-  return {
-    operationsUrl: process.env.SUPABASE_OPERATIONS_URL,
-    operationsKey: envKey ?? ctx.credentials.operations_pat,
-    locationId: ctx.config.location_id,
+function kindFor(event: DomainEvent): 'outbound_contact' | 'outbound_note' | 'outbound_update' {
+  switch (event.type) {
+    case 'patient.created':
+      return 'outbound_contact'
+    case 'appointment.created':
+      return 'outbound_note'
+    default:
+      return 'outbound_update'
   }
 }
 
 // ---------------------------------------------------------------------------
-// Inbound webhook handling (ported from src/app/api/webhooks/ghl/route.ts).
-// Identifies the tenant by scanning tenant_integrations rows with
-// provider='ghl', decrypting webhook_secret_enc, and matching the HMAC.
+// Inbound webhook handling — mantido do legado, scaneia tenant_integrations
+// pra identificar tenant via `webhook_secret_enc`.
 // ---------------------------------------------------------------------------
 
 const payloadShape = z.object({ event_id: z.string().min(1) }).passthrough()
@@ -251,8 +287,6 @@ async function identifyTenantBySignature(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY missing')
 
-  // Scan tenant_integrations rows for provider='ghl'. `webhook_secret_enc` is
-  // the HMAC key, stored in a dedicated column alongside config/credentials.
   const { data: configs, error } = await supabase
     .from('tenant_integrations')
     .select('tenant_id, webhook_secret_enc')

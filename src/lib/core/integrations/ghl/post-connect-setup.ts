@@ -1,28 +1,82 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
+import { customFieldsSetup } from '@/lib/integrations/ghl/oauth/custom-fields-setup'
+import { webhooksSetup } from '@/lib/integrations/ghl/oauth/webhooks-setup'
+import { getIntegrationConfig } from '@/lib/core/integrations/config'
 
 /**
  * Feature 008 — orquestrador de setup pós-conexão.
  *
- * **STUB Phase 2 (T017)**: retorna imediatamente sem efeito. A versão
- * real entra em US3 (T036) chamando `customFieldsSetup` e `webhooksSetup`,
- * e em US5 (T054) acrescentando `customMenuSetup`. Mantemos o ponto de
- * extensão aqui para que `connectGhlTenant` (chamado tanto no callback
- * OAuth quanto no install Marketplace) já dispare a função final sem
- * precisar de mudança em US3/US5.
+ * Chamado por `connectGhlTenant` após persistir os tokens (em
+ * fire-and-forget em produção, awaited em testes). Roda em sequência:
+ *   1. customFieldsSetup  — cria/reusa os 6 custom fields.
+ *   2. webhooksSetup      — registra ContactCreate/ContactUpdate/Opportunity.
+ *   3. customMenuSetup    — best-effort (US5 / T054).
  *
- * Caller faz `void runPostConnectSetup(...)` (fire-and-forget) — erros
- * gravam em `integration_sync_log`, nunca propagam para a resposta HTTP.
+ * Cada passo é isolado: erro num passo não impede os outros.
+ * Cada operação grava sucesso/falha em `integration_sync_log`.
  */
+
 export async function runPostConnectSetup(
-  _supabase: SupabaseClient<Database>,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
-  _accessToken: string,
+  accessToken: string,
 ): Promise<{ warnings: string[] }> {
-  logger.info(
-    { tenant_id: tenantId },
-    'post-connect-setup-noop-pending-us3',
-  )
-  return { warnings: [] }
+  const allWarnings: string[] = []
+
+  // Carrega location_id da config recém-persistida.
+  const row = await getIntegrationConfig(supabase, tenantId, 'ghl')
+  if (!row) {
+    logger.error({ tenant_id: tenantId }, 'post-connect-setup-row-missing')
+    return { warnings: ['row_missing_after_connect'] }
+  }
+  const config = (row.config ?? {}) as { location_id?: string }
+  const locationId = config.location_id
+  if (!locationId) {
+    logger.error({ tenant_id: tenantId }, 'post-connect-setup-no-location-id')
+    return { warnings: ['no_location_id'] }
+  }
+
+  // 1. Custom fields.
+  try {
+    const cf = await customFieldsSetup(supabase, tenantId, accessToken, locationId)
+    allWarnings.push(...cf.warnings)
+  } catch (err) {
+    logger.error(
+      { tenant_id: tenantId, err: err instanceof Error ? err.message : String(err) },
+      'post-connect-custom-fields-failed',
+    )
+    allWarnings.push('custom_fields_setup_failed')
+  }
+
+  // 2. Webhooks de contato.
+  const baseUrl = readProntoolBaseUrl()
+  if (baseUrl) {
+    try {
+      const wh = await webhooksSetup(supabase, tenantId, accessToken, locationId, baseUrl)
+      allWarnings.push(...wh.warnings)
+    } catch (err) {
+      logger.error(
+        { tenant_id: tenantId, err: err instanceof Error ? err.message : String(err) },
+        'post-connect-webhooks-failed',
+      )
+      allWarnings.push('webhooks_setup_failed')
+    }
+  } else {
+    logger.warn(
+      { tenant_id: tenantId },
+      'post-connect-webhooks-skipped-no-base-url',
+    )
+    allWarnings.push('webhooks_setup_skipped_no_base_url')
+  }
+
+  // 3. Custom menu (US5 — entra em T054, default no-op aqui).
+
+  return { warnings: allWarnings }
+}
+
+function readProntoolBaseUrl(): string | null {
+  // NEXT_PUBLIC_APP_URL é a fonte canônica do projeto.
+  return process.env.NEXT_PUBLIC_APP_URL ?? null
 }

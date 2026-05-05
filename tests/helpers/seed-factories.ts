@@ -63,14 +63,21 @@ export interface GhlConfigSeed {
  */
 export interface GhlIntegrationSeed {
   locationId?: string
-  operationsPat?: string
   inboundWebhookSecret?: string
   enabled?: boolean
+  /**
+   * Mapas opcionais de IDs já registrados (custom fields / webhooks /
+   * menu) — para tests que não exercitam post-connect-setup.
+   */
+  customFieldIds?: Record<string, { id: string; alias: string }>
+  webhookIds?: Record<string, string>
 }
 
 /**
- * Seeds a `tenant_integrations` row (provider='ghl') for US3 tests.
- * Credentials are encrypted the same way the prod code expects.
+ * Seeds a `tenant_integrations` row (provider='ghl') no formato OAuth 2.0
+ * (Feature 008). Tokens são preenchidos com valores fake longos o
+ * bastante pra passar nos schemas. Tests que precisam que o token expire
+ * podem chamar `setExpiresAt` (ver `auto-refresh.spec.ts`).
  */
 export async function seedGhlIntegration(
   tenantId: string,
@@ -79,24 +86,32 @@ export async function seedGhlIntegration(
   const sb = serviceClient()
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY not set')
+  const locationId = opts.locationId ?? 'loc_test_seed'
   const credentials = {
-    operations_pat: opts.operationsPat ?? 'pit-test-token',
-    inbound_webhook_secret: opts.inboundWebhookSecret ?? 'a'.repeat(48),
+    access_token: 'at_seed_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    refresh_token: 'rt_seed_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+    scopes: ['contacts.readonly', 'contacts.write'],
+    user_type: 'Location' as const,
+    location_id: locationId,
+    company_id: 'comp_seed',
+    user_id: 'usr_seed',
   }
   const { data: credsEnc, error: credsErr } = await sb.rpc('enc_text_with_key', {
     plain: JSON.stringify(credentials),
     key,
   })
   if (credsErr) throw new Error(`enc credentials failed: ${credsErr.message}`)
+
+  const inboundSecret = opts.inboundWebhookSecret ?? 'a'.repeat(48)
   const { data: secretEnc, error: secretErr } = await sb.rpc('enc_text_with_key', {
-    plain: credentials.inbound_webhook_secret,
+    plain: inboundSecret,
     key,
   })
   if (secretErr) throw new Error(`enc webhook secret failed: ${secretErr.message}`)
 
   const { data: user } = await sb.auth.admin.listUsers()
-  const createdBy = user?.users?.[0]?.id
-  if (!createdBy) throw new Error('seedGhlIntegration: no auth user to attribute')
+  const createdBy = user?.users?.[0]?.id ?? null
 
   await sb
     .from('tenant_integrations')
@@ -104,16 +119,18 @@ export async function seedGhlIntegration(
       tenant_id: tenantId,
       provider: 'ghl',
       config: {
-        location_id: opts.locationId ?? 'abcTESTloc1234567890',
-        trigger_stage_name: 'Pagamento confirmado',
-        field_map_plano: 'plano',
-        field_map_procedimento_tuss: 'tuss',
-        field_map_profissional: 'medico',
-        field_map_valor: 'valor',
+        location_id: locationId,
+        sub_account_name: 'Clínica Seed',
+        timezone: 'America/Sao_Paulo',
+        custom_field_ids: opts.customFieldIds ?? {},
+        webhook_ids: opts.webhookIds ?? {},
+        menu_id: null,
+        menu_status: 'not_attempted',
       },
       credentials_enc: credsEnc as unknown as string,
       webhook_secret_enc: secretEnc as unknown as string,
       enabled: opts.enabled ?? true,
+      status: 'connected',
       created_by_user_id: createdBy,
     })
     .throwOnError()

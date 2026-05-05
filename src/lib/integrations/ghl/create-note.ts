@@ -1,49 +1,42 @@
 import { logger } from '@/lib/observability/logger'
-import type { GhlProxyCredentials } from './create-contact'
+import { GHL_API_BASE } from './oauth/types'
+import { buildHeaders, fetchWithRetry } from './create-contact'
+
+/**
+ * Feature 008 — Outbound: cria nota no contato GHL via Bearer OAuth direto.
+ * Substitui o caminho legado via proxy Homio Operations.
+ */
 
 export interface CreateNoteInput {
+  accessToken: string
   contactId: string
   body: string
 }
 
-/**
- * Post a note to a GHL contact via the Homio Operations proxy
- * (/functions/v1/create-contact-note). Structured symmetrically to
- * createContactInGhl: requires operationsUrl/Key/locationId either
- * from creds override or env vars.
- */
+export interface CreateNoteResult {
+  ghlNoteId: string
+}
+
 export async function createNoteInGhl(
   input: CreateNoteInput,
-  creds: GhlProxyCredentials,
-): Promise<void> {
-  const url = creds.operationsUrl ?? process.env.SUPABASE_OPERATIONS_URL
-  const key = creds.operationsKey ?? process.env.SUPABASE_OPERATIONS_ANON_KEY
-  const locationId = creds.locationId
-  if (!url || !key || !locationId) {
-    throw new Error('createNoteInGhl: missing proxy credentials (url/key/locationId)')
-  }
-
-  const endpoint = `${url.replace(/\/+$/, '')}/functions/v1/create-contact-note`
-  const res = await fetch(endpoint, {
+): Promise<CreateNoteResult> {
+  const url = `${GHL_API_BASE}/contacts/${encodeURIComponent(input.contactId)}/notes`
+  const res = await fetchWithRetry(url, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      locationId,
-      contactId: input.contactId,
-      body: input.body,
-    }),
-    signal: AbortSignal.timeout(5000),
+    headers: buildHeaders(input.accessToken),
+    body: JSON.stringify({ body: input.body }),
   })
-
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     logger.warn(
-      { status: res.status, endpoint, responseBody: text.slice(0, 200) },
+      { status: res.status, body: text.slice(0, 200), contact_id: input.contactId },
       'ghl-create-note-failed',
     )
-    throw new Error(`GHL proxy returned ${res.status} on create-note`)
+    throw new Error(`GHL POST /contacts/{id}/notes ${res.status}`)
   }
+  const payload = (await res.json().catch(() => null)) as
+    | { note?: { id?: string }; id?: string }
+    | null
+  const ghlNoteId = payload?.note?.id ?? payload?.id ?? ''
+  return { ghlNoteId }
 }

@@ -22,7 +22,9 @@ const VALID_CREDENTIALS = {
   inbound_webhook_secret: 'a'.repeat(48),
 }
 
-describe('US2 — /api/configuracoes/integracoes/[provider] (GHL)', () => {
+// Feature 008: legacy POST/DELETE/[provider] route test — substituído pelo
+// caminho OAuth (oauth-flow.spec.ts) e pelo DELETE em /api/configuracoes/integracoes/ghl.
+describe.skip('US2 — /api/configuracoes/integracoes/[provider] (GHL) — legacy proxy path', () => {
   beforeEach(async () => {
     await resetDatabase()
   })

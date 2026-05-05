@@ -33,7 +33,10 @@ function setOpsEnv() {
   process.env.SUPABASE_OPERATIONS_ANON_KEY = 'test-ops-anon-key'
 }
 
-describe('US3 — GHL outbound sync via event bus', () => {
+// Feature 008: este teste exercitava o caminho proxy Homio Operations
+// (legacy Feature 002). O adapter v2 fala direto com services.leadconnectorhq.com
+// via Bearer OAuth — coberto por `tests/integration/integrations/ghl/sync-bidirectional.spec.ts`.
+describe.skip('US3 — GHL outbound sync via event bus (legacy proxy path — replaced by sync-bidirectional)', () => {
   beforeEach(async () => {
     await resetDatabase()
     setOpsEnv()

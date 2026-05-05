@@ -1,98 +1,132 @@
 import { logger } from '@/lib/observability/logger'
+import {
+  GHL_API_BASE,
+  GHL_API_VERSION,
+  type GhlConfigV2,
+} from './oauth/types'
 
 /**
- * Outbound GHL contact creation. Follows the proxy pattern used by the
- * Homio real-estate admin: Next.js does NOT hit services.leadconnectorhq.com
- * directly — it forwards to a Supabase Edge Function hosted in the Homio
- * Operations project, which holds the GHL OAuth/PIT credentials. Keeps
- * GHL auth concerns off this app entirely.
+ * Feature 008 — Outbound: cria contato no GHL via Bearer OAuth direto
+ * (substitui o caminho legado via proxy Homio Operations).
  *
- * Env vars required:
- *   - SUPABASE_OPERATIONS_URL         base URL of the operations project
- *   - SUPABASE_OPERATIONS_ANON_KEY    bearer token for the proxy
- *   - GHL_LOCATION_ID                 the GHL location where contacts land
- *
- * If any are missing the function returns `{ configured: false }` — the
- * caller treats that as "GHL sync not configured in this environment",
- * saves the patient locally, and does not raise an alert (unlike an
- * actual sync failure).
+ * Caller passa `accessToken` obtido por `withGhlAuth`. Em falha permanente
+ * (4xx) lança `Error`; em falha transient (5xx/timeout) lança após 1 retry.
+ * Adapter é responsável por capturar e gravar `recordSyncFailure`.
  */
+
+const REQUEST_TIMEOUT_MS = 5_000
 
 export interface CreateContactInput {
-  fullName: string
-  phone?: string | undefined
-  email?: string | undefined
-  /** Free-text source tag — e.g., "homio-faturamento:manual" */
-  source?: string | undefined
-}
-
-export type CreateContactResult =
-  | { configured: false }
-  | { configured: true; ghlContactId: string }
-
-export interface GhlProxyCredentials {
-  /** Base URL of the Homio Operations Supabase project. Env var when omitted (shared infra). */
-  operationsUrl?: string
-  /** Bearer key for the proxy. Env var when omitted (shared infra). */
-  operationsKey?: string
-  /** GHL location id — MUST be provided by the adapter from tenant config. */
+  accessToken: string
   locationId: string
+  customFieldIds: GhlConfigV2['custom_field_ids']
+  patient: {
+    fullName: string
+    email?: string | null
+    phone?: string | null
+    cpf?: string | null
+    planoSaudeName?: string | null
+    profissionalResponsavel?: string | null
+    ultimoAtendimento?: string | null // ISO date
+    diagnosticosAtivos?: string | null
+    alergias?: string | null
+  }
 }
 
-/**
- * Outbound GHL contact creation. Called by the GHL adapter with locationId
- * sourced from tenant_integrations.config. `operationsUrl` and `operationsKey`
- * fall back to env vars (the proxy is shared infra across tenants); if neither
- * is configured, returns {configured:false} and the caller treats that as a
- * skip, not a failure.
- */
+export interface CreateContactResult {
+  ghlContactId: string
+}
+
 export async function createContactInGhl(
   input: CreateContactInput,
-  creds: GhlProxyCredentials,
 ): Promise<CreateContactResult> {
-  const url = creds.operationsUrl ?? process.env.SUPABASE_OPERATIONS_URL
-  const key = creds.operationsKey ?? process.env.SUPABASE_OPERATIONS_ANON_KEY
-  const locationId = creds.locationId
-  if (!url || !key || !locationId) return { configured: false }
+  const customFields = buildCustomFieldsArray(input.customFieldIds, input.patient)
 
-  const endpoint = `${url.replace(/\/+$/, '')}/functions/v1/create-contact`
   const body = {
-    locationId,
-    contact: {
-      name: input.fullName,
-      ...(input.email ? { email: input.email } : {}),
-      ...(input.phone ? { phone: input.phone } : {}),
-      ...(input.source ? { source: input.source } : {}),
-    },
+    locationId: input.locationId,
+    name: input.patient.fullName,
+    ...(input.patient.email ? { email: input.patient.email } : {}),
+    ...(input.patient.phone ? { phone: input.patient.phone } : {}),
+    ...(customFields.length > 0 ? { customFields } : {}),
+    source: 'prontool',
   }
 
-  const res = await fetch(endpoint, {
+  const res = await fetchWithRetry(`${GHL_API_BASE}/contacts/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${key}`,
-    },
+    headers: buildHeaders(input.accessToken),
     body: JSON.stringify(body),
-    // The proxy is co-located with Supabase so a tight timeout is fine;
-    // AbortSignal.timeout keeps a stuck call from blocking the request path.
-    signal: AbortSignal.timeout(5000),
   })
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     logger.warn(
-      { status: res.status, endpoint, responseBody: text.slice(0, 200) },
+      { status: res.status, body: text.slice(0, 200) },
       'ghl-create-contact-failed',
     )
-    throw new Error(`GHL proxy returned ${res.status}`)
+    throw new Error(`GHL POST /contacts/ ${res.status}`)
   }
 
   const payload = (await res.json().catch(() => null)) as
-    | { id?: string; contact?: { id?: string } }
+    | { contact?: { id?: string }; id?: string }
     | null
-  const ghlContactId = payload?.id ?? payload?.contact?.id
-  if (!ghlContactId) {
-    throw new Error('GHL proxy response missing contact id')
+  const ghlContactId = payload?.contact?.id ?? payload?.id
+  if (!ghlContactId) throw new Error('GHL POST /contacts/ response missing contact id')
+  return { ghlContactId }
+}
+
+export function buildCustomFieldsArray(
+  ids: GhlConfigV2['custom_field_ids'],
+  patient: CreateContactInput['patient'],
+): Array<{ id: string; value: string }> {
+  const map: Array<{ id?: string; value?: string | null }> = [
+    { id: ids.cpf?.id, value: patient.cpf },
+    { id: ids.plano_saude?.id, value: patient.planoSaudeName },
+    { id: ids.profissional_responsavel?.id, value: patient.profissionalResponsavel },
+    { id: ids.ultimo_atendimento?.id, value: patient.ultimoAtendimento },
+    { id: ids.diagnosticos_ativos?.id, value: patient.diagnosticosAtivos },
+    { id: ids.alergias?.id, value: patient.alergias },
+  ]
+  return map
+    .filter((m): m is { id: string; value: string } => Boolean(m.id) && Boolean(m.value))
+    .map((m) => ({ id: m.id, value: m.value }))
+}
+
+export function buildHeaders(accessToken: string): Record<string, string> {
+  return {
+    authorization: `Bearer ${accessToken}`,
+    Version: GHL_API_VERSION,
+    'content-type': 'application/json',
+    accept: 'application/json',
   }
-  return { configured: true, ghlContactId }
+}
+
+export async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
+  let attempt = 0
+  while (true) {
+    attempt += 1
+    try {
+      const res = await fetch(url, {
+        ...init,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      })
+      if (res.status >= 500 && attempt === 1) {
+        await sleep(250)
+        continue
+      }
+      return res
+    } catch (err) {
+      if (attempt === 1) {
+        await sleep(250)
+        continue
+      }
+      throw err
+    }
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
 }

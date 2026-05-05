@@ -22,20 +22,26 @@ interface AdapterFixture {
 
 const FIXTURES: Record<string, AdapterFixture> = {
   ghl: {
+    // Feature 008: schema v2 — OAuth 2.0 + sub_account metadata.
     validConfig: {
-      location_id: 'abc123XYZ789abc12345',
-      trigger_stage_name: 'Pagamento confirmado',
-      field_map_plano: 'plano_saude',
-      field_map_procedimento_tuss: 'procedimento_tuss',
-      field_map_profissional: 'profissional',
-      field_map_valor: 'valor_atendimento',
+      location_id: 'loc_abcdef123',
+      sub_account_name: 'Clínica Teste',
+      timezone: 'America/Sao_Paulo',
     },
     validCredentials: {
-      operations_pat: 'pit-token-xxxxxxxxxxxx',
-      inbound_webhook_secret: 'a'.repeat(48),
+      access_token: 'at_test_xxxxxxxxxxxxxxxxxxxxxxxx',
+      refresh_token: 'rt_test_xxxxxxxxxxxxxxxxxxxxxxx',
+      expires_at: new Date(Date.now() + 86400_000).toISOString(),
+      scopes: ['contacts.readonly', 'contacts.write'],
+      user_type: 'Location' as const,
+      location_id: 'loc_abcdef123',
+      company_id: 'comp_abcdef123',
+      user_id: 'usr_abcdef123',
     },
-    invalidConfig: { location_id: 'too-short' },
-    invalidCredentials: { operations_pat: 'x', inbound_webhook_secret: 'short' },
+    // location_id required → empty string fails Zod min(1).
+    invalidConfig: { location_id: '' },
+    // access_token must be >=20 chars.
+    invalidCredentials: { access_token: 'x', refresh_token: 'short' },
   },
   generic_webhook: {
     validConfig: {
