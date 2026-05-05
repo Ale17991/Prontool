@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { tryResolvePrice } from '@/lib/core/pricing/resolve-price'
+import {
+  listMaterialsByAppointmentIds,
+  type AppointmentMaterial,
+} from '@/lib/core/appointments/materials/list'
 
 export interface TreatmentStep {
   id: string
@@ -10,6 +14,10 @@ export interface TreatmentStep {
   scheduledDate: string | null
   completedAt: string | null
   createdAt: string
+  /** Atendimento vinculado (feature 005). Null para etapas legadas. */
+  appointmentId: string | null
+  /** Materiais anexados ao atendimento da etapa (feature 007). Vazio se sem atendimento. */
+  materials: AppointmentMaterial[]
   procedure: {
     id: string
     tussCode: string
@@ -58,7 +66,7 @@ export async function listTreatmentSteps(
   const res = await supabase
     .from('treatment_plan_steps')
     .select(
-      'id, title, notes, status, scheduled_date, completed_at, created_at, ' +
+      'id, title, notes, status, scheduled_date, completed_at, created_at, appointment_id, ' +
         'procedures:procedure_id ( id, tuss_code, display_name, covered_by_plan, default_amount_cents ), ' +
         'doctors:doctor_id ( id, full_name, role, specialty ), ' +
         'health_plans:plan_id ( id, name )',
@@ -78,6 +86,7 @@ export async function listTreatmentSteps(
     scheduled_date: string | null
     completed_at: string | null
     created_at: string
+    appointment_id: string | null
     procedures: {
       id: string
       tuss_code: string
@@ -94,6 +103,11 @@ export async function listTreatmentSteps(
     health_plans: { id: string; name: string } | null
   }
   const raw = (res.data ?? []) as unknown as RawStep[]
+
+  const appointmentIds = raw
+    .map((s) => s.appointment_id)
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+  const materialsByAppt = await listMaterialsByAppointmentIds(supabase, appointmentIds)
 
   const asOf = new Date()
   const priced = await Promise.all(
@@ -145,6 +159,8 @@ export async function listTreatmentSteps(
     scheduledDate: s.scheduled_date,
     completedAt: s.completed_at,
     createdAt: s.created_at,
+    appointmentId: s.appointment_id,
+    materials: s.appointment_id ? (materialsByAppt[s.appointment_id] ?? []) : [],
     procedure: s.procedures
       ? {
           id: s.procedures.id,

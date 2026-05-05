@@ -27,6 +27,18 @@ import {
 } from '@/components/ui/select'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { LocalProcedureTypeahead } from '@/components/tuss/local-procedure-typeahead'
+import {
+  MateriaisEditor,
+  validateMaterials,
+  type MaterialDraft,
+} from '@/components/atendimentos/materiais-editor'
+
+export interface TreatmentStepMaterialDTO {
+  id: string
+  tussCode: string
+  tussDescription: string
+  quantity: number
+}
 
 export interface TreatmentStepDTO {
   id: string
@@ -36,6 +48,8 @@ export interface TreatmentStepDTO {
   scheduledDate: string | null
   completedAt: string | null
   createdAt: string
+  appointmentId: string | null
+  materials: TreatmentStepMaterialDTO[]
   procedure: {
     id: string
     tussCode: string
@@ -353,6 +367,22 @@ function StepRow({
             <span className="whitespace-pre-wrap">{step.notes}</span>
           </p>
         ) : null}
+        {step.materials.length > 0 ? (
+          <div className="mt-1.5 rounded border border-slate-200 bg-slate-50 px-2 py-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Materiais utilizados
+            </p>
+            <ul className="mt-1 space-y-0.5">
+              {step.materials.map((m) => (
+                <li key={m.id} className="flex items-baseline gap-1.5 text-[11px] text-slate-700">
+                  <span className="font-mono font-bold text-slate-900">{m.tussCode}</span>
+                  <span className="min-w-0 flex-1 truncate">{m.tussDescription}</span>
+                  <span className="shrink-0 tabular-nums text-slate-500">×{m.quantity}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         {error ? (
           <p className="mt-1 text-[11px] font-semibold text-rose-700">{error}</p>
         ) : null}
@@ -531,6 +561,7 @@ function NewStepForm({
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [notes, setNotes] = useState('')
+  const [materiais, setMateriais] = useState<MaterialDraft[]>([])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conflictWarning, setConflictWarning] = useState<string | null>(null)
@@ -662,6 +693,22 @@ function NewStepForm({
       setError(conflictWarning + ' Ajuste o horário antes de salvar.')
       return
     }
+
+    // Materiais opcionais. Validacao local antes do submit.
+    let materiaisPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> | undefined
+    if (materiais.length > 0) {
+      const validated = validateMaterials(materiais)
+      if (!validated) {
+        setError('Algum material está com quantidade inválida. Corrija antes de salvar.')
+        return
+      }
+      materiaisPayload = validated.map((m) => ({
+        tuss_code: m.tussCode,
+        tuss_description: m.tussDescription,
+        quantity: m.quantity,
+      }))
+    }
+
     setPending(true)
     try {
       const res = await fetch(`/api/pacientes/${patientId}/etapas`, {
@@ -676,6 +723,7 @@ function NewStepForm({
           scheduled_date: scheduledDate,
           start_time: startTime,
           end_time: endTime,
+          ...(materiaisPayload ? { materiais: materiaisPayload } : {}),
         }),
       })
       if (!res.ok) {
@@ -886,6 +934,10 @@ function NewStepForm({
           onChange={(e) => setNotes(e.target.value)}
           className="min-h-[64px]"
         />
+      </div>
+
+      <div className="md:col-span-2">
+        <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
       </div>
 
       {error ? (

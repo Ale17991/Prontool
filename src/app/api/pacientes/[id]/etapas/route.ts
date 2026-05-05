@@ -5,10 +5,17 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
 import { createTreatmentStep } from '@/lib/core/treatment-steps/create'
 import { createStepWithAppointment } from '@/lib/core/treatment-steps/create-with-appointment'
+import { attachMaterialsToAppointment } from '@/lib/core/appointments/materials/attach'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+const materialItemSchema = z.object({
+  tuss_code: z.string().min(1).max(20),
+  tuss_description: z.string().min(1).max(500),
+  quantity: z.number().int().positive().default(1),
+})
 
 const createSchema = z.object({
   procedure_id: z.string().uuid(),
@@ -25,6 +32,8 @@ const createSchema = z.object({
   // Compat: se ambos ausentes, legado (sem appointment vinculado).
   start_time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
   end_time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+  /** Materiais opcionais (TUSS tabela 19). Anexados apenas quando ha appointment vinculado. */
+  materiais: z.array(materialItemSchema).max(50).optional(),
 })
 
 export async function GET(
@@ -100,6 +109,24 @@ export async function POST(
         startTime: parsed.data.start_time as string,
         endTime: parsed.data.end_time as string,
       })
+
+      // Anexa materiais ao appointment recem-criado, se houver.
+      if (parsed.data.materiais && parsed.data.materiais.length > 0) {
+        const attached = await attachMaterialsToAppointment(supabase, {
+          appointmentId: result.appointment_id,
+          actorUserId: session.userId,
+          materials: parsed.data.materiais.map((m) => ({
+            tussCode: m.tuss_code,
+            tussDescription: m.tuss_description,
+            quantity: m.quantity,
+          })),
+        })
+        return NextResponse.json(
+          { ...result, materials_count: attached.materials.length },
+          { status: 201 },
+        )
+      }
+
       return NextResponse.json(result, { status: 201 })
     }
 
