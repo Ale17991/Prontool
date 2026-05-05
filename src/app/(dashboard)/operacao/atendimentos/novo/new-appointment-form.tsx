@@ -131,13 +131,13 @@ export function NewAppointmentForm({
     setParticular(selectedPatient.planId === null)
   }, [patientId, procedureId, patients, procedures, particularUserOverride])
 
-  // Pre-seleciona plano do paciente quando aplicavel.
+  // Pre-seleciona plano do paciente sempre que o paciente muda.
+  // Permanece editavel: usuario pode trocar plano ou marcar particular.
+  // Trocar de paciente reseta para o plano dele (ou vazio se nao tem).
   useEffect(() => {
-    if (particular || planId) return
     const selectedPatient = patients.find((p) => p.id === patientId)
-    if (selectedPatient?.planId) setPlanId(selectedPatient.planId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patientId, particular])
+    setPlanId(selectedPatient?.planId ?? '')
+  }, [patientId, patients])
 
   // Recalcula datas das parcelas quando o número muda.
   useEffect(() => {
