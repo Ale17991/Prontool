@@ -1547,6 +1547,80 @@ export type Database = {
           },
         ]
       }
+      tenant_clinic_profile: {
+        Row: {
+          address_cep: string | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_street: string | null
+          address_uf: string | null
+          cnpj: string | null
+          corporate_name: string | null
+          created_at: string
+          email: string | null
+          logo_path: string | null
+          logo_uploaded_at: string | null
+          phone: string | null
+          tech_responsible_council: string | null
+          tech_responsible_name: string | null
+          tech_responsible_registration: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_uf?: string | null
+          cnpj?: string | null
+          corporate_name?: string | null
+          created_at?: string
+          email?: string | null
+          logo_path?: string | null
+          logo_uploaded_at?: string | null
+          phone?: string | null
+          tech_responsible_council?: string | null
+          tech_responsible_name?: string | null
+          tech_responsible_registration?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address_cep?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_uf?: string | null
+          cnpj?: string | null
+          corporate_name?: string | null
+          created_at?: string
+          email?: string | null
+          logo_path?: string | null
+          logo_uploaded_at?: string | null
+          phone?: string | null
+          tech_responsible_council?: string | null
+          tech_responsible_name?: string | null
+          tech_responsible_registration?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_clinic_profile_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_ghl_config: {
         Row: {
           field_map_appointment_timestamp: string | null
@@ -1873,22 +1947,61 @@ export type Database = {
           },
         ]
       }
+      user_profile: {
+        Row: {
+          avatar_path: string | null
+          avatar_uploaded_at: string | null
+          created_at: string
+          full_name: string | null
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          avatar_uploaded_at?: string | null
+          created_at?: string
+          full_name?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_path?: string | null
+          avatar_uploaded_at?: string | null
+          created_at?: string
+          full_name?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_tenants: {
         Row: {
           created_at: string
+          disabled_at: string | null
+          disabled_by: string | null
           role: string
+          status: string
           tenant_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          disabled_at?: string | null
+          disabled_by?: string | null
           role: string
+          status?: string
           tenant_id: string
           user_id: string
         }
         Update: {
           created_at?: string
+          disabled_at?: string | null
+          disabled_by?: string | null
           role?: string
+          status?: string
           tenant_id?: string
           user_id?: string
         }
@@ -2372,6 +2485,10 @@ export type Database = {
           phone: string
           updated_at: string
         }[]
+      }
+      is_last_active_admin: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: boolean
       }
       jwt_role: { Args: never; Returns: string }
       jwt_tenant_id: { Args: never; Returns: string }
