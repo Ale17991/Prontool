@@ -173,7 +173,7 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
               {healthPlans.length === 0 ? (
                 <p className="text-[11px] text-slate-500">
                   Nenhum plano ativo cadastrado.{' '}
-                  <Link href="/cadastros/planos" className="underline">
+                  <Link href="/configuracoes/convenios" className="underline">
                     Cadastrar plano
                   </Link>
                   .
@@ -282,7 +282,7 @@ function DefaultFieldInput({
         {healthPlans.length === 0 ? (
           <p className="text-[11px] text-slate-500">
             Nenhum plano ativo cadastrado.{' '}
-            <Link href="/cadastros/planos" className="underline">
+            <Link href="/configuracoes/convenios" className="underline">
               Cadastrar plano
             </Link>
             .

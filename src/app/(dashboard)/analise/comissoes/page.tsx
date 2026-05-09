@@ -71,7 +71,7 @@ export default async function ComissoesPage() {
           </p>
         </div>
         <Link
-          href="/cadastros/profissionais"
+          href="/configuracoes/profissionais"
           className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-primary/90"
         >
           Gerenciar profissionais
@@ -102,7 +102,7 @@ export default async function ComissoesPage() {
           ) : heads.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-slate-500">
               Nenhum profissional ativo com comissão vigente. Cadastre em{' '}
-              <Link href="/cadastros/profissionais" className="font-semibold text-primary underline">
+              <Link href="/configuracoes/profissionais" className="font-semibold text-primary underline">
                 Profissionais
               </Link>
               .
@@ -134,7 +134,7 @@ export default async function ComissoesPage() {
                     <TableCell className="text-right">
                       {h.doctors?.id ? (
                         <Link
-                          href={`/cadastros/profissionais/${h.doctors.id}`}
+                          href={`/configuracoes/profissionais/${h.doctors.id}`}
                           className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
                         >
                           Abrir <ArrowRight className="h-3 w-3" />
@@ -183,7 +183,7 @@ export default async function ComissoesPage() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/cadastros/profissionais/${r.doctor_id}`}
+                          href={`/configuracoes/profissionais/${r.doctor_id}`}
                           className="font-semibold text-slate-900 hover:text-primary hover:underline"
                         >
                           {r.doctors?.full_name ?? '—'}

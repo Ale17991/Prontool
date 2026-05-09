@@ -138,7 +138,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Link
-          href="/cadastros/planos"
+          href="/configuracoes/convenios"
           className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
         >
           <ArrowLeft className="h-3 w-3" /> Voltar para convênios

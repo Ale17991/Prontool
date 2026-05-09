@@ -66,7 +66,7 @@ export default async function PrecoDetailPage({ params }: { params: { id: string
       <div className="flex items-start justify-between gap-4">
         <div>
           <Link
-            href="/cadastros/precos"
+            href="/configuracoes/precos"
             className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
           >
             <ArrowLeft className="h-3 w-3" /> Voltar para preços

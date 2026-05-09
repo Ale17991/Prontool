@@ -2,26 +2,26 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   AlertTriangle,
   Bell,
-  BookOpen,
+  Building2,
   Calculator,
+  Calendar,
   ClipboardCheck,
-  ClipboardList,
   DollarSign,
-  FileText,
-  LayoutDashboard,
   ListChecks,
   Lock,
   Menu,
-  Search,
+  Plug,
+  Receipt,
   ScrollText,
-  Settings,
+  Search,
   Stethoscope,
   TrendingDown,
   UserCheck,
+  UserCircle,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -35,6 +35,16 @@ import {
   type SidebarIntegrationBadgeItem,
 } from './sidebar-integrations-badge'
 
+/**
+ * Feature 009 (US2) — sidebar reorganizada em 3 seções com itens
+ * individuais clicáveis. Sem mais tab bar horizontal: cada item leva
+ * direto à sua página.
+ *
+ * Visibilidade por item respeita a função do usuário via predicado `show`.
+ * Itens onde nenhum role passa caem fora do render — uma seção sem itens
+ * visíveis fica escondida.
+ */
+
 interface NavItem {
   href: string
   label: string
@@ -42,10 +52,9 @@ interface NavItem {
   show: (ctx: NavContext) => boolean
 }
 
-interface Category {
-  id: 'operacao' | 'cadastros' | 'analise' | 'configuracoes'
+interface NavSection {
+  id: 'operacao' | 'analise' | 'configuracoes'
   label: string
-  icon: LucideIcon
   items: NavItem[]
 }
 
@@ -54,16 +63,15 @@ interface NavContext {
   flags: Record<FeatureName, boolean>
 }
 
-const CATEGORIES: readonly Category[] = [
+const SECTIONS: readonly NavSection[] = [
   {
     id: 'operacao',
     label: 'Operação',
-    icon: Stethoscope,
     items: [
       {
         href: '/operacao/atendimentos',
-        label: 'Atendimentos',
-        icon: ClipboardList,
+        label: 'Agenda',
+        icon: Calendar,
         show: ({ role }) => can(role, 'appointment.read'),
       },
       {
@@ -87,51 +95,13 @@ const CATEGORIES: readonly Category[] = [
     ],
   },
   {
-    id: 'cadastros',
-    label: 'Cadastros',
-    icon: BookOpen,
-    items: [
-      {
-        href: '/cadastros/procedimentos',
-        label: 'Procedimentos',
-        icon: ListChecks,
-        show: ({ role }) => can(role, 'procedure.read'),
-      },
-      {
-        href: '/cadastros/planos',
-        label: 'Convênios',
-        icon: DollarSign,
-        show: ({ role }) => can(role, 'plan.read'),
-      },
-      {
-        href: '/cadastros/profissionais',
-        label: 'Profissionais',
-        icon: UserCheck,
-        show: ({ role }) => can(role, 'doctor.read'),
-      },
-      {
-        href: '/cadastros/anamnese',
-        label: 'Modelos de Anamnese',
-        icon: ClipboardCheck,
-        show: ({ role, flags }) => flags.anamnese && role === 'admin',
-      },
-      {
-        href: '/cadastros/despesas',
-        label: 'Despesas',
-        icon: TrendingDown,
-        show: ({ role, flags }) => flags.despesas && role === 'admin',
-      },
-    ],
-  },
-  {
     id: 'analise',
     label: 'Análise',
-    icon: LayoutDashboard,
     items: [
       {
         href: '/analise/relatorios',
         label: 'Relatórios',
-        icon: LayoutDashboard,
+        icon: ScrollText,
         show: ({ role, flags }) => flags.relatorios && can(role, 'report.read'),
       },
       {
@@ -139,6 +109,12 @@ const CATEGORIES: readonly Category[] = [
         label: 'Comissões',
         icon: Calculator,
         show: ({ role, flags }) => flags.comissoes && can(role, 'doctor.read'),
+      },
+      {
+        href: '/analise/despesas',
+        label: 'Despesas',
+        icon: TrendingDown,
+        show: ({ role, flags }) => flags.despesas && role === 'admin',
       },
       {
         href: '/analise/auditoria',
@@ -151,8 +127,62 @@ const CATEGORIES: readonly Category[] = [
   {
     id: 'configuracoes',
     label: 'Configurações',
-    icon: Settings,
-    items: [],
+    items: [
+      {
+        href: '/configuracoes/clinica',
+        label: 'Clínica',
+        icon: Building2,
+        show: ({ role }) => role === 'admin',
+      },
+      {
+        href: '/configuracoes/perfil',
+        label: 'Meu Perfil',
+        icon: UserCircle,
+        show: () => true,
+      },
+      {
+        href: '/configuracoes/usuarios',
+        label: 'Usuários',
+        icon: Users,
+        show: ({ role }) => role === 'admin',
+      },
+      {
+        href: '/configuracoes/procedimentos',
+        label: 'Procedimentos',
+        icon: ListChecks,
+        show: ({ role }) => can(role, 'procedure.read'),
+      },
+      {
+        href: '/configuracoes/convenios',
+        label: 'Convênios',
+        icon: DollarSign,
+        show: ({ role }) => can(role, 'plan.read'),
+      },
+      {
+        href: '/configuracoes/precos',
+        label: 'Preços',
+        icon: Receipt,
+        show: ({ role }) => can(role, 'price.read'),
+      },
+      {
+        href: '/configuracoes/profissionais',
+        label: 'Profissionais',
+        icon: UserCheck,
+        show: ({ role }) => can(role, 'doctor.read'),
+      },
+      {
+        href: '/configuracoes/modelos-anamnese',
+        label: 'Modelos de Anamnese',
+        icon: ClipboardCheck,
+        show: ({ role, flags }) => flags.anamnese && role === 'admin',
+      },
+      {
+        href: '/configuracoes/integracoes',
+        label: 'Integrações',
+        icon: Plug,
+        show: ({ role }) => role === 'admin',
+      },
+    ],
   },
 ]
 
@@ -180,20 +210,21 @@ export function DashboardShell({
   const ctx: NavContext = { role, flags }
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const primaryCategories = CATEGORIES.filter((c) => c.id !== 'configuracoes')
-  const configCategory = CATEGORIES.find((c) => c.id === 'configuracoes')!
+  // Calcula uma vez quais seções/itens aparecem para esta sessão.
+  const visibleSections = SECTIONS.map((section) => ({
+    ...section,
+    visibleItems: section.items.filter((it) => it.show(ctx)),
+  })).filter((s) => s.visibleItems.length > 0)
 
-  const activeCategory = CATEGORIES.find((c) => isUnder(pathname, `/${c.id}`))
-  const visibleTabs = (activeCategory?.items ?? []).filter((it) => it.show(ctx))
+  // Heading do header global = label do item ativo.
+  const activeItem = visibleSections
+    .flatMap((s) => s.visibleItems)
+    .find((it) => isUnder(pathname, it.href))
 
-  // Conteúdo da sidebar — usado tanto no aside fixo (≥md) quanto dentro do
-  // Sheet drawer (<md).
   const sidebarInner = (
     <SidebarInner
-      ctx={ctx}
+      sections={visibleSections}
       pathname={pathname}
-      primaryCategories={primaryCategories}
-      configCategory={configCategory}
       integrations={integrations}
       email={email}
       role={role}
@@ -233,7 +264,7 @@ export function DashboardShell({
               <Menu className="h-5 w-5" />
             </button>
             <h1 className="truncate text-lg font-bold tracking-tight text-slate-900">
-              {activeCategory?.label ?? 'Painel'}
+              {activeItem?.label ?? 'Painel'}
             </h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
@@ -263,19 +294,8 @@ export function DashboardShell({
           </div>
         </header>
 
-        {visibleTabs.length > 0 ? (
-          <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-slate-200 bg-white px-4 [&::-webkit-scrollbar]:hidden md:px-8">
-            {visibleTabs.map((tab) => (
-              <CategoryTab
-                key={tab.href}
-                href={tab.href}
-                label={tab.label}
-                icon={tab.icon}
-                active={isUnder(pathname, tab.href)}
-              />
-            ))}
-          </div>
-        ) : null}
+        {/* Feature 009 — barra de abas horizontais REMOVIDA. Cada item da
+            sidebar leva direto à página final. */}
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>
@@ -283,11 +303,13 @@ export function DashboardShell({
   )
 }
 
+interface VisibleSection extends NavSection {
+  visibleItems: NavItem[]
+}
+
 function SidebarInner({
-  ctx,
+  sections,
   pathname,
-  primaryCategories,
-  configCategory,
   integrations,
   email,
   role,
@@ -295,10 +317,8 @@ function SidebarInner({
   clinicName,
   onNavigate,
 }: {
-  ctx: NavContext
+  sections: VisibleSection[]
   pathname: string
-  primaryCategories: Category[]
-  configCategory: Category
   integrations: SidebarIntegrationBadgeItem[]
   email: string | null
   role: TenantRole
@@ -308,7 +328,7 @@ function SidebarInner({
 }) {
   return (
     <>
-      <div className="mb-10 flex items-center gap-3 text-xl font-bold text-white">
+      <div className="mb-8 flex items-center gap-3 text-base font-bold text-white">
         {clinicLogoUrl ? (
           <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -322,32 +342,26 @@ function SidebarInner({
         <span className="truncate tracking-tight">{clinicName ?? 'Prontool'}</span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
-        {primaryCategories.map((cat) => {
-          const href = defaultHrefFor(cat, ctx)
-          if (!href) return null
-          const active = isUnder(pathname, `/${cat.id}`)
-          return (
-            <SidebarLink
-              key={cat.id}
-              href={href}
-              label={cat.label}
-              icon={cat.icon}
-              active={active}
-              onNavigate={onNavigate}
-            />
-          )
-        })}
-
-        <div className="my-3 h-px bg-white/5" aria-hidden />
-
-        <SidebarLink
-          href="/configuracoes"
-          label={configCategory.label}
-          icon={configCategory.icon}
-          active={isUnder(pathname, '/configuracoes')}
-          onNavigate={onNavigate}
-        />
+      <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
+        {sections.map((section) => (
+          <div key={section.id}>
+            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              {section.label}
+            </div>
+            <div className="flex flex-col gap-1">
+              {section.visibleItems.map((it) => (
+                <SidebarLink
+                  key={it.href}
+                  href={it.href}
+                  label={it.label}
+                  icon={it.icon}
+                  active={isUnder(pathname, it.href)}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="mt-auto border-t border-white/5 pt-6">
@@ -384,65 +398,16 @@ function SidebarLink({
       href={href as never}
       onClick={onNavigate}
       className={cn(
-        'flex items-center gap-3 rounded-xl px-4 py-2.5 text-[13px] font-medium transition-all duration-200',
+        'flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200',
         active
           ? 'bg-primary/15 text-white shadow-inner ring-1 ring-primary/30'
           : 'text-slate-400 hover:bg-white/5 hover:text-white',
       )}
     >
-      <Icon className={cn('h-4 w-4', active ? 'text-primary' : 'text-slate-500')} />
-      {label}
+      <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : 'text-slate-500')} />
+      <span className="truncate">{label}</span>
     </Link>
   )
-}
-
-function CategoryTab({
-  href,
-  label,
-  icon: Icon,
-  active,
-}: {
-  href: string
-  label: string
-  icon: LucideIcon
-  active: boolean
-}) {
-  const ref = useRef<HTMLAnchorElement>(null)
-
-  // Quando a aba ativa entra em viewport (page load ou path change),
-  // garante que ela está visível dentro do scroll horizontal da tab bar
-  // (FR-009 / SC-003).
-  useEffect(() => {
-    if (active && ref.current) {
-      ref.current.scrollIntoView({
-        inline: 'nearest',
-        block: 'nearest',
-        behavior: 'smooth',
-      })
-    }
-  }, [active])
-
-  return (
-    <Link
-      ref={ref}
-      href={href as never}
-      aria-current={active ? 'page' : undefined}
-      className={cn(
-        'inline-flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-[12px] font-bold uppercase tracking-widest transition-colors md:px-4',
-        active
-          ? 'border-primary text-slate-900'
-          : 'border-transparent text-slate-500 hover:text-slate-800',
-      )}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      {label}
-    </Link>
-  )
-}
-
-function defaultHrefFor(cat: Category, ctx: NavContext): string | null {
-  const first = cat.items.find((it) => it.show(ctx))
-  return first?.href ?? null
 }
 
 function isUnder(pathname: string, prefix: string): boolean {

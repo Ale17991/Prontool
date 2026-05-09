@@ -176,7 +176,7 @@ export default async function ConveniosPage() {
                             <TogglePlanActive planId={p.id} active={p.active} />
                           ) : null}
                           <Link
-                            href={`/cadastros/planos/${p.id}`}
+                            href={`/configuracoes/convenios/${p.id}`}
                             className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
                           >
                             Abrir <ChevronRight className="h-3 w-3" />

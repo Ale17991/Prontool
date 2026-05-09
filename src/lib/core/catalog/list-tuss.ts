@@ -5,7 +5,7 @@ import type { Database } from '@/lib/db/types'
  * Busca no catálogo TUSS global. Retorna apenas códigos atualmente
  * vigentes (valid_to IS NULL). Suporta filtro opcional por `tussTable`
  * ('22' procedimentos, '19' materiais, '20' medicamentos) usado pelo
- * typeahead de /cadastros/procedimentos para mostrar só o que bate com
+ * typeahead de /configuracoes/procedimentos para mostrar só o que bate com
  * o "tipo de item" selecionado pelo admin.
  *
  * Não é tenant-scoped — o catálogo é global e read-only (RLS desabilitado

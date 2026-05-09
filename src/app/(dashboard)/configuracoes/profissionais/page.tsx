@@ -178,7 +178,7 @@ export default async function ProfissionaisPage() {
                               <ToggleActiveDoctor doctorId={d.id} active={d.active} />
                             ) : null}
                             <Link
-                              href={`/cadastros/profissionais/${d.id}`}
+                              href={`/configuracoes/profissionais/${d.id}`}
                               className="inline-flex items-center gap-1 text-xs font-bold text-primary"
                             >
                               Abrir <ChevronRight className="h-3 w-3" />

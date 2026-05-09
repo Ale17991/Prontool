@@ -2,11 +2,11 @@ import { permanentRedirect } from 'next/navigation'
 
 /**
  * Rota legada — "Tabelas de Convênio" foi unificada em "Convênios"
- * (/cadastros/planos). permanentRedirect emite HTTP 308 pra que browsers
+ * (/configuracoes/convenios). permanentRedirect emite HTTP 308 pra que browsers
  * e proxies cacheem o redirect e bookmarks antigos sigam direto.
  */
 export const dynamic = 'force-dynamic'
 
 export default function PrecosLegacyRedirectPage() {
-  permanentRedirect('/cadastros/planos')
+  permanentRedirect('/configuracoes/convenios')
 }

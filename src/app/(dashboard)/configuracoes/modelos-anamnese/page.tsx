@@ -79,8 +79,8 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
             <Link
               href={
                 showInactive
-                  ? '/cadastros/anamnese'
-                  : '/cadastros/anamnese?mostrar_inativos=1'
+                  ? '/configuracoes/modelos-anamnese'
+                  : '/configuracoes/modelos-anamnese?mostrar_inativos=1'
               }
               className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
             >
@@ -89,7 +89,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
           ) : null}
           {canWrite ? (
             <Link
-              href="/cadastros/anamnese/novo"
+              href="/configuracoes/modelos-anamnese/novo"
               className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-slate-800"
             >
               <Plus className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                   : 'Nenhum modelo ativo. '}
                 {!showInactive && isAdmin ? (
                   <Link
-                    href="/cadastros/anamnese?mostrar_inativos=1"
+                    href="/configuracoes/modelos-anamnese?mostrar_inativos=1"
                     className="font-semibold text-primary underline"
                   >
                     Ver inativos
@@ -173,7 +173,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                       <div className="flex items-center justify-end gap-2">
                         {canWrite && t.active && latestIdByTitle.get(t.title) === t.id ? (
                           <Link
-                            href={`/cadastros/anamnese/${t.id}/usar`}
+                            href={`/configuracoes/modelos-anamnese/${t.id}/usar`}
                             aria-label={`Usar modelo ${t.title}`}
                             title="Usar modelo"
                             className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-[11px] font-bold uppercase tracking-widest text-emerald-700 hover:bg-emerald-100"
@@ -183,7 +183,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                         ) : null}
                         {canWrite && t.active ? (
                           <Link
-                            href={`/cadastros/anamnese/novo?clone=${t.id}`}
+                            href={`/configuracoes/modelos-anamnese/novo?clone=${t.id}`}
                             className="inline-flex items-center gap-1 text-xs font-bold text-primary"
                           >
                             Nova versão <ChevronRight className="h-3 w-3" />

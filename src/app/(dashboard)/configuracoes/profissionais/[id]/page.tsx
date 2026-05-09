@@ -68,7 +68,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
     <div className="space-y-6">
       <div>
         <Link
-          href="/cadastros/profissionais"
+          href="/configuracoes/profissionais"
           className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
         >
           <ArrowLeft className="h-3 w-3" /> Voltar para profissionais

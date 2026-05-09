@@ -258,7 +258,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           {healthPlans.length === 0 ? (
             <p className="text-[11px] text-slate-500">
               Nenhum plano ativo cadastrado.{' '}
-              <Link href="/cadastros/planos" className="underline">
+              <Link href="/configuracoes/convenios" className="underline">
                 Cadastrar plano
               </Link>
               {' '}ou escolha &quot;Sem plano (particular)&quot;.

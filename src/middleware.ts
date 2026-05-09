@@ -16,11 +16,36 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Rebrand 2026-04: /cadastros/medicos foi renomeado pra
-  // /cadastros/profissionais. 301 permanente preserva bookmarks.
+  // /configuracoes/profissionais. 301 permanente preserva bookmarks.
   // O webhook /api/medicos continua em /api/ (não é afetado por essa rota).
   if (pathname === '/cadastros/medicos' || pathname.startsWith('/cadastros/medicos/')) {
     const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = pathname.replace('/cadastros/medicos', '/cadastros/profissionais')
+    redirectUrl.pathname = pathname.replace('/cadastros/medicos', '/configuracoes/profissionais')
+    return NextResponse.redirect(redirectUrl, 301)
+  }
+
+  // Feature 009 — reorganização da navegação (US2). Os itens de Cadastros
+  // migraram para /configuracoes/* (catálogos) e /analise/despesas. 301
+  // permanente preserva bookmarks/links externos por tempo indefinido
+  // (FR-021, SC-004).
+  const CADASTROS_REDIRECTS: Array<readonly [string, string]> = [
+    ['/cadastros/procedimentos', '/configuracoes/procedimentos'],
+    ['/cadastros/planos', '/configuracoes/convenios'],
+    ['/cadastros/profissionais', '/configuracoes/profissionais'],
+    ['/cadastros/anamnese', '/configuracoes/modelos-anamnese'],
+    ['/cadastros/precos', '/configuracoes/precos'],
+    ['/cadastros/despesas', '/analise/despesas'],
+  ]
+  for (const [from, to] of CADASTROS_REDIRECTS) {
+    if (pathname === from || pathname.startsWith(`${from}/`)) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = pathname.replace(from, to)
+      return NextResponse.redirect(redirectUrl, 301)
+    }
+  }
+  if (pathname === '/cadastros') {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/configuracoes'
     return NextResponse.redirect(redirectUrl, 301)
   }
 

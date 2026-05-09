@@ -164,7 +164,7 @@ export function AnamneseBuilder() {
         setError(body.error?.message ?? 'Falha ao salvar o modelo.')
         return
       }
-      router.push('/cadastros/anamnese')
+      router.push('/configuracoes/modelos-anamnese')
       router.refresh()
     } finally {
       setLoading(false)

@@ -43,8 +43,8 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // Anamnesis template list and expense list — same pattern as pacientes:
   // getSession() + explicit tenant_id filter, sharing query shape with the
   // corresponding /api/ handlers.
-  '/app/(dashboard)/cadastros/anamnese/',
-  '/app/(dashboard)/cadastros/despesas/',
+  '/app/(dashboard)/configuracoes/modelos-anamnese/',
+  '/app/(dashboard)/analise/despesas/',
   // Lista de atendimentos chama list_patients_for_tenant (SECURITY DEFINER)
   // para mostrar o nome decriptado do paciente ao lado de cada atendimento.
   '/app/(dashboard)/operacao/atendimentos/',

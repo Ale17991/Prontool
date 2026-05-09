@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TussTableBadge, type TussTable } from '@/app/(dashboard)/cadastros/procedimentos/tuss-table-badge'
+import { TussTableBadge, type TussTable } from '@/app/(dashboard)/configuracoes/procedimentos/tuss-table-badge'
 
 export interface TussListItem {
   code: string

@@ -1275,7 +1275,7 @@ function NewAnamneseForm({
           <p className="text-xs text-slate-500">
             Nenhum modelo cadastrado.{' '}
             <a
-              href="/cadastros/anamnese/novo"
+              href="/configuracoes/modelos-anamnese/novo"
               className="font-semibold text-primary underline"
               target="_blank"
               rel="noreferrer"

@@ -100,7 +100,7 @@ export function PatientPlanEditor({
       </Select>
       {healthPlans.length === 0 ? (
         <Link
-          href="/cadastros/planos"
+          href="/configuracoes/convenios"
           className="text-[10px] font-semibold text-amber-700 underline"
         >
           Cadastrar plano

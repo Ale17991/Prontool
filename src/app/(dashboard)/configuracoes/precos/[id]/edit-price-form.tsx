@@ -65,7 +65,7 @@ export function EditPriceForm({
         throw new Error(payload.error?.message ?? payload.message ?? `HTTP ${res.status}`)
       }
       const created = (await res.json()) as { id: string }
-      router.push(`/cadastros/precos/${created.id}`)
+      router.push(`/configuracoes/precos/${created.id}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

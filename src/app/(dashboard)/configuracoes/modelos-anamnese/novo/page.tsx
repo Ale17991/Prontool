@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function AnamneseBuilderPage() {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (!can(session.role, 'anamnesis.write')) redirect('/cadastros/anamnese')
+  if (!can(session.role, 'anamnesis.write')) redirect('/configuracoes/modelos-anamnese')
 
   return <AnamneseBuilder />
 }

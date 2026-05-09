@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils'
 import {
   TussTableBadge,
   type TussTable,
-} from '@/app/(dashboard)/cadastros/procedimentos/tuss-table-badge'
+} from '@/app/(dashboard)/configuracoes/procedimentos/tuss-table-badge'
 import { TussListDialog, type TussListItem } from './tuss-list-dialog'
 
 export interface TussTypeaheadValue {
@@ -46,11 +46,11 @@ interface RawHit {
 
 /**
  * Typeahead reutilizavel de codigos TUSS. Reproduz o comportamento do popover
- * usado em /cadastros/procedimentos (largura ampla, nomes em ate 2 linhas) e
+ * usado em /configuracoes/procedimentos (largura ampla, nomes em ate 2 linhas) e
  * inclui um botao "Ver em lista" que abre <TussListDialog>.
  *
  * Reusado por:
- *   - /cadastros/procedimentos (Novo procedimento)
+ *   - /configuracoes/procedimentos (Novo procedimento)
  *   - /operacao/atendimentos/novo (Novo atendimento)
  *   - /operacao/pacientes/[id]   (Nova etapa)
  */

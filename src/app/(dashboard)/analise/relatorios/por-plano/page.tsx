@@ -84,7 +84,7 @@ export default async function PorPlanoPage() {
         <Card>
           <CardContent className="px-6 py-12 text-center text-sm text-slate-500">
             Nenhum plano de saúde ativo cadastrado.{' '}
-            <Link href="/cadastros/planos" className="font-semibold text-primary underline">
+            <Link href="/configuracoes/convenios" className="font-semibold text-primary underline">
               Cadastrar plano
             </Link>
             .
