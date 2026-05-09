@@ -194,6 +194,10 @@ interface DashboardShellProps {
   clinicLogoUrl?: string | null
   /** Feature 009 — razão social/nome fantasia. null = fallback "Prontool". */
   clinicName?: string | null
+  /** Feature 009 — URL assinada do avatar do usuário (24 h). null = iniciais. */
+  userAvatarUrl?: string | null
+  /** Feature 009 — nome completo. null = fallback para email. */
+  userFullName?: string | null
   children: ReactNode
 }
 
@@ -203,6 +207,8 @@ export function DashboardShell({
   integrations = [],
   clinicLogoUrl = null,
   clinicName = null,
+  userAvatarUrl = null,
+  userFullName = null,
   children,
 }: DashboardShellProps) {
   const pathname = usePathname() ?? ''
@@ -230,6 +236,8 @@ export function DashboardShell({
       role={role}
       clinicLogoUrl={clinicLogoUrl}
       clinicName={clinicName}
+      userAvatarUrl={userAvatarUrl}
+      userFullName={userFullName}
       onNavigate={() => setDrawerOpen(false)}
     />
   )
@@ -315,6 +323,8 @@ function SidebarInner({
   role,
   clinicLogoUrl,
   clinicName,
+  userAvatarUrl,
+  userFullName,
   onNavigate,
 }: {
   sections: VisibleSection[]
@@ -324,6 +334,8 @@ function SidebarInner({
   role: TenantRole
   clinicLogoUrl: string | null
   clinicName: string | null
+  userAvatarUrl: string | null
+  userFullName: string | null
   onNavigate: () => void
 }) {
   return (
@@ -368,10 +380,17 @@ function SidebarInner({
         <SidebarIntegrationsBadge integrations={integrations} />
         <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2 text-slate-400">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
-            {email?.slice(0, 1) ?? '?'}
+            {userAvatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={userAvatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              (userFullName ?? email)?.slice(0, 1) ?? '?'
+            )}
           </div>
           <div className="flex-1 overflow-hidden">
-            <p className="truncate text-xs font-semibold text-white">{email ?? '—'}</p>
+            <p className="truncate text-xs font-semibold text-white">
+              {userFullName ?? email ?? '—'}
+            </p>
             <p className="truncate text-[10px] text-slate-500">{labelForRole(role)}</p>
           </div>
         </div>

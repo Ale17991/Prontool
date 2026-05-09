@@ -8,6 +8,7 @@ import { getAdapter } from '@/lib/integrations/registry'
 import type { Database } from '@/lib/db/types'
 import { DashboardShell } from './_components/dashboard-shell'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
+import { getUserProfile } from '@/lib/core/user-profile/read'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await getSession()
@@ -24,12 +25,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     if (adapter) integrations.push({ provider: adapter.provider, label: adapter.label })
   }
 
-  // Feature 009 — logo + nome da clínica para o topo da sidebar.
-  // RLS-bound: a SELECT policy de tenant_clinic_profile limita ao próprio
-  // tenant; getClinicProfile faz lazy insert que pode falhar para roles
-  // não-admin (INSERT requer admin). Capturamos o erro silenciosamente —
-  // sem perfil = fallback para o ícone Stethoscope + "Prontool".
-  const clinicProfile = await getClinicProfile(supabase, session.tenantId).catch(() => null)
+  // Feature 009 — logo + nome da clínica + avatar/nome do usuário para o
+  // topo e rodapé da sidebar. RLS-bound; getX faz lazy insert que pode
+  // falhar para certos contextos. Capturamos silenciosamente — sem dados,
+  // a sidebar usa fallback (ícones + email).
+  const [clinicProfile, userProfile] = await Promise.all([
+    getClinicProfile(supabase, session.tenantId).catch(() => null),
+    getUserProfile(supabase, session.userId, session.email ?? null).catch(() => null),
+  ])
 
   return (
     <DashboardShell
@@ -38,6 +41,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       integrations={integrations}
       clinicLogoUrl={clinicProfile?.logo?.signedUrl ?? null}
       clinicName={clinicProfile?.corporateName ?? null}
+      userAvatarUrl={userProfile?.avatar?.signedUrl ?? null}
+      userFullName={userProfile?.fullName ?? null}
     >
       {children}
     </DashboardShell>
