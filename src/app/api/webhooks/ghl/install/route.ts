@@ -9,6 +9,12 @@ import {
 import { marketplaceInstallSchema } from '@/lib/integrations/ghl/oauth/types'
 import { connectGhlTenant } from '@/lib/core/integrations/ghl/connect-tenant'
 import type { GhlOAuthCredentials } from '@/lib/integrations/ghl/oauth/types'
+import {
+  assertGhlBindingFree,
+  GHL_LOCATION_ALREADY_BOUND,
+  FR002_MESSAGE,
+} from '@/lib/core/integrations/ghl/binding-check'
+import { ConflictError } from '@/lib/observability/errors'
 
 /**
  * Feature 008 — POST /api/webhooks/ghl/install
@@ -83,17 +89,52 @@ export async function POST(req: Request): Promise<Response> {
 
   const supabase = createSupabaseServiceClient()
 
-  // Resolve tenant: location_id já mapeada → reusa; senão, novo tenant.
+  // Resolve tenant: location_id já mapeada (linha ATIVA) → reusa para
+  // re-install/refresh; senão, novo tenant.
   let tenantId: string
   const { data: existing } = await supabase
     .from('tenant_integrations')
-    .select('tenant_id')
+    .select('tenant_id, enabled')
     .eq('provider', 'ghl')
     .eq('location_id', parsed.locationId)
     .maybeSingle()
-  if (existing?.tenant_id) {
+  if (existing?.tenant_id && existing.enabled) {
+    tenantId = existing.tenant_id
+  } else if (existing?.tenant_id && !existing.enabled) {
+    // Linha desabilitada — reusar tenant para re-conectar (FR-005 — disconnect
+    // libera ambos os lados, mas o tenant em si segue válido).
     tenantId = existing.tenant_id
   } else {
+    // Feature 010 (US1) — pre-flight FR-002: a location_id ainda não tem
+    // tenant_integrations row, então ainda não foi vinculada — vamos criar
+    // um tenant novo. Mas o assertGhlBindingFree também checa por linhas
+    // enabled=true. Aqui ele serve de defesa em profundidade — o caso real
+    // de "location já vinculada a outra clínica" é coberto pela query do
+    // `existing` acima (que já reusa a linha existente em vez de criar
+    // tenant duplicado). Manter a chamada para audit em caso de race.
+    try {
+      await assertGhlBindingFree(supabase, {
+        tenantId: null,
+        locationId: parsed.locationId,
+      })
+    } catch (err) {
+      if (err instanceof ConflictError && err.code === GHL_LOCATION_ALREADY_BOUND) {
+        // Audit_log.tenant_id é NOT NULL — não conseguimos registrar no
+        // schema atual quando o tenant ainda não existe. Logger.warn
+        // captura o evento para observabilidade. O lado-dono do tenant
+        // existente NÃO é alterado; nenhum side-effect.
+        logger.warn(
+          {
+            location_id: parsed.locationId,
+            event_id: parsed.eventId,
+            source: 'marketplace_install',
+          },
+          'ghl-install-rejected-location-already-bound',
+        )
+        return jsonError(409, GHL_LOCATION_ALREADY_BOUND, FR002_MESSAGE)
+      }
+      throw err
+    }
     tenantId = randomUUID()
   }
 
@@ -124,6 +165,22 @@ export async function POST(req: Request): Promise<Response> {
       ensureTenantExists: existing === null,
     })
   } catch (err) {
+    // Feature 010 (US1) — ConflictError de assertGhlBindingFree (FR-001/002)
+    // veio do connectGhlTenant. Em install, o caso normal de FR-002 já foi
+    // tratado acima ao reusar `tenantId` da linha existente; chegar aqui
+    // significa race entre dois installs simultâneos para a mesma location.
+    if (err instanceof ConflictError && err.code === GHL_LOCATION_ALREADY_BOUND) {
+      const { data: retry } = await supabase
+        .from('tenant_integrations')
+        .select('tenant_id')
+        .eq('provider', 'ghl')
+        .eq('location_id', parsed.locationId)
+        .maybeSingle()
+      if (retry?.tenant_id) {
+        return jsonOk({ received: true, duplicate: true, tenant_id: retry.tenant_id })
+      }
+      return jsonError(409, GHL_LOCATION_ALREADY_BOUND, FR002_MESSAGE)
+    }
     // Race conditional: dois INSTALL simultâneos para mesma location.
     // O 2º bate em UNIQUE (tenant_integrations_unique_active_location_id)
     // e cai aqui — re-resolvemos e reusamos o tenant criado pela 1ª.

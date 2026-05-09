@@ -1,10 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
+import { ConflictError } from '@/lib/observability/errors'
 import { encryptCredentials } from '@/lib/core/integrations/credentials'
 import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-events'
 import { recordSyncSuccess, recordSyncFailure } from './sync-log'
 import { runPostConnectSetup } from './post-connect-setup'
+import {
+  assertGhlBindingFree,
+  GHL_LOCATION_ALREADY_BOUND,
+  GHL_TENANT_ALREADY_CONNECTED,
+  FR002_MESSAGE,
+} from './binding-check'
 import {
   ghlConfigV2Schema,
   type GhlConfigV2,
@@ -62,6 +69,35 @@ export async function connectGhlTenant(
   input: ConnectGhlTenantInput,
 ): Promise<ConnectGhlTenantResult> {
   const supabase = input.supabase
+
+  // Feature 010 (US1) — Pre-flight da regra GHL 1:1 ANTES de qualquer
+  // escrita (incluindo ensureTenantRow). Garante que rejeição em
+  // marketplace_install não deixa tenant orphan. Race condition residual
+  // entre o pre-flight e o upsert é coberta pela UNIQUE INDEX parcial
+  // (try/catch no upsert).
+  try {
+    await assertGhlBindingFree(supabase, {
+      tenantId: input.tenantId,
+      locationId: input.location.id,
+    })
+  } catch (err) {
+    if (err instanceof ConflictError) {
+      // Para rejeições de install (tenant ainda não existe), audit_log
+      // requer tenant_id NOT NULL — pulamos o registro no helper e o
+      // caller (handler do install) faz o audit do lado dele se quiser.
+      // Em manual_connect, o tenant existe e o audit é gravado.
+      const tenantExists = await tenantRowExists(supabase, input.tenantId)
+      if (tenantExists) {
+        await recordRejectionAudit(supabase, input, err.code).catch((auditErr) => {
+          logger.error(
+            { err: auditErr, tenant_id: input.tenantId },
+            'connect-tenant-rejection-audit-failed',
+          )
+        })
+      }
+    }
+    throw err
+  }
 
   if (input.ensureTenantExists) {
     await ensureTenantRow(supabase, input.tenantId, input.location)
@@ -123,6 +159,22 @@ export async function connectGhlTenant(
     .from('tenant_integrations')
     .upsert(upsertPayload, { onConflict: 'tenant_id,provider' })
   if (upsertErr) {
+    // Race: outro request inseriu uma row para a mesma location_id entre
+    // o pre-flight e o upsert. UNIQUE INDEX parcial em (location_id) WHERE
+    // provider='ghl' AND enabled=true rejeita com 23505. Mapeamos para
+    // o ConflictError de FR-002 para mensagem consistente.
+    if (upsertErr.code === '23505' && /location_id/i.test(upsertErr.message)) {
+      const conflict = new ConflictError(GHL_LOCATION_ALREADY_BOUND, FR002_MESSAGE, {
+        location_id: input.location.id,
+      })
+      await recordRejectionAudit(supabase, input, conflict.code).catch((auditErr) => {
+        logger.error(
+          { err: auditErr, tenant_id: input.tenantId },
+          'connect-tenant-rejection-audit-failed',
+        )
+      })
+      throw conflict
+    }
     throw new Error(`connectGhlTenant upsert failed: ${upsertErr.message}`)
   }
 
@@ -212,6 +264,54 @@ async function ensureTenantRow(
   })
   if (error) {
     throw new Error(`ensureTenantRow insert failed: ${error.message}`)
+  }
+}
+
+async function tenantRowExists(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('tenants')
+    .select('id')
+    .eq('id', tenantId)
+    .maybeSingle()
+  return data !== null
+}
+
+async function recordRejectionAudit(
+  supabase: SupabaseClient<Database>,
+  input: ConnectGhlTenantInput,
+  code: typeof GHL_TENANT_ALREADY_CONNECTED | typeof GHL_LOCATION_ALREADY_BOUND | string,
+): Promise<void> {
+  const fieldSuffix = code.toLowerCase()
+  const newValue = {
+    location_id: input.location.id,
+    source: input.source,
+  }
+  // Audit em audit_log via insert direto — recordSimpleIntegrationEvent
+  // exige tenant_id NOT NULL e algumas rejeições (install para tenant não
+  // criado ainda) não têm tenant. Mantemos shape consistente para
+  // observabilidade.
+  const { error } = await supabase.from('audit_log').insert({
+    tenant_id: input.tenantId,
+    actor_id: input.actorUserId,
+    actor_label: input.actorLabel,
+    entity: 'tenant_integrations',
+    entity_id: input.tenantId,
+    field: `connect.rejected:${fieldSuffix}`,
+    old_value: null,
+    new_value: JSON.stringify(newValue),
+    reason:
+      code === GHL_TENANT_ALREADY_CONNECTED
+        ? 'GHL connect rejected — tenant already has active integration'
+        : 'GHL connect rejected — location already bound to another tenant',
+    ip: input.ip ?? null,
+    user_agent: input.userAgent ?? null,
+    result: 'conflict',
+  })
+  if (error) {
+    throw new Error(`recordRejectionAudit insert failed: ${error.message}`)
   }
 }
 

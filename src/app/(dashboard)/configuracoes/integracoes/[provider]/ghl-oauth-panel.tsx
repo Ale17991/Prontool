@@ -42,6 +42,8 @@ interface GhlOAuthPanelProps {
   /** Query string passada pelo callback OAuth (`?status=...&warnings=...`) */
   callbackStatus?: string
   callbackWarnings?: string[]
+  /** Feature 010 (US1) — code de rejeição quando status='rejected'. */
+  callbackCode?: string
 }
 
 export async function GhlOAuthPanel({
@@ -50,6 +52,7 @@ export async function GhlOAuthPanel({
   supabase,
   callbackStatus,
   callbackWarnings,
+  callbackCode,
 }: GhlOAuthPanelProps): Promise<JSX.Element> {
   const row = await getIntegrationConfig(supabase, tenantId, 'ghl')
 
@@ -134,7 +137,23 @@ export async function GhlOAuthPanel({
         </div>
       ) : null}
 
-      {status === 'not_connected' ? (
+      {callbackStatus === 'rejected' && callbackCode ? (
+        <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+          <AlertTriangle className="h-4 w-4 mt-0.5" />
+          <div>
+            <p className="font-semibold">Conexão rejeitada</p>
+            <p className="text-xs mt-1">
+              {callbackCode === 'GHL_TENANT_ALREADY_CONNECTED'
+                ? 'Esta clínica já está conectada a outra conta GoHighLevel. Desconecte primeiro.'
+                : callbackCode === 'GHL_LOCATION_ALREADY_BOUND'
+                  ? 'Esta conta GoHighLevel já está vinculada a outra clínica no Prontool. Cada clínica pode usar apenas uma sub-account.'
+                  : 'Não foi possível concluir a conexão. Tente novamente.'}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {status === 'not_connected' || status === 'disconnected' ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Conectar ao GoHighLevel</CardTitle>
@@ -144,6 +163,11 @@ export async function GhlOAuthPanel({
               Ao conectar, a sub-account escolhida no GHL receberá os custom
               fields clínicos do Prontool (CPF, plano, profissional, último
               atendimento, diagnósticos, alergias) e os webhooks de contato.
+            </p>
+            <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+              Cada clínica pode ser conectada a apenas uma conta GoHighLevel.
+              Antes de conectar, certifique-se de que a sub-account não está
+              vinculada a outra clínica do Prontool.
             </p>
             {isAdmin ? (
               <Button asChild>

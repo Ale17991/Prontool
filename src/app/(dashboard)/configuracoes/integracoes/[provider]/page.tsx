@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: { provider: string }
-  searchParams?: { status?: string; warnings?: string | string[] }
+  searchParams?: { status?: string; warnings?: string | string[]; code?: string }
 }
 
 export default async function ProviderDetailPage({
@@ -51,6 +51,7 @@ export default async function ProviderDetailPage({
           supabase={supabase}
           callbackStatus={searchParams?.status}
           callbackWarnings={callbackWarnings}
+          callbackCode={searchParams?.code}
         />
       </div>
     )
