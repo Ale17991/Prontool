@@ -7,6 +7,8 @@ import {
   renderToBuffer,
 } from '@react-pdf/renderer'
 import type { PlanDetail } from './by-plan'
+import { ClinicHeader } from '@/lib/pdf/clinic-header'
+import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 
 const styles = StyleSheet.create({
   page: {
@@ -144,24 +146,22 @@ function formatDateTime(iso: string): string {
 export function ByPlanReportDocument({
   detail,
   tenantLabel,
+  clinicProfile,
+  signedLogoUrl,
 }: {
   detail: PlanDetail
   tenantLabel?: string
+  clinicProfile?: ClinicProfile | null
+  signedLogoUrl?: string | null
 }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório por plano · Prontool</Text>
-          <Text style={styles.title}>{detail.plan.name}</Text>
-          <Text style={styles.subtitle}>
-            {tenantLabel ?? ''}
-            {tenantLabel ? ' · ' : ''}
-            Período {formatDate(detail.period.from)} – {formatDate(detail.period.to)} ·{' '}
-            {detail.totals.procedureCount} procedimento
-            {detail.totals.procedureCount === 1 ? '' : 's'}
-          </Text>
-        </View>
+        <ClinicHeader
+          profile={clinicProfile ?? null}
+          signedLogoUrl={signedLogoUrl ?? null}
+          subtitle={`Relatório por plano · ${detail.plan.name} · ${formatDate(detail.period.from)} – ${formatDate(detail.period.to)} · ${detail.totals.procedureCount} procedimento${detail.totals.procedureCount === 1 ? '' : 's'}${tenantLabel ? ` · ${tenantLabel}` : ''}`}
+        />
 
         <Text style={styles.sectionTitle}>Resumo do período</Text>
         <View style={styles.summaryGrid}>
@@ -247,9 +247,18 @@ export function ByPlanReportDocument({
 
 export async function renderByPlanPdf(
   detail: PlanDetail,
-  opts: { tenantLabel?: string } = {},
+  opts: {
+    tenantLabel?: string
+    clinicProfile?: ClinicProfile | null
+    signedLogoUrl?: string | null
+  } = {},
 ): Promise<Buffer> {
   return renderToBuffer(
-    <ByPlanReportDocument detail={detail} tenantLabel={opts.tenantLabel} />,
+    <ByPlanReportDocument
+      detail={detail}
+      tenantLabel={opts.tenantLabel}
+      clinicProfile={opts.clinicProfile ?? null}
+      signedLogoUrl={opts.signedLogoUrl ?? null}
+    />,
   )
 }

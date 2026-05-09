@@ -8,6 +8,11 @@ import { listVitalSigns, type VitalSignsDTO } from './vital-signs'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import { listTreatmentSteps, type TreatmentStep } from '@/lib/core/treatment-steps/list'
+import { getClinicProfile } from '@/lib/core/clinic-profile/read'
+import {
+  CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS,
+  type ClinicProfile,
+} from '@/lib/core/clinic-profile/types'
 
 export interface ProntuarioAppointmentRow {
   id: string
@@ -31,6 +36,10 @@ export interface ProntuarioCidEntry {
 
 export interface ProntuarioBundle {
   tenantName: string
+  /** Perfil completo da clínica (logo + dados oficiais) — feature 009. */
+  clinicProfile: ClinicProfile | null
+  /** URL assinada (TTL curto) da logo, pronta para `<Image src>`. */
+  signedLogoUrl: string | null
   generatedAt: string
   period: { from: string | null; to: string | null }
   patient: PatientDetail
@@ -77,6 +86,7 @@ export async function assemblePatientChart(
     appointments,
     tenantRow,
     diagnosesAll,
+    clinicProfile,
   ] = await Promise.all([
     listAllergies(supabase, { tenantId: input.tenantId, patientId: input.patientId }),
     listHistory(supabase, { tenantId: input.tenantId, patientId: input.patientId }),
@@ -99,6 +109,9 @@ export async function assemblePatientChart(
       tenantId: input.tenantId,
       patientId: input.patientId,
     }).catch(() => [] as PatientDiagnosisDTO[]),
+    getClinicProfile(supabase, input.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(
+      () => null,
+    ),
   ])
 
   const fromIso = input.from ? `${input.from}T00:00:00Z` : null
@@ -139,6 +152,8 @@ export async function assemblePatientChart(
 
   return {
     tenantName: tenantRow?.name ?? 'Prontool',
+    clinicProfile,
+    signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
     generatedAt: new Date().toISOString(),
     period: { from: input.from ?? null, to: input.to ?? null },
     patient: detail.patient,

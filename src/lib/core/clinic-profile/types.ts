@@ -1,0 +1,64 @@
+/**
+ * Domain types compartilhados entre read/update/upload e UI.
+ */
+
+export interface ClinicProfileLogo {
+  path: string
+  signedUrl: string | null
+  uploadedAt: string
+}
+
+export interface ClinicProfileAddress {
+  cep: string | null
+  street: string | null
+  number: string | null
+  complement: string | null
+  neighborhood: string | null
+  city: string | null
+  uf: string | null
+}
+
+export interface ClinicProfileTechResponsible {
+  name: string | null
+  council: string | null
+  registration: string | null
+}
+
+export interface ClinicProfile {
+  tenantId: string
+  logo: ClinicProfileLogo | null
+  corporateName: string | null
+  cnpj: string | null
+  phone: string | null
+  email: string | null
+  address: ClinicProfileAddress
+  techResponsible: ClinicProfileTechResponsible
+  updatedAt: string
+}
+
+export const CLINIC_LOGO_BUCKET = 'clinic-logos' as const
+export const CLINIC_LOGO_SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 // 24 h
+export const CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS = 60 * 5 // 5 min
+export const MAX_LOGO_BYTES = 2 * 1024 * 1024 // 2 MB
+
+export const COUNCIL_CODES = [
+  'CRM',
+  'CRO',
+  'CREFITO',
+  'CRP',
+  'CRN',
+  'COREN',
+  'CRF',
+  'CRBM',
+  'CRESS',
+  'CRMV',
+  'CRO',
+  'CREF',
+  'CRA',
+] as const
+
+export const UF_CODES = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
+  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+] as const

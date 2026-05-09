@@ -160,6 +160,10 @@ interface DashboardShellProps {
   role: TenantRole
   email: string | null
   integrations?: SidebarIntegrationBadgeItem[]
+  /** Feature 009 — URL assinada da logo da clínica (24 h). null = fallback. */
+  clinicLogoUrl?: string | null
+  /** Feature 009 — razão social/nome fantasia. null = fallback "Prontool". */
+  clinicName?: string | null
   children: ReactNode
 }
 
@@ -167,6 +171,8 @@ export function DashboardShell({
   role,
   email,
   integrations = [],
+  clinicLogoUrl = null,
+  clinicName = null,
   children,
 }: DashboardShellProps) {
   const pathname = usePathname() ?? ''
@@ -191,6 +197,8 @@ export function DashboardShell({
       integrations={integrations}
       email={email}
       role={role}
+      clinicLogoUrl={clinicLogoUrl}
+      clinicName={clinicName}
       onNavigate={() => setDrawerOpen(false)}
     />
   )
@@ -283,6 +291,8 @@ function SidebarInner({
   integrations,
   email,
   role,
+  clinicLogoUrl,
+  clinicName,
   onNavigate,
 }: {
   ctx: NavContext
@@ -292,15 +302,24 @@ function SidebarInner({
   integrations: SidebarIntegrationBadgeItem[]
   email: string | null
   role: TenantRole
+  clinicLogoUrl: string | null
+  clinicName: string | null
   onNavigate: () => void
 }) {
   return (
     <>
       <div className="mb-10 flex items-center gap-3 text-xl font-bold text-white">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
-          <Stethoscope className="h-5 w-5 text-white" />
-        </div>
-        <span className="tracking-tight">Prontool</span>
+        {clinicLogoUrl ? (
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={clinicLogoUrl} alt="Logo da clínica" className="h-full w-full object-contain" />
+          </div>
+        ) : (
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
+            <Stethoscope className="h-5 w-5 text-white" />
+          </div>
+        )}
+        <span className="truncate tracking-tight">{clinicName ?? 'Prontool'}</span>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto">

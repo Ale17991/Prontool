@@ -7,6 +7,8 @@ import {
   renderToBuffer,
 } from '@react-pdf/renderer'
 import type { MonthlyReport } from './monthly'
+import { ClinicHeader } from '@/lib/pdf/clinic-header'
+import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 
 /**
  * T140 — Renderiza um MonthlyReport em PDF A4. Consome exatamente o
@@ -121,29 +123,29 @@ function formatDate(ymd: string): string {
 export function MonthlyReportDocument({
   report,
   tenantLabel,
+  clinicProfile,
+  signedLogoUrl,
 }: {
   report: MonthlyReport
   tenantLabel?: string
+  clinicProfile?: ClinicProfile | null
+  signedLogoUrl?: string | null
 }) {
   const { period, revenueByPlan, productionByDoctor, totals } = report
+  const summary =
+    `${totals.appointmentCount} atendimento${totals.appointmentCount === 1 ? '' : 's'}` +
+    (totals.reversalCount > 0
+      ? ` · ${totals.reversalCount} estornado${totals.reversalCount === 1 ? '' : 's'}`
+      : '')
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório mensal · Prontool</Text>
-          <Text style={styles.title}>
-            {formatDate(period.from)} – {formatDate(period.to)}
-          </Text>
-          <Text style={styles.subtitle}>
-            {tenantLabel ?? ''}
-            {tenantLabel ? ' · ' : ''}
-            {totals.appointmentCount} atendimento{totals.appointmentCount === 1 ? '' : 's'}
-            {totals.reversalCount > 0
-              ? ` · ${totals.reversalCount} estornado${totals.reversalCount === 1 ? '' : 's'}`
-              : ''}
-          </Text>
-        </View>
+        <ClinicHeader
+          profile={clinicProfile ?? null}
+          signedLogoUrl={signedLogoUrl ?? null}
+          subtitle={`Relatório mensal · ${formatDate(period.from)} – ${formatDate(period.to)} · ${summary}${tenantLabel ? ` · ${tenantLabel}` : ''}`}
+        />
 
         <Text style={styles.sectionTitle}>Receita por plano</Text>
         <View style={styles.table}>
@@ -226,9 +228,18 @@ export function MonthlyReportDocument({
 
 export async function renderMonthlyReportPdf(
   report: MonthlyReport,
-  opts: { tenantLabel?: string } = {},
+  opts: {
+    tenantLabel?: string
+    clinicProfile?: ClinicProfile | null
+    signedLogoUrl?: string | null
+  } = {},
 ): Promise<Buffer> {
   return renderToBuffer(
-    <MonthlyReportDocument report={report} tenantLabel={opts.tenantLabel} />,
+    <MonthlyReportDocument
+      report={report}
+      tenantLabel={opts.tenantLabel}
+      clinicProfile={opts.clinicProfile ?? null}
+      signedLogoUrl={opts.signedLogoUrl ?? null}
+    />,
   )
 }

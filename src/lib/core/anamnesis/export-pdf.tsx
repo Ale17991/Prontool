@@ -6,6 +6,8 @@ import {
   StyleSheet,
   renderToBuffer,
 } from '@react-pdf/renderer'
+import { ClinicHeader } from '@/lib/pdf/clinic-header'
+import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 
 /**
  * PDF de anamnese preenchida. Mesmo padrão do `reports/export-pdf.tsx` —
@@ -69,6 +71,9 @@ export interface AnamnesisPdfField {
 
 export interface AnamnesisPdfInput {
   tenantName: string
+  /** Feature 009 — perfil completo da clínica (logo + dados oficiais). */
+  clinicProfile?: ClinicProfile | null
+  signedLogoUrl?: string | null
   patientName: string
   templateTitle: string
   templateVersion: number
@@ -94,15 +99,11 @@ export function AnamnesisPdfDocument(input: AnamnesisPdfInput) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.tenantName}>{input.tenantName}</Text>
-          <Text style={styles.title}>
-            {input.templateTitle} (v{input.templateVersion})
-          </Text>
-          <Text style={styles.patientInfo}>
-            Paciente: {input.patientName} · Preenchido em {formatPtBrDate(input.createdAt)}
-          </Text>
-        </View>
+        <ClinicHeader
+          profile={input.clinicProfile ?? null}
+          signedLogoUrl={input.signedLogoUrl ?? null}
+          subtitle={`${input.templateTitle} (v${input.templateVersion}) · Paciente: ${input.patientName} · Preenchido em ${formatPtBrDate(input.createdAt)}`}
+        />
 
         {input.fields
           .filter((field) => !field.is_default)

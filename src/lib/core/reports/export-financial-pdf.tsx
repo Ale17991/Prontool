@@ -7,6 +7,8 @@ import {
   renderToBuffer,
 } from '@react-pdf/renderer'
 import type { FinancialReport } from './financial-report'
+import { ClinicHeader } from '@/lib/pdf/clinic-header'
+import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 
 const styles = StyleSheet.create({
   page: {
@@ -148,9 +150,13 @@ function formatPct(value: number | null): string {
 export function FinancialReportDocument({
   report,
   tenantLabel,
+  clinicProfile,
+  signedLogoUrl,
 }: {
   report: FinancialReport
   tenantLabel?: string
+  clinicProfile?: ClinicProfile | null
+  signedLogoUrl?: string | null
 }) {
   const { period, previousPeriod, totals, previous, comparison } = report
   const profitNeg = totals.operatingProfitCents < 0
@@ -158,18 +164,11 @@ export function FinancialReportDocument({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>Relatório financeiro · Prontool</Text>
-          <Text style={styles.title}>
-            {formatDate(period.from)} – {formatDate(period.to)}
-          </Text>
-          <Text style={styles.subtitle}>
-            {tenantLabel ?? ''}
-            {tenantLabel ? ' · ' : ''}
-            {totals.appointmentCount} atendimentos · comparativo {formatDate(previousPeriod.from)}{' '}
-            – {formatDate(previousPeriod.to)}
-          </Text>
-        </View>
+        <ClinicHeader
+          profile={clinicProfile ?? null}
+          signedLogoUrl={signedLogoUrl ?? null}
+          subtitle={`Relatório financeiro · ${formatDate(period.from)} – ${formatDate(period.to)} · ${totals.appointmentCount} atendimentos · comparativo ${formatDate(previousPeriod.from)} – ${formatDate(previousPeriod.to)}${tenantLabel ? ` · ${tenantLabel}` : ''}`}
+        />
 
         <Text style={styles.sectionTitle}>Resultado operacional</Text>
         <View style={styles.summaryGrid}>
@@ -363,9 +362,18 @@ function ComparisonLine({
 
 export async function renderFinancialReportPdf(
   report: FinancialReport,
-  opts: { tenantLabel?: string } = {},
+  opts: {
+    tenantLabel?: string
+    clinicProfile?: ClinicProfile | null
+    signedLogoUrl?: string | null
+  } = {},
 ): Promise<Buffer> {
   return renderToBuffer(
-    <FinancialReportDocument report={report} tenantLabel={opts.tenantLabel} />,
+    <FinancialReportDocument
+      report={report}
+      tenantLabel={opts.tenantLabel}
+      clinicProfile={opts.clinicProfile ?? null}
+      signedLogoUrl={opts.signedLogoUrl ?? null}
+    />,
   )
 }

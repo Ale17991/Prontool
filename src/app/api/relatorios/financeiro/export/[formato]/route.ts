@@ -6,6 +6,8 @@ import { buildFinancialReport } from '@/lib/core/reports/financial-report'
 import { renderFinancialReportPdf } from '@/lib/core/reports/export-financial-pdf'
 import { renderFinancialReportExcel } from '@/lib/core/reports/export-financial-excel'
 import { toHttpResponse } from '@/lib/observability/http'
+import { getClinicProfile } from '@/lib/core/clinic-profile/read'
+import { CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS } from '@/lib/core/clinic-profile/types'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -52,7 +54,16 @@ export async function GET(
     const filenameStem = `relatorio-financeiro-${parsed.data.from}-${parsed.data.to}`
 
     if (formatParsed.data === 'pdf') {
-      const buf = await renderFinancialReportPdf(report, { tenantLabel: session.tenantId })
+      const clinicProfile = await getClinicProfile(
+        supabase,
+        session.tenantId,
+        CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS,
+      ).catch(() => null)
+      const buf = await renderFinancialReportPdf(report, {
+        tenantLabel: session.tenantId,
+        clinicProfile,
+        signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
+      })
       return new Response(new Uint8Array(buf), {
         status: 200,
         headers: {

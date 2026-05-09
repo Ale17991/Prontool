@@ -8,6 +8,7 @@ import {
   renderToBuffer,
 } from '@react-pdf/renderer'
 import type { ProntuarioBundle } from './assemble-prontuario'
+import { ClinicHeader } from '@/lib/pdf/clinic-header'
 
 const styles = StyleSheet.create({
   page: {
@@ -235,15 +236,17 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* ============== Header ============== */}
-        <View style={styles.header} fixed>
-          <Text style={styles.clinicName}>{bundle.tenantName}</Text>
-          <Text style={styles.subtle}>
-            Prontuário eletrônico ·{' '}
-            {bundle.period.from || bundle.period.to
-              ? `Período ${formatDate(bundle.period.from)} – ${formatDate(bundle.period.to)}`
-              : 'Histórico completo'}
-          </Text>
+        {/* ============== Header (feature 009 — logo + dados oficiais) ====== */}
+        <View fixed>
+          <ClinicHeader
+            profile={bundle.clinicProfile}
+            signedLogoUrl={bundle.signedLogoUrl}
+            subtitle={`Prontuário eletrônico · ${
+              bundle.period.from || bundle.period.to
+                ? `Período ${formatDate(bundle.period.from)} – ${formatDate(bundle.period.to)}`
+                : 'Histórico completo'
+            }`}
+          />
         </View>
 
         {/* ============== 1. Dados do paciente ============== */}
