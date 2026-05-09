@@ -20,6 +20,7 @@ interface Props {
 }
 
 interface FormState {
+  displayName: string
   corporateName: string
   cnpj: string
   cnpjMasked: string
@@ -39,6 +40,7 @@ interface FormState {
 
 function profileToForm(p: ClinicProfile): FormState {
   return {
+    displayName: p.displayName ?? '',
     corporateName: p.corporateName ?? '',
     cnpj: p.cnpj ?? '',
     cnpjMasked: p.cnpj ? formatCnpj(p.cnpj) : '',
@@ -59,6 +61,7 @@ function profileToForm(p: ClinicProfile): FormState {
 
 function formToPatch(s: FormState) {
   return {
+    displayName: s.displayName.trim() || null,
     corporateName: s.corporateName.trim() || null,
     cnpj: s.cnpj || null,
     phone: s.phone.trim() || null,
@@ -277,6 +280,20 @@ export function ClinicProfileForm({ initial }: Props) {
       <Card>
         <CardContent className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
           <div className="md:col-span-2">
+            <Label htmlFor="displayName">Nome de exibição</Label>
+            <Input
+              id="displayName"
+              value={form.displayName}
+              onChange={(e) => update('displayName', e.target.value)}
+              maxLength={200}
+              placeholder="Como a clínica aparece na sidebar e nos PDFs"
+            />
+            <p className="mt-1 text-[11px] text-slate-500">
+              Aparece em destaque na sidebar, no seletor de clínicas e como título
+              dos PDFs.
+            </p>
+          </div>
+          <div className="md:col-span-2">
             <Label htmlFor="corporateName">Razão social / Nome fantasia</Label>
             <Input
               id="corporateName"
@@ -284,6 +301,9 @@ export function ClinicProfileForm({ initial }: Props) {
               onChange={(e) => update('corporateName', e.target.value)}
               maxLength={200}
             />
+            <p className="mt-1 text-[11px] text-slate-500">
+              Nome legal completo. Aparece junto ao CNPJ no rodapé dos PDFs.
+            </p>
           </div>
           <div>
             <Label htmlFor="cnpj">CNPJ</Label>

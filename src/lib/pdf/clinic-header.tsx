@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   },
   body: { flex: 1, gap: 1 },
   clinicName: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#0f172a' },
+  legalName: { fontSize: 9, color: '#334155' },
   detail: { fontSize: 8, color: '#475569' },
   subtitle: { fontSize: 8, color: '#64748b', marginTop: 2 },
   warning: {
@@ -101,6 +102,7 @@ function formatContact(p: ClinicProfile): string | null {
 function isProfileEmpty(p: ClinicProfile | null): boolean {
   if (!p) return true
   return !(
+    p.displayName ||
     p.corporateName ||
     p.cnpj ||
     p.phone ||
@@ -133,12 +135,19 @@ export function ClinicHeader({ profile, signedLogoUrl, subtitle }: ClinicHeaderP
         {signedLogoUrl ? (
           <Image src={signedLogoUrl} style={styles.logoImage} />
         ) : (
-          <Text style={styles.logoPlaceholder}>{p.corporateName ?? 'Logo'}</Text>
+          <Text style={styles.logoPlaceholder}>{p.displayName ?? p.corporateName ?? 'Logo'}</Text>
         )}
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.clinicName}>{p.corporateName ?? 'Clínica'}</Text>
+        {/* Feature 010 (R13) — title primary = tenants.name (display).
+            Razão social vira linha secundária junto com CNPJ. */}
+        <Text style={styles.clinicName}>
+          {p.displayName ?? p.corporateName ?? 'Clínica'}
+        </Text>
+        {p.corporateName && p.corporateName !== p.displayName ? (
+          <Text style={styles.legalName}>{p.corporateName}</Text>
+        ) : null}
         {p.cnpj ? <Text style={styles.detail}>CNPJ {formatCnpj(p.cnpj)}</Text> : null}
         {summary ? <Text style={styles.detail}>{summary}</Text> : null}
         {contact ? <Text style={styles.detail}>{contact}</Text> : null}

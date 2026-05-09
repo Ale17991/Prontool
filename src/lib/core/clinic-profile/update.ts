@@ -16,6 +16,8 @@ const optionalString = (max: number) =>
     .transform((v) => (v === '' ? null : (v ?? undefined)))
 
 export const clinicProfilePatchSchema = z.object({
+  /** Feature 010 (US3 / R13) — alimenta `tenants.name`. */
+  displayName: optionalString(200),
   corporateName: optionalString(200),
   cnpj: z
     .string()
@@ -144,6 +146,36 @@ export async function updateClinicProfile(
   const patch = parsed.data
 
   const current = await getClinicProfile(supabase, tenantId, 0)
+
+  // Feature 010 (US3 / R13) — displayName escreve em tenants.name. Tratado
+  // separadamente do flatten do tenant_clinic_profile.
+  if ('displayName' in patch) {
+    const newName = (patch.displayName ?? '').trim()
+    const oldName = current.displayName ?? ''
+    if (newName.length > 0 && newName !== oldName) {
+      const { error: tenantUpdateErr } = await supabase
+        .from('tenants')
+        .update({ name: newName })
+        .eq('id', tenantId)
+      if (tenantUpdateErr) {
+        throw new Error(`updateClinicProfile tenant.name update failed: ${tenantUpdateErr.message}`)
+      }
+      await supabase.from('audit_log').insert({
+        tenant_id: tenantId,
+        actor_id: actorId,
+        actor_label: null,
+        entity: 'tenants',
+        entity_id: tenantId,
+        field: 'name',
+        old_value: oldName || null,
+        new_value: newName,
+        reason: context.reason ?? 'updated via /api/configuracoes/clinica PUT',
+        ip: context.ip ?? null,
+        user_agent: context.userAgent ?? null,
+        result: 'success',
+      })
+    }
+  }
   const flat = flattenPatch(patch)
 
   // Calcula diffs por campo e prepara payloads.

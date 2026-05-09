@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState, type ReactNode } from 'react'
 import {
   AlertTriangle,
+  ArrowLeftRight,
   Bell,
   Building2,
   Calculator,
@@ -192,8 +193,13 @@ interface DashboardShellProps {
   integrations?: SidebarIntegrationBadgeItem[]
   /** Feature 009 — URL assinada da logo da clínica (24 h). null = fallback. */
   clinicLogoUrl?: string | null
-  /** Feature 009 — razão social/nome fantasia. null = fallback "Prontool". */
+  /**
+   * Feature 010 (US3 / R13) — tenants.name (display name). Cai para
+   * corporate_name e por fim "Prontool" como último recurso.
+   */
   clinicName?: string | null
+  /** Feature 010 (US3) — usuário tem >1 tenant ativo? Mostra "Trocar clínica". */
+  isMultiTenant?: boolean
   /** Feature 009 — URL assinada do avatar do usuário (24 h). null = iniciais. */
   userAvatarUrl?: string | null
   /** Feature 009 — nome completo. null = fallback para email. */
@@ -207,6 +213,7 @@ export function DashboardShell({
   integrations = [],
   clinicLogoUrl = null,
   clinicName = null,
+  isMultiTenant = false,
   userAvatarUrl = null,
   userFullName = null,
   children,
@@ -236,6 +243,7 @@ export function DashboardShell({
       role={role}
       clinicLogoUrl={clinicLogoUrl}
       clinicName={clinicName}
+      isMultiTenant={isMultiTenant}
       userAvatarUrl={userAvatarUrl}
       userFullName={userFullName}
       onNavigate={() => setDrawerOpen(false)}
@@ -323,6 +331,7 @@ function SidebarInner({
   role,
   clinicLogoUrl,
   clinicName,
+  isMultiTenant,
   userAvatarUrl,
   userFullName,
   onNavigate,
@@ -334,6 +343,7 @@ function SidebarInner({
   role: TenantRole
   clinicLogoUrl: string | null
   clinicName: string | null
+  isMultiTenant: boolean
   userAvatarUrl: string | null
   userFullName: string | null
   onNavigate: () => void
@@ -351,7 +361,9 @@ function SidebarInner({
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
         )}
-        <span className="truncate tracking-tight">{clinicName ?? 'Prontool'}</span>
+        <span className="truncate tracking-tight" title={clinicName ?? undefined}>
+          {clinicName ?? 'Prontool'}
+        </span>
       </div>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
@@ -378,7 +390,7 @@ function SidebarInner({
 
       <div className="mt-auto border-t border-white/5 pt-6">
         <SidebarIntegrationsBadge integrations={integrations} />
-        <div className="flex items-center gap-3 rounded-xl bg-white/5 p-2 text-slate-400">
+        <div className="flex items-center gap-2 rounded-xl bg-white/5 p-2 text-slate-400">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
             {userAvatarUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
@@ -393,6 +405,16 @@ function SidebarInner({
             </p>
             <p className="truncate text-[10px] text-slate-500">{labelForRole(role)}</p>
           </div>
+          {isMultiTenant ? (
+            <Link
+              href="/selecionar-clinica"
+              className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+              title="Trocar clínica"
+              onClick={onNavigate}
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+            </Link>
+          ) : null}
         </div>
       </div>
     </>
