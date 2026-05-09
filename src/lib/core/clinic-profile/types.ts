@@ -26,6 +26,8 @@ export interface ClinicProfileTechResponsible {
 
 export interface ClinicProfile {
   tenantId: string
+  /** Feature 010 (US3 / R13) — `tenants.name`. Display name (sidebar, seletor). */
+  displayName: string | null
   logo: ClinicProfileLogo | null
   corporateName: string | null
   cnpj: string | null

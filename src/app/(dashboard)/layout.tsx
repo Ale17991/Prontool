@@ -3,12 +3,14 @@ import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
 import { getAdapter } from '@/lib/integrations/registry'
 import type { Database } from '@/lib/db/types'
 import { DashboardShell } from './_components/dashboard-shell'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { getUserProfile } from '@/lib/core/user-profile/read'
+import { getAvailableTenants } from '@/lib/auth/available-tenants'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await getSession()
@@ -25,14 +27,21 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     if (adapter) integrations.push({ provider: adapter.provider, label: adapter.label })
   }
 
-  // Feature 009 — logo + nome da clínica + avatar/nome do usuário para o
-  // topo e rodapé da sidebar. RLS-bound; getX faz lazy insert que pode
-  // falhar para certos contextos. Capturamos silenciosamente — sem dados,
-  // a sidebar usa fallback (ícones + email).
-  const [clinicProfile, userProfile] = await Promise.all([
+  // Feature 009 — logo + nome/dados da clínica + avatar/nome do usuário.
+  // Feature 010 (US3) — tenants.name (display name) e contagem de tenants
+  // ativos (decisão "mostrar Trocar clínica?").
+  const supabaseService = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
+  const [clinicProfile, userProfile, availableTenants] = await Promise.all([
     getClinicProfile(supabase, session.tenantId).catch(() => null),
     getUserProfile(supabase, session.userId, session.email ?? null).catch(() => null),
+    getAvailableTenants(supabaseService, session.userId).catch(() => []),
   ])
+
+  // Feature 010 (R13) — tenants.name é a fonte primária do nome de exibição.
+  // corporate_name fica para o PDF (linha legal abaixo) e raramente diverge.
+  // getClinicProfile já carrega tenants.name em `displayName`.
+  const tenantDisplayName =
+    clinicProfile?.displayName ?? clinicProfile?.corporateName ?? null
 
   return (
     <DashboardShell
@@ -40,7 +49,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       email={session.email ?? null}
       integrations={integrations}
       clinicLogoUrl={clinicProfile?.logo?.signedUrl ?? null}
-      clinicName={clinicProfile?.corporateName ?? null}
+      clinicName={tenantDisplayName}
+      isMultiTenant={availableTenants.length > 1}
       userAvatarUrl={userProfile?.avatar?.signedUrl ?? null}
       userFullName={userProfile?.fullName ?? null}
     >

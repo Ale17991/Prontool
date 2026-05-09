@@ -34,9 +34,14 @@ function syntheticEmptyRow(tenantId: string): Row {
   }
 }
 
-function rowToProfile(row: Row, signedLogoUrl: string | null): ClinicProfile {
+function rowToProfile(
+  row: Row,
+  signedLogoUrl: string | null,
+  displayName: string | null,
+): ClinicProfile {
   return {
     tenantId: row.tenant_id,
+    displayName,
     logo: row.logo_path
       ? {
           path: row.logo_path,
@@ -112,11 +117,25 @@ export async function getClinicProfile(
     }
   }
 
-  const signedLogoUrl = await createSignedUrlOrNull(
-    supabase,
-    CLINIC_LOGO_BUCKET,
-    row.logo_path,
-    signedUrlTtl,
-  )
-  return rowToProfile(row, signedLogoUrl)
+  const [signedLogoUrl, tenantRow] = await Promise.all([
+    createSignedUrlOrNull(supabase, CLINIC_LOGO_BUCKET, row.logo_path, signedUrlTtl),
+    fetchTenantName(supabase, tenantId),
+  ])
+  return rowToProfile(row, signedLogoUrl, tenantRow)
+}
+
+async function fetchTenantName(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+): Promise<string | null> {
+  try {
+    const { data } = await supabase
+      .from('tenants')
+      .select('name')
+      .eq('id', tenantId)
+      .maybeSingle()
+    return data?.name ?? null
+  } catch {
+    return null
+  }
 }
