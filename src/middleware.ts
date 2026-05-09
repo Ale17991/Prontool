@@ -2,6 +2,58 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
+ * Feature 010 (R9) — tabela de redirecionamentos de auth-vs-tenant.
+ *
+ *   | sessão                              | rota acessada     | ação               |
+ *   |-------------------------------------|-------------------|--------------------|
+ *   | não autenticado                     | (dashboard)/*     | -> /login          |
+ *   | autenticado sem claim tenant_id     | (dashboard)/*     | -> /onboarding     |
+ *   | autenticado com tenant ativo        | /login, /registrar, /onboarding | -> /operacao/atendimentos |
+ *
+ * Detecção do tenant_id: middleware decodifica o JWT do cookie de sessão
+ * (sem verificar assinatura — getUser já fez essa verificação acima). Se
+ * `app_metadata.tenant_id` está populado, há tenant ativo; senão, não há.
+ */
+
+const AUTH_FREE_ROUTES = ['/login', '/registrar']
+const ONBOARDING_ROUTE = '/onboarding'
+const SELECTOR_ROUTE = '/selecionar-clinica'
+const DASHBOARD_DEFAULT = '/operacao/atendimentos'
+
+function isAuthRoute(pathname: string): boolean {
+  return (
+    pathname === '/login' ||
+    pathname === '/registrar' ||
+    pathname === ONBOARDING_ROUTE ||
+    pathname === SELECTOR_ROUTE ||
+    pathname.startsWith('/login/') ||
+    pathname.startsWith('/registrar/') ||
+    pathname.startsWith(`${ONBOARDING_ROUTE}/`) ||
+    pathname.startsWith(`${SELECTOR_ROUTE}/`)
+  )
+}
+
+function isApiRoute(pathname: string): boolean {
+  return pathname.startsWith('/api/')
+}
+
+function decodeJwtTenantId(accessToken: string | null): string | null {
+  if (!accessToken) return null
+  const parts = accessToken.split('.')
+  if (parts.length !== 3) return null
+  const middle = parts[1]
+  if (!middle) return null
+  try {
+    const payload = JSON.parse(
+      Buffer.from(middle.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'),
+    ) as { app_metadata?: { tenant_id?: string } }
+    return payload?.app_metadata?.tenant_id ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Refreshes the Supabase auth session on every request and relays the
  * updated cookies into the response. Without this middleware, Server
  * Components that call `getSession()` see a stale (or missing) session
@@ -51,7 +103,6 @@ export async function middleware(req: NextRequest) {
 
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/login') ||
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/api/workers') ||
     pathname === '/favicon.ico'
@@ -80,7 +131,43 @@ export async function middleware(req: NextRequest) {
 
   // Touching getUser refreshes the session and triggers cookie writes
   // on the response when the access token rotates.
-  await supabase.auth.getUser()
+  const { data: userData } = await supabase.auth.getUser()
+  const isAuthed = userData.user != null
+
+  // Feature 010 (R9) — redirects baseados em (autenticação × tenant ativo ×
+  // rota). Roda só em rotas server-rendered (não /api/*, não _next, não
+  // estáticos), pra não interferir com endpoints de auth.
+  if (!isApiRoute(pathname)) {
+    let hasTenant = false
+    if (isAuthed) {
+      const { data: sessionData } = await supabase.auth.getSession()
+      hasTenant = decodeJwtTenantId(sessionData.session?.access_token ?? null) != null
+    }
+
+    // Não autenticado em rota interna -> /login.
+    if (!isAuthed && !isAuthRoute(pathname)) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/login'
+      redirectUrl.search = ''
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Autenticado sem tenant em rota dashboard -> /onboarding.
+    if (isAuthed && !hasTenant && !isAuthRoute(pathname)) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = ONBOARDING_ROUTE
+      redirectUrl.search = ''
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Autenticado com tenant em rota de auth -> dashboard.
+    if (isAuthed && hasTenant && AUTH_FREE_ROUTES.concat([ONBOARDING_ROUTE]).includes(pathname)) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = DASHBOARD_DEFAULT
+      redirectUrl.search = ''
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
 
   // Feature 008: quando a sessão veio do SSO do GHL, permite iframe
   // pelo domínio gohighlevel.com via CSP frame-ancestors. Sem o cookie

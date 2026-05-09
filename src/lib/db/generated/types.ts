@@ -1977,6 +1977,32 @@ export type Database = {
         }
         Relationships: []
       }
+      user_active_tenant: {
+        Row: {
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_active_tenant_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_tenants: {
         Row: {
           created_at: string
@@ -2391,6 +2417,16 @@ export type Database = {
         Returns: Json
       }
       auth_hook_custom_claims: { Args: { event: Json }; Returns: Json }
+      create_first_tenant: {
+        Args: {
+          p_user_id: string
+          p_name: string
+          p_slug: string
+          p_cnpj?: string | null
+          p_phone?: string | null
+        }
+        Returns: string
+      }
       create_appointment_with_materials: {
         Args: {
           p_actor: string
