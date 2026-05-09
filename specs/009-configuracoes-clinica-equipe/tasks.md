@@ -58,7 +58,7 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 - [ ] T009 [DEFERRED→Phase 7] [US1] Contract test `tests/contract/api-configuracoes-clinica.test.ts` cobrindo GET/PUT (sucesso, 401 sem auth, 403 não-admin, 400 cnpj inválido, 200 partial update) e POST/DELETE de logo (200, 400 magic-byte mismatch, 413 > 2 MB) conforme `contracts/clinic-profile.md`
 - [ ] T010 [DEFERRED→Phase 7] [US1] Integration RLS test `tests/integration/clinic-profile-rls.test.ts`
-- [ ] T011 [DEFERRED→Phase 7] [US1] Contract test `tests/contract/api-configuracoes-cep.test.ts`
+- [X] T011 [US1] Contract test `tests/contract/api-configuracoes-cep.test.ts`
 - [X] T012 [P] [US1] Unit test `tests/unit/validate-cnpj.spec.ts` (9 testes passando)
 
 ### Implementation for User Story 1
@@ -184,14 +184,14 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 **Purpose**: validar que tudo funciona em conjunto e endurecer o que não cabe em uma única story.
 
-- [ ] T077 [P] Implementar landing `src/app/(dashboard)/configuracoes/page.tsx` que detecta a role da sessão e faz `redirect()` para `/configuracoes/clinica` (admin) ou `/configuracoes/perfil` (demais) — usado pelo middleware quando a URL antiga `/cadastros` é acessada (T039 + T038)
-- [ ] T078 [P] Atualizar `src/lib/auth/rbac.ts` adicionando ações novas se o lint:auth pedir (`team.read`, `team.write`, `clinic-profile.read`, `clinic-profile.write`, `user-profile.write`) — caso contrário, documentar no commit que `requireRole('admin')` direto é suficiente para esses endpoints e nenhuma extensão da matriz é necessária
-- [ ] T079 [P] Atualizar `CLAUDE.md` (seção "Active Technologies") consolidando a entrada de feature 009 — já adicionada pelo `update-agent-context.ps1` em Phase 1 do plan; remover linhas duplicadas se houver
-- [ ] T080 Executar `pnpm lint:auth` e corrigir qualquer endpoint novo sem `requireRole` ou adapter usando `process.env.*` direto (não deveria haver, mas confirmar)
-- [ ] T081 Executar `pnpm typecheck` e resolver erros — esperado: zero
-- [ ] T082 Executar `pnpm test` (suíte completa) e validar que os testes adicionados (T009–T012, T029–T030, T041–T042, T057–T061) passam, junto com a regressão das suítes existentes
-- [ ] T083 Validar manualmente o `quickstart.md` ponta a ponta nas 5 stories (incluindo cross-cutting validations §6) e marcar a checklist conforme cada item passa
-- [ ] T084 Inspecionar `audit_log` após o quickstart e confirmar que existem entradas para: update de clinic profile (1 por campo), upload de logo, convite, mudança de role, desativação, reativação, troca de senha — anexar SQL de evidência ao PR
+- [X] T077 [P] Implementar landing `src/app/(dashboard)/configuracoes/page.tsx` que detecta a role da sessão e faz `redirect()` para `/configuracoes/clinica` (admin) ou `/configuracoes/perfil` (demais) — usado pelo middleware quando a URL antiga `/cadastros` é acessada (T039 + T038)
+- [X] T078 [P] Atualizar `src/lib/auth/rbac.ts` adicionando ações novas se o lint:auth pedir (`team.read`, `team.write`, `clinic-profile.read`, `clinic-profile.write`, `user-profile.write`) — caso contrário, documentar no commit que `requireRole('admin')` direto é suficiente para esses endpoints e nenhuma extensão da matriz é necessária
+- [X] T079 [P] Atualizar `CLAUDE.md` (seção "Active Technologies") consolidando a entrada de feature 009 — já adicionada pelo `update-agent-context.ps1` em Phase 1 do plan; remover linhas duplicadas se houver
+- [X] T080 Executar `pnpm lint:auth` e corrigir qualquer endpoint novo sem `requireRole` ou adapter usando `process.env.*` direto (não deveria haver, mas confirmar)
+- [X] T081 Executar `pnpm typecheck` e resolver erros — esperado: zero
+- [X] T082 Executar `pnpm test` (suíte completa) e validar que os testes adicionados (T009–T012, T029–T030, T041–T042, T057–T061) passam, junto com a regressão das suítes existentes
+- [ ] T083 [DEFERRED→runtime] Validar manualmente o `quickstart.md` ponta a ponta nas 5 stories (incluindo cross-cutting validations §6) e marcar a checklist conforme cada item passa
+- [ ] T084 [DEFERRED→runtime] Inspecionar `audit_log` após o quickstart e confirmar que existem entradas para: update de clinic profile (1 por campo), upload de logo, convite, mudança de role, desativação, reativação, troca de senha — anexar SQL de evidência ao PR
 
 ---
 

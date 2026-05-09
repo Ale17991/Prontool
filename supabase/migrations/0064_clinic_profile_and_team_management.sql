@@ -201,6 +201,11 @@ CREATE TRIGGER user_tenants_enforce_last_admin
 -- 5. auth_hook_custom_claims — filtra status='active'
 -- =========================================================================
 
+-- Mantém a estrutura corrigida em 0022 (claims escritas em app_metadata,
+-- jsonb text-accessors corretos). A única adição é o filtro por
+-- `status = 'active'` em ambos os SELECTs — usuário desativado não
+-- recebe claims, então jwt_tenant_id() / jwt_role() retornam NULL na
+-- próxima requisição e todas as policies RLS rejeitam (kill-switch).
 CREATE OR REPLACE FUNCTION public.auth_hook_custom_claims(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -214,10 +219,9 @@ DECLARE
   picked_role TEXT;
   claims      jsonb;
 BEGIN
-  uid := (event -> 'user_id')::text::uuid;
-  desired_tid := NULLIF((event -> 'user_metadata' ->> 'active_tenant_id'), '')::uuid;
+  uid := NULLIF(event ->> 'user_id', '')::uuid;
+  desired_tid := NULLIF(event #>> '{user_metadata,active_tenant_id}', '')::uuid;
 
-  -- Tenant escolhido pelo usuário (multi-tenant) — só se status='active'.
   IF desired_tid IS NOT NULL THEN
     SELECT tenant_id, role INTO picked_tid, picked_role
     FROM public.user_tenants
@@ -227,9 +231,6 @@ BEGIN
     LIMIT 1;
   END IF;
 
-  -- Fallback: primeiro tenant ativo. Usuário sem nenhum vínculo ativo
-  -- (todos disabled) não recebe claims → todas as policies RLS negarão e
-  -- a próxima requisição cai no /login (kill-switch).
   IF picked_tid IS NULL THEN
     SELECT tenant_id, role INTO picked_tid, picked_role
     FROM public.user_tenants
@@ -240,8 +241,13 @@ BEGIN
 
   claims := COALESCE(event -> 'claims', '{}'::jsonb);
   IF picked_tid IS NOT NULL THEN
-    claims := jsonb_set(claims, '{tenant_id}', to_jsonb(picked_tid::text));
-    claims := jsonb_set(claims, '{role}',      to_jsonb(picked_role));
+    claims := jsonb_set(
+      claims,
+      '{app_metadata}',
+      COALESCE(claims -> 'app_metadata', '{}'::jsonb)
+        || jsonb_build_object('tenant_id', picked_tid::text, 'role', picked_role),
+      true
+    );
   END IF;
 
   RETURN jsonb_set(event, '{claims}', claims);
