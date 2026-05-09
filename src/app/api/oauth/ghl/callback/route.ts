@@ -10,6 +10,11 @@ import {
 } from '@/lib/integrations/ghl/oauth/state'
 import { connectGhlTenant } from '@/lib/core/integrations/ghl/connect-tenant'
 import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-events'
+import { ConflictError } from '@/lib/observability/errors'
+import {
+  GHL_LOCATION_ALREADY_BOUND,
+  GHL_TENANT_ALREADY_CONNECTED,
+} from '@/lib/core/integrations/ghl/binding-check'
 
 /**
  * Feature 008 — GET /api/oauth/ghl/callback
@@ -129,6 +134,23 @@ export async function GET(req: Request): Promise<Response> {
       },
     })
   } catch (err) {
+    // Feature 010 (US1) — rejeição da regra GHL 1:1. ConflictError aqui já
+    // foi audit-logged em connectGhlTenant; só precisamos mapear para 409
+    // com o code esperado para que a UI saiba qual mensagem mostrar.
+    if (
+      err instanceof ConflictError &&
+      (err.code === GHL_TENANT_ALREADY_CONNECTED || err.code === GHL_LOCATION_ALREADY_BOUND)
+    ) {
+      logger.warn(
+        { code: err.code, tenant_id: payload.tenantId, location_id: credentials.location_id },
+        'ghl-oauth-callback-binding-rejected',
+      )
+      return redirect(
+        REDIRECT_AFTER_PATH,
+        { status: 'rejected', code: err.code },
+        { clearCookie: true },
+      )
+    }
     logger.error(
       { err: err instanceof Error ? err.message : String(err), tenant_id: payload.tenantId },
       'ghl-oauth-callback-connect-failed',
