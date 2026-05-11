@@ -88,10 +88,16 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
     return { alertId, deduped: false }
   }
 
-  const users = await supabase.auth.admin.listUsers()
-  const toEmails = (users.data?.users ?? [])
-    .filter((u) => adminIds.includes(u.id) && u.email)
-    .map((u) => u.email as string)
+  // Resolve emails via getUserById em paralelo. Substitui listUsers()
+  // global que carregava TODOS os users do projeto Supabase pra depois
+  // filtrar — debug logs poderiam expor emails inter-tenants. Padrão
+  // alinhado com listTeamMembers (auditoria de segurança 2026-05-11).
+  const userLookups = await Promise.all(
+    adminIds.map((id) => supabase.auth.admin.getUserById(id)),
+  )
+  const toEmails = userLookups
+    .map((r) => r.data?.user?.email)
+    .filter((email): email is string => typeof email === 'string' && email.length > 0)
 
   if (toEmails.length > 0) {
     const path = input.dashboardPath ?? DEFAULT_PATH[input.type]
