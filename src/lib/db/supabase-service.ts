@@ -48,6 +48,13 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // Lista de atendimentos chama list_patients_for_tenant (SECURITY DEFINER)
   // para mostrar o nome decriptado do paciente ao lado de cada atendimento.
   '/app/(dashboard)/operacao/atendimentos/',
+  // Feature 010 — layout do dashboard chama getAvailableTenants(service)
+  // para decidir se mostra "Trocar clínica" (read cross-tenant legítimo).
+  '/app/(dashboard)/layout',
+  // Feature 010 — fluxos de auth pré-tenant (onboarding e seletor) também
+  // listam todos os tenants do usuário antes do JWT ter tenant_id.
+  '/app/(auth)/onboarding',
+  '/app/(auth)/selecionar-clinica',
 ]
 
 function assertCallerAllowed(): void {
