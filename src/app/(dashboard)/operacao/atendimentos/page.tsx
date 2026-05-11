@@ -20,7 +20,7 @@ import {
   deriveRange,
   parseFiltersFromRecord,
   type CalendarStatus,
-} from './use-calendar-filters'
+} from './calendar-filters'
 import type { DoctorFilterOption } from './calendar/doctor-filter'
 
 export const dynamic = 'force-dynamic'
@@ -84,43 +84,52 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
 
   if (mode === 'cal') {
-    const service = encryptionKey ? createSupabaseServiceClient() : undefined
-    const appointments = await listAppointmentsForWeek(
-      supabase,
-      {
-        tenantId: session.tenantId,
-        weekStart: range.from,
-        weekEnd: range.to,
-        doctorIds: filters.doctor ? [filters.doctor] : undefined,
-      },
-      { serviceClient: service, encryptionKey },
-    )
+    // Defense in depth: se a query do calendário ou o render falhar
+    // (RLS, view desatualizada, hook quebrado, etc.), cai pra Lista
+    // em vez de derrubar a rota. List é mais simples e usa apenas a
+    // view appointments_effective + RLS direto, sem service client.
+    try {
+      const service = encryptionKey ? createSupabaseServiceClient() : undefined
+      const appointments = await listAppointmentsForWeek(
+        supabase,
+        {
+          tenantId: session.tenantId,
+          weekStart: range.from,
+          weekEnd: range.to,
+          doctorIds: filters.doctor ? [filters.doctor] : undefined,
+        },
+        { serviceClient: service, encryptionKey },
+      )
 
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {appointments.length} no período carregado
-            </p>
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
+              <p className="mt-1 text-sm text-slate-500">
+                {appointments.length} no período carregado
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ModeToggle mode={mode} />
+              {session.role === 'admin' || session.role === 'recepcionista' ? (
+                <Button asChild>
+                  <Link href="/operacao/atendimentos/novo">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Novo
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ModeToggle mode={mode} />
-            {session.role === 'admin' || session.role === 'recepcionista' ? (
-              <Button asChild>
-                <Link href="/operacao/atendimentos/novo">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo
-                </Link>
-              </Button>
-            ) : null}
-          </div>
+
+          <CalendarShell appointments={appointments} doctors={doctorOptions} />
         </div>
-
-        <CalendarShell appointments={appointments} doctors={doctorOptions} />
-      </div>
-    )
+      )
+    } catch (err) {
+      console.error('atendimentos cal-mode failed, falling back to list', err)
+      // fall through pro código de modo Lista abaixo.
+    }
   }
 
   // ---- Modo Lista ----
