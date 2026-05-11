@@ -110,7 +110,10 @@ export default async function AtendimentoDetailPage({
   let materials: AppointmentMaterial[] = []
   if (appointment.id) {
     try {
-      materials = await listAppointmentMaterials(supabase, { appointmentId: appointment.id })
+      materials = await listAppointmentMaterials(supabase, {
+        appointmentId: appointment.id,
+        tenantId: session.tenantId,
+      })
     } catch {
       // ignore — sub-bloco nao renderiza
     }

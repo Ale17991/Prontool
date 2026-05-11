@@ -62,6 +62,7 @@ export async function POST(
     const supabase = createSupabaseServiceClient()
     const result = await attachMaterialsToAppointment(supabase, {
       appointmentId: params.id,
+      tenantId: session.tenantId,
       actorUserId: session.userId,
       materials: parsed.data.materiais.map((m) => ({
         tussCode: m.tuss_code,
@@ -93,14 +94,17 @@ export async function GET(
   { params }: { params: { id: string } },
 ): Promise<Response> {
   try {
-    await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
+    const session = await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
       entity: 'appointment_materials',
       route: `/api/atendimentos/${params.id}/materiais`,
       request: req,
     })
 
     const supabase = createSupabaseServiceClient()
-    const materials = await listAppointmentMaterials(supabase, { appointmentId: params.id })
+    const materials = await listAppointmentMaterials(supabase, {
+      appointmentId: params.id,
+      tenantId: session.tenantId,
+    })
 
     return NextResponse.json({
       materials: materials.map((m) => ({

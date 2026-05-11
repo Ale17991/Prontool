@@ -11,6 +11,14 @@ export interface MaterialInput {
 
 export interface AttachMaterialsInput {
   appointmentId: string
+  /**
+   * Tenant da sessão. OBRIGATÓRIO — a RPC `attach_materials_to_appointment`
+   * só valida tenant quando `jwt_tenant_id()` está populado, o que NÃO é o
+   * caso sob service-role. Sem este check no app layer, um usuário
+   * autenticado conseguia anexar materiais a appointments de outro tenant.
+   * Auditoria de segurança 2026-05-11.
+   */
+  tenantId: string
   actorUserId: string
   materials: MaterialInput[]
 }
@@ -33,6 +41,24 @@ export async function attachMaterialsToAppointment(
 ): Promise<AttachMaterialsResult> {
   if (input.materials.length === 0) {
     throw new DomainError('MATERIALS_REQUIRED', 'Nenhum material informado.', { status: 400 })
+  }
+
+  // Pre-flight tenant check: a RPC só valida tenant quando jwt_tenant_id()
+  // está populado (não está sob service-role). Validamos no app layer
+  // confirmando que o appointment existe DENTRO do tenant da sessão antes
+  // de chamar a RPC. Se não existir aqui, devolvemos 404 sem disclosurar
+  // que ele pode existir em outro tenant.
+  const { data: appt, error: apptErr } = await supabase
+    .from('appointments')
+    .select('id')
+    .eq('id', input.appointmentId)
+    .eq('tenant_id', input.tenantId)
+    .maybeSingle()
+  if (apptErr) {
+    throw new Error(`attachMaterialsToAppointment tenant precheck failed: ${apptErr.message}`)
+  }
+  if (!appt) {
+    throw new NotFoundError('appointments', input.appointmentId)
   }
 
   const payload = input.materials.map((m) => ({

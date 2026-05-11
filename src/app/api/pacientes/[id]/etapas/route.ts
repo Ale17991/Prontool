@@ -114,6 +114,7 @@ export async function POST(
       if (parsed.data.materiais && parsed.data.materiais.length > 0) {
         const attached = await attachMaterialsToAppointment(supabase, {
           appointmentId: result.appointment_id,
+          tenantId: session.tenantId,
           actorUserId: session.userId,
           materials: parsed.data.materiais.map((m) => ({
             tussCode: m.tuss_code,

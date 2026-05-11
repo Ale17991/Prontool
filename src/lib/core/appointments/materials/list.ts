@@ -17,6 +17,12 @@ export interface AppointmentMaterial {
 
 export interface ListMaterialsInput {
   appointmentId: string
+  /**
+   * Tenant da sessão. OBRIGATÓRIO mesmo com RLS — se o caller passar um
+   * service-role client (que bypassa RLS), o filtro explícito de tenant_id
+   * impede vazamento cross-tenant. Auditoria de segurança 2026-05-11.
+   */
+  tenantId: string
 }
 
 export async function listAppointmentMaterials(
@@ -27,6 +33,7 @@ export async function listAppointmentMaterials(
     .from('appointment_materials' as never)
     .select('id, tuss_code, tuss_description, quantity, created_at, created_by')
     .eq('appointment_id', input.appointmentId)
+    .eq('tenant_id', input.tenantId)
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -55,6 +62,7 @@ export async function listAppointmentMaterials(
 export async function listMaterialsByAppointmentIds(
   supabase: SupabaseClient<Database>,
   appointmentIds: string[],
+  tenantId: string,
 ): Promise<Record<string, AppointmentMaterial[]>> {
   if (appointmentIds.length === 0) return {}
 
@@ -62,6 +70,7 @@ export async function listMaterialsByAppointmentIds(
     .from('appointment_materials' as never)
     .select('id, appointment_id, tuss_code, tuss_description, quantity, created_at, created_by')
     .in('appointment_id', appointmentIds)
+    .eq('tenant_id', tenantId)
     .order('created_at', { ascending: true })
 
   if (error) {

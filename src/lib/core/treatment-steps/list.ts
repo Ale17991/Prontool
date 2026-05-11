@@ -107,7 +107,11 @@ export async function listTreatmentSteps(
   const appointmentIds = raw
     .map((s) => s.appointment_id)
     .filter((v): v is string => typeof v === 'string' && v.length > 0)
-  const materialsByAppt = await listMaterialsByAppointmentIds(supabase, appointmentIds)
+  const materialsByAppt = await listMaterialsByAppointmentIds(
+    supabase,
+    appointmentIds,
+    input.tenantId,
+  )
 
   const asOf = new Date()
   const priced = await Promise.all(
