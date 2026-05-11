@@ -1461,8 +1461,9 @@ export type Database = {
           default_amount_cents: number | null
           display_name: string | null
           id: string
+          is_unlisted: boolean
           tenant_id: string
-          tuss_code: string
+          tuss_code: string | null
         }
         Insert: {
           active?: boolean
@@ -1472,8 +1473,9 @@ export type Database = {
           default_amount_cents?: number | null
           display_name?: string | null
           id?: string
+          is_unlisted?: boolean
           tenant_id: string
-          tuss_code: string
+          tuss_code?: string | null
         }
         Update: {
           active?: boolean
@@ -1483,8 +1485,9 @@ export type Database = {
           default_amount_cents?: number | null
           display_name?: string | null
           id?: string
+          is_unlisted?: boolean
           tenant_id?: string
-          tuss_code?: string
+          tuss_code?: string | null
         }
         Relationships: [
           {

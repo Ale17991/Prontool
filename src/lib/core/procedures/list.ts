@@ -7,23 +7,26 @@ import type { Database } from '@/lib/db/types'
  */
 export interface ListedProcedure {
   id: string
-  tussCode: string
+  /** null quando isUnlisted=true (procedimento local sem TUSS). */
+  tussCode: string | null
   tussDescription: string | null
   displayName: string | null
   active: boolean
   createdAt: string
   defaultAmountCents: number | null
   coveredByPlan: boolean
+  isUnlisted: boolean
 }
 
 interface JoinedRow {
   id: string
-  tuss_code: string
+  tuss_code: string | null
   display_name: string | null
   active: boolean
   created_at: string
   default_amount_cents: number | null
   covered_by_plan: boolean
+  is_unlisted: boolean
   tuss_codes: { description: string } | null
 }
 
@@ -34,7 +37,7 @@ export async function listProcedures(
   let q = supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, tuss_codes!procedures_tuss_code_fkey(description)',
     )
     .eq('tenant_id', args.tenantId)
     .order('created_at', { ascending: false })
@@ -53,5 +56,6 @@ export async function listProcedures(
     createdAt: r.created_at,
     defaultAmountCents: r.default_amount_cents,
     coveredByPlan: r.covered_by_plan,
+    isUnlisted: r.is_unlisted,
   }))
 }

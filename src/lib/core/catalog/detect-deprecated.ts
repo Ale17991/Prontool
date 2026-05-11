@@ -70,6 +70,9 @@ async function scanDeprecated(
 
   const groups = new Map<string, DeprecatedGroup>()
   for (const p of data) {
+    // Procedimentos "não listados" (migration 0066) não têm tuss_code —
+    // não há TUSS para depreciar.
+    if (p.tuss_code === null || p.tuss_code === undefined) continue
     const retiredOn = retiredMap.get(p.tuss_code)
     if (!retiredOn) continue
     const key = `${p.tenant_id}::${p.tuss_code}`

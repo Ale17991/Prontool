@@ -16,12 +16,13 @@ export const dynamic = 'force-dynamic'
 
 interface JoinedRow {
   id: string
-  tuss_code: string
+  tuss_code: string | null
   display_name: string | null
   active: boolean
   created_at: string
   default_amount_cents: number | null
   covered_by_plan: boolean
+  is_unlisted: boolean
   tuss_codes: { description: string; tuss_table: string; manufacturer: string | null } | null
 }
 
@@ -33,7 +34,7 @@ export default async function ProcedimentosPage() {
   const { data: rawRows, error } = await supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer)',
     )
     .order('created_at', { ascending: false })
     .limit(500)
@@ -108,12 +109,21 @@ export default async function ProcedimentosPage() {
                   {rows.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell className="font-mono text-xs font-bold text-primary">
-                        <div className="flex items-center gap-1.5">
-                          {r.tuss_codes?.tuss_table ? (
-                            <TussTableBadge table={r.tuss_codes.tuss_table as TussTable} />
-                          ) : null}
-                          <span>{r.tuss_code}</span>
-                        </div>
+                        {r.is_unlisted ? (
+                          <Badge
+                            variant="secondary"
+                            className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
+                          >
+                            Não listado
+                          </Badge>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            {r.tuss_codes?.tuss_table ? (
+                              <TussTableBadge table={r.tuss_codes.tuss_table as TussTable} />
+                            ) : null}
+                            <span>{r.tuss_code}</span>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <p className="font-semibold text-slate-900">

@@ -20,6 +20,7 @@ export function NewProcedureForm() {
   const [displayName, setDisplayName] = useState('')
   const [defaultAmount, setDefaultAmount] = useState('')
   const [coveredByPlan, setCoveredByPlan] = useState(true)
+  const [isUnlisted, setIsUnlisted] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -29,9 +30,23 @@ export function NewProcedureForm() {
     setSelected(null)
   }, [tussTable])
 
+  // Ao marcar "Não listado": força particular (covered_by_plan=false por
+  // CHECK da migration 0066) e limpa qualquer seleção TUSS prévia.
+  useEffect(() => {
+    if (isUnlisted) {
+      setCoveredByPlan(false)
+      setSelected(null)
+    }
+  }, [isUnlisted])
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!selected) {
+    if (isUnlisted) {
+      if (displayName.trim().length === 0) {
+        setError('Informe um nome de exibição para o procedimento não listado.')
+        return
+      }
+    } else if (!selected) {
       setError('Selecione um código TUSS.')
       return
     }
@@ -56,10 +71,11 @@ export function NewProcedureForm() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          tuss_code: selected.code,
+          tuss_code: isUnlisted ? null : selected?.code,
           display_name: displayName.trim() || null,
           default_amount_cents: defaultAmountCents,
-          covered_by_plan: coveredByPlan,
+          covered_by_plan: isUnlisted ? false : coveredByPlan,
+          is_unlisted: isUnlisted,
         }),
       })
       if (!res.ok) {
@@ -68,11 +84,13 @@ export function NewProcedureForm() {
         }
         throw new Error(payload.error?.message ?? `HTTP ${res.status}`)
       }
-      setSuccess(`Procedimento ${selected.code} cadastrado.`)
+      const label = isUnlisted ? displayName.trim() : selected?.code
+      setSuccess(`Procedimento ${label} cadastrado.`)
       setSelected(null)
       setDisplayName('')
       setDefaultAmount('')
       setCoveredByPlan(true)
+      setIsUnlisted(false)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -83,62 +101,85 @@ export function NewProcedureForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label className="text-xs">Tipo de item</Label>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de item TUSS">
-          {TUSS_TABLES.map((opt) => {
-            const active = tussTable === opt.value
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => setTussTable(opt.value)}
-                className={cn(
-                  'rounded-md border px-3 py-2 text-left text-xs transition-colors',
-                  active ? opt.selectedClass : 'border-slate-200 bg-white hover:bg-slate-50',
-                )}
-              >
-                <span className="block font-bold text-slate-900">{opt.label}</span>
-                <span className="block text-[10px] text-slate-500">Tabela {opt.value}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label className="text-xs" htmlFor="tuss-typeahead">
-          Código TUSS
-        </Label>
-        <TussTypeahead
-          id="tuss-typeahead"
-          table={tussTable}
-          value={selected}
-          onChange={setSelected}
+      <label className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs">
+        <input
+          type="checkbox"
+          checked={isUnlisted}
+          onChange={(e) => setIsUnlisted(e.target.checked)}
+          className="mt-0.5 h-4 w-4"
         />
-      </div>
+        <span>
+          <span className="font-semibold text-slate-900">Procedimento não listado</span>
+          <span className="block text-slate-500">
+            Marque para cadastrar um procedimento local sem código TUSS oficial.
+            Procedimento será sempre particular e o nome de exibição é obrigatório.
+          </span>
+        </span>
+      </label>
 
-      {selected ? (
-        <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
-              Selecionado
-            </p>
-            <TussTableBadge table={selected.tussTable} />
+      {!isUnlisted ? (
+        <>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Tipo de item</Label>
+            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de item TUSS">
+              {TUSS_TABLES.map((opt) => {
+                const active = tussTable === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setTussTable(opt.value)}
+                    className={cn(
+                      'rounded-md border px-3 py-2 text-left text-xs transition-colors',
+                      active ? opt.selectedClass : 'border-slate-200 bg-white hover:bg-slate-50',
+                    )}
+                  >
+                    <span className="block font-bold text-slate-900">{opt.label}</span>
+                    <span className="block text-[10px] text-slate-500">Tabela {opt.value}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <p className="font-mono text-xs font-bold text-primary">{selected.code}</p>
-          <p className="text-xs text-slate-700">{selected.description}</p>
-          {selected.manufacturer ? (
-            <p className="text-[11px] text-slate-500">{selected.manufacturer}</p>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs" htmlFor="tuss-typeahead">
+              Código TUSS
+            </Label>
+            <TussTypeahead
+              id="tuss-typeahead"
+              table={tussTable}
+              value={selected}
+              onChange={setSelected}
+            />
+          </div>
+
+          {selected ? (
+            <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
+                  Selecionado
+                </p>
+                <TussTableBadge table={selected.tussTable} />
+              </div>
+              <p className="font-mono text-xs font-bold text-primary">{selected.code}</p>
+              <p className="text-xs text-slate-700">{selected.description}</p>
+              {selected.manufacturer ? (
+                <p className="text-[11px] text-slate-500">{selected.manufacturer}</p>
+              ) : null}
+            </div>
           ) : null}
-        </div>
+        </>
       ) : null}
 
       <div className="space-y-1.5">
         <Label htmlFor="display-name" className="text-xs">
-          Nome de exibição <span className="text-slate-400">(opcional)</span>
+          Nome de exibição{' '}
+          <span className="text-slate-400">
+            {isUnlisted ? '(obrigatório)' : '(opcional)'}
+          </span>
         </Label>
         <Input
           id="display-name"
@@ -146,6 +187,7 @@ export function NewProcedureForm() {
           onChange={(e) => setDisplayName(e.target.value)}
           placeholder="Ex.: Consulta fisioterapia (30 min)"
           maxLength={120}
+          required={isUnlisted}
         />
       </div>
 
@@ -165,23 +207,29 @@ export function NewProcedureForm() {
         </p>
       </div>
 
-      <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs">
-        <input
-          type="checkbox"
-          checked={coveredByPlan}
-          onChange={(e) => setCoveredByPlan(e.target.checked)}
-          className="mt-0.5 h-4 w-4"
-        />
-        <span>
-          <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
-          <span className="block text-slate-500">
-            Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas
-            de preço por convênio e usa o valor particular acima no plano de tratamento.
+      {!isUnlisted ? (
+        <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs">
+          <input
+            type="checkbox"
+            checked={coveredByPlan}
+            onChange={(e) => setCoveredByPlan(e.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
+            <span className="block text-slate-500">
+              Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas
+              de preço por convênio e usa o valor particular acima no plano de tratamento.
+            </span>
           </span>
-        </span>
-      </label>
+        </label>
+      ) : null}
 
-      <Button type="submit" disabled={pending || !selected} className="w-full">
+      <Button
+        type="submit"
+        disabled={pending || (!isUnlisted && !selected) || (isUnlisted && displayName.trim().length === 0)}
+        className="w-full"
+      >
         {pending ? 'Salvando…' : 'Cadastrar procedimento'}
       </Button>
 

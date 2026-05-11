@@ -27,12 +27,39 @@ const querySchema = z.object({
     .transform((v) => v === true || v === 'true'),
 })
 
-const createSchema = z.object({
-  tuss_code: z.string().min(1),
-  display_name: z.string().nullable().optional(),
-  default_amount_cents: z.number().int().nonnegative().nullable().optional(),
-  covered_by_plan: z.boolean().optional(),
-})
+const createSchema = z
+  .object({
+    tuss_code: z.string().min(1).nullable().optional(),
+    display_name: z.string().nullable().optional(),
+    default_amount_cents: z.number().int().nonnegative().nullable().optional(),
+    covered_by_plan: z.boolean().optional(),
+    is_unlisted: z.boolean().optional(),
+  })
+  .superRefine((value, ctx) => {
+    const unlisted = value.is_unlisted === true
+    if (unlisted) {
+      if (value.tuss_code !== null && value.tuss_code !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tuss_code'],
+          message: 'tuss_code deve ser null quando is_unlisted=true',
+        })
+      }
+      if (!value.display_name || value.display_name.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['display_name'],
+          message: 'display_name é obrigatório para procedimento não listado',
+        })
+      }
+    } else if (!value.tuss_code) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['tuss_code'],
+        message: 'tuss_code é obrigatório quando is_unlisted=false',
+      })
+    }
+  })
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -77,10 +104,11 @@ export async function POST(req: Request): Promise<Response> {
     try {
       const created = await createProcedure(supabase, {
         tenantId: session.tenantId,
-        tussCode: parsed.data.tuss_code,
+        tussCode: parsed.data.tuss_code ?? null,
         displayName: parsed.data.display_name ?? null,
         defaultAmountCents: parsed.data.default_amount_cents ?? null,
         coveredByPlan: parsed.data.covered_by_plan ?? true,
+        isUnlisted: parsed.data.is_unlisted ?? false,
       })
       return NextResponse.json(
         {
@@ -91,6 +119,7 @@ export async function POST(req: Request): Promise<Response> {
           created_at: created.createdAt,
           default_amount_cents: created.defaultAmountCents,
           covered_by_plan: created.coveredByPlan,
+          is_unlisted: created.isUnlisted,
         },
         { status: 201 },
       )
@@ -101,7 +130,7 @@ export async function POST(req: Request): Promise<Response> {
           actorId: session.userId,
           actorLabel: session.email ? `user:${session.email}` : `user:${session.userId}`,
           entity: 'procedures',
-          reason: `TUSS inválido: ${parsed.data.tuss_code}`,
+          reason: `TUSS inválido: ${parsed.data.tuss_code ?? '(null)'}`,
           result: 'denied',
         })
         return NextResponse.json(
