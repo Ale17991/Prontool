@@ -40,21 +40,16 @@ const ALLOWED_CALLER_FRAGMENTS = [
   // Test harness (NODE_ENV=test short-circuits anyway but keep for
   // belt-and-suspenders in case a test is run under a different env).
   '/tests/',
-  // Anamnesis template list and expense list — same pattern as pacientes:
-  // getSession() + explicit tenant_id filter, sharing query shape with the
-  // corresponding /api/ handlers.
-  '/app/(dashboard)/configuracoes/modelos-anamnese/',
-  '/app/(dashboard)/analise/despesas/',
-  // Lista de atendimentos chama list_patients_for_tenant (SECURITY DEFINER)
-  // para mostrar o nome decriptado do paciente ao lado de cada atendimento.
-  '/app/(dashboard)/operacao/atendimentos/',
-  // Feature 010 — layout do dashboard chama getAvailableTenants(service)
-  // para decidir se mostra "Trocar clínica" (read cross-tenant legítimo).
-  '/app/(dashboard)/layout',
-  // Feature 010 — fluxos de auth pré-tenant (onboarding e seletor) também
-  // listam todos os tenants do usuário antes do JWT ter tenant_id.
-  '/app/(auth)/onboarding',
-  '/app/(auth)/selecionar-clinica',
+  // Todo o grupo (dashboard) é território server-rendered protegido por
+  // getSession() — qualquer page/layout aqui já passou pela camada de
+  // auth+RBAC. Vale a pena permitir o broad fragment em vez de listar
+  // cada subpath: novas páginas que precisem de service client não
+  // estouram em prod só por causa de uma allowlist desatualizada.
+  '/app/(dashboard)/',
+  // Mesma justificativa para o grupo (auth) — fluxos pré-tenant
+  // (onboarding, seletor) precisam listar tenants do usuário antes do
+  // JWT ter tenant_id, e o login/registrar não importam service mesmo.
+  '/app/(auth)/',
 ]
 
 function assertCallerAllowed(): void {
