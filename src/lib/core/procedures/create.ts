@@ -19,7 +19,9 @@ export interface CreateProcedureInput {
   coveredByPlan?: boolean
   /**
    * true = procedimento local sem código TUSS. Migration 0066 exige
-   * tussCode=null + displayName preenchido + coveredByPlan=false.
+   * tussCode=null + displayName preenchido. coveredByPlan é independente
+   * (migration 0067) — pacotes negociados com convênio podem ser
+   * unlisted + covered.
    */
   isUnlisted?: boolean
 }
@@ -60,7 +62,7 @@ export async function createProcedure(
       tuss_code: input.tussCode,
       display_name: input.displayName ?? null,
       default_amount_cents: input.defaultAmountCents ?? null,
-      covered_by_plan: isUnlisted ? false : input.coveredByPlan ?? true,
+      covered_by_plan: input.coveredByPlan ?? true,
       is_unlisted: isUnlisted,
     })
     .select('id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted')

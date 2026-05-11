@@ -30,11 +30,11 @@ export function NewProcedureForm() {
     setSelected(null)
   }, [tussTable])
 
-  // Ao marcar "Não listado": força particular (covered_by_plan=false por
-  // CHECK da migration 0066) e limpa qualquer seleção TUSS prévia.
+  // Ao marcar "Não listado": apenas limpa a seleção TUSS prévia.
+  // Cobertura por plano fica independente — pacotes negociados podem
+  // ser unlisted + cobertos por convênio específico (migration 0067).
   useEffect(() => {
     if (isUnlisted) {
-      setCoveredByPlan(false)
       setSelected(null)
     }
   }, [isUnlisted])
@@ -74,7 +74,7 @@ export function NewProcedureForm() {
           tuss_code: isUnlisted ? null : selected?.code,
           display_name: displayName.trim() || null,
           default_amount_cents: defaultAmountCents,
-          covered_by_plan: isUnlisted ? false : coveredByPlan,
+          covered_by_plan: coveredByPlan,
           is_unlisted: isUnlisted,
         }),
       })
@@ -111,8 +111,8 @@ export function NewProcedureForm() {
         <span>
           <span className="font-semibold text-slate-900">Procedimento não listado</span>
           <span className="block text-slate-500">
-            Marque para cadastrar um procedimento local sem código TUSS oficial.
-            Procedimento será sempre particular e o nome de exibição é obrigatório.
+            Marque para cadastrar um procedimento local sem código TUSS oficial
+            (ex.: pacote negociado com convênio). O nome de exibição é obrigatório.
           </span>
         </span>
       </label>
@@ -207,23 +207,21 @@ export function NewProcedureForm() {
         </p>
       </div>
 
-      {!isUnlisted ? (
-        <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs">
-          <input
-            type="checkbox"
-            checked={coveredByPlan}
-            onChange={(e) => setCoveredByPlan(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
-          />
-          <span>
-            <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
-            <span className="block text-slate-500">
-              Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas
-              de preço por convênio e usa o valor particular acima no plano de tratamento.
-            </span>
+      <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs">
+        <input
+          type="checkbox"
+          checked={coveredByPlan}
+          onChange={(e) => setCoveredByPlan(e.target.checked)}
+          className="mt-0.5 h-4 w-4"
+        />
+        <span>
+          <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
+          <span className="block text-slate-500">
+            Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas
+            de preço por convênio e usa o valor particular acima no plano de tratamento.
           </span>
-        </label>
-      ) : null}
+        </span>
+      </label>
 
       <Button
         type="submit"
