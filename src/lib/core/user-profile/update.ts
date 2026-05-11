@@ -30,7 +30,7 @@ export const userProfilePatchSchema = z.object({
     .min(1)
     .max(64)
     .optional()
-    .refine((v) => v == null || supportedTimezones().has(v), {
+    .refine((v) => v === undefined || supportedTimezones().has(v), {
       message: 'Fuso horário inválido',
     }),
   // Defesa: rejeita explicitamente tentativa de mudar email aqui.

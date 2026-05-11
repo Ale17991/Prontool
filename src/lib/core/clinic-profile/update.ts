@@ -23,8 +23,8 @@ export const clinicProfilePatchSchema = z.object({
     .string()
     .nullable()
     .optional()
-    .transform((v) => (v == null || v === '' ? null : stripCnpj(v)))
-    .refine((v) => v == null || (v.length === 14 && isValidCnpj(v)), {
+    .transform((v) => (v === null || v === undefined || v === '' ? null : stripCnpj(v)))
+    .refine((v) => v === null || v === undefined || (v.length === 14 && isValidCnpj(v)), {
       message: 'CNPJ inválido',
       path: [],
     }),
@@ -43,8 +43,8 @@ export const clinicProfilePatchSchema = z.object({
         .string()
         .nullable()
         .optional()
-        .transform((v) => (v == null || v === '' ? null : v.replace(/\D+/g, '')))
-        .refine((v) => v == null || /^[0-9]{8}$/.test(v), { message: 'CEP inválido' }),
+        .transform((v) => (v === null || v === undefined || v === '' ? null : v.replace(/\D+/g, '')))
+        .refine((v) => v === null || v === undefined || /^[0-9]{8}$/.test(v), { message: 'CEP inválido' }),
       street: optionalString(200),
       number: optionalString(20),
       complement: optionalString(100),
@@ -54,8 +54,8 @@ export const clinicProfilePatchSchema = z.object({
         .string()
         .nullable()
         .optional()
-        .transform((v) => (v == null || v === '' ? null : v.toUpperCase()))
-        .refine((v) => v == null || (UF_CODES as readonly string[]).includes(v), {
+        .transform((v) => (v === null || v === undefined || v === '' ? null : v.toUpperCase()))
+        .refine((v) => v === null || v === undefined || (UF_CODES as readonly string[]).includes(v), {
           message: 'UF inválida',
         }),
     })
@@ -68,8 +68,8 @@ export const clinicProfilePatchSchema = z.object({
         .string()
         .nullable()
         .optional()
-        .transform((v) => (v == null || v === '' ? null : v.toUpperCase()))
-        .refine((v) => v == null || (COUNCIL_CODES as readonly string[]).includes(v), {
+        .transform((v) => (v === null || v === undefined || v === '' ? null : v.toUpperCase()))
+        .refine((v) => v === null || v === undefined || (COUNCIL_CODES as readonly string[]).includes(v), {
           message: 'Conselho inválido',
         }),
       registration: optionalString(30),

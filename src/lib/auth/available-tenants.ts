@@ -39,7 +39,7 @@ export async function getAvailableTenants(
   }
   const rows = (links ?? []).filter((row) => {
     const tenant = (row as { tenants: { status: string } | null }).tenants
-    return tenant != null && tenant.status === 'active'
+    return tenant !== null && tenant.status === 'active'
   })
   if (rows.length === 0) return []
 

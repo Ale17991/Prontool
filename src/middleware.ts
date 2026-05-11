@@ -132,7 +132,7 @@ export async function middleware(req: NextRequest) {
   // Touching getUser refreshes the session and triggers cookie writes
   // on the response when the access token rotates.
   const { data: userData } = await supabase.auth.getUser()
-  const isAuthed = userData.user != null
+  const isAuthed = userData.user !== null
 
   // Feature 010 (R9) — redirects baseados em (autenticação × tenant ativo ×
   // rota). Roda só em rotas server-rendered (não /api/*, não _next, não
@@ -141,7 +141,7 @@ export async function middleware(req: NextRequest) {
     let hasTenant = false
     if (isAuthed) {
       const { data: sessionData } = await supabase.auth.getSession()
-      hasTenant = decodeJwtTenantId(sessionData.session?.access_token ?? null) != null
+      hasTenant = decodeJwtTenantId(sessionData.session?.access_token ?? null) !== null
     }
 
     // Não autenticado em rota interna -> /login.

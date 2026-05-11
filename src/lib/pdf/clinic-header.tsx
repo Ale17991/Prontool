@@ -133,7 +133,7 @@ export function ClinicHeader({ profile, signedLogoUrl, subtitle }: ClinicHeaderP
     <View style={styles.wrap}>
       <View style={styles.logoBox}>
         {signedLogoUrl ? (
-          <Image src={signedLogoUrl} style={styles.logoImage} />
+          <Image src={signedLogoUrl} style={styles.logoImage} alt="" />
         ) : (
           <Text style={styles.logoPlaceholder}>{p.displayName ?? p.corporateName ?? 'Logo'}</Text>
         )}
