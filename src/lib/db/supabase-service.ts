@@ -29,27 +29,24 @@ import type { Database } from './generated/types'
 //   prod: /var/task/.next/server/app/(dashboard)/.../page.js
 // So we drop the `/src` prefix and rely on the route-shaped tail.
 const ALLOWED_CALLER_FRAGMENTS = [
-  // Every Route Handler under /api/ — tenant scoping via requireRole().
-  '/api/',
-  // Scripts and seeds run out-of-band (no request session).
+  // Tudo dentro de /app/ é território Next.js (pages, layouts, route
+  // handlers, route groups). Cada rota já passa por getSession()/requireRole
+  // upstream antes de tocar dados. Listar route group / subpath
+  // individualmente vinha causando 5xx recorrente a cada feature nova.
+  // O guard continua bloqueando o que importa: imports acidentais de
+  // /lib/, /components/, /hooks/ e middleware (lugares onde service
+  // client não tem o que fazer e bypassaria isolamento de tenant).
+  '/app/',
+  // Scripts e seeds rodam out-of-band (sem request session).
   '/scripts/',
   '/supabase/seed/',
-  // Domain helpers that legitimately need cross-tenant reads (catalog
-  // sync dispatches alerts for any tenant affected by a retired code).
+  // Domain helpers que legitimamente precisam de leitura cross-tenant
+  // (catalog sync dispara alertas para qualquer tenant afetado por um
+  // código retirado).
   '/lib/core/catalog/',
-  // Test harness (NODE_ENV=test short-circuits anyway but keep for
-  // belt-and-suspenders in case a test is run under a different env).
+  // Harness de testes (NODE_ENV=test já faz short-circuit, mas mantemos
+  // como cinto-e-suspensório para testes rodando sob env diferente).
   '/tests/',
-  // Todo o grupo (dashboard) é território server-rendered protegido por
-  // getSession() — qualquer page/layout aqui já passou pela camada de
-  // auth+RBAC. Vale a pena permitir o broad fragment em vez de listar
-  // cada subpath: novas páginas que precisem de service client não
-  // estouram em prod só por causa de uma allowlist desatualizada.
-  '/app/(dashboard)/',
-  // Mesma justificativa para o grupo (auth) — fluxos pré-tenant
-  // (onboarding, seletor) precisam listar tenants do usuário antes do
-  // JWT ter tenant_id, e o login/registrar não importam service mesmo.
-  '/app/(auth)/',
 ]
 
 function assertCallerAllowed(): void {
