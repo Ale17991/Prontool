@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { ChevronRight, Filter, Plus, Stethoscope } from 'lucide-react'
+import { ChevronRight, Plus, Stethoscope } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getSession } from '@/lib/auth/get-session'
@@ -9,34 +9,24 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDateTime } from '@/lib/utils'
-import {
-  getDayRange,
-  getMonthRange,
-  getWeekRange,
-  parseIsoDate,
-} from '@/lib/utils/calendar'
 import { listAppointmentsForWeek } from '@/lib/core/appointments/list-week'
-import { AtendimentosToolbar } from './atendimentos-toolbar'
-import { CalendarView } from './calendar/calendar-view'
+import { ModeToggle } from './mode-toggle'
+import { CalendarShell } from './calendar-shell'
+import { FilterBarBlock } from './filter-bar-block'
+import {
+  deriveRange,
+  parseFiltersFromRecord,
+  type CalendarStatus,
+} from './use-calendar-filters'
 import type { DoctorFilterOption } from './calendar/doctor-filter'
 
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
-  searchParams: {
-    from?: string
-    to?: string
-    status?: 'agendado' | 'ativo' | 'estornado' | 'todos'
-    view?: 'list' | 'cal'
-    week?: string
-    grain?: 'day' | 'week' | 'month'
-    doctors?: string
-  }
+  searchParams: Record<string, string | string[] | undefined>
 }
 
 interface AppointmentRow {
@@ -51,32 +41,37 @@ interface AppointmentRow {
   doctors: { full_name: string | null } | null
 }
 
+// UI status (filter-bar) → effective_status do DB (lista). No modo Calendário
+// o list-week unifica por timestamp; aqui aplicamos direto.
+const UI_TO_DB_STATUS: Record<CalendarStatus, 'agendado' | 'ativo' | 'estornado'> = {
+  agendado: 'agendado',
+  realizado: 'ativo',
+  cancelado: 'estornado',
+}
+
 export default async function AtendimentosPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  // View default por dispositivo: querystring tem precedencia, senao cookie,
-  // senao 'cal' (default global da feature 005). Toolbar escreve o cookie ao
-  // alternar para persistir a preferencia entre recargas.
-  const cookieView = cookies().get('prontool_atendimentos_view')?.value
-  const view: 'list' | 'cal' =
-    searchParams.view === 'cal'
-      ? 'cal'
-      : searchParams.view === 'list'
-        ? 'list'
-        : cookieView === 'list'
+  // Mode: querystring > cookie > 'cal'. Cookie legado mantém preferência por
+  // dispositivo entre recargas sem querystring (feature 005).
+  const cookieMode = cookies().get('prontool_atendimentos_view')?.value
+  const modeParam = typeof searchParams.mode === 'string' ? searchParams.mode : null
+  const mode: 'list' | 'cal' =
+    modeParam === 'list'
+      ? 'list'
+      : modeParam === 'cal'
+        ? 'cal'
+        : cookieMode === 'list'
           ? 'list'
           : 'cal'
-  const grain = searchParams.grain ?? 'week'
-  const weekDate = parseIsoDate(searchParams.week) ?? new Date()
-  const selectedDoctors = (searchParams.doctors ?? '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
+
+  const filters = parseFiltersFromRecord(searchParams)
+  const range = deriveRange(filters)
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
-  // Lista de profissionais do tenant para o filtro do calendario.
+  // Profissionais do tenant — alimenta o select do FilterBar em ambos os modos.
   const { data: doctorsRaw } = await supabase
     .from('doctors')
     .select('id, full_name, active')
@@ -84,76 +79,51 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     .order('full_name', { ascending: true })
   const doctorOptions: DoctorFilterOption[] = (
     (doctorsRaw ?? []) as Array<{ id: string; full_name: string; active: boolean | null }>
-  ).map((d) => ({
-    id: d.id,
-    fullName: d.full_name,
-    active: d.active !== false,
-  }))
+  ).map((d) => ({ id: d.id, fullName: d.full_name, active: d.active !== false }))
 
-  if (view === 'cal') {
-    const range =
-      grain === 'day'
-        ? getDayRange(weekDate)
-        : grain === 'month'
-          ? getMonthRange(weekDate)
-          : getWeekRange(weekDate)
+  const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
 
-    const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (mode === 'cal') {
     const service = encryptionKey ? createSupabaseServiceClient() : undefined
     const appointments = await listAppointmentsForWeek(
       supabase,
       {
         tenantId: session.tenantId,
-        weekStart: range.start,
-        weekEnd: range.end,
-        doctorIds: selectedDoctors.length > 0 ? selectedDoctors : undefined,
+        weekStart: range.from,
+        weekEnd: range.to,
+        doctorIds: filters.doctor ? [filters.doctor] : undefined,
       },
       { serviceClient: service, encryptionKey },
     )
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {appointments.length} no período selecionado
-              {selectedDoctors.length > 0 ? (
-                <>
-                  {' '}
-                  · filtrado por{' '}
-                  <span className="font-semibold text-slate-700">
-                    {selectedDoctors.length} profissional
-                    {selectedDoctors.length === 1 ? '' : 'is'}
-                  </span>
-                </>
-              ) : null}
+              {appointments.length} no período carregado
             </p>
           </div>
-          {session.role === 'admin' || session.role === 'recepcionista' ? (
-            <Button asChild>
-              <Link href="/operacao/atendimentos/novo">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo atendimento
-              </Link>
-            </Button>
-          ) : null}
+          <div className="flex items-center gap-2">
+            <ModeToggle mode={mode} />
+            {session.role === 'admin' || session.role === 'recepcionista' ? (
+              <Button asChild>
+                <Link href="/operacao/atendimentos/novo">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
 
-        <AtendimentosToolbar
-          view={view}
-          weekDate={weekDate}
-          grain={grain}
-          doctorOptions={doctorOptions}
-          selectedDoctors={selectedDoctors}
-        />
-
-        <CalendarView range={range} appointments={appointments} />
+        <CalendarShell appointments={appointments} doctors={doctorOptions} />
       </div>
     )
   }
 
-  // ---- Visualização Lista (default) ----
+  // ---- Modo Lista ----
   let query = supabase
     .from('appointments_effective')
     .select(
@@ -164,18 +134,24 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     .order('appointment_at', { ascending: false })
     .limit(200)
 
-  if (searchParams.from) query = query.gte('appointment_at', searchParams.from)
-  if (searchParams.to) query = query.lte('appointment_at', searchParams.to)
-  const statusFilter = searchParams.status ?? 'todos'
-  if (statusFilter !== 'todos') query = query.eq('effective_status', statusFilter)
-  // Filtro multi-profissional vindo do toolbar (mesmo querystring usado no Calendario).
-  if (selectedDoctors.length > 0) query = query.in('doctor_id', selectedDoctors)
+  if (filters.from) {
+    query = query.gte('appointment_at', new Date(`${filters.from}T00:00:00`).toISOString())
+  }
+  if (filters.to) {
+    query = query.lte('appointment_at', new Date(`${filters.to}T23:59:59`).toISOString())
+  }
+  if (filters.status) {
+    query = query.eq('effective_status', UI_TO_DB_STATUS[filters.status])
+  }
+  if (filters.doctor) {
+    query = query.eq('doctor_id', filters.doctor)
+  }
 
   const { data: rawRows, error } = await query
   const rows = (rawRows ?? []) as unknown as AppointmentRow[]
 
+  // Decryption de nomes (mesmo padrão do cal mode via list-week).
   const patientNames = new Map<string, string>()
-  const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (rows.length > 0 && encryptionKey) {
     const patientIds = Array.from(
       new Set(rows.map((r) => r.patient_id).filter((id): id is string => Boolean(id))),
@@ -193,10 +169,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     }
   }
 
-  const reversedCount = rows.filter((r) => r.effective_status === 'estornado').length
-
-  // Carrega contagem de alergias por paciente (badge na lista). Apenas
-  // exibicao clinica — nao bloqueia render se a query falhar.
+  // Contagem de alergias por paciente (badge informativo).
   const allergyCount = new Map<string, number>()
   if (rows.length > 0) {
     const patientIds = Array.from(
@@ -214,17 +187,32 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     }
   }
 
+  // Filtros client-side que não compensam ir pro SQL: paciente está encrypted,
+  // procedimento é substring leve em uma window já paginada (200 rows max).
+  const filteredRows = rows.filter((r) => {
+    if (filters.procedure) {
+      const haystack = `${r.procedures?.tuss_code ?? ''} ${r.procedures?.display_name ?? ''}`.toLowerCase()
+      if (!haystack.includes(filters.procedure.toLowerCase())) return false
+    }
+    if (filters.patient) {
+      const name = r.patient_id ? (patientNames.get(r.patient_id) ?? '').toLowerCase() : ''
+      if (!name.includes(filters.patient.toLowerCase())) return false
+    }
+    return true
+  })
+
+  const reversedCount = filteredRows.filter((r) => r.effective_status === 'estornado').length
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {rows.length} atendimento{rows.length === 1 ? '' : 's'} no período
+            {filteredRows.length} atendimento{filteredRows.length === 1 ? '' : 's'}
             {reversedCount > 0 ? (
               <>
-                {' '}
-                ·{' '}
+                {' '}·{' '}
                 <span className="font-semibold text-rose-600">
                   {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
                 </span>
@@ -232,75 +220,30 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             ) : null}
           </p>
         </div>
-        {session.role === 'admin' || session.role === 'recepcionista' ? (
-          <Button asChild>
-            <Link href="/operacao/atendimentos/novo">
-              <Plus className="mr-2 h-4 w-4" />
-              Novo atendimento
-            </Link>
-          </Button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <ModeToggle mode={mode} />
+          {session.role === 'admin' || session.role === 'recepcionista' ? (
+            <Button asChild>
+              <Link href="/operacao/atendimentos/novo">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
 
-      <AtendimentosToolbar
-        view={view}
-        weekDate={weekDate}
-        grain={grain}
-        doctorOptions={doctorOptions}
-        selectedDoctors={selectedDoctors}
-      />
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Filter className="h-4 w-4 text-primary" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
-            <div className="space-y-1.5">
-              <Label htmlFor="from" className="text-xs">
-                Data inicial
-              </Label>
-              <Input id="from" name="from" type="date" defaultValue={searchParams.from} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="to" className="text-xs">
-                Data final
-              </Label>
-              <Input id="to" name="to" type="date" defaultValue={searchParams.to} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="status" className="text-xs">
-                Status
-              </Label>
-              <select
-                id="status"
-                name="status"
-                defaultValue={statusFilter}
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="todos">Todos</option>
-                <option value="agendado">Agendados</option>
-                <option value="ativo">Ativos</option>
-                <option value="estornado">Cancelados</option>
-              </select>
-            </div>
-            <Button type="submit">Filtrar</Button>
-          </form>
-        </CardContent>
-      </Card>
+      <FilterBarBlock doctors={doctorOptions} />
 
       <Card>
         <CardContent className="p-0">
           {error ? (
             <p className="px-6 py-8 text-sm text-rose-600">Erro ao carregar: {error.message}</p>
-          ) : rows.length === 0 ? (
+          ) : filteredRows.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <Stethoscope className="h-8 w-8 text-slate-300" />
               <p className="text-sm font-medium text-slate-500">
-                Nenhum atendimento encontrado no período.
+                Nenhum atendimento encontrado para os filtros aplicados.
               </p>
             </div>
           ) : (
@@ -318,7 +261,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => {
+                {filteredRows.map((r) => {
                   const startMs = r.appointment_at ? new Date(r.appointment_at).getTime() : null
                   const endIso =
                     startMs !== null
@@ -414,4 +357,3 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     </div>
   )
 }
-

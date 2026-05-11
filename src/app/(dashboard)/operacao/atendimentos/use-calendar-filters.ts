@@ -155,6 +155,12 @@ export interface UseCalendarFiltersResult {
     key: K,
     value: CalendarFilters[K] | null,
   ) => void
+  /**
+   * Batch update — necessário para atalhos que precisam mudar view+date
+   * atomicamente. Chamar setFilter duas vezes em sequência perde a primeira
+   * mudança (closure de `filters` ainda tem o valor anterior).
+   */
+  setFilters: (patch: Partial<CalendarFilters>) => void
   setRange: (from: Date, to: Date) => void
   shiftView: (delta: -1 | 1) => void
   clear: () => void
@@ -197,6 +203,23 @@ export function useCalendarFilters(): UseCalendarFiltersResult {
     [filters, writeFilters],
   )
 
+  const setFilters = useCallback(
+    (patch: Partial<CalendarFilters>) => {
+      const next: CalendarFilters = { ...filters, ...patch }
+      if (
+        ('view' in patch || 'date' in patch) &&
+        (filters.from || filters.to) &&
+        !('from' in patch) &&
+        !('to' in patch)
+      ) {
+        next.from = null
+        next.to = null
+      }
+      writeFilters(next)
+    },
+    [filters, writeFilters],
+  )
+
   const setRange = useCallback(
     (from: Date, to: Date) => {
       writeFilters({
@@ -223,8 +246,27 @@ export function useCalendarFilters(): UseCalendarFiltersResult {
 
   const asQuery = useCallback(() => filtersToParams(filters).toString(), [filters])
 
-  return { filters, range, setFilter, setRange, shiftView, clear, asQuery }
+  return { filters, range, setFilter, setFilters, setRange, shiftView, clear, asQuery }
 }
+
+/**
+ * Server-side parser — usado pelo SSR (page.tsx) para derivar o mesmo
+ * shape que o hook expõe no client. Aceita o `searchParams` da page.
+ */
+export function parseFiltersFromRecord(
+  searchParams: Record<string, string | string[] | undefined>,
+): CalendarFilters {
+  const params = new URLSearchParams()
+  for (const [k, v] of Object.entries(searchParams)) {
+    if (typeof v === 'string') params.set(k, v)
+    else if (Array.isArray(v) && v.length > 0 && typeof v[0] === 'string') {
+      params.set(k, v[0])
+    }
+  }
+  return parseFilters(params)
+}
+
+export { deriveRange }
 
 function isoFromDate(d: Date): string {
   const y = d.getFullYear()

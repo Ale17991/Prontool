@@ -17,6 +17,8 @@ export interface FilterBarProps {
     key: K,
     value: CalendarFilters[K] | null,
   ) => void
+  /** Batch update — atalhos precisam mudar view+date atomicamente. */
+  onChangeFilters: (patch: Partial<CalendarFilters>) => void
   onClear: () => void
 }
 
@@ -26,7 +28,7 @@ const STATUS_OPTIONS: Array<{ value: CalendarStatus; label: string }> = [
   { value: 'cancelado', label: 'Cancelados' },
 ]
 
-export function FilterBar({ filters, doctors, onChangeFilter, onClear }: FilterBarProps) {
+export function FilterBar({ filters, doctors, onChangeFilter, onChangeFilters, onClear }: FilterBarProps) {
   // Debounce nos campos de texto livre — evita disparar router.replace por keystroke.
   const [procedure, setProcedure] = useState(filters.procedure ?? '')
   const [patient, setPatient] = useState(filters.patient ?? '')
@@ -62,26 +64,23 @@ export function FilterBar({ filters, doctors, onChangeFilter, onClear }: FilterB
 
   function applyShortcut(kind: 'today' | 'this-week' | 'this-month' | 'next-week' | 'next-month') {
     const today = new Date()
+    // Batch view+date numa única escrita — chamadas sequenciais perdiam
+    // a primeira mudança porque o closure de filters era o anterior.
     switch (kind) {
       case 'today':
-        onChangeFilter('view', 'dia')
-        onChangeFilter('date', format(today, 'yyyy-MM-dd'))
+        onChangeFilters({ view: 'dia', date: format(today, 'yyyy-MM-dd') })
         return
       case 'this-week':
-        onChangeFilter('view', 'semana')
-        onChangeFilter('date', format(today, 'yyyy-MM-dd'))
+        onChangeFilters({ view: 'semana', date: format(today, 'yyyy-MM-dd') })
         return
       case 'this-month':
-        onChangeFilter('view', 'mes')
-        onChangeFilter('date', format(today, 'yyyy-MM-dd'))
+        onChangeFilters({ view: 'mes', date: format(today, 'yyyy-MM-dd') })
         return
       case 'next-week':
-        onChangeFilter('view', 'semana')
-        onChangeFilter('date', format(addWeeks(today, 1), 'yyyy-MM-dd'))
+        onChangeFilters({ view: 'semana', date: format(addWeeks(today, 1), 'yyyy-MM-dd') })
         return
       case 'next-month':
-        onChangeFilter('view', 'mes')
-        onChangeFilter('date', format(addMonths(today, 1), 'yyyy-MM-dd'))
+        onChangeFilters({ view: 'mes', date: format(addMonths(today, 1), 'yyyy-MM-dd') })
         return
     }
   }
@@ -123,6 +122,41 @@ export function FilterBar({ filters, doctors, onChangeFilter, onClear }: FilterB
             {label}
           </button>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
+        <div className="space-y-1">
+          <Label htmlFor="filter-from" className="text-[11px]">
+            De
+          </Label>
+          <Input
+            id="filter-from"
+            type="date"
+            value={filters.from ?? ''}
+            onChange={(e) => onChangeFilter('from', e.target.value || null)}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="filter-to" className="text-[11px]">
+            Até
+          </Label>
+          <Input
+            id="filter-to"
+            type="date"
+            value={filters.to ?? ''}
+            onChange={(e) => onChangeFilter('to', e.target.value || null)}
+          />
+        </div>
+        {filters.from || filters.to ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="self-end"
+            onClick={() => onChangeFilters({ from: null, to: null })}
+          >
+            <X className="mr-1 h-3 w-3" /> Período
+          </Button>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
