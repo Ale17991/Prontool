@@ -41,16 +41,23 @@ export default async function ProfissionaisPage() {
 
   const supabase = createSupabaseServerClient()
   const rls = supabase as unknown as SupabaseClient<Database>
+  // Defense in depth (incidente 2026-05-11): filtro explícito de tenant_id
+  // mesmo em queries com client RLS-bound. Views podem ter security_invoker
+  // mal-configurado e vazar; o filtro explícito segura.
   const [doctorsRes, headsRes, integrations] = await Promise.all([
     supabase
       .from('doctors')
       .select(
         'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
       )
+      .eq('tenant_id', session.tenantId)
       .order('active', { ascending: false })
       .order('full_name', { ascending: true })
       .limit(500),
-    supabase.from('doctor_commission_current').select('doctor_id, percentage_bps, valid_from'),
+    supabase
+      .from('doctor_commission_current')
+      .select('doctor_id, percentage_bps, valid_from')
+      .eq('tenant_id', session.tenantId),
     getEnabledIntegrations(rls, session.tenantId),
   ])
   const hasGhlIntegration = integrations.some((i) => i.provider === 'ghl')

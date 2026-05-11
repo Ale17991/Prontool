@@ -72,9 +72,11 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
   // Profissionais do tenant — alimenta o select do FilterBar em ambos os modos.
+  // Defense in depth: filtro explícito de tenant_id mesmo com RLS-bound client.
   const { data: doctorsRaw } = await supabase
     .from('doctors')
     .select('id, full_name, active')
+    .eq('tenant_id', session.tenantId)
     .order('active', { ascending: false })
     .order('full_name', { ascending: true })
   const doctorOptions: DoctorFilterOption[] = (
@@ -133,6 +135,9 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   }
 
   // ---- Modo Lista ----
+  // Defense in depth: filtro explícito de tenant_id mesmo na view
+  // appointments_effective. A migration 0068 garante security_invoker=true,
+  // mas o filtro explícito é cinto + suspensório caso RLS falhe.
   let query = supabase
     .from('appointments_effective')
     .select(
@@ -140,6 +145,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
         'procedures:procedure_id(tuss_code, display_name), ' +
         'doctors:doctor_id(full_name)',
     )
+    .eq('tenant_id', session.tenantId)
     .order('appointment_at', { ascending: false })
     .limit(200)
 

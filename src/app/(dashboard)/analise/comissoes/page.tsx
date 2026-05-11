@@ -34,16 +34,20 @@ export default async function ComissoesPage() {
   if (!can(session.role, 'doctor.read')) redirect('/operacao/atendimentos')
 
   const supabase = createSupabaseServerClient()
+  // Defense in depth (incidente 2026-05-11): filtro explícito de tenant_id
+  // em todas as queries de tabelas/views multi-tenant.
   const [headsRes, recentRes] = await Promise.all([
     supabase
       .from('doctor_commission_current')
       .select('doctor_id, percentage_bps, valid_from, doctors(id, full_name, crm, active)')
+      .eq('tenant_id', session.tenantId)
       .order('valid_from', { ascending: false }),
     supabase
       .from('doctor_commission_history')
       .select(
         'id, doctor_id, percentage_bps, valid_from, reason, created_at, doctors(full_name, crm)',
       )
+      .eq('tenant_id', session.tenantId)
       .order('created_at', { ascending: false })
       .limit(25),
   ])
