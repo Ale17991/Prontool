@@ -131,19 +131,28 @@ export async function middleware(req: NextRequest) {
 
   // Touching getUser refreshes the session and triggers cookie writes
   // on the response when the access token rotates.
-  const { data: userData } = await supabase.auth.getUser()
-  const isAuthed = userData.user !== null
+  //
+  // Defense in depth: se getUser()/getSession() jogar exception (cookie
+  // malformed, refresh falhando, supabase unreachable), middleware NÃO
+  // pode quebrar a rota — só "fica neutro" e devolve `res`. Sem isso, um
+  // bug em supabase-js vira 500 universal.
+  let isAuthed = false
+  let hasTenant = false
+  try {
+    const { data: userData } = await supabase.auth.getUser()
+    isAuthed = userData.user !== null
+    if (isAuthed && !isApiRoute(pathname)) {
+      const { data: sessionData } = await supabase.auth.getSession()
+      hasTenant = decodeJwtTenantId(sessionData.session?.access_token ?? null) !== null
+    }
+  } catch {
+    return res
+  }
 
   // Feature 010 (R9) — redirects baseados em (autenticação × tenant ativo ×
   // rota). Roda só em rotas server-rendered (não /api/*, não _next, não
   // estáticos), pra não interferir com endpoints de auth.
   if (!isApiRoute(pathname)) {
-    let hasTenant = false
-    if (isAuthed) {
-      const { data: sessionData } = await supabase.auth.getSession()
-      hasTenant = decodeJwtTenantId(sessionData.session?.access_token ?? null) !== null
-    }
-
     // Não autenticado em rota interna -> /login.
     if (!isAuthed && !isAuthRoute(pathname)) {
       const redirectUrl = req.nextUrl.clone()
