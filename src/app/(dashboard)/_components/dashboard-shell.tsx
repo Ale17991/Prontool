@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState, type ReactNode } from 'react'
 import {
   AlertTriangle,
@@ -27,6 +27,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
 import { can } from '@/lib/auth/rbac'
 import { listFeatureFlags, type FeatureName } from '@/lib/feature-flags'
 import type { TenantRole } from '@/lib/db/types'
@@ -219,9 +220,25 @@ export function DashboardShell({
   children,
 }: DashboardShellProps) {
   const pathname = usePathname() ?? ''
+  const router = useRouter()
   const flags = listFeatureFlags()
   const ctx: NavContext = { role, flags }
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+
+  async function handleSignOut() {
+    if (signingOut) return
+    setSigningOut(true)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      await supabase.auth.signOut()
+    } catch {
+      // Falha no signOut remoto não trava o redirect — middleware vê
+      // sessão inválida na próxima request e força /login.
+    }
+    router.push('/login')
+    router.refresh()
+  }
 
   // Calcula uma vez quais seções/itens aparecem para esta sessão.
   const visibleSections = SECTIONS.map((section) => ({
@@ -299,14 +316,16 @@ export function DashboardShell({
               <Bell className="h-4 w-4" />
             </button>
             <div className="hidden h-6 w-px bg-slate-200 md:block" />
-            <Link
-              href="/login"
-              className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95"
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95 disabled:cursor-wait disabled:opacity-60"
               title="Sair"
             >
               <Lock className="h-3 w-3" />
-              <span className="hidden sm:inline">Sair</span>
-            </Link>
+              <span className="hidden sm:inline">{signingOut ? 'Saindo…' : 'Sair'}</span>
+            </button>
           </div>
         </header>
 
@@ -350,20 +369,32 @@ function SidebarInner({
 }) {
   return (
     <>
-      <div className="mb-8 flex items-center gap-3 text-base font-bold text-white">
-        {clinicLogoUrl ? (
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={clinicLogoUrl} alt="Logo da clínica" className="h-full w-full object-contain" />
-          </div>
-        ) : (
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
-            <Stethoscope className="h-5 w-5 text-white" />
-          </div>
-        )}
-        <span className="truncate tracking-tight" title={clinicName ?? undefined}>
-          {clinicName ?? 'Prontool'}
-        </span>
+      <div className="mb-8 flex flex-col gap-2">
+        <div className="flex items-center gap-3 text-base font-bold text-white">
+          {clinicLogoUrl ? (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={clinicLogoUrl} alt="Logo da clínica" className="h-full w-full object-contain" />
+            </div>
+          ) : (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
+              <Stethoscope className="h-5 w-5 text-white" />
+            </div>
+          )}
+          <span className="truncate tracking-tight" title={clinicName ?? undefined}>
+            {clinicName ?? 'Prontool'}
+          </span>
+        </div>
+        {isMultiTenant ? (
+          <Link
+            href="/selecionar-clinica"
+            onClick={onNavigate}
+            className="inline-flex items-center gap-2 self-start rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <ArrowLeftRight className="h-3 w-3" />
+            <span>Trocar clínica</span>
+          </Link>
+        ) : null}
       </div>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
@@ -405,16 +436,6 @@ function SidebarInner({
             </p>
             <p className="truncate text-[10px] text-slate-500">{labelForRole(role)}</p>
           </div>
-          {isMultiTenant ? (
-            <Link
-              href="/selecionar-clinica"
-              className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-              title="Trocar clínica"
-              onClick={onNavigate}
-            >
-              <ArrowLeftRight className="h-4 w-4" />
-            </Link>
-          ) : null}
         </div>
       </div>
     </>
