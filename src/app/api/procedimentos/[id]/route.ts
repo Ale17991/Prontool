@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { updateProcedure } from '@/lib/core/procedures/update-active'
+import { softDeleteProcedure } from '@/lib/core/procedures/soft-delete'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -59,6 +60,38 @@ export async function PATCH(
         default_amount_cents: updated.defaultAmountCents,
         covered_by_plan: updated.coveredByPlan,
       },
+      { status: 200 },
+    )
+  } catch (err) {
+    return toHttpResponse(err, { route: `/api/procedimentos/${params.id}` })
+  }
+}
+
+/**
+ * DELETE /api/procedimentos/{id} — soft delete (admin only).
+ * Procedimentos referenciados por atendimentos/precos/etapas tem FK
+ * RESTRICT, entao usamos soft delete via deleted_at; o historico
+ * permanece, mas o procedimento some das listagens.
+ */
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
+  try {
+    const session = await requireRole(['admin'], {
+      entity: 'procedures',
+      entityId: params.id,
+      route: `/api/procedimentos/${params.id}`,
+      request: req,
+    })
+    const supabase = createSupabaseServiceClient()
+    const result = await softDeleteProcedure(supabase, {
+      tenantId: session.tenantId,
+      procedureId: params.id,
+      actorUserId: session.userId,
+    })
+    return NextResponse.json(
+      { id: result.id, deleted_at: result.deletedAt },
       { status: 200 },
     )
   } catch (err) {

@@ -55,6 +55,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
     )
     .eq('active', true)
     .eq('covered_by_plan', true)
+    .is('deleted_at', null)
     .order('display_name', { ascending: true, nullsFirst: false })
     .limit(1000)
   if (procRes.error) throw new Error(`procedures lookup: ${procRes.error.message}`)

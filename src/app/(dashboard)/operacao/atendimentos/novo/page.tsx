@@ -43,6 +43,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
           'custom_procedure_codes:custom_code_id(code, description)',
       )
       .eq('active', true)
+      .is('deleted_at', null)
       .order('tuss_code', { ascending: true }),
     listPatients(service, { tenantId: session.tenantId, pageSize: 100 }),
   ])

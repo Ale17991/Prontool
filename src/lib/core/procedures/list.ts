@@ -49,6 +49,7 @@ export async function listProcedures(
         'custom_procedure_codes:custom_code_id(code, description)',
     )
     .eq('tenant_id', args.tenantId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
   if (!args.includeInactive) q = q.eq('active', true)
   if (args.onlyCoveredByPlan) q = q.eq('covered_by_plan', true)

@@ -1599,6 +1599,8 @@ export type Database = {
           created_by: string | null
           custom_code_id: string | null
           default_amount_cents: number | null
+          deleted_at: string | null
+          deleted_by: string | null
           display_name: string | null
           id: string
           is_unlisted: boolean
@@ -1612,6 +1614,8 @@ export type Database = {
           created_by?: string | null
           custom_code_id?: string | null
           default_amount_cents?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           display_name?: string | null
           id?: string
           is_unlisted?: boolean
@@ -1625,6 +1629,8 @@ export type Database = {
           created_by?: string | null
           custom_code_id?: string | null
           default_amount_cents?: number | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           display_name?: string | null
           id?: string
           is_unlisted?: boolean

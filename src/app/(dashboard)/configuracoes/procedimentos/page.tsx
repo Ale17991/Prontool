@@ -6,10 +6,9 @@ import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate } from '@/lib/utils'
 import { NewProcedureForm } from './new-procedure-form'
-import { ToggleActiveButton } from './toggle-active-button'
-import { ProcedureMetaEditor } from './procedure-meta-editor'
+import { ProcedureRowActions } from './procedure-row-actions'
 import { TussTableBadge, type TussTable } from './tuss-table-badge'
 
 export const dynamic = 'force-dynamic'
@@ -40,6 +39,7 @@ export default async function ProcedimentosPage() {
         'tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer), ' +
         'custom_procedure_codes:custom_code_id(code, description)',
     )
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(500)
   const rows = (rawRows ?? []) as unknown as JoinedRow[]
@@ -153,33 +153,22 @@ export default async function ProcedimentosPage() {
                         ) : null}
                       </TableCell>
                       <TableCell>
-                        {canWrite ? (
-                          <ProcedureMetaEditor
-                            procedureId={r.id}
-                            defaultAmountCents={r.default_amount_cents}
-                            coveredByPlan={r.covered_by_plan}
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 text-[11px]">
-                            <Badge
-                              variant={r.covered_by_plan ? 'secondary' : 'outline'}
-                              className={r.covered_by_plan ? '' : 'border-amber-300 text-amber-700'}
-                            >
-                              {r.covered_by_plan ? 'Coberto por planos' : 'Particular'}
-                            </Badge>
-                            <span className="text-slate-500">
-                              Part.:{' '}
-                              <span className="font-bold tabular-nums text-slate-700">
-                                {r.default_amount_cents !== null
-                                  ? new Intl.NumberFormat('pt-BR', {
-                                      style: 'currency',
-                                      currency: 'BRL',
-                                    }).format(r.default_amount_cents / 100)
-                                  : '—'}
-                              </span>
+                        <div className="flex items-center gap-2 text-[11px]">
+                          <Badge
+                            variant={r.covered_by_plan ? 'secondary' : 'outline'}
+                            className={r.covered_by_plan ? '' : 'border-amber-300 text-amber-700'}
+                          >
+                            {r.covered_by_plan ? 'Coberto por planos' : 'Particular'}
+                          </Badge>
+                          <span className="text-slate-500">
+                            Part.:{' '}
+                            <span className="font-bold tabular-nums text-slate-700">
+                              {r.default_amount_cents !== null
+                                ? formatCurrency(r.default_amount_cents)
+                                : '—'}
                             </span>
-                          </div>
-                        )}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="text-slate-700">{formatDate(r.created_at)}</TableCell>
                       <TableCell>
@@ -191,7 +180,18 @@ export default async function ProcedimentosPage() {
                       </TableCell>
                       {canWrite ? (
                         <TableCell className="text-right">
-                          <ToggleActiveButton procedureId={r.id} active={r.active} />
+                          <ProcedureRowActions
+                            procedureId={r.id}
+                            active={r.active}
+                            displayName={r.display_name}
+                            defaultAmountCents={r.default_amount_cents}
+                            coveredByPlan={r.covered_by_plan}
+                            codeLabel={
+                              r.is_unlisted
+                                ? r.custom_procedure_codes?.code ?? 'não listado'
+                                : r.tuss_code ?? '—'
+                            }
+                          />
                         </TableCell>
                       ) : null}
                     </TableRow>

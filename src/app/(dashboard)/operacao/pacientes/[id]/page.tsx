@@ -233,6 +233,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           'custom_procedure_codes:custom_code_id(code, description)',
       )
       .eq('active', true)
+      .is('deleted_at', null)
       .order('display_name', { ascending: true, nullsFirst: false })
       .limit(500),
     supabase
