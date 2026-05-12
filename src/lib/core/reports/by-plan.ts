@@ -3,13 +3,18 @@ import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 
 /**
- * Agregadores para o relatório "Por Plano":
+ * Agregadores para o relatorio "Por Plano":
  *   - summaryByPlan(period) → uma linha por plano com contagem e total
- *   - detailByPlan(planId, period) → tabela linha-a-linha de atendimentos
+ *   - detailByPlan(planId, period) → tabela linha-a-linha de procedimentos
  *
- * Ambos consideram apenas appointments_effective com `effective_status='ativo'`
- * (estornados saem da contagem e do faturamento). Nomes de pacientes vêm
- * decifrados via RPC `decrypt_patient_names_for_ids` (tenant + key).
+ * Apos a feature de multi-procedimento (migration 0069), cada atendimento
+ * pode ter N linhas de procedimento, cada uma com seu proprio plano. As
+ * agregacoes operam sobre `appointment_procedures` joined com
+ * `appointments_effective` (para filtrar estornos).
+ *
+ * Compatibilidade: atendimentos antigos foram backfilled em
+ * appointment_procedures com sequence=1, entao o comportamento e identico
+ * para dados pre-existentes.
  */
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
@@ -51,25 +56,22 @@ export interface PlanDetail {
   } | null
 }
 
-interface SummaryRow {
-  plan_id: string
-  net_amount_cents: number | null
-  effective_status: string | null
-  health_plans: { name: string } | null
-}
-
-interface DetailRow {
+interface ActiveAppointmentRow {
   id: string
-  plan_id: string
   patient_id: string
-  procedure_id: string
   doctor_id: string
   appointment_at: string
-  net_amount_cents: number | null
   effective_status: string | null
-  health_plans: { id: string; name: string } | null
-  procedures: { id: string; tuss_code: string; display_name: string | null } | null
   doctors: { id: string; full_name: string } | null
+}
+
+interface LineRow {
+  appointment_id: string
+  procedure_id: string
+  plan_id: string | null
+  line_amount_cents: number
+  procedures: { id: string; tuss_code: string; display_name: string | null } | null
+  health_plans: { id: string; name: string } | null
 }
 
 interface DecryptedNameRow {
@@ -87,39 +89,33 @@ export async function summaryByPlan(
   const fromTs = `${input.from}T00:00:00Z`
   const toExclusive = nextDayIso(input.to)
 
-  const PAGE_SIZE = 1000
-  const rows: SummaryRow[] = []
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const { data, error } = await supabase
-      .from('appointments_effective')
-      .select('plan_id, net_amount_cents, effective_status, health_plans(name)')
-      .eq('tenant_id', input.tenantId)
-      .gte('appointment_at', fromTs)
-      .lt('appointment_at', toExclusive)
-      .range(offset, offset + PAGE_SIZE - 1)
-    if (error) throw new Error(`summaryByPlan query failed: ${error.message}`)
-    const page = (data ?? []) as unknown as SummaryRow[]
-    rows.push(...page)
-    if (page.length < PAGE_SIZE) break
-  }
+  // 1) Atendimentos ATIVOS no periodo.
+  const activeIds = await fetchActiveAppointmentIds(
+    supabase,
+    input.tenantId,
+    fromTs,
+    toExclusive,
+  )
+  if (activeIds.length === 0) return []
 
+  // 2) Linhas desses atendimentos.
+  const lines = await fetchLines(supabase, input.tenantId, activeIds)
+
+  // 3) Agrega por plano.
   const map = new Map<string, PlanSummaryRow>()
-  for (const r of rows) {
-    if (r.effective_status !== 'ativo') continue
-    const existing = map.get(r.plan_id) ?? {
-      planId: r.plan_id,
-      planName: r.health_plans?.name ?? 'Particular',
+  for (const l of lines) {
+    const key = l.plan_id ?? '__particular__'
+    const existing = map.get(key) ?? {
+      planId: l.plan_id ?? '',
+      planName: l.health_plans?.name ?? 'Particular',
       procedureCount: 0,
       totalRevenueCents: 0,
     }
     existing.procedureCount += 1
-    existing.totalRevenueCents += r.net_amount_cents ?? 0
-    map.set(r.plan_id, existing)
+    existing.totalRevenueCents += l.line_amount_cents
+    map.set(key, existing)
   }
-
-  return Array.from(map.values()).sort(
-    (a, b) => b.totalRevenueCents - a.totalRevenueCents,
-  )
+  return Array.from(map.values()).sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
 }
 
 export async function detailByPlan(
@@ -136,60 +132,81 @@ export async function detailByPlan(
   const fromTs = `${input.from}T00:00:00Z`
   const toExclusive = nextDayIso(input.to)
 
-  const PAGE_SIZE = 1000
-  const raw: DetailRow[] = []
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const { data, error } = await supabase
-      .from('appointments_effective')
-      .select(
-        'id, plan_id, patient_id, procedure_id, doctor_id, appointment_at, net_amount_cents, effective_status, ' +
-          'health_plans:plan_id(id, name), procedures:procedure_id(id, tuss_code, display_name), doctors:doctor_id(id, full_name)',
-      )
-      .eq('tenant_id', input.tenantId)
-      .eq('plan_id', input.planId)
-      .gte('appointment_at', fromTs)
-      .lt('appointment_at', toExclusive)
-      .order('appointment_at', { ascending: true })
-      .order('id', { ascending: true })
-      .range(offset, offset + PAGE_SIZE - 1)
-    if (error) throw new Error(`detailByPlan query failed: ${error.message}`)
-    const page = (data ?? []) as unknown as DetailRow[]
-    raw.push(...page)
-    if (page.length < PAGE_SIZE) break
-  }
-
-  // Filtra ativos antes de decifrar nomes (evita decrypt desnecessário).
-  const active = raw.filter((r) => r.effective_status === 'ativo')
-
-  const planName = active[0]?.health_plans?.name ?? raw[0]?.health_plans?.name ?? null
-  const planFallback = await ensurePlanName(supabase, input.tenantId, input.planId, planName)
-
-  const namesMap = await decryptPatientNames(
+  // 1) Atendimentos ATIVOS no periodo (com dados do profissional).
+  const active = await fetchActiveAppointments(
     supabase,
     input.tenantId,
-    Array.from(new Set(active.map((r) => r.patient_id))),
-    key,
+    fromTs,
+    toExclusive,
   )
+  if (active.length === 0) {
+    const planFallback = await ensurePlanName(supabase, input.tenantId, input.planId, null)
+    return {
+      plan: { id: input.planId, name: planFallback },
+      period: { from: input.from, to: input.to },
+      procedures: [],
+      totals: { procedureCount: 0, totalRevenueCents: 0 },
+      topDoctor: null,
+      topProcedure: null,
+    }
+  }
 
-  const procedures: PlanProcedureRow[] = active.map((r) => ({
-    appointmentId: r.id,
-    appointmentAt: r.appointment_at,
-    patientId: r.patient_id,
-    patientName: namesMap.get(r.patient_id) ?? '—',
-    procedureId: r.procedure_id,
-    tussCode: r.procedures?.tuss_code ?? '',
-    procedureName:
-      r.procedures?.display_name ?? r.procedures?.tuss_code ?? 'Sem nome',
-    doctorId: r.doctor_id,
-    doctorName: r.doctors?.full_name ?? '—',
-    amountCents: r.net_amount_cents ?? 0,
-    status: 'ativo',
-  }))
+  const appointmentById = new Map<string, ActiveAppointmentRow>()
+  for (const a of active) appointmentById.set(a.id, a)
+
+  // 2) Todas as linhas desses atendimentos, FILTRADAS pelo plan_id.
+  const allLines = await fetchLines(
+    supabase,
+    input.tenantId,
+    active.map((a) => a.id),
+  )
+  const lines = allLines.filter((l) => l.plan_id === input.planId)
+
+  // 3) Nome do plano: prioriza um line.health_plans.name; fallback para query.
+  const planName = lines.find((l) => l.health_plans?.name)?.health_plans?.name ?? null
+  const planFallback = await ensurePlanName(supabase, input.tenantId, input.planId, planName)
+
+  // 4) Decifra nomes de pacientes (somente dos atendimentos com linhas).
+  const patientIds = Array.from(
+    new Set(
+      lines
+        .map((l) => appointmentById.get(l.appointment_id)?.patient_id)
+        .filter((v): v is string => typeof v === 'string'),
+    ),
+  )
+  const namesMap = await decryptPatientNames(supabase, input.tenantId, patientIds, key)
+
+  // 5) Monta linhas do relatorio (uma linha = uma procedure_line).
+  const procedures: PlanProcedureRow[] = lines.map((l) => {
+    const a = appointmentById.get(l.appointment_id)
+    return {
+      appointmentId: l.appointment_id,
+      appointmentAt: a?.appointment_at ?? '',
+      patientId: a?.patient_id ?? '',
+      patientName: a?.patient_id ? namesMap.get(a.patient_id) ?? '—' : '—',
+      procedureId: l.procedure_id,
+      tussCode: l.procedures?.tuss_code ?? '',
+      procedureName: l.procedures?.display_name ?? l.procedures?.tuss_code ?? 'Sem nome',
+      doctorId: a?.doctor_id ?? '',
+      doctorName: a?.doctors?.full_name ?? '—',
+      amountCents: l.line_amount_cents,
+      status: 'ativo' as const,
+    }
+  })
+
+  // Ordem: appointment_at ASC, depois appointment_id.
+  procedures.sort((a, b) => {
+    if (a.appointmentAt < b.appointmentAt) return -1
+    if (a.appointmentAt > b.appointmentAt) return 1
+    if (a.appointmentId < b.appointmentId) return -1
+    if (a.appointmentId > b.appointmentId) return 1
+    return 0
+  })
 
   const procedureCount = procedures.length
   const totalRevenueCents = procedures.reduce((acc, p) => acc + p.amountCents, 0)
 
-  // Top doctor + top procedure por contagem
+  // Top doctor + top procedure
   const doctorCounts = new Map<string, { doctorId: string; doctorName: string; count: number }>()
   const procedureCounts = new Map<
     string,
@@ -228,6 +245,95 @@ export async function detailByPlan(
   }
 }
 
+async function fetchActiveAppointmentIds(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  fromTs: string,
+  toExclusive: string,
+): Promise<string[]> {
+  const PAGE_SIZE = 1000
+  const ids: string[] = []
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('appointments_effective')
+      .select('id, effective_status')
+      .eq('tenant_id', tenantId)
+      .gte('appointment_at', fromTs)
+      .lt('appointment_at', toExclusive)
+      .range(offset, offset + PAGE_SIZE - 1)
+    if (error) throw new Error(`fetchActiveAppointmentIds failed: ${error.message}`)
+    const page = (data ?? []) as Array<{ id: string; effective_status: string | null }>
+    for (const r of page) {
+      if (r.effective_status === 'ativo') ids.push(r.id)
+    }
+    if (page.length < PAGE_SIZE) break
+  }
+  return ids
+}
+
+async function fetchActiveAppointments(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  fromTs: string,
+  toExclusive: string,
+): Promise<ActiveAppointmentRow[]> {
+  const PAGE_SIZE = 1000
+  const rows: ActiveAppointmentRow[] = []
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('appointments_effective')
+      .select(
+        'id, patient_id, doctor_id, appointment_at, effective_status, doctors:doctor_id(id, full_name)',
+      )
+      .eq('tenant_id', tenantId)
+      .gte('appointment_at', fromTs)
+      .lt('appointment_at', toExclusive)
+      .range(offset, offset + PAGE_SIZE - 1)
+    if (error) throw new Error(`fetchActiveAppointments failed: ${error.message}`)
+    const page = (data ?? []) as unknown as ActiveAppointmentRow[]
+    for (const r of page) {
+      if (r.effective_status === 'ativo') rows.push(r)
+    }
+    if (page.length < PAGE_SIZE) break
+  }
+  return rows
+}
+
+async function fetchLines(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  appointmentIds: string[],
+): Promise<LineRow[]> {
+  if (appointmentIds.length === 0) return []
+  const PAGE_SIZE = 1000
+  const CHUNK = 500
+  const all: LineRow[] = []
+  for (let i = 0; i < appointmentIds.length; i += CHUNK) {
+    const ids = appointmentIds.slice(i, i + CHUNK)
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const { data, error } = await supabase
+        .from('appointment_procedures' as never)
+        .select(
+          'appointment_id, procedure_id, plan_id, line_amount_cents, ' +
+            'procedures:procedure_id(id, tuss_code, display_name), health_plans:plan_id(id, name)',
+        )
+        .eq('tenant_id', tenantId)
+        .in('appointment_id', ids)
+        .range(offset, offset + PAGE_SIZE - 1)
+      if (error) {
+        if (/relation .*appointment_procedures.* does not exist/i.test(error.message)) {
+          return []
+        }
+        throw new Error(`fetchLines failed: ${error.message}`)
+      }
+      const page = (data ?? []) as unknown as LineRow[]
+      all.push(...page)
+      if (page.length < PAGE_SIZE) break
+    }
+  }
+  return all
+}
+
 async function decryptPatientNames(
   supabase: SupabaseClient<Database>,
   tenantId: string,
@@ -257,9 +363,9 @@ async function ensurePlanName(
   supabase: SupabaseClient<Database>,
   tenantId: string,
   planId: string,
-  fromAppointments: string | null,
+  fromQuery: string | null,
 ): Promise<string> {
-  if (fromAppointments) return fromAppointments
+  if (fromQuery) return fromQuery
   const { data } = await supabase
     .from('health_plans')
     .select('name')

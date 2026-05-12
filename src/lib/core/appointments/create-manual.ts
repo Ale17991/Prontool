@@ -5,52 +5,65 @@ import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'
 
 /**
- * Create an appointment manually (admin/recepcionista flow) — no raw_webhook_event.
- * Mirrors create-from-event.ts but takes IDs directly instead of resolving
- * them from a GHL payload. Price and commission are resolved against the
- * vigente versions and frozen into the row (Principle I / append-only).
+ * Cria um atendimento manualmente (admin/recepcionista) com N procedimentos.
  *
- * `amountCentsOverride` allows the operator to record a value different
- * from the vigente table (e.g., paciente particular pagou menos). The
- * `source_price_version_id` still points to the version that WAS vigente,
- * preserving the audit trail. The override itself is appended to audit_log
- * by the caller via appointment.price_override — this function does not
- * touch audit_log directly (keeps it pure).
+ * Cada item em `procedures` representa uma linha (procedimento + plano +
+ * valor congelado). A primeira linha (index 0 → sequence=1) e denormalizada
+ * em appointments.procedure_id/plan_id/source_price_version_id (mantem
+ * compatibilidade com o trigger enforce_appointment_preconditions, com a
+ * UI legada e com o auto-link FIFO em treatment_plan_steps).
+ *
+ * appointments.frozen_amount_cents = SUM(line_amount_cents).
+ * Comissao e doctor-centric: uma taxa para o atendimento inteiro.
+ *
+ * `amountCentsOverride` por linha permite registrar valor diferente do
+ * vigente em price_versions (ex.: paciente particular pagou menos). O
+ * source_price_version_id aponta para o vigente; o override fica
+ * registrado em `amount_was_overridden=true`.
  */
+export interface ProcedureLineInput {
+  procedureId: string
+  /** UUID do plano OU null = linha particular. */
+  planId: string | null
+  /** Quando ausente, usa preco vigente (convenio) ou default_amount_cents (particular). */
+  amountCentsOverride?: number
+}
+
+export interface ResolvedProcedureLine {
+  procedureId: string
+  planId: string | null
+  sourcePriceVersionId: string | null
+  lineAmountCents: number
+  vigenteAmountCents: number
+  amountWasOverridden: boolean
+  sequence: number
+}
+
 export interface CreateManualAppointmentInput {
   tenantId: string
   actorUserId: string
   patientId: string
   doctorId: string
-  procedureId: string
-  /** UUID do plano OU null = atendimento particular. */
-  planId: string | null
+  /** Pelo menos uma linha. A primeira vira a linha "primaria" (sequence=1). */
+  procedures: ProcedureLineInput[]
   /** ISO-8601 UTC. */
   appointmentAt: string
-  amountCentsOverride?: number
-  /** Duracao em minutos, 5-480. Quando ausente, persiste NULL e a leitura usa default 30. */
   durationMinutes?: number
   observacoes?: string
-  /**
-   * Materiais opcionais (TUSS tabela 19). Quando informado e nao-vazio,
-   * o atendimento e criado via RPC create_appointment_with_materials
-   * (atomicidade garantida pela transacao implicita do PostgreSQL).
-   */
+  /** Materiais opcionais (TUSS tabela 19). Feature 007. */
   materials?: Array<{ tussCode: string; tussDescription: string; quantity: number }>
 }
 
 export interface CreateManualAppointmentResult {
   appointmentId: string
+  /** Soma dos line_amount_cents. */
   frozenAmountCents: number
   frozenCommissionBps: number
-  /** Null em atendimento particular. */
-  priceVersionId: string | null
   commissionHistoryId: string
-  amountWasOverridden: boolean
-  /** Em atendimento particular: default_amount_cents do procedimento (ou 0 se ausente). */
-  vigenteAmountCents: number
-  isParticular: boolean
-  /** Quando o input incluiu `materials`, quantidade efetivamente persistida. */
+  proceduresCount: number
+  /** Quantidade de linhas com override aplicado. */
+  proceduresOverridden: number
+  lines: ResolvedProcedureLine[]
   materialsCount?: number
 }
 
@@ -62,113 +75,138 @@ export async function createAppointmentManually(
   if (Number.isNaN(when.getTime())) {
     throw new DomainError('INVALID_BODY', 'appointment_at is not a valid ISO timestamp')
   }
-  // Datas no futuro sao permitidas — viram atendimentos com status 'agendado'
-  // na view appointments_effective. Quando NOW() ultrapassa o appointment_at,
-  // o status muda para 'ativo' automaticamente (sem UPDATE no registro).
 
-  const isParticular = input.planId === null
+  if (!input.procedures || input.procedures.length === 0) {
+    throw new DomainError('PROCEDURES_REQUIRED', 'Informe ao menos um procedimento.', {
+      status: 400,
+    })
+  }
 
-  // Validate every FK lives in the same tenant. Cross-tenant → 404 per contract.
-  // health_plan check pulado quando particular.
+  // Pre-valida FKs do paciente, profissional e cada procedimento/plano por
+  // linha — em paralelo, mas single-shot por linha (N pequeno).
+  const distinctProcedureIds = Array.from(new Set(input.procedures.map((p) => p.procedureId)))
+  const distinctPlanIds = Array.from(
+    new Set(
+      input.procedures
+        .map((p) => p.planId)
+        .filter((v): v is string => typeof v === 'string'),
+    ),
+  )
+
   const fkChecks: Array<Promise<void>> = [
     ensureBelongsToTenant(supabase, 'patients', input.patientId, input.tenantId, 'PATIENT_NOT_FOUND'),
     ensureBelongsToTenant(supabase, 'doctors', input.doctorId, input.tenantId, 'DOCTOR_NOT_FOUND'),
-    ensureBelongsToTenant(
-      supabase,
-      'procedures',
-      input.procedureId,
-      input.tenantId,
-      'PROCEDURE_NOT_FOUND',
+    ...distinctProcedureIds.map((pid) =>
+      ensureBelongsToTenant(supabase, 'procedures', pid, input.tenantId, 'PROCEDURE_NOT_FOUND'),
+    ),
+    ...distinctPlanIds.map((plid) =>
+      ensureBelongsToTenant(supabase, 'health_plans', plid, input.tenantId, 'PLAN_NOT_FOUND'),
     ),
   ]
-  if (input.planId) {
-    fkChecks.push(
-      ensureBelongsToTenant(supabase, 'health_plans', input.planId, input.tenantId, 'PLAN_NOT_FOUND'),
-    )
-  }
   await Promise.all(fkChecks)
 
-  // Validate the procedure's TUSS code is still vigente + carrega default_amount_cents
-  // (usado como sugestao em atendimento particular).
-  const procedure = await supabase
+  // Carrega TUSS de cada procedimento — valida vigencia.
+  const procedureRows = await supabase
     .from('procedures')
-    .select('tuss_code, default_amount_cents')
-    .eq('id', input.procedureId)
-    .single()
-  if (procedure.error || !procedure.data) {
-    throw new NotFoundError('procedures', input.procedureId)
+    .select('id, tuss_code, default_amount_cents')
+    .in('id', distinctProcedureIds)
+  if (procedureRows.error) {
+    throw new Error(`procedures lookup failed: ${procedureRows.error.message}`)
   }
-  const tussCode = procedure.data.tuss_code as string
-  const tuss = await supabase
-    .from('tuss_codes')
-    .select('code, valid_to')
-    .eq('code', tussCode)
-    .maybeSingle()
-  if (!tuss.data) {
-    throw new DomainError('TUSS_CODE_UNKNOWN', `TUSS code ${tussCode} absent from catalog`)
-  }
-  const today = new Date().toISOString().slice(0, 10)
-  if (tuss.data.valid_to && tuss.data.valid_to < today) {
-    throw new TussCodeRetiredError(tussCode, tuss.data.valid_to)
+  const procedureById = new Map<string, { tussCode: string; defaultAmountCents: number | null }>()
+  for (const r of (procedureRows.data ?? []) as Array<{
+    id: string
+    tuss_code: string
+    default_amount_cents: number | null
+  }>) {
+    procedureById.set(r.id, {
+      tussCode: r.tuss_code,
+      defaultAmountCents: r.default_amount_cents,
+    })
   }
 
-  // Resolve preco + comissao. Particular pula price_versions.
+  const today = new Date().toISOString().slice(0, 10)
+  const tussRows = await supabase
+    .from('tuss_codes')
+    .select('code, valid_to')
+    .in('code', Array.from(new Set(Array.from(procedureById.values()).map((p) => p.tussCode))))
+  if (tussRows.error) {
+    throw new Error(`tuss_codes lookup failed: ${tussRows.error.message}`)
+  }
+  const tussByCode = new Map<string, { validTo: string | null }>()
+  for (const r of (tussRows.data ?? []) as Array<{ code: string; valid_to: string | null }>) {
+    tussByCode.set(r.code, { validTo: r.valid_to })
+  }
+  for (const [, p] of procedureById) {
+    const t = tussByCode.get(p.tussCode)
+    if (!t) {
+      throw new DomainError('TUSS_CODE_UNKNOWN', `TUSS code ${p.tussCode} absent from catalog`)
+    }
+    if (t.validTo && t.validTo < today) {
+      throw new TussCodeRetiredError(p.tussCode, t.validTo)
+    }
+  }
+
+  // Resolve comissao do profissional (doctor-centric, vale para o atendimento inteiro).
   const commission = await resolveCommission(supabase, {
     tenantId: input.tenantId,
     doctorId: input.doctorId,
     asOf: when,
   })
 
-  let priceVersionId: string | null = null
-  let vigenteAmountCents = 0
-  if (input.planId !== null) {
-    const price = await resolvePrice(supabase, {
-      tenantId: input.tenantId,
-      procedureId: input.procedureId,
-      planId: input.planId,
-      asOf: when,
+  // Resolve preco linha-a-linha.
+  const lines: ResolvedProcedureLine[] = []
+  let proceduresOverridden = 0
+  for (let i = 0; i < input.procedures.length; i++) {
+    const raw = input.procedures[i]!
+    const proc = procedureById.get(raw.procedureId)
+    if (!proc) {
+      throw new NotFoundError('procedures', raw.procedureId)
+    }
+    let sourcePriceVersionId: string | null = null
+    let vigenteAmountCents = 0
+    if (raw.planId !== null) {
+      const price = await resolvePrice(supabase, {
+        tenantId: input.tenantId,
+        procedureId: raw.procedureId,
+        planId: raw.planId,
+        asOf: when,
+      })
+      sourcePriceVersionId = price.priceVersionId
+      vigenteAmountCents = price.amountCents
+    } else {
+      vigenteAmountCents = proc.defaultAmountCents ?? 0
+    }
+    const lineAmount =
+      raw.amountCentsOverride !== undefined ? raw.amountCentsOverride : vigenteAmountCents
+    if (lineAmount <= 0) {
+      throw new DomainError(
+        'PROCEDURE_LINE_AMOUNT_REQUIRED',
+        `Valor obrigatorio para procedimento ${proc.tussCode}. Sem valor particular cadastrado e nenhum override informado.`,
+        { status: 400 },
+      )
+    }
+    const overridden =
+      raw.amountCentsOverride !== undefined && raw.amountCentsOverride !== vigenteAmountCents
+    if (overridden) proceduresOverridden++
+
+    lines.push({
+      procedureId: raw.procedureId,
+      planId: raw.planId,
+      sourcePriceVersionId,
+      lineAmountCents: lineAmount,
+      vigenteAmountCents,
+      amountWasOverridden: overridden,
+      sequence: i + 1,
     })
-    priceVersionId = price.priceVersionId
-    vigenteAmountCents = price.amountCents
-  } else {
-    // Particular: usa default_amount_cents do procedimento como sugestao.
-    vigenteAmountCents = (procedure.data.default_amount_cents as number | null) ?? 0
   }
 
-  const amountToFreeze =
-    input.amountCentsOverride !== undefined ? input.amountCentsOverride : vigenteAmountCents
-  if (amountToFreeze <= 0) {
-    throw new DomainError(
-      'PARTICULAR_AMOUNT_REQUIRED',
-      'Valor obrigatorio. Procedimento sem valor particular cadastrado e nenhum override foi informado.',
-      { status: 400 },
-    )
-  }
-  const overridden =
-    input.amountCentsOverride !== undefined && input.amountCentsOverride !== vigenteAmountCents
+  const totalCents = lines.reduce((acc, l) => acc + l.lineAmountCents, 0)
 
-  const baseRow = {
-    tenant_id: input.tenantId,
-    patient_id: input.patientId,
-    doctor_id: input.doctorId,
-    procedure_id: input.procedureId,
-    plan_id: input.planId, // null em atendimento particular
-    source_price_version_id: priceVersionId, // null em atendimento particular
-    source_commission_history_id: commission.commissionHistoryId,
-    source_raw_event_id: null,
-    frozen_amount_cents: amountToFreeze,
-    frozen_commission_bps: commission.percentageBps,
-    appointment_at: when.toISOString(),
-    source: 'manual',
-    observacoes: input.observacoes ?? null,
-  }
-
-  // Caminho com materiais (feature 007): cria appointment + N rows em
-  // appointment_materials atomicamente via RPC. Pre-validacao TUSS
-  // aqui (defesa redundante ao trigger SQL) para erro mais cedo.
-  const hasMaterials = !!input.materials && input.materials.length > 0
-  if (hasMaterials) {
-    const codes = input.materials!.map((m) => m.tussCode)
+  // Materiais — pre-validacao (defesa redundante ao trigger SQL).
+  let materialsPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> = []
+  if (input.materials && input.materials.length > 0) {
+    const codes = input.materials.map((m) => m.tussCode)
     const valid = await supabase
       .from('tuss_codes')
       .select('code')
@@ -176,8 +214,6 @@ export async function createAppointmentManually(
       .eq('tuss_table', '19')
       .is('valid_to', null)
     if (valid.error) {
-      // Se a coluna tuss_table nao existir (improvavel — migration 0037 antiga)
-      // ou houver erro genuino, falha cedo.
       throw new Error(`pre-validate materials TUSS failed: ${valid.error.message}`)
     }
     const validSet = new Set((valid.data ?? []).map((r) => r.code as string))
@@ -189,117 +225,44 @@ export async function createAppointmentManually(
         { status: 400 },
       )
     }
+    materialsPayload = input.materials.map((m) => ({
+      tuss_code: m.tussCode,
+      tuss_description: m.tussDescription,
+      quantity: m.quantity,
+    }))
+  }
 
-    const rpc = await supabase.rpc('create_appointment_with_materials' as never, {
+  // Cria appointment + linhas + materiais atomicamente via RPC.
+  const proceduresPayload = lines.map((l) => ({
+    procedure_id: l.procedureId,
+    plan_id: l.planId,
+    source_price_version_id: l.sourcePriceVersionId,
+    line_amount_cents: l.lineAmountCents,
+    vigente_amount_cents: l.vigenteAmountCents,
+    amount_was_overridden: l.amountWasOverridden,
+    sequence: l.sequence,
+  }))
+
+  const rpc = await supabase.rpc(
+    'create_appointment_with_procedures_and_materials' as never,
+    {
       p_tenant_id: input.tenantId,
       p_patient_id: input.patientId,
       p_doctor_id: input.doctorId,
-      p_procedure_id: input.procedureId,
-      p_plan_id: input.planId,
-      p_source_price_version_id: priceVersionId,
-      p_source_commission_history_id: commission.commissionHistoryId,
-      p_frozen_amount_cents: amountToFreeze,
-      p_frozen_commission_bps: commission.percentageBps,
       p_appointment_at: when.toISOString(),
       p_duration_minutes: input.durationMinutes ?? null,
       p_observacoes: input.observacoes ?? null,
       p_source: 'manual',
       p_actor: input.actorUserId,
-      p_materials: input.materials!.map((m) => ({
-        tuss_code: m.tussCode,
-        tuss_description: m.tussDescription,
-        quantity: m.quantity,
-      })),
-    } as never)
+      p_procedures: proceduresPayload,
+      p_frozen_commission_bps: commission.percentageBps,
+      p_source_commission_history_id: commission.commissionHistoryId,
+      p_materials: materialsPayload,
+    } as never,
+  )
 
-    if (rpc.error) {
-      const msg = rpc.error.message ?? ''
-      if (/APPOINTMENT_CONFLICT/i.test(msg) || /exclusion_violation/i.test(msg)) {
-        throw new DomainError(
-          'APPOINTMENT_CONFLICT',
-          'Já existe atendimento para este profissional no horário escolhido.',
-          { status: 409 },
-        )
-      }
-      if (/MATERIAL_TUSS_INVALID/i.test(msg)) {
-        throw new DomainError(
-          'MATERIAL_TUSS_INVALID',
-          'Código TUSS não pertence à tabela de materiais ou não está vigente.',
-          { status: 400 },
-        )
-      }
-      throw new Error(`createAppointmentWithMaterials RPC failed: ${msg}`)
-    }
-
-    const data = rpc.data as { appointment_id: string; materials_count: number } | null
-    if (!data?.appointment_id) {
-      throw new Error('createAppointmentWithMaterials: empty response')
-    }
-
-    return {
-      appointmentId: data.appointment_id,
-      frozenAmountCents: amountToFreeze,
-      frozenCommissionBps: commission.percentageBps,
-      priceVersionId,
-      commissionHistoryId: commission.commissionHistoryId,
-      amountWasOverridden: overridden,
-      vigenteAmountCents,
-      isParticular,
-      materialsCount: data.materials_count,
-    }
-  }
-
-  // Caminho atual (sem materiais) — preservado backward-compatible.
-  // Tenta inserir com duration_minutes (migration 0053). Se a coluna nao
-  // existir no ambiente atual (migration ainda nao aplicada), tenta de novo
-  // sem o campo — preserva o registro do atendimento e perde apenas a
-  // duracao customizada (UI cai no default de 30 min na leitura).
-  let inserted = await supabase
-    .from('appointments')
-    .insert({
-      ...baseRow,
-      duration_minutes: input.durationMinutes ?? null,
-    } as never)
-    .select('id')
-    .single()
-
-  // Fallbacks graciosos para colunas adicionadas em migrations posteriores
-  // que talvez ainda nao tenham aplicado em todos os ambientes.
-  if (
-    inserted.error &&
-    /(duration_minutes|observacoes)/i.test(inserted.error.message) &&
-    /does not exist/i.test(inserted.error.message)
-  ) {
-    // Remove campos opcionais e tenta de novo. O atendimento e gravado;
-    // perdem-se apenas duracao customizada e observacoes (na UI essas
-    // viram default/empty na leitura).
-    const fallbackRow = {
-      tenant_id: baseRow.tenant_id,
-      patient_id: baseRow.patient_id,
-      doctor_id: baseRow.doctor_id,
-      procedure_id: baseRow.procedure_id,
-      plan_id: baseRow.plan_id,
-      source_price_version_id: baseRow.source_price_version_id,
-      source_commission_history_id: baseRow.source_commission_history_id,
-      source_raw_event_id: baseRow.source_raw_event_id,
-      frozen_amount_cents: baseRow.frozen_amount_cents,
-      frozen_commission_bps: baseRow.frozen_commission_bps,
-      appointment_at: baseRow.appointment_at,
-      source: baseRow.source,
-    }
-    inserted = await supabase
-      .from('appointments')
-      .insert(fallbackRow as never)
-      .select('id')
-      .single()
-  }
-
-  if (inserted.error || !inserted.data) {
-    const msg = inserted.error?.message ?? ''
-    // Trigger appointments_create_slot_lock levanta SQLSTATE 23P01 com prefixo
-    // APPOINTMENT_CONFLICT quando ha overlap com outro atendimento ativo do
-    // mesmo profissional. Convertemos para DomainError 409 — toHttpResponse
-    // ja mapeia para HTTP 409 com payload.
+  if (rpc.error) {
+    const msg = rpc.error.message ?? ''
     if (/APPOINTMENT_CONFLICT/i.test(msg) || /exclusion_violation/i.test(msg)) {
       throw new DomainError(
         'APPOINTMENT_CONFLICT',
@@ -307,44 +270,75 @@ export async function createAppointmentManually(
         { status: 409 },
       )
     }
-    throw new Error(`createAppointmentManually insert failed: ${msg}`)
+    if (/PROCEDURE_LINE_PRICE_MISSING/i.test(msg)) {
+      throw new DomainError(
+        'APPOINTMENT_PRICE_MISSING',
+        'Algum procedimento nao tem preco vigente cadastrado para o plano informado.',
+        { status: 400 },
+      )
+    }
+    if (/PROCEDURE_LINE_TUSS_RETIRED/i.test(msg)) {
+      throw new DomainError(
+        'TUSS_CODE_RETIRED',
+        'Algum procedimento tem TUSS retirado do catalogo.',
+        { status: 400 },
+      )
+    }
+    if (/MATERIAL_TUSS_INVALID/i.test(msg)) {
+      throw new DomainError(
+        'MATERIAL_TUSS_INVALID',
+        'Código TUSS não pertence à tabela de materiais ou não está vigente.',
+        { status: 400 },
+      )
+    }
+    throw new Error(`createAppointmentWithProceduresAndMaterials RPC failed: ${msg}`)
   }
 
-  // Auto-link FIFO: se existe etapa pendente do mesmo (patient, procedure)
-  // sem appointment vinculado, cria o vinculo (column-guard relaxado aceita
-  // SET appointment_id quando OLD e NULL — one-shot link).
-  // Falha silenciosa: vincular e nice-to-have, atendimento ja foi criado.
-  try {
-    const linkable = await supabase
-      .from('treatment_plan_steps')
-      .select('id')
-      .eq('tenant_id', input.tenantId)
-      .eq('patient_id', input.patientId)
-      .eq('procedure_id', input.procedureId)
-      .eq('status', 'pendente')
-      .is('appointment_id', null)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-    if (linkable.data) {
-      await supabase
+  const data = rpc.data as {
+    appointment_id: string
+    procedures_count: number
+    materials_count: number
+    frozen_amount_cents: number
+  } | null
+  if (!data?.appointment_id) {
+    throw new Error('createAppointmentWithProceduresAndMaterials: empty response')
+  }
+
+  // Auto-link FIFO: para cada procedureId distinto, vincular a etapa
+  // pendente do mesmo (patient, procedure) sem appointment. Best-effort.
+  for (const pid of distinctProcedureIds) {
+    try {
+      const linkable = await supabase
         .from('treatment_plan_steps')
-        .update({ appointment_id: inserted.data.id } as never)
-        .eq('id', linkable.data.id)
+        .select('id')
+        .eq('tenant_id', input.tenantId)
+        .eq('patient_id', input.patientId)
+        .eq('procedure_id', pid)
+        .eq('status', 'pendente')
+        .is('appointment_id', null)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+      if (linkable.data) {
+        await supabase
+          .from('treatment_plan_steps')
+          .update({ appointment_id: data.appointment_id } as never)
+          .eq('id', linkable.data.id)
+      }
+    } catch {
+      // best-effort; ignora.
     }
-  } catch {
-    // ignora — atendimento foi criado, vinculo opcional
   }
 
   return {
-    appointmentId: inserted.data.id,
-    frozenAmountCents: amountToFreeze,
+    appointmentId: data.appointment_id,
+    frozenAmountCents: totalCents,
     frozenCommissionBps: commission.percentageBps,
-    priceVersionId,
     commissionHistoryId: commission.commissionHistoryId,
-    amountWasOverridden: overridden,
-    vigenteAmountCents,
-    isParticular,
+    proceduresCount: data.procedures_count,
+    proceduresOverridden,
+    lines,
+    materialsCount: data.materials_count,
   }
 }
 

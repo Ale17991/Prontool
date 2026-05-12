@@ -107,30 +107,51 @@ export async function createAppointmentFromEvent(
     asOf: appointmentAt,
   })
 
-  const inserted = await supabase
-    .from('appointments')
-    .insert({
-      tenant_id: tenantId,
-      patient_id: patientId,
-      doctor_id: doctorId,
-      procedure_id: procedureId,
-      plan_id: planId,
-      source_price_version_id: price.priceVersionId,
-      source_commission_history_id: commission.commissionHistoryId,
-      source_raw_event_id: input.rawEventId,
-      frozen_amount_cents: price.amountCents,
-      frozen_commission_bps: commission.percentageBps,
-      appointment_at: appointmentAt.toISOString(),
-    })
-    .select('id')
-    .single()
+  // Webhooks GHL trazem 1 procedimento — usamos a RPC nova com uma unica
+  // linha. Mantem appointment_procedures como source-of-truth uniforme
+  // (mesmo padrao do fluxo manual com multiplos procedimentos).
+  // p_source_raw_event_id ativa o unique index (tenant_id, source_raw_event_id)
+  // garantindo idempotencia (webhook delivery duplicado nao gera dup).
+  const inserted = await supabase.rpc(
+    'create_appointment_with_procedures_and_materials' as never,
+    {
+      p_tenant_id: tenantId,
+      p_patient_id: patientId,
+      p_doctor_id: doctorId,
+      p_appointment_at: appointmentAt.toISOString(),
+      p_duration_minutes: null,
+      p_observacoes: null,
+      p_source: 'ghl',
+      p_actor: input.actorId ?? '00000000-0000-0000-0000-000000000001',
+      p_procedures: [
+        {
+          procedure_id: procedureId,
+          plan_id: planId,
+          source_price_version_id: price.priceVersionId,
+          line_amount_cents: price.amountCents,
+          vigente_amount_cents: price.amountCents,
+          amount_was_overridden: false,
+          sequence: 1,
+        },
+      ],
+      p_frozen_commission_bps: commission.percentageBps,
+      p_source_commission_history_id: commission.commissionHistoryId,
+      p_materials: [],
+      p_source_raw_event_id: input.rawEventId,
+    } as never,
+  )
 
-  if (inserted.error || !inserted.data) {
-    throw new Error(`createAppointmentFromEvent insert failed: ${inserted.error?.message}`)
+  if (inserted.error) {
+    throw new Error(`createAppointmentFromEvent RPC failed: ${inserted.error.message}`)
+  }
+
+  const data = inserted.data as { appointment_id: string } | null
+  if (!data?.appointment_id) {
+    throw new Error('createAppointmentFromEvent: empty response')
   }
 
   return {
-    appointmentId: inserted.data.id,
+    appointmentId: data.appointment_id,
     frozenAmountCents: price.amountCents,
     frozenCommissionBps: commission.percentageBps,
     priceVersionId: price.priceVersionId,

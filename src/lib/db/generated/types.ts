@@ -300,6 +300,101 @@ export type Database = {
           },
         ]
       }
+      appointment_procedures: {
+        Row: {
+          amount_was_overridden: boolean
+          appointment_id: string
+          created_at: string
+          created_by: string
+          id: string
+          line_amount_cents: number
+          plan_id: string | null
+          procedure_id: string
+          sequence: number
+          source_price_version_id: string | null
+          tenant_id: string
+          vigente_amount_cents: number
+        }
+        Insert: {
+          amount_was_overridden?: boolean
+          appointment_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          line_amount_cents: number
+          plan_id?: string | null
+          procedure_id: string
+          sequence: number
+          source_price_version_id?: string | null
+          tenant_id: string
+          vigente_amount_cents: number
+        }
+        Update: {
+          amount_was_overridden?: boolean
+          appointment_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          line_amount_cents?: number
+          plan_id?: string | null
+          procedure_id?: string
+          sequence?: number
+          source_price_version_id?: string | null
+          tenant_id?: string
+          vigente_amount_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_procedures_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_procedures_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_procedures_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_procedures_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_procedures_source_price_version_id_fkey"
+            columns: ["source_price_version_id"]
+            isOneToOne: false
+            referencedRelation: "price_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_procedures_source_price_version_id_fkey"
+            columns: ["source_price_version_id"]
+            isOneToOne: false
+            referencedRelation: "price_versions_with_vigencia"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_procedures_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_reversals: {
         Row: {
           appointment_id: string
@@ -1950,6 +2045,32 @@ export type Database = {
           },
         ]
       }
+      user_active_tenant: {
+        Row: {
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_active_tenant_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profile: {
         Row: {
           avatar_path: string | null
@@ -1979,32 +2100,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      user_active_tenant: {
-        Row: {
-          tenant_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          tenant_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          tenant_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_active_tenant_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_tenants: {
         Row: {
@@ -2420,16 +2515,6 @@ export type Database = {
         Returns: Json
       }
       auth_hook_custom_claims: { Args: { event: Json }; Returns: Json }
-      create_first_tenant: {
-        Args: {
-          p_user_id: string
-          p_name: string
-          p_slug: string
-          p_cnpj?: string | null
-          p_phone?: string | null
-        }
-        Returns: string
-      }
       create_appointment_with_materials: {
         Args: {
           p_actor: string
@@ -2449,6 +2534,34 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: Json
+      }
+      create_appointment_with_procedures_and_materials: {
+        Args: {
+          p_actor: string
+          p_appointment_at: string
+          p_doctor_id: string
+          p_duration_minutes: number
+          p_frozen_commission_bps: number
+          p_materials: Json
+          p_observacoes: string
+          p_patient_id: string
+          p_procedures: Json
+          p_source: string
+          p_source_commission_history_id: string
+          p_source_raw_event_id?: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      create_first_tenant: {
+        Args: {
+          p_cnpj?: string
+          p_name: string
+          p_phone?: string
+          p_slug: string
+          p_user_id: string
+        }
+        Returns: string
       }
       create_price_version: {
         Args: {

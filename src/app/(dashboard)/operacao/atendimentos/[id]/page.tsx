@@ -30,6 +30,10 @@ import {
   listAppointmentMaterials,
   type AppointmentMaterial,
 } from '@/lib/core/appointments/materials'
+import {
+  listAppointmentProcedures,
+  type AppointmentProcedureLine,
+} from '@/lib/core/appointments/procedures'
 import { ReversalForm } from './reversal-form'
 import { MarkRealizedForm } from './mark-realized-form'
 
@@ -116,6 +120,19 @@ export default async function AtendimentoDetailPage({
       })
     } catch {
       // ignore — sub-bloco nao renderiza
+    }
+  }
+
+  // Procedimentos (feature multi-procedimento — 0069). Best-effort.
+  let procedureLines: AppointmentProcedureLine[] = []
+  if (appointment.id) {
+    try {
+      procedureLines = await listAppointmentProcedures(supabase, {
+        appointmentId: appointment.id,
+        tenantId: session.tenantId,
+      })
+    } catch {
+      // ignore — fallback para o procedimento singular legado
     }
   }
 
@@ -215,7 +232,9 @@ export default async function AtendimentoDetailPage({
             {appointment.doctors?.full_name ?? '—'}
           </ClinicalRow>
           <ClinicalRow icon={ClipboardList} label="Procedimento">
-            {formatProcedure(appointment.procedures)}
+            {procedureLines.length > 1
+              ? `${procedureLines.length} procedimentos (ver lista abaixo)`
+              : formatProcedure(appointment.procedures)}
           </ClinicalRow>
           <ClinicalRow icon={ClipboardList} label="Observações">
             {appointment.observacoes?.trim() ? (
@@ -229,6 +248,62 @@ export default async function AtendimentoDetailPage({
 
       {/* ---- Card de destaque: alergias do paciente ---- */}
       <AllergiesCard allergies={allergies} />
+
+      {procedureLines.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Procedimentos ({procedureLines.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">#</TableHead>
+                  <TableHead className="w-28">TUSS</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Plano</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {procedureLines.map((line) => (
+                  <TableRow key={line.id}>
+                    <TableCell className="text-xs text-slate-500">{line.sequence}</TableCell>
+                    <TableCell className="font-mono text-xs font-bold">
+                      {line.procedureTussCode ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {line.procedureDisplayName ?? '(sem nome)'}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {line.planId === null ? (
+                        <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-800">
+                          Particular
+                        </span>
+                      ) : (
+                        line.planName ?? '—'
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs tabular-nums">
+                      {formatCurrency(line.lineAmountCents)}
+                      {line.amountWasOverridden ? (
+                        <span
+                          className="ml-1 text-[10px] text-amber-700"
+                          title={`Vigente: ${formatCurrency(line.vigenteAmountCents)}`}
+                        >
+                          ★
+                        </span>
+                      ) : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {materials.length > 0 ? (
         <Card>

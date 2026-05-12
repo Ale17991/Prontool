@@ -85,8 +85,8 @@ export async function createFirstTenant(
         p_user_id: userId,
         p_name: name,
         p_slug: effectiveSlug,
-        p_cnpj: cnpj ?? null,
-        p_phone: phone ?? null,
+        p_cnpj: cnpj ?? undefined,
+        p_phone: phone ?? undefined,
       })
       if (error) {
         // Race com outro tenant criado entre nextAvailableSlug e a RPC →

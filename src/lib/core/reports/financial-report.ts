@@ -107,6 +107,15 @@ interface AppointmentRow {
   procedures: { tuss_code: string; display_name: string | null } | null
 }
 
+interface ProcedureLineRow {
+  appointment_id: string
+  procedure_id: string
+  plan_id: string | null
+  line_amount_cents: number
+  procedures: { tuss_code: string; display_name: string | null } | null
+  health_plans: { name: string } | null
+}
+
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
 export async function buildFinancialReport(
@@ -129,9 +138,16 @@ export async function buildFinancialReport(
     fetchExpenses(supabase, input.tenantId, previousPeriod.from, previousPeriod.to),
   ])
 
-  const revenueByPlan = aggregateByPlan(current)
+  // Linhas de procedimento dos atendimentos ativos no periodo (feature
+  // multi-procedimento). Quando todos os atendimentos sao single-line, o
+  // resultado e identico ao agregado anterior; quando ha multi-procedimento,
+  // cada linha contribui sob seu proprio plano.
+  const activeIds = current.filter((r) => r.effective_status === 'ativo').map((r) => r.id)
+  const lines = await fetchProcedureLines(supabase, input.tenantId, activeIds)
+
+  const revenueByPlan = aggregateByPlanFromLines(lines)
   const topDoctors = aggregateTopDoctors(current, 5)
-  const topProcedures = aggregateTopProcedures(current, 10)
+  const topProcedures = aggregateTopProceduresFromLines(lines, 10)
   const expensesByCategory = aggregateExpensesByCategory(expenses)
   const dailyRevenue = aggregateDailyRevenue(current, input.from, input.to)
 
@@ -230,20 +246,33 @@ async function fetchAppointmentsTotals(
   return { grossRevenueCents: gross, commissionsCents: comm, appointmentCount: rows.length }
 }
 
-function aggregateByPlan(rows: AppointmentRow[]): RevenueByPlanRow[] {
-  const totalGross = rows.reduce((acc, r) => acc + (r.net_amount_cents ?? 0), 0)
+function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RevenueByPlanRow[] {
+  const totalGross = lines.reduce((acc, l) => acc + l.line_amount_cents, 0)
   const map = new Map<string, RevenueByPlanRow>()
-  for (const r of rows) {
-    const existing = map.get(r.plan_id) ?? {
-      planId: r.plan_id,
-      planName: r.health_plans?.name ?? 'Particular',
+  // Para appointmentCount por plano: contamos atendimentos distintos que
+  // contem AO MENOS uma linha sob esse plano.
+  const planAppointments = new Map<string, Set<string>>()
+  for (const l of lines) {
+    const key = l.plan_id ?? '__particular__'
+    const existing = map.get(key) ?? {
+      planId: l.plan_id ?? '',
+      planName: l.health_plans?.name ?? 'Particular',
       appointmentCount: 0,
       grossRevenueCents: 0,
       marketSharePct: 0,
     }
-    existing.appointmentCount += 1
-    existing.grossRevenueCents += r.net_amount_cents ?? 0
-    map.set(r.plan_id, existing)
+    existing.grossRevenueCents += l.line_amount_cents
+    map.set(key, existing)
+
+    let set = planAppointments.get(key)
+    if (!set) {
+      set = new Set()
+      planAppointments.set(key, set)
+    }
+    set.add(l.appointment_id)
+  }
+  for (const [key, row] of map) {
+    row.appointmentCount = planAppointments.get(key)?.size ?? 0
   }
   const out = Array.from(map.values())
   for (const row of out) {
@@ -271,23 +300,66 @@ function aggregateTopDoctors(rows: AppointmentRow[], limit: number): DoctorRanki
     .slice(0, limit)
 }
 
-function aggregateTopProcedures(rows: AppointmentRow[], limit: number): ProcedureRankingRow[] {
+function aggregateTopProceduresFromLines(
+  lines: ProcedureLineRow[],
+  limit: number,
+): ProcedureRankingRow[] {
   const map = new Map<string, ProcedureRankingRow>()
-  for (const r of rows) {
-    const existing = map.get(r.procedure_id) ?? {
-      procedureId: r.procedure_id,
-      procedureName: r.procedures?.display_name ?? r.procedures?.tuss_code ?? '—',
-      tussCode: r.procedures?.tuss_code ?? '',
+  for (const l of lines) {
+    const existing = map.get(l.procedure_id) ?? {
+      procedureId: l.procedure_id,
+      procedureName: l.procedures?.display_name ?? l.procedures?.tuss_code ?? '—',
+      tussCode: l.procedures?.tuss_code ?? '',
       count: 0,
       totalCents: 0,
     }
     existing.count += 1
-    existing.totalCents += r.net_amount_cents ?? 0
-    map.set(r.procedure_id, existing)
+    existing.totalCents += l.line_amount_cents
+    map.set(l.procedure_id, existing)
   }
   return Array.from(map.values())
     .sort((a, b) => b.count - a.count || b.totalCents - a.totalCents)
     .slice(0, limit)
+}
+
+async function fetchProcedureLines(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  appointmentIds: string[],
+): Promise<ProcedureLineRow[]> {
+  if (appointmentIds.length === 0) return []
+
+  const PAGE_SIZE = 1000
+  const all: ProcedureLineRow[] = []
+  // appointment_ids pode ser grande — paginamos com .in() em chunks
+  // (PostgREST aceita ate ~2000 elementos por IN, mas usamos 500 como seguro).
+  const CHUNK = 500
+  for (let i = 0; i < appointmentIds.length; i += CHUNK) {
+    const ids = appointmentIds.slice(i, i + CHUNK)
+    for (let offset = 0; ; offset += PAGE_SIZE) {
+      const { data, error } = await supabase
+        .from('appointment_procedures' as never)
+        .select(
+          'appointment_id, procedure_id, plan_id, line_amount_cents, ' +
+            'procedures:procedure_id(tuss_code, display_name), health_plans:plan_id(name)',
+        )
+        .eq('tenant_id', tenantId)
+        .in('appointment_id', ids)
+        .range(offset, offset + PAGE_SIZE - 1)
+      if (error) {
+        // Ambiente sem migration 0069 — retorna vazio. O reportador
+        // ainda gera as outras secoes (topDoctors, totals, etc.).
+        if (/relation .*appointment_procedures.* does not exist/i.test(error.message)) {
+          return []
+        }
+        throw new Error(`fetchProcedureLines failed: ${error.message}`)
+      }
+      const page = (data ?? []) as unknown as ProcedureLineRow[]
+      all.push(...page)
+      if (page.length < PAGE_SIZE) break
+    }
+  }
+  return all
 }
 
 interface ExpenseAggregation {

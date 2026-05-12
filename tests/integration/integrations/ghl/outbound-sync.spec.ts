@@ -188,8 +188,7 @@ describe.skip('US3 — GHL outbound sync via event bus (legacy proxy path — re
         body: JSON.stringify({
           patient_id: pat!.id,
           doctor_id: doctorId,
-          procedure_id: procedureId,
-          plan_id: planId,
+          procedures: [{ procedure_id: procedureId, plan_id: planId }],
           appointment_at: new Date(Date.now() - 60_000).toISOString(),
         }),
       }),
@@ -250,8 +249,7 @@ describe.skip('US3 — GHL outbound sync via event bus (legacy proxy path — re
         body: JSON.stringify({
           patient_id: pat!.id,
           doctor_id: doctorId,
-          procedure_id: procedureId,
-          plan_id: planId,
+          procedures: [{ procedure_id: procedureId, plan_id: planId }],
           appointment_at: new Date(Date.now() - 60_000).toISOString(),
         }),
       }),

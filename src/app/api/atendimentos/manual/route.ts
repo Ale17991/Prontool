@@ -9,10 +9,15 @@ import { toHttpResponse } from '@/lib/observability/http'
 /**
  * POST /api/atendimentos/manual — Registro manual de atendimento (US1).
  *
- * Independente de webhook. `source='manual'` no banco. Após o INSERT,
- * publica `appointment.created` no event bus — que é noop em modo
- * standalone (zero integrações habilitadas) e fan-out para adapters em
- * modo conectado (US3).
+ * Aceita N procedimentos por atendimento (multi-linha). Cada linha pode
+ * ter seu proprio plano (ou ser particular). Total congelado = soma das
+ * linhas. Comissao continua doctor-centric (uma taxa para o atendimento
+ * inteiro).
+ *
+ * Apos o INSERT, publica `appointment.created` no event bus. Para
+ * adapters externos (GHL outbound), expoe o procedimento da linha primaria
+ * — adapters single-procedure continuam funcionando, e o consumidor
+ * que quiser ver todas as linhas le diretamente de appointment_procedures.
  */
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -23,13 +28,19 @@ const materialItemSchema = z.object({
   quantity: z.number().int().positive().default(1),
 })
 
+const procedureLineSchema = z.object({
+  procedure_id: z.string().uuid(),
+  /** null = linha particular nesta linha (independente do plano do atendimento). */
+  plan_id: z.string().uuid().nullable(),
+  /** Quando ausente, usa preco vigente do (procedure, plan) ou default_amount_cents (particular). */
+  amount_cents_override: z.number().int().min(0).optional(),
+})
+
 const bodySchema = z.object({
   patient_id: z.string().uuid(),
   doctor_id: z.string().uuid(),
-  procedure_id: z.string().uuid(),
-  plan_id: z.string().uuid().nullable(),
+  procedures: z.array(procedureLineSchema).min(1).max(20),
   appointment_at: z.string().datetime(),
-  amount_cents_override: z.number().int().min(0).optional(),
   duration_minutes: z.number().int().min(5).max(480).optional(),
   observacoes: z.string().trim().max(500).optional(),
   /** Materiais opcionais (TUSS tabela 19). Feature 007. */
@@ -72,18 +83,20 @@ export async function POST(req: Request): Promise<Response> {
       actorUserId: session.userId,
       patientId: parsed.data.patient_id,
       doctorId: parsed.data.doctor_id,
-      procedureId: parsed.data.procedure_id,
-      planId: parsed.data.plan_id,
+      procedures: parsed.data.procedures.map((p) => ({
+        procedureId: p.procedure_id,
+        planId: p.plan_id,
+        amountCentsOverride: p.amount_cents_override,
+      })),
       appointmentAt: parsed.data.appointment_at,
-      amountCentsOverride: parsed.data.amount_cents_override,
       durationMinutes: parsed.data.duration_minutes,
       observacoes: parsed.data.observacoes,
       materials: materialsInput,
     })
 
-    // Build snapshots for the event bus. Patient/appointment detail is
-    // adapter-visible; PII fields stay masked for standalone path that
-    // never invokes an adapter.
+    // Snapshot da linha primaria para event bus (single-procedure adapters).
+    const primary = result.lines[0]!
+
     const patient = await supabase
       .from('patients')
       .select('id, tenant_id, plan_id, ghl_contact_id')
@@ -97,9 +110,9 @@ export async function POST(req: Request): Promise<Response> {
         tenantId: session.tenantId,
         patientId: parsed.data.patient_id,
         doctorId: parsed.data.doctor_id,
-        procedureId: parsed.data.procedure_id,
+        procedureId: primary.procedureId,
         procedureTussCode: '',
-        planId: parsed.data.plan_id,
+        planId: primary.planId,
         appointmentAt: parsed.data.appointment_at,
         frozenAmountCents: result.frozenAmountCents,
         source: 'manual',
@@ -124,6 +137,7 @@ export async function POST(req: Request): Promise<Response> {
         frozen_amount_cents: result.frozenAmountCents,
         frozen_commission_bps: result.frozenCommissionBps,
         appointment_at: parsed.data.appointment_at,
+        procedures_count: result.proceduresCount,
         integrations_dispatched: integrationsDispatched,
         ...(result.materialsCount !== undefined ? { materials_count: result.materialsCount } : {}),
       },

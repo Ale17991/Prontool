@@ -14,15 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  LocalProcedureTypeahead,
-  type LocalProcedureOption,
-} from '@/components/tuss/local-procedure-typeahead'
+import { type LocalProcedureOption } from '@/components/tuss/local-procedure-typeahead'
 import {
   MateriaisEditor,
   validateMaterials,
   type MaterialDraft,
 } from '@/components/atendimentos/materiais-editor'
+import {
+  ProcedurasEditor,
+  createEmptyLine,
+  validateProcedures,
+  type ProcedureLineDraft,
+} from '@/components/atendimentos/procedimentos-editor'
 
 export interface FormOption {
   id: string
@@ -71,28 +74,24 @@ export function NewAppointmentForm({
   const router = useRouter()
   const [patientId, setPatientId] = useState('')
   const [doctorId, setDoctorId] = useState('')
-  const [procedureId, setProcedureId] = useState('')
+  const [defaultPlanId, setDefaultPlanId] = useState<string | null>(null)
+  const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>(() => [
+    createEmptyLine(null),
+  ])
   const [materiais, setMateriais] = useState<MaterialDraft[]>([])
-  const [planId, setPlanId] = useState('')
-  const [particular, setParticular] = useState(false)
-  const [particularLocked, setParticularLocked] = useState(false)
-  const [particularUserOverride, setParticularUserOverride] = useState(false)
   const [appointmentAt, setAppointmentAt] = useState(
     () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
   )
   const [endTime, setEndTime] = useState<string>(() => {
-    // default = início + 30 min
     const start = normalizeInitialAt(initialAppointmentAt) ?? localIsoNow()
     return addMinutesToHHMM(start.slice(11), 30)
   })
-  const [amountReais, setAmountReais] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const [conflictWarning, setConflictWarning] = useState<string | null>(null)
 
-  // Duracao derivada de start/end.
   const durationMinutes = computeDurationMinutes(appointmentAt, endTime)
 
   // Pagamento
@@ -104,42 +103,13 @@ export function NewAppointmentForm({
     new Date().toISOString().slice(0, 10),
   )
 
-  // Auto-detect "Atendimento particular":
-  //   - procedimento com covered_by_plan = false → forca particular (lock).
-  //   - paciente sem plano → particular default (sem lock; user pode mudar).
-  //   - paciente com plano + procedimento coberto → desmarcado (default).
-  // Override manual do user prevalece (sai do auto-detect).
+  // Quando o paciente muda, atualiza o plano default usado por novas linhas.
   useEffect(() => {
-    const selectedPatient = patients.find((p) => p.id === patientId)
-    const selectedProcedure = procedures.find((p) => p.id === procedureId)
-
-    // Lock: procedimento nao coberto sempre forca particular.
-    if (selectedProcedure && selectedProcedure.coveredByPlan === false) {
-      setParticular(true)
-      setParticularLocked(true)
-      setParticularUserOverride(false)
-      return
-    }
-    setParticularLocked(false)
-
-    // Sem override manual, deduz pelo paciente.
-    if (particularUserOverride) return
-    if (!selectedPatient) {
-      setParticular(false)
-      return
-    }
-    setParticular(selectedPatient.planId === null)
-  }, [patientId, procedureId, patients, procedures, particularUserOverride])
-
-  // Pre-seleciona plano do paciente sempre que o paciente muda.
-  // Permanece editavel: usuario pode trocar plano ou marcar particular.
-  // Trocar de paciente reseta para o plano dele (ou vazio se nao tem).
-  useEffect(() => {
-    const selectedPatient = patients.find((p) => p.id === patientId)
-    setPlanId(selectedPatient?.planId ?? '')
+    const p = patients.find((x) => x.id === patientId)
+    setDefaultPlanId(p?.planId ?? null)
   }, [patientId, patients])
 
-  // Recalcula datas das parcelas quando o número muda.
+  // Recalcula datas das parcelas quando o numero muda.
   useEffect(() => {
     if (installmentsCount <= 0) return
     const today = new Date()
@@ -213,61 +183,20 @@ export function NewAppointmentForm({
     }
   }, [doctorId, appointmentAt, endTime])
 
-  // Sugere o valor:
-  //   - Convenio (planId presente, !particular): busca /api/precos/vigente
-  //   - Particular: usa procedure.defaultAmountCents
-  useEffect(() => {
-    if (!procedureId) return
-    if (particular) {
-      const proc = procedures.find((p) => p.id === procedureId)
-      if (proc?.defaultAmountCents !== null && proc?.defaultAmountCents !== undefined && amountReais === '') {
-        setAmountReais((proc.defaultAmountCents / 100).toFixed(2))
-      }
-      return
-    }
-    if (!planId) return
-    ;(async () => {
-      try {
-        const params = new URLSearchParams({
-          plan_id: planId,
-          procedure_id: procedureId,
-        })
-        const res = await fetch(`/api/precos/vigente?${params.toString()}`)
-        if (!res.ok) return
-        const body = (await res.json()) as { amountCents?: number | null }
-        if (typeof body.amountCents === 'number' && amountReais === '') {
-          setAmountReais((body.amountCents / 100).toFixed(2))
-        }
-      } catch {
-        /* sugestão best-effort — ignora */
-      }
-    })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planId, procedureId, particular])
-
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
-    if (!patientId || !doctorId || !procedureId) {
-      setError('Preencha paciente, profissional e procedimento.')
+    if (!patientId || !doctorId) {
+      setError('Selecione paciente e profissional.')
       return
     }
-    if (!particular && !planId) {
-      setError('Selecione o plano de saude ou marque "Atendimento particular".')
+
+    const validatedProcedures = validateProcedures(procedureLines)
+    if (!validatedProcedures) {
+      setError('Preencha procedimento, plano e valor (> 0) em todas as linhas.')
       return
     }
-    if (particular) {
-      const proc = procedures.find((p) => p.id === procedureId)
-      const overrideValid =
-        amountReais.trim().length > 0 &&
-        Number(amountReais.replace(',', '.').replace(/\./g, '')) > 0
-      if ((proc?.defaultAmountCents === null || proc?.defaultAmountCents === undefined || proc.defaultAmountCents <= 0) && !overrideValid) {
-        setError(
-          'Valor particular não cadastrado para este procedimento. Informe o valor manualmente.',
-        )
-        return
-      }
-    }
+
     const whenIso = new Date(appointmentAt).toISOString()
     const endIso = computeEndIso(appointmentAt, endTime)
     if (!endIso || new Date(endIso).getTime() <= new Date(whenIso).getTime()) {
@@ -278,26 +207,20 @@ export function NewAppointmentForm({
       setError(conflictWarning + ' Ajuste o horário antes de salvar.')
       return
     }
-    // Datas futuras sao permitidas — o atendimento entra como 'agendado'
-    // na agenda e migra para 'ativo' automaticamente quando o horario chega.
 
     const payload: Record<string, unknown> = {
       patient_id: patientId,
       doctor_id: doctorId,
-      procedure_id: procedureId,
-      plan_id: particular ? null : planId,
+      procedures: validatedProcedures.map((p) => ({
+        procedure_id: p.procedureId,
+        plan_id: p.planId,
+        amount_cents_override: p.amountCentsOverride,
+      })),
       appointment_at: whenIso,
       duration_minutes: clampDuration(durationMinutes),
     }
-    if (amountReais) {
-      const cents = Math.round(Number(amountReais.replace(',', '.')) * 100)
-      if (Number.isFinite(cents) && cents >= 0) {
-        payload.amount_cents_override = cents
-      }
-    }
     if (observacoes.trim()) payload.observacoes = observacoes.trim().slice(0, 500)
 
-    // Materiais opcionais (feature 007). Validacao local antes do submit.
     if (materiais.length > 0) {
       const validated = validateMaterials(materiais)
       if (!validated) {
@@ -335,12 +258,12 @@ export function NewAppointmentForm({
         return
       }
 
-      // Cria pagamento associado ao atendimento.
-      const totalCents =
-        amountReais.trim().length > 0
-          ? Math.round(Number(amountReais.replace(',', '.')) * 100)
-          : null
-      if (totalCents !== null && totalCents > 0) {
+      // Total = soma das linhas.
+      const totalCents = validatedProcedures.reduce(
+        (acc, p) => acc + p.amountCentsOverride,
+        0,
+      )
+      if (totalCents > 0) {
         const installments = installmentDates.map((due, idx) => {
           const base = Math.floor(totalCents / installmentsCount)
           const remainder = totalCents - base * installmentsCount
@@ -370,7 +293,6 @@ export function NewAppointmentForm({
           const payBody = (await payRes.json().catch(() => ({}))) as {
             error?: { message?: string }
           }
-          // Atendimento já foi salvo — não bloqueia, mas avisa.
           setWarning(
             `Atendimento salvo, mas o pagamento falhou: ${payBody.error?.message ?? 'erro desconhecido'}. Registre manualmente em /operacao/pacientes/${patientId}.`,
           )
@@ -419,56 +341,6 @@ export function NewAppointmentForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="procedure_id">Procedimento (TUSS)</Label>
-        <LocalProcedureTypeahead
-          id="procedure_id"
-          options={procedures}
-          value={procedureId}
-          onChange={setProcedureId}
-        />
-      </div>
-
-      <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
-
-      <div className="space-y-1.5">
-        <Label htmlFor="plan_id">Plano</Label>
-        <label className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs text-amber-900">
-          <input
-            type="checkbox"
-            checked={particular}
-            disabled={particularLocked}
-            onChange={(e) => {
-              setParticular(e.target.checked)
-              setParticularUserOverride(true)
-            }}
-            className="h-4 w-4 rounded border-amber-300"
-          />
-          <span>
-            <span className="font-bold">Atendimento particular</span>
-            {particularLocked ? (
-              <span className="ml-1 text-amber-700">
-                (procedimento não coberto por plano)
-              </span>
-            ) : null}
-          </span>
-        </label>
-        {particular ? null : (
-          <Select value={planId} onValueChange={setPlanId}>
-            <SelectTrigger id="plan_id">
-              <SelectValue placeholder="Selecione…" />
-            </SelectTrigger>
-            <SelectContent>
-              {plans.map((hp) => (
-                <SelectItem key={hp.id} value={hp.id}>
-                  {hp.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-
-      <div className="space-y-1.5">
         <Label htmlFor="appointment_at">Data e hora de início</Label>
         <Input
           id="appointment_at"
@@ -493,18 +365,17 @@ export function NewAppointmentForm({
         </p>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="amount">Valor (R$)</Label>
-        <Input
-          id="amount"
-          inputMode="decimal"
-          placeholder="0,00"
-          value={amountReais}
-          onChange={(e) => setAmountReais(e.target.value)}
-        />
-        <p className="text-[11px] text-slate-500">
-          Deixe vazio para usar o preço vigente. Editar aqui sobrescreve o valor congelado.
-        </p>
+      <ProcedurasEditor
+        value={procedureLines}
+        onChange={setProcedureLines}
+        procedures={procedures}
+        plans={plans}
+        defaultPlanId={defaultPlanId}
+        disabled={pending}
+      />
+
+      <div className="md:col-span-2">
+        <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
       </div>
 
       <div className="space-y-1.5 md:col-span-2">
@@ -609,7 +480,7 @@ export function NewAppointmentForm({
           </div>
         ) : null}
         <p className="mt-3 text-[11px] text-slate-500">
-          Se o valor estiver vazio, o pagamento NÃO é registrado — só o atendimento.
+          Total do pagamento = soma dos procedimentos.
         </p>
       </div>
 
@@ -648,7 +519,6 @@ export function NewAppointmentForm({
 }
 
 function localIsoNow(): string {
-  // Datetime-local input expects "YYYY-MM-DDTHH:MM" (no seconds, no Z).
   const d = new Date()
   const pad = (n: number) => `${n}`.padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
@@ -656,9 +526,7 @@ function localIsoNow(): string {
 
 function normalizeInitialAt(raw: string | undefined): string | null {
   if (!raw) return null
-  // Aceita tanto "YYYY-MM-DDTHH:MM" quanto ISO completo com offset.
   const truncated = raw.length >= 16 ? raw.slice(0, 16) : raw
-  // Validacao basica de formato.
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(truncated)) return null
   return truncated
 }
@@ -667,20 +535,20 @@ function addMinutesToHHMM(hhmm: string, minutes: number): string {
   const m = /^(\d{2}):(\d{2})$/.exec(hhmm)
   if (!m) return '00:30'
   const total = parseInt(m[1] ?? '0', 10) * 60 + parseInt(m[2] ?? '0', 10) + minutes
-  const norm = ((total % 1440) + 1440) % 1440
-  const hh = `${Math.floor(norm / 60)}`.padStart(2, '0')
-  const mm = `${norm % 60}`.padStart(2, '0')
-  return `${hh}:${mm}`
+  const next = ((total % 1440) + 1440) % 1440
+  const hh = Math.floor(next / 60)
+  const mm = next % 60
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
 }
 
-function computeDurationMinutes(startDateTime: string, endHHMM: string): number {
-  const m = /^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})$/.exec(startDateTime)
+function computeDurationMinutes(startDateTimeLocal: string, endHHMM: string): number {
+  const m = /^\d{4}-\d{2}-\d{2}T(\d{2}):(\d{2})$/.exec(startDateTimeLocal)
   const e = /^(\d{2}):(\d{2})$/.exec(endHHMM)
   if (!m || !e) return 30
   const startMin = parseInt(m[1] ?? '0', 10) * 60 + parseInt(m[2] ?? '0', 10)
   const endMin = parseInt(e[1] ?? '0', 10) * 60 + parseInt(e[2] ?? '0', 10)
   let diff = endMin - startMin
-  if (diff <= 0) diff += 1440 // cruza meia-noite
+  if (diff <= 0) diff += 1440
   return diff
 }
 
@@ -688,9 +556,7 @@ function computeEndIso(startDateTimeLocal: string, endHHMM: string): string | nu
   const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(startDateTimeLocal)
   const e = /^(\d{2}):(\d{2})$/.exec(endHHMM)
   if (!m || !e) return null
-  // ISO local "YYYY-MM-DDTHH:MM" → Date local → ISO UTC.
   const datePart = m[1]
-  const startTime = `${m[2]}:${m[3]}`
   const startMin = parseInt(m[2] ?? '0', 10) * 60 + parseInt(m[3] ?? '0', 10)
   const endMin = parseInt(e[1] ?? '0', 10) * 60 + parseInt(e[2] ?? '0', 10)
   let dayOffset = 0
@@ -698,8 +564,6 @@ function computeEndIso(startDateTimeLocal: string, endHHMM: string): string | nu
   const endDate = new Date(`${datePart}T${endHHMM}:00`)
   if (Number.isNaN(endDate.getTime())) return null
   if (dayOffset) endDate.setDate(endDate.getDate() + 1)
-  // ignore startTime — only used to detect day rollover
-  void startTime
   return endDate.toISOString()
 }
 
