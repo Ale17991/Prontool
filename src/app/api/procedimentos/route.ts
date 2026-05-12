@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listProcedures } from '@/lib/core/procedures/list'
 import { createProcedure } from '@/lib/core/procedures/create'
 import { upsertCustomCode } from '@/lib/core/custom-codes'
+import { upsertCustomTable } from '@/lib/core/custom-tables'
 import { denyAudit } from '@/lib/core/audit/deny'
 import { TussCodeInvalidError, ConflictError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
@@ -38,6 +39,12 @@ const createSchema = z
     /** Codigo personalizado (texto livre) — quando unlisted=true. Cria
      * registry em custom_procedure_codes ou reusa se ja existir. */
     custom_code: z.string().trim().min(1).max(50).nullable().optional(),
+    /** ID de uma tabela personalizada existente (custom_procedure_tables).
+     * Quando unlisted=true. Mutuamente exclusivo com custom_table_name. */
+    custom_table_id: z.string().uuid().nullable().optional(),
+    /** Nome de uma tabela personalizada — cria (ou reusa) o registry.
+     * Quando unlisted=true. Mutuamente exclusivo com custom_table_id. */
+    custom_table_name: z.string().trim().min(1).max(80).nullable().optional(),
   })
   .superRefine((value, ctx) => {
     const unlisted = value.is_unlisted === true
@@ -71,6 +78,20 @@ const createSchema = z
           message: 'custom_code só pode ser usado quando is_unlisted=true',
         })
       }
+      if (value.custom_table_id || value.custom_table_name) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['custom_table_id'],
+          message: 'tabela personalizada só pode ser usada quando is_unlisted=true',
+        })
+      }
+    }
+    if (value.custom_table_id && value.custom_table_name) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['custom_table_name'],
+        message: 'Informe apenas um: custom_table_id OU custom_table_name',
+      })
     }
   })
 
@@ -128,6 +149,21 @@ export async function POST(req: Request): Promise<Response> {
         customCodeId = code.id
       }
 
+      // Tabela personalizada — aceita id existente OU nome (cria/reusa).
+      let customTableId: string | null = null
+      if (parsed.data.is_unlisted) {
+        if (parsed.data.custom_table_id) {
+          customTableId = parsed.data.custom_table_id
+        } else if (parsed.data.custom_table_name) {
+          const table = await upsertCustomTable(supabase, {
+            tenantId: session.tenantId,
+            name: parsed.data.custom_table_name,
+            actorUserId: session.userId,
+          })
+          customTableId = table.id
+        }
+      }
+
       const created = await createProcedure(supabase, {
         tenantId: session.tenantId,
         tussCode: parsed.data.tuss_code ?? null,
@@ -136,6 +172,7 @@ export async function POST(req: Request): Promise<Response> {
         coveredByPlan: parsed.data.covered_by_plan ?? true,
         isUnlisted: parsed.data.is_unlisted ?? false,
         customCodeId,
+        customTableId,
       })
       return NextResponse.json(
         {
@@ -148,6 +185,7 @@ export async function POST(req: Request): Promise<Response> {
           covered_by_plan: created.coveredByPlan,
           is_unlisted: created.isUnlisted,
           custom_code_id: created.customCodeId,
+          custom_table_id: created.customTableId,
         },
         { status: 201 },
       )

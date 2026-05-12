@@ -13,12 +13,26 @@ import {
 } from './tuss-table-badge'
 import { TussTypeahead, type TussTypeaheadValue } from '@/components/tuss/tuss-typeahead'
 
-export function NewProcedureForm() {
+export interface CustomTableOption {
+  id: string
+  name: string
+}
+
+interface NewProcedureFormProps {
+  customTables: CustomTableOption[]
+}
+
+const CREATE_NEW_TABLE_VALUE = '__new__'
+
+export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
   const router = useRouter()
   const [tussTable, setTussTable] = useState<TussTable>('22')
   const [selected, setSelected] = useState<TussTypeaheadValue | null>(null)
   const [displayName, setDisplayName] = useState('')
   const [customCode, setCustomCode] = useState('')
+  const [customTableMode, setCustomTableMode] = useState<'none' | 'existing' | 'new'>('none')
+  const [customTableId, setCustomTableId] = useState<string>('')
+  const [customTableName, setCustomTableName] = useState('')
   const [defaultAmount, setDefaultAmount] = useState('')
   const [coveredByPlan, setCoveredByPlan] = useState(true)
   const [isUnlisted, setIsUnlisted] = useState(false)
@@ -37,6 +51,10 @@ export function NewProcedureForm() {
   useEffect(() => {
     if (isUnlisted) {
       setSelected(null)
+    } else {
+      setCustomTableMode('none')
+      setCustomTableId('')
+      setCustomTableName('')
     }
   }, [isUnlisted])
 
@@ -45,6 +63,10 @@ export function NewProcedureForm() {
     if (isUnlisted) {
       if (displayName.trim().length === 0) {
         setError('Informe um nome de exibição para o procedimento não listado.')
+        return
+      }
+      if (customTableMode === 'new' && customTableName.trim().length === 0) {
+        setError('Informe o nome da nova tabela pessoal ou escolha uma existente.')
         return
       }
     } else if (!selected) {
@@ -67,6 +89,17 @@ export function NewProcedureForm() {
       defaultAmountCents = Math.round(parsed * 100)
     }
 
+    // Resolve a tabela personalizada conforme o modo escolhido.
+    let customTableIdToSend: string | null = null
+    let customTableNameToSend: string | null = null
+    if (isUnlisted) {
+      if (customTableMode === 'existing' && customTableId) {
+        customTableIdToSend = customTableId
+      } else if (customTableMode === 'new' && customTableName.trim()) {
+        customTableNameToSend = customTableName.trim()
+      }
+    }
+
     try {
       const res = await fetch('/api/procedimentos', {
         method: 'POST',
@@ -78,6 +111,8 @@ export function NewProcedureForm() {
           covered_by_plan: coveredByPlan,
           is_unlisted: isUnlisted,
           custom_code: isUnlisted && customCode.trim() ? customCode.trim() : null,
+          custom_table_id: customTableIdToSend,
+          custom_table_name: customTableNameToSend,
         }),
       })
       if (!res.ok) {
@@ -93,6 +128,9 @@ export function NewProcedureForm() {
       setSelected(null)
       setDisplayName('')
       setCustomCode('')
+      setCustomTableMode('none')
+      setCustomTableId('')
+      setCustomTableName('')
       setDefaultAmount('')
       setCoveredByPlan(true)
       setIsUnlisted(false)
@@ -123,22 +161,81 @@ export function NewProcedureForm() {
       </label>
 
       {isUnlisted ? (
-        <div className="space-y-1.5">
-          <Label htmlFor="custom-code" className="text-xs">
-            Código personalizado <span className="text-slate-400">(opcional)</span>
-          </Label>
-          <Input
-            id="custom-code"
-            value={customCode}
-            onChange={(e) => setCustomCode(e.target.value)}
-            placeholder="Ex.: PKG-001, ORTO-15"
-            maxLength={50}
-          />
-          <p className="text-[10px] text-slate-500">
-            Código livre da clínica. Se já existir, será reutilizado. Deixe em branco
-            para criar procedimento sem código.
-          </p>
-        </div>
+        <>
+          <div className="space-y-1.5">
+            <Label htmlFor="custom-code" className="text-xs">
+              Código personalizado <span className="text-slate-400">(opcional)</span>
+            </Label>
+            <Input
+              id="custom-code"
+              value={customCode}
+              onChange={(e) => setCustomCode(e.target.value)}
+              placeholder="Ex.: PKG-001, ORTO-15"
+              maxLength={50}
+            />
+            <p className="text-[10px] text-slate-500">
+              Código livre da clínica. Se já existir, será reutilizado. Deixe em branco
+              para criar procedimento sem código.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="custom-table" className="text-xs">
+              Tabela pessoal <span className="text-slate-400">(opcional)</span>
+            </Label>
+            <select
+              id="custom-table"
+              value={
+                customTableMode === 'none'
+                  ? ''
+                  : customTableMode === 'new'
+                    ? CREATE_NEW_TABLE_VALUE
+                    : customTableId
+              }
+              onChange={(e) => {
+                const v = e.target.value
+                if (v === '') {
+                  setCustomTableMode('none')
+                  setCustomTableId('')
+                } else if (v === CREATE_NEW_TABLE_VALUE) {
+                  setCustomTableMode('new')
+                  setCustomTableId('')
+                } else {
+                  setCustomTableMode('existing')
+                  setCustomTableId(v)
+                }
+              }}
+              className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">(Nenhuma)</option>
+              {customTables.length > 0 ? (
+                <optgroup label="Tabelas existentes">
+                  {customTables.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : null}
+              <option value={CREATE_NEW_TABLE_VALUE}>+ Criar nova tabela…</option>
+            </select>
+
+            {customTableMode === 'new' ? (
+              <Input
+                value={customTableName}
+                onChange={(e) => setCustomTableName(e.target.value)}
+                placeholder="Nome da nova tabela (ex.: Pacotes Ortodontia)"
+                maxLength={80}
+                autoFocus
+              />
+            ) : null}
+
+            <p className="text-[10px] text-slate-500">
+              Agrupa procedimentos personalizados em categorias da clínica. Pode reutilizar
+              tabelas já criadas ou criar uma nova aqui.
+            </p>
+          </div>
+        </>
       ) : null}
 
       {!isUnlisted ? (

@@ -824,6 +824,47 @@ export type Database = {
           },
         ]
       }
+      custom_procedure_tables: {
+        Row: {
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_procedure_tables_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_commission_history: {
         Row: {
           created_at: string
@@ -1598,6 +1639,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           custom_code_id: string | null
+          custom_table_id: string | null
           default_amount_cents: number | null
           deleted_at: string | null
           deleted_by: string | null
@@ -1613,6 +1655,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           custom_code_id?: string | null
+          custom_table_id?: string | null
           default_amount_cents?: number | null
           deleted_at?: string | null
           deleted_by?: string | null
@@ -1628,6 +1671,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           custom_code_id?: string | null
+          custom_table_id?: string | null
           default_amount_cents?: number | null
           deleted_at?: string | null
           deleted_by?: string | null
@@ -1643,6 +1687,13 @@ export type Database = {
             columns: ["custom_code_id"]
             isOneToOne: false
             referencedRelation: "custom_procedure_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procedures_custom_table_id_fkey"
+            columns: ["custom_table_id"]
+            isOneToOne: false
+            referencedRelation: "custom_procedure_tables"
             referencedColumns: ["id"]
           },
           {

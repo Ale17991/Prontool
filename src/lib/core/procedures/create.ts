@@ -30,6 +30,12 @@ export interface CreateProcedureInput {
    * procedimentos TUSS-coded usam o tuss_code.
    */
   customCodeId?: string | null
+  /**
+   * FK para custom_procedure_tables (migration 0075). Quando preenchido,
+   * exige isUnlisted=true. Agrupa o procedimento em uma "tabela pessoal"
+   * da clinica.
+   */
+  customTableId?: string | null
 }
 
 export interface ProcedureRow {
@@ -42,6 +48,7 @@ export interface ProcedureRow {
   coveredByPlan: boolean
   isUnlisted: boolean
   customCodeId: string | null
+  customTableId: string | null
 }
 
 export async function createProcedure(
@@ -63,8 +70,12 @@ export async function createProcedure(
   }
 
   const customCodeId = input.customCodeId ?? null
+  const customTableId = input.customTableId ?? null
   if (customCodeId !== null && !isUnlisted) {
     throw new Error('createProcedure: customCodeId requer isUnlisted=true')
+  }
+  if (customTableId !== null && !isUnlisted) {
+    throw new Error('createProcedure: customTableId requer isUnlisted=true')
   }
   const { data, error } = await supabase
     .from('procedures')
@@ -76,9 +87,10 @@ export async function createProcedure(
       covered_by_plan: input.coveredByPlan ?? true,
       is_unlisted: isUnlisted,
       custom_code_id: customCodeId,
+      custom_table_id: customTableId,
     } as never)
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id, custom_table_id',
     )
     .single()
 
@@ -105,6 +117,7 @@ export async function createProcedure(
     covered_by_plan: boolean
     is_unlisted: boolean
     custom_code_id: string | null
+    custom_table_id: string | null
   }
   return {
     id: row.id,
@@ -116,5 +129,6 @@ export async function createProcedure(
     coveredByPlan: row.covered_by_plan,
     isUnlisted: row.is_unlisted,
     customCodeId: row.custom_code_id,
+    customTableId: row.custom_table_id,
   }
 }

@@ -23,8 +23,10 @@ interface JoinedRow {
   covered_by_plan: boolean
   is_unlisted: boolean
   custom_code_id: string | null
+  custom_table_id: string | null
   tuss_codes: { description: string; tuss_table: string; manufacturer: string | null } | null
   custom_procedure_codes: { code: string; description: string } | null
+  custom_procedure_tables: { name: string } | null
 }
 
 export default async function ProcedimentosPage() {
@@ -32,17 +34,26 @@ export default async function ProcedimentosPage() {
   if (!session) redirect('/login')
 
   const supabase = createSupabaseServerClient()
-  const { data: rawRows, error } = await supabase
-    .from('procedures')
-    .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id, ' +
-        'tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer), ' +
-        'custom_procedure_codes:custom_code_id(code, description)',
-    )
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .limit(500)
+  const [{ data: rawRows, error }, { data: tablesData }] = await Promise.all([
+    supabase
+      .from('procedures')
+      .select(
+        'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id, custom_table_id, ' +
+          'tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer), ' +
+          'custom_procedure_codes:custom_code_id(code, description), ' +
+          'custom_procedure_tables:custom_table_id(name)',
+      )
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(500),
+    supabase
+      .from('custom_procedure_tables' as never)
+      .select('id, name')
+      .is('deleted_at', null)
+      .order('name', { ascending: true }),
+  ])
   const rows = (rawRows ?? []) as unknown as JoinedRow[]
+  const customTables = ((tablesData ?? []) as unknown as Array<{ id: string; name: string }>) ?? []
   const combinedError = error
 
   const canWrite = can(session.role, 'procedure.write')
@@ -68,7 +79,7 @@ export default async function ProcedimentosPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <NewProcedureForm />
+              <NewProcedureForm customTables={customTables} />
             </CardContent>
           </Card>
         ) : (
@@ -114,24 +125,34 @@ export default async function ProcedimentosPage() {
                     <TableRow key={r.id}>
                       <TableCell className="font-mono text-xs font-bold text-primary">
                         {r.is_unlisted ? (
-                          r.custom_procedure_codes ? (
-                            <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-start gap-1">
+                            {r.custom_procedure_codes ? (
+                              <div className="flex items-center gap-1.5">
+                                <Badge
+                                  variant="secondary"
+                                  className="border-violet-200 bg-violet-50 text-[10px] text-violet-800"
+                                >
+                                  Personalizado
+                                </Badge>
+                                <span>{r.custom_procedure_codes.code}</span>
+                              </div>
+                            ) : (
                               <Badge
                                 variant="secondary"
-                                className="border-violet-200 bg-violet-50 text-[10px] text-violet-800"
+                                className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
                               >
-                                Personalizado
+                                Não listado
                               </Badge>
-                              <span>{r.custom_procedure_codes.code}</span>
-                            </div>
-                          ) : (
-                            <Badge
-                              variant="secondary"
-                              className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
-                            >
-                              Não listado
-                            </Badge>
-                          )
+                            )}
+                            {r.custom_procedure_tables ? (
+                              <Badge
+                                variant="outline"
+                                className="border-sky-200 bg-sky-50 text-[9px] font-bold text-sky-800"
+                              >
+                                {r.custom_procedure_tables.name}
+                              </Badge>
+                            ) : null}
+                          </div>
                         ) : (
                           <div className="flex items-center gap-1.5">
                             {r.tuss_codes?.tuss_table ? (
