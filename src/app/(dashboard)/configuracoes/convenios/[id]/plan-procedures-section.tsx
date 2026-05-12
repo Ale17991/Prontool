@@ -29,8 +29,14 @@ import { cn, formatCurrency, formatDate } from '@/lib/utils'
 
 export interface ProcedureOption {
   id: string
+  /** Codigo a exibir: TUSS para listados, codigo personalizado para
+   * procedimentos com custom_code_id, ou "Não listado" como fallback. */
   tussCode: string
   displayName: string | null
+  /** true quando procedure.is_unlisted=true (com ou sem codigo personalizado). */
+  isUnlisted?: boolean
+  /** true quando o procedimento tem codigo personalizado (badge violeta). */
+  isCustomCoded?: boolean
 }
 
 export interface PriceHeadWithProcedure {
@@ -251,10 +257,14 @@ function AddProcedureForm({
     : procedures
         .filter((p) => {
           const q = search.toLowerCase()
-          return (
-            p.tussCode.toLowerCase().includes(q) ||
-            (p.displayName ?? '').toLowerCase().includes(q)
-          )
+          // Procedimentos nao listados podem ter tussCode como label
+          // ("Não listado") ou codigo personalizado — guarda contra
+          // null/undefined caso o loader nao normalize.
+          const codeMatch =
+            typeof p.tussCode === 'string' &&
+            p.tussCode.toLowerCase().includes(q)
+          const nameMatch = (p.displayName ?? '').toLowerCase().includes(q)
+          return codeMatch || nameMatch
         })
         .slice(0, 50)
 
@@ -351,7 +361,18 @@ function AddProcedureForm({
                 )}
               >
                 <span className="truncate">{p.displayName ?? '(sem nome)'}</span>
-                <span className="ml-2 font-mono text-[10px] text-slate-500">{p.tussCode}</span>
+                <span className="ml-2 flex items-center gap-1.5">
+                  {p.isCustomCoded ? (
+                    <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                      Pers.
+                    </span>
+                  ) : p.isUnlisted ? (
+                    <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                      Não list.
+                    </span>
+                  ) : null}
+                  <span className="font-mono text-[10px] text-slate-500">{p.tussCode}</span>
+                </span>
               </button>
             ))
           )}

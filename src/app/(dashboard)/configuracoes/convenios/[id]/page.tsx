@@ -44,21 +44,42 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   // Covered-by-plan active procedures — base set for the "Adicionar
   // procedimento" typeahead. Filtering out already-priced ones is done
   // client-side so we don't have to refetch after an add.
+  // Inclui procedimentos NAO-LISTADOS com pacote negociado por plano
+  // (migration 0067) — tuss_code e NULL, exibimos o codigo personalizado
+  // (migration 0072/0073) ou rotulo "Nao listado".
   const procRes = await supabase
     .from('procedures')
-    .select('id, tuss_code, display_name')
+    .select(
+      'id, tuss_code, display_name, is_unlisted, custom_code_id, ' +
+        'custom_procedure_codes:custom_code_id(code)',
+    )
     .eq('active', true)
     .eq('covered_by_plan', true)
     .order('display_name', { ascending: true, nullsFirst: false })
     .limit(1000)
   if (procRes.error) throw new Error(`procedures lookup: ${procRes.error.message}`)
   const procedures: ProcedureOption[] = (
-    (procRes.data ?? []) as Array<{ id: string; tuss_code: string; display_name: string | null }>
-  ).map((p) => ({
-    id: p.id,
-    tussCode: p.tuss_code,
-    displayName: p.display_name,
-  }))
+    (procRes.data ?? []) as Array<{
+      id: string
+      tuss_code: string | null
+      display_name: string | null
+      is_unlisted: boolean | null
+      custom_code_id: string | null
+      custom_procedure_codes: { code: string } | null
+    }>
+  ).map((p) => {
+    const customCode = p.custom_procedure_codes?.code ?? null
+    // Label: TUSS para listados, codigo personalizado quando ha,
+    // "Nao listado" como fallback para unlisted sem codigo.
+    const label = p.tuss_code ?? customCode ?? 'Não listado'
+    return {
+      id: p.id,
+      tussCode: label,
+      displayName: p.display_name,
+      isUnlisted: p.is_unlisted === true,
+      isCustomCoded: customCode !== null,
+    }
+  })
 
   // Price-version history (whole chain, not just vigente) for this plan.
   // Reduce to one head per procedure in memory.
@@ -104,26 +125,44 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   const procMetaRes = headProcedureIds.length
     ? await supabase
         .from('procedures')
-        .select('id, tuss_code, display_name, covered_by_plan, active')
+        .select(
+          'id, tuss_code, display_name, covered_by_plan, active, is_unlisted, ' +
+            'custom_procedure_codes:custom_code_id(code)',
+        )
         .in('id', headProcedureIds)
     : {
         data: [] as Array<{
           id: string
-          tuss_code: string
+          tuss_code: string | null
           display_name: string | null
           covered_by_plan: boolean
           active: boolean
+          is_unlisted: boolean | null
+          custom_procedure_codes: { code: string } | null
         }>,
         error: null,
       }
   if (procMetaRes.error) throw new Error(`proc meta: ${procMetaRes.error.message}`)
-  const procMeta = new Map((procMetaRes.data ?? []).map((p) => [p.id, p]))
+  type ProcMeta = {
+    id: string
+    tuss_code: string | null
+    display_name: string | null
+    covered_by_plan: boolean
+    active: boolean
+    is_unlisted: boolean | null
+    custom_procedure_codes: { code: string } | null
+  }
+  const procMeta = new Map(
+    ((procMetaRes.data ?? []) as unknown as ProcMeta[]).map((p) => [p.id, p]),
+  )
   const heads: PriceHeadWithProcedure[] = headsRaw.map((h) => {
     const meta = procMeta.get(h.procedureId)
+    const customCode = meta?.custom_procedure_codes?.code ?? null
+    const codeLabel = meta?.tuss_code ?? customCode ?? '—'
     return {
       priceVersionId: h.priceVersionId,
       procedureId: h.procedureId,
-      tussCode: meta?.tuss_code ?? '—',
+      tussCode: codeLabel,
       displayName: meta?.display_name ?? null,
       amountCents: h.amountCents,
       validFrom: h.validFrom,
