@@ -24,20 +24,21 @@ export class ValidationError extends DomainError {
 }
 
 export class UnauthorizedError extends DomainError {
-  constructor(message = 'Not authenticated') {
+  constructor(message = 'Sessão inválida ou expirada. Faça login novamente.') {
     super('UNAUTHORIZED', message, { status: 401 })
   }
 }
 
 export class ForbiddenError extends DomainError {
-  constructor(message = 'Forbidden') {
+  constructor(message = 'Você não tem permissão para esta ação.') {
     super('FORBIDDEN', message, { status: 403 })
   }
 }
 
 export class NotFoundError extends DomainError {
   constructor(entity: string, id?: string) {
-    super('NOT_FOUND', `${entity} ${id ?? ''} not found`, { status: 404 })
+    // Mensagem mantém o nome técnico da entidade para diagnóstico, mas em PT-BR.
+    super('NOT_FOUND', `${entity}${id ? ` ${id}` : ''} não encontrado.`, { status: 404 })
   }
 }
 
@@ -48,7 +49,7 @@ export class ConflictError extends DomainError {
 }
 
 export class InvalidSignatureError extends DomainError {
-  constructor(message = 'Invalid signature') {
+  constructor(message = 'Assinatura inválida.') {
     super('INVALID_SIGNATURE', message, { status: 401 })
   }
 }
@@ -63,14 +64,22 @@ export class WebhookPayloadError extends DomainError {
 /** Raised when (procedure, plan) has no active price at appointment date. */
 export class AppointmentPriceMissingError extends DomainError {
   constructor(meta: Record<string, unknown>) {
-    super('APPOINTMENT_PRICE_MISSING', 'No active price for (procedure, plan) at appointment date', { meta })
+    super(
+      'APPOINTMENT_PRICE_MISSING',
+      'Nenhum preço vigente cadastrado para essa combinação de procedimento e plano na data do atendimento.',
+      { meta },
+    )
   }
 }
 
 /** Raised when procedure's TUSS code has been retired. */
 export class TussCodeRetiredError extends DomainError {
   constructor(code: string, retiredOn: string) {
-    super('TUSS_CODE_RETIRED', `TUSS code ${code} retired on ${retiredOn}`, { meta: { code, retiredOn } })
+    super(
+      'TUSS_CODE_RETIRED',
+      `Código TUSS ${code} foi retirado do catálogo em ${retiredOn}.`,
+      { meta: { code, retiredOn } },
+    )
   }
 }
 
@@ -81,19 +90,27 @@ export class TussCodeRetiredError extends DomainError {
  */
 export class PriceVersionConflictError extends DomainError {
   constructor(currentHeadId: string | null, currentAmountCents?: number | null) {
-    super('PRICE_VERSION_CONFLICT', 'Price chain head changed since the form was loaded', {
-      status: 409,
-      meta: { current_head_id: currentHeadId, current_amount_cents: currentAmountCents },
-    })
+    super(
+      'PRICE_VERSION_CONFLICT',
+      'O preço foi atualizado por outra pessoa. Recarregue a página e tente novamente.',
+      {
+        status: 409,
+        meta: { current_head_id: currentHeadId, current_amount_cents: currentAmountCents },
+      },
+    )
   }
 }
 
 /** Raised when a TUSS validation trigger rejects an insert. */
 export class TussCodeInvalidError extends DomainError {
   constructor(code: string, message?: string) {
-    super('TUSS_CODE_INVALID', message ?? `TUSS code ${code} is invalid or retired`, {
-      status: 400,
-      meta: { code },
-    })
+    super(
+      'TUSS_CODE_INVALID',
+      message ?? `Código TUSS ${code} é inválido ou foi retirado do catálogo.`,
+      {
+        status: 400,
+        meta: { code },
+      },
+    )
   }
 }

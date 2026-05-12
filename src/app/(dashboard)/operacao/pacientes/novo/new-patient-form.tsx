@@ -123,8 +123,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
       setError('Informe o nome completo.')
       return
     }
-    if (cpfDigits.length !== 11) {
-      setError('CPF precisa ter 11 dígitos.')
+    // CPF opcional em fase de testes; se preenchido, exige 11 digitos.
+    if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
+      setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
       return
     }
     if (!planId) {
@@ -154,7 +155,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           full_name: fullName.trim(),
-          cpf: cpfDigits,
+          cpf: cpfDigits || null,
           phone: phone.trim() || null,
           email: email.trim() || null,
           birth_date: birthDate || null,
@@ -196,10 +197,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="cpf">CPF</Label>
+          <Label htmlFor="cpf">CPF (opcional)</Label>
           <Input
             id="cpf"
-            required
             inputMode="numeric"
             placeholder="000.000.000-00"
             value={cpf}

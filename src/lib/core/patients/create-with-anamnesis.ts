@@ -65,24 +65,33 @@ export async function createPatientWithAnamnesis(
   if (!fullName || fullName.length < 2) {
     throw new ValidationError('Nome completo é obrigatório')
   }
-  const cpfDigits = (cpfRaw ?? '').replace(/\D/g, '')
-  if (cpfDigits.length !== 11) {
-    throw new ValidationError('CPF deve ter 11 dígitos')
-  }
-
-  // 3. Dedup CPF dentro do tenant.
-  const existing = await findPatientByCpf(supabase, input.tenantId, cpfDigits)
-  if (existing) {
-    throw new ConflictError(
-      'PATIENT_CPF_DUPLICATE',
-      'Paciente com este CPF já existe no tenant',
-      { patient_id: existing.id, full_name: existing.fullName },
+  // CPF opcional em fase de testes. Quando preenchido, exige 11 digitos +
+  // dedup; quando vazio, segue sem CPF.
+  const cpfDigitsRaw = (cpfRaw ?? '').replace(/\D/g, '')
+  const cpfDigits: string | null =
+    cpfDigitsRaw.length === 0 ? null : cpfDigitsRaw
+  if (cpfDigits !== null && cpfDigits.length !== 11) {
+    throw new ValidationError(
+      'CPF deve ter 11 dígitos quando preenchido (ou pode ser deixado em branco).',
     )
   }
 
-  // 4. Valida obrigatórios da anamnese (default OU custom).
+  // 3. Dedup CPF dentro do tenant (apenas se CPF foi informado).
+  if (cpfDigits !== null) {
+    const existing = await findPatientByCpf(supabase, input.tenantId, cpfDigits)
+    if (existing) {
+      throw new ConflictError(
+        'PATIENT_CPF_DUPLICATE',
+        'Paciente com este CPF já existe no tenant',
+        { patient_id: existing.id, full_name: existing.fullName },
+      )
+    }
+  }
+
+  // 4. Valida obrigatórios da anamnese (default OU custom). CPF opcional
+  // em fase de testes — ignorado mesmo se o template marcar como required.
   const missing = fields
-    .filter((f) => f.required)
+    .filter((f) => f.required && f.id !== 'default_cpf')
     .filter((f) => isResponseEmpty(input.responses[f.id]))
     .map((f) => f.label)
   if (missing.length > 0) {
@@ -115,7 +124,7 @@ export async function createPatientWithAnamnesis(
     tenantId: input.tenantId,
     actorUserId: input.actorUserId,
     fullName,
-    cpf: cpfDigits,
+    cpf: cpfDigits, // string | null — pacientes sem CPF passam null
     phone: phone ?? undefined,
     email: email ?? undefined,
     birthDate: birthDate ?? undefined,

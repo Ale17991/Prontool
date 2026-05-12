@@ -1258,7 +1258,7 @@ export type Database = {
           address_street_enc: string | null
           anonymized_at: string | null
           birth_date_enc: string | null
-          cpf_enc: string
+          cpf_enc: string | null
           created_at: string
           email_enc: string | null
           full_name_enc: string
@@ -1279,7 +1279,7 @@ export type Database = {
           address_street_enc?: string | null
           anonymized_at?: string | null
           birth_date_enc?: string | null
-          cpf_enc: string
+          cpf_enc?: string | null
           created_at?: string
           email_enc?: string | null
           full_name_enc: string
@@ -1300,7 +1300,7 @@ export type Database = {
           address_street_enc?: string | null
           anonymized_at?: string | null
           birth_date_enc?: string | null
-          cpf_enc?: string
+          cpf_enc?: string | null
           created_at?: string
           email_enc?: string | null
           full_name_enc?: string

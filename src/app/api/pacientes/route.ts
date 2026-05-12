@@ -28,11 +28,21 @@ const querySchema = z.object({
     .transform((v) => (v === undefined ? undefined : Number(v))),
 })
 
-// CPF: 11 dígitos, aceita com ou sem pontuação; normalizamos no handler.
-const cpfDigits = z
-  .string()
-  .transform((s) => s.replace(/\D/g, ''))
-  .refine((s) => s.length === 11, 'CPF deve ter 11 dígitos')
+// CPF: opcional em fase de testes. Aceita vazio/null/ausente; se preenchido,
+// normaliza e exige 11 dígitos. Retorna `null` quando ausente (paciente sem
+// CPF cadastrado).
+const cpfOptional = z
+  .union([z.string(), z.null()])
+  .optional()
+  .transform((v) => {
+    if (v === null || v === undefined) return null
+    const digits = v.replace(/\D/g, '')
+    return digits.length === 0 ? null : digits
+  })
+  .refine(
+    (s) => s === null || s.length === 11,
+    'CPF deve ter 11 dígitos quando preenchido (ou pode ser deixado em branco).',
+  )
 
 const addressSchema = z
   .object({
@@ -49,7 +59,7 @@ const addressSchema = z
 
 const createSchema = z.object({
   full_name: z.string().trim().min(2).max(200),
-  cpf: cpfDigits,
+  cpf: cpfOptional,
   phone: z.string().trim().max(40).optional().nullable(),
   email: z.string().trim().email().max(200).optional().nullable(),
   birth_date: z

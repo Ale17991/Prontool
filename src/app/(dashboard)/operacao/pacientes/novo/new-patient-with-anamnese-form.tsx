@@ -58,9 +58,11 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
     setError(null)
     setDuplicate(null)
 
-    // Validação cliente: só obrigatórios.
+    // Validação cliente: só obrigatórios. CPF opcional em fase de testes,
+    // independente do flag do template — override explicito.
     for (const f of template.fields) {
       if (!f.required) continue
+      if (f.id === 'default_cpf') continue
       const v = responses[f.id]
       const empty =
         v === undefined ||
@@ -73,10 +75,11 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
       }
     }
 
-    // CPF deve ter 11 dígitos
+    // CPF opcional em fase de testes; se preenchido, exige 11 digitos.
     const rawCpf = (responses['default_cpf'] as string | undefined) ?? ''
-    if (rawCpf.replace(/\D/g, '').length !== 11) {
-      setError('CPF deve ter 11 dígitos.')
+    const cpfDigits = rawCpf.replace(/\D/g, '')
+    if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
+      setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
       return
     }
     if (!planId) {

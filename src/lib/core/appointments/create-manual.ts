@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { DomainError, NotFoundError, TussCodeRetiredError } from '@/lib/observability/errors'
+import {
+  AppointmentPriceMissingError,
+  DomainError,
+  NotFoundError,
+  TussCodeRetiredError,
+} from '@/lib/observability/errors'
 import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'
 
@@ -73,7 +78,7 @@ export async function createAppointmentManually(
 ): Promise<CreateManualAppointmentResult> {
   const when = new Date(input.appointmentAt)
   if (Number.isNaN(when.getTime())) {
-    throw new DomainError('INVALID_BODY', 'appointment_at is not a valid ISO timestamp')
+    throw new DomainError('INVALID_BODY', 'Data e hora do atendimento em formato inválido.', { status: 400 })
   }
 
   if (!input.procedures || input.procedures.length === 0) {
@@ -105,45 +110,67 @@ export async function createAppointmentManually(
   ]
   await Promise.all(fkChecks)
 
-  // Carrega TUSS de cada procedimento — valida vigencia.
+  // Carrega TUSS + is_unlisted de cada procedimento.
   const procedureRows = await supabase
     .from('procedures')
-    .select('id, tuss_code, default_amount_cents')
+    .select('id, tuss_code, default_amount_cents, is_unlisted')
     .in('id', distinctProcedureIds)
   if (procedureRows.error) {
     throw new Error(`procedures lookup failed: ${procedureRows.error.message}`)
   }
-  const procedureById = new Map<string, { tussCode: string; defaultAmountCents: number | null }>()
+  const procedureById = new Map<
+    string,
+    { tussCode: string | null; defaultAmountCents: number | null; isUnlisted: boolean }
+  >()
   for (const r of (procedureRows.data ?? []) as Array<{
     id: string
-    tuss_code: string
+    tuss_code: string | null
     default_amount_cents: number | null
+    is_unlisted: boolean | null
   }>) {
     procedureById.set(r.id, {
       tussCode: r.tuss_code,
       defaultAmountCents: r.default_amount_cents,
+      isUnlisted: r.is_unlisted === true,
     })
   }
 
-  const today = new Date().toISOString().slice(0, 10)
-  const tussRows = await supabase
-    .from('tuss_codes')
-    .select('code, valid_to')
-    .in('code', Array.from(new Set(Array.from(procedureById.values()).map((p) => p.tussCode))))
-  if (tussRows.error) {
-    throw new Error(`tuss_codes lookup failed: ${tussRows.error.message}`)
-  }
-  const tussByCode = new Map<string, { validTo: string | null }>()
-  for (const r of (tussRows.data ?? []) as Array<{ code: string; valid_to: string | null }>) {
-    tussByCode.set(r.code, { validTo: r.valid_to })
-  }
-  for (const [, p] of procedureById) {
-    const t = tussByCode.get(p.tussCode)
-    if (!t) {
-      throw new DomainError('TUSS_CODE_UNKNOWN', `TUSS code ${p.tussCode} absent from catalog`)
+  // Valida vigencia TUSS apenas para procedimentos LISTADOS — unlisted nao
+  // tem tuss_code para validar (constraint procedures_tuss_code_consistency
+  // da 0066 garante a coerencia).
+  const listedCodes = Array.from(
+    new Set(
+      Array.from(procedureById.values())
+        .filter((p) => !p.isUnlisted && p.tussCode !== null)
+        .map((p) => p.tussCode as string),
+    ),
+  )
+  if (listedCodes.length > 0) {
+    const today = new Date().toISOString().slice(0, 10)
+    const tussRows = await supabase
+      .from('tuss_codes')
+      .select('code, valid_to')
+      .in('code', listedCodes)
+    if (tussRows.error) {
+      throw new Error(`tuss_codes lookup failed: ${tussRows.error.message}`)
     }
-    if (t.validTo && t.validTo < today) {
-      throw new TussCodeRetiredError(p.tussCode, t.validTo)
+    const tussByCode = new Map<string, { validTo: string | null }>()
+    for (const r of (tussRows.data ?? []) as Array<{ code: string; valid_to: string | null }>) {
+      tussByCode.set(r.code, { validTo: r.valid_to })
+    }
+    for (const [, p] of procedureById) {
+      if (p.isUnlisted || p.tussCode === null) continue
+      const t = tussByCode.get(p.tussCode)
+      if (!t) {
+        throw new DomainError(
+          'TUSS_CODE_UNKNOWN',
+          `Codigo TUSS ${p.tussCode} nao encontrado no catalogo.`,
+          { status: 400 },
+        )
+      }
+      if (t.validTo && t.validTo < today) {
+        throw new TussCodeRetiredError(p.tussCode, t.validTo)
+      }
     }
   }
 
@@ -166,23 +193,37 @@ export async function createAppointmentManually(
     let sourcePriceVersionId: string | null = null
     let vigenteAmountCents = 0
     if (raw.planId !== null) {
-      const price = await resolvePrice(supabase, {
-        tenantId: input.tenantId,
-        procedureId: raw.procedureId,
-        planId: raw.planId,
-        asOf: when,
-      })
-      sourcePriceVersionId = price.priceVersionId
-      vigenteAmountCents = price.amountCents
+      try {
+        const price = await resolvePrice(supabase, {
+          tenantId: input.tenantId,
+          procedureId: raw.procedureId,
+          planId: raw.planId,
+          asOf: when,
+        })
+        sourcePriceVersionId = price.priceVersionId
+        vigenteAmountCents = price.amountCents
+      } catch (err) {
+        // Procedimento "nao listado" pode estar em pacote negociado sem
+        // price_version cadastrada — cai em default_amount_cents/override.
+        // Procedimento listado SEM price_version e erro de configuracao.
+        const isPriceMissing =
+          err instanceof AppointmentPriceMissingError ||
+          (err instanceof DomainError && err.code === 'APPOINTMENT_PRICE_MISSING')
+        if (!isPriceMissing || !proc.isUnlisted) {
+          throw err
+        }
+        vigenteAmountCents = proc.defaultAmountCents ?? 0
+      }
     } else {
       vigenteAmountCents = proc.defaultAmountCents ?? 0
     }
     const lineAmount =
       raw.amountCentsOverride !== undefined ? raw.amountCentsOverride : vigenteAmountCents
     if (lineAmount <= 0) {
+      const label = proc.tussCode ?? '(nao listado)'
       throw new DomainError(
         'PROCEDURE_LINE_AMOUNT_REQUIRED',
-        `Valor obrigatorio para procedimento ${proc.tussCode}. Sem valor particular cadastrado e nenhum override informado.`,
+        `Valor obrigatorio para o procedimento ${label}. Cadastre um valor particular para o procedimento ou informe o valor no atendimento.`,
         { status: 400 },
       )
     }
@@ -270,17 +311,24 @@ export async function createAppointmentManually(
         { status: 409 },
       )
     }
-    if (/PROCEDURE_LINE_PRICE_MISSING/i.test(msg)) {
+    if (/PROCEDURE_LINE_PRICE_MISSING|APPOINTMENT_PRICE_MISSING/i.test(msg)) {
       throw new DomainError(
         'APPOINTMENT_PRICE_MISSING',
-        'Algum procedimento nao tem preco vigente cadastrado para o plano informado.',
+        'Algum procedimento não tem preço vigente cadastrado para o plano informado.',
         { status: 400 },
       )
     }
-    if (/PROCEDURE_LINE_TUSS_RETIRED/i.test(msg)) {
+    if (/PROCEDURE_LINE_TUSS_RETIRED|TUSS_CODE_RETIRED/i.test(msg)) {
       throw new DomainError(
         'TUSS_CODE_RETIRED',
-        'Algum procedimento tem TUSS retirado do catalogo.',
+        'Algum procedimento tem código TUSS retirado do catálogo.',
+        { status: 400 },
+      )
+    }
+    if (/PROCEDURE_LINE_UNKNOWN|APPOINTMENT_PROCEDURE_UNKNOWN/i.test(msg)) {
+      throw new DomainError(
+        'PROCEDURE_NOT_FOUND',
+        'Procedimento não encontrado para este tenant.',
         { status: 400 },
       )
     }
@@ -357,6 +405,14 @@ async function ensureBelongsToTenant(
     .maybeSingle()
   if (res.error) throw new Error(`${table} lookup failed: ${res.error.message}`)
   if (!res.data) {
-    throw new DomainError(notFoundCode, `${table} not found for tenant`, { status: 404 })
+    const label = PT_TABLE_LABEL[table] ?? table
+    throw new DomainError(notFoundCode, `${label} não encontrado(a) neste tenant.`, { status: 404 })
   }
+}
+
+const PT_TABLE_LABEL: Record<string, string> = {
+  patients: 'Paciente',
+  doctors: 'Profissional',
+  procedures: 'Procedimento',
+  health_plans: 'Plano de saúde',
 }

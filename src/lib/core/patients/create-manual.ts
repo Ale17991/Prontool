@@ -27,7 +27,8 @@ export interface CreateManualPatientAddress {
 export interface CreateManualPatientInput {
   tenantId: string
   fullName: string
-  cpf: string
+  /** CPF opcional em fase de testes. `null` = paciente sem CPF cadastrado. */
+  cpf: string | null
   phone?: string | undefined
   email?: string | undefined
   birthDate?: string | undefined
@@ -74,7 +75,7 @@ export async function createPatientManually(
     addrState,
   ] = await Promise.all([
     encrypt(supabase, input.fullName, key),
-    encrypt(supabase, input.cpf, key),
+    input.cpf ? encrypt(supabase, input.cpf, key) : Promise.resolve(null),
     input.phone ? encrypt(supabase, input.phone, key) : Promise.resolve(null),
     input.email ? encrypt(supabase, input.email, key) : Promise.resolve(null),
     input.birthDate ? encrypt(supabase, input.birthDate, key) : Promise.resolve(null),
@@ -121,7 +122,7 @@ export async function createPatientManually(
       id: patientId,
       tenantId: input.tenantId,
       fullName: input.fullName,
-      cpf: input.cpf,
+      cpf: input.cpf ?? '',
       email: input.email ?? null,
       phone: input.phone ?? null,
       birthDate: input.birthDate ?? null,
