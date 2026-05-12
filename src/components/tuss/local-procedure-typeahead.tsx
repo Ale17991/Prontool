@@ -21,7 +21,7 @@ export interface LocalProcedureOption {
   id: string
   /** TUSS code OU codigo personalizado (custom_procedure_codes.code) OU
    * "(não listado)" quando unlisted sem codigo. */
-  tussCode: string
+  tussCode: string | null
   displayName: string | null
   /** Procedimento e coberto pelo plano? Quando false, agendamento sempre vira particular. */
   coveredByPlan?: boolean
@@ -33,6 +33,28 @@ export interface LocalProcedureOption {
   /** true = procedimento tem codigo personalizado da clinica
    * (custom_procedure_codes). Mostra badge "Personalizado" no dropdown. */
   isCustomCoded?: boolean
+}
+
+/**
+ * Monta o texto do botao/item do typeahead.
+ *   - TUSS listado: "12345 — Nome"
+ *   - Personalizado: "PKG-001 — Nome"
+ *   - Unlisted sem codigo: "Não listado — Nome" ou só "Nome"
+ *   - Sempre defensivo contra tussCode null/undefined (nunca renderiza "null").
+ */
+export function formatProcedureLabel(o: LocalProcedureOption): string {
+  const code =
+    typeof o.tussCode === 'string' && o.tussCode.trim().length > 0
+      ? o.tussCode
+      : null
+  const name =
+    typeof o.displayName === 'string' && o.displayName.trim().length > 0
+      ? o.displayName
+      : null
+  if (code && name) return `${code} — ${name}`
+  if (code) return code
+  if (name) return name
+  return '(procedimento sem nome)'
 }
 
 export interface LocalProcedureTypeaheadProps {
@@ -70,10 +92,9 @@ export function LocalProcedureTypeahead({
     if (q.length === 0) return options.slice(0, 50)
     return options
       .filter((o) => {
-        return (
-          o.tussCode.toLowerCase().includes(q) ||
-          (o.displayName ?? '').toLowerCase().includes(q)
-        )
+        const code = typeof o.tussCode === 'string' ? o.tussCode.toLowerCase() : ''
+        const name = (o.displayName ?? '').toLowerCase()
+        return code.includes(q) || name.includes(q)
       })
       .slice(0, 50)
   }, [options, search])
@@ -82,10 +103,9 @@ export function LocalProcedureTypeahead({
     const q = listSearch.trim().toLowerCase()
     if (q.length === 0) return options
     return options.filter((o) => {
-      return (
-        o.tussCode.toLowerCase().includes(q) ||
-        (o.displayName ?? '').toLowerCase().includes(q)
-      )
+      const code = typeof o.tussCode === 'string' ? o.tussCode.toLowerCase() : ''
+      const name = (o.displayName ?? '').toLowerCase()
+      return code.includes(q) || name.includes(q)
     })
   }, [options, listSearch])
 
@@ -116,9 +136,7 @@ export function LocalProcedureTypeahead({
             className="flex-1 justify-between font-normal"
           >
             <span className="truncate">
-              {selected
-                ? `${selected.tussCode}${selected.displayName ? ` — ${selected.displayName}` : ''}`
-                : placeholder}
+              {selected ? formatProcedureLabel(selected) : placeholder}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -139,36 +157,48 @@ export function LocalProcedureTypeahead({
               </CommandEmpty>
               {filtered.length > 0 ? (
                 <CommandGroup heading="Procedimentos cadastrados">
-                  {filtered.map((item) => (
-                    <CommandItem
-                      key={item.id}
-                      value={`${item.tussCode} ${item.displayName ?? ''}`}
-                      onSelect={() => pick(item)}
-                      className="cursor-pointer items-start py-2 text-xs"
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 mt-0.5 h-4 w-4 shrink-0 text-primary',
-                          selected?.id === item.id ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
-                      <span className="mr-2 mt-0.5 flex shrink-0 items-center gap-1.5">
-                        {item.isCustomCoded ? (
-                          <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
-                            Pers.
+                  {filtered.map((item) => {
+                    const codeText =
+                      typeof item.tussCode === 'string' && item.tussCode.trim().length > 0
+                        ? item.tussCode
+                        : item.isUnlisted
+                          ? 'Não listado'
+                          : '—'
+                    return (
+                      <CommandItem
+                        key={item.id}
+                        value={`${codeText} ${item.displayName ?? ''}`}
+                        onSelect={() => pick(item)}
+                        className="cursor-pointer items-start py-2 text-xs"
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 mt-0.5 h-4 w-4 shrink-0 text-primary',
+                            selected?.id === item.id ? 'opacity-100' : 'opacity-0',
+                          )}
+                        />
+                        <span className="mr-2 mt-0.5 flex shrink-0 items-center gap-1.5">
+                          {item.isCustomCoded ? (
+                            <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                              Pers.
+                            </span>
+                          ) : item.isUnlisted ? (
+                            <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                              Não list.
+                            </span>
+                          ) : null}
+                          <span className="font-mono text-[11px] font-bold text-slate-900">
+                            {codeText}
                           </span>
-                        ) : null}
-                        <span className="font-mono text-[11px] font-bold text-slate-900">
-                          {item.tussCode}
                         </span>
-                      </span>
-                      <span className="flex min-w-0 flex-1 flex-col">
-                        <span className="line-clamp-2 whitespace-normal break-words text-slate-700">
-                          {item.displayName ?? '(sem nome de exibição)'}
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="line-clamp-2 whitespace-normal break-words text-slate-700">
+                            {item.displayName ?? '(sem nome de exibição)'}
+                          </span>
                         </span>
-                      </span>
-                    </CommandItem>
-                  ))}
+                      </CommandItem>
+                    )
+                  })}
                 </CommandGroup>
               ) : null}
             </CommandList>
@@ -229,7 +259,11 @@ export function LocalProcedureTypeahead({
                       className="cursor-pointer"
                     >
                       <TableCell className="font-mono text-xs font-bold text-primary">
-                        {item.tussCode}
+                        {typeof item.tussCode === 'string' && item.tussCode.trim().length > 0
+                          ? item.tussCode
+                          : item.isUnlisted
+                            ? 'Não listado'
+                            : '—'}
                       </TableCell>
                       <TableCell className="text-xs text-slate-700">
                         <p className="line-clamp-2 whitespace-normal break-words">

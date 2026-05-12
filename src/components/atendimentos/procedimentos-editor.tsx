@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -79,6 +79,14 @@ export function ProcedurasEditor({
   defaultPlanId,
   disabled = false,
 }: ProcedurasEditorProps) {
+  // Ref pra ter sempre a versao MAIS RECENTE do array dentro de handlers async.
+  // Sem isso, callbacks async usam o `value` capturado no closure e
+  // sobrescrevem atualizacoes intermediarias (stale-state bug).
+  const valueRef = useRef(value)
+  useEffect(() => {
+    valueRef.current = value
+  }, [value])
+
   // Garante pelo menos uma linha.
   useEffect(() => {
     if (value.length === 0) {
@@ -87,47 +95,58 @@ export function ProcedurasEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function updateLine(index: number, patch: Partial<ProcedureLineDraft>) {
-    onChange(value.map((l, i) => (i === index ? { ...l, ...patch } : l)))
+  /** Aplica um patch a uma linha usando o valueRef (sempre fresco). */
+  function patchLine(index: number, patch: Partial<ProcedureLineDraft>) {
+    const current = valueRef.current
+    const next = current.map((l, i) => (i === index ? { ...l, ...patch } : l))
+    valueRef.current = next
+    onChange(next)
   }
 
   function addLine() {
-    onChange([...value, createEmptyLine(defaultPlanId)])
+    const next = [...valueRef.current, createEmptyLine(defaultPlanId)]
+    valueRef.current = next
+    onChange(next)
   }
 
   function removeLine(index: number) {
-    if (value.length <= 1) return
-    onChange(value.filter((_, i) => i !== index))
+    if (valueRef.current.length <= 1) return
+    const next = valueRef.current.filter((_, i) => i !== index)
+    valueRef.current = next
+    onChange(next)
   }
 
-  // Quando o procedimento muda: re-checa coverage e zera o valor sugerido.
+  // Quando o procedimento muda: re-checa coverage, atualiza imediato + fetch
+  // preco assincrono. Usar patchLine garante que cada update parte da versao
+  // mais recente do array (sem race entre updates).
   async function handleProcedureChange(index: number, newProcedureId: string) {
     const proc = procedures.find((p) => p.id === newProcedureId) ?? null
     const isUncovered = proc?.coveredByPlan === false
-    const currentLine = value[index]
+    const currentLine = valueRef.current[index]
     if (!currentLine) return
 
-    // Atualizacao imediata sem aguardar fetch.
-    updateLine(index, {
+    // Atualizacao imediata: marca procedimento, limpa valor antigo.
+    patchLine(index, {
       procedureId: newProcedureId,
       particularLocked: isUncovered,
-      // Se procedimento e particular-locked, forca planId=null.
       planId: isUncovered ? null : currentLine.planId,
-      // Limpa o valor para permitir o auto-fetch a seguir.
       amountReais: '',
       vigenteAmountCents: null,
     })
 
-    // Resolve preco em background (best-effort).
     const planForFetch =
-      isUncovered ? null : currentLine.planId === '' ? null : currentLine.planId
+      isUncovered
+        ? null
+        : currentLine.planId === '' || currentLine.planId === undefined
+          ? null
+          : currentLine.planId
     await resolveAndApplyPrice(index, newProcedureId, planForFetch)
   }
 
   async function handlePlanChange(index: number, newPlanId: string | null) {
-    const current = value[index]
+    const current = valueRef.current[index]
     if (!current) return
-    updateLine(index, { planId: newPlanId, amountReais: '', vigenteAmountCents: null })
+    patchLine(index, { planId: newPlanId, amountReais: '', vigenteAmountCents: null })
     if (current.procedureId) {
       await resolveAndApplyPrice(index, current.procedureId, newPlanId)
     }
@@ -146,6 +165,8 @@ export function ProcedurasEditor({
       const cents = proc.defaultAmountCents ?? null
       if (cents !== null && cents > 0) {
         applyVigente(index, cents)
+      } else if (proc.isUnlisted) {
+        // Unlisted sem valor padrao: deixa o usuario digitar manualmente.
       }
       return
     }
@@ -153,25 +174,31 @@ export function ProcedurasEditor({
     try {
       const params = new URLSearchParams({ plan_id: planId, procedure_id: procedureId })
       const res = await fetch(`/api/precos/vigente?${params.toString()}`)
-      if (!res.ok) return
+      if (!res.ok) {
+        // Sem preco vigente cadastrado: cai pro default_amount_cents quando
+        // o procedimento e unlisted (pacote sem price_version), ou deixa
+        // vazio caso contrario.
+        if (proc.isUnlisted && proc.defaultAmountCents) {
+          applyVigente(index, proc.defaultAmountCents)
+        }
+        return
+      }
       const body = (await res.json()) as { amountCents?: number | null }
       if (typeof body.amountCents === 'number' && body.amountCents > 0) {
         applyVigente(index, body.amountCents)
+      } else if (proc.isUnlisted && proc.defaultAmountCents) {
+        applyVigente(index, proc.defaultAmountCents)
       }
     } catch {
-      // best-effort
+      // best-effort — deixa o usuario digitar manualmente.
     }
   }
 
   function applyVigente(index: number, cents: number) {
-    // Aplica sempre — chama-se logo apos resetar amountReais para ''.
-    onChange(
-      value.map((l, i) =>
-        i === index
-          ? { ...l, vigenteAmountCents: cents, amountReais: (cents / 100).toFixed(2) }
-          : l,
-      ),
-    )
+    patchLine(index, {
+      vigenteAmountCents: cents,
+      amountReais: (cents / 100).toFixed(2).replace('.', ','),
+    })
   }
 
   const totalCents = value.reduce((acc, l) => acc + amountReaisToCents(l.amountReais), 0)
@@ -275,7 +302,7 @@ export function ProcedurasEditor({
                     inputMode="decimal"
                     placeholder="0,00"
                     value={line.amountReais}
-                    onChange={(e) => updateLine(i, { amountReais: e.target.value })}
+                    onChange={(e) => patchLine(i, { amountReais: e.target.value })}
                     disabled={disabled}
                     className="h-8"
                   />
