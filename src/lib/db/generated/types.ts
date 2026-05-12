@@ -780,6 +780,50 @@ export type Database = {
           },
         ]
       }
+      custom_procedure_codes: {
+        Row: {
+          category: string | null
+          code: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          category?: string | null
+          code: string
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          category?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_procedure_codes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_commission_history: {
         Row: {
           created_at: string
@@ -1553,6 +1597,7 @@ export type Database = {
           covered_by_plan: boolean
           created_at: string
           created_by: string | null
+          custom_code_id: string | null
           default_amount_cents: number | null
           display_name: string | null
           id: string
@@ -1565,6 +1610,7 @@ export type Database = {
           covered_by_plan?: boolean
           created_at?: string
           created_by?: string | null
+          custom_code_id?: string | null
           default_amount_cents?: number | null
           display_name?: string | null
           id?: string
@@ -1577,6 +1623,7 @@ export type Database = {
           covered_by_plan?: boolean
           created_at?: string
           created_by?: string | null
+          custom_code_id?: string | null
           default_amount_cents?: number | null
           display_name?: string | null
           id?: string
@@ -1585,6 +1632,13 @@ export type Database = {
           tuss_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "procedures_custom_code_id_fkey"
+            columns: ["custom_code_id"]
+            isOneToOne: false
+            referencedRelation: "custom_procedure_codes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "procedures_tenant_id_fkey"
             columns: ["tenant_id"]

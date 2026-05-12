@@ -23,7 +23,9 @@ interface JoinedRow {
   default_amount_cents: number | null
   covered_by_plan: boolean
   is_unlisted: boolean
+  custom_code_id: string | null
   tuss_codes: { description: string; tuss_table: string; manufacturer: string | null } | null
+  custom_procedure_codes: { code: string; description: string } | null
 }
 
 export default async function ProcedimentosPage() {
@@ -34,7 +36,9 @@ export default async function ProcedimentosPage() {
   const { data: rawRows, error } = await supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id, ' +
+        'tuss_codes!procedures_tuss_code_fkey(description, tuss_table, manufacturer), ' +
+        'custom_procedure_codes:custom_code_id(code, description)',
     )
     .order('created_at', { ascending: false })
     .limit(500)
@@ -110,12 +114,24 @@ export default async function ProcedimentosPage() {
                     <TableRow key={r.id}>
                       <TableCell className="font-mono text-xs font-bold text-primary">
                         {r.is_unlisted ? (
-                          <Badge
-                            variant="secondary"
-                            className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
-                          >
-                            Não listado
-                          </Badge>
+                          r.custom_procedure_codes ? (
+                            <div className="flex items-center gap-1.5">
+                              <Badge
+                                variant="secondary"
+                                className="border-violet-200 bg-violet-50 text-[10px] text-violet-800"
+                              >
+                                Personalizado
+                              </Badge>
+                              <span>{r.custom_procedure_codes.code}</span>
+                            </div>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
+                            >
+                              Não listado
+                            </Badge>
+                          )
                         ) : (
                           <div className="flex items-center gap-1.5">
                             {r.tuss_codes?.tuss_table ? (

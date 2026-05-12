@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listProcedures } from '@/lib/core/procedures/list'
 import { createProcedure } from '@/lib/core/procedures/create'
+import { upsertCustomCode } from '@/lib/core/custom-codes'
 import { denyAudit } from '@/lib/core/audit/deny'
 import { TussCodeInvalidError, ConflictError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
@@ -34,6 +35,9 @@ const createSchema = z
     default_amount_cents: z.number().int().nonnegative().nullable().optional(),
     covered_by_plan: z.boolean().optional(),
     is_unlisted: z.boolean().optional(),
+    /** Codigo personalizado (texto livre) — quando unlisted=true. Cria
+     * registry em custom_procedure_codes ou reusa se ja existir. */
+    custom_code: z.string().trim().min(1).max(50).nullable().optional(),
   })
   .superRefine((value, ctx) => {
     const unlisted = value.is_unlisted === true
@@ -52,12 +56,21 @@ const createSchema = z
           message: 'display_name é obrigatório para procedimento não listado',
         })
       }
-    } else if (!value.tuss_code) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['tuss_code'],
-        message: 'tuss_code é obrigatório quando is_unlisted=false',
-      })
+    } else {
+      if (!value.tuss_code) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['tuss_code'],
+          message: 'tuss_code é obrigatório quando is_unlisted=false',
+        })
+      }
+      if (value.custom_code) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['custom_code'],
+          message: 'custom_code só pode ser usado quando is_unlisted=true',
+        })
+      }
     }
   })
 
@@ -102,6 +115,19 @@ export async function POST(req: Request): Promise<Response> {
     }
     const supabase = createSupabaseServiceClient()
     try {
+      // Quando unlisted + custom_code: cria (ou reusa) o codigo no registry
+      // antes de criar o procedimento, e amarra via custom_code_id.
+      let customCodeId: string | null = null
+      if (parsed.data.is_unlisted && parsed.data.custom_code) {
+        const code = await upsertCustomCode(supabase, {
+          tenantId: session.tenantId,
+          code: parsed.data.custom_code,
+          description: parsed.data.display_name?.trim() ?? parsed.data.custom_code,
+          actorUserId: session.userId,
+        })
+        customCodeId = code.id
+      }
+
       const created = await createProcedure(supabase, {
         tenantId: session.tenantId,
         tussCode: parsed.data.tuss_code ?? null,
@@ -109,6 +135,7 @@ export async function POST(req: Request): Promise<Response> {
         defaultAmountCents: parsed.data.default_amount_cents ?? null,
         coveredByPlan: parsed.data.covered_by_plan ?? true,
         isUnlisted: parsed.data.is_unlisted ?? false,
+        customCodeId,
       })
       return NextResponse.json(
         {
@@ -120,6 +147,7 @@ export async function POST(req: Request): Promise<Response> {
           default_amount_cents: created.defaultAmountCents,
           covered_by_plan: created.coveredByPlan,
           is_unlisted: created.isUnlisted,
+          custom_code_id: created.customCodeId,
         },
         { status: 201 },
       )

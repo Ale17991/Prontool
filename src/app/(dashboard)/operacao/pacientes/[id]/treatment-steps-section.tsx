@@ -71,10 +71,15 @@ export interface TreatmentStepDTO {
 
 export interface ProcedureOption {
   id: string
+  /** TUSS, codigo personalizado ou "(não listado)" (resolvido no loader). */
   tussCode: string
   displayName: string | null
   coveredByPlan: boolean
   defaultAmountCents: number | null
+  /** true quando procedure.is_unlisted=true (com ou sem codigo personalizado). */
+  isUnlisted?: boolean
+  /** true quando procedure tem custom_code_id (pacote/codigo personalizado). */
+  isCustomCoded?: boolean
 }
 
 export interface HealthPlanOption {
@@ -780,6 +785,10 @@ function NewStepForm({
             id: p.id,
             tussCode: p.tussCode,
             displayName: p.displayName,
+            coveredByPlan: p.coveredByPlan,
+            defaultAmountCents: p.defaultAmountCents,
+            isUnlisted: p.isUnlisted,
+            isCustomCoded: p.isCustomCoded,
           }))}
           value={procedureId}
           onChange={setProcedureId}

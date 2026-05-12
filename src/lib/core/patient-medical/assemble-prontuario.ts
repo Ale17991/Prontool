@@ -8,6 +8,7 @@ import { listVitalSigns, type VitalSignsDTO } from './vital-signs'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import { listTreatmentSteps, type TreatmentStep } from '@/lib/core/treatment-steps/list'
+import { listMaterialsByAppointmentIds } from '@/lib/core/appointments/materials'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import {
   CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS,
@@ -23,6 +24,14 @@ export interface ProntuarioAppointmentRow {
   tussCode: string | null
   doctorName: string | null
   planName: string | null
+  /** Materiais (TUSS tabela 19) utilizados neste atendimento — feature 007. */
+  materials: ProntuarioMaterialRow[]
+}
+
+export interface ProntuarioMaterialRow {
+  tussCode: string
+  tussDescription: string
+  quantity: number
 }
 
 export interface ProntuarioCidEntry {
@@ -135,6 +144,24 @@ export async function assemblePatientChart(
     inWindow(a.appointmentAt),
   )
 
+  // Carrega materiais em batch para os atendimentos da janela.
+  if (filteredAppointments.length > 0) {
+    const ids = filteredAppointments.map((a) => a.id)
+    const grouped = await listMaterialsByAppointmentIds(
+      supabase,
+      ids,
+      input.tenantId,
+    )
+    for (const a of filteredAppointments) {
+      const rows = grouped[a.id] ?? []
+      a.materials = rows.map((r) => ({
+        tussCode: r.tussCode,
+        tussDescription: r.tussDescription,
+        quantity: r.quantity,
+      }))
+    }
+  }
+
   // Diagnósticos: lê direto de `patient_diagnoses` (replicando feature
   // 0060). Filtra pela janela temporal pela data do diagnóstico.
   const diagnostics: ProntuarioCidEntry[] = diagnosesAll
@@ -204,6 +231,7 @@ async function fetchAppointments(
     tussCode: r.procedures?.tuss_code ?? null,
     doctorName: r.doctors?.full_name ?? null,
     planName: r.health_plans?.name ?? null,
+    materials: [],
   }))
 }
 

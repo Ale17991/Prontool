@@ -19,12 +19,20 @@ import { cn } from '@/lib/utils'
 
 export interface LocalProcedureOption {
   id: string
+  /** TUSS code OU codigo personalizado (custom_procedure_codes.code) OU
+   * "(não listado)" quando unlisted sem codigo. */
   tussCode: string
   displayName: string | null
   /** Procedimento e coberto pelo plano? Quando false, agendamento sempre vira particular. */
   coveredByPlan?: boolean
   /** Valor particular cadastrado em cents — null se nao cadastrado. */
   defaultAmountCents?: number | null
+  /** true = procedimento sem codigo TUSS oficial (unlisted ou com codigo
+   * personalizado). Atendimento pula validacao TUSS. */
+  isUnlisted?: boolean
+  /** true = procedimento tem codigo personalizado da clinica
+   * (custom_procedure_codes). Mostra badge "Personalizado" no dropdown. */
+  isCustomCoded?: boolean
 }
 
 export interface LocalProcedureTypeaheadProps {
@@ -144,8 +152,15 @@ export function LocalProcedureTypeahead({
                           selected?.id === item.id ? 'opacity-100' : 'opacity-0',
                         )}
                       />
-                      <span className="mr-2 mt-0.5 shrink-0 font-mono text-[11px] font-bold text-slate-900">
-                        {item.tussCode}
+                      <span className="mr-2 mt-0.5 flex shrink-0 items-center gap-1.5">
+                        {item.isCustomCoded ? (
+                          <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                            Pers.
+                          </span>
+                        ) : null}
+                        <span className="font-mono text-[11px] font-bold text-slate-900">
+                          {item.tussCode}
+                        </span>
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span className="line-clamp-2 whitespace-normal break-words text-slate-700">

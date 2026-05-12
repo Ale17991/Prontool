@@ -24,6 +24,12 @@ export interface CreateProcedureInput {
    * unlisted + covered.
    */
   isUnlisted?: boolean
+  /**
+   * FK para custom_procedure_codes (migration 0073). Quando preenchido,
+   * exige isUnlisted=true. Codigos personalizados sao do dominio unlisted;
+   * procedimentos TUSS-coded usam o tuss_code.
+   */
+  customCodeId?: string | null
 }
 
 export interface ProcedureRow {
@@ -35,6 +41,7 @@ export interface ProcedureRow {
   defaultAmountCents: number | null
   coveredByPlan: boolean
   isUnlisted: boolean
+  customCodeId: string | null
 }
 
 export async function createProcedure(
@@ -55,6 +62,10 @@ export async function createProcedure(
     throw new Error('createProcedure: tussCode is required when isUnlisted=false')
   }
 
+  const customCodeId = input.customCodeId ?? null
+  if (customCodeId !== null && !isUnlisted) {
+    throw new Error('createProcedure: customCodeId requer isUnlisted=true')
+  }
   const { data, error } = await supabase
     .from('procedures')
     .insert({
@@ -64,8 +75,11 @@ export async function createProcedure(
       default_amount_cents: input.defaultAmountCents ?? null,
       covered_by_plan: input.coveredByPlan ?? true,
       is_unlisted: isUnlisted,
-    })
-    .select('id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted')
+      custom_code_id: customCodeId,
+    } as never)
+    .select(
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id',
+    )
     .single()
 
   if (error) {
@@ -81,14 +95,26 @@ export async function createProcedure(
     }
     throw new Error(`createProcedure failed: ${error.message}`)
   }
+  const row = data as unknown as {
+    id: string
+    tuss_code: string | null
+    display_name: string | null
+    active: boolean
+    created_at: string
+    default_amount_cents: number | null
+    covered_by_plan: boolean
+    is_unlisted: boolean
+    custom_code_id: string | null
+  }
   return {
-    id: data.id,
-    tussCode: data.tuss_code,
-    displayName: data.display_name,
-    active: data.active,
-    createdAt: data.created_at,
-    defaultAmountCents: data.default_amount_cents,
-    coveredByPlan: data.covered_by_plan,
-    isUnlisted: data.is_unlisted,
+    id: row.id,
+    tussCode: row.tuss_code,
+    displayName: row.display_name,
+    active: row.active,
+    createdAt: row.created_at,
+    defaultAmountCents: row.default_amount_cents,
+    coveredByPlan: row.covered_by_plan,
+    isUnlisted: row.is_unlisted,
+    customCodeId: row.custom_code_id,
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, Minus, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TussTypeahead, type TussTypeaheadValue } from '@/components/tuss/tuss-typeahead'
@@ -60,6 +60,14 @@ export function MateriaisEditor({
     onChange(value.map((m, i) => (i === index ? { ...m, quantity } : m)))
   }
 
+  function incrementQuantity(index: number, delta: number) {
+    onChange(
+      value.map((m, i) =>
+        i === index ? { ...m, quantity: Math.max(1, (m.quantity || 1) + delta) } : m,
+      ),
+    )
+  }
+
   function removeAt(index: number) {
     onChange(value.filter((_, i) => i !== index))
   }
@@ -100,8 +108,20 @@ export function MateriaisEditor({
                   >
                     <span className="font-mono font-bold text-slate-900">{m.tussCode}</span>
                     <span className="min-w-0 flex-1 text-slate-700">{m.tussDescription}</span>
-                    <div className="flex items-center gap-1.5">
-                      <label className="text-[10px] uppercase text-slate-500">Qtd</label>
+                    <div className="flex items-center gap-1">
+                      <label className="mr-1 text-[10px] uppercase text-slate-500">Qtd</label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => incrementQuantity(i, -1)}
+                        disabled={disabled || (m.quantity ?? 1) <= 1}
+                        className="h-7 w-7 p-0"
+                        title="Diminuir quantidade"
+                        aria-label="Diminuir quantidade"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
                       <Input
                         type="number"
                         min={1}
@@ -109,15 +129,27 @@ export function MateriaisEditor({
                         value={m.quantity}
                         onChange={(e) => updateQuantity(i, e.target.value)}
                         disabled={disabled}
-                        className={`h-7 w-16 text-right ${invalid ? 'border-red-400 focus-visible:ring-red-300' : ''}`}
+                        className={`h-7 w-14 text-center tabular-nums ${invalid ? 'border-red-400 focus-visible:ring-red-300' : ''}`}
                       />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => incrementQuantity(i, 1)}
+                        disabled={disabled}
+                        className="h-7 w-7 p-0"
+                        title="Aumentar quantidade"
+                        aria-label="Aumentar quantidade"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => removeAt(i)}
                         disabled={disabled}
-                        className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
+                        className="ml-1 h-7 w-7 p-0 text-slate-400 hover:text-red-600"
                         title="Remover material"
                       >
                         <X className="h-3.5 w-3.5" />

@@ -16,6 +16,11 @@ export interface ListedProcedure {
   defaultAmountCents: number | null
   coveredByPlan: boolean
   isUnlisted: boolean
+  /** ID do codigo personalizado (migration 0073). NULL para procedimentos
+   * TUSS-coded ou unlisted-sem-codigo. */
+  customCodeId: string | null
+  /** Codigo personalizado (ex.: PKG-001). NULL quando customCodeId IS NULL. */
+  customCode: string | null
 }
 
 interface JoinedRow {
@@ -27,7 +32,9 @@ interface JoinedRow {
   default_amount_cents: number | null
   covered_by_plan: boolean
   is_unlisted: boolean
+  custom_code_id: string | null
   tuss_codes: { description: string } | null
+  custom_procedure_codes: { code: string; description: string } | null
 }
 
 export async function listProcedures(
@@ -37,7 +44,9 @@ export async function listProcedures(
   let q = supabase
     .from('procedures')
     .select(
-      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, tuss_codes!procedures_tuss_code_fkey(description)',
+      'id, tuss_code, display_name, active, created_at, default_amount_cents, covered_by_plan, is_unlisted, custom_code_id, ' +
+        'tuss_codes!procedures_tuss_code_fkey(description), ' +
+        'custom_procedure_codes:custom_code_id(code, description)',
     )
     .eq('tenant_id', args.tenantId)
     .order('created_at', { ascending: false })
@@ -57,5 +66,7 @@ export async function listProcedures(
     defaultAmountCents: r.default_amount_cents,
     coveredByPlan: r.covered_by_plan,
     isUnlisted: r.is_unlisted,
+    customCodeId: r.custom_code_id,
+    customCode: r.custom_procedure_codes?.code ?? null,
   }))
 }

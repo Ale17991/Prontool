@@ -228,7 +228,10 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
     supabase
       .from('procedures')
-      .select('id, tuss_code, display_name, covered_by_plan, default_amount_cents')
+      .select(
+        'id, tuss_code, display_name, covered_by_plan, default_amount_cents, is_unlisted, custom_code_id, ' +
+          'custom_procedure_codes:custom_code_id(code, description)',
+      )
       .eq('active', true)
       .order('display_name', { ascending: true, nullsFirst: false })
       .limit(500),
@@ -246,18 +249,27 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   const procedures: ProcedureOption[] = (
     (proceduresRes.data ?? []) as Array<{
       id: string
-      tuss_code: string
+      tuss_code: string | null
       display_name: string | null
       covered_by_plan: boolean
       default_amount_cents: number | null
+      is_unlisted: boolean | null
+      custom_code_id: string | null
+      custom_procedure_codes: { code: string; description: string } | null
     }>
-  ).map((p) => ({
-    id: p.id,
-    tussCode: p.tuss_code,
-    displayName: p.display_name,
-    coveredByPlan: p.covered_by_plan,
-    defaultAmountCents: p.default_amount_cents,
-  }))
+  ).map((p) => {
+    const customCode = p.custom_procedure_codes?.code ?? null
+    const codeLabel = customCode ?? p.tuss_code ?? '(não listado)'
+    return {
+      id: p.id,
+      tussCode: codeLabel,
+      displayName: p.display_name,
+      coveredByPlan: p.covered_by_plan,
+      defaultAmountCents: p.default_amount_cents,
+      isUnlisted: p.is_unlisted === true,
+      isCustomCoded: customCode !== null,
+    }
+  })
   const healthPlansList: HealthPlanOption[] = (
     (healthPlansRes.data ?? []) as Array<{ id: string; name: string }>
   ).map((hp) => ({

@@ -18,6 +18,7 @@ export function NewProcedureForm() {
   const [tussTable, setTussTable] = useState<TussTable>('22')
   const [selected, setSelected] = useState<TussTypeaheadValue | null>(null)
   const [displayName, setDisplayName] = useState('')
+  const [customCode, setCustomCode] = useState('')
   const [defaultAmount, setDefaultAmount] = useState('')
   const [coveredByPlan, setCoveredByPlan] = useState(true)
   const [isUnlisted, setIsUnlisted] = useState(false)
@@ -76,6 +77,7 @@ export function NewProcedureForm() {
           default_amount_cents: defaultAmountCents,
           covered_by_plan: coveredByPlan,
           is_unlisted: isUnlisted,
+          custom_code: isUnlisted && customCode.trim() ? customCode.trim() : null,
         }),
       })
       if (!res.ok) {
@@ -84,10 +86,13 @@ export function NewProcedureForm() {
         }
         throw new Error(payload.error?.message ?? `HTTP ${res.status}`)
       }
-      const label = isUnlisted ? displayName.trim() : selected?.code
+      const label = isUnlisted
+        ? customCode.trim() || displayName.trim()
+        : selected?.code
       setSuccess(`Procedimento ${label} cadastrado.`)
       setSelected(null)
       setDisplayName('')
+      setCustomCode('')
       setDefaultAmount('')
       setCoveredByPlan(true)
       setIsUnlisted(false)
@@ -116,6 +121,25 @@ export function NewProcedureForm() {
           </span>
         </span>
       </label>
+
+      {isUnlisted ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="custom-code" className="text-xs">
+            Código personalizado <span className="text-slate-400">(opcional)</span>
+          </Label>
+          <Input
+            id="custom-code"
+            value={customCode}
+            onChange={(e) => setCustomCode(e.target.value)}
+            placeholder="Ex.: PKG-001, ORTO-15"
+            maxLength={50}
+          />
+          <p className="text-[10px] text-slate-500">
+            Código livre da clínica. Se já existir, será reutilizado. Deixe em branco
+            para criar procedimento sem código.
+          </p>
+        </div>
+      ) : null}
 
       {!isUnlisted ? (
         <>

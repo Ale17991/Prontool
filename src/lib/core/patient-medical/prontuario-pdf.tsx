@@ -590,17 +590,31 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
               <Text style={[styles.th, { flex: 0.7 }]}>Status</Text>
             </View>
             {bundle.appointments.map((a) => (
-              <View key={a.id} style={styles.tr}>
-                <Text style={[styles.td, { flex: 1.4 }]}>
-                  {formatDateTime(a.appointmentAt)}
-                </Text>
-                <Text style={[styles.td, { flex: 2 }]}>{a.procedureName ?? '—'}</Text>
-                <Text style={[styles.td, { flex: 1.2 }]}>{a.doctorName ?? '—'}</Text>
-                <Text style={[styles.td, { flex: 1 }]}>{a.planName ?? '—'}</Text>
-                <Text style={[styles.td, { flex: 0.8 }]}>
-                  {formatBRL(a.netAmountCents)}
-                </Text>
-                <Text style={[styles.td, { flex: 0.7 }]}>{a.effectiveStatus ?? '—'}</Text>
+              <View key={a.id}>
+                <View style={styles.tr}>
+                  <Text style={[styles.td, { flex: 1.4 }]}>
+                    {formatDateTime(a.appointmentAt)}
+                  </Text>
+                  <Text style={[styles.td, { flex: 2 }]}>{a.procedureName ?? '—'}</Text>
+                  <Text style={[styles.td, { flex: 1.2 }]}>{a.doctorName ?? '—'}</Text>
+                  <Text style={[styles.td, { flex: 1 }]}>{a.planName ?? '—'}</Text>
+                  <Text style={[styles.td, { flex: 0.8 }]}>
+                    {formatBRL(a.netAmountCents)}
+                  </Text>
+                  <Text style={[styles.td, { flex: 0.7 }]}>{a.effectiveStatus ?? '—'}</Text>
+                </View>
+                {a.materials.length > 0 ? (
+                  <View style={[styles.tr, { paddingTop: 0, paddingBottom: 2 }]}>
+                    <Text style={[styles.td, { flex: 7, color: '#555', fontSize: 7 }]}>
+                      {a.materials
+                        .map(
+                          (m) =>
+                            `${m.tussDescription} — Qtd: ${m.quantity}`,
+                        )
+                        .join(' · ')}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             ))}
           </View>

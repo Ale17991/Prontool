@@ -38,7 +38,11 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       .order('full_name', { ascending: true }),
     supabase
       .from('procedures')
-      .select('id, tuss_code, display_name, covered_by_plan, default_amount_cents')
+      .select(
+        'id, tuss_code, display_name, covered_by_plan, default_amount_cents, is_unlisted, custom_code_id, ' +
+          'custom_procedure_codes:custom_code_id(code, description)',
+      )
+      .eq('active', true)
       .order('tuss_code', { ascending: true }),
     listPatients(service, { tenantId: session.tenantId, pageSize: 100 }),
   ])
@@ -52,18 +56,30 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
   const procedures = (
     (proceduresRes.data ?? []) as Array<{
       id: string
-      tuss_code: string
+      tuss_code: string | null
       display_name: string | null
       covered_by_plan: boolean | null
       default_amount_cents: number | null
+      is_unlisted: boolean | null
+      custom_code_id: string | null
+      custom_procedure_codes: { code: string; description: string } | null
     }>
-  ).map((p) => ({
-    id: p.id,
-    tussCode: p.tuss_code,
-    displayName: p.display_name,
-    coveredByPlan: p.covered_by_plan ?? true,
-    defaultAmountCents: p.default_amount_cents,
-  }))
+  ).map((p) => {
+    const isUnlisted = p.is_unlisted === true
+    const customCode = p.custom_procedure_codes?.code ?? null
+    // Codigo a exibir: TUSS para listados, codigo personalizado para
+    // unlisted-com-custom, "(não listado)" para unlisted-sem-codigo.
+    const codeLabel = customCode ?? p.tuss_code ?? '(não listado)'
+    return {
+      id: p.id,
+      tussCode: codeLabel,
+      displayName: p.display_name,
+      coveredByPlan: p.covered_by_plan ?? true,
+      defaultAmountCents: p.default_amount_cents,
+      isUnlisted,
+      isCustomCoded: customCode !== null,
+    }
+  })
   // Para auto-detect "Particular": carregar plan_id de cada paciente em batch.
   const patientPlanIds = new Map<string, string | null>()
   if (patientsRes.items.length > 0) {
