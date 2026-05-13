@@ -8,8 +8,9 @@ import { PriceVersionConflictError } from '@/lib/observability/errors'
  * SELECT … FOR UPDATE, valida `expected_head_id` e insere atomicamente.
  *
  * Lança `PriceVersionConflictError` em qualquer dos cenários de
- * conflito (chain head mudou OU UNIQUE no valid_from violado), com o
- * `current_head_id` real pra UI poder re-carregar.
+ * conflito (chain head mudou; limite diário de 4 alterações atingido;
+ * ou — compat — UNIQUE no valid_from violado), com o `current_head_id`
+ * real pra UI poder re-carregar.
  */
 export interface CreatePriceVersionInput {
   tenantId: string
@@ -35,7 +36,7 @@ export interface CreatedPriceVersion {
 }
 
 interface RpcResult {
-  status: 'created' | 'conflict' | 'duplicate_valid_from'
+  status: 'created' | 'conflict' | 'duplicate_valid_from' | 'daily_limit_exceeded'
   current_head_id?: string | null
   current_amount_cents?: number | null
   version?: {
@@ -70,7 +71,11 @@ export async function createPriceVersion(
   if (error) throw new Error(`create_price_version RPC failed: ${error.message}`)
 
   const result = data as unknown as RpcResult
-  if (result.status === 'conflict' || result.status === 'duplicate_valid_from') {
+  if (
+    result.status === 'conflict' ||
+    result.status === 'duplicate_valid_from' ||
+    result.status === 'daily_limit_exceeded'
+  ) {
     throw new PriceVersionConflictError(
       result.current_head_id ?? null,
       result.current_amount_cents ?? null,

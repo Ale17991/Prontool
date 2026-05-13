@@ -7,8 +7,11 @@ import { ConflictError, NotFoundError, ValidationError } from '@/lib/observabili
  * O audit trigger `audit_commission_insert` (migration 0013) já
  * registra a mudança com o percentual anterior.
  *
- * Constraint UNIQUE (tenant_id, doctor_id, valid_from) vira
- * ConflictError — duas mudanças para a mesma data não são permitidas.
+ * Limite diário: o trigger `enforce_commission_daily_limit` (migration
+ * 0082) permite até 4 alterações por (tenant, doctor, valid_from). A
+ * 5ª tentativa devolve ConflictError. Compatibilidade: se a migration
+ * 0082 não tiver sido aplicada, o antigo UNIQUE constraint ainda
+ * dispara 23505 e é mapeado para o mesmo erro.
  */
 export interface CreateCommissionVersionInput {
   tenantId: string
@@ -66,6 +69,13 @@ export async function createCommissionVersion(
     .single()
 
   if (error || !data) {
+    if (error?.message?.includes('COMMISSION_DAILY_LIMIT_EXCEEDED')) {
+      throw new ConflictError(
+        'COMMISSION_DAILY_LIMIT_EXCEEDED',
+        `Limite de 4 alterações de comissão por dia atingido para ${input.validFrom}`,
+        { doctor_id: input.doctorId, valid_from: input.validFrom },
+      )
+    }
     if (error?.code === '23505') {
       throw new ConflictError(
         'COMMISSION_DUPLICATE_VALID_FROM',
