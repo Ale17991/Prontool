@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import { applyPlanTax } from './apply-plan-tax'
 
 /**
  * Agregadores para o relatorio "Por Plano":
@@ -23,6 +24,10 @@ export interface PlanSummaryRow {
   planName: string
   procedureCount: number
   totalRevenueCents: number
+  // Feature 011 — US4
+  taxRateBps: number
+  taxFromPlanCents: number
+  netOfPlanTaxCents: number
 }
 
 export interface PlanProcedureRow {
@@ -46,6 +51,10 @@ export interface PlanDetail {
   totals: {
     procedureCount: number
     totalRevenueCents: number
+    // Feature 011 — US4
+    taxRateBps: number
+    taxFromPlanCents: number
+    netOfPlanTaxCents: number
   }
   topDoctor: { doctorId: string; doctorName: string; count: number } | null
   topProcedure: {
@@ -101,8 +110,14 @@ export async function summaryByPlan(
   // 2) Linhas desses atendimentos.
   const lines = await fetchLines(supabase, input.tenantId, activeIds)
 
-  // 3) Agrega por plano.
-  const map = new Map<string, PlanSummaryRow>()
+  // 3) Agrega por plano (sem aplicar imposto ainda).
+  type RawRow = {
+    planId: string
+    planName: string
+    procedureCount: number
+    totalRevenueCents: number
+  }
+  const map = new Map<string, RawRow>()
   for (const l of lines) {
     const key = l.plan_id ?? '__particular__'
     const existing = map.get(key) ?? {
@@ -115,7 +130,56 @@ export async function summaryByPlan(
     existing.totalRevenueCents += l.line_amount_cents
     map.set(key, existing)
   }
-  return Array.from(map.values()).sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
+  const raw = Array.from(map.values())
+
+  // 4) Carrega tax_rate_bps dos planos envolvidos (Feature 011 — US4).
+  const planTaxMap = await fetchPlanTaxRates(
+    supabase,
+    input.tenantId,
+    raw.map((r) => r.planId).filter((id) => id !== ''),
+  )
+
+  // 5) Aplica imposto e enriquece. applyPlanTax usa o campo grossRevenueCents,
+  // mas aqui temos totalRevenueCents — mapeamos via adapter.
+  const adapted = raw.map((r) => ({
+    ...r,
+    grossRevenueCents: r.totalRevenueCents,
+  }))
+  const { rows: enriched } = applyPlanTax(adapted, planTaxMap)
+  const out: PlanSummaryRow[] = enriched.map((r) => ({
+    planId: r.planId,
+    planName: r.planName,
+    procedureCount: r.procedureCount,
+    totalRevenueCents: r.totalRevenueCents,
+    taxRateBps: r.taxRateBps,
+    taxFromPlanCents: r.taxFromPlanCents,
+    netOfPlanTaxCents: r.netOfPlanTaxCents,
+  }))
+  return out.sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
+}
+
+/**
+ * Feature 011 — US4 — carrega tax_rate_bps de planos por id.
+ * Retorna Map<planId, taxRateBps>. Planos não encontrados ou particular
+ * (planId vazio) usam fallback 0 no consumidor.
+ */
+async function fetchPlanTaxRates(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  planIds: string[],
+): Promise<Map<string, number>> {
+  if (planIds.length === 0) return new Map()
+  const { data, error } = await supabase
+    .from('health_plans')
+    .select('id, tax_rate_bps')
+    .eq('tenant_id', tenantId)
+    .in('id', planIds)
+  if (error) throw new Error(`fetchPlanTaxRates failed: ${error.message}`)
+  const map = new Map<string, number>()
+  for (const row of (data ?? []) as Array<{ id: string; tax_rate_bps?: number }>) {
+    map.set(row.id, row.tax_rate_bps ?? 0)
+  }
+  return map
 }
 
 export async function detailByPlan(
@@ -145,7 +209,13 @@ export async function detailByPlan(
       plan: { id: input.planId, name: planFallback },
       period: { from: input.from, to: input.to },
       procedures: [],
-      totals: { procedureCount: 0, totalRevenueCents: 0 },
+      totals: {
+        procedureCount: 0,
+        totalRevenueCents: 0,
+        taxRateBps: 0,
+        taxFromPlanCents: 0,
+        netOfPlanTaxCents: 0,
+      },
       topDoctor: null,
       topProcedure: null,
     }
@@ -235,11 +305,25 @@ export async function detailByPlan(
   const topProcedure =
     Array.from(procedureCounts.values()).sort((a, b) => b.count - a.count)[0] ?? null
 
+  // Feature 011 — US4: aplica tax_rate_bps do plano sobre o total.
+  const planTaxMap = await fetchPlanTaxRates(supabase, input.tenantId, [input.planId])
+  const { rows: enriched } = applyPlanTax(
+    [{ planId: input.planId, grossRevenueCents: totalRevenueCents }],
+    planTaxMap,
+  )
+  const taxRow = enriched[0]!
+
   return {
     plan: { id: input.planId, name: planFallback },
     period: { from: input.from, to: input.to },
     procedures,
-    totals: { procedureCount, totalRevenueCents },
+    totals: {
+      procedureCount,
+      totalRevenueCents,
+      taxRateBps: taxRow.taxRateBps,
+      taxFromPlanCents: taxRow.taxFromPlanCents,
+      netOfPlanTaxCents: taxRow.netOfPlanTaxCents,
+    },
     topDoctor,
     topProcedure,
   }

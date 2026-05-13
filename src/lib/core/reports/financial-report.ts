@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import { applyPlanTax } from './apply-plan-tax'
 
 /**
  * Relatório financeiro consolidado de um período arbitrário [from, to]:
@@ -27,6 +28,16 @@ export interface RevenueByPlanRow {
   appointmentCount: number
   grossRevenueCents: number
   marketSharePct: number
+  // Feature 011 — US4
+  taxRateBps: number
+  taxFromPlanCents: number
+  netOfPlanTaxCents: number
+}
+
+export interface TaxTotals {
+  fromPlansCents: number
+  fromExpensesCents: number
+  totalCents: number
 }
 
 export interface DoctorRankingRow {
@@ -66,6 +77,8 @@ export interface PreviousPeriodTotals {
   totalExpensesCents: number
   operatingProfitCents: number
   appointmentCount: number
+  // Feature 011 — US4
+  taxFromPlansCents: number
 }
 
 export interface PeriodComparison {
@@ -91,6 +104,8 @@ export interface FinancialReport {
   previous: PreviousPeriodTotals
   comparison: PeriodComparison
   dailyRevenue: DailyRevenuePoint[]
+  // Feature 011 — US4
+  taxTotals: TaxTotals
 }
 
 interface AppointmentRow {
@@ -145,11 +160,32 @@ export async function buildFinancialReport(
   const activeIds = current.filter((r) => r.effective_status === 'ativo').map((r) => r.id)
   const lines = await fetchProcedureLines(supabase, input.tenantId, activeIds)
 
-  const revenueByPlan = aggregateByPlanFromLines(lines)
+  const revenueByPlanRaw = aggregateByPlanFromLines(lines)
   const topDoctors = aggregateTopDoctors(current, 5)
   const topProcedures = aggregateTopProceduresFromLines(lines, 10)
   const expensesByCategory = aggregateExpensesByCategory(expenses)
   const dailyRevenue = aggregateDailyRevenue(current, input.from, input.to)
+
+  // Feature 011 — US4: aplica tax_rate_bps de cada plano para deduzir
+  // "Imposto do convênio" das linhas de receita.
+  const planTaxMap = await fetchPlanTaxRates(
+    supabase,
+    input.tenantId,
+    revenueByPlanRaw.map((r) => r.planId).filter((id) => id !== ''),
+  )
+  const enrichedByPlan = applyPlanTax(revenueByPlanRaw, planTaxMap)
+  const revenueByPlan: RevenueByPlanRow[] = enrichedByPlan.rows
+  const taxFromPlansCents = enrichedByPlan.totalTaxCents
+
+  // Imposto da clínica = soma das despesas categorizadas como 'impostos'.
+  const taxExpensesRow = expensesByCategory.find((c) => c.category === 'impostos')
+  const taxFromExpensesCents = taxExpensesRow?.totalCents ?? 0
+
+  const taxTotals: TaxTotals = {
+    fromPlansCents: taxFromPlansCents,
+    fromExpensesCents: taxFromExpensesCents,
+    totalCents: taxFromPlansCents + taxFromExpensesCents,
+  }
 
   const grossRevenueCents = current.reduce((acc, r) => acc + (r.net_amount_cents ?? 0), 0)
   const commissionsCents = current.reduce(
@@ -158,15 +194,26 @@ export async function buildFinancialReport(
   )
   const netRevenueCents = grossRevenueCents - commissionsCents
   const totalExpensesCents = expenses.totalCents
-  const operatingProfitCents = netRevenueCents - totalExpensesCents
+  // lucro = netRevenue − totalExpenses − imposto_do_convênio.
+  // Despesas de categoria 'impostos' já fazem parte de totalExpensesCents,
+  // representando o "imposto da clínica" — não há dupla contagem.
+  const operatingProfitCents = netRevenueCents - totalExpensesCents - taxFromPlansCents
   const operatingMarginPct =
     grossRevenueCents > 0
       ? Math.round((operatingProfitCents / grossRevenueCents) * 1000) / 10
       : 0
 
+  // Previous period: mesmo cálculo, mantendo paridade do KPI de margem.
   const previousNetRevenue =
     previousAppointments.grossRevenueCents - previousAppointments.commissionsCents
-  const previousProfit = previousNetRevenue - previousExpenses.totalCents
+  const previousTaxFromPlansCents = await computeTaxFromPlansForPeriod(
+    supabase,
+    input.tenantId,
+    previousPeriod.from,
+    previousPeriod.to,
+  )
+  const previousProfit =
+    previousNetRevenue - previousExpenses.totalCents - previousTaxFromPlansCents
 
   return {
     period: { from: input.from, to: input.to },
@@ -189,6 +236,7 @@ export async function buildFinancialReport(
       totalExpensesCents: previousExpenses.totalCents,
       operatingProfitCents: previousProfit,
       appointmentCount: previousAppointments.appointmentCount,
+      taxFromPlansCents: previousTaxFromPlansCents,
     },
     comparison: {
       revenuePct: pctChange(grossRevenueCents, previousAppointments.grossRevenueCents),
@@ -196,7 +244,77 @@ export async function buildFinancialReport(
       profitPct: pctChange(operatingProfitCents, previousProfit),
     },
     dailyRevenue,
+    taxTotals,
   }
+}
+
+/**
+ * Feature 011 — US4 — carrega tax_rate_bps de planos por id.
+ */
+async function fetchPlanTaxRates(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  planIds: string[],
+): Promise<Map<string, number>> {
+  if (planIds.length === 0) return new Map()
+  const { data, error } = await supabase
+    .from('health_plans')
+    .select('id, tax_rate_bps')
+    .eq('tenant_id', tenantId)
+    .in('id', planIds)
+  if (error) throw new Error(`fetchPlanTaxRates failed: ${error.message}`)
+  const map = new Map<string, number>()
+  for (const row of (data ?? []) as Array<{ id: string; tax_rate_bps?: number }>) {
+    map.set(row.id, row.tax_rate_bps ?? 0)
+  }
+  return map
+}
+
+/**
+ * Calcula tax_from_plans para um período arbitrário — usado no comparativo
+ * do período anterior para preservar paridade do delta de lucro.
+ */
+async function computeTaxFromPlansForPeriod(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  from: string,
+  to: string,
+): Promise<number> {
+  const fromTs = `${from}T00:00:00Z`
+  const toExclusiveTs = nextDayIso(to)
+  // Fetch appointment ids ativos no período + suas linhas (mesma estrutura
+  // do principal, mas só o necessário para totalizar por plano).
+  const PAGE_SIZE = 1000
+  const activeIds: string[] = []
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('appointments_effective')
+      .select('id, effective_status')
+      .eq('tenant_id', tenantId)
+      .gte('appointment_at', fromTs)
+      .lt('appointment_at', toExclusiveTs)
+      .range(offset, offset + PAGE_SIZE - 1)
+    if (error)
+      throw new Error(`computeTaxFromPlansForPeriod ids failed: ${error.message}`)
+    const page = (data ?? []) as Array<{ id: string; effective_status: string | null }>
+    for (const r of page) if (r.effective_status === 'ativo') activeIds.push(r.id)
+    if (page.length < PAGE_SIZE) break
+  }
+  if (activeIds.length === 0) return 0
+  const lines = await fetchProcedureLines(supabase, tenantId, activeIds)
+  const planRevenue = new Map<string, number>()
+  for (const l of lines) {
+    if (!l.plan_id) continue
+    planRevenue.set(l.plan_id, (planRevenue.get(l.plan_id) ?? 0) + l.line_amount_cents)
+  }
+  if (planRevenue.size === 0) return 0
+  const planTaxMap = await fetchPlanTaxRates(supabase, tenantId, Array.from(planRevenue.keys()))
+  let total = 0
+  for (const [planId, gross] of planRevenue) {
+    const bps = planTaxMap.get(planId) ?? 0
+    total += Math.round((gross * bps) / 10000)
+  }
+  return total
 }
 
 async function fetchAppointments(
@@ -246,9 +364,16 @@ async function fetchAppointmentsTotals(
   return { grossRevenueCents: gross, commissionsCents: comm, appointmentCount: rows.length }
 }
 
-function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RevenueByPlanRow[] {
+// Feature 011 — US4: tipo intermediário usado antes do applyPlanTax adicionar
+// taxRateBps/taxFromPlanCents/netOfPlanTaxCents.
+type RawRevenueByPlanRow = Omit<
+  RevenueByPlanRow,
+  'taxRateBps' | 'taxFromPlanCents' | 'netOfPlanTaxCents'
+>
+
+function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RawRevenueByPlanRow[] {
   const totalGross = lines.reduce((acc, l) => acc + l.line_amount_cents, 0)
-  const map = new Map<string, RevenueByPlanRow>()
+  const map = new Map<string, RawRevenueByPlanRow>()
   // Para appointmentCount por plano: contamos atendimentos distintos que
   // contem AO MENOS uma linha sob esse plano.
   const planAppointments = new Map<string, Set<string>>()

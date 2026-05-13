@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import {
   ArrowDownRight,
   ArrowUpRight,
+  Building2,
   Calculator,
   Download,
   FileSpreadsheet,
@@ -86,6 +87,8 @@ export default async function RelatoriosPage({ searchParams }: PageProps) {
       ) : null}
 
       <RevenueSection report={report} />
+
+      <TaxSection report={report} />
 
       <ExpensesSection report={report} />
 
@@ -259,7 +262,9 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                   <TableRow>
                     <TableHead>Convênio</TableHead>
                     <TableHead className="text-right">Atendimentos</TableHead>
-                    <TableHead className="text-right">Total bruto</TableHead>
+                    <TableHead className="text-right">Bruto</TableHead>
+                    <TableHead className="text-right">Imposto convênio</TableHead>
+                    <TableHead className="text-right">Líquido</TableHead>
                     <TableHead className="text-right">Market share</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -274,6 +279,21 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                       </TableCell>
                       <TableCell className="text-right font-bold text-slate-900">
                         {formatCurrency(row.grossRevenueCents)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {row.taxRateBps > 0 ? (
+                          <span className="text-purple-700 tabular-nums">
+                            −{formatCurrency(row.taxFromPlanCents)}
+                            <span className="ml-1 text-[10px] text-slate-400">
+                              ({(row.taxRateBps / 100).toFixed(2).replace('.', ',')}%)
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300">R$ 0,00</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-slate-900 tabular-nums">
+                        {formatCurrency(row.netOfPlanTaxCents)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -380,6 +400,66 @@ function RevenueSection({ report }: { report: FinancialReport }) {
             </CardContent>
           </Card>
         </div>
+      </div>
+    </section>
+  )
+}
+
+function TaxSection({ report }: { report: FinancialReport }) {
+  const { fromPlansCents, fromExpensesCents, totalCents } = report.taxTotals
+  if (totalCents === 0) return null
+  return (
+    <section className="space-y-4">
+      <SectionHeader
+        title="Impostos"
+        subtitle="Imposto retido pelos convênios + impostos pagos pela clínica no período"
+      />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="p-6">
+            <div className="mb-3 inline-flex rounded-xl border border-purple-100 bg-purple-50 p-2.5 text-purple-700">
+              <Calculator className="h-4 w-4" />
+            </div>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Total no período
+            </p>
+            <p className="text-2xl font-black tracking-tight text-slate-900">
+              {formatCurrency(totalCents)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-blue-700">
+              <Building2 className="h-4 w-4" />
+            </div>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Retido pelos convênios
+            </p>
+            <p className="text-xl font-black tracking-tight text-slate-900">
+              {formatCurrency(fromPlansCents)}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Somatório de bruto × alíquota de cada convênio.
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="mb-3 inline-flex rounded-xl border border-rose-100 bg-rose-50 p-2.5 text-rose-700">
+              <Receipt className="h-4 w-4" />
+            </div>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Pagos pela clínica
+            </p>
+            <p className="text-xl font-black tracking-tight text-slate-900">
+              {formatCurrency(fromExpensesCents)}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Despesas categorizadas como Impostos no período.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </section>
   )

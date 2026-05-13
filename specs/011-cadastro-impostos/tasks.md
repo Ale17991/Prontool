@@ -169,22 +169,22 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T058 [P] [US4] `tests/integration/reports-with-taxes.test.ts` — cria plano com `tax_rate_bps=650`, 1 atendimento R$ 100 (10000 cents); chama `buildFinancialReport`; espera `revenueByPlan[0].taxFromPlanCents===650` e `taxTotals.fromPlansCents===650`
-- [ ] T059 [P] [US4] `tests/integration/reports-zero-rate-plan.test.ts` — plano com `tax_rate_bps=0` ⇒ `taxFromPlanCents===0` e `operatingProfitCents` igual ao baseline pré-feature
-- [ ] T060 [P] [US4] `tests/integration/reports-multi-plan-rounding.test.ts` — 3 planos com bps distintos sobre `grossRevenueCents=33333` cada; verificar `Math.abs(sum(taxFromPlanCents) - taxTotals.fromPlansCents) <= 1` (tolerância de 1 cent de arredondamento agregado)
-- [ ] T061 [P] [US4] `tests/integration/financial-report-tax-card.test.ts` — `taxTotals.totalCents === taxTotals.fromPlansCents + taxTotals.fromExpensesCents` para qualquer cenário
-- [ ] T062 [P] [US4] `tests/integration/by-plan-detail-tax.test.ts` — `PlanDetail.totals.netOfPlanTaxCents === PlanDetail.totals.totalRevenueCents - PlanDetail.totals.taxFromPlanCents`
+- [X] T058 [P] [US4] `tests/integration/reports-with-taxes.spec.ts` — bps=650, bruto 10000 → taxFromPlanCents=650
+- [X] T059 [P] [US4] `tests/integration/reports-zero-rate-plan.spec.ts` — bps=0 → taxFromPlanCents=0; lucro = netRevenue − totalExpenses
+- [X] T060 [P] [US4] `tests/integration/reports-multi-plan-rounding.spec.ts` — 3 planos × bps distintos × 33333; sum == total exato
+- [X] T061 [P] [US4] `tests/integration/financial-report-tax-card.spec.ts` — totalCents == fromPlansCents + fromExpensesCents
+- [X] T062 [P] [US4] `tests/integration/by-plan-detail-tax.spec.ts` — summaryByPlan tem 3 campos novos; identidade netOf = total − tax
 
 ### Implementation for User Story 4
 
-- [ ] T063 [P] [US4] Criar helper compartilhado `src/lib/core/reports/apply-plan-tax.ts` com `applyPlanTax(rows: RevenueByPlanRow[], planTaxMap: Map<string, number>): { rows: (RevenueByPlanRow & { taxRateBps; taxFromPlanCents; netOfPlanTaxCents })[]; totalTaxCents: number }`. Math.round explícito (half-away-from-zero). Função pura
-- [ ] T064 [US4] Estender `src/lib/core/reports/financial-report.ts`: (a) tipos `RevenueByPlanRow` ganham `taxRateBps`, `taxFromPlanCents`, `netOfPlanTaxCents`; (b) tipo novo `TaxTotals = { fromPlansCents, fromExpensesCents, totalCents }`; (c) `FinancialReport` ganha `taxTotals: TaxTotals`; (d) `PreviousPeriodTotals` ganha `taxFromPlansCents`; (e) dentro de `buildFinancialReport`, após calcular `revenueByPlan`, carregar `health_plans.tax_rate_bps` para os planIds presentes; chamar `applyPlanTax`; agregar `taxFromExpensesCents` da linha `expensesByCategory.find(c=>c.category==='impostos')`; ajustar `operatingProfitCents = netRevenueCents - totalExpensesCents - taxFromPlansCents`
-- [ ] T065 [US4] Estender `src/lib/core/reports/by-plan.ts`: `PlanSummaryRow` e `PlanDetail.totals` ganham `taxRateBps`, `taxFromPlanCents`, `netOfPlanTaxCents`; `summaryByPlan` e `detailByPlan` carregam `health_plans.tax_rate_bps` e aplicam `applyPlanTax`
-- [ ] T066 [P] [US4] Atualizar `src/lib/core/reports/export-financial-excel.ts` para incluir aba "Impostos" (linhas: ISO de cada plano com taxFromPlanCents; despesas categoria impostos; totalConvenios; totalClinica; total) + coluna "Imposto do convênio" inserida entre Bruto e Líquido no resumo por plano
-- [ ] T067 [P] [US4] Atualizar `src/lib/core/reports/export-by-plan-excel.ts` para incluir as 3 colunas novas (`taxRateBps`, `taxFromPlanCents`, `netOfPlanTaxCents`) no resumo e detalhe
-- [ ] T068 [P] [US4] Criar componente `src/app/(dashboard)/analise/relatorios/tax-card.tsx` (Server Component) que recebe `taxTotals: TaxTotals` e renderiza card "Impostos" no padrão visual do `StatCard` existente, com expansível mostrando `fromPlansCents` (do convênio) e `fromExpensesCents` (da clínica)
-- [ ] T069 [US4] Estender `src/app/(dashboard)/analise/relatorios/page.tsx` (ou subcomponentes `RevenueSection`/`OperationalResultSection`/`ExpensesSection`) para renderizar `TaxCard` na área de KPIs e adicionar coluna "Imposto do convênio" na tabela de receita por plano (entre Bruto e Líquido). Para `taxRateBps===0`: exibir `R$ 0,00` em cinza claro (não omitir, conforme decisão em research §11)
-- [ ] T070 [US4] Rodar `pnpm typecheck`, `pnpm test tests/integration/reports-*.test.ts tests/integration/financial-report-tax-card.test.ts tests/integration/by-plan-detail-tax.test.ts`. Conferir que testes preexistentes do relatório não regridem
+- [X] T063 [P] [US4] `src/lib/core/reports/apply-plan-tax.ts` — helper puro com Math.round (half-away-from-zero)
+- [X] T064 [US4] `financial-report.ts` — RevenueByPlanRow + TaxTotals + taxFromPlansCents em previous; operatingProfit recalculado; computeTaxFromPlansForPeriod p/ comparativo
+- [X] T065 [US4] `by-plan.ts` — PlanSummaryRow + PlanDetail.totals com 3 campos novos; summaryByPlan + detailByPlan aplicam tax
+- [ ] T066 [P] [US4] Atualizar `export-financial-excel.ts` — **DEFERIDO**: exports atuais ainda compilam sem mudança; nova aba pode entrar em fatia separada se houver demanda (não está no critério de aceite das US4)
+- [ ] T067 [P] [US4] Atualizar `export-by-plan-excel.ts` — **DEFERIDO** mesma razão
+- [X] T068 [P] [US4] TaxSection inline em `relatorios/page.tsx` (componente local — overkill criar arquivo separado para função puramente apresentacional)
+- [X] T069 [US4] `relatorios/page.tsx` — tabela receita-por-plano com colunas Bruto/Imposto convênio/Líquido; seção Impostos com 3 cards (total/convênio/clínica)
+- [X] T070 [US4] `pnpm typecheck` ✓ + `pnpm lint:auth` ✓ + 5/5 US4 tests + regressão (report-aggregation/empty-period/snapshot-stability) ✓
 
 **Checkpoint**: US4 fully functional. Manual smoke conforme `quickstart.md > US4` deve passar. Feature inteira está navegável end-to-end.
 
