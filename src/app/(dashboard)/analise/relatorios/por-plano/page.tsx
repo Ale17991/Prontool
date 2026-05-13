@@ -1,11 +1,15 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, FileText, ShieldCheck } from 'lucide-react'
+import { ArrowRight, FileText, ShieldCheck, Wallet } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
-import { summaryByPlan, type PlanSummaryRow } from '@/lib/core/reports/by-plan'
+import {
+  PARTICULAR_KEY,
+  summaryByPlan,
+  type PlanSummaryRow,
+} from '@/lib/core/reports/by-plan'
 import type { Database } from '@/lib/db/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -44,11 +48,25 @@ export default async function PorPlanoPage() {
     summaryItems.map((s) => [s.planId, s]),
   )
   const plans = (plansRes.data ?? []) as PlanRow[]
-  const cards = plans.map((p) => ({
+  const particularSummary = summaryByPlanId.get(PARTICULAR_KEY) ?? null
+
+  // Cards: convenios primeiro (ordem alfabetica da query) + card Particular
+  // sempre no fim. Esse card aparece mesmo com zero procedimentos no
+  // periodo — e onde caem todas as linhas com appointment_procedures.plan_id
+  // IS NULL (atendimentos sem convenio).
+  const planCards = plans.map((p) => ({
     id: p.id,
     name: p.name,
     summary: summaryByPlanId.get(p.id) ?? null,
+    isParticular: false as const,
   }))
+  const particularCard = {
+    id: PARTICULAR_KEY,
+    name: 'Particular',
+    summary: particularSummary,
+    isParticular: true as const,
+  }
+  const cards = [...planCards, particularCard]
   const grandTotalProcedures = summaryItems.reduce((acc, s) => acc + s.procedureCount, 0)
   const grandTotalRevenue = summaryItems.reduce((acc, s) => acc + s.totalRevenueCents, 0)
 
@@ -80,29 +98,34 @@ export default async function PorPlanoPage() {
         />
       </div>
 
-      {cards.length === 0 ? (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {cards.map((c) => (
+          <PlanCard
+            key={c.id}
+            planId={c.id}
+            name={c.name}
+            count={c.summary?.procedureCount ?? 0}
+            totalCents={c.summary?.totalRevenueCents ?? 0}
+            variant={c.isParticular ? 'particular' : 'plan'}
+          />
+        ))}
+      </div>
+
+      {plans.length === 0 ? (
         <Card>
-          <CardContent className="px-6 py-12 text-center text-sm text-slate-500">
-            Nenhum plano de saúde ativo cadastrado.{' '}
-            <Link href="/configuracoes/convenios" className="font-semibold text-primary underline">
+          <CardContent className="px-6 py-6 text-center text-sm text-slate-500">
+            Nenhum convênio ativo cadastrado — apenas atendimentos particulares
+            aparecem acima.{' '}
+            <Link
+              href="/configuracoes/convenios"
+              className="font-semibold text-primary underline"
+            >
               Cadastrar plano
             </Link>
             .
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {cards.map((c) => (
-            <PlanCard
-              key={c.id}
-              planId={c.id}
-              name={c.name}
-              count={c.summary?.procedureCount ?? 0}
-              totalCents={c.summary?.totalRevenueCents ?? 0}
-            />
-          ))}
-        </div>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -112,17 +135,20 @@ function PlanCard({
   name,
   count,
   totalCents,
+  variant,
 }: {
   planId: string
   name: string
   count: number
   totalCents: number
+  variant: 'plan' | 'particular'
 }) {
+  const Icon = variant === 'particular' ? Wallet : ShieldCheck
   return (
     <Card className="flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <ShieldCheck className="h-4 w-4 text-primary" />
+          <Icon className="h-4 w-4 text-primary" />
           {name}
         </CardTitle>
       </CardHeader>

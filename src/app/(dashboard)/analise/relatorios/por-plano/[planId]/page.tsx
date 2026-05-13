@@ -15,7 +15,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
-import { detailByPlan } from '@/lib/core/reports/by-plan'
+import { detailByPlan, PARTICULAR_KEY } from '@/lib/core/reports/by-plan'
 import type { Database } from '@/lib/db/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -40,14 +40,18 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
   const session = await getSession()
   if (!session) redirect('/login')
   if (!can(session.role, 'report.read')) redirect('/operacao/atendimentos')
-  if (!UUID_RE.test(params.planId)) notFound()
+
+  // Particular tem sentinel proprio na URL ('particular'). Para planos
+  // normais, exigimos UUID — qualquer outra coisa e 404.
+  const isParticular = params.planId === PARTICULAR_KEY
+  if (!isParticular && !UUID_RE.test(params.planId)) notFound()
 
   const period = resolvePeriod(searchParams)
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
   const detail = await detailByPlan(supabase, {
     tenantId: session.tenantId,
-    planId: params.planId,
+    planId: isParticular ? null : params.planId,
     from: period.from,
     to: period.to,
   })
