@@ -36,6 +36,7 @@ import {
   SidebarIntegrationsBadge,
   type SidebarIntegrationBadgeItem,
 } from './sidebar-integrations-badge'
+import { NotificationBell } from './notification-bell'
 
 /**
  * Feature 009 (US2) — sidebar reorganizada em 3 seções com itens
@@ -83,9 +84,21 @@ const SECTIONS: readonly NavSection[] = [
         show: ({ role }) => can(role, 'appointment.read'),
       },
       {
-        href: '/operacao/alertas',
-        label: 'Alertas',
+        href: '/operacao/tarefas',
+        label: 'Tarefas',
+        icon: ClipboardCheck,
+        show: ({ role }) => can(role, 'task.read'),
+      },
+      {
+        href: '/operacao/notificacoes',
+        label: 'Notificações',
         icon: Bell,
+        show: () => true,
+      },
+      {
+        href: '/operacao/alertas',
+        label: 'Alertas do sistema',
+        icon: AlertTriangle,
         show: ({ role }) => can(role, 'alert.read'),
       },
       {
@@ -309,12 +322,7 @@ export function DashboardShell({
                 className="w-64 rounded-xl border border-slate-200 bg-slate-100 py-2 pl-10 pr-4 text-xs outline-none transition-all focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
               />
             </div>
-            <button
-              className="relative rounded-xl bg-slate-100 p-2.5 text-slate-500 transition-colors hover:bg-slate-200"
-              aria-label="Notificações"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
+            <NotificationBell />
             <div className="hidden h-6 w-px bg-slate-200 md:block" />
             <button
               type="button"

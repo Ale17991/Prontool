@@ -61,6 +61,18 @@ export async function listTeamMembers(
     }),
   )
 
+  // 3b. Feature 012 — doctors vinculados aos mesmos user_ids no tenant.
+  const { data: doctorsLinked } = await supabaseService
+    .from('doctors')
+    .select('id, full_name, user_id')
+    .eq('tenant_id', input.tenantId)
+    .in('user_id', userIds)
+    .eq('active', true)
+  const doctorByUser = new Map<string, { id: string; full_name: string }>()
+  for (const d of (doctorsLinked ?? []) as Array<{ id: string; full_name: string; user_id: string | null }>) {
+    if (d.user_id) doctorByUser.set(d.user_id, { id: d.id, full_name: d.full_name })
+  }
+
   const out: TeamMember[] = await Promise.all(
     rows.map(async (r) => {
       const meta = authMeta.get(r.user_id) ?? { email: '', last_sign_in_at: null, email_confirmed_at: null }
@@ -78,6 +90,7 @@ export async function listTeamMembers(
         avatarPath,
         USER_AVATAR_SIGNED_URL_TTL_SECONDS,
       )
+      const linked = doctorByUser.get(r.user_id) ?? null
       return {
         userId: r.user_id,
         email: meta.email,
@@ -87,6 +100,7 @@ export async function listTeamMembers(
         status,
         lastSignInAt: meta.last_sign_in_at,
         isSelf: r.user_id === input.requesterId,
+        linkedDoctor: linked ? { id: linked.id, fullName: linked.full_name } : null,
       }
     }),
   )

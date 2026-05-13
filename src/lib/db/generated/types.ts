@@ -930,6 +930,7 @@ export type Database = {
           role: string
           specialty: string | null
           tenant_id: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
@@ -944,6 +945,7 @@ export type Database = {
           role?: string
           specialty?: string | null
           tenant_id: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
@@ -958,6 +960,7 @@ export type Database = {
           role?: string
           specialty?: string | null
           tenant_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1179,6 +1182,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "integration_sync_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          read_at: string | null
+          reference_id: string | null
+          reference_key: string
+          reference_type: string | null
+          tenant_id: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          reference_id?: string | null
+          reference_key: string
+          reference_type?: string | null
+          tenant_id: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          reference_id?: string | null
+          reference_key?: string
+          reference_type?: string | null
+          tenant_id?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1765,6 +1821,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "raw_webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          due_date: string
+          id: string
+          notes: string | null
+          priority: string
+          status: string
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          due_date: string
+          id?: string
+          notes?: string | null
+          priority: string
+          status?: string
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          due_date?: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2792,6 +2910,10 @@ export type Database = {
       enc_text_with_key: {
         Args: { key: string; plain: string }
         Returns: string
+      }
+      generate_user_notifications: {
+        Args: { p_tenant_id: string; p_user_id: string }
+        Returns: Json
       }
       get_patient_for_tenant: {
         Args: { p_key: string; p_patient_id: string; p_tenant_id: string }

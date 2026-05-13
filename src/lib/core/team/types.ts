@@ -16,6 +16,8 @@ export interface TeamMember {
   status: TeamMemberStatus
   lastSignInAt: string | null
   isSelf: boolean
+  /** Feature 012 — profissional vinculado (doctors.user_id). */
+  linkedDoctor: { id: string; fullName: string } | null
 }
 
 export const TENANT_ROLES_ORDERED: readonly TenantRole[] = [
