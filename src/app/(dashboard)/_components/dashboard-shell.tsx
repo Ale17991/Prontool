@@ -16,7 +16,6 @@ import {
   Lock,
   Menu,
   Plug,
-  Receipt,
   ScrollText,
   Search,
   Stethoscope,
@@ -172,12 +171,6 @@ const SECTIONS: readonly NavSection[] = [
         label: 'Convênios',
         icon: DollarSign,
         show: ({ role }) => can(role, 'plan.read'),
-      },
-      {
-        href: '/configuracoes/precos',
-        label: 'Preços',
-        icon: Receipt,
-        show: ({ role }) => can(role, 'price.read'),
       },
       {
         href: '/configuracoes/profissionais',

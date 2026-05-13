@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import {
   Check,
   DollarSign,
+  History,
   Loader2,
   Pencil,
   Plus,
@@ -163,7 +164,7 @@ export function PlanProceduresSection({
                 <TableHead>Valor (R$)</TableHead>
                 <TableHead>Vigente desde</TableHead>
                 <TableHead>Status</TableHead>
-                {canWrite ? <TableHead className="text-right">Ações</TableHead> : null}
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -226,9 +227,16 @@ function Row({
             <Badge variant="success">Vigente</Badge>
           )}
         </TableCell>
-        {canWrite ? (
-          <TableCell className="text-right">
-            {!editing ? (
+        <TableCell className="text-right">
+          <div className="inline-flex items-center justify-end gap-3">
+            <Link
+              href={`/configuracoes/precos/${head.priceVersionId}`}
+              className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-primary hover:underline"
+              title="Ver histórico de versões deste preço (todas as alterações)"
+            >
+              <History className="h-3 w-3" /> Ver histórico
+            </Link>
+            {canWrite && !editing ? (
               <button
                 type="button"
                 onClick={onEditStart}
@@ -237,12 +245,12 @@ function Row({
                 <Pencil className="h-3 w-3" /> Alterar valor
               </button>
             ) : null}
-          </TableCell>
-        ) : null}
+          </div>
+        </TableCell>
       </TableRow>
       {editing ? (
         <TableRow className="bg-slate-50/50">
-          <TableCell colSpan={canWrite ? 6 : 5}>
+          <TableCell colSpan={6}>
             <AlterPriceForm
               head={head}
               planId={planId}
