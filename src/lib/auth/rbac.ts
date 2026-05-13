@@ -31,6 +31,8 @@ type Action =
   | 'expense.write'
   | 'anamnesis.read'
   | 'anamnesis.write'
+  | 'tax.read'
+  | 'tax.write'
 
 const MATRIX: Record<TenantRole, readonly Action[]> = {
   admin: [
@@ -46,6 +48,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'dlq.read', 'dlq.reprocess',
     'expense.read', 'expense.write',
     'anamnesis.read', 'anamnesis.write',
+    'tax.read', 'tax.write',
   ],
   financeiro: [
     'price.read',
@@ -58,6 +61,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'dlq.read',
     'expense.read', 'expense.write',
     'anamnesis.read',
+    'tax.read', 'tax.write',
   ],
   recepcionista: [
     'price.read',
@@ -66,10 +70,12 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'doctor.read',
     'appointment.read',
     'anamnesis.read',
+    'tax.read',
   ],
   profissional_saude: [
     'appointment.read',
     'anamnesis.read',
+    'tax.read',
   ],
 }
 

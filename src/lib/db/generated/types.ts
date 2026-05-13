@@ -1043,6 +1043,7 @@ export type Database = {
           receipt_file_url: string | null
           recurring: boolean
           supplier: string | null
+          tax_id: string | null
           tenant_id: string
         }
         Insert: {
@@ -1061,6 +1062,7 @@ export type Database = {
           receipt_file_url?: string | null
           recurring?: boolean
           supplier?: string | null
+          tax_id?: string | null
           tenant_id: string
         }
         Update: {
@@ -1079,9 +1081,17 @@ export type Database = {
           receipt_file_url?: string | null
           recurring?: boolean
           supplier?: string | null
+          tax_id?: string | null
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "taxes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -1098,6 +1108,7 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
+          tax_rate_bps: number
           tenant_id: string
         }
         Insert: {
@@ -1106,6 +1117,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           name: string
+          tax_rate_bps?: number
           tenant_id: string
         }
         Update: {
@@ -1114,6 +1126,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           name?: string
+          tax_rate_bps?: number
           tenant_id?: string
         }
         Relationships: [
@@ -1749,6 +1762,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "raw_webhook_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      taxes: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          rate_bps: number
+          tenant_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          rate_bps: number
+          tenant_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          rate_bps?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taxes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

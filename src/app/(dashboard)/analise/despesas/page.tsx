@@ -1,5 +1,6 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip } from 'lucide-react'
+import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip, Calculator } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
@@ -114,13 +115,21 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">Despesas</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {expenses.length} lançamento{expenses.length === 1 ? '' : 's'} ·{' '}
-          {recurringCount} recorrente{recurringCount === 1 ? '' : 's'} · total{' '}
-          <span className="font-semibold text-slate-800">{formatCurrency(totalAmount)}</span>
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Despesas</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {expenses.length} lançamento{expenses.length === 1 ? '' : 's'} ·{' '}
+            {recurringCount} recorrente{recurringCount === 1 ? '' : 's'} · total{' '}
+            <span className="font-semibold text-slate-800">{formatCurrency(totalAmount)}</span>
+          </p>
+        </div>
+        <Link
+          href="/analise/despesas/impostos"
+          className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+        >
+          <Calculator className="h-3.5 w-3.5" /> Impostos cadastrados
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
