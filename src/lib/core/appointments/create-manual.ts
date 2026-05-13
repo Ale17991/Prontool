@@ -32,6 +32,8 @@ export interface ProcedureLineInput {
   planId: string | null
   /** Quando ausente, usa preco vigente (convenio) ou default_amount_cents (particular). */
   amountCentsOverride?: number
+  /** Observação opcional por linha (até 500 chars). Migration 0077. */
+  notes?: string | null
 }
 
 export interface ResolvedProcedureLine {
@@ -42,6 +44,7 @@ export interface ResolvedProcedureLine {
   vigenteAmountCents: number
   amountWasOverridden: boolean
   sequence: number
+  notes: string | null
 }
 
 export interface CreateManualAppointmentInput {
@@ -231,6 +234,21 @@ export async function createAppointmentManually(
       raw.amountCentsOverride !== undefined && raw.amountCentsOverride !== vigenteAmountCents
     if (overridden) proceduresOverridden++
 
+    const notes = (() => {
+      const raw_notes = raw.notes
+      if (raw_notes === null || raw_notes === undefined) return null
+      const trimmed = raw_notes.trim()
+      if (trimmed.length === 0) return null
+      if (trimmed.length > 500) {
+        throw new DomainError(
+          'PROCEDURE_LINE_NOTES_TOO_LONG',
+          'Observação por procedimento limitada a 500 caracteres.',
+          { status: 400 },
+        )
+      }
+      return trimmed
+    })()
+
     lines.push({
       procedureId: raw.procedureId,
       planId: raw.planId,
@@ -239,6 +257,7 @@ export async function createAppointmentManually(
       vigenteAmountCents,
       amountWasOverridden: overridden,
       sequence: i + 1,
+      notes,
     })
   }
 
@@ -282,6 +301,7 @@ export async function createAppointmentManually(
     vigente_amount_cents: l.vigenteAmountCents,
     amount_was_overridden: l.amountWasOverridden,
     sequence: l.sequence,
+    notes: l.notes ?? '',
   }))
 
   const rpc = await supabase.rpc(

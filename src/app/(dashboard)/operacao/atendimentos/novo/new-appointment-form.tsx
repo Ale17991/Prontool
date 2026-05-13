@@ -217,6 +217,7 @@ export function NewAppointmentForm({
         procedure_id: p.procedureId,
         plan_id: p.planId,
         amount_cents_override: p.amountCentsOverride,
+        notes: p.notes,
       })),
       appointment_at: whenIso,
       duration_minutes: clampDuration(durationMinutes),

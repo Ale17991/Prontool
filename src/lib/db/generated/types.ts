@@ -308,6 +308,7 @@ export type Database = {
           created_by: string
           id: string
           line_amount_cents: number
+          notes: string | null
           plan_id: string | null
           procedure_id: string
           sequence: number
@@ -322,6 +323,7 @@ export type Database = {
           created_by: string
           id?: string
           line_amount_cents: number
+          notes?: string | null
           plan_id?: string | null
           procedure_id: string
           sequence: number
@@ -336,6 +338,7 @@ export type Database = {
           created_by?: string
           id?: string
           line_amount_cents?: number
+          notes?: string | null
           plan_id?: string | null
           procedure_id?: string
           sequence?: number

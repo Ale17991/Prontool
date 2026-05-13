@@ -36,6 +36,8 @@ export interface ProcedureLineDraft {
   vigenteAmountCents: number | null
   /** Quando o procedimento nao e coberto pelo plano: trava particular nesta linha. */
   particularLocked: boolean
+  /** Observação opcional por linha (até 500 chars). */
+  notes: string
 }
 
 export interface PlanFormOption {
@@ -66,6 +68,7 @@ export function createEmptyLine(defaultPlanId: string | null): ProcedureLineDraf
     amountReais: '',
     vigenteAmountCents: null,
     particularLocked: false,
+    notes: '',
   }
 }
 
@@ -94,9 +97,24 @@ export function ProcedurasEditor({
   // Procedimento selecionado no typeahead mas ainda NÃO adicionado à tabela.
   // O usuário confirma a adição clicando no botão "+" verde.
   const [pendingProcedureId, setPendingProcedureId] = useState('')
+  // "Coberto pelo plano" sticky entre adds. Default = true se paciente tem
+  // plano; falso se patient é particular. Usuário pode toggar para forçar
+  // a próxima linha como particular (quando o paciente tem plano mas este
+  // procedimento específico é fora do plano por opção).
+  const [pendingCovered, setPendingCovered] = useState(defaultPlanId !== null)
+  // Observação textual a ser anexada à próxima linha. Limpa após adicionar.
+  const [pendingNotes, setPendingNotes] = useState('')
   // Força remount do typeahead após adicionar (zera o `search` interno do
   // popover, que o componente não expõe pra reset externo).
   const [pickerKey, setPickerKey] = useState(0)
+
+  // Quando o paciente muda e ele deixa de ter plano: força covered=false
+  // (não tem o que cobrir). Quando volta a ter plano: re-ativa covered=true
+  // (assume intenção mais comum). Sem este sync a checkbox poderia ficar
+  // marcada mas sem efeito útil.
+  useEffect(() => {
+    setPendingCovered(defaultPlanId !== null)
+  }, [defaultPlanId])
 
   // Ref pra ter sempre a versão mais recente do array dentro de callbacks
   // assíncronos (resolveAndApplyPrice é async; sem a ref usaríamos closure
@@ -128,7 +146,8 @@ export function ProcedurasEditor({
   /**
    * Confirma a adição do procedimento atualmente pendente no typeahead.
    * Disparado pelo botão "+" verde. Limpa o pendente + remonta o typeahead
-   * para zerar a busca.
+   * para zerar a busca. A linha herda o estado de "coberto pelo plano" e
+   * a observação do formulário de busca.
    */
   async function handleAddPending() {
     const procedureId = pendingProcedureId
@@ -136,8 +155,11 @@ export function ProcedurasEditor({
     const proc = procedures.find((p) => p.id === procedureId)
     if (!proc) return
     const isUncovered = proc.coveredByPlan === false
+    // Particular sempre quando: procedimento não coberto / toggle global
+    // ativo / checkbox "coberto" desmarcado / paciente sem plano.
+    const usePatientPlan = !isUncovered && !globalParticular && pendingCovered
     const initialPlanId: string | null =
-      isUncovered || globalParticular ? null : defaultPlanId
+      usePatientPlan && defaultPlanId ? defaultPlanId : null
 
     const newLine: ProcedureLineDraft = {
       procedureId,
@@ -145,12 +167,14 @@ export function ProcedurasEditor({
       amountReais: '',
       vigenteAmountCents: null,
       particularLocked: isUncovered,
+      notes: pendingNotes.trim(),
     }
     const next = [...valueRef.current, newLine]
     valueRef.current = next
     onChange(next)
 
     setPendingProcedureId('')
+    setPendingNotes('')
     setPickerKey((k) => k + 1)
 
     await resolveAndApplyPrice(next.length - 1, procedureId, initialPlanId)
@@ -275,7 +299,7 @@ export function ProcedurasEditor({
         </div>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-2">
         <Label htmlFor="proc_picker" className="text-[11px] text-slate-600">
           Adicionar procedimento (código ou nome)
         </Label>
@@ -302,9 +326,50 @@ export function ProcedurasEditor({
             Adicionar
           </Button>
         </div>
+
+        <div className="flex flex-wrap items-start gap-3">
+          <label
+            className={cn(
+              'flex items-center gap-1.5 text-xs font-medium',
+              defaultPlanId === null
+                ? 'cursor-not-allowed text-slate-400'
+                : 'cursor-pointer text-slate-700',
+            )}
+            title={
+              defaultPlanId === null
+                ? 'Paciente sem plano cadastrado — todas as linhas são particulares.'
+                : 'Quando marcado, a próxima linha usa o plano do paciente.'
+            }
+          >
+            <input
+              type="checkbox"
+              checked={pendingCovered && defaultPlanId !== null}
+              disabled={disabled || defaultPlanId === null}
+              onChange={(e) => setPendingCovered(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            Coberto pelo plano
+          </label>
+          <div className="min-w-0 flex-1 space-y-1">
+            <Label htmlFor="proc_notes" className="text-[10px] uppercase text-slate-500">
+              Observação (opcional)
+            </Label>
+            <Input
+              id="proc_notes"
+              value={pendingNotes}
+              onChange={(e) => setPendingNotes(e.target.value)}
+              disabled={disabled}
+              maxLength={500}
+              placeholder="Anotação específica deste procedimento (até 500 caracteres)"
+              className="h-8"
+            />
+          </div>
+        </div>
+
         <p className="text-[11px] text-slate-500">
-          Selecione um procedimento e clique em <span className="font-semibold">Adicionar</span>{' '}
-          (ou no botão verde) para incluir na tabela.
+          Selecione um procedimento e clique em <span className="font-semibold">Adicionar</span>.
+          O plano e a observação aplicam-se à próxima linha adicionada (sticky para o
+          plano; observação é zerada após cada inclusão).
         </p>
       </div>
 
@@ -322,6 +387,7 @@ export function ProcedurasEditor({
                 <TableHead>Descrição</TableHead>
                 <TableHead className="w-48">Plano</TableHead>
                 <TableHead className="w-32 text-right">Valor (R$)</TableHead>
+                <TableHead className="min-w-[12rem]">Observação</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -412,6 +478,16 @@ export function ProcedurasEditor({
                       />
                     </TableCell>
                     <TableCell>
+                      <Input
+                        value={line.notes}
+                        onChange={(e) => patchLine(i, { notes: e.target.value })}
+                        disabled={disabled}
+                        maxLength={500}
+                        placeholder="—"
+                        className="h-8 text-xs"
+                      />
+                    </TableCell>
+                    <TableCell>
                       <button
                         type="button"
                         onClick={() => removeLine(i)}
@@ -436,7 +512,7 @@ export function ProcedurasEditor({
                 <TableCell className="text-right font-black tabular-nums text-slate-900">
                   {formatCurrency(totalCents)}
                 </TableCell>
-                <TableCell />
+                <TableCell colSpan={2} />
               </TableRow>
             </TableBody>
           </Table>
@@ -469,6 +545,7 @@ export interface ValidatedProcedureLine {
   procedureId: string
   planId: string | null
   amountCentsOverride: number
+  notes: string | null
 }
 
 /**
@@ -478,6 +555,7 @@ export interface ValidatedProcedureLine {
  *   - procedureId obrigatório
  *   - se não-particular: planId obrigatório
  *   - valor em cents deve ser > 0
+ *   - notes opcional (trim aplicado; vazio vira null)
  *
  * Retorna null quando alguma linha está inválida OU a lista é vazia.
  */
@@ -491,10 +569,13 @@ export function validateProcedures(
     if (l.planId !== null && (l.planId === '' || !l.planId)) return null
     const cents = amountReaisToCents(l.amountReais)
     if (cents <= 0) return null
+    const notesTrimmed = (l.notes ?? '').trim()
+    if (notesTrimmed.length > 500) return null
     out.push({
       procedureId: l.procedureId,
       planId: l.planId === null ? null : (l.planId as string),
       amountCentsOverride: cents,
+      notes: notesTrimmed.length > 0 ? notesTrimmed : null,
     })
   }
   return out

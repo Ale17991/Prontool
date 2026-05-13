@@ -34,6 +34,8 @@ const procedureLineSchema = z.object({
   plan_id: z.string().uuid().nullable(),
   /** Quando ausente, usa preco vigente do (procedure, plan) ou default_amount_cents (particular). */
   amount_cents_override: z.number().int().min(0).optional(),
+  /** Observação opcional por linha (até 500 chars). Migration 0077. */
+  notes: z.string().trim().max(500).optional().nullable(),
 })
 
 const bodySchema = z.object({
@@ -87,6 +89,7 @@ export async function POST(req: Request): Promise<Response> {
         procedureId: p.procedure_id,
         planId: p.plan_id,
         amountCentsOverride: p.amount_cents_override,
+        notes: p.notes ?? null,
       })),
       appointmentAt: parsed.data.appointment_at,
       durationMinutes: parsed.data.duration_minutes,
