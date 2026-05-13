@@ -77,12 +77,32 @@ export async function createProcedure(
   if (customTableId !== null && !isUnlisted) {
     throw new Error('createProcedure: customTableId requer isUnlisted=true')
   }
+
+  // Auto-preenche display_name a partir do catálogo TUSS quando vazio
+  // e o procedimento é TUSS-listado (tuss_code preenchido). Evita o caso
+  // de procedimentos cadastrados sem rótulo de exibição.
+  let resolvedDisplayName: string | null = input.displayName?.trim() || null
+  if (!resolvedDisplayName && !isUnlisted && input.tussCode) {
+    const { data: tussRow, error: tussErr } = await supabase
+      .from('tuss_codes')
+      .select('description')
+      .eq('code', input.tussCode)
+      .maybeSingle()
+    if (tussErr) {
+      throw new Error(`createProcedure tuss_codes lookup failed: ${tussErr.message}`)
+    }
+    const desc = (tussRow as { description?: string | null } | null)?.description?.trim()
+    if (desc && desc.length > 0) {
+      resolvedDisplayName = desc
+    }
+  }
+
   const { data, error } = await supabase
     .from('procedures')
     .insert({
       tenant_id: input.tenantId,
       tuss_code: input.tussCode,
-      display_name: input.displayName ?? null,
+      display_name: resolvedDisplayName,
       default_amount_cents: input.defaultAmountCents ?? null,
       covered_by_plan: input.coveredByPlan ?? true,
       is_unlisted: isUnlisted,

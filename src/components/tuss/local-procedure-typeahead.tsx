@@ -193,7 +193,7 @@ export function LocalProcedureTypeahead({
                         </span>
                         <span className="flex min-w-0 flex-1 flex-col">
                           <span className="line-clamp-2 whitespace-normal break-words text-slate-700">
-                            {item.displayName ?? '(sem nome de exibição)'}
+                            {item.displayName ?? codeText}
                           </span>
                         </span>
                       </CommandItem>
@@ -267,7 +267,10 @@ export function LocalProcedureTypeahead({
                       </TableCell>
                       <TableCell className="text-xs text-slate-700">
                         <p className="line-clamp-2 whitespace-normal break-words">
-                          {item.displayName ?? '(sem nome de exibição)'}
+                          {item.displayName ??
+                            (typeof item.tussCode === 'string' && item.tussCode.trim().length > 0
+                              ? item.tussCode
+                              : '—')}
                         </p>
                       </TableCell>
                     </TableRow>
