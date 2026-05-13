@@ -6,6 +6,7 @@ export interface ListedPlan {
   name: string
   active: boolean
   createdAt: string
+  taxRateBps: number
 }
 
 export async function listHealthPlans(
@@ -14,7 +15,7 @@ export async function listHealthPlans(
 ): Promise<ListedPlan[]> {
   let q = supabase
     .from('health_plans')
-    .select('id, name, active, created_at')
+    .select('id, name, active, created_at, tax_rate_bps')
     .eq('tenant_id', args.tenantId)
     .order('name', { ascending: true })
   if (!args.includeInactive) q = q.eq('active', true)
@@ -25,5 +26,6 @@ export async function listHealthPlans(
     name: r.name,
     active: r.active,
     createdAt: r.created_at,
+    taxRateBps: (r as { tax_rate_bps?: number }).tax_rate_bps ?? 0,
   }))
 }

@@ -111,22 +111,22 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T032 [P] [US2] `tests/contract/api-planos-tax-rate-rbac.test.ts` — financeiro/recepcionista/profissional_saude → PATCH `tax_rate_bps` ⇒ 403 (apenas admin escreve em `health_plans`, regra atual mantida)
-- [ ] T033 [P] [US2] `tests/contract/api-planos-tax-rate-validation.test.ts` — `tax_rate_bps=-1`, `10001`, `'abc'`, payload vazio (sem active nem tax_rate_bps) ⇒ 400
-- [ ] T034 [P] [US2] `tests/contract/api-planos-tax-rate-audit.test.ts` — PATCH 0→650 ⇒ 1 row em `audit_log` com `entity='health_plans'`, `field='tax_rate_bps'`, `old_value='0'`, `new_value='650'`
-- [ ] T035 [P] [US2] `tests/contract/api-planos-tax-rate-tenant.test.ts` — tenantA PATCH plan de tenantB ⇒ 404
-- [ ] T036 [P] [US2] `tests/integration/plan-tax-rate-flow.test.ts` — fluxo: admin PATCH com 650, GET retorna 650 + rate_percent="6,50"; PATCH com 0 zera; checkbox-derived behavior (semantic test)
+- [X] T032 [P] [US2] `tests/contract/api-planos-tax-rate-rbac.spec.ts` — admin 200, demais papéis 403
+- [X] T033 [P] [US2] `tests/contract/api-planos-tax-rate-validation.spec.ts` — bounds bps -1/10001/99.9, string, payload vazio
+- [X] T034 [P] [US2] `tests/contract/api-planos-tax-rate-audit.spec.ts` — PATCH 0→650 audit_log row; idempotente NÃO duplica
+- [X] T035 [P] [US2] `tests/contract/api-planos-tax-rate-tenant.spec.ts` — tenantA → planB 404; row intacto
+- [X] T036 [P] [US2] `tests/integration/plan-tax-rate-flow.spec.ts` — default=0; PATCH 650→percent "6,50"; PATCH 0 zera; updatePlanTaxRate range; backward compat active
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Criar `src/lib/core/plans/update-tax-rate.ts` com `updatePlanTaxRate(supabase, { tenantId, planId, taxRateBps })`. Verifica range (defense-in-depth com Zod). Retorna `HealthPlanRow` atualizado incluindo `tax_rate_bps`
-- [ ] T038 [US2] Estender `src/lib/core/plans/list.ts` (e/ou `findHealthPlanById` se existir) para incluir `tax_rate_bps` no `.select()` — confirmar que types gerados em T011 já têm o campo
-- [ ] T039 [US2] Estender `src/app/api/planos/[id]/route.ts` (PATCH handler): adicionar `tax_rate_bps` ao Zod schema conforme `contracts/api-planos-tax-rate.md`. Lógica: se `tax_rate_bps !== undefined`, chama `updatePlanTaxRate`; se `active !== undefined`, chama o método existente. Retorna estado consolidado. Mantém `requireRole(['admin'])`
-- [ ] T040 [US2] (Opcional, decisão de research) Confirmar que `POST /api/planos` (criação) **não** aceita `tax_rate_bps` — manter ergonomicamente fora do create; `tax_rate_bps` só via PATCH posterior. Documentar inline no handler
-- [ ] T041 [P] [US2] Criar `src/app/(dashboard)/configuracoes/convenios/[id]/plan-tax-rate-form.tsx` (client component) com: checkbox "Convênio cobra imposto?" (controlled, default = `tax_rate_bps > 0`), campo "Alíquota do convênio %" exibido só quando checkbox marcado (default value = `bpsToPercent(tax_rate_bps)` ou vazio). Submit chama `PATCH /api/planos/[id]` com bps via `percentToBps`. Marcar = preenche; desmarcar + salvar = envia `tax_rate_bps: 0`. Apenas renderiza inputs editáveis quando `canWrite`; senão exibe valor read-only "Imposto do convênio: 6,50%" ou "Não cobra imposto"
-- [ ] T042 [US2] Integrar `plan-tax-rate-form.tsx` em `src/app/(dashboard)/configuracoes/convenios/[id]/page.tsx`: server-side adicionar `.select('id, name, active, created_at, tax_rate_bps')` ao query do plano; passar `taxRateBps` ao componente; `canWrite = can(session.role, 'plan.write')` (já existe action) — Posicionar o form em uma seção própria entre o header e `PlanProceduresSection`
-- [ ] T043 [US2] Atualizar (opcional) `src/app/(dashboard)/configuracoes/convenios/new-plan-form.tsx`: mostrar o checkbox "Convênio cobra imposto?" e campo, **mas** apenas armazenar localmente; após o `POST /api/planos` retornar 201, fazer um segundo `PATCH /api/planos/[id]` com `tax_rate_bps` derivado se checkbox marcada. Se desmarcada, não dispara o PATCH (DEFAULT 0 cobre). Se preferir simplificar, deixar US2 só na edição e adicionar uma nota na UI de criação
-- [ ] T044 [US2] Rodar `pnpm lint:auth`, `pnpm typecheck`, e a suíte `pnpm test tests/contract/api-planos-tax-rate-*.test.ts tests/integration/plan-tax-rate-flow.test.ts`
+- [X] T037 [P] [US2] `src/lib/core/plans/update-tax-rate.ts` — `updatePlanTaxRate` valida range + `NotFoundError`
+- [X] T038 [US2] `src/lib/core/plans/list.ts` — `.select` inclui `tax_rate_bps`; ListedPlan ganha `taxRateBps`
+- [X] T039 [US2] `src/app/api/planos/[id]/route.ts` — PATCH aceita active+tax_rate_bps, devolve `tax_rate_percent`
+- [X] T040 [US2] POST /api/planos mantido enxuto (sem tax_rate_bps; via PATCH posterior — decisão do research §)
+- [X] T041 [P] [US2] `src/app/(dashboard)/configuracoes/convenios/[id]/plan-tax-rate-form.tsx` — checkbox + campo + read-only mode
+- [X] T042 [US2] Integração em `convenios/[id]/page.tsx` — `.select` com tax_rate_bps + `<PlanTaxRateForm>`
+- [X] T043 [US2] Skipped (decisão simplificadora) — criação continua mínima; alíquota via edição posterior
+- [X] T044 [US2] `pnpm typecheck` ✓ + `pnpm lint:auth` ✓ + 19/19 US2 tests + regressão planos.spec/plano-recepcionista-forbidden ✓
 
 **Checkpoint**: US2 fully functional. Manual smoke conforme `quickstart.md > US2` deve passar. Combinado com US1, MVP financeiro completo.
 

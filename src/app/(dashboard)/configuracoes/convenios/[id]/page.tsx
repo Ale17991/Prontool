@@ -12,6 +12,7 @@ import {
   type ProcedureOption,
   type PriceHeadWithProcedure,
 } from './plan-procedures-section'
+import { PlanTaxRateForm } from './plan-tax-rate-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   // filtram por tenant_id = jwt_tenant_id() — o filtro explícito sai.
   const planRes = await supabase
     .from('health_plans')
-    .select('id, name, active, created_at')
+    .select('id, name, active, created_at, tax_rate_bps')
     .eq('id', params.id)
     .maybeSingle()
   if (planRes.error) throw new Error(`plan lookup: ${planRes.error.message}`)
@@ -39,6 +40,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
     name: string
     active: boolean
     created_at: string
+    tax_rate_bps: number
   }
 
   // Covered-by-plan active procedures — base set for the "Adicionar
@@ -222,6 +224,12 @@ export default async function PlanoDetailPage({ params }: PageProps) {
           }
         />
       </div>
+
+      <PlanTaxRateForm
+        planId={plan.id}
+        initialTaxRateBps={plan.tax_rate_bps ?? 0}
+        canWrite={can(session.role, 'plan.write')}
+      />
 
       <PlanProceduresSection
         planId={plan.id}
