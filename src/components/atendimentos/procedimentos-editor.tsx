@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -90,8 +91,11 @@ export function ProcedurasEditor({
   disabled = false,
 }: ProcedurasEditorProps) {
   const [globalParticular, setGlobalParticular] = useState(false)
-  // Força remount do typeahead após cada pick (value="" + busca limpa).
-  // Mais simples que controlar o estado interno do componente.
+  // Procedimento selecionado no typeahead mas ainda NÃO adicionado à tabela.
+  // O usuário confirma a adição clicando no botão "+" verde.
+  const [pendingProcedureId, setPendingProcedureId] = useState('')
+  // Força remount do typeahead após adicionar (zera o `search` interno do
+  // popover, que o componente não expõe pra reset externo).
   const [pickerKey, setPickerKey] = useState(0)
 
   // Ref pra ter sempre a versão mais recente do array dentro de callbacks
@@ -121,8 +125,13 @@ export function ProcedurasEditor({
     onChange([])
   }
 
-  /** Handler do typeahead: adiciona linha + limpa busca. */
-  async function handlePickProcedure(procedureId: string) {
+  /**
+   * Confirma a adição do procedimento atualmente pendente no typeahead.
+   * Disparado pelo botão "+" verde. Limpa o pendente + remonta o typeahead
+   * para zerar a busca.
+   */
+  async function handleAddPending() {
+    const procedureId = pendingProcedureId
     if (!procedureId) return
     const proc = procedures.find((p) => p.id === procedureId)
     if (!proc) return
@@ -140,7 +149,9 @@ export function ProcedurasEditor({
     const next = [...valueRef.current, newLine]
     valueRef.current = next
     onChange(next)
-    setPickerKey((k) => k + 1) // reseta o typeahead
+
+    setPendingProcedureId('')
+    setPickerKey((k) => k + 1)
 
     await resolveAndApplyPrice(next.length - 1, procedureId, initialPlanId)
   }
@@ -268,17 +279,32 @@ export function ProcedurasEditor({
         <Label htmlFor="proc_picker" className="text-[11px] text-slate-600">
           Adicionar procedimento (código ou nome)
         </Label>
-        <LocalProcedureTypeahead
-          key={pickerKey}
-          id="proc_picker"
-          options={procedures}
-          value=""
-          onChange={(id) => void handlePickProcedure(id)}
-          placeholder="Buscar e clicar para adicionar…"
-        />
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <LocalProcedureTypeahead
+              key={pickerKey}
+              id="proc_picker"
+              options={procedures}
+              value={pendingProcedureId}
+              onChange={setPendingProcedureId}
+              placeholder="Buscar por código ou nome…"
+            />
+          </div>
+          <Button
+            type="button"
+            onClick={() => void handleAddPending()}
+            disabled={disabled || !pendingProcedureId}
+            title="Adicionar procedimento selecionado"
+            aria-label="Adicionar procedimento"
+            className="h-9 shrink-0 gap-1 bg-emerald-600 px-3 text-white hover:bg-emerald-700 disabled:bg-emerald-300"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar
+          </Button>
+        </div>
         <p className="text-[11px] text-slate-500">
-          Selecione um procedimento — ele é adicionado à tabela e os campos são limpos
-          para o próximo.
+          Selecione um procedimento e clique em <span className="font-semibold">Adicionar</span>{' '}
+          (ou no botão verde) para incluir na tabela.
         </p>
       </div>
 
