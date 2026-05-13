@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Paperclip, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
+interface TaxOption {
+  id: string
+  name: string
+  rate_percent: string
+}
 
 const RECEIPT_MAX_BYTES = 10 * 1024 * 1024
 const RECEIPT_ACCEPT = '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'
@@ -33,11 +39,40 @@ export function NewExpenseForm() {
   )
   const [recurring, setRecurring] = useState(false)
   const [frequency, setFrequency] = useState('mensal')
+  // Feature 011 — US3: vínculo a imposto cadastrado.
+  const [linkTax, setLinkTax] = useState(false)
+  const [taxId, setTaxId] = useState<string>('')
+  const [taxOptions, setTaxOptions] = useState<TaxOption[]>([])
+  const [taxLoadError, setTaxLoadError] = useState<string | null>(null)
   const [receiptFiles, setReceiptFiles] = useState<File[]>([])
   const receiptInputRef = useRef<HTMLInputElement>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Carrega impostos ativos apenas quando o checkbox for marcado (lazy).
+  useEffect(() => {
+    if (!linkTax || taxOptions.length > 0) return
+    let cancelled = false
+    void (async () => {
+      setTaxLoadError(null)
+      try {
+        const res = await fetch('/api/impostos?include_inactive=false')
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const list = (await res.json()) as TaxOption[]
+        if (!cancelled) setTaxOptions(list)
+      } catch (err) {
+        if (!cancelled) {
+          setTaxLoadError(
+            err instanceof Error ? err.message : 'Falha ao carregar impostos.',
+          )
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [linkTax, taxOptions.length])
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -53,6 +88,10 @@ export function NewExpenseForm() {
       setError('Descreva a despesa em pelo menos 2 caracteres.')
       return
     }
+    if (linkTax && !taxId) {
+      setError('Selecione o imposto cadastrado a que esta despesa se refere.')
+      return
+    }
 
     const oversize = receiptFiles.find((f) => f.size > RECEIPT_MAX_BYTES)
     if (oversize) {
@@ -66,13 +105,17 @@ export function NewExpenseForm() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          category,
+          // Quando linkTax=true, o server força category='impostos'; o que
+          // mandamos aqui é cosmético (mas mandamos coerente para nao
+          // confundir leitura do payload).
+          category: linkTax ? 'impostos' : category,
           description: description.trim(),
           supplier: supplier.trim() || null,
           amount_cents: cents,
           competence_date: competenceDate,
           recurring,
           frequency: recurring ? frequency : null,
+          ...(linkTax && taxId ? { tax_id: taxId } : {}),
         }),
       })
       if (!res.ok) {
@@ -126,6 +169,8 @@ export function NewExpenseForm() {
       setSupplier('')
       setAmount('')
       setRecurring(false)
+      setLinkTax(false)
+      setTaxId('')
       setReceiptFiles([])
       if (receiptInputRef.current) receiptInputRef.current.value = ''
       router.refresh()
@@ -136,24 +181,71 @@ export function NewExpenseForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-3">
-      <div>
-        <Label className="text-[11px] font-bold uppercase text-slate-500">Categoria</Label>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="aluguel">Aluguel</SelectItem>
-            <SelectItem value="equipamentos">Equipamentos</SelectItem>
-            <SelectItem value="materiais">Materiais</SelectItem>
-            <SelectItem value="pessoal">Pessoal</SelectItem>
-            <SelectItem value="servicos">Serviços</SelectItem>
-            <SelectItem value="impostos">Impostos</SelectItem>
-            <SelectItem value="manutencao">Manutenção</SelectItem>
-            <SelectItem value="outros">Outros</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <label className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700">
+        <input
+          type="checkbox"
+          checked={linkTax}
+          onChange={(e) => {
+            setLinkTax(e.target.checked)
+            if (!e.target.checked) setTaxId('')
+          }}
+          className="h-4 w-4 rounded border-slate-300"
+        />
+        Vincular a imposto cadastrado?
+      </label>
+
+      {linkTax ? (
+        <div>
+          <Label className="text-[11px] font-bold uppercase text-slate-500">
+            Imposto cadastrado
+          </Label>
+          <Select value={taxId} onValueChange={setTaxId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um imposto…" />
+            </SelectTrigger>
+            <SelectContent>
+              {taxOptions.length === 0 && !taxLoadError ? (
+                <SelectItem value="__loading" disabled>
+                  Carregando…
+                </SelectItem>
+              ) : null}
+              {taxOptions.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name} — {t.rate_percent} %
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {taxLoadError ? (
+            <p className="mt-1 text-[11px] text-rose-600">
+              Falha ao carregar impostos: {taxLoadError}
+            </p>
+          ) : null}
+          <p className="mt-1 text-[11px] text-slate-500">
+            Categoria será forçada para &quot;Impostos&quot; e a despesa entrará no
+            relatório separada das despesas operacionais.
+          </p>
+        </div>
+      ) : (
+        <div>
+          <Label className="text-[11px] font-bold uppercase text-slate-500">Categoria</Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="aluguel">Aluguel</SelectItem>
+              <SelectItem value="equipamentos">Equipamentos</SelectItem>
+              <SelectItem value="materiais">Materiais</SelectItem>
+              <SelectItem value="pessoal">Pessoal</SelectItem>
+              <SelectItem value="servicos">Serviços</SelectItem>
+              <SelectItem value="impostos">Impostos</SelectItem>
+              <SelectItem value="manutencao">Manutenção</SelectItem>
+              <SelectItem value="outros">Outros</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div>
         <Label htmlFor="expense-description" className="text-[11px] font-bold uppercase text-slate-500">

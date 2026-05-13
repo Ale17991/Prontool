@@ -140,22 +140,22 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T045 [P] [US3] `tests/contract/expenses-tax-link-category.test.ts` — POST com `tax_id` válido + `category='aluguel'` ⇒ 201, response tem `category='impostos'` (normalizada server-side)
-- [ ] T046 [P] [US3] `tests/contract/expenses-tax-link-validation.test.ts` — `tax_id=uuid-aleatorio-inexistente` ⇒ 400 TAX_NOT_FOUND_OR_INACTIVE
-- [ ] T047 [P] [US3] `tests/contract/expenses-tax-link-inactive.test.ts` — `tax_id` de imposto desativado ⇒ 400
-- [ ] T048 [P] [US3] `tests/contract/expenses-tax-link-cross-tenant.test.ts` — sessão tenantA + tax_id de tenantB ⇒ 400 (RLS retorna 0 rows no fetchActiveTax)
-- [ ] T049 [P] [US3] `tests/contract/expenses-tax-link-db-check.test.ts` — SQL direto: `INSERT INTO expenses(... category='aluguel', tax_id=X)` ⇒ violation `expenses_tax_link_requires_impostos_category`
-- [ ] T050 [P] [US3] `tests/contract/expenses-tax-link-immutability.test.ts` — `UPDATE expenses SET tax_id=Y WHERE id=existing` ⇒ exception (trigger expandida)
-- [ ] T051 [P] [US3] `tests/integration/expenses-tax-linkage.test.ts` — fluxo: criar imposto, criar despesa com vínculo, listar (espera `tax_name` no DTO), desativar imposto, criar nova despesa sem o imposto inativo no select, despesa antiga continua mostrando referência
+- [X] T045 [P] [US3] `tests/contract/expenses-tax-link-category.spec.ts` — server força category=impostos mesmo com cliente mandando aluguel
+- [X] T046 [P] [US3] `tests/contract/expenses-tax-link-validation.spec.ts` — tax_id uuid inexistente → 400; formato inválido → 400
+- [X] T047 [P] [US3] `tests/contract/expenses-tax-link-inactive.spec.ts` — tax_id de imposto desativado → 400
+- [X] T048 [P] [US3] `tests/contract/expenses-tax-link-cross-tenant.spec.ts` — tenant A com tax_id de B → 400
+- [X] T049 [P] [US3] `tests/contract/expenses-tax-link-db-check.spec.ts` — CHECK violation + happy path + no-link sem CHECK
+- [X] T050 [P] [US3] `tests/contract/expenses-tax-link-immutability.spec.ts` — UPDATE tax_id bloqueado; row intacto
+- [X] T051 [P] [US3] `tests/integration/expenses-tax-linkage.spec.ts` — CRUD + tax_name no DTO + filtro de ativos + preservação histórica
 
 ### Implementation for User Story 3
 
-- [ ] T052 [US3] Estender `src/lib/core/expenses/create.ts` com parâmetro `taxId?: string | null`. Se preenchido: (a) chama `fetchActiveTax(supabase, { tenantId, id: taxId })` que faz `SELECT id FROM public.taxes WHERE id=$1 AND tenant_id=$2 AND is_active=true AND deleted_at IS NULL`; (b) se 0 rows, lança `ValidationError('TAX_NOT_FOUND_OR_INACTIVE', ...)`; (c) força `category='impostos'` no payload de insert. Mantém tudo o resto da função atual
-- [ ] T053 [US3] Estender `src/lib/core/expenses/list.ts` para fazer `.select('..., taxes:tax_id(id, name)')` (left join leve); projetar `tax_name` no DTO retornado quando `tax_id IS NOT NULL`
-- [ ] T054 [US3] Estender `src/app/api/despesas/route.ts` (POST handler): adicionar `tax_id: z.string().uuid().nullable().optional()` ao Zod schema. Passar para `createExpense`. Capturar `ValidationError` ⇒ 400. (GET handler já está coberto via T053)
-- [ ] T055 [P] [US3] Localizar e estender `src/app/(dashboard)/analise/despesas/new-expense-form.tsx` (criar se não existir — `analise/despesas/page.tsx` referencia este import): adicionar checkbox "Vincular a imposto cadastrado?", inicialmente desmarcado. Quando marcado: faz `fetch /api/impostos?include_inactive=false` (1x ao montar) e renderiza `Select` com opções `{id, name, rate_percent}`. Quando submete com checkbox marcado: inclui `tax_id` no payload e força `category='impostos'` na UI (campo de categoria fica disabled/oculto). Quando desmarcado: fluxo normal de categoria livre
-- [ ] T056 [P] [US3] Estender `src/app/(dashboard)/analise/despesas/page.tsx` para exibir `tax_name` na coluna Descrição (subtitle) quando a despesa tem vínculo — apenas se `e.tax_id != null` mostra "Imposto: ISS" abaixo da descrição
-- [ ] T057 [US3] Rodar `pnpm lint:auth`, `pnpm typecheck` e `pnpm test tests/contract/expenses-tax-link-*.test.ts tests/integration/expenses-tax-linkage.test.ts`
+- [X] T052 [US3] `src/lib/core/expenses/create.ts` — taxId opcional; lookup ativo do mesmo tenant; força category=impostos
+- [X] T053 [US3] `src/lib/core/expenses/list.ts` — join leve `tax:taxes!tax_id(id,name)`; achata `tax_name` no DTO
+- [X] T054 [US3] `src/app/api/despesas/route.ts` POST — Zod aceita `tax_id` uuid; passa para core
+- [X] T055 [P] [US3] `new-expense-form.tsx` — checkbox "Vincular a imposto", lazy fetch `/api/impostos`, Select com opções
+- [X] T056 [P] [US3] `analise/despesas/page.tsx` — subtitle "Imposto: NAME" na descrição quando vinculado
+- [X] T057 [US3] `pnpm typecheck` ✓ + `pnpm lint:auth` ✓ + 10/10 US3 tests verdes
 
 **Checkpoint**: US3 fully functional. Manual smoke conforme `quickstart.md > US3` deve passar.
 

@@ -38,6 +38,8 @@ const createSchema = z.object({
   competence_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   recurring: z.boolean().default(false),
   frequency: z.enum(['mensal', 'semanal', 'anual']).optional().nullable(),
+  // Feature 011 — US3: vínculo opcional a imposto cadastrado.
+  tax_id: z.string().uuid().nullable().optional(),
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -105,6 +107,7 @@ export async function POST(req: Request): Promise<Response> {
         recurring: parsed.data.recurring,
         frequency: parsed.data.frequency,
         actorUserId: session.userId,
+        taxId: parsed.data.tax_id ?? null,
       })
       return NextResponse.json(expense, { status: 201 })
     } catch (err) {

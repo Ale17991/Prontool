@@ -246,6 +246,11 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                               Fornecedor: {e.supplier}
                             </p>
                           ) : null}
+                          {(e as { tax_name?: string | null }).tax_name ? (
+                            <p className="text-[11px] font-semibold text-purple-700">
+                              Imposto: {(e as { tax_name?: string | null }).tax_name}
+                            </p>
+                          ) : null}
                           {e.recurring ? (
                             <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
                               Recorrente · {e.frequency}
