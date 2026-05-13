@@ -5,20 +5,10 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
 import { listTasks, type TaskStatusFilter } from '@/lib/core/tasks/list'
 import { listTeamMembers } from '@/lib/core/team/list'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { cn } from '@/lib/utils'
 import { NewTaskForm } from './new-task-form'
-import { TaskRowActions } from './task-row-actions'
 import { TasksFilters } from './tasks-filters'
+import { TasksTable } from './tasks-table'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,13 +21,6 @@ interface PageProps {
     from?: string
     to?: string
   }
-}
-
-const PRIORITY_BADGE: Record<string, string> = {
-  baixa: 'bg-slate-100 text-slate-700',
-  normal: 'bg-blue-50 text-blue-700',
-  alta: 'bg-amber-50 text-amber-700',
-  urgente: 'bg-rose-50 text-rose-700',
 }
 
 export default async function TarefasPage({ searchParams }: PageProps) {
@@ -72,7 +55,8 @@ export default async function TarefasPage({ searchParams }: PageProps) {
   const canWrite = can(session.role, 'task.write')
   const isAdmin = session.role === 'admin'
 
-  // Lista de membros para o select de responsável (admin filtra por outros).
+  // Membros ativos do tenant — usados tanto no form de cadastro (admin
+  // pode atribuir a outro) quanto no select de edição inline no modal.
   const members = isAdmin
     ? await listTeamMembers(supabase, {
         tenantId: session.tenantId,
@@ -94,7 +78,8 @@ export default async function TarefasPage({ searchParams }: PageProps) {
           {tasks.length} tarefa{tasks.length === 1 ? '' : 's'} na visão atual.{' '}
           {isAdmin
             ? 'Como admin, você vê tarefas de toda a equipe.'
-            : 'Você vê apenas as tarefas atribuídas a você.'}
+            : 'Você vê apenas as tarefas atribuídas a você.'}{' '}
+          Clique numa linha para ver detalhes e ações.
         </p>
       </div>
 
@@ -123,76 +108,7 @@ export default async function TarefasPage({ searchParams }: PageProps) {
             />
           </CardHeader>
           <CardContent className="p-0">
-            {tasks.length === 0 ? (
-              <p className="px-6 py-12 text-center text-sm text-slate-500">
-                Nenhuma tarefa para os filtros atuais.
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Data limite</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tasks.map((t) => (
-                    <TableRow
-                      key={t.id}
-                      className={cn(t.is_overdue && 'bg-rose-50/40')}
-                    >
-                      <TableCell>
-                        <p className="font-semibold text-slate-900">{t.title}</p>
-                        {t.notes ? (
-                          <p className="line-clamp-2 text-[11px] text-slate-500">{t.notes}</p>
-                        ) : null}
-                      </TableCell>
-                      <TableCell className="text-xs text-slate-700">
-                        {t.assigned_to_name ?? '—'}
-                      </TableCell>
-                      <TableCell
-                        className={cn(
-                          'text-xs font-semibold tabular-nums',
-                          t.is_overdue ? 'text-rose-700' : 'text-slate-700',
-                        )}
-                      >
-                        {new Date(t.due_date + 'T00:00:00').toLocaleDateString('pt-BR')}
-                        {t.is_overdue ? (
-                          <span className="ml-1 text-[10px] uppercase tracking-widest">
-                            Atrasada
-                          </span>
-                        ) : null}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={PRIORITY_BADGE[t.priority]}>
-                          {t.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {t.status === 'concluida' ? (
-                          <Badge variant="success">Concluída</Badge>
-                        ) : (
-                          <Badge variant="outline">Pendente</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {canWrite ? (
-                          <TaskRowActions
-                            id={t.id}
-                            status={t.status}
-                            isAdmin={isAdmin}
-                          />
-                        ) : null}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <TasksTable tasks={tasks} isAdmin={isAdmin} members={memberOptions} />
           </CardContent>
         </Card>
       </div>
