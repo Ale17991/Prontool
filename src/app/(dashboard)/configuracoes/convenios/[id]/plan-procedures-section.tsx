@@ -1,7 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useTransition, type FormEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type FormEvent,
+} from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Check,
@@ -269,6 +275,31 @@ function AddProcedureForm({
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Dropdown só abre ao focar/digitar e fecha ao selecionar ou clicar fora —
+  // antes ficava sempre aberto, sobrepondo os campos de valor/data/motivo.
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownContainerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+    function onDocPointerDown(e: MouseEvent) {
+      const container = dropdownContainerRef.current
+      if (!container) return
+      if (!container.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', onDocPointerDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocPointerDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [dropdownOpen])
+
   // Busca opera sobre TODOS os procedimentos cobertos. Os que já têm preço
   // neste convênio ficam visíveis (com badge "Já cadastrado") em vez de
   // sumirem — assim o usuário entende o estado e pode editar pela tabela.
@@ -378,67 +409,98 @@ function AddProcedureForm({
     >
       <div className="space-y-1.5 md:col-span-2">
         <Label htmlFor="add_search">Procedimento</Label>
-        <Input
-          id="add_search"
-          placeholder="Buscar por TUSS ou nome…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-white text-xs">
-          {filtered.length === 0 ? (
-            <p className="px-3 py-2 text-slate-500">
-              Nenhum procedimento corresponde à busca{' '}
-              <span className="font-semibold">&quot;{search.trim()}&quot;</span>. Lista
-              limitada a procedimentos com{' '}
-              <span className="font-semibold">Coberto pelo plano de saúde</span> marcado em{' '}
-              <Link href="/configuracoes/procedimentos" className="underline">
-                Configurações → Procedimentos
-              </Link>
-              .
-            </p>
-          ) : (
-            filtered.map((p) => {
-              const alreadyPriced = pricedProcedureIds.has(p.id)
-              return (
-                <button
-                  type="button"
-                  key={p.id}
-                  onClick={() => setProcedureId(p.id)}
-                  className={cn(
-                    'flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-slate-50',
-                    p.id === procedureId ? 'bg-slate-50 font-bold text-primary' : 'text-slate-600',
-                  )}
-                >
-                  <span className="truncate">
-                    {p.displayName ?? p.catalogDescription ?? '(sem nome)'}
-                  </span>
-                  <span className="ml-2 flex items-center gap-1.5">
-                    {alreadyPriced ? (
-                      <span className="rounded border border-emerald-200 bg-emerald-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
-                        Já cadastrado
+        <div ref={dropdownContainerRef} className="relative">
+          <Input
+            id="add_search"
+            placeholder="Buscar por TUSS ou nome…"
+            value={search}
+            onFocus={() => setDropdownOpen(true)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setDropdownOpen(true)
+            }}
+            autoComplete="off"
+          />
+          {dropdownOpen ? (
+            <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md border border-slate-200 bg-white text-xs shadow-lg">
+              {filtered.length === 0 ? (
+                <p className="px-3 py-2 text-slate-500">
+                  Nenhum procedimento corresponde à busca{' '}
+                  <span className="font-semibold">&quot;{search.trim()}&quot;</span>. Lista
+                  limitada a procedimentos com{' '}
+                  <span className="font-semibold">Coberto pelo plano de saúde</span>{' '}
+                  marcado em{' '}
+                  <Link href="/configuracoes/procedimentos" className="underline">
+                    Configurações → Procedimentos
+                  </Link>
+                  .
+                </p>
+              ) : (
+                filtered.map((p) => {
+                  const alreadyPriced = pricedProcedureIds.has(p.id)
+                  return (
+                    <button
+                      type="button"
+                      key={p.id}
+                      onClick={() => {
+                        setProcedureId(p.id)
+                        setSearch(
+                          p.displayName ?? p.catalogDescription ?? p.tussCode,
+                        )
+                        setDropdownOpen(false)
+                      }}
+                      className={cn(
+                        'flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-slate-50',
+                        p.id === procedureId
+                          ? 'bg-slate-50 font-bold text-primary'
+                          : 'text-slate-600',
+                      )}
+                    >
+                      <span className="truncate">
+                        {p.displayName ?? p.catalogDescription ?? '(sem nome)'}
                       </span>
-                    ) : null}
-                    {p.isCustomCoded ? (
-                      <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
-                        Pers.
+                      <span className="ml-2 flex items-center gap-1.5">
+                        {alreadyPriced ? (
+                          <span className="rounded border border-emerald-200 bg-emerald-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
+                            Já cadastrado
+                          </span>
+                        ) : null}
+                        {p.isCustomCoded ? (
+                          <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                            Pers.
+                          </span>
+                        ) : p.isUnlisted ? (
+                          <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                            Não list.
+                          </span>
+                        ) : null}
+                        <span className="font-mono text-[10px] text-slate-500">
+                          {p.tussCode}
+                        </span>
                       </span>
-                    ) : p.isUnlisted ? (
-                      <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
-                        Não list.
-                      </span>
-                    ) : null}
-                    <span className="font-mono text-[10px] text-slate-500">{p.tussCode}</span>
-                  </span>
-                </button>
-              )
-            })
-          )}
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          ) : null}
         </div>
-        {search.trim().length > 0 && filteredAlreadyPriced > 0 ? (
+        {search.trim().length > 0 && filteredAlreadyPriced > 0 && dropdownOpen ? (
           <p className="text-[11px] text-emerald-700">
             {filteredAvailable.length} disponíve{filteredAvailable.length === 1 ? 'l' : 'is'}{' '}
             para adicionar · {filteredAlreadyPriced} já cadastrado
             {filteredAlreadyPriced === 1 ? '' : 's'} neste convênio.
+          </p>
+        ) : null}
+        {selectedProcedure && !dropdownOpen ? (
+          <p className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] text-slate-600">
+            Selecionado:{' '}
+            <span className="font-semibold text-slate-900">
+              {selectedProcedure.displayName ??
+                selectedProcedure.catalogDescription ??
+                '(sem nome)'}
+            </span>{' '}
+            <span className="font-mono text-slate-500">({selectedProcedure.tussCode})</span>
           </p>
         ) : null}
         {selectedAlreadyPriced ? (
