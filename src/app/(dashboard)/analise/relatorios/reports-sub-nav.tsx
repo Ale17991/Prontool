@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import { LayoutDashboard, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, ShieldCheck, Stethoscope } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+type TabKey = 'dashboard' | 'por-plano' | 'por-profissional'
+
 interface Tab {
-  key: 'dashboard' | 'por-plano'
+  key: TabKey
   href: string
   label: string
   icon: typeof LayoutDashboard
@@ -22,9 +24,15 @@ const TABS: Tab[] = [
     label: 'Por plano',
     icon: ShieldCheck,
   },
+  {
+    key: 'por-profissional',
+    href: '/analise/relatorios/por-profissional',
+    label: 'Por profissional',
+    icon: Stethoscope,
+  },
 ]
 
-export function ReportsSubNav({ active }: { active: 'dashboard' | 'por-plano' }) {
+export function ReportsSubNav({ active }: { active: TabKey }) {
   return (
     <div className="flex flex-wrap items-center gap-1 rounded-md bg-slate-100 p-1 text-[11px] font-bold uppercase tracking-widest">
       {TABS.map((tab) => {
