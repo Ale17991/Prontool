@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { detailByPlan } from '@/lib/core/reports/by-plan'
+import { detailByPlan, PARTICULAR_KEY } from '@/lib/core/reports/by-plan'
 import { renderByPlanPdf } from '@/lib/core/reports/export-by-plan-pdf'
 import { renderByPlanExcel } from '@/lib/core/reports/export-by-plan-excel'
 import { toHttpResponse } from '@/lib/observability/http'
@@ -18,7 +18,8 @@ const querySchema = z.object({
 })
 
 const formatSchema = z.enum(['pdf', 'excel'])
-const planIdSchema = z.string().uuid()
+// planId aceita UUID OU o sentinel 'particular' (linhas com plan_id IS NULL).
+const planIdSchema = z.union([z.literal(PARTICULAR_KEY), z.string().uuid()])
 
 export async function GET(
   req: Request,
@@ -34,7 +35,12 @@ export async function GET(
     })
     if (!planIdSchema.safeParse(params.planId).success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_PLAN_ID', message: 'planId deve ser UUID' } },
+        {
+          error: {
+            code: 'INVALID_PLAN_ID',
+            message: 'planId deve ser UUID ou "particular"',
+          },
+        },
         { status: 400 },
       )
     }
@@ -56,7 +62,7 @@ export async function GET(
     const supabase = createSupabaseServiceClient()
     const detail = await detailByPlan(supabase, {
       tenantId: session.tenantId,
-      planId: params.planId,
+      planId: params.planId === PARTICULAR_KEY ? null : params.planId,
       from: parsed.data.from,
       to: parsed.data.to,
     })

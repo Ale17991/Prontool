@@ -16,7 +16,14 @@ import { applyPlanTax } from './apply-plan-tax'
  * Compatibilidade: atendimentos antigos foram backfilled em
  * appointment_procedures com sequence=1, entao o comportamento e identico
  * para dados pre-existentes.
+ *
+ * Particular (sem plano): linhas com appointment_procedures.plan_id IS NULL
+ * sao agregadas sob o sentinel PARTICULAR_KEY. summaryByPlan retorna a
+ * linha de particular junto com as demais — a pagina expoe um card
+ * proprio. detailByPlan aceita planId=null para listar somente particular.
  */
+export const PARTICULAR_KEY = 'particular' as const
+
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
 export interface PlanSummaryRow {
@@ -110,7 +117,8 @@ export async function summaryByPlan(
   // 2) Linhas desses atendimentos.
   const lines = await fetchLines(supabase, input.tenantId, activeIds)
 
-  // 3) Agrega por plano (sem aplicar imposto ainda).
+  // 3) Agrega por plano (sem aplicar imposto ainda). Particular agrega sob
+  // PARTICULAR_KEY — a pagina renderiza o card "Particular" separado.
   type RawRow = {
     planId: string
     planName: string
@@ -119,9 +127,9 @@ export async function summaryByPlan(
   }
   const map = new Map<string, RawRow>()
   for (const l of lines) {
-    const key = l.plan_id ?? '__particular__'
+    const key = l.plan_id ?? PARTICULAR_KEY
     const existing = map.get(key) ?? {
-      planId: l.plan_id ?? '',
+      planId: l.plan_id ?? PARTICULAR_KEY,
       planName: l.health_plans?.name ?? 'Particular',
       procedureCount: 0,
       totalRevenueCents: 0,
@@ -133,10 +141,11 @@ export async function summaryByPlan(
   const raw = Array.from(map.values())
 
   // 4) Carrega tax_rate_bps dos planos envolvidos (Feature 011 — US4).
+  // Particular nao tem health_plan, entao filtramos o sentinel antes do lookup.
   const planTaxMap = await fetchPlanTaxRates(
     supabase,
     input.tenantId,
-    raw.map((r) => r.planId).filter((id) => id !== ''),
+    raw.map((r) => r.planId).filter((id) => id !== PARTICULAR_KEY),
   )
 
   // 5) Aplica imposto e enriquece. applyPlanTax usa o campo grossRevenueCents,
@@ -184,7 +193,7 @@ async function fetchPlanTaxRates(
 
 export async function detailByPlan(
   supabase: SupabaseClient<Database>,
-  input: { tenantId: string; planId: string; from: string; to: string },
+  input: { tenantId: string; planId: string | null; from: string; to: string },
 ): Promise<PlanDetail> {
   validatePeriod(input.from, input.to)
 
@@ -192,6 +201,12 @@ export async function detailByPlan(
   if (!key) {
     throw new Error('PATIENT_DATA_ENCRYPTION_KEY required to decrypt patient names')
   }
+
+  // planId === null => listagem de procedimentos particulares (plan_id IS NULL
+  // em appointment_procedures). O sentinel exposto na URL e no plan.id e
+  // PARTICULAR_KEY ('particular'). `?? PARTICULAR_KEY` serve pra ambos os
+  // ramos e da pro TS um `string` (em vez de `string | null`).
+  const planIdForExports: string = input.planId ?? PARTICULAR_KEY
 
   const fromTs = `${input.from}T00:00:00Z`
   const toExclusive = nextDayIso(input.to)
@@ -204,9 +219,12 @@ export async function detailByPlan(
     toExclusive,
   )
   if (active.length === 0) {
-    const planFallback = await ensurePlanName(supabase, input.tenantId, input.planId, null)
+    const planFallback =
+      input.planId === null
+        ? 'Particular'
+        : await ensurePlanName(supabase, input.tenantId, input.planId, null)
     return {
-      plan: { id: input.planId, name: planFallback },
+      plan: { id: planIdForExports, name: planFallback },
       period: { from: input.from, to: input.to },
       procedures: [],
       totals: {
@@ -225,6 +243,8 @@ export async function detailByPlan(
   for (const a of active) appointmentById.set(a.id, a)
 
   // 2) Todas as linhas desses atendimentos, FILTRADAS pelo plan_id.
+  // null === null em JS, entao o filtro abaixo cobre particular e plano UUID
+  // com a mesma expressao.
   const allLines = await fetchLines(
     supabase,
     input.tenantId,
@@ -232,9 +252,18 @@ export async function detailByPlan(
   )
   const lines = allLines.filter((l) => l.plan_id === input.planId)
 
-  // 3) Nome do plano: prioriza um line.health_plans.name; fallback para query.
-  const planName = lines.find((l) => l.health_plans?.name)?.health_plans?.name ?? null
-  const planFallback = await ensurePlanName(supabase, input.tenantId, input.planId, planName)
+  // 3) Nome do plano: para particular usamos rotulo fixo. Para planos
+  // normais, prioriza um line.health_plans.name (evita query extra) e cai
+  // pra health_plans table como fallback.
+  const planFallback =
+    input.planId === null
+      ? 'Particular'
+      : await ensurePlanName(
+          supabase,
+          input.tenantId,
+          input.planId,
+          lines.find((l) => l.health_plans?.name)?.health_plans?.name ?? null,
+        )
 
   // 4) Decifra nomes de pacientes (somente dos atendimentos com linhas).
   const patientIds = Array.from(
@@ -305,16 +334,20 @@ export async function detailByPlan(
   const topProcedure =
     Array.from(procedureCounts.values()).sort((a, b) => b.count - a.count)[0] ?? null
 
-  // Feature 011 — US4: aplica tax_rate_bps do plano sobre o total.
-  const planTaxMap = await fetchPlanTaxRates(supabase, input.tenantId, [input.planId])
+  // Feature 011 — US4: aplica tax_rate_bps do plano sobre o total. Particular
+  // nao tem health_plan, entao pula-se o lookup e a taxa fica em 0.
+  const planTaxMap =
+    input.planId === null
+      ? new Map<string, number>()
+      : await fetchPlanTaxRates(supabase, input.tenantId, [input.planId])
   const { rows: enriched } = applyPlanTax(
-    [{ planId: input.planId, grossRevenueCents: totalRevenueCents }],
+    [{ planId: planIdForExports, grossRevenueCents: totalRevenueCents }],
     planTaxMap,
   )
   const taxRow = enriched[0]!
 
   return {
-    plan: { id: input.planId, name: planFallback },
+    plan: { id: planIdForExports, name: planFallback },
     period: { from: input.from, to: input.to },
     procedures,
     totals: {
