@@ -47,6 +47,11 @@ export interface PlanProcedureRow {
   procedureName: string
   doctorId: string
   doctorName: string
+  /** Valor UNITARIO em cents. */
+  unitAmountCents: number
+  /** Quantidade da linha (>=1, default 1). Migration 0081. */
+  quantity: number
+  /** Total da linha = unitAmountCents * quantity. */
   amountCents: number
   status: 'ativo'
 }
@@ -85,7 +90,10 @@ interface LineRow {
   appointment_id: string
   procedure_id: string
   plan_id: string | null
+  /** Valor UNITARIO em cents. Total = line_amount_cents * quantity. */
   line_amount_cents: number
+  /** Multiplicador (migration 0081). Default 1 para linhas anteriores. */
+  quantity: number
   procedures: { id: string; tuss_code: string; display_name: string | null } | null
   health_plans: { id: string; name: string } | null
 }
@@ -134,8 +142,11 @@ export async function summaryByPlan(
       procedureCount: 0,
       totalRevenueCents: 0,
     }
-    existing.procedureCount += 1
-    existing.totalRevenueCents += l.line_amount_cents
+    // Procedimento conta como quantity (uma linha com qty=3 vale por 3
+    // procedimentos realizados). Receita = unitario * quantidade.
+    const qty = l.quantity || 1
+    existing.procedureCount += qty
+    existing.totalRevenueCents += l.line_amount_cents * qty
     map.set(key, existing)
   }
   const raw = Array.from(map.values())
@@ -278,6 +289,7 @@ export async function detailByPlan(
   // 5) Monta linhas do relatorio (uma linha = uma procedure_line).
   const procedures: PlanProcedureRow[] = lines.map((l) => {
     const a = appointmentById.get(l.appointment_id)
+    const qty = l.quantity || 1
     return {
       appointmentId: l.appointment_id,
       appointmentAt: a?.appointment_at ?? '',
@@ -288,7 +300,9 @@ export async function detailByPlan(
       procedureName: l.procedures?.display_name ?? l.procedures?.tuss_code ?? 'Sem nome',
       doctorId: a?.doctor_id ?? '',
       doctorName: a?.doctors?.full_name ?? '—',
-      amountCents: l.line_amount_cents,
+      unitAmountCents: l.line_amount_cents,
+      quantity: qty,
+      amountCents: l.line_amount_cents * qty,
       status: 'ativo' as const,
     }
   })
@@ -302,10 +316,12 @@ export async function detailByPlan(
     return 0
   })
 
-  const procedureCount = procedures.length
+  // Contagem de procedimentos = soma das quantidades (1 linha com qty=3
+  // representa 3 procedimentos realizados). Receita ja inclui qty.
+  const procedureCount = procedures.reduce((acc, p) => acc + p.quantity, 0)
   const totalRevenueCents = procedures.reduce((acc, p) => acc + p.amountCents, 0)
 
-  // Top doctor + top procedure
+  // Top doctor + top procedure (ranqueia por quantidade, nao por # linhas).
   const doctorCounts = new Map<string, { doctorId: string; doctorName: string; count: number }>()
   const procedureCounts = new Map<
     string,
@@ -317,7 +333,7 @@ export async function detailByPlan(
       doctorName: row.doctorName,
       count: 0,
     }
-    dExisting.count += 1
+    dExisting.count += row.quantity
     doctorCounts.set(row.doctorId, dExisting)
 
     const pExisting = procedureCounts.get(row.procedureId) ?? {
@@ -326,7 +342,7 @@ export async function detailByPlan(
       tussCode: row.tussCode,
       count: 0,
     }
-    pExisting.count += 1
+    pExisting.count += row.quantity
     procedureCounts.set(row.procedureId, pExisting)
   }
   const topDoctor =
@@ -431,7 +447,7 @@ async function fetchLines(
       const { data, error } = await supabase
         .from('appointment_procedures' as never)
         .select(
-          'appointment_id, procedure_id, plan_id, line_amount_cents, ' +
+          'appointment_id, procedure_id, plan_id, line_amount_cents, quantity, ' +
             'procedures:procedure_id(id, tuss_code, display_name), health_plans:plan_id(id, name)',
         )
         .eq('tenant_id', tenantId)

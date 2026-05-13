@@ -34,17 +34,21 @@ export interface ProcedureLineInput {
   amountCentsOverride?: number
   /** Observação opcional por linha (até 500 chars). Migration 0077. */
   notes?: string | null
+  /** Multiplicador da linha (default 1). Migration 0081. line_amount e UNITARIO. */
+  quantity?: number
 }
 
 export interface ResolvedProcedureLine {
   procedureId: string
   planId: string | null
   sourcePriceVersionId: string | null
+  /** Valor UNITARIO (cents). Total da linha = lineAmountCents * quantity. */
   lineAmountCents: number
   vigenteAmountCents: number
   amountWasOverridden: boolean
   sequence: number
   notes: string | null
+  quantity: number
 }
 
 export interface CreateManualAppointmentInput {
@@ -249,6 +253,15 @@ export async function createAppointmentManually(
       return trimmed
     })()
 
+    const rawQty = raw.quantity ?? 1
+    if (!Number.isInteger(rawQty) || rawQty < 1) {
+      throw new DomainError(
+        'PROCEDURE_LINE_QUANTITY_INVALID',
+        'Quantidade por procedimento deve ser inteiro >= 1.',
+        { status: 400 },
+      )
+    }
+
     lines.push({
       procedureId: raw.procedureId,
       planId: raw.planId,
@@ -258,10 +271,13 @@ export async function createAppointmentManually(
       amountWasOverridden: overridden,
       sequence: i + 1,
       notes,
+      quantity: rawQty,
     })
   }
 
-  const totalCents = lines.reduce((acc, l) => acc + l.lineAmountCents, 0)
+  // Total do atendimento = soma de (unitario * quantidade) de cada linha.
+  // Reporta-se em appointments.frozen_amount_cents pela RPC (mesma formula).
+  const totalCents = lines.reduce((acc, l) => acc + l.lineAmountCents * l.quantity, 0)
 
   // Materiais — pre-validacao (defesa redundante ao trigger SQL).
   let materialsPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> = []
@@ -302,6 +318,7 @@ export async function createAppointmentManually(
     amount_was_overridden: l.amountWasOverridden,
     sequence: l.sequence,
     notes: l.notes ?? '',
+    quantity: l.quantity,
   }))
 
   const rpc = await supabase.rpc(

@@ -204,13 +204,14 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
                   <TableHead>Paciente</TableHead>
                   <TableHead>Procedimento</TableHead>
                   <TableHead>Profissional</TableHead>
+                  <TableHead className="w-14 text-center">Qtd</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {detail.procedures.map((row) => (
-                  <TableRow key={row.appointmentId}>
+                {detail.procedures.map((row, idx) => (
+                  <TableRow key={`${row.appointmentId}-${idx}`}>
                     <TableCell className="text-xs text-slate-700">
                       {formatDateTime(row.appointmentAt)}
                     </TableCell>
@@ -224,8 +225,20 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
                       </p>
                     </TableCell>
                     <TableCell className="text-slate-700">{row.doctorName}</TableCell>
+                    <TableCell className="text-center text-slate-700 tabular-nums">
+                      {row.quantity > 1 ? (
+                        <span className="font-bold text-slate-900">×{row.quantity}</span>
+                      ) : (
+                        <span className="text-slate-400">1</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right font-bold text-slate-900 tabular-nums">
                       {formatCurrency(row.amountCents)}
+                      {row.quantity > 1 ? (
+                        <span className="ml-1 text-[10px] text-slate-500">
+                          ({formatCurrency(row.unitAmountCents)} un.)
+                        </span>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <Badge variant="success">Ativo</Badge>

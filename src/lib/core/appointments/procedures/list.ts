@@ -14,10 +14,13 @@ export interface AppointmentProcedureLine {
   planId: string | null
   planName: string | null
   sourcePriceVersionId: string | null
+  /** Valor UNITARIO em cents. Total da linha = lineAmountCents * quantity. */
   lineAmountCents: number
   vigenteAmountCents: number
   amountWasOverridden: boolean
   sequence: number
+  /** Multiplicador (>=1, default 1). Migration 0081. */
+  quantity: number
   createdAt: string
   createdBy: string
 }
@@ -38,7 +41,7 @@ export async function listAppointmentProcedures(
   const { data, error } = await supabase
     .from('appointment_procedures' as never)
     .select(
-      'id, procedure_id, plan_id, source_price_version_id, line_amount_cents, vigente_amount_cents, amount_was_overridden, sequence, created_at, created_by, ' +
+      'id, procedure_id, plan_id, source_price_version_id, line_amount_cents, vigente_amount_cents, amount_was_overridden, sequence, quantity, created_at, created_by, ' +
         'procedures:procedure_id(tuss_code, display_name), health_plans:plan_id(name)',
     )
     .eq('appointment_id', input.appointmentId)
@@ -69,6 +72,7 @@ export async function listAppointmentProcedures(
       vigenteAmountCents: Number(r.vigente_amount_cents ?? 0),
       amountWasOverridden: Boolean(r.amount_was_overridden),
       sequence: Number(r.sequence ?? 0),
+      quantity: Math.max(1, Number(r.quantity ?? 1)),
       createdAt: r.created_at as string,
       createdBy: r.created_by as string,
     }

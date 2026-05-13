@@ -218,6 +218,7 @@ export function NewAppointmentForm({
         plan_id: p.planId,
         amount_cents_override: p.amountCentsOverride,
         notes: p.notes,
+        quantity: p.quantity,
       })),
       appointment_at: whenIso,
       duration_minutes: clampDuration(durationMinutes),
@@ -261,9 +262,9 @@ export function NewAppointmentForm({
         return
       }
 
-      // Total = soma das linhas.
+      // Total = soma de (unitario * quantidade) de cada linha.
       const totalCents = validatedProcedures.reduce(
-        (acc, p) => acc + p.amountCentsOverride,
+        (acc, p) => acc + p.amountCentsOverride * p.quantity,
         0,
       )
       if (totalCents > 0) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Minus, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,7 +30,7 @@ export interface ProcedureLineDraft {
   procedureId: string
   /** null = linha particular. '' = ainda nao escolhido. */
   planId: string | null | ''
-  /** Texto digitado em reais (ex: "350,00"). String para permitir edicao livre. */
+  /** Texto digitado em reais (ex: "350,00") — valor UNITARIO. String para edicao livre. */
   amountReais: string
   /** Valor vigente sugerido (em cents) — referencia interna para flag de override. */
   vigenteAmountCents: number | null
@@ -38,6 +38,8 @@ export interface ProcedureLineDraft {
   particularLocked: boolean
   /** Observação opcional por linha (até 500 chars). */
   notes: string
+  /** Quantidade (default 1). Subtotal da linha = unitario * quantidade. */
+  quantity: number
 }
 
 export interface PlanFormOption {
@@ -69,6 +71,7 @@ export function createEmptyLine(defaultPlanId: string | null): ProcedureLineDraf
     vigenteAmountCents: null,
     particularLocked: false,
     notes: '',
+    quantity: 1,
   }
 }
 
@@ -168,6 +171,7 @@ export function ProcedurasEditor({
       vigenteAmountCents: null,
       particularLocked: isUncovered,
       notes: pendingNotes.trim(),
+      quantity: 1,
     }
     const next = [...valueRef.current, newLine]
     valueRef.current = next
@@ -267,7 +271,21 @@ export function ProcedurasEditor({
     })
   }
 
-  const totalCents = value.reduce((acc, l) => acc + amountReaisToCents(l.amountReais), 0)
+  // Subtotal por linha = unitario * quantidade. Total geral = soma dos
+  // subtotais (line_amount_cents continua sendo UNITARIO no payload — a
+  // multiplicacao acontece aqui pra exibicao e na RPC pra persistir
+  // appointments.frozen_amount_cents).
+  const totalCents = value.reduce(
+    (acc, l) => acc + amountReaisToCents(l.amountReais) * Math.max(1, l.quantity),
+    0,
+  )
+
+  function adjustQuantity(index: number, delta: number) {
+    const current = valueRef.current[index]
+    if (!current) return
+    const next = Math.max(1, (current.quantity || 1) + delta)
+    patchLine(index, { quantity: next })
+  }
 
   return (
     <div className="md:col-span-2 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-3">
@@ -385,8 +403,10 @@ export function ProcedurasEditor({
                 <TableHead className="w-12">#</TableHead>
                 <TableHead className="w-32">Código</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead className="w-28 text-center">Qtd</TableHead>
                 <TableHead className="w-48">Plano</TableHead>
-                <TableHead className="w-32 text-right">Valor (R$)</TableHead>
+                <TableHead className="w-32 text-right">Valor unit. (R$)</TableHead>
+                <TableHead className="w-32 text-right">Subtotal</TableHead>
                 <TableHead className="min-w-[12rem]">Observação</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
@@ -435,6 +455,46 @@ export function ProcedurasEditor({
                       </p>
                     </TableCell>
                     <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => adjustQuantity(i, -1)}
+                          disabled={disabled || (line.quantity || 1) <= 1}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          title="Diminuir quantidade"
+                          aria-label="Diminuir quantidade"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={999}
+                          step={1}
+                          value={String(line.quantity || 1)}
+                          onChange={(e) => {
+                            const n = parseInt(e.target.value, 10)
+                            patchLine(i, {
+                              quantity: Number.isFinite(n) && n >= 1 ? Math.min(999, n) : 1,
+                            })
+                          }}
+                          disabled={disabled}
+                          className="h-7 w-12 px-1 text-center tabular-nums"
+                          aria-label="Quantidade"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => adjustQuantity(i, +1)}
+                          disabled={disabled || (line.quantity || 1) >= 999}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          title="Aumentar quantidade"
+                          aria-label="Aumentar quantidade"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       {line.particularLocked ? (
                         <span
                           title="Procedimento não coberto pelo plano — sempre particular"
@@ -477,6 +537,11 @@ export function ProcedurasEditor({
                         className={cn('h-8 text-right tabular-nums')}
                       />
                     </TableCell>
+                    <TableCell className="text-right font-bold tabular-nums text-slate-900">
+                      {formatCurrency(
+                        amountReaisToCents(line.amountReais) * Math.max(1, line.quantity),
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Input
                         value={line.notes}
@@ -504,7 +569,7 @@ export function ProcedurasEditor({
               })}
               <TableRow className="bg-slate-50/50">
                 <TableCell
-                  colSpan={4}
+                  colSpan={6}
                   className="text-right text-[11px] font-bold uppercase tracking-widest text-slate-500"
                 >
                   Total
@@ -544,8 +609,11 @@ function formatCurrency(cents: number): string {
 export interface ValidatedProcedureLine {
   procedureId: string
   planId: string | null
+  /** Valor UNITARIO em cents (>0). Total da linha = amountCentsOverride * quantity. */
   amountCentsOverride: number
   notes: string | null
+  /** Inteiro >= 1. Default 1 quando o draft nao tem campo (compat). */
+  quantity: number
 }
 
 /**
@@ -554,7 +622,8 @@ export interface ValidatedProcedureLine {
  * Regras:
  *   - procedureId obrigatório
  *   - se não-particular: planId obrigatório
- *   - valor em cents deve ser > 0
+ *   - valor unitário em cents deve ser > 0
+ *   - quantity inteiro >= 1 (default 1)
  *   - notes opcional (trim aplicado; vazio vira null)
  *
  * Retorna null quando alguma linha está inválida OU a lista é vazia.
@@ -571,11 +640,13 @@ export function validateProcedures(
     if (cents <= 0) return null
     const notesTrimmed = (l.notes ?? '').trim()
     if (notesTrimmed.length > 500) return null
+    const qty = Number.isInteger(l.quantity) && l.quantity >= 1 ? l.quantity : 1
     out.push({
       procedureId: l.procedureId,
       planId: l.planId === null ? null : (l.planId as string),
       amountCentsOverride: cents,
       notes: notesTrimmed.length > 0 ? notesTrimmed : null,
+      quantity: qty,
     })
   }
   return out

@@ -126,7 +126,10 @@ interface ProcedureLineRow {
   appointment_id: string
   procedure_id: string
   plan_id: string | null
+  /** Valor UNITARIO em cents (migration 0081). */
   line_amount_cents: number
+  /** Multiplicador (default 1). */
+  quantity: number
   procedures: { tuss_code: string; display_name: string | null } | null
   health_plans: { name: string } | null
 }
@@ -305,7 +308,11 @@ async function computeTaxFromPlansForPeriod(
   const planRevenue = new Map<string, number>()
   for (const l of lines) {
     if (!l.plan_id) continue
-    planRevenue.set(l.plan_id, (planRevenue.get(l.plan_id) ?? 0) + l.line_amount_cents)
+    const qty = l.quantity || 1
+    planRevenue.set(
+      l.plan_id,
+      (planRevenue.get(l.plan_id) ?? 0) + l.line_amount_cents * qty,
+    )
   }
   if (planRevenue.size === 0) return 0
   const planTaxMap = await fetchPlanTaxRates(supabase, tenantId, Array.from(planRevenue.keys()))
@@ -372,7 +379,11 @@ type RawRevenueByPlanRow = Omit<
 >
 
 function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RawRevenueByPlanRow[] {
-  const totalGross = lines.reduce((acc, l) => acc + l.line_amount_cents, 0)
+  // Receita = line_amount_cents (UNITARIO) * quantity. Migration 0081.
+  const totalGross = lines.reduce(
+    (acc, l) => acc + l.line_amount_cents * (l.quantity || 1),
+    0,
+  )
   const map = new Map<string, RawRevenueByPlanRow>()
   // Para appointmentCount por plano: contamos atendimentos distintos que
   // contem AO MENOS uma linha sob esse plano.
@@ -386,7 +397,7 @@ function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RawRevenueByPlanRo
       grossRevenueCents: 0,
       marketSharePct: 0,
     }
-    existing.grossRevenueCents += l.line_amount_cents
+    existing.grossRevenueCents += l.line_amount_cents * (l.quantity || 1)
     map.set(key, existing)
 
     let set = planAppointments.get(key)
@@ -431,6 +442,7 @@ function aggregateTopProceduresFromLines(
 ): ProcedureRankingRow[] {
   const map = new Map<string, ProcedureRankingRow>()
   for (const l of lines) {
+    const qty = l.quantity || 1
     const existing = map.get(l.procedure_id) ?? {
       procedureId: l.procedure_id,
       procedureName: l.procedures?.display_name ?? l.procedures?.tuss_code ?? '—',
@@ -438,8 +450,10 @@ function aggregateTopProceduresFromLines(
       count: 0,
       totalCents: 0,
     }
-    existing.count += 1
-    existing.totalCents += l.line_amount_cents
+    // Ranking de "mais realizados" considera quantidade — 1 linha qty=3
+    // soma 3 ao count.
+    existing.count += qty
+    existing.totalCents += l.line_amount_cents * qty
     map.set(l.procedure_id, existing)
   }
   return Array.from(map.values())
@@ -465,7 +479,7 @@ async function fetchProcedureLines(
       const { data, error } = await supabase
         .from('appointment_procedures' as never)
         .select(
-          'appointment_id, procedure_id, plan_id, line_amount_cents, ' +
+          'appointment_id, procedure_id, plan_id, line_amount_cents, quantity, ' +
             'procedures:procedure_id(tuss_code, display_name), health_plans:plan_id(name)',
         )
         .eq('tenant_id', tenantId)

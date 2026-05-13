@@ -311,6 +311,7 @@ export type Database = {
           notes: string | null
           plan_id: string | null
           procedure_id: string
+          quantity: number
           sequence: number
           source_price_version_id: string | null
           tenant_id: string
@@ -326,6 +327,7 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           procedure_id: string
+          quantity?: number
           sequence: number
           source_price_version_id?: string | null
           tenant_id: string
@@ -341,6 +343,7 @@ export type Database = {
           notes?: string | null
           plan_id?: string | null
           procedure_id?: string
+          quantity?: number
           sequence?: number
           source_price_version_id?: string | null
           tenant_id?: string

@@ -232,9 +232,20 @@ export default async function AtendimentoDetailPage({
             {appointment.doctors?.full_name ?? '—'}
           </ClinicalRow>
           <ClinicalRow icon={ClipboardList} label="Procedimento">
-            {procedureLines.length > 1
-              ? `${procedureLines.length} procedimentos (ver lista abaixo)`
-              : formatProcedure(appointment.procedures)}
+            {procedureLines.length > 1 ? (
+              `${procedureLines.length} procedimentos (ver lista abaixo)`
+            ) : procedureLines.length === 1 ? (
+              <span>
+                {formatProcedure(appointment.procedures)}
+                {procedureLines[0]!.quantity > 1 ? (
+                  <span className="ml-2 inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+                    ×{procedureLines[0]!.quantity}
+                  </span>
+                ) : null}
+              </span>
+            ) : (
+              formatProcedure(appointment.procedures)
+            )}
           </ClinicalRow>
           <ClinicalRow icon={ClipboardList} label="Observações">
             {appointment.observacoes?.trim() ? (
@@ -264,41 +275,57 @@ export default async function AtendimentoDetailPage({
                   <TableHead className="w-28">TUSS</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Plano</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="w-14 text-center">Qtd</TableHead>
+                  <TableHead className="text-right">Valor unit.</TableHead>
+                  <TableHead className="text-right">Subtotal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {procedureLines.map((line) => (
-                  <TableRow key={line.id}>
-                    <TableCell className="text-xs text-slate-500">{line.sequence}</TableCell>
-                    <TableCell className="font-mono text-xs font-bold">
-                      {line.procedureTussCode ?? '—'}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {line.procedureDisplayName ?? '(sem nome)'}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {line.planId === null ? (
-                        <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-800">
-                          Particular
-                        </span>
-                      ) : (
-                        line.planName ?? '—'
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs tabular-nums">
-                      {formatCurrency(line.lineAmountCents)}
-                      {line.amountWasOverridden ? (
-                        <span
-                          className="ml-1 text-[10px] text-amber-700"
-                          title={`Vigente: ${formatCurrency(line.vigenteAmountCents)}`}
-                        >
-                          ★
-                        </span>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {procedureLines.map((line) => {
+                  const qty = line.quantity || 1
+                  const subtotal = line.lineAmountCents * qty
+                  return (
+                    <TableRow key={line.id}>
+                      <TableCell className="text-xs text-slate-500">{line.sequence}</TableCell>
+                      <TableCell className="font-mono text-xs font-bold">
+                        {line.procedureTussCode ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {line.procedureDisplayName ?? '(sem nome)'}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {line.planId === null ? (
+                          <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-800">
+                            Particular
+                          </span>
+                        ) : (
+                          line.planName ?? '—'
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs tabular-nums">
+                        {qty > 1 ? (
+                          <span className="font-bold text-slate-900">×{qty}</span>
+                        ) : (
+                          <span className="text-slate-400">1</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">
+                        {formatCurrency(line.lineAmountCents)}
+                        {line.amountWasOverridden ? (
+                          <span
+                            className="ml-1 text-[10px] text-amber-700"
+                            title={`Vigente: ${formatCurrency(line.vigenteAmountCents)}`}
+                          >
+                            ★
+                          </span>
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs font-bold tabular-nums">
+                        {formatCurrency(subtotal)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </CardContent>
