@@ -93,7 +93,7 @@ export async function GhlOAuthPanel({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              GoHighLevel
+              Homio
             </h1>
             {renderStatusBadge(status)}
           </div>
@@ -110,7 +110,7 @@ export async function GhlOAuthPanel({
           <div>
             <p className="font-semibold">Reconexão necessária</p>
             <p className="text-xs mt-1">
-              Sua conexão GHL está no formato antigo (proxy compartilhado).
+              Sua conexão Homio está no formato antigo (proxy compartilhado).
               Reconecte para migrar para o OAuth 2.0 oficial — pacientes,
               atendimentos e custom fields são preservados.
             </p>
@@ -144,9 +144,9 @@ export async function GhlOAuthPanel({
             <p className="font-semibold">Conexão rejeitada</p>
             <p className="text-xs mt-1">
               {callbackCode === 'GHL_TENANT_ALREADY_CONNECTED'
-                ? 'Esta clínica já está conectada a outra conta GoHighLevel. Desconecte primeiro.'
+                ? 'Esta clínica já está conectada a outra conta Homio. Desconecte primeiro.'
                 : callbackCode === 'GHL_LOCATION_ALREADY_BOUND'
-                  ? 'Esta conta GoHighLevel já está vinculada a outra clínica no Prontool. Cada clínica pode usar apenas uma sub-account.'
+                  ? 'Esta conta Homio já está vinculada a outra clínica no Prontool. Cada clínica pode usar apenas uma sub-account.'
                   : 'Não foi possível concluir a conexão. Tente novamente.'}
             </p>
           </div>
@@ -156,22 +156,22 @@ export async function GhlOAuthPanel({
       {status === 'not_connected' || status === 'disconnected' ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Conectar ao GoHighLevel</CardTitle>
+            <CardTitle className="text-sm">Conectar ao Homio</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600">
-              Ao conectar, a sub-account escolhida no GHL receberá os custom
+              Ao conectar, a sub-account escolhida no Homio receberá os custom
               fields clínicos do Prontool (CPF, plano, profissional, último
               atendimento, diagnósticos, alergias) e os webhooks de contato.
             </p>
             <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
-              Cada clínica pode ser conectada a apenas uma conta GoHighLevel.
+              Cada clínica pode ser conectada a apenas uma conta Homio.
               Antes de conectar, certifique-se de que a sub-account não está
               vinculada a outra clínica do Prontool.
             </p>
             {isAdmin ? (
               <Button asChild>
-                <Link href="/api/oauth/ghl/authorize">Conectar ao GoHighLevel</Link>
+                <Link href="/api/oauth/ghl/authorize">Conectar ao Homio</Link>
               </Button>
             ) : (
               <p className="text-xs text-slate-500">
@@ -384,14 +384,14 @@ function renderMenuStatus(
     case 'registered':
       return (
         <p className="text-xs text-emerald-700">
-          ✓ Menu registrado na sub-account. O usuário GHL pode abrir o Prontool
+          ✓ Menu registrado na sub-account. O usuário Homio pode abrir o Prontool
           direto pelo menu da sub-account.
         </p>
       )
     case 'unsupported':
       return (
         <p className="text-xs text-amber-700">
-          A API atual do GHL não suportou o registro automático do Custom Menu.
+          A API atual do Homio não suportou o registro automático do Custom Menu.
           Configure manualmente apontando para <code>/api/sso/ghl</code>.
         </p>
       )

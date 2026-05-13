@@ -42,7 +42,7 @@ export async function GET(req: Request): Promise<Response> {
         {
           error: {
             code: 'OAUTH_CONFIG_MISSING',
-            message: 'GHL OAuth não configurado. Defina as variáveis GHL_* no ambiente.',
+            message: 'Integração Homio não configurada. Defina as variáveis GHL_* no ambiente.',
           },
         },
         { status: 500 },

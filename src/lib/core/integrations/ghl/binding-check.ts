@@ -20,9 +20,9 @@ export const GHL_TENANT_ALREADY_CONNECTED = 'GHL_TENANT_ALREADY_CONNECTED'
 export const GHL_LOCATION_ALREADY_BOUND = 'GHL_LOCATION_ALREADY_BOUND'
 
 export const FR001_MESSAGE =
-  'Esta clínica já está conectada a outra conta GoHighLevel. Desconecte primeiro.'
+  'Esta clínica já está conectada a outra conta Homio. Desconecte primeiro.'
 export const FR002_MESSAGE =
-  'Esta conta GoHighLevel já está vinculada a outra clínica no Prontool.'
+  'Esta conta Homio já está vinculada a outra clínica no Prontool.'
 
 export interface AssertGhlBindingFreeArgs {
   tenantId: string | null

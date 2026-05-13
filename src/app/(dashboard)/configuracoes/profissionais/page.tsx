@@ -142,7 +142,7 @@ export default async function ProfissionaisPage() {
                           <p className="font-semibold text-slate-900">{d.full_name}</p>
                           {hasGhlIntegration && d.external_identifier ? (
                             <p className="font-mono text-[10px] text-slate-500">
-                              GHL: {d.external_identifier}
+                              Homio: {d.external_identifier}
                             </p>
                           ) : null}
                         </TableCell>

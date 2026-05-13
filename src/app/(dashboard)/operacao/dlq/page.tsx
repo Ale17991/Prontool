@@ -67,7 +67,7 @@ export default async function DlqPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Recebido</TableHead>
-                  <TableHead>GHL Event ID</TableHead>
+                  <TableHead>Homio Event ID</TableHead>
                   <TableHead>Motivo</TableHead>
                   <TableHead>Resumo do payload</TableHead>
                   <TableHead>Tentativas</TableHead>

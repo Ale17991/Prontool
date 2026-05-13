@@ -51,9 +51,9 @@ function redact(_c: GhlOAuthCredentials): Record<string, string> {
 
 export const ghlAdapter: IntegrationAdapter<GhlConfigV2, GhlOAuthCredentials> = {
   provider: 'ghl',
-  label: 'GoHighLevel',
+  label: 'Homio',
   description:
-    'CRM e automação de marketing. Contato sincronizado via OAuth 2.0; atendimento vira nota.',
+    'CRM e automação de marketing Homio. Contato sincronizado via OAuth 2.0; atendimento vira nota.',
   configSchema: ghlConfigV2Schema as unknown as z.ZodType<GhlConfigV2>,
   credentialsSchema: ghlOAuthCredentialsSchema as unknown as z.ZodType<GhlOAuthCredentials>,
   redactCredentials: redact,

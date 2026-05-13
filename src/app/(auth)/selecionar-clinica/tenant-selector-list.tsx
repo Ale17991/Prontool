@@ -119,7 +119,7 @@ export function TenantSelectorList({ tenants, currentTenantId }: TenantSelectorL
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary">{labelForRole(t.role)}</Badge>
                   {t.ghlConnected ? (
-                    <Badge variant="success">GHL conectado</Badge>
+                    <Badge variant="success">Homio conectado</Badge>
                   ) : null}
                 </div>
                 {t.lastUsedAt ? (

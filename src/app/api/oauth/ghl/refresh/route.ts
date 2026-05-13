@@ -39,7 +39,7 @@ export async function POST(req: Request): Promise<Response> {
     const row = await getIntegrationConfig(supabase, session.tenantId, 'ghl')
     if (!row) {
       return NextResponse.json(
-        { error: { code: 'NOT_CONNECTED', message: 'Sem integração GHL ativa neste tenant.' } },
+        { error: { code: 'NOT_CONNECTED', message: 'Sem integração Homio ativa neste tenant.' } },
         { status: 404 },
       )
     }
@@ -116,7 +116,7 @@ export async function POST(req: Request): Promise<Response> {
         {
           error: {
             code: 'REFRESH_TRANSIENT',
-            message: 'GHL temporariamente indisponível. Tente novamente em instantes.',
+            message: 'Homio temporariamente indisponível. Tente novamente em instantes.',
           },
         },
         { status: 502 },

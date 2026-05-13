@@ -211,7 +211,7 @@ export async function DELETE(req: Request): Promise<Response> {
     const row = await getIntegrationConfig(supabase, session.tenantId, 'ghl')
     if (!row) {
       return NextResponse.json(
-        { error: { code: 'NOT_CONNECTED', message: 'Sem integração GHL para desconectar.' } },
+        { error: { code: 'NOT_CONNECTED', message: 'Sem integração Homio para desconectar.' } },
         { status: 404 },
       )
     }

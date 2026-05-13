@@ -387,7 +387,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
                   ) : null}
                   {patient.ghlContactId ? (
                     <span className="font-mono text-[11px] text-slate-400">
-                      GHL: {patient.ghlContactId}
+                      Homio: {patient.ghlContactId}
                     </span>
                   ) : null}
                 </div>

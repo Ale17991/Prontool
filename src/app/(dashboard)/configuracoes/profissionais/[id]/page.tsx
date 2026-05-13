@@ -101,7 +101,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
                     </span>
                     {doctor.external_identifier ? (
                       <span className="font-mono text-[11px] text-slate-400">
-                        GHL: {doctor.external_identifier}
+                        Homio: {doctor.external_identifier}
                       </span>
                     ) : null}
                     <span className="text-slate-500">

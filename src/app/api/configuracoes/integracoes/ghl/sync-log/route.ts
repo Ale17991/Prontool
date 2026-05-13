@@ -60,15 +60,15 @@ function summarize(row: {
     case 'token_refresh':
       return 'Token renovado com sucesso'
     case 'outbound_contact':
-      return 'Paciente sincronizado para o GHL'
+      return 'Paciente sincronizado para o Homio'
     case 'outbound_note':
-      return 'Atendimento registrado como nota no GHL'
+      return 'Atendimento registrado como nota no Homio'
     case 'outbound_update':
-      return 'Paciente atualizado no GHL'
+      return 'Paciente atualizado no Homio'
     case 'inbound_contact':
-      return 'Contato recebido do GHL'
+      return 'Contato recebido do Homio'
     case 'inbound_opportunity':
-      return 'Oportunidade recebida do GHL'
+      return 'Oportunidade recebida do Homio'
     case 'custom_field_setup':
       return 'Custom field configurado'
     case 'webhook_setup':

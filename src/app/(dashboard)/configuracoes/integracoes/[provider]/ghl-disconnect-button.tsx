@@ -16,7 +16,7 @@ export function GhlDisconnectButton(): JSX.Element {
   async function handleClick() {
     if (
       !window.confirm(
-        'Desconectar a integração GHL? Os dados clínicos do tenant ficam preservados, mas a sincronização para de funcionar até reconectar.',
+        'Desconectar a integração Homio? Os dados clínicos do tenant ficam preservados, mas a sincronização para de funcionar até reconectar.',
       )
     ) {
       return

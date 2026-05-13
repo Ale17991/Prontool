@@ -123,8 +123,8 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
 
 function subjectFor(type: AlertType): string {
   switch (type) {
-    case 'dlq_event': return '[Prontool] Evento do GHL aguardando correção'
-    case 'webhook_rejected': return '[Prontool] Webhook GHL rejeitado'
+    case 'dlq_event': return '[Prontool] Evento do Homio aguardando correção'
+    case 'webhook_rejected': return '[Prontool] Webhook Homio rejeitado'
     case 'tuss_deprecated': return '[Prontool] Código TUSS descontinuado em uso'
     case 'signature_failure': return '[Prontool] Falha de assinatura em webhook'
     case 'rbac_denied': return '[Prontool] Tentativa de acesso negada'
