@@ -22,7 +22,6 @@ import {
 } from '@/components/atendimentos/materiais-editor'
 import {
   ProcedurasEditor,
-  createEmptyLine,
   validateProcedures,
   type ProcedureLineDraft,
 } from '@/components/atendimentos/procedimentos-editor'
@@ -75,9 +74,8 @@ export function NewAppointmentForm({
   const [patientId, setPatientId] = useState('')
   const [doctorId, setDoctorId] = useState('')
   const [defaultPlanId, setDefaultPlanId] = useState<string | null>(null)
-  const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>(() => [
-    createEmptyLine(null),
-  ])
+  // Lista inicia vazia — usuário adiciona procedimentos via busca no editor.
+  const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>([])
   const [materiais, setMateriais] = useState<MaterialDraft[]>([])
   const [appointmentAt, setAppointmentAt] = useState(
     () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
@@ -191,9 +189,13 @@ export function NewAppointmentForm({
       return
     }
 
+    if (procedureLines.length === 0) {
+      setError('Adicione pelo menos um procedimento usando a busca acima.')
+      return
+    }
     const validatedProcedures = validateProcedures(procedureLines)
     if (!validatedProcedures) {
-      setError('Preencha procedimento, plano e valor (> 0) em todas as linhas.')
+      setError('Preencha plano e valor (> 0) em todas as linhas.')
       return
     }
 

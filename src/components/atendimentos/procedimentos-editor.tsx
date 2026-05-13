@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useEffect, useRef, useState } from 'react'
+import { X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -13,9 +12,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
   LocalProcedureTypeahead,
   type LocalProcedureOption,
 } from '@/components/tuss/local-procedure-typeahead'
+import { cn } from '@/lib/utils'
 
 export interface ProcedureLineDraft {
   procedureId: string
@@ -40,13 +48,16 @@ export interface ProcedurasEditorProps {
   procedures: LocalProcedureOption[]
   plans: PlanFormOption[]
   /**
-   * Plano default (do paciente) — usado quando uma linha nova e adicionada
-   * e o procedimento e coberto por plano.
+   * Plano default (do paciente) — usado quando uma linha nova é adicionada
+   * e o procedimento é coberto por plano.
    */
   defaultPlanId: string | null
   disabled?: boolean
 }
 
+const PARTICULAR_SENTINEL = '__particular__'
+
+/** Mantido para back-compat com chamadores externos. */
 export function createEmptyLine(defaultPlanId: string | null): ProcedureLineDraft {
   return {
     procedureId: '',
@@ -58,18 +69,17 @@ export function createEmptyLine(defaultPlanId: string | null): ProcedureLineDraf
 }
 
 /**
- * Editor de N procedimentos por atendimento. Cada linha contem:
- *   - typeahead de procedimento
- *   - checkbox "Particular" + select de plano (se aplicavel)
- *   - input de valor em R$ (preenchido automaticamente quando procedimento +
- *     plano estao definidos; pode ser sobrescrito)
- *   - botao de remover (exceto linha unica)
+ * Editor de procedimentos em layout de planilha:
+ *   - Topo: busca (typeahead). Selecionar adiciona linha + limpa busca.
+ *   - Toggle global "Particular" muda todas as linhas para particular ou
+ *     reverte ao plano do paciente em um clique.
+ *   - Tabela abaixo: # | Código | Descrição | Plano | Valor | Ações (X).
+ *     Plano e valor são editáveis inline; X remove a linha sem confirmação.
+ *   - Total no rodapé.
  *
- * Auto-preenchimento de preco:
+ * Auto-preenchimento de preço (sem mudança vs. versão card-based):
  *   - Particular: usa procedures[i].defaultAmountCents
- *   - Convenio: chama /api/precos/vigente?plan_id=...&procedure_id=...
- *
- * Estado vive no parent (controlado). Validacao com `validateProcedures`.
+ *   - Convênio: chama /api/precos/vigente?plan_id=...&procedure_id=...
  */
 export function ProcedurasEditor({
   value,
@@ -79,21 +89,18 @@ export function ProcedurasEditor({
   defaultPlanId,
   disabled = false,
 }: ProcedurasEditorProps) {
-  // Ref pra ter sempre a versao MAIS RECENTE do array dentro de handlers async.
-  // Sem isso, callbacks async usam o `value` capturado no closure e
-  // sobrescrevem atualizacoes intermediarias (stale-state bug).
+  const [globalParticular, setGlobalParticular] = useState(false)
+  // Força remount do typeahead após cada pick (value="" + busca limpa).
+  // Mais simples que controlar o estado interno do componente.
+  const [pickerKey, setPickerKey] = useState(0)
+
+  // Ref pra ter sempre a versão mais recente do array dentro de callbacks
+  // assíncronos (resolveAndApplyPrice é async; sem a ref usaríamos closure
+  // velho e sobrescreveríamos updates intermediários).
   const valueRef = useRef(value)
   useEffect(() => {
     valueRef.current = value
   }, [value])
-
-  // Garante pelo menos uma linha.
-  useEffect(() => {
-    if (value.length === 0) {
-      onChange([createEmptyLine(defaultPlanId)])
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   /** Aplica um patch a uma linha usando o valueRef (sempre fresco). */
   function patchLine(index: number, patch: Partial<ProcedureLineDraft>) {
@@ -103,53 +110,82 @@ export function ProcedurasEditor({
     onChange(next)
   }
 
-  function addLine() {
-    const next = [...valueRef.current, createEmptyLine(defaultPlanId)]
-    valueRef.current = next
-    onChange(next)
-  }
-
   function removeLine(index: number) {
-    if (valueRef.current.length <= 1) return
     const next = valueRef.current.filter((_, i) => i !== index)
     valueRef.current = next
     onChange(next)
   }
 
-  // Quando o procedimento muda: re-checa coverage, atualiza imediato + fetch
-  // preco assincrono. Usar patchLine garante que cada update parte da versao
-  // mais recente do array (sem race entre updates).
-  async function handleProcedureChange(index: number, newProcedureId: string) {
-    const proc = procedures.find((p) => p.id === newProcedureId) ?? null
-    const isUncovered = proc?.coveredByPlan === false
-    const currentLine = valueRef.current[index]
-    if (!currentLine) return
-
-    // Atualizacao imediata: marca procedimento, limpa valor antigo.
-    patchLine(index, {
-      procedureId: newProcedureId,
-      particularLocked: isUncovered,
-      planId: isUncovered ? null : currentLine.planId,
-      amountReais: '',
-      vigenteAmountCents: null,
-    })
-
-    const planForFetch =
-      isUncovered
-        ? null
-        : currentLine.planId === '' || currentLine.planId === undefined
-          ? null
-          : currentLine.planId
-    await resolveAndApplyPrice(index, newProcedureId, planForFetch)
+  function clearAllLines() {
+    valueRef.current = []
+    onChange([])
   }
 
+  /** Handler do typeahead: adiciona linha + limpa busca. */
+  async function handlePickProcedure(procedureId: string) {
+    if (!procedureId) return
+    const proc = procedures.find((p) => p.id === procedureId)
+    if (!proc) return
+    const isUncovered = proc.coveredByPlan === false
+    const initialPlanId: string | null =
+      isUncovered || globalParticular ? null : defaultPlanId
+
+    const newLine: ProcedureLineDraft = {
+      procedureId,
+      planId: initialPlanId,
+      amountReais: '',
+      vigenteAmountCents: null,
+      particularLocked: isUncovered,
+    }
+    const next = [...valueRef.current, newLine]
+    valueRef.current = next
+    onChange(next)
+    setPickerKey((k) => k + 1) // reseta o typeahead
+
+    await resolveAndApplyPrice(next.length - 1, procedureId, initialPlanId)
+  }
+
+  /** Plano editado inline em uma linha. */
   async function handlePlanChange(index: number, newPlanId: string | null) {
     const current = valueRef.current[index]
     if (!current) return
-    patchLine(index, { planId: newPlanId, amountReais: '', vigenteAmountCents: null })
+    patchLine(index, {
+      planId: newPlanId,
+      amountReais: '',
+      vigenteAmountCents: null,
+    })
     if (current.procedureId) {
       await resolveAndApplyPrice(index, current.procedureId, newPlanId)
     }
+  }
+
+  /** Toggle global: alterna todas as linhas entre particular e plano do paciente. */
+  async function handleGlobalParticularChange(nextValue: boolean) {
+    setGlobalParticular(nextValue)
+    const current = valueRef.current
+    if (current.length === 0) return
+    // Linhas com particularLocked sempre ficam particular; demais seguem o toggle.
+    const targetForFree: string | null = nextValue ? null : defaultPlanId
+    const updated = current.map((l) => {
+      if (l.particularLocked) return l
+      return {
+        ...l,
+        planId: targetForFree,
+        amountReais: '',
+        vigenteAmountCents: null,
+      }
+    })
+    valueRef.current = updated
+    onChange(updated)
+    // Reprecifica em paralelo as linhas que mudaram.
+    await Promise.all(
+      updated.map(async (l, i) => {
+        if (current[i] === l) return
+        if (!l.procedureId) return
+        const pid = l.planId === null ? null : (l.planId as string)
+        await resolveAndApplyPrice(i, l.procedureId, pid)
+      }),
+    )
   }
 
   async function resolveAndApplyPrice(
@@ -165,8 +201,6 @@ export function ProcedurasEditor({
       const cents = proc.defaultAmountCents ?? null
       if (cents !== null && cents > 0) {
         applyVigente(index, cents)
-      } else if (proc.isUnlisted) {
-        // Unlisted sem valor padrao: deixa o usuario digitar manualmente.
       }
       return
     }
@@ -175,9 +209,6 @@ export function ProcedurasEditor({
       const params = new URLSearchParams({ plan_id: planId, procedure_id: procedureId })
       const res = await fetch(`/api/precos/vigente?${params.toString()}`)
       if (!res.ok) {
-        // Sem preco vigente cadastrado: cai pro default_amount_cents quando
-        // o procedimento e unlisted (pacote sem price_version), ou deixa
-        // vazio caso contrario.
         if (proc.isUnlisted && proc.defaultAmountCents) {
           applyVigente(index, proc.defaultAmountCents)
         }
@@ -190,7 +221,7 @@ export function ProcedurasEditor({
         applyVigente(index, proc.defaultAmountCents)
       }
     } catch {
-      // best-effort — deixa o usuario digitar manualmente.
+      // best-effort; usuário pode digitar manualmente.
     }
   }
 
@@ -205,127 +236,186 @@ export function ProcedurasEditor({
 
   return (
     <div className="md:col-span-2 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Label className="text-sm font-bold text-slate-700">
           Procedimentos ({value.length})
         </Label>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
+            <input
+              type="checkbox"
+              checked={globalParticular}
+              disabled={disabled}
+              onChange={(e) => void handleGlobalParticularChange(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            Particular (todas as linhas)
+          </label>
+          {value.length > 0 ? (
+            <button
+              type="button"
+              onClick={clearAllLines}
+              disabled={disabled}
+              className="text-[11px] font-semibold text-slate-500 hover:text-rose-600"
+            >
+              Limpar todos
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <Label htmlFor="proc_picker" className="text-[11px] text-slate-600">
+          Adicionar procedimento (código ou nome)
+        </Label>
+        <LocalProcedureTypeahead
+          key={pickerKey}
+          id="proc_picker"
+          options={procedures}
+          value=""
+          onChange={(id) => void handlePickProcedure(id)}
+          placeholder="Buscar e clicar para adicionar…"
+        />
         <p className="text-[11px] text-slate-500">
-          Total: <span className="font-bold tabular-nums">{formatCurrency(totalCents)}</span>
+          Selecione um procedimento — ele é adicionado à tabela e os campos são limpos
+          para o próximo.
         </p>
       </div>
 
-      <ul className="space-y-3">
-        {value.map((line, i) => {
-          const isParticular = line.planId === null
-          return (
-            <li
-              key={i}
-              className="space-y-2 rounded border border-slate-200 bg-white p-3 text-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-                  Procedimento {i + 1}
-                </span>
-                {value.length > 1 ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeLine(i)}
-                    disabled={disabled}
-                    className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
-                    title="Remover procedimento"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                ) : null}
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-12">
-                <div className="space-y-1 md:col-span-7">
-                  <Label htmlFor={`proc_${i}`} className="text-[11px] text-slate-600">
-                    TUSS
-                  </Label>
-                  <LocalProcedureTypeahead
-                    id={`proc_${i}`}
-                    options={procedures}
-                    value={line.procedureId}
-                    onChange={(id) => handleProcedureChange(i, id)}
-                  />
-                </div>
-
-                <div className="space-y-1 md:col-span-3">
-                  <Label htmlFor={`plan_${i}`} className="text-[11px] text-slate-600">
-                    Plano
-                  </Label>
-                  <label className="flex items-center gap-1.5 text-[11px] text-amber-900">
-                    <input
-                      type="checkbox"
-                      checked={isParticular}
-                      disabled={disabled || line.particularLocked}
-                      onChange={(e) =>
-                        handlePlanChange(i, e.target.checked ? null : defaultPlanId)
-                      }
-                      className="h-3.5 w-3.5"
-                    />
-                    Particular
-                    {line.particularLocked ? (
-                      <span className="text-amber-700">(não coberto)</span>
-                    ) : null}
-                  </label>
-                  {!isParticular ? (
-                    <Select
-                      value={line.planId ?? ''}
-                      onValueChange={(v) => handlePlanChange(i, v || null)}
-                      disabled={disabled}
-                    >
-                      <SelectTrigger id={`plan_${i}`} className="h-8">
-                        <SelectValue placeholder="Selecione…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {plans.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : null}
-                </div>
-
-                <div className="space-y-1 md:col-span-2">
-                  <Label htmlFor={`amount_${i}`} className="text-[11px] text-slate-600">
-                    Valor (R$)
-                  </Label>
-                  <Input
-                    id={`amount_${i}`}
-                    inputMode="decimal"
-                    placeholder="0,00"
-                    value={line.amountReais}
-                    onChange={(e) => patchLine(i, { amountReais: e.target.value })}
-                    disabled={disabled}
-                    className="h-8"
-                  />
-                </div>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addLine}
-          disabled={disabled}
-          className="gap-1.5"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Adicionar procedimento
-        </Button>
-      </div>
+      {value.length === 0 ? (
+        <p className="rounded-md border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-xs text-slate-500">
+          Nenhum procedimento adicionado. Use a busca acima.
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">#</TableHead>
+                <TableHead className="w-32">Código</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="w-48">Plano</TableHead>
+                <TableHead className="w-32 text-right">Valor (R$)</TableHead>
+                <TableHead className="w-10" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {value.map((line, i) => {
+                const proc = procedures.find((p) => p.id === line.procedureId)
+                const codeText = proc
+                  ? typeof proc.tussCode === 'string' && proc.tussCode.trim().length > 0
+                    ? proc.tussCode
+                    : proc.isUnlisted
+                      ? 'Não listado'
+                      : '—'
+                  : '—'
+                const description = proc?.displayName ?? '(sem nome)'
+                const planSelectValue =
+                  line.planId === null
+                    ? PARTICULAR_SENTINEL
+                    : line.planId === ''
+                      ? ''
+                      : (line.planId as string)
+                return (
+                  <TableRow key={i} className="align-middle">
+                    <TableCell className="font-mono text-xs text-slate-500 tabular-nums">
+                      {i + 1}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        {proc?.isCustomCoded ? (
+                          <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                            Pers.
+                          </span>
+                        ) : proc?.isUnlisted ? (
+                          <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                            Não list.
+                          </span>
+                        ) : null}
+                        <span className="font-mono text-[11px] font-bold text-slate-900">
+                          {codeText}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-700">
+                      <p className="line-clamp-2 whitespace-normal break-words">
+                        {description}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      {line.particularLocked ? (
+                        <span
+                          title="Procedimento não coberto pelo plano — sempre particular"
+                          className="inline-flex items-center gap-1 text-[11px] text-amber-700"
+                        >
+                          Particular
+                          <span className="text-[10px] text-amber-600">(não coberto)</span>
+                        </span>
+                      ) : (
+                        <Select
+                          value={planSelectValue}
+                          onValueChange={(v) =>
+                            void handlePlanChange(i, v === PARTICULAR_SENTINEL ? null : v)
+                          }
+                          disabled={disabled}
+                        >
+                          <SelectTrigger className="h-8">
+                            <SelectValue placeholder="Selecione…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={PARTICULAR_SENTINEL}>Particular</SelectItem>
+                            {plans.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        inputMode="decimal"
+                        placeholder="0,00"
+                        value={line.amountReais}
+                        onChange={(e) =>
+                          patchLine(i, { amountReais: e.target.value })
+                        }
+                        disabled={disabled}
+                        className={cn('h-8 text-right tabular-nums')}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        type="button"
+                        onClick={() => removeLine(i)}
+                        disabled={disabled}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                        title="Remover procedimento"
+                        aria-label="Remover procedimento"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+              <TableRow className="bg-slate-50/50">
+                <TableCell
+                  colSpan={4}
+                  className="text-right text-[11px] font-bold uppercase tracking-widest text-slate-500"
+                >
+                  Total
+                </TableCell>
+                <TableCell className="text-right font-black tabular-nums text-slate-900">
+                  {formatCurrency(totalCents)}
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   )
 }
@@ -336,7 +426,6 @@ export function ProcedurasEditor({
  */
 export function amountReaisToCents(raw: string): number {
   if (!raw || raw.trim().length === 0) return 0
-  // Remove separadores de milhar (.) e troca a virgula decimal por ponto.
   const normalized = raw.trim().replace(/\./g, '').replace(',', '.')
   const n = Number(normalized)
   if (!Number.isFinite(n) || n < 0) return 0
@@ -360,11 +449,11 @@ export interface ValidatedProcedureLine {
  * Valida e converte as linhas para o payload do POST.
  *
  * Regras:
- *   - procedureId obrigatorio
- *   - se nao-particular: planId obrigatorio
+ *   - procedureId obrigatório
+ *   - se não-particular: planId obrigatório
  *   - valor em cents deve ser > 0
  *
- * Retorna null quando alguma linha esta invalida.
+ * Retorna null quando alguma linha está inválida OU a lista é vazia.
  */
 export function validateProcedures(
   lines: ProcedureLineDraft[],
