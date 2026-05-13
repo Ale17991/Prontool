@@ -106,21 +106,13 @@ function ProfessionalCard({
         <p className="mt-1 text-[11px] text-slate-500">{meta}</p>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-between gap-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Procedimentos
             </p>
             <p className="text-xl font-black text-slate-900 tabular-nums">
               {row.procedureCount}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Faturado
-            </p>
-            <p className="text-xl font-black text-slate-900 tabular-nums">
-              {formatCurrency(row.totalRevenueCents)}
             </p>
           </div>
           <div>
