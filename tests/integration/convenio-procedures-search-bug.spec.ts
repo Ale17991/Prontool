@@ -28,6 +28,7 @@ describe('Bug repro — procedures sumindo na pagina do convenio', () => {
   let tenantId: string
   let adminJwt: string
   let listedProcId: string
+  let listedNoDisplayNameProcId: string
   let unlistedProcId: string
 
   beforeAll(async () => {
@@ -56,6 +57,22 @@ describe('Bug repro — procedures sumindo na pagina do convenio', () => {
       isUnlisted: false,
     })
     listedProcId = created.id
+
+    // Segundo TUSS coberto, sem display_name customizado — cenário real
+    // mais comum do bug: usuário seleciona TUSS na lista e NÃO renomeia.
+    // Sem catalogDescription na query, a busca por nome falha.
+    await seedTussCode('40901408', {
+      tussTable: '22',
+      description: 'Consulta em consultório',
+    })
+    const createdNoName = await createProcedure(sb, {
+      tenantId,
+      tussCode: '40901408',
+      displayName: null,
+      coveredByPlan: true,
+      isUnlisted: false,
+    })
+    listedNoDisplayNameProcId = createdNoName.id
 
     // Procedimento NÃO listado coberto por plano (ex.: "PCT Amil")
     const unlisted = await createProcedure(sb, {
@@ -143,7 +160,8 @@ describe('Bug repro — procedures sumindo na pagina do convenio', () => {
       .from('procedures')
       .select(
         'id, tuss_code, display_name, is_unlisted, custom_code_id, ' +
-          'custom_procedure_codes:custom_code_id(code)',
+          'tuss_codes!procedures_tuss_code_fkey(description), ' +
+          'custom_procedure_codes:custom_code_id(code, description)',
       )
       .eq('active', true)
       .eq('covered_by_plan', true)
@@ -158,16 +176,20 @@ describe('Bug repro — procedures sumindo na pagina do convenio', () => {
       display_name: string | null
       is_unlisted: boolean | null
       custom_code_id: string | null
-      custom_procedure_codes: { code: string } | null
+      tuss_codes: { description: string } | null
+      custom_procedure_codes: { code: string; description: string | null } | null
     }
     const rawProcs = (procRes.data ?? []) as unknown as RawProcRow[]
     const procedures = rawProcs.map((p) => {
       const codeFromCustom = p.custom_procedure_codes?.code ?? null
       const label = p.tuss_code ?? codeFromCustom ?? 'Não listado'
+      const catalogDescription =
+        p.tuss_codes?.description ?? p.custom_procedure_codes?.description ?? null
       return {
         id: p.id,
         tussCode: label,
         displayName: p.display_name,
+        catalogDescription,
       }
     })
 
@@ -181,18 +203,40 @@ describe('Bug repro — procedures sumindo na pagina do convenio', () => {
     const pricedProcedureIds = new Set(pvRows.map((r) => r.procedure_id))
     const addable = procedures.filter((p) => !pricedProcedureIds.has(p.id))
 
-    // O procedimento listado deve estar em `addable`.
+    // Ambos os procedimentos listados devem estar em `addable`.
     expect(addable.map((p) => p.id)).toContain(listedProcId)
+    expect(addable.map((p) => p.id)).toContain(listedNoDisplayNameProcId)
+    expect(addable.map((p) => p.id)).toContain(unlistedProcId)
 
-    // Filtro client-side por "facect" deve achar.
-    const search = 'facect'
-    const q = search.toLowerCase()
-    const filtered = addable.filter((p) => {
+    function matches(search: string, p: typeof procedures[number]) {
+      const q = search.toLowerCase()
       const codeMatch =
         typeof p.tussCode === 'string' && p.tussCode.toLowerCase().includes(q)
       const nameMatch = (p.displayName ?? '').toLowerCase().includes(q)
-      return codeMatch || nameMatch
-    })
-    expect(filtered.map((p) => p.id)).toContain(listedProcId)
+      const catalogMatch =
+        (p.catalogDescription ?? '').toLowerCase().includes(q)
+      return codeMatch || nameMatch || catalogMatch
+    }
+
+    // Busca por "facect" — casa via display_name customizado.
+    expect(addable.filter((p) => matches('facect', p)).map((p) => p.id)).toContain(
+      listedProcId,
+    )
+
+    // Busca por "consulta" — casa o TUSS 40901408 mesmo sem display_name
+    // customizado, via descrição do catálogo TUSS (regressão do bug).
+    expect(
+      addable.filter((p) => matches('consulta', p)).map((p) => p.id),
+    ).toContain(listedNoDisplayNameProcId)
+
+    // Busca por "PCT" — casa o procedimento não listado pelo display_name.
+    expect(addable.filter((p) => matches('PCT', p)).map((p) => p.id)).toContain(
+      unlistedProcId,
+    )
+
+    // Busca por código TUSS literal continua casando.
+    expect(addable.filter((p) => matches('30306027', p)).map((p) => p.id)).toContain(
+      listedProcId,
+    )
   })
 })

@@ -44,16 +44,21 @@ export default async function PlanoDetailPage({ params }: PageProps) {
   }
 
   // Covered-by-plan active procedures — base set for the "Adicionar
-  // procedimento" typeahead. Filtering out already-priced ones is done
-  // client-side so we don't have to refetch after an add.
+  // procedimento" typeahead. Filtering out already-priced ones é feito
+  // client-side pra nao precisar refetch depois de adicionar.
   // Inclui procedimentos NAO-LISTADOS com pacote negociado por plano
-  // (migration 0067) — tuss_code e NULL, exibimos o codigo personalizado
-  // (migration 0072/0073) ou rotulo "Nao listado".
+  // (migration 0067) — tuss_code é NULL, exibimos o código personalizado
+  // (migration 0072/0073) ou o rótulo "Não listado".
+  // tuss_codes.description é carregado para que a busca por nome casa
+  // procedimentos TUSS-coded sem display_name customizado (ex.: o usuário
+  // cadastrou TUSS 30306027 sem renomear → busca por "facectomia" precisa
+  // achar pelo catálogo TUSS, senão o procedimento "some" da lista).
   const procRes = await supabase
     .from('procedures')
     .select(
       'id, tuss_code, display_name, is_unlisted, custom_code_id, ' +
-        'custom_procedure_codes:custom_code_id(code)',
+        'tuss_codes!procedures_tuss_code_fkey(description), ' +
+        'custom_procedure_codes:custom_code_id(code, description)',
     )
     .eq('active', true)
     .eq('covered_by_plan', true)
@@ -68,17 +73,23 @@ export default async function PlanoDetailPage({ params }: PageProps) {
       display_name: string | null
       is_unlisted: boolean | null
       custom_code_id: string | null
-      custom_procedure_codes: { code: string } | null
+      tuss_codes: { description: string } | null
+      custom_procedure_codes: { code: string; description: string | null } | null
     }>
   ).map((p) => {
     const customCode = p.custom_procedure_codes?.code ?? null
-    // Label: TUSS para listados, codigo personalizado quando ha,
-    // "Nao listado" como fallback para unlisted sem codigo.
-    const label = p.tuss_code ?? customCode ?? 'Não listado'
+    // Label do código: TUSS para listados, código personalizado quando há,
+    // "Não listado" como fallback para unlisted sem código.
+    const codeLabel = p.tuss_code ?? customCode ?? 'Não listado'
+    // Descrição de catálogo (TUSS oficial ou código personalizado) — usada
+    // como fallback na busca por nome e na exibição.
+    const catalogDescription =
+      p.tuss_codes?.description ?? p.custom_procedure_codes?.description ?? null
     return {
       id: p.id,
-      tussCode: label,
+      tussCode: codeLabel,
       displayName: p.display_name,
+      catalogDescription,
       isUnlisted: p.is_unlisted === true,
       isCustomCoded: customCode !== null,
     }
@@ -130,7 +141,8 @@ export default async function PlanoDetailPage({ params }: PageProps) {
         .from('procedures')
         .select(
           'id, tuss_code, display_name, covered_by_plan, active, is_unlisted, ' +
-            'custom_procedure_codes:custom_code_id(code)',
+            'tuss_codes!procedures_tuss_code_fkey(description), ' +
+            'custom_procedure_codes:custom_code_id(code, description)',
         )
         .in('id', headProcedureIds)
     : {
@@ -141,7 +153,8 @@ export default async function PlanoDetailPage({ params }: PageProps) {
           covered_by_plan: boolean
           active: boolean
           is_unlisted: boolean | null
-          custom_procedure_codes: { code: string } | null
+          tuss_codes: { description: string } | null
+          custom_procedure_codes: { code: string; description: string | null } | null
         }>,
         error: null,
       }
@@ -153,7 +166,8 @@ export default async function PlanoDetailPage({ params }: PageProps) {
     covered_by_plan: boolean
     active: boolean
     is_unlisted: boolean | null
-    custom_procedure_codes: { code: string } | null
+    tuss_codes: { description: string } | null
+    custom_procedure_codes: { code: string; description: string | null } | null
   }
   const procMeta = new Map(
     ((procMetaRes.data ?? []) as unknown as ProcMeta[]).map((p) => [p.id, p]),
@@ -162,11 +176,13 @@ export default async function PlanoDetailPage({ params }: PageProps) {
     const meta = procMeta.get(h.procedureId)
     const customCode = meta?.custom_procedure_codes?.code ?? null
     const codeLabel = meta?.tuss_code ?? customCode ?? '—'
+    const catalogDescription =
+      meta?.tuss_codes?.description ?? meta?.custom_procedure_codes?.description ?? null
     return {
       priceVersionId: h.priceVersionId,
       procedureId: h.procedureId,
       tussCode: codeLabel,
-      displayName: meta?.display_name ?? null,
+      displayName: meta?.display_name ?? catalogDescription ?? null,
       amountCents: h.amountCents,
       validFrom: h.validFrom,
       procedureActive: meta?.active ?? false,

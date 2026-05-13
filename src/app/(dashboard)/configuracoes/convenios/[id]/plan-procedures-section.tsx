@@ -33,6 +33,11 @@ export interface ProcedureOption {
    * procedimentos com custom_code_id, ou "Não listado" como fallback. */
   tussCode: string
   displayName: string | null
+  /** Descricao do catalogo (TUSS ou codigo personalizado). Usada como
+   * fallback na busca por nome quando o usuario nao definiu display_name
+   * customizado — sem isso, "Facectomia" nao casa um TUSS 30306027 com
+   * display_name=NULL e o procedimento parece sumir da lista. */
+  catalogDescription?: string | null
   /** true quando procedure.is_unlisted=true (com ou sem codigo personalizado). */
   isUnlisted?: boolean
   /** true quando o procedimento tem codigo personalizado (badge violeta). */
@@ -267,6 +272,11 @@ function AddProcedureForm({
   // Busca opera sobre TODOS os procedimentos cobertos. Os que já têm preço
   // neste convênio ficam visíveis (com badge "Já cadastrado") em vez de
   // sumirem — assim o usuário entende o estado e pode editar pela tabela.
+  // Casamento de texto cobre: código (TUSS ou personalizado), display_name
+  // customizado pela clínica E descrição do catálogo TUSS — sem o último,
+  // procedimentos cadastrados sem display_name (cenário comum: usuário
+  // selecionou o TUSS e não renomeou) ficariam "invisíveis" na busca por
+  // nome.
   const filtered = search.trim().length === 0
     ? procedures.slice(0, 50)
     : procedures
@@ -276,7 +286,9 @@ function AddProcedureForm({
             typeof p.tussCode === 'string' &&
             p.tussCode.toLowerCase().includes(q)
           const nameMatch = (p.displayName ?? '').toLowerCase().includes(q)
-          return codeMatch || nameMatch
+          const catalogMatch =
+            (p.catalogDescription ?? '').toLowerCase().includes(q)
+          return codeMatch || nameMatch || catalogMatch
         })
         .slice(0, 50)
 
@@ -344,7 +356,10 @@ function AddProcedureForm({
           priceVersionId: created.id,
           procedureId: selectedProcedure.id,
           tussCode: selectedProcedure.tussCode,
-          displayName: selectedProcedure.displayName,
+          displayName:
+            selectedProcedure.displayName ??
+            selectedProcedure.catalogDescription ??
+            null,
           amountCents: created.amount_cents,
           validFrom: created.valid_from,
           procedureActive: true,
@@ -394,7 +409,9 @@ function AddProcedureForm({
                     p.id === procedureId ? 'bg-slate-50 font-bold text-primary' : 'text-slate-600',
                   )}
                 >
-                  <span className="truncate">{p.displayName ?? '(sem nome)'}</span>
+                  <span className="truncate">
+                    {p.displayName ?? p.catalogDescription ?? '(sem nome)'}
+                  </span>
                   <span className="ml-2 flex items-center gap-1.5">
                     {alreadyPriced ? (
                       <span className="rounded border border-emerald-200 bg-emerald-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
