@@ -16,6 +16,10 @@ import {
 } from '@/components/ui/select'
 import { type LocalProcedureOption } from '@/components/tuss/local-procedure-typeahead'
 import {
+  PatientTypeahead,
+  type PatientTypeaheadValue,
+} from '@/components/patients/patient-typeahead'
+import {
   MateriaisEditor,
   validateMaterials,
   type MaterialDraft,
@@ -31,13 +35,7 @@ export interface FormOption {
   label: string
 }
 
-export interface PatientFormOption extends FormOption {
-  /** Plano de saude do paciente; null = paciente particular sempre. */
-  planId: string | null
-}
-
 export interface NewAppointmentFormProps {
-  patients: PatientFormOption[]
   doctors: FormOption[]
   procedures: LocalProcedureOption[]
   plans: FormOption[]
@@ -64,16 +62,16 @@ const METHOD_OPTIONS: Array<{ value: PaymentMethod; label: string }> = [
 ]
 
 export function NewAppointmentForm({
-  patients,
   doctors,
   procedures,
   plans,
   initialAppointmentAt,
 }: NewAppointmentFormProps) {
   const router = useRouter()
-  const [patientId, setPatientId] = useState('')
+  const [patient, setPatient] = useState<PatientTypeaheadValue | null>(null)
+  const patientId = patient?.id ?? ''
   const [doctorId, setDoctorId] = useState('')
-  const [defaultPlanId, setDefaultPlanId] = useState<string | null>(null)
+  const defaultPlanId = patient?.planId ?? null
   // Lista inicia vazia — usuário adiciona procedimentos via busca no editor.
   const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>([])
   const [materiais, setMateriais] = useState<MaterialDraft[]>([])
@@ -102,12 +100,6 @@ export function NewAppointmentForm({
   const [paymentPaidAt, setPaymentPaidAt] = useState(() =>
     new Date().toISOString().slice(0, 10),
   )
-
-  // Quando o paciente muda, atualiza o plano default usado por novas linhas.
-  useEffect(() => {
-    const p = patients.find((x) => x.id === patientId)
-    setDefaultPlanId(p?.planId ?? null)
-  }, [patientId, patients])
 
   // Recalcula datas das parcelas quando o numero muda.
   useEffect(() => {
@@ -334,18 +326,12 @@ export function NewAppointmentForm({
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="space-y-1.5 md:col-span-2">
         <Label htmlFor="patient_id">Paciente</Label>
-        <Select value={patientId} onValueChange={setPatientId}>
-          <SelectTrigger id="patient_id">
-            <SelectValue placeholder="Selecione um paciente…" />
-          </SelectTrigger>
-          <SelectContent>
-            {patients.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <PatientTypeahead
+          id="patient_id"
+          value={patient?.id ?? null}
+          onChange={setPatient}
+          disabled={pending}
+        />
       </div>
 
       <div className="space-y-1.5">

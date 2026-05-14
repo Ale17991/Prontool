@@ -26,6 +26,9 @@ const querySchema = z.object({
     .union([z.string(), z.number()])
     .optional()
     .transform((v) => (v === undefined ? undefined : Number(v))),
+  // Quando 'plan', enriquece cada item com planId e planName via batch
+  // select em patients/health_plans. Usado pelo typeahead de paciente.
+  include: z.enum(['plan']).optional(),
 })
 
 // CPF: opcional em fase de testes. Aceita vazio/null/ausente; se preenchido,
@@ -93,6 +96,38 @@ export async function GET(req: Request): Promise<Response> {
       page: parsed.data.page,
       pageSize: parsed.data.page_size,
     })
+
+    if (parsed.data.include === 'plan' && result.items.length > 0) {
+      // Batch lookup de plano (plan_id + nome) — não vem do RPC porque
+      // plan_id não é PII e fica em coluna em claro de `patients`.
+      const ids = result.items.map((p) => p.id)
+      const { data: rows } = await supabase
+        .from('patients')
+        .select('id, plan_id, health_plans:plan_id ( id, name )')
+        .eq('tenant_id', session.tenantId)
+        .in('id', ids)
+      const byId = new Map<string, { planId: string | null; planName: string | null }>()
+      for (const row of (rows ?? []) as Array<{
+        id: string
+        plan_id: string | null
+        health_plans: { id: string; name: string } | null
+      }>) {
+        byId.set(row.id, {
+          planId: row.plan_id,
+          planName: row.health_plans?.name ?? null,
+        })
+      }
+      const enriched = {
+        ...result,
+        items: result.items.map((p) => ({
+          ...p,
+          planId: byId.get(p.id)?.planId ?? null,
+          planName: byId.get(p.id)?.planName ?? null,
+        })),
+      }
+      return NextResponse.json(enriched, { status: 200 })
+    }
+
     return NextResponse.json(result, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route: '/api/pacientes' })

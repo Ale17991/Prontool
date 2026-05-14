@@ -4,7 +4,6 @@ import { ChevronLeft } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { can } from '@/lib/auth/rbac'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { listPatients } from '@/lib/core/patients/list'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApplyTemplateForm, type TemplateField } from './apply-template-form'
 
@@ -31,12 +30,15 @@ export default async function UsarAnamneseTemplatePage({ params }: PageProps) {
   if (error) throw new Error(`load template: ${error.message}`)
   if (!template) notFound()
 
-  const { items: patients } = await listPatients(supabase, {
-    tenantId: session.tenantId,
-    pageSize: 100,
-  })
+  // Conta apenas pra decidir se exibe o formulário ou a mensagem de
+  // "cadastre um paciente". O typeahead faz a busca server-side completa
+  // quando o usuário interage, então não pré-carregamos a lista.
+  const { count: activePatientCount } = await supabase
+    .from('patients')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', session.tenantId)
+    .is('anonymized_at', null)
 
-  const activePatients = patients.filter((p) => !p.anonymizedAt)
   const fields = (template.fields ?? []) as unknown as TemplateField[]
 
   return (
@@ -62,25 +64,12 @@ export default async function UsarAnamneseTemplatePage({ params }: PageProps) {
           <CardTitle className="text-sm">Preencher anamnese</CardTitle>
         </CardHeader>
         <CardContent>
-          {activePatients.length === 0 ? (
+          {(activePatientCount ?? 0) === 0 ? (
             <p className="py-8 text-center text-sm text-slate-500">
               Nenhum paciente ativo no tenant. Cadastre um paciente antes de aplicar o modelo.
             </p>
           ) : (
-            <ApplyTemplateForm
-              templateId={template.id}
-              fields={fields}
-              patients={activePatients.map((p) => ({
-                id: p.id,
-                fullName: p.fullName || '(sem nome)',
-                cpf: p.cpf,
-                phone: p.phone,
-                email: p.email,
-                birthDate: p.birthDate,
-                healthPlanName: null,
-                address: p.address,
-              }))}
-            />
+            <ApplyTemplateForm templateId={template.id} fields={fields} />
           )}
         </CardContent>
       </Card>
