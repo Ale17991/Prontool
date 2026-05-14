@@ -86,6 +86,7 @@ export function NewAppointmentForm({
   })
   const [observacoes, setObservacoes] = useState('')
   const [addToTreatmentPlan, setAddToTreatmentPlan] = useState(true)
+  const [allDay, setAllDay] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
@@ -200,15 +201,32 @@ export function NewAppointmentForm({
       return
     }
 
-    const whenIso = new Date(appointmentAt).toISOString()
-    const endIso = computeEndIso(appointmentAt, endTime)
-    if (!endIso || new Date(endIso).getTime() <= new Date(whenIso).getTime()) {
-      setError('Hora de fim deve ser depois do início.')
-      return
-    }
-    if (conflictWarning) {
-      setError(conflictWarning + ' Ajuste o horário antes de salvar.')
-      return
+    // Para 'dia inteiro' forcamos appointment_at = data 00:00 local
+    // (interpretado como o dia escolhido) e duration_minutes=1440 (24h).
+    // Constraint apointments_duration_minutes_check aceita ate 1440
+    // apos migration 0083.
+    let whenIso: string
+    let durationToSend: number
+    if (allDay) {
+      const datePart = appointmentAt.slice(0, 10)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        setError('Data inválida.')
+        return
+      }
+      whenIso = new Date(`${datePart}T00:00:00`).toISOString()
+      durationToSend = 1440
+    } else {
+      whenIso = new Date(appointmentAt).toISOString()
+      const endIso = computeEndIso(appointmentAt, endTime)
+      if (!endIso || new Date(endIso).getTime() <= new Date(whenIso).getTime()) {
+        setError('Hora de fim deve ser depois do início.')
+        return
+      }
+      if (conflictWarning) {
+        setError(conflictWarning + ' Ajuste o horário antes de salvar.')
+        return
+      }
+      durationToSend = clampDuration(durationMinutes)
     }
 
     const payload: Record<string, unknown> = {
@@ -221,7 +239,7 @@ export function NewAppointmentForm({
         notes: p.notes,
       })),
       appointment_at: whenIso,
-      duration_minutes: clampDuration(durationMinutes),
+      duration_minutes: durationToSend,
       add_to_treatment_plan: addToTreatmentPlan,
     }
     if (observacoes.trim()) payload.observacoes = observacoes.trim().slice(0, 500)
@@ -346,28 +364,58 @@ export function NewAppointmentForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="appointment_at">Data e hora de início</Label>
+        <Label htmlFor="appointment_at">
+          {allDay ? 'Data' : 'Data e hora de início'}
+        </Label>
         <Input
           id="appointment_at"
-          type="datetime-local"
+          type={allDay ? 'date' : 'datetime-local'}
           required
-          value={appointmentAt}
-          onChange={(e) => setAppointmentAt(e.target.value)}
+          value={allDay ? appointmentAt.slice(0, 10) : appointmentAt}
+          onChange={(e) => {
+            const v = e.target.value
+            // Em modo allDay o input e' type=date (YYYY-MM-DD); guardamos
+            // como ISO local "YYYY-MM-DDT00:00" para o formato unificado.
+            setAppointmentAt(allDay && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00` : v)
+          }}
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="end_time">Hora de fim</Label>
-        <Input
-          id="end_time"
-          type="time"
-          required
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-        />
-        <p className="text-[11px] text-slate-500">
-          Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span>
-        </p>
+        {!allDay ? (
+          <>
+            <Label htmlFor="end_time">Hora de fim</Label>
+            <Input
+              id="end_time"
+              type="time"
+              required
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+            />
+            <p className="text-[11px] text-slate-500">
+              Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span>
+            </p>
+          </>
+        ) : (
+          <div className="flex h-full items-center text-xs text-slate-500">
+            Ocupa o dia inteiro (00:00 às 23:59).
+          </div>
+        )}
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            id="all_day_appt"
+            type="checkbox"
+            checked={allDay}
+            onChange={(e) => setAllDay(e.target.checked)}
+            className="h-4 w-4 cursor-pointer accent-primary"
+          />
+          <Label
+            htmlFor="all_day_appt"
+            className="cursor-pointer text-xs font-semibold text-slate-700"
+          >
+            Dia inteiro
+          </Label>
+        </div>
       </div>
 
       <ProcedurasEditor

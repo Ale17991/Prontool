@@ -8,6 +8,7 @@ import { FilterBar } from './filter-bar'
 import { MonthView, type MonthViewAppointment } from './views/month-view'
 import { CalendarView } from './calendar/calendar-view'
 import type { AppointmentWeekRow } from '@/lib/core/appointments/list-week'
+import type { ScheduleBlockRow } from '@/lib/core/schedule-blocks/types'
 import type { DoctorFilterOption } from './calendar/doctor-filter'
 
 /**
@@ -26,6 +27,8 @@ import type { DoctorFilterOption } from './calendar/doctor-filter'
 interface Props {
   appointments: AppointmentWeekRow[]
   doctors: DoctorFilterOption[]
+  scheduleBlocks?: ScheduleBlockRow[]
+  canManageBlocks?: boolean
 }
 
 // UI status → effectiveStatus do AppointmentWeekRow (list-week consolida
@@ -36,7 +39,12 @@ const UI_TO_EFFECTIVE_STATUS: Record<string, AppointmentWeekRow['effectiveStatus
   cancelado: 'estornado',
 }
 
-export function CalendarShell({ appointments, doctors }: Props) {
+export function CalendarShell({
+  appointments,
+  doctors,
+  scheduleBlocks = [],
+  canManageBlocks = false,
+}: Props) {
   const { filters, range, setFilter, setFilters, clear } = useCalendarFilters()
 
   const filtered = useMemo(() => {
@@ -127,7 +135,12 @@ export function CalendarShell({ appointments, doctors }: Props) {
           {filters.view === 'mes' ? (
             <MonthView date={selectedDate} appointments={monthAppts} />
           ) : (
-            <CalendarView range={calRange} appointments={filtered} />
+            <CalendarView
+              range={calRange}
+              appointments={filtered}
+              scheduleBlocks={scheduleBlocks}
+              canManageBlocks={canManageBlocks}
+            />
           )}
         </div>
       </div>
