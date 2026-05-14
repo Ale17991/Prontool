@@ -430,7 +430,13 @@ BEGIN
     RAISE EXCEPTION USING MESSAGE='TENANT_MISMATCH', ERRCODE='42501';
   END IF;
 
-  IF v_jwt_role IS NOT NULL AND v_jwt_role <> 'admin' THEN
+  -- jwt_role() retorna 'service_role' quando chamada via service_role pelo
+  -- API route (ja autorizada por requireRole), e '' quando nao ha JWT.
+  -- Bloqueia roles autenticadas regulares que nao sejam admin.
+  IF v_jwt_role IS NOT NULL
+     AND v_jwt_role <> ''
+     AND v_jwt_role <> 'admin'
+     AND v_jwt_role <> 'service_role' THEN
     RAISE EXCEPTION USING MESSAGE='FORBIDDEN_ROLE', ERRCODE='42501';
   END IF;
 

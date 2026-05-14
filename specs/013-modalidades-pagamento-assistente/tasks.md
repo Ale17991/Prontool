@@ -74,25 +74,25 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Contract test RBAC: POST `/api/medicos` com `payment_mode` rejeita não-admin (403) e PATCH `payment_mode_change` exige admin em `tests/contract/api-medicos-payment-mode-rbac.spec.ts`
-- [ ] T014 [P] [US1] Integration test: criar 3 profissionais (comissionado/fixo/liberal) via POST `/api/medicos` — cada um persiste row em `doctor_payment_terms_history` + atualiza `doctors.payment_mode` em `tests/integration/doctor-create-with-payment-mode.spec.ts`
-- [ ] T015 [P] [US1] Integration test: mudar modalidade de um doctor comissionado para fixo via PATCH — nova versão em history (não retroativa), audit log com `field='version_created'`, `doctors.payment_mode` espelhado em `tests/integration/doctor-change-payment-mode-with-audit.spec.ts`
+- [X] T013 [P] [US1] Contract test RBAC: POST `/api/medicos` com `payment_mode` rejeita não-admin (403) e PATCH `payment_mode_change` exige admin em `tests/contract/api-medicos-payment-mode-rbac.spec.ts`
+- [X] T014 [P] [US1] Integration test: criar 3 profissionais (comissionado/fixo/liberal) via POST `/api/medicos` — cada um persiste row em `doctor_payment_terms_history` + atualiza `doctors.payment_mode` em `tests/integration/doctor-create-with-payment-mode.spec.ts`
+- [X] T015 [P] [US1] Integration test: mudar modalidade de um doctor comissionado para fixo via PATCH — nova versão em history (não retroativa), audit log com `field='version_created'`, `doctors.payment_mode` espelhado em `tests/integration/doctor-change-payment-mode-with-audit.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Implementar `resolveCurrentPaymentTerms(supabase, {tenantId, doctorId})` que faz SELECT em `doctor_payment_terms_current` em `src/lib/core/payment-terms/resolve-current.ts`
-- [ ] T017 [P] [US1] Implementar `listPaymentTermsHistory(supabase, {tenantId, doctorId})` retornando `{current, history[]}` em `src/lib/core/payment-terms/list-history.ts`
-- [ ] T018 [P] [US1] Implementar `updateDoctorPaymentMode(supabase, {tenantId, doctorId, newMode, params, validFrom, reason, actorUserId})` que invoca a RPC `record_payment_terms_change` em `src/lib/core/doctors/update-payment-mode.ts`
-- [ ] T019 [US1] Estender `createDoctor` em `src/lib/core/doctors/create.ts` para aceitar `paymentMode` + parâmetros + `validFrom` + `reason` e gravar tudo na mesma transação (RPC `record_payment_terms_change` + INSERT em `doctor_commission_history` se modo=comissionado). Depende de T018
-- [ ] T020 [US1] Estender `listDoctors` em `src/lib/core/doctors/list.ts` para fazer JOIN com `doctor_payment_terms_current` e retornar `paymentMode`, `currentPercentageBps`, `currentMonthlyAmountCents`, `currentBillingDay`, `currentLiberalDefaultCents`
-- [ ] T021 [US1] Estender `getDoctor` em `src/lib/core/doctors/get.ts` para incluir `paymentMode` + `currentPaymentTerms` + `paymentTermsHistoryCount`
-- [ ] T022 [US1] Atualizar schema Zod + handler `POST /api/medicos` em `src/app/api/medicos/route.ts` para aceitar `payment_mode` + bloco de parâmetros (refine cruzado por modalidade); herdar `requireRole(['admin'])`. Depende de T019
-- [ ] T023 [US1] Atualizar schema Zod + handler `PATCH /api/medicos/[id]` em `src/app/api/medicos/[id]/route.ts` para aceitar `payment_mode_change` (admin-only); `400 VALID_FROM_FUTURE` se data > hoje. Depende de T018
-- [ ] T024 [US1] Criar rota `GET /api/medicos/[id]/payment-terms` em `src/app/api/medicos/[id]/payment-terms/route.ts` (RBAC admin+financeiro) retornando `{current, history[]}`. Depende de T017
-- [ ] T025 [P] [US1] Atualizar `new-doctor-form.tsx` em `src/app/(dashboard)/configuracoes/profissionais/new-doctor-form.tsx`: seletor "Modalidade" + campos dinâmicos por modalidade (Comissionado: `Comissão %`; Fixo: `Valor mensal` + `Dia de faturamento 1-28`; Liberal: `Valor por participação`) + campo `reason` (≥3 chars)
-- [ ] T026 [P] [US1] Atualizar listagem em `src/app/(dashboard)/configuracoes/profissionais/page.tsx`: coluna "Modalidade" com badge colorido + coluna "Valor" adaptada (30% / R$ 8.000 / mês (dia 5) / R$ 350 / participação)
-- [ ] T027 [P] [US1] Criar `payment-mode-editor.tsx` em `src/app/(dashboard)/configuracoes/profissionais/[id]/payment-mode-editor.tsx` (client component, form admin-only para trocar modalidade com `reason`)
-- [ ] T028 [US1] Integrar `payment-mode-editor.tsx` + sidebar de histórico em `src/app/(dashboard)/configuracoes/profissionais/[id]/page.tsx` (consome GET `/api/medicos/[id]/payment-terms`). Depende de T024, T027
+- [X] T016 [P] [US1] Implementar `resolveCurrentPaymentTerms(supabase, {tenantId, doctorId})` que faz SELECT em `doctor_payment_terms_current` em `src/lib/core/payment-terms/resolve-current.ts`
+- [X] T017 [P] [US1] Implementar `listPaymentTermsHistory(supabase, {tenantId, doctorId})` retornando `{current, history[]}` em `src/lib/core/payment-terms/list-history.ts`
+- [X] T018 [P] [US1] Implementar `updateDoctorPaymentMode(supabase, {tenantId, doctorId, newMode, params, validFrom, reason, actorUserId})` que invoca a RPC `record_payment_terms_change` em `src/lib/core/doctors/update-payment-mode.ts`
+- [X] T019 [US1] Estender `createDoctor` em `src/lib/core/doctors/create.ts` para aceitar `paymentMode` + parâmetros + `validFrom` + `reason` e gravar tudo na mesma transação (RPC `record_payment_terms_change` + INSERT em `doctor_commission_history` se modo=comissionado). Depende de T018
+- [X] T020 [US1] Estender `listDoctors` em `src/lib/core/doctors/list.ts` para fazer JOIN com `doctor_payment_terms_current` e retornar `paymentMode`, `currentPercentageBps`, `currentMonthlyAmountCents`, `currentBillingDay`, `currentLiberalDefaultCents`
+- [X] T021 [US1] Estender `getDoctor` em `src/lib/core/doctors/get.ts` para incluir `paymentMode` + `currentPaymentTerms` + `paymentTermsHistoryCount`
+- [X] T022 [US1] Atualizar schema Zod + handler `POST /api/medicos` em `src/app/api/medicos/route.ts` para aceitar `payment_mode` + bloco de parâmetros (refine cruzado por modalidade); herdar `requireRole(['admin'])`. Depende de T019
+- [X] T023 [US1] Atualizar schema Zod + handler `PATCH /api/medicos/[id]` em `src/app/api/medicos/[id]/route.ts` para aceitar `payment_mode_change` (admin-only); `400 VALID_FROM_FUTURE` se data > hoje. Depende de T018
+- [X] T024 [US1] Criar rota `GET /api/medicos/[id]/payment-terms` em `src/app/api/medicos/[id]/payment-terms/route.ts` (RBAC admin+financeiro) retornando `{current, history[]}`. Depende de T017
+- [X] T025 [P] [US1] Atualizar `new-doctor-form.tsx` em `src/app/(dashboard)/configuracoes/profissionais/new-doctor-form.tsx`: seletor "Modalidade" + campos dinâmicos por modalidade (Comissionado: `Comissão %`; Fixo: `Valor mensal` + `Dia de faturamento 1-28`; Liberal: `Valor por participação`) + campo `reason` (≥3 chars)
+- [X] T026 [P] [US1] Atualizar listagem em `src/app/(dashboard)/configuracoes/profissionais/page.tsx`: coluna "Modalidade" com badge colorido + coluna "Valor" adaptada (30% / R$ 8.000 / mês (dia 5) / R$ 350 / participação)
+- [X] T027 [P] [US1] Criar `payment-mode-editor.tsx` em `src/app/(dashboard)/configuracoes/profissionais/[id]/payment-mode-editor.tsx` (client component, form admin-only para trocar modalidade com `reason`)
+- [X] T028 [US1] Integrar `payment-mode-editor.tsx` + sidebar de histórico em `src/app/(dashboard)/configuracoes/profissionais/[id]/page.tsx` (consome GET `/api/medicos/[id]/payment-terms`). Depende de T024, T027
 
 **Checkpoint**: US1 entregável em produção. Sistema reconhece 3 modalidades, profissionais legados ficam Comissionado, audit preservado. Pode-se iniciar US2 e US3 em paralelo.
 

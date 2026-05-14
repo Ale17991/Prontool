@@ -22,20 +22,43 @@ const querySchema = z.object({
     .transform((v) => v === true || v === 'true'),
 })
 
-const createSchema = z.object({
-  full_name: z.string().min(1).max(200),
-  crm: z.string().min(1).max(50),
-  external_identifier: z.string().max(120).nullable().optional(),
-  role: z.string().max(50).nullable().optional(),
-  specialty: z.string().max(120).nullable().optional(),
-  council_name: z.string().max(20).nullable().optional(),
-  council_number: z.string().max(50).nullable().optional(),
-  initial_percentage_bps: z.number().int().min(0).max(10_000),
-  initial_valid_from: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
-  initial_reason: z.string().min(3).max(500),
-})
+// Feature 013 — schema com modalidade + refine cruzado por modalidade.
+// Backward-compat: clients legados que não enviam `payment_mode` caem
+// em 'comissionado' e devem continuar passando `initial_percentage_bps`.
+const createSchema = z
+  .object({
+    full_name: z.string().min(1).max(200),
+    crm: z.string().min(1).max(50),
+    external_identifier: z.string().max(120).nullable().optional(),
+    role: z.string().max(50).nullable().optional(),
+    specialty: z.string().max(120).nullable().optional(),
+    council_name: z.string().max(20).nullable().optional(),
+    council_number: z.string().max(50).nullable().optional(),
+    payment_mode: z.enum(['comissionado', 'fixo', 'liberal']).default('comissionado'),
+    initial_percentage_bps: z.number().int().min(0).max(10_000).optional(),
+    monthly_amount_cents: z.number().int().positive().optional(),
+    billing_day: z.number().int().min(1).max(28).optional(),
+    liberal_default_cents: z.number().int().positive().optional(),
+    initial_valid_from: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato YYYY-MM-DD'),
+    initial_reason: z.string().min(3).max(500),
+  })
+  .refine(
+    (v) =>
+      v.payment_mode !== 'comissionado' || typeof v.initial_percentage_bps === 'number',
+    { message: 'initial_percentage_bps obrigatório para modalidade Comissionado', path: ['initial_percentage_bps'] },
+  )
+  .refine(
+    (v) =>
+      v.payment_mode !== 'fixo' ||
+      (typeof v.monthly_amount_cents === 'number' && typeof v.billing_day === 'number'),
+    { message: 'monthly_amount_cents e billing_day obrigatórios para Fixo', path: ['monthly_amount_cents'] },
+  )
+  .refine(
+    (v) => v.payment_mode !== 'liberal' || typeof v.liberal_default_cents === 'number',
+    { message: 'liberal_default_cents obrigatório para Liberal', path: ['liberal_default_cents'] },
+  )
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -86,7 +109,11 @@ export async function POST(req: Request): Promise<Response> {
         specialty: parsed.data.specialty ?? null,
         councilName: parsed.data.council_name ?? null,
         councilNumber: parsed.data.council_number ?? null,
-        initialPercentageBps: parsed.data.initial_percentage_bps,
+        paymentMode: parsed.data.payment_mode,
+        initialPercentageBps: parsed.data.initial_percentage_bps ?? null,
+        monthlyAmountCents: parsed.data.monthly_amount_cents ?? null,
+        billingDay: parsed.data.billing_day ?? null,
+        liberalDefaultCents: parsed.data.liberal_default_cents ?? null,
         initialValidFrom: parsed.data.initial_valid_from,
         initialReason: parsed.data.initial_reason,
         actorUserId: session.userId,
@@ -103,7 +130,11 @@ export async function POST(req: Request): Promise<Response> {
           council_number: created.councilNumber,
           active: created.active,
           created_at: created.createdAt,
+          payment_mode: created.paymentMode,
           current_percentage_bps: created.currentPercentageBps,
+          current_monthly_amount_cents: created.currentMonthlyAmountCents,
+          current_billing_day: created.currentBillingDay,
+          current_liberal_default_cents: created.currentLiberalDefaultCents,
           current_valid_from: created.currentValidFrom,
         },
         { status: 201 },

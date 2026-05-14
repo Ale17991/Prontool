@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, Circle, History, Percent, Stethoscope } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Circle, History, Percent, Wallet } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatBps, formatDate, formatDateTime } from '@/lib/utils'
+import { formatBps, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { EditDoctorName } from './edit-doctor-name'
 import { NewCommissionForm } from './new-commission-form'
+import { PaymentModeEditor } from './payment-mode-editor'
 
 export const dynamic = 'force-dynamic'
+
+type PaymentMode = 'comissionado' | 'fixo' | 'liberal'
 
 interface DoctorRow {
   id: string
@@ -23,6 +26,7 @@ interface DoctorRow {
   council_number: string | null
   active: boolean
   created_at: string
+  payment_mode: PaymentMode
 }
 
 interface CommissionRow {
@@ -34,6 +38,34 @@ interface CommissionRow {
   created_by: string | null
 }
 
+interface PaymentTermsRow {
+  id: string
+  payment_mode: PaymentMode
+  percentage_bps: number | null
+  monthly_amount_cents: number | null
+  billing_day: number | null
+  liberal_default_cents: number | null
+  valid_from: string
+  reason: string
+  created_at: string
+  created_by: string
+}
+
+interface PaymentTermsHead {
+  payment_mode: PaymentMode
+  percentage_bps: number | null
+  monthly_amount_cents: number | null
+  billing_day: number | null
+  liberal_default_cents: number | null
+  valid_from: string
+}
+
+const MODE_LABEL: Record<PaymentMode, string> = {
+  comissionado: 'Comissionado',
+  fixo: 'Fixo',
+  liberal: 'Liberal',
+}
+
 export default async function DoctorDetailPage({ params }: { params: { id: string } }) {
   const session = await getSession()
   if (!session) redirect('/login')
@@ -42,12 +74,12 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const { data: doctorRaw, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at, payment_mode',
     )
     .eq('id', params.id)
     .maybeSingle()
   if (error) throw new Error(error.message)
-  const doctor = doctorRaw as DoctorRow | null
+  const doctor = doctorRaw as unknown as DoctorRow | null
   if (!doctor) notFound()
 
   const { data: commissionsRaw } = await supabase
@@ -57,6 +89,25 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
     .order('valid_from', { ascending: false })
     .order('created_at', { ascending: false })
   const commissions = (commissionsRaw ?? []) as CommissionRow[]
+
+  const { data: paymentTermsRaw } = await supabase
+    .from('doctor_payment_terms_history' as never)
+    .select(
+      'id, payment_mode, percentage_bps, monthly_amount_cents, billing_day, liberal_default_cents, valid_from, reason, created_at, created_by',
+    )
+    .eq('doctor_id', params.id)
+    .order('valid_from', { ascending: false })
+    .order('created_at', { ascending: false })
+  const paymentTermsHistory = (paymentTermsRaw ?? []) as unknown as PaymentTermsRow[]
+
+  const { data: headRaw } = await supabase
+    .from('doctor_payment_terms_current' as never)
+    .select(
+      'payment_mode, percentage_bps, monthly_amount_cents, billing_day, liberal_default_cents, valid_from',
+    )
+    .eq('doctor_id', params.id)
+    .maybeSingle()
+  const currentTerms = headRaw as unknown as PaymentTermsHead | null
 
   const today = new Date().toISOString().slice(0, 10)
   const currentCommission = commissions.find((c) => c.valid_from <= today) ?? null
@@ -142,16 +193,71 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
         />
       </div>
 
-      {canWrite ? (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Wallet className="h-4 w-4 text-primary" />
+            Modalidade de pagamento vigente
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-slate-700">
+              {MODE_LABEL[doctor.payment_mode]}
+            </span>
+            <span className="text-sm font-semibold text-slate-900">
+              {renderCurrentValue(doctor.payment_mode, currentTerms)}
+            </span>
+            {currentTerms ? (
+              <span className="text-[10px] text-slate-500">
+                desde {formatDate(currentTerms.valid_from)}
+              </span>
+            ) : null}
+          </div>
+          {canWrite ? (
+            <PaymentModeEditor
+              doctorId={doctor.id}
+              currentMode={doctor.payment_mode}
+              currentPercentageBps={currentTerms?.percentage_bps ?? null}
+              currentMonthlyAmountCents={currentTerms?.monthly_amount_cents ?? null}
+              currentBillingDay={currentTerms?.billing_day ?? null}
+              currentLiberalDefaultCents={currentTerms?.liberal_default_cents ?? null}
+            />
+          ) : (
+            <p className="text-xs text-slate-500">
+              Somente admin pode alterar modalidade.
+            </p>
+          )}
+          {paymentTermsHistory.length > 1 ? (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-slate-600 hover:text-slate-900">
+                Ver histórico de modalidades ({paymentTermsHistory.length})
+              </summary>
+              <ul className="mt-2 space-y-1 pl-4">
+                {paymentTermsHistory.map((pt) => (
+                  <li key={pt.id} className="text-slate-600">
+                    <span className="font-bold text-slate-900">{MODE_LABEL[pt.payment_mode]}</span>{' '}
+                    {renderHistoryValue(pt)} · desde {formatDate(pt.valid_from)}
+                    {pt.reason ? <span className="text-slate-400"> · {pt.reason}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {canWrite && doctor.payment_mode === 'comissionado' ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Nova comissão</CardTitle>
+            <CardTitle className="text-sm">Nova versão de comissão</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-xs text-slate-500">
-              Cria uma nova linha append-only no histórico. Atendimentos já criados mantêm o
-              percentual congelado no momento da criação — só atendimentos a partir da data
-              de vigência usam o novo valor.
+              Para comissionados, este atalho cria uma nova linha no histórico de comissões
+              sem mudar a modalidade. Atendimentos já criados mantêm o percentual congelado
+              no momento da criação — só atendimentos a partir da data de vigência usam o
+              novo valor.
             </p>
             <NewCommissionForm doctorId={doctor.id} />
           </CardContent>
@@ -162,7 +268,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <History className="h-4 w-4 text-primary" />
-            Histórico de comissões
+            Histórico de comissões (legado)
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -229,6 +335,23 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
       </Card>
     </div>
   )
+}
+
+function renderCurrentValue(mode: PaymentMode, terms: PaymentTermsHead | null): string {
+  if (!terms) return '—'
+  if (mode === 'comissionado') return formatBps(terms.percentage_bps ?? 0)
+  if (mode === 'fixo') {
+    return `${formatCurrency(terms.monthly_amount_cents)} / mês (dia ${terms.billing_day})`
+  }
+  return `${formatCurrency(terms.liberal_default_cents)} / participação`
+}
+
+function renderHistoryValue(pt: PaymentTermsRow): string {
+  if (pt.payment_mode === 'comissionado') return formatBps(pt.percentage_bps ?? 0)
+  if (pt.payment_mode === 'fixo') {
+    return `${formatCurrency(pt.monthly_amount_cents)} / mês (dia ${pt.billing_day})`
+  }
+  return `${formatCurrency(pt.liberal_default_cents)} / participação`
 }
 
 function SummaryCard({
