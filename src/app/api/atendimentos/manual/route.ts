@@ -47,6 +47,8 @@ const bodySchema = z.object({
   observacoes: z.string().trim().max(500).optional(),
   /** Materiais opcionais (TUSS tabela 19). Feature 007. */
   materiais: z.array(materialItemSchema).max(50).optional(),
+  /** Quando true (default), garante uma etapa de tratamento vinculada. */
+  add_to_treatment_plan: z.boolean().optional(),
 })
 
 export async function POST(req: Request): Promise<Response> {
@@ -95,6 +97,7 @@ export async function POST(req: Request): Promise<Response> {
       durationMinutes: parsed.data.duration_minutes,
       observacoes: parsed.data.observacoes,
       materials: materialsInput,
+      addToTreatmentPlan: parsed.data.add_to_treatment_plan,
     })
 
     // Snapshot da linha primaria para event bus (single-procedure adapters).
