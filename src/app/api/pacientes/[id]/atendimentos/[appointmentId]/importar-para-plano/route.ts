@@ -6,7 +6,7 @@ import { importAppointmentToPlan } from '@/lib/core/treatment-steps/import-from-
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
- * POST /api/pacientes/{patientId}/atendimentos/{appointmentId}/importar-para-plano
+ * POST /api/pacientes/{id}/atendimentos/{appointmentId}/importar-para-plano
  *
  * Cria uma `treatment_plan_steps` ja vinculada ao atendimento existente.
  * Usado pelo botao "Adicionar ao plano" no historico do paciente, quando
@@ -19,15 +19,15 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const paramsSchema = z.object({
-  patientId: z.string().uuid(),
+  id: z.string().uuid(),
   appointmentId: z.string().uuid(),
 })
 
 export async function POST(
   req: Request,
-  { params }: { params: { patientId: string; appointmentId: string } },
+  { params }: { params: { id: string; appointmentId: string } },
 ): Promise<Response> {
-  const route = `/api/pacientes/${params.patientId}/atendimentos/${params.appointmentId}/importar-para-plano`
+  const route = `/api/pacientes/${params.id}/atendimentos/${params.appointmentId}/importar-para-plano`
   try {
     const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
       entity: 'treatment_plan_steps',
@@ -39,7 +39,7 @@ export async function POST(
     const parsed = paramsSchema.safeParse(params)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_PARAMS', message: 'patientId e appointmentId devem ser UUID' } },
+        { error: { code: 'INVALID_PARAMS', message: 'id e appointmentId devem ser UUID' } },
         { status: 400 },
       )
     }
@@ -47,7 +47,7 @@ export async function POST(
     const supabase = createSupabaseServiceClient()
     const result = await importAppointmentToPlan(supabase, {
       tenantId: session.tenantId,
-      patientId: parsed.data.patientId,
+      patientId: parsed.data.id,
       appointmentId: parsed.data.appointmentId,
       actorUserId: session.userId,
     })
