@@ -14,6 +14,8 @@ interface Props {
     end: Date
     appointment: AppointmentWeekRow
   }>
+  /** Atendimento sobrepoe um schedule_block — destaque amarelo (warning). */
+  overlapsBlock?: boolean
 }
 
 /**
@@ -22,7 +24,7 @@ interface Props {
  *   - estornado -> vermelho
  *   - concluido -> verde (mapeamento futuro; hoje cai em ativo)
  */
-export function CalendarBlock({ assignment }: Props) {
+export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
   const a = assignment.block.appointment
   const pos = slotForAppointment(assignment.block.start, a.durationMinutes)
   if (pos.outOfBounds) return null
@@ -45,6 +47,8 @@ export function CalendarBlock({ assignment }: Props) {
         statusClass,
         // US4 — defesa em profundidade contra dado conflitante.
         assignment.conflict && 'ring-2 ring-rose-500 ring-offset-1',
+        // Schedule block overlap — warning amarelo, nao bloqueia.
+        overlapsBlock && 'ring-2 ring-amber-500 ring-offset-1',
       )}
       style={{
         top: `${pos.topRem}rem`,

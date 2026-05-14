@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { ChevronRight, Plus, Stethoscope } from 'lucide-react'
+import { ChevronRight, Lock, Plus, Stethoscope } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getSession } from '@/lib/auth/get-session'
@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDateTime } from '@/lib/utils'
 import { listAppointmentsForWeek } from '@/lib/core/appointments/list-week'
+import { listScheduleBlocks } from '@/lib/core/schedule-blocks/list'
 import { ModeToggle } from './mode-toggle'
 import { CalendarShell } from './calendar-shell'
 import { FilterBarBlock } from './filter-bar-block'
@@ -103,6 +104,15 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
         { serviceClient: service, encryptionKey },
       )
 
+      // Bloqueios de agenda da mesma janela. Degrada gracioso (lista vazia)
+      // se migration 0083 nao estiver aplicada no ambiente.
+      const scheduleBlocks = await listScheduleBlocks(supabase, {
+        tenantId: session.tenantId,
+        from: range.from.toISOString().slice(0, 10),
+        to: range.to.toISOString().slice(0, 10),
+        doctorId: filters.doctor ?? undefined,
+      }).catch(() => [])
+
       return (
         <div className="space-y-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -115,17 +125,32 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             <div className="flex items-center gap-2">
               <ModeToggle mode={mode} />
               {session.role === 'admin' || session.role === 'recepcionista' ? (
-                <Button asChild>
-                  <Link href="/operacao/atendimentos/novo">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo
-                  </Link>
-                </Button>
+                <>
+                  <Button asChild variant="outline">
+                    <Link href="/operacao/atendimentos/bloquear">
+                      <Lock className="mr-2 h-4 w-4" />
+                      Bloquear horário
+                    </Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/operacao/atendimentos/novo">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Novo
+                    </Link>
+                  </Button>
+                </>
               ) : null}
             </div>
           </div>
 
-          <CalendarShell appointments={appointments} doctors={doctorOptions} />
+          <CalendarShell
+            appointments={appointments}
+            doctors={doctorOptions}
+            scheduleBlocks={scheduleBlocks}
+            canManageBlocks={
+              session.role === 'admin' || session.role === 'recepcionista'
+            }
+          />
         </div>
       )
     } catch (err) {
@@ -238,12 +263,20 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
         <div className="flex items-center gap-2">
           <ModeToggle mode={mode} />
           {session.role === 'admin' || session.role === 'recepcionista' ? (
-            <Button asChild>
-              <Link href="/operacao/atendimentos/novo">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo
-              </Link>
-            </Button>
+            <>
+              <Button asChild variant="outline">
+                <Link href="/operacao/atendimentos/bloquear">
+                  <Lock className="mr-2 h-4 w-4" />
+                  Bloquear horário
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/operacao/atendimentos/novo">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo
+                </Link>
+              </Button>
+            </>
           ) : null}
         </div>
       </div>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { addMinutes, isSameDay } from 'date-fns'
+import { Lock, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   CALENDAR_HOUR_END,
@@ -10,16 +11,20 @@ import {
   CALENDAR_SLOT_HEIGHT_REM,
   assignLanes,
   detectVisualConflicts,
+  slotForAppointment,
   toDateTimeLocalValue,
   type WeekRange,
 } from '@/lib/utils/calendar'
 import type { AppointmentWeekRow } from '@/lib/core/appointments/list-week'
+import type { ScheduleBlockRow } from '@/lib/core/schedule-blocks/types'
 import { CalendarBlock } from './calendar-block'
 import { CurrentTimeLine } from './current-time-line'
 
 interface Props {
   range: WeekRange | { start: Date; end: Date; days: Date[] }
   appointments: AppointmentWeekRow[]
+  scheduleBlocks?: ScheduleBlockRow[]
+  canManageBlocks?: boolean
 }
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -28,9 +33,50 @@ const HOURS = Array.from(
   (_, i) => CALENDAR_HOUR_START + i,
 )
 
-export function CalendarView({ range, appointments }: Props) {
+export function CalendarView({
+  range,
+  appointments,
+  scheduleBlocks = [],
+  canManageBlocks = false,
+}: Props) {
   const router = useRouter()
   const today = useMemo(() => new Date(), [])
+  const [cancellingId, startCancelTransition] = useTransition()
+  const [cancellingBlockId, setCancellingBlockId] = useState<string | null>(null)
+
+  // Agrupa bloqueios por dia. Separa all_day (faixa no topo) dos demais
+  // (blocos posicionados no horario).
+  const blocksByDay = useMemo(() => {
+    const allDayMap = new Map<string, ScheduleBlockRow[]>()
+    const timedMap = new Map<string, ScheduleBlockRow[]>()
+    for (const b of scheduleBlocks) {
+      const key = b.blockDate
+      if (b.allDay) {
+        const arr = allDayMap.get(key) ?? []
+        arr.push(b)
+        allDayMap.set(key, arr)
+      } else {
+        const arr = timedMap.get(key) ?? []
+        arr.push(b)
+        timedMap.set(key, arr)
+      }
+    }
+    return { allDayMap, timedMap }
+  }, [scheduleBlocks])
+
+  function cancelBlock(blockId: string) {
+    if (!canManageBlocks) return
+    if (!confirm('Cancelar este bloqueio de agenda?')) return
+    setCancellingBlockId(blockId)
+    startCancelTransition(async () => {
+      try {
+        const res = await fetch(`/api/agenda/bloqueios/${blockId}`, { method: 'DELETE' })
+        if (res.ok) router.refresh()
+      } finally {
+        setCancellingBlockId(null)
+      }
+    })
+  }
 
   const currentDayIndex = useMemo(() => {
     const idx = range.days.findIndex((d) => isSameDay(d, today))
@@ -134,10 +180,38 @@ export function CalendarView({ range, appointments }: Props) {
         >
           {range.days.map((d, dayIdx) => {
             const isToday = isSameDay(d, today)
-            const blocks = blocksPerDay.get(isoKey(d)) ?? []
+            const dayKey = isoKey(d)
+            const blocks = blocksPerDay.get(dayKey) ?? []
             const lanes = assignLanes(blocks)
             // US4: marca blocos conflitantes do mesmo doctor (visual fallback).
             detectVisualConflicts(lanes.visible, (b) => b.appointment.doctorId)
+
+            const dayAllDayBlocks = blocksByDay.allDayMap.get(dayKey) ?? []
+            const dayTimedBlocks = blocksByDay.timedMap.get(dayKey) ?? []
+
+            // Marca atendimentos cujo doctor tem bloqueio sobreposto neste
+            // mesmo dia. Visual amarelo, nao hard-block.
+            const overlappingApptIds = new Set<string>()
+            for (const a of lanes.visible) {
+              const apptStart = a.block.start.getTime()
+              const apptEnd = a.block.end.getTime()
+              for (const sb of dayTimedBlocks) {
+                if (sb.doctorId !== a.block.appointment.doctorId) continue
+                const blkStart = new Date(`${dayKey}T${sb.startTime}:00`).getTime()
+                const blkEnd = new Date(`${dayKey}T${sb.endTime}:00`).getTime()
+                if (apptStart < blkEnd && apptEnd > blkStart) {
+                  overlappingApptIds.add(a.block.id)
+                  break
+                }
+              }
+              for (const sb of dayAllDayBlocks) {
+                if (sb.doctorId === a.block.appointment.doctorId) {
+                  overlappingApptIds.add(a.block.id)
+                  break
+                }
+              }
+            }
+
             return (
               <div
                 key={`col-${dayIdx}`}
@@ -146,6 +220,32 @@ export function CalendarView({ range, appointments }: Props) {
                   isToday && 'bg-blue-50/40',
                 )}
               >
+                {/* Faixa de bloqueios "dia inteiro" no topo da coluna */}
+                {dayAllDayBlocks.length > 0 ? (
+                  <div className="absolute left-0.5 right-0.5 top-0.5 z-20 flex flex-col gap-0.5">
+                    {dayAllDayBlocks.map((sb) => (
+                      <button
+                        key={sb.id}
+                        type="button"
+                        onClick={() => canManageBlocks && cancelBlock(sb.id)}
+                        title={`${sb.reason} — ${sb.doctorName ?? ''} (dia inteiro)${canManageBlocks ? ' — clique para cancelar' : ''}`}
+                        className={cn(
+                          'flex items-center gap-1 rounded border border-slate-400 bg-slate-700/80 px-1.5 py-0.5 text-[10px] font-bold text-white',
+                          canManageBlocks && 'cursor-pointer hover:bg-slate-900',
+                          !canManageBlocks && 'cursor-default',
+                        )}
+                      >
+                        {cancellingBlockId === sb.id && cancellingId ? (
+                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                        ) : (
+                          <Lock className="h-2.5 w-2.5" />
+                        )}
+                        <span className="truncate">{sb.reason}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
                 {HOURS.map((h) => (
                   <button
                     key={`slot-${dayIdx}-${h}`}
@@ -156,10 +256,62 @@ export function CalendarView({ range, appointments }: Props) {
                     style={{ height: `${CALENDAR_SLOT_HEIGHT_REM}rem` }}
                   />
                 ))}
+
+                {/* Bloqueios com horario especifico */}
+                {dayTimedBlocks.map((sb) => {
+                  const startStr = sb.startTime ?? '00:00'
+                  const endStr = sb.endTime ?? '00:00'
+                  const [sh, sm] = startStr.split(':').map((s) => parseInt(s, 10))
+                  const [eh, em] = endStr.split(':').map((s) => parseInt(s, 10))
+                  if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return null
+                  const blockStart = new Date(d)
+                  blockStart.setHours(sh!, sm!, 0, 0)
+                  const blockEnd = new Date(d)
+                  blockEnd.setHours(eh!, em!, 0, 0)
+                  const durMin = Math.max(
+                    5,
+                    Math.round((blockEnd.getTime() - blockStart.getTime()) / 60_000),
+                  )
+                  const pos = slotForAppointment(blockStart, durMin)
+                  if (pos.outOfBounds) return null
+                  return (
+                    <button
+                      key={sb.id}
+                      type="button"
+                      onClick={() => canManageBlocks && cancelBlock(sb.id)}
+                      title={`${sb.reason} — ${sb.doctorName ?? ''} ${sb.startTime}–${sb.endTime}${canManageBlocks ? ' — clique para cancelar' : ''}`}
+                      className={cn(
+                        'absolute z-10 flex flex-col gap-0.5 overflow-hidden rounded-md border border-slate-500 bg-slate-700/85 px-1.5 py-1 text-left text-[11px] text-white shadow-sm',
+                        canManageBlocks && 'cursor-pointer hover:bg-slate-900',
+                        !canManageBlocks && 'cursor-default',
+                      )}
+                      style={{
+                        top: `${pos.topRem}rem`,
+                        height: `${pos.heightRem}rem`,
+                        left: `2px`,
+                        right: `2px`,
+                      }}
+                    >
+                      <span className="flex items-center gap-1 truncate font-bold leading-tight">
+                        {cancellingBlockId === sb.id && cancellingId ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Lock className="h-3 w-3" />
+                        )}
+                        {sb.reason}
+                      </span>
+                      <span className="truncate text-[10px] leading-tight opacity-80">
+                        {sb.startTime}–{sb.endTime} · {sb.doctorName ?? ''}
+                      </span>
+                    </button>
+                  )
+                })}
+
                 {lanes.visible.map((assignment) => (
                   <CalendarBlock
                     key={assignment.block.id}
                     assignment={assignment}
+                    overlapsBlock={overlappingApptIds.has(assignment.block.id)}
                   />
                 ))}
                 {lanes.overflow.length > 0 ? (
