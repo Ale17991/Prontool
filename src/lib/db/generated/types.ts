@@ -186,6 +186,78 @@ export type Database = {
           },
         ]
       }
+      appointment_assistants: {
+        Row: {
+          appointment_id: string
+          assistant_doctor_id: string
+          created_at: string
+          created_by: string
+          frozen_amount_cents: number
+          id: string
+          removed_at: string | null
+          removed_by: string | null
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id: string
+          assistant_doctor_id: string
+          created_at?: string
+          created_by: string
+          frozen_amount_cents: number
+          id?: string
+          removed_at?: string | null
+          removed_by?: string | null
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string
+          assistant_doctor_id?: string
+          created_at?: string
+          created_by?: string
+          frozen_amount_cents?: number
+          id?: string
+          removed_at?: string | null
+          removed_by?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_assistants_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_assistants_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_assistants_assistant_doctor_id_fkey"
+            columns: ["assistant_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_assistants_assistant_doctor_id_fkey"
+            columns: ["assistant_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "appointment_assistants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_completions: {
         Row: {
           appointment_id: string
@@ -495,6 +567,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointment_slot_locks_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
             foreignKeyName: "appointment_slot_locks_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -565,6 +644,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "doctors"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
           },
           {
             foreignKeyName: "appointments_patient_id_fkey"
@@ -908,7 +994,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "doctor_commission_history_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
             foreignKeyName: "doctor_commission_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_payment_terms_history: {
+        Row: {
+          billing_day: number | null
+          created_at: string
+          created_by: string
+          doctor_id: string
+          id: string
+          liberal_default_cents: number | null
+          monthly_amount_cents: number | null
+          payment_mode: Database["public"]["Enums"]["payment_mode"]
+          percentage_bps: number | null
+          reason: string
+          tenant_id: string
+          valid_from: string
+        }
+        Insert: {
+          billing_day?: number | null
+          created_at?: string
+          created_by: string
+          doctor_id: string
+          id?: string
+          liberal_default_cents?: number | null
+          monthly_amount_cents?: number | null
+          payment_mode: Database["public"]["Enums"]["payment_mode"]
+          percentage_bps?: number | null
+          reason: string
+          tenant_id: string
+          valid_from: string
+        }
+        Update: {
+          billing_day?: number | null
+          created_at?: string
+          created_by?: string
+          doctor_id?: string
+          id?: string
+          liberal_default_cents?: number | null
+          monthly_amount_cents?: number | null
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          percentage_bps?: number | null
+          reason?: string
+          tenant_id?: string
+          valid_from?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "doctor_payment_terms_history_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -927,6 +1087,7 @@ export type Database = {
           external_identifier: string | null
           full_name: string
           id: string
+          payment_mode: Database["public"]["Enums"]["payment_mode"]
           role: string
           specialty: string | null
           tenant_id: string
@@ -942,6 +1103,7 @@ export type Database = {
           external_identifier?: string | null
           full_name: string
           id?: string
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
           role?: string
           specialty?: string | null
           tenant_id: string
@@ -957,6 +1119,7 @@ export type Database = {
           external_identifier?: string | null
           full_name?: string
           id?: string
+          payment_mode?: Database["public"]["Enums"]["payment_mode"]
           role?: string
           specialty?: string | null
           tenant_id?: string
@@ -1828,6 +1991,73 @@ export type Database = {
           },
         ]
       }
+      schedule_blocks: {
+        Row: {
+          all_day: boolean
+          block_date: string
+          created_at: string
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          doctor_id: string
+          end_time: string | null
+          id: string
+          reason: string
+          start_time: string | null
+          tenant_id: string
+        }
+        Insert: {
+          all_day?: boolean
+          block_date: string
+          created_at?: string
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          doctor_id: string
+          end_time?: string | null
+          id?: string
+          reason: string
+          start_time?: string | null
+          tenant_id: string
+        }
+        Update: {
+          all_day?: boolean
+          block_date?: string
+          created_at?: string
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          doctor_id?: string
+          end_time?: string | null
+          id?: string
+          reason?: string
+          start_time?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_blocks_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_blocks_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "schedule_blocks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_by: string
@@ -2231,6 +2461,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "treatment_plan_steps_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
             foreignKeyName: "treatment_plan_steps_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -2615,6 +2852,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
             foreignKeyName: "appointments_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -2743,7 +2987,70 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "doctor_commission_history_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
             foreignKeyName: "doctor_commission_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_payment_terms_current: {
+        Row: {
+          billing_day: number | null
+          created_at: string | null
+          doctor_id: string | null
+          liberal_default_cents: number | null
+          monthly_amount_cents: number | null
+          payment_mode: Database["public"]["Enums"]["payment_mode"] | null
+          percentage_bps: number | null
+          tenant_id: string | null
+          valid_from: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "doctor_payment_terms_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_fixed_pay_lines: {
+        Row: {
+          amount_cents: number | null
+          billing_date: string | null
+          billing_day: number | null
+          doctor_id: string | null
+          doctor_name: string | null
+          month_start: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctors_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2805,6 +3112,15 @@ export type Database = {
       }
     }
     Functions: {
+      attach_assistant_to_appointment: {
+        Args: {
+          p_actor: string
+          p_amount_cents: number
+          p_appointment_id: string
+          p_assistant_doctor_id: string
+        }
+        Returns: string
+      }
       attach_materials_to_appointment: {
         Args: { p_actor: string; p_appointment_id: string; p_materials: Json }
         Returns: Json
@@ -2982,6 +3298,25 @@ export type Database = {
         Returns: string
       }
       patient_enc_key: { Args: never; Returns: string }
+      record_payment_terms_change: {
+        Args: {
+          p_actor: string
+          p_billing_day: number
+          p_doctor_id: string
+          p_liberal_default_cents: number
+          p_monthly_amount_cents: number
+          p_payment_mode: Database["public"]["Enums"]["payment_mode"]
+          p_percentage_bps: number
+          p_reason: string
+          p_tenant_id: string
+          p_valid_from: string
+        }
+        Returns: string
+      }
+      remove_appointment_assistant: {
+        Args: { p_actor: string; p_id: string }
+        Returns: undefined
+      }
       session_text: { Args: { key: string }; Returns: string }
       session_uuid: { Args: { key: string }; Returns: string }
       test_truncate_all_mutable: {
@@ -2990,7 +3325,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      payment_mode: "comissionado" | "fixo" | "liberal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3665,7 +4000,9 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      payment_mode: ["comissionado", "fixo", "liberal"],
+    },
   },
   storage: {
     Enums: {
