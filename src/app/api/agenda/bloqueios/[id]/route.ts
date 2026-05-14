@@ -21,12 +21,10 @@ export async function DELETE(
 ): Promise<Response> {
   const route = `/api/agenda/bloqueios/${params.id}`
   try {
-    const session = await requireRole(['admin', 'recepcionista'], {
-      entity: 'schedule_blocks',
-      entityId: params.id,
-      route,
-      request: req,
-    })
+    const session = await requireRole(
+      ['admin', 'recepcionista', 'financeiro', 'profissional_saude'],
+      { entity: 'schedule_blocks', entityId: params.id, route, request: req },
+    )
     if (!idSchema.safeParse(params.id).success) {
       return NextResponse.json(
         { error: { code: 'INVALID_ID', message: 'id deve ser UUID' } },

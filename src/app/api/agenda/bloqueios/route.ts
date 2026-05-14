@@ -105,11 +105,10 @@ export async function GET(req: Request): Promise<Response> {
 export async function POST(req: Request): Promise<Response> {
   const route = '/api/agenda/bloqueios'
   try {
-    const session = await requireRole(['admin', 'recepcionista'], {
-      entity: 'schedule_blocks',
-      route,
-      request: req,
-    })
+    const session = await requireRole(
+      ['admin', 'recepcionista', 'financeiro', 'profissional_saude'],
+      { entity: 'schedule_blocks', route, request: req },
+    )
     const parsed = bodySchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(

@@ -124,21 +124,19 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             </div>
             <div className="flex items-center gap-2">
               <ModeToggle mode={mode} />
+              <Button asChild variant="outline">
+                <Link href="/operacao/atendimentos/bloquear">
+                  <Lock className="mr-2 h-4 w-4" />
+                  Bloquear horário
+                </Link>
+              </Button>
               {session.role === 'admin' || session.role === 'recepcionista' ? (
-                <>
-                  <Button asChild variant="outline">
-                    <Link href="/operacao/atendimentos/bloquear">
-                      <Lock className="mr-2 h-4 w-4" />
-                      Bloquear horário
-                    </Link>
-                  </Button>
-                  <Button asChild>
-                    <Link href="/operacao/atendimentos/novo">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Novo
-                    </Link>
-                  </Button>
-                </>
+                <Button asChild>
+                  <Link href="/operacao/atendimentos/novo">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Novo
+                  </Link>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -147,9 +145,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             appointments={appointments}
             doctors={doctorOptions}
             scheduleBlocks={scheduleBlocks}
-            canManageBlocks={
-              session.role === 'admin' || session.role === 'recepcionista'
-            }
+            canManageBlocks={true}
           />
         </div>
       )
