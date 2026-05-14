@@ -38,6 +38,11 @@ const procedureLineSchema = z.object({
   notes: z.string().trim().max(500).optional().nullable(),
 })
 
+const assistantItemSchema = z.object({
+  assistant_doctor_id: z.string().uuid(),
+  amount_cents: z.number().int().positive().max(100_000_00),
+})
+
 const bodySchema = z.object({
   patient_id: z.string().uuid(),
   doctor_id: z.string().uuid(),
@@ -49,6 +54,8 @@ const bodySchema = z.object({
   materiais: z.array(materialItemSchema).max(50).optional(),
   /** Quando true (default), garante uma etapa de tratamento vinculada. */
   add_to_treatment_plan: z.boolean().optional(),
+  /** Profissionais assistentes (modalidade Liberal). Feature 013 US2. */
+  assistants: z.array(assistantItemSchema).max(10).optional(),
 })
 
 export async function POST(req: Request): Promise<Response> {
@@ -82,6 +89,13 @@ export async function POST(req: Request): Promise<Response> {
         }))
       : undefined
 
+    const assistantsInput = parsed.data.assistants
+      ? parsed.data.assistants.map((a) => ({
+          assistantDoctorId: a.assistant_doctor_id,
+          amountCents: a.amount_cents,
+        }))
+      : undefined
+
     const result = await createAppointmentManually(supabase, {
       tenantId: session.tenantId,
       actorUserId: session.userId,
@@ -98,6 +112,7 @@ export async function POST(req: Request): Promise<Response> {
       observacoes: parsed.data.observacoes,
       materials: materialsInput,
       addToTreatmentPlan: parsed.data.add_to_treatment_plan,
+      assistants: assistantsInput,
     })
 
     // Snapshot da linha primaria para event bus (single-procedure adapters).
@@ -146,6 +161,8 @@ export async function POST(req: Request): Promise<Response> {
         procedures_count: result.proceduresCount,
         integrations_dispatched: integrationsDispatched,
         ...(result.materialsCount !== undefined ? { materials_count: result.materialsCount } : {}),
+        ...(result.assistantsCount !== undefined ? { assistants_count: result.assistantsCount } : {}),
+        ...(result.assistants ? { assistants: result.assistants } : {}),
       },
       { status: 201 },
     )

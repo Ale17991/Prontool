@@ -106,30 +106,30 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Contract test RBAC em `POST /api/atendimentos/[id]/assistants` e `PATCH /assistants/[assistantId]` — 403 para `profissional_saude` e `financeiro`; 200 para admin/recepcionista em `tests/contract/appointment-assistants-rbac.spec.ts`
-- [ ] T030 [P] [US2] Integration test: criar atendimento com 2 assistentes — POST `/api/atendimentos/manual` com `assistants[]` cria 2 rows + audit em `tests/integration/appointment-create-with-assistants.spec.ts`
-- [ ] T031 [P] [US2] Integration test: `frozen_amount_cents` congelado — após criar assistente com R$ 350, alterar `liberal_default_cents` do doctor para R$ 500; reabrir atendimento → ainda mostra R$ 350 em `tests/integration/assistant-frozen-value-preservation.spec.ts`
-- [ ] T032 [P] [US2] Integration test: soft-remove via PATCH — `removed_at` setado, GET atendimento não retorna mais em `assistants[]`, mas audit log registra em `tests/integration/appointment-assistant-soft-remove.spec.ts`
-- [ ] T033 [P] [US2] Integration test: atendimento estornado preserva registros mas relatório filtra — criar atendimento, adicionar assistente, estornar, verificar que `appointment_assistants` ainda tem a row mas `GET /api/relatorios/por-profissional/[liberalId]` retorna 0 em `tests/integration/appointment-reversal-with-assistants.spec.ts`
-- [ ] T034 [P] [US2] Integration test: Liberal NÃO pode ser principal — tentar criar atendimento com `doctor_id` de um Liberal retorna `400 LIBERAL_AS_PRINCIPAL` em `tests/integration/liberal-as-principal-blocked.spec.ts`
+- [X] T029 [P] [US2] Contract test RBAC em `POST /api/atendimentos/[id]/assistants` e `PATCH /assistants/[assistantId]` — 403 para `profissional_saude` e `financeiro`; 200 para admin/recepcionista em `tests/contract/appointment-assistants-rbac.spec.ts`
+- [X] T030 [P] [US2] Integration test: criar atendimento com 2 assistentes — POST `/api/atendimentos/manual` com `assistants[]` cria 2 rows + audit em `tests/integration/appointment-create-with-assistants.spec.ts`
+- [X] T031 [P] [US2] Integration test: `frozen_amount_cents` congelado — após criar assistente com R$ 350, alterar `liberal_default_cents` do doctor para R$ 500; reabrir atendimento → ainda mostra R$ 350 em `tests/integration/assistant-frozen-value-preservation.spec.ts`
+- [X] T032 [P] [US2] Integration test: soft-remove via PATCH — `removed_at` setado, GET atendimento não retorna mais em `assistants[]`, mas audit log registra em `tests/integration/appointment-assistant-soft-remove.spec.ts`
+- [X] T033 [P] [US2] Integration test: atendimento estornado preserva registros mas relatório filtra — criar atendimento, adicionar assistente, estornar, verificar que `appointment_assistants` ainda tem a row mas `GET /api/relatorios/por-profissional/[liberalId]` retorna 0 em `tests/integration/appointment-reversal-with-assistants.spec.ts`
+- [X] T034 [P] [US2] Integration test: Liberal NÃO pode ser principal — tentar criar atendimento com `doctor_id` de um Liberal retorna `400 LIBERAL_AS_PRINCIPAL` em `tests/integration/liberal-as-principal-blocked.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T035 [P] [US2] Implementar `addAssistant(supabase, {tenantId, appointmentId, assistantDoctorId, amountCents, actorUserId})` invocando RPC `attach_assistant_to_appointment` em `src/lib/core/appointment-assistants/add.ts`
-- [ ] T036 [P] [US2] Implementar `removeAssistant(supabase, {tenantId, assistantRowId, actorUserId})` invocando RPC `remove_appointment_assistant` em `src/lib/core/appointment-assistants/remove.ts`
-- [ ] T037 [P] [US2] Implementar `listAssistantsByAppointment(supabase, {tenantId, appointmentId})` retornando apenas `removed_at IS NULL` + contagem de removidos em `src/lib/core/appointment-assistants/list-by-appointment.ts`
-- [ ] T038 [P] [US2] Implementar `sumLiberalParticipationsByPeriod(supabase, {tenantId, doctorId, from, to})` somando `frozen_amount_cents WHERE removed_at IS NULL AND NOT EXISTS appointment_reversals` em `src/lib/core/appointment-assistants/sum-by-doctor-period.ts`
-- [ ] T039 [US2] Estender `createAppointmentManually` em `src/lib/core/appointments/create-manual.ts` para aceitar `assistants[]` e inserir cada um via RPC dentro da mesma transação. Depende de T035
-- [ ] T040 [US2] Adicionar validação `LIBERAL_AS_PRINCIPAL` em `createAppointmentManually` em `src/lib/core/appointments/create-manual.ts` — consulta `doctor_payment_terms_current` antes do INSERT
-- [ ] T041 [US2] Estender `getAppointment` em `src/lib/core/appointments/get.ts` para embedar `assistants[]` (ativos) + `removed_assistants_count`. Depende de T037
-- [ ] T042 [US2] Atualizar Zod + handler `POST /api/atendimentos/manual` em `src/app/api/atendimentos/manual/route.ts` para aceitar `assistants[]` + validações (`DUPLICATE_ASSISTANT`, `INVALID_ASSISTANT_AMOUNT`). Depende de T039
-- [ ] T043 [US2] Criar rota `POST /api/atendimentos/[id]/assistants` em `src/app/api/atendimentos/[id]/assistants/route.ts` (RBAC admin+recepcionista; 409 `APPOINTMENT_REVERSED` se atendimento estornado). Depende de T035
-- [ ] T044 [US2] Criar rota `PATCH /api/atendimentos/[id]/assistants/[assistantId]` em `src/app/api/atendimentos/[id]/assistants/[assistantId]/route.ts` (soft-remove; 409 `ASSISTANT_ALREADY_REMOVED`). Depende de T036
-- [ ] T045 [P] [US2] Criar `assistant-multi-select.tsx` (client component shadcn Command/Popover, filtra liberais, multi-select com valor editável por linha) em `src/app/(dashboard)/operacao/atendimentos/components/assistant-multi-select.tsx`
-- [ ] T046 [US2] Integrar `assistant-multi-select` no `new-appointment-form.tsx` em `src/app/(dashboard)/operacao/atendimentos/novo/new-appointment-form.tsx`; filtrar o seletor de "Profissional principal" para `payment_mode IN ('comissionado','fixo')`. Depende de T045
-- [ ] T047 [US2] Mostrar lista de assistentes ativos no detalhe do atendimento em `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`. Depende de T041
-- [ ] T048 [P] [US2] Criar `assistants-editor.tsx` (client component para adicionar/remover assistente em atendimento já salvo) em `src/app/(dashboard)/operacao/atendimentos/[id]/assistants-editor.tsx`
-- [ ] T049 [P] [US2] Atualizar bloco do calendário em `src/app/(dashboard)/operacao/agenda/appointment-block.tsx` para exibir "(+ N assistentes)" abaixo do nome do profissional principal quando `assistants_count > 0`
+- [X] T035 [P] [US2] Implementar `addAssistant(supabase, {tenantId, appointmentId, assistantDoctorId, amountCents, actorUserId})` invocando RPC `attach_assistant_to_appointment` em `src/lib/core/appointment-assistants/add.ts`
+- [X] T036 [P] [US2] Implementar `removeAssistant(supabase, {tenantId, assistantRowId, actorUserId})` invocando RPC `remove_appointment_assistant` em `src/lib/core/appointment-assistants/remove.ts`
+- [X] T037 [P] [US2] Implementar `listAssistantsByAppointment(supabase, {tenantId, appointmentId})` retornando apenas `removed_at IS NULL` + contagem de removidos em `src/lib/core/appointment-assistants/list-by-appointment.ts`
+- [X] T038 [P] [US2] Implementar `sumLiberalParticipationsByPeriod(supabase, {tenantId, doctorId, from, to})` somando `frozen_amount_cents WHERE removed_at IS NULL AND NOT EXISTS appointment_reversals` em `src/lib/core/appointment-assistants/sum-by-doctor-period.ts`
+- [X] T039 [US2] Estender `createAppointmentManually` em `src/lib/core/appointments/create-manual.ts` para aceitar `assistants[]` e inserir cada um via RPC dentro da mesma transação. Depende de T035
+- [X] T040 [US2] Adicionar validação `LIBERAL_AS_PRINCIPAL` em `createAppointmentManually` em `src/lib/core/appointments/create-manual.ts` — consulta `doctor_payment_terms_current` antes do INSERT
+- [X] T041 [US2] Estender `getAppointment` em `src/lib/core/appointments/get.ts` para embedar `assistants[]` (ativos) + `removed_assistants_count`. Depende de T037
+- [X] T042 [US2] Atualizar Zod + handler `POST /api/atendimentos/manual` em `src/app/api/atendimentos/manual/route.ts` para aceitar `assistants[]` + validações (`DUPLICATE_ASSISTANT`, `INVALID_ASSISTANT_AMOUNT`). Depende de T039
+- [X] T043 [US2] Criar rota `POST /api/atendimentos/[id]/assistants` em `src/app/api/atendimentos/[id]/assistants/route.ts` (RBAC admin+recepcionista; 409 `APPOINTMENT_REVERSED` se atendimento estornado). Depende de T035
+- [X] T044 [US2] Criar rota `PATCH /api/atendimentos/[id]/assistants/[assistantId]` em `src/app/api/atendimentos/[id]/assistants/[assistantId]/route.ts` (soft-remove; 409 `ASSISTANT_ALREADY_REMOVED`). Depende de T036
+- [X] T045 [P] [US2] Criar `assistant-multi-select.tsx` (client component shadcn Command/Popover, filtra liberais, multi-select com valor editável por linha) em `src/app/(dashboard)/operacao/atendimentos/components/assistant-multi-select.tsx`
+- [X] T046 [US2] Integrar `assistant-multi-select` no `new-appointment-form.tsx` em `src/app/(dashboard)/operacao/atendimentos/novo/new-appointment-form.tsx`; filtrar o seletor de "Profissional principal" para `payment_mode IN ('comissionado','fixo')`. Depende de T045
+- [X] T047 [US2] Mostrar lista de assistentes ativos no detalhe do atendimento em `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`. Depende de T041
+- [X] T048 [P] [US2] Criar `assistants-editor.tsx` (client component para adicionar/remover assistente em atendimento já salvo) em `src/app/(dashboard)/operacao/atendimentos/[id]/assistants-editor.tsx`
+- [X] T049 [P] [US2] Atualizar bloco do calendário em `src/app/(dashboard)/operacao/agenda/appointment-block.tsx` para exibir "(+ N assistentes)" abaixo do nome do profissional principal quando `assistants_count > 0`
 
 **Checkpoint**: US2 entregável em produção. Sistema permite registrar assistentes liberais com valor congelado, soft-unlink auditado, UI completa.
 
