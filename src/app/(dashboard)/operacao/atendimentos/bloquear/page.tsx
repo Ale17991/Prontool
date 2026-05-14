@@ -15,7 +15,9 @@ interface PageProps {
 export default async function BloquearHorarioPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (session.role !== 'admin' && session.role !== 'recepcionista') {
+  // Qualquer papel autenticado pode acessar; a API POST faz o gate final.
+  const ALLOWED = ['admin', 'recepcionista', 'financeiro', 'profissional_saude']
+  if (!ALLOWED.includes(session.role)) {
     redirect('/operacao/atendimentos')
   }
 
