@@ -3,10 +3,8 @@ import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { listPatients } from '@/lib/core/patients/list'
 import { NewAppointmentForm, type FormOption } from './new-appointment-form'
 
 export const dynamic = 'force-dynamic'
@@ -23,9 +21,8 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
   if (!ALLOWED_ROLES.has(session.role)) redirect('/operacao/atendimentos')
 
   const supabase = createSupabaseServerClient()
-  const service = createSupabaseServiceClient()
 
-  const [plansRes, doctorsRes, proceduresRes, patientsRes] = await Promise.all([
+  const [plansRes, doctorsRes, proceduresRes] = await Promise.all([
     supabase
       .from('health_plans')
       .select('id, name')
@@ -45,7 +42,6 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       .eq('active', true)
       .is('deleted_at', null)
       .order('tuss_code', { ascending: true }),
-    listPatients(service, { tenantId: session.tenantId, pageSize: 100 }),
   ])
 
   const plans: FormOption[] = ((plansRes.data ?? []) as Array<{ id: string; name: string }>).map(
@@ -81,24 +77,6 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       isCustomCoded: customCode !== null,
     }
   })
-  // Para auto-detect "Particular": carregar plan_id de cada paciente em batch.
-  const patientPlanIds = new Map<string, string | null>()
-  if (patientsRes.items.length > 0) {
-    const ids = patientsRes.items.map((p) => p.id)
-    const { data: planRows } = await supabase
-      .from('patients')
-      .select('id, plan_id')
-      .in('id', ids)
-    for (const row of (planRows ?? []) as Array<{ id: string; plan_id: string | null }>) {
-      patientPlanIds.set(row.id, row.plan_id)
-    }
-  }
-  const patients = patientsRes.items.map((p) => ({
-    id: p.id,
-    label: `${p.fullName} · CPF ${p.cpf}`,
-    planId: patientPlanIds.get(p.id) ?? null,
-  }))
-
   return (
     <div className="space-y-6">
       <div>
@@ -123,7 +101,6 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
         </CardHeader>
         <CardContent>
           <NewAppointmentForm
-            patients={patients}
             doctors={doctors}
             procedures={procedures}
             plans={plans}

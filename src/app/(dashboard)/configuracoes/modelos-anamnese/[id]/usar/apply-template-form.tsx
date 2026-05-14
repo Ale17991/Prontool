@@ -14,6 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  PatientTypeahead,
+  type PatientTypeaheadValue,
+} from '@/components/patients/patient-typeahead'
 
 export type FieldType =
   | 'texto_curto'
@@ -55,7 +59,6 @@ export interface PatientOption {
 interface ApplyTemplateFormProps {
   templateId: string
   fields: TemplateField[]
-  patients: PatientOption[]
 }
 
 type ResponseValue = string | number | string[] | null
@@ -102,17 +105,74 @@ export function prefillResponsesFromPatient(
   return out
 }
 
-export function ApplyTemplateForm({ templateId, fields, patients }: ApplyTemplateFormProps) {
+export function ApplyTemplateForm({ templateId, fields }: ApplyTemplateFormProps) {
   const router = useRouter()
   const [patientId, setPatientId] = useState<string>('')
   const [responses, setResponses] = useState<Record<string, ResponseValue>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [loadingPrefill, setLoadingPrefill] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function handlePatientChange(nextId: string) {
-    setPatientId(nextId)
-    const selected = patients.find((p) => p.id === nextId) ?? null
-    setResponses(prefillResponsesFromPatient(fields, selected))
+  async function handlePatientChange(p: PatientTypeaheadValue | null) {
+    setPatientId(p?.id ?? '')
+    if (!p) {
+      setResponses({})
+      return
+    }
+    // O typeahead entrega só dados básicos (id, nome, CPF, plano).
+    // Para prefill precisamos do detalhe completo (endereço, contato,
+    // data de nascimento) — buscamos via /api/pacientes/{id}.
+    setLoadingPrefill(true)
+    try {
+      const res = await fetch(`/api/pacientes/${p.id}`)
+      if (!res.ok) {
+        // Sem detalhe: prefilla com o pouco que o typeahead trouxe.
+        setResponses(
+          prefillResponsesFromPatient(fields, {
+            id: p.id,
+            fullName: p.fullName,
+            cpf: p.cpf,
+            healthPlanName: p.planName,
+          }),
+        )
+        return
+      }
+      const body = (await res.json()) as {
+        patient: {
+          id: string
+          fullName: string
+          cpf: string
+          phone: string | null
+          email: string | null
+          birthDate: string | null
+          address: PatientOption['address']
+          healthPlan: { id: string; name: string } | null
+        }
+      }
+      const detail: PatientOption = {
+        id: body.patient.id,
+        fullName: body.patient.fullName,
+        cpf: body.patient.cpf,
+        phone: body.patient.phone,
+        email: body.patient.email,
+        birthDate: body.patient.birthDate,
+        healthPlanName: body.patient.healthPlan?.name ?? null,
+        address: body.patient.address,
+      }
+      setResponses(prefillResponsesFromPatient(fields, detail))
+    } catch {
+      // Best-effort prefill com dados do typeahead.
+      setResponses(
+        prefillResponsesFromPatient(fields, {
+          id: p.id,
+          fullName: p.fullName,
+          cpf: p.cpf,
+          healthPlanName: p.planName,
+        }),
+      )
+    } finally {
+      setLoadingPrefill(false)
+    }
   }
 
   function setValue(fieldId: string, value: ResponseValue) {
@@ -174,23 +234,16 @@ export function ApplyTemplateForm({ templateId, fields, patients }: ApplyTemplat
         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
           Paciente
         </label>
-        <Select value={patientId} onValueChange={handlePatientChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione um paciente…" />
-          </SelectTrigger>
-          <SelectContent>
-            {patients.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.fullName}
-                {p.cpf ? ` — ${p.cpf}` : ''}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <PatientTypeahead
+          value={patientId || null}
+          onChange={handlePatientChange}
+          disabled={submitting}
+        />
         {patientId ? (
           <p className="text-[10px] text-slate-500">
-            Campos padrão pré-preenchidos a partir do cadastro deste paciente — você
-            pode editar antes de salvar.
+            {loadingPrefill
+              ? 'Carregando dados do paciente para pré-preencher campos padrão…'
+              : 'Campos padrão pré-preenchidos a partir do cadastro deste paciente — você pode editar antes de salvar.'}
           </p>
         ) : null}
       </div>
