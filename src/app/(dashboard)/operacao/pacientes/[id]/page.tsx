@@ -49,10 +49,12 @@ import type {
   PaymentRecordDTO,
   PatientFinancialSummary,
 } from '@/lib/core/payments/list'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { calculateAge, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
+import {
+  AppointmentsHistoryTable,
+  type AppointmentHistoryRow,
+} from './appointments-history-table'
 
 export const dynamic = 'force-dynamic'
 
@@ -224,6 +226,42 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     vitalSignsPromise,
     diagnosesPromise,
   ])
+
+  // Mapa appointment_id → step_id para distinguir orfaos (sem step
+  // vinculada) dos ja importados no plano. O botao "Adicionar ao plano"
+  // so aparece nos orfaos.
+  const appointmentIds = appointments
+    .map((a) => a.id)
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+  const stepByAppointment = new Map<string, string>()
+  if (appointmentIds.length > 0) {
+    try {
+      const stepsRes = await supabase
+        .from('treatment_plan_steps')
+        .select('id, appointment_id')
+        .eq('tenant_id', session.tenantId)
+        .in('appointment_id', appointmentIds)
+      if (stepsRes.error) throw new Error(stepsRes.error.message)
+      for (const row of (stepsRes.data ?? []) as Array<{
+        id: string
+        appointment_id: string | null
+      }>) {
+        if (row.appointment_id) stepByAppointment.set(row.appointment_id, row.id)
+      }
+    } catch (err) {
+      recordFailure('appointment-step-link', err)
+    }
+  }
+  const historyRows: AppointmentHistoryRow[] = appointments
+    .filter((a): a is AppointmentRow & { id: string } => typeof a.id === 'string' && a.id.length > 0)
+    .map((a) => ({
+      id: a.id,
+      appointmentAt: a.appointment_at,
+      frozenAmountCents: a.frozen_amount_cents,
+      netAmountCents: a.net_amount_cents,
+      effectiveStatus: a.effective_status,
+      stepId: stepByAppointment.get(a.id) ?? null,
+    }))
 
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
     supabase
@@ -492,55 +530,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {appointments.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-slate-500">
-              Nenhum atendimento registrado para este paciente.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Valor bruto</TableHead>
-                  <TableHead>Valor líquido</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {appointments.map((a) => (
-                  <TableRow key={a.id ?? Math.random()} className="group">
-                    <TableCell className="text-slate-700">
-                      {formatDateTime(a.appointment_at)}
-                    </TableCell>
-                    <TableCell className="font-semibold text-slate-900">
-                      {formatCurrency(a.frozen_amount_cents)}
-                    </TableCell>
-                    <TableCell className="font-bold text-slate-900">
-                      {formatCurrency(a.net_amount_cents)}
-                    </TableCell>
-                    <TableCell>
-                      {a.effective_status === 'estornado' ? (
-                        <Badge variant="destructive">Cancelado</Badge>
-                      ) : (
-                        <Badge variant="success">Ativo</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {a.id ? (
-                        <Link
-                          href={`/operacao/atendimentos/${a.id}`}
-                          className="text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
-                        >
-                          Abrir
-                        </Link>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <AppointmentsHistoryTable
+            patientId={params.id}
+            rows={historyRows}
+            canImportToPlan={canWriteTreatment && !isAnonymized}
+          />
         </CardContent>
       </Card>
 

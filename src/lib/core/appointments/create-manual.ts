@@ -64,6 +64,17 @@ export interface CreateManualAppointmentInput {
   observacoes?: string
   /** Materiais opcionais (TUSS tabela 19). Feature 007. */
   materials?: Array<{ tussCode: string; tussDescription: string; quantity: number }>
+  /**
+   * Quando true (default), garante que existira uma treatment_plan_step
+   * vinculada ao atendimento:
+   *   1) Auto-link FIFO tenta vincular a uma step pendente sem appointment
+   *      (mesmo procedure_id).
+   *   2) Se nenhuma step compativel for vinculada, cria uma nova step
+   *      ja com appointment_id setado (usando a linha primaria como
+   *      procedimento, alinhado ao schema 1:N do treatment_plan_steps).
+   * Quando false, mantem apenas o passo 1 (comportamento legado).
+   */
+  addToTreatmentPlan?: boolean
 }
 
 export interface CreateManualAppointmentResult {
@@ -391,6 +402,7 @@ export async function createAppointmentManually(
 
   // Auto-link FIFO: para cada procedureId distinto, vincular a etapa
   // pendente do mesmo (patient, procedure) sem appointment. Best-effort.
+  let anyStepLinkedOrCreated = false
   for (const pid of distinctProcedureIds) {
     try {
       const linkable = await supabase
@@ -409,9 +421,37 @@ export async function createAppointmentManually(
           .from('treatment_plan_steps')
           .update({ appointment_id: data.appointment_id } as never)
           .eq('id', linkable.data.id)
+        anyStepLinkedOrCreated = true
       }
     } catch {
       // best-effort; ignora.
+    }
+  }
+
+  // Se o caller pediu para garantir vinculacao ao plano e nenhuma step
+  // foi linkada acima, cria uma step nova ja vinculada — usando a linha
+  // primaria como procedimento. Default true (UI passa o estado do
+  // checkbox; nao informar mantem default por seguranca).
+  const shouldEnsurePlanStep = input.addToTreatmentPlan !== false
+  if (shouldEnsurePlanStep && !anyStepLinkedOrCreated) {
+    try {
+      const primary = lines[0]!
+      const scheduledDate = when.toISOString().slice(0, 10)
+      await supabase.from('treatment_plan_steps').insert({
+        tenant_id: input.tenantId,
+        patient_id: input.patientId,
+        procedure_id: primary.procedureId,
+        plan_id: primary.planId,
+        doctor_id: input.doctorId,
+        title: 'Atendimento agendado (criado com o atendimento)',
+        notes: null,
+        scheduled_date: scheduledDate,
+        status: 'pendente',
+        appointment_id: data.appointment_id,
+        created_by: input.actorUserId,
+      } as never)
+    } catch {
+      // best-effort; nao deve impedir o sucesso do atendimento.
     }
   }
 
