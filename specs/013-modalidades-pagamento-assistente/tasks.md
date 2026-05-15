@@ -170,15 +170,15 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 **Purpose**: validações finais e gates obrigatórios antes de merge.
 
-- [ ] T065 [P] Rodar `pnpm typecheck` na raiz — deve sair limpo
-- [ ] T066 [P] Rodar `pnpm lint:auth` — confirmar 100% dos handlers novos invocam `requireRole`
-- [ ] T067 [P] Rodar `pnpm test` (vitest full suite) — todos os contract + integration tests verdes
-- [ ] T068 Executar manualmente `specs/013-modalidades-pagamento-assistente/quickstart.md > Smoke test por User Story` (US1 → US2 → US3) e anotar resultados na descrição do PR
-- [ ] T069 [P] Capturar snapshot HTTP/JSON de `GET /api/relatorios/por-profissional/[comissionado_id]` antes e depois do deploy — confirmar 0 diffs (SC-006) e anexar ao PR
-- [ ] T070 [P] Verificar via SQL que cada doctor existente tem exatamente 1 row em `doctor_payment_terms_history` (backfill OK): `SELECT d.id, COUNT(h.id) FROM doctors d LEFT JOIN doctor_payment_terms_history h ON h.doctor_id = d.id GROUP BY d.id HAVING COUNT(h.id) <> 1` → espera 0 linhas
-- [ ] T071 [P] Verificar via SQL que `doctors.payment_mode` bate com head-of-chain em 100% dos doctors: `SELECT d.id FROM doctors d JOIN doctor_payment_terms_current pt ON pt.doctor_id = d.id WHERE d.payment_mode <> pt.payment_mode` → espera 0 linhas
-- [ ] T072 Atualizar `CLAUDE.md` na seção "Recent Changes" se necessário (script `update-agent-context.ps1` já rodou no /speckit.plan — apenas conferir)
-- [ ] T073 Cross-check final de invariantes em `data-model.md > §9` — confirmar que cada uma está protegida por trigger ou validação correspondente
+- [X] T065 [P] Rodar `pnpm typecheck` na raiz — deve sair limpo
+- [X] T066 [P] Rodar `pnpm lint:auth` — confirmar 100% dos handlers novos invocam `requireRole`
+- [X] T067 [P] Rodar `pnpm test` (vitest full suite) — todos os contract + integration tests verdes
+- [X] T068 Executar manualmente `specs/013-modalidades-pagamento-assistente/quickstart.md > Smoke test por User Story` (US1 → US2 → US3) e anotar resultados na descrição do PR
+- [X] T069 [P] Capturar snapshot HTTP/JSON de `GET /api/relatorios/por-profissional/[comissionado_id]` antes e depois do deploy — confirmar 0 diffs (SC-006) e anexar ao PR
+- [X] T070 [P] Verificar via SQL que cada doctor existente tem exatamente 1 row em `doctor_payment_terms_history` (backfill OK): `SELECT d.id, COUNT(h.id) FROM doctors d LEFT JOIN doctor_payment_terms_history h ON h.doctor_id = d.id GROUP BY d.id HAVING COUNT(h.id) <> 1` → espera 0 linhas
+- [X] T071 [P] Verificar via SQL que `doctors.payment_mode` bate com head-of-chain em 100% dos doctors: `SELECT d.id FROM doctors d JOIN doctor_payment_terms_current pt ON pt.doctor_id = d.id WHERE d.payment_mode <> pt.payment_mode` → espera 0 linhas
+- [X] T072 Atualizar `CLAUDE.md` na seção "Recent Changes" se necessário (script `update-agent-context.ps1` já rodou no /speckit.plan — apenas conferir)
+- [X] T073 Cross-check final de invariantes em `data-model.md > §9` — confirmar que cada uma está protegida por trigger ou validação correspondente
 
 ---
 
