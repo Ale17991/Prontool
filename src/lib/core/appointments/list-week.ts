@@ -31,6 +31,8 @@ export interface AppointmentWeekRow {
   effectiveStatus: 'agendado' | 'ativo' | 'estornado'
   /** Null = atendimento particular. */
   planId: string | null
+  /** Quantidade de profissionais assistentes ativos. Feature 013 US2. */
+  assistantsCount: number
 }
 
 interface RawRow {
@@ -109,6 +111,29 @@ export async function listAppointmentsForWeek(
     }
   }
 
+  // Conta assistentes ativos por appointment_id em batch (feature 013).
+  const assistantsByAppointment = new Map<string, number>()
+  const apptIdsForAssist = rows
+    .map((r) => r.id)
+    .filter((v): v is string => typeof v === 'string')
+  if (apptIdsForAssist.length > 0) {
+    try {
+      const { data: assistantRows } = await supabase
+        .from('appointment_assistants' as never)
+        .select('appointment_id')
+        .in('appointment_id', apptIdsForAssist)
+        .is('removed_at', null)
+      for (const r of (assistantRows ?? []) as Array<{ appointment_id: string }>) {
+        assistantsByAppointment.set(
+          r.appointment_id,
+          (assistantsByAppointment.get(r.appointment_id) ?? 0) + 1,
+        )
+      }
+    } catch {
+      // best-effort — feature 013 ainda nao aplicada
+    }
+  }
+
   return rows
     .filter((r) => r.id && r.appointment_at && r.doctor_id && r.procedure_id && r.patient_id)
     .map<AppointmentWeekRow>((r) => {
@@ -137,6 +162,7 @@ export async function listAppointmentsForWeek(
         durationMinutes: r.duration_minutes ?? DEFAULT_DURATION_MINUTES,
         effectiveStatus: status,
         planId: r.plan_id,
+        assistantsCount: assistantsByAppointment.get(r.id as string) ?? 0,
       }
     })
 }

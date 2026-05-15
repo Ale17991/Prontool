@@ -76,6 +76,11 @@ export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
         ) : null}
       </span>
       <span className="truncate leading-tight opacity-80">{a.procedureLabel}</span>
+      {a.assistantsCount > 0 ? (
+        <span className="truncate text-[9px] font-semibold leading-tight opacity-70">
+          (+ {a.assistantsCount} assistente{a.assistantsCount === 1 ? '' : 's'})
+        </span>
+      ) : null}
     </Link>
   )
 }

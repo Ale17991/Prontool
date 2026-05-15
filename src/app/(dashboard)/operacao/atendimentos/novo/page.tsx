@@ -22,16 +22,28 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
 
   const supabase = createSupabaseServerClient()
 
-  const [plansRes, doctorsRes, proceduresRes] = await Promise.all([
+  const [plansRes, doctorsRes, liberalsRes, proceduresRes] = await Promise.all([
     supabase
       .from('health_plans')
       .select('id, name')
       .eq('active', true)
       .order('name', { ascending: true }),
+    // Doctors elegíveis para "Profissional principal" — Liberais NÃO aparecem
+    // (Decisão 5: Liberal cobra como assistente, não como principal).
     supabase
       .from('doctors')
-      .select('id, full_name')
+      .select('id, full_name, payment_mode')
       .eq('active', true)
+      .in('payment_mode', ['comissionado', 'fixo'])
+      .order('full_name', { ascending: true }),
+    // Doctors elegíveis como assistentes (apenas Liberais).
+    supabase
+      .from('doctors')
+      .select(
+        'id, full_name, doctor_payment_terms_current:id ( liberal_default_cents )',
+      )
+      .eq('active', true)
+      .eq('payment_mode', 'liberal')
       .order('full_name', { ascending: true }),
     supabase
       .from('procedures')
@@ -50,6 +62,35 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
   const doctors: FormOption[] = (
     (doctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
   ).map((d) => ({ id: d.id, label: d.full_name }))
+
+  // Liberais: lookup separado para liberal_default_cents (embed via FK foi
+  // confuso por tipagem; query direta é mais limpa).
+  let liberalDoctors: Array<{ id: string; fullName: string; defaultAmountCents: number }> = []
+  const liberalRows = (liberalsRes.data ?? []) as Array<{
+    id: string
+    full_name: string
+  }>
+  if (liberalRows.length > 0) {
+    const ids = liberalRows.map((l) => l.id)
+    const { data: termsRows } = await supabase
+      .from('doctor_payment_terms_current' as never)
+      .select('doctor_id, liberal_default_cents')
+      .in('doctor_id', ids)
+    const defaults = new Map<string, number>()
+    for (const r of (termsRows ?? []) as Array<{
+      doctor_id: string
+      liberal_default_cents: number | null
+    }>) {
+      if (r.liberal_default_cents != null) {
+        defaults.set(r.doctor_id, r.liberal_default_cents)
+      }
+    }
+    liberalDoctors = liberalRows.map((l) => ({
+      id: l.id,
+      fullName: l.full_name,
+      defaultAmountCents: defaults.get(l.id) ?? 0,
+    }))
+  }
   const procedures = (
     (proceduresRes.data ?? []) as Array<{
       id: string
@@ -102,6 +143,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
         <CardContent>
           <NewAppointmentForm
             doctors={doctors}
+            liberalDoctors={liberalDoctors}
             procedures={procedures}
             plans={plans}
             initialAppointmentAt={searchParams.at}

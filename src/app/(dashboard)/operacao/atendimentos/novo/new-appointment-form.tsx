@@ -29,6 +29,11 @@ import {
   validateProcedures,
   type ProcedureLineDraft,
 } from '@/components/atendimentos/procedimentos-editor'
+import {
+  AssistantMultiSelect,
+  type AssistantSelection,
+  type LiberalDoctorOption,
+} from '../components/assistant-multi-select'
 
 export interface FormOption {
   id: string
@@ -37,6 +42,8 @@ export interface FormOption {
 
 export interface NewAppointmentFormProps {
   doctors: FormOption[]
+  /** Profissionais com modalidade Liberal — elegíveis como assistentes. */
+  liberalDoctors: LiberalDoctorOption[]
   procedures: LocalProcedureOption[]
   plans: FormOption[]
   initialAppointmentAt?: string
@@ -63,6 +70,7 @@ const METHOD_OPTIONS: Array<{ value: PaymentMethod; label: string }> = [
 
 export function NewAppointmentForm({
   doctors,
+  liberalDoctors,
   procedures,
   plans,
   initialAppointmentAt,
@@ -75,6 +83,7 @@ export function NewAppointmentForm({
   // Lista inicia vazia — usuário adiciona procedimentos via busca no editor.
   const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>([])
   const [materiais, setMateriais] = useState<MaterialDraft[]>([])
+  const [assistants, setAssistants] = useState<AssistantSelection[]>([])
   const [appointmentAt, setAppointmentAt] = useState(
     () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
   )
@@ -250,6 +259,18 @@ export function NewAppointmentForm({
       }))
     }
 
+    if (assistants.length > 0) {
+      // Validacao: todos com amount > 0.
+      if (assistants.some((a) => a.amountCents <= 0)) {
+        setError('Todos os assistentes precisam ter valor de participação maior que zero.')
+        return
+      }
+      payload.assistants = assistants.map((a) => ({
+        assistant_doctor_id: a.doctorId,
+        amount_cents: a.amountCents,
+      }))
+    }
+
     setPending(true)
     setWarning(null)
     try {
@@ -416,6 +437,15 @@ export function NewAppointmentForm({
 
       <div className="md:col-span-2">
         <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
+      </div>
+
+      <div className="md:col-span-2">
+        <AssistantMultiSelect
+          options={liberalDoctors}
+          value={assistants}
+          onChange={setAssistants}
+          disabled={pending}
+        />
       </div>
 
       <div className="space-y-1.5 md:col-span-2">

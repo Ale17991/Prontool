@@ -16,9 +16,12 @@ type Action =
   | 'plan.read'
   | 'doctor.write'
   | 'doctor.read'
+  | 'doctor.payment_mode.write'
+  | 'doctor.payment_terms.read'
   | 'commission.write'
   | 'appointment.read'
   | 'appointment.reverse'
+  | 'appointment.assistant.write'
   | 'report.read'
   | 'report.export'
   | 'audit.read'
@@ -42,8 +45,10 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'procedure.write', 'procedure.read',
     'plan.write', 'plan.read',
     'doctor.write', 'doctor.read',
+    'doctor.payment_mode.write', 'doctor.payment_terms.read',
     'commission.write',
     'appointment.read', 'appointment.reverse',
+    'appointment.assistant.write',
     'report.read', 'report.export',
     'audit.read', 'audit.export',
     'alert.read', 'alert.resolve',
@@ -58,6 +63,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'procedure.read',
     'plan.read',
     'doctor.read',
+    'doctor.payment_terms.read',
     'appointment.read', 'appointment.reverse',
     'report.read', 'report.export',
     'alert.read',
@@ -73,6 +79,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'plan.read',
     'doctor.read',
     'appointment.read',
+    'appointment.assistant.write',
     'anamnesis.read',
     'tax.read',
     'task.read', 'task.write',

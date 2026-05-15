@@ -8,6 +8,7 @@ import {
 } from '@/lib/observability/errors'
 import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'
+import { addAssistant } from '@/lib/core/appointment-assistants/add'
 
 /**
  * Cria um atendimento manualmente (admin/recepcionista) com N procedimentos.
@@ -64,6 +65,8 @@ export interface CreateManualAppointmentInput {
   observacoes?: string
   /** Materiais opcionais (TUSS tabela 19). Feature 007. */
   materials?: Array<{ tussCode: string; tussDescription: string; quantity: number }>
+  /** Profissionais assistentes (modalidade Liberal). Feature 013 US2. */
+  assistants?: Array<{ assistantDoctorId: string; amountCents: number }>
   /**
    * Quando true (default), garante que existira uma treatment_plan_step
    * vinculada ao atendimento:
@@ -88,6 +91,8 @@ export interface CreateManualAppointmentResult {
   proceduresOverridden: number
   lines: ResolvedProcedureLine[]
   materialsCount?: number
+  assistantsCount?: number
+  assistants?: Array<{ id: string; assistantDoctorId: string; frozenAmountCents: number }>
 }
 
 export async function createAppointmentManually(
@@ -127,6 +132,35 @@ export async function createAppointmentManually(
     ),
   ]
   await Promise.all(fkChecks)
+
+  // Feature 013 — Decisão 5: Liberal NÃO pode ser principal.
+  const { data: doctorMode } = await supabase
+    .from('doctors')
+    .select('payment_mode')
+    .eq('id', input.doctorId)
+    .eq('tenant_id', input.tenantId)
+    .maybeSingle()
+  const principalMode = (doctorMode as unknown as { payment_mode: string } | null)?.payment_mode
+  if (principalMode === 'liberal') {
+    throw new DomainError(
+      'LIBERAL_AS_PRINCIPAL',
+      'Profissional Liberal não pode ser o profissional principal — só assistente.',
+      { status: 400 },
+    )
+  }
+
+  // Feature 013 — valida assistants[] cedo (duplicata + qtd) antes de
+  // chegar no banco. Trigger valida que cada um é Liberal (defense in depth).
+  if (input.assistants && input.assistants.length > 0) {
+    const ids = input.assistants.map((a) => a.assistantDoctorId)
+    if (new Set(ids).size !== ids.length) {
+      throw new DomainError(
+        'DUPLICATE_ASSISTANT',
+        'Não é permitido adicionar o mesmo profissional como assistente mais de uma vez.',
+        { status: 400 },
+      )
+    }
+  }
 
   // Carrega TUSS + is_unlisted de cada procedimento.
   const procedureRows = await supabase
@@ -455,6 +489,33 @@ export async function createAppointmentManually(
     }
   }
 
+  // Feature 013 — anexa assistants[] após o appointment ser criado.
+  // Cada um vai via RPC SECURITY DEFINER (trigger valida liberal-only +
+  // tenant consistency). Falha em qualquer um aborta com DomainError —
+  // appointment já existe, mas é mais seguro propagar erro do que deixar
+  // silencioso (caller pode estornar manualmente se necessário).
+  const attachedAssistants: Array<{
+    id: string
+    assistantDoctorId: string
+    frozenAmountCents: number
+  }> = []
+  if (input.assistants && input.assistants.length > 0) {
+    for (const a of input.assistants) {
+      const result = await addAssistant(supabase, {
+        tenantId: input.tenantId,
+        appointmentId: data.appointment_id,
+        assistantDoctorId: a.assistantDoctorId,
+        amountCents: a.amountCents,
+        actorUserId: input.actorUserId,
+      })
+      attachedAssistants.push({
+        id: result.id,
+        assistantDoctorId: a.assistantDoctorId,
+        frozenAmountCents: result.frozenAmountCents,
+      })
+    }
+  }
+
   return {
     appointmentId: data.appointment_id,
     frozenAmountCents: totalCents,
@@ -464,6 +525,8 @@ export async function createAppointmentManually(
     proceduresOverridden,
     lines,
     materialsCount: data.materials_count,
+    assistantsCount: attachedAssistants.length,
+    assistants: attachedAssistants,
   }
 }
 

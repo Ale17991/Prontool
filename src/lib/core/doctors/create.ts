@@ -1,18 +1,24 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ConflictError, ValidationError } from '@/lib/observability/errors'
+import type { PaymentMode } from '@/lib/core/payment-terms/types'
 
 /**
- * T123 — Cria médico + linha inicial de `doctor_commission_history`.
- * A operação é um par de INSERTs com rollback manual: se o insert da
- * comissão falhar, removemos a row do médico (service_role bypassa
- * o append-only trigger em `doctors`, que não tem guarda de mutação).
+ * Cria um profissional com modalidade de pagamento (feature 013).
  *
- * Validações:
- *   - CRM non-empty (formato livre pra acomodar variações estaduais)
- *   - external_identifier opcional (matching com custom field GHL)
- *   - percentage_bps 0..10000, validado pelo CHECK na migration 0005
- *   - reason >= 3 chars (CHECK na migration 0005)
+ * Para qualquer modalidade, escreve em 3 tabelas (rollback manual em
+ * caso de falha):
+ *   1. doctors (com `payment_mode`)
+ *   2. doctor_commission_history (linha inicial: bps real p/ comissionado;
+ *      0 p/ fixo/liberal — preserva o caminho atual de appointment lookup)
+ *   3. doctor_payment_terms_history (linha inicial com params especificos
+ *      da modalidade)
+ *
+ * Validacoes:
+ *   - CRM non-empty
+ *   - external_identifier opcional
+ *   - Por modalidade: parametros obrigatorios validados antes do INSERT
+ *   - reason >= 3 chars
  */
 export interface CreateDoctorInput {
   tenantId: string
@@ -23,7 +29,17 @@ export interface CreateDoctorInput {
   specialty?: string | null
   councilName?: string | null
   councilNumber?: string | null
-  initialPercentageBps: number
+  /** Default: 'comissionado' (retrocompat). */
+  paymentMode?: PaymentMode
+  /** Obrigatorio quando paymentMode = 'comissionado' (ou ausente). */
+  initialPercentageBps?: number | null
+  /** Obrigatorio quando paymentMode = 'fixo'. */
+  monthlyAmountCents?: number | null
+  /** Obrigatorio quando paymentMode = 'fixo' (1..28). */
+  billingDay?: number | null
+  /** Obrigatorio quando paymentMode = 'liberal'. */
+  liberalDefaultCents?: number | null
+  /** Data efetiva da modalidade inicial (YYYY-MM-DD). */
   initialValidFrom: string
   initialReason: string
   actorUserId: string
@@ -40,9 +56,14 @@ export interface CreatedDoctor {
   councilNumber: string | null
   active: boolean
   createdAt: string
-  currentPercentageBps: number
+  paymentMode: PaymentMode
+  currentPercentageBps: number | null
+  currentMonthlyAmountCents: number | null
+  currentBillingDay: number | null
+  currentLiberalDefaultCents: number | null
   currentValidFrom: string
   commissionHistoryId: string
+  paymentTermsHistoryId: string
 }
 
 export async function createDoctor(
@@ -52,14 +73,47 @@ export async function createDoctor(
   const crm = input.crm.trim()
   if (!crm) throw new ValidationError('CRM obrigatório')
   if (!input.fullName.trim()) throw new ValidationError('Nome completo obrigatório')
-  if (input.initialPercentageBps < 0 || input.initialPercentageBps > 10_000) {
-    throw new ValidationError('Comissão deve estar entre 0 e 10000 bps (0%–100%)')
-  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.initialValidFrom)) {
     throw new ValidationError('valid_from deve estar no formato YYYY-MM-DD')
   }
   if (input.initialReason.trim().length < 3) {
-    throw new ValidationError('Motivo da comissão deve ter ao menos 3 caracteres')
+    throw new ValidationError('Motivo deve ter ao menos 3 caracteres')
+  }
+
+  // Validacao por modalidade — replica a logica da RPC mas no app layer
+  // pra erros mais bonitos antes do round-trip.
+  const paymentMode: PaymentMode = input.paymentMode ?? 'comissionado'
+  let commissionBps = 0
+  switch (paymentMode) {
+    case 'comissionado':
+      if (
+        input.initialPercentageBps == null ||
+        input.initialPercentageBps < 0 ||
+        input.initialPercentageBps > 10_000
+      ) {
+        throw new ValidationError('Comissão deve estar entre 0 e 10000 bps (0%–100%)')
+      }
+      commissionBps = input.initialPercentageBps
+      break
+    case 'fixo':
+      if (input.monthlyAmountCents == null || input.monthlyAmountCents <= 0) {
+        throw new ValidationError('Valor mensal deve ser maior que zero')
+      }
+      if (
+        input.billingDay == null ||
+        input.billingDay < 1 ||
+        input.billingDay > 28
+      ) {
+        throw new ValidationError('Dia de faturamento deve estar entre 1 e 28')
+      }
+      commissionBps = 0 // Fixos não recebem comissão variável (Decisão 10).
+      break
+    case 'liberal':
+      if (input.liberalDefaultCents == null || input.liberalDefaultCents <= 0) {
+        throw new ValidationError('Valor padrão por participação deve ser maior que zero')
+      }
+      commissionBps = 0
+      break
   }
 
   const councilNumber = input.councilNumber?.trim() || crm
@@ -75,15 +129,15 @@ export async function createDoctor(
       council_name: input.councilName?.trim() || null,
       council_number: councilNumber,
       created_by: input.actorUserId,
-    })
+      payment_mode: paymentMode,
+    } as never)
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at, payment_mode',
     )
     .single()
 
   if (doctorInsert.error) {
     if (doctorInsert.error.code === '23505') {
-      // Could be the (tenant_id, crm) unique or the partial external_identifier unique.
       const msg = /external/i.test(doctorInsert.error.message)
         ? `Identificador externo já usado por outro profissional`
         : `Já existe um profissional com o nº de registro ${crm} neste tenant`
@@ -94,14 +148,27 @@ export async function createDoctor(
     }
     throw new Error(`createDoctor failed: ${doctorInsert.error.message}`)
   }
-  const doctor = doctorInsert.data
+  const doctor = doctorInsert.data as unknown as {
+    id: string
+    full_name: string
+    crm: string
+    external_identifier: string | null
+    role: string
+    specialty: string | null
+    council_name: string | null
+    council_number: string | null
+    active: boolean
+    created_at: string
+    payment_mode: PaymentMode
+  }
 
+  // 2) commission_history — sempre escreve (com 0 bps para fixo/liberal).
   const commissionInsert = await supabase
     .from('doctor_commission_history')
     .insert({
       tenant_id: input.tenantId,
       doctor_id: doctor.id,
-      percentage_bps: input.initialPercentageBps,
+      percentage_bps: commissionBps,
       valid_from: input.initialValidFrom,
       reason: input.initialReason.trim(),
       created_by: input.actorUserId,
@@ -110,9 +177,49 @@ export async function createDoctor(
     .single()
 
   if (commissionInsert.error || !commissionInsert.data) {
-    await supabase.from('doctors').delete().eq('id', doctor.id).eq('tenant_id', input.tenantId)
+    await supabase
+      .from('doctors')
+      .delete()
+      .eq('id', doctor.id)
+      .eq('tenant_id', input.tenantId)
     throw new Error(
       `createDoctor commission insert failed: ${commissionInsert.error?.message ?? 'unknown'}`,
+    )
+  }
+
+  // 3) payment_terms_history — sempre escreve com os params especificos da modalidade.
+  const ptResult = (await supabase
+    .from('doctor_payment_terms_history' as never)
+    .insert({
+      tenant_id: input.tenantId,
+      doctor_id: doctor.id,
+      payment_mode: paymentMode,
+      percentage_bps: paymentMode === 'comissionado' ? commissionBps : null,
+      monthly_amount_cents:
+        paymentMode === 'fixo' ? (input.monthlyAmountCents as number) : null,
+      billing_day:
+        paymentMode === 'fixo' ? (input.billingDay as number) : null,
+      liberal_default_cents:
+        paymentMode === 'liberal' ? (input.liberalDefaultCents as number) : null,
+      valid_from: input.initialValidFrom,
+      reason: input.initialReason.trim(),
+      created_by: input.actorUserId,
+    } as never)
+    .select('id')
+    .single()) as unknown as {
+    data: { id: string } | null
+    error: { message: string } | null
+  }
+
+  if (ptResult.error || !ptResult.data) {
+    // Rollback: remove commission row + doctor row.
+    await supabase
+      .from('doctor_commission_history')
+      .delete()
+      .eq('id', commissionInsert.data.id)
+    await supabase.from('doctors').delete().eq('id', doctor.id).eq('tenant_id', input.tenantId)
+    throw new Error(
+      `createDoctor payment_terms insert failed: ${ptResult.error?.message ?? 'unknown'}`,
     )
   }
 
@@ -127,8 +234,16 @@ export async function createDoctor(
     councilNumber: doctor.council_number,
     active: doctor.active,
     createdAt: doctor.created_at,
-    currentPercentageBps: commissionInsert.data.percentage_bps,
+    paymentMode: doctor.payment_mode,
+    currentPercentageBps:
+      paymentMode === 'comissionado' ? commissionBps : null,
+    currentMonthlyAmountCents:
+      paymentMode === 'fixo' ? (input.monthlyAmountCents as number) : null,
+    currentBillingDay: paymentMode === 'fixo' ? (input.billingDay as number) : null,
+    currentLiberalDefaultCents:
+      paymentMode === 'liberal' ? (input.liberalDefaultCents as number) : null,
     currentValidFrom: commissionInsert.data.valid_from,
     commissionHistoryId: commissionInsert.data.id,
+    paymentTermsHistoryId: ptResult.data.id,
   }
 }

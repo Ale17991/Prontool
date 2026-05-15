@@ -8,13 +8,15 @@ import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatBps, formatDate } from '@/lib/utils'
+import { formatBps, formatCurrency, formatDate } from '@/lib/utils'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
 import type { Database } from '@/lib/db/types'
 import { NewDoctorForm } from './new-doctor-form'
 import { ToggleActiveDoctor } from './toggle-active-doctor'
 
 export const dynamic = 'force-dynamic'
+
+type PaymentMode = 'comissionado' | 'fixo' | 'liberal'
 
 interface DoctorRow {
   id: string
@@ -27,12 +29,29 @@ interface DoctorRow {
   council_number: string | null
   active: boolean
   created_at: string
+  payment_mode: PaymentMode
 }
 
-interface CommissionHead {
+interface PaymentTermsHead {
   doctor_id: string
-  percentage_bps: number
+  payment_mode: PaymentMode
+  percentage_bps: number | null
+  monthly_amount_cents: number | null
+  billing_day: number | null
+  liberal_default_cents: number | null
   valid_from: string
+}
+
+const MODE_BADGE: Record<PaymentMode, { label: string; cls: string }> = {
+  comissionado: {
+    label: 'Comissionado',
+    cls: 'bg-blue-50 text-blue-700 border-blue-200',
+  },
+  fixo: { label: 'Fixo', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  liberal: {
+    label: 'Liberal',
+    cls: 'bg-violet-50 text-violet-700 border-violet-200',
+  },
 }
 
 export default async function ProfissionaisPage() {
@@ -48,22 +67,24 @@ export default async function ProfissionaisPage() {
     supabase
       .from('doctors')
       .select(
-        'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at',
+        'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at, payment_mode',
       )
       .eq('tenant_id', session.tenantId)
       .order('active', { ascending: false })
       .order('full_name', { ascending: true })
       .limit(500),
     supabase
-      .from('doctor_commission_current')
-      .select('doctor_id, percentage_bps, valid_from')
+      .from('doctor_payment_terms_current' as never)
+      .select(
+        'doctor_id, payment_mode, percentage_bps, monthly_amount_cents, billing_day, liberal_default_cents, valid_from',
+      )
       .eq('tenant_id', session.tenantId),
     getEnabledIntegrations(rls, session.tenantId),
   ])
   const hasGhlIntegration = integrations.some((i) => i.provider === 'ghl')
-  const doctors = (doctorsRes.data ?? []) as DoctorRow[]
-  const heads = new Map<string, CommissionHead>()
-  for (const h of (headsRes.data ?? []) as CommissionHead[]) heads.set(h.doctor_id, h)
+  const doctors = (doctorsRes.data ?? []) as unknown as DoctorRow[]
+  const heads = new Map<string, PaymentTermsHead>()
+  for (const h of (headsRes.data ?? []) as unknown as PaymentTermsHead[]) heads.set(h.doctor_id, h)
 
   const canWrite = can(session.role, 'doctor.write')
   const activeCount = doctors.filter((d) => d.active).length
@@ -124,9 +145,9 @@ export default async function ProfissionaisPage() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Função</TableHead>
-                    <TableHead>Especialidade</TableHead>
                     <TableHead>Registro</TableHead>
-                    <TableHead>Comissão vigente</TableHead>
+                    <TableHead>Modalidade</TableHead>
+                    <TableHead>Valor vigente</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right" />
                   </TableRow>
@@ -136,10 +157,14 @@ export default async function ProfissionaisPage() {
                     const head = heads.get(d.id)
                     const registro = d.council_number ?? d.crm
                     const conselho = d.council_name
+                    const modeBadge = MODE_BADGE[d.payment_mode]
                     return (
                       <TableRow key={d.id} className="group">
                         <TableCell>
                           <p className="font-semibold text-slate-900">{d.full_name}</p>
+                          {d.specialty ? (
+                            <p className="text-[10px] text-slate-500">{d.specialty}</p>
+                          ) : null}
                           {hasGhlIntegration && d.external_identifier ? (
                             <p className="font-mono text-[10px] text-slate-500">
                               Homio: {d.external_identifier}
@@ -149,9 +174,6 @@ export default async function ProfissionaisPage() {
                         <TableCell className="text-xs font-semibold text-slate-700">
                           {d.role === 'profissional' ? '—' : d.role}
                         </TableCell>
-                        <TableCell className="text-xs text-slate-600">
-                          {d.specialty ?? '—'}
-                        </TableCell>
                         <TableCell className="font-mono text-xs text-slate-700">
                           {conselho ? (
                             <span className="font-bold">{conselho} </span>
@@ -159,18 +181,19 @@ export default async function ProfissionaisPage() {
                           {registro}
                         </TableCell>
                         <TableCell>
-                          {head ? (
-                            <>
-                              <span className="font-bold text-slate-900">
-                                {formatBps(head.percentage_bps)}
-                              </span>
-                              <p className="text-[10px] text-slate-500">
-                                desde {formatDate(head.valid_from)}
-                              </p>
-                            </>
-                          ) : (
-                            <Badge variant="secondary">sem vigência</Badge>
-                          )}
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${modeBadge.cls}`}
+                          >
+                            {modeBadge.label}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {renderValue(d.payment_mode, head)}
+                          {head?.valid_from ? (
+                            <p className="text-[10px] text-slate-500">
+                              desde {formatDate(head.valid_from)}
+                            </p>
+                          ) : null}
                         </TableCell>
                         <TableCell>
                           {d.active ? (
@@ -202,5 +225,26 @@ export default async function ProfissionaisPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+function renderValue(mode: PaymentMode, head: PaymentTermsHead | undefined) {
+  if (!head) return <Badge variant="secondary">sem vigência</Badge>
+  if (mode === 'comissionado') {
+    return (
+      <span className="font-bold text-slate-900">{formatBps(head.percentage_bps ?? 0)}</span>
+    )
+  }
+  if (mode === 'fixo') {
+    return (
+      <span className="font-bold text-slate-900">
+        {formatCurrency(head.monthly_amount_cents)} / mês (dia {head.billing_day})
+      </span>
+    )
+  }
+  return (
+    <span className="font-bold text-slate-900">
+      {formatCurrency(head.liberal_default_cents)} / participação
+    </span>
   )
 }

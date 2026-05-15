@@ -254,10 +254,18 @@ export async function seedProcedure(tenantId: string, tussCode: string): Promise
 
 export async function seedDoctor(
   tenantId: string,
-  opts: { crm?: string; bps?: number } = {},
+  opts: {
+    crm?: string
+    bps?: number
+    paymentMode?: 'comissionado' | 'fixo' | 'liberal'
+    monthlyAmountCents?: number
+    billingDay?: number
+    liberalDefaultCents?: number
+  } = {},
 ): Promise<{ doctorId: string; commissionId: string }> {
   const sb = serviceClient()
   const doctorId = randomUUID()
+  const mode = opts.paymentMode ?? 'comissionado'
   await sb
     .from('doctors')
     .insert({
@@ -265,7 +273,8 @@ export async function seedDoctor(
       tenant_id: tenantId,
       full_name: 'Dr. Teste',
       crm: opts.crm ?? `CRM-${randomUUID().slice(0, 5)}`,
-    })
+      payment_mode: mode,
+    } as never)
     .throwOnError()
   const commissionId = randomUUID()
   await sb
@@ -278,6 +287,22 @@ export async function seedDoctor(
       valid_from: '2020-01-01',
       reason: 'initial',
     })
+    .throwOnError()
+  // Feature 013 — invariant: cada doctor tem >=1 row em payment_terms_history.
+  await sb
+    .from('doctor_payment_terms_history' as never)
+    .insert({
+      tenant_id: tenantId,
+      doctor_id: doctorId,
+      payment_mode: mode,
+      percentage_bps: mode === 'comissionado' ? (opts.bps ?? 4000) : null,
+      monthly_amount_cents: mode === 'fixo' ? (opts.monthlyAmountCents ?? 800000) : null,
+      billing_day: mode === 'fixo' ? (opts.billingDay ?? 1) : null,
+      liberal_default_cents: mode === 'liberal' ? (opts.liberalDefaultCents ?? 35000) : null,
+      valid_from: '2020-01-01',
+      reason: 'seedDoctor — test fixture',
+      created_by: '00000000-0000-0000-0000-000000000000',
+    } as never)
     .throwOnError()
   return { doctorId, commissionId }
 }

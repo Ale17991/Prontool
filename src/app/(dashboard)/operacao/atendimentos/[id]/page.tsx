@@ -19,6 +19,7 @@ import type { Database } from '@/lib/db/types'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { listAssistantsByAppointment } from '@/lib/core/appointment-assistants/list-by-appointment'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -136,6 +137,33 @@ export default async function AtendimentoDetailPage({
     }
   }
 
+  // Assistentes (feature 013 US2). Best-effort — render vazia se a
+  // migration 0084 ainda nao aplicou.
+  let assistantsActive: Array<{
+    id: string
+    doctorName: string
+    doctorSpecialty: string | null
+    frozenAmountCents: number
+  }> = []
+  let assistantsRemovedCount = 0
+  if (appointment.id) {
+    try {
+      const res = await listAssistantsByAppointment(supabase, {
+        appointmentId: appointment.id,
+        tenantId: session.tenantId,
+      })
+      assistantsActive = res.active.map((a) => ({
+        id: a.id,
+        doctorName: a.doctorName,
+        doctorSpecialty: a.doctorSpecialty,
+        frozenAmountCents: a.frozenAmountCents,
+      }))
+      assistantsRemovedCount = res.removedCount
+    } catch {
+      // ignore — sub-bloco nao renderiza
+    }
+  }
+
   const { data: auditRaw } = await supabase
     .from('audit_log')
     .select('timestamp_utc, actor_label, field, old_value, new_value, reason, result')
@@ -229,7 +257,38 @@ export default async function AtendimentoDetailPage({
             <span className="font-bold">{patientName}</span>
           </ClinicalRow>
           <ClinicalRow icon={Stethoscope} label="Profissional">
-            {appointment.doctors?.full_name ?? '—'}
+            <div>
+              <p>{appointment.doctors?.full_name ?? '—'}</p>
+              {assistantsActive.length > 0 ? (
+                <div className="mt-2 space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Assistentes
+                  </p>
+                  <ul className="space-y-0.5 text-xs text-slate-700">
+                    {assistantsActive.map((a) => (
+                      <li key={a.id} className="flex items-center justify-between gap-2">
+                        <span>
+                          {a.doctorName}
+                          {a.doctorSpecialty ? (
+                            <span className="text-slate-400"> · {a.doctorSpecialty}</span>
+                          ) : null}
+                        </span>
+                        <span className="font-mono font-semibold">
+                          {formatCurrency(a.frozenAmountCents)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {assistantsRemovedCount > 0 ? (
+                    <p className="text-[10px] text-slate-400">
+                      + {assistantsRemovedCount} assistente
+                      {assistantsRemovedCount === 1 ? '' : 's'} removido
+                      {assistantsRemovedCount === 1 ? '' : 's'} historicamente
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </ClinicalRow>
           <ClinicalRow icon={ClipboardList} label="Procedimento">
             {procedureLines.length > 1 ? (
