@@ -143,24 +143,24 @@ App Router monolítico (Next.js 14). Mapa rápido:
 
 ### Tests for User Story 3
 
-- [ ] T050 [P] [US3] Integration test: relatório mensal inclui `fixed_pay_lines` apenas DEPOIS do `billing_day` — cadastrar Fixo dia 15, consultar dia 14 (linha ausente) e dia 16 (linha presente) em `tests/integration/monthly-report-with-fixed-pay-lines.spec.ts`
-- [ ] T051 [P] [US3] Integration test: relatório por profissional Liberal soma só participações ativas e não-estornadas em `tests/integration/professional-report-liberal-participations.spec.ts`
-- [ ] T052 [P] [US3] Integration test: relatório por profissional Fixo mostra `monthly_amount_cents` + `billing_day` + `fixed_pay_lines[]` no período em `tests/integration/professional-report-fixed-shape.spec.ts`
-- [ ] T053 [P] [US3] Integration test SC-006: snapshot do relatório por profissional Comissionado pré- e pós-deploy deve ser idêntico em `tests/integration/professional-report-commissioned-regression.spec.ts`
-- [ ] T054 [P] [US3] Integration test fórmula resultado operacional: criar conjunto controlado (1 atendimento comissionado, 1 Fixo, 1 atendimento c/ assistente Liberal, 1 expense de tax, 1 expense operacional) e verificar cada linha + total em `tests/integration/operating-result-formula.spec.ts`
+- [X] T050 [P] [US3] Integration test: relatório mensal inclui `fixed_pay_lines` apenas DEPOIS do `billing_day` — cadastrar Fixo dia 15, consultar dia 14 (linha ausente) e dia 16 (linha presente) em `tests/integration/monthly-report-with-fixed-pay-lines.spec.ts`
+- [X] T051 [P] [US3] Integration test: relatório por profissional Liberal soma só participações ativas e não-estornadas em `tests/integration/professional-report-liberal-participations.spec.ts`
+- [X] T052 [P] [US3] Integration test: relatório por profissional Fixo mostra `monthly_amount_cents` + `billing_day` + `fixed_pay_lines[]` no período em `tests/integration/professional-report-fixed-shape.spec.ts`
+- [X] T053 [P] [US3] Integration test SC-006: snapshot do relatório por profissional Comissionado pré- e pós-deploy deve ser idêntico em `tests/integration/professional-report-commissioned-regression.spec.ts`
+- [X] T054 [P] [US3] Integration test fórmula resultado operacional: criar conjunto controlado (1 atendimento comissionado, 1 Fixo, 1 atendimento c/ assistente Liberal, 1 expense de tax, 1 expense operacional) e verificar cada linha + total em `tests/integration/operating-result-formula.spec.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T055 [P] [US3] Implementar `selectMonthlyFixedPayLines(supabase, {tenantId, month})` (SELECT em view) em `src/lib/core/reports/monthly-fixed-pay-lines.ts`
-- [ ] T056 [US3] Estender agregador mensal em `src/lib/core/reports/monthly.ts` para incluir `fixed_pay_lines[]` + `totals.fixed_payments_cents`. Depende de T055
-- [ ] T057 [US3] Refatorar `reportByProfessional` em `src/lib/core/reports/by-professional.ts` para branchear por `payment_mode` retornando shape específico (3 variantes — comissionado intocado por regressão, fixo, liberal)
-- [ ] T058 [P] [US3] Implementar `computeOperatingResult(supabase, {tenantId, month})` somando os 6 termos da fórmula em `src/lib/core/reports/operating-result.ts`
-- [ ] T059 [US3] Atualizar handler `GET /api/relatorios/mensal` em `src/app/api/relatorios/mensal/route.ts` para incluir `fixed_pay_lines` + `totals.fixed_payments_cents`. Depende de T056
-- [ ] T060 [US3] Atualizar handler `GET /api/relatorios/por-profissional/[doctorId]` em `src/app/api/relatorios/por-profissional/[doctorId]/route.ts` para retornar shape conforme `payment_mode`. Depende de T057
-- [ ] T061 [US3] Criar handler `GET /api/relatorios/resultado-operacional` em `src/app/api/relatorios/resultado-operacional/route.ts` com `?month=YYYY-MM` (RBAC admin+financeiro). Depende de T058
-- [ ] T062 [P] [US3] Atualizar página em `src/app/(dashboard)/analise/relatorios/mensal/page.tsx` para renderizar seção "Pagamentos fixos" com linhas + total no card de resumo
-- [ ] T063 [P] [US3] Atualizar página em `src/app/(dashboard)/analise/relatorios/por-profissional/[doctorId]/page.tsx` para renderizar UI conforme `payment_mode` (3 templates — comissionado, fixo, liberal)
-- [ ] T064 [P] [US3] Criar página em `src/app/(dashboard)/analise/relatorios/resultado-operacional/page.tsx` exibindo a fórmula 6-linhas + drilldowns clicáveis para `/por-profissional`, `/mensal` e `/despesas`
+- [X] T055 [P] [US3] Implementar `selectMonthlyFixedPayLines(supabase, {tenantId, month})` (SELECT em view) em `src/lib/core/reports/monthly-fixed-pay-lines.ts`
+- [X] T056 [US3] Estender agregador mensal em `src/lib/core/reports/monthly.ts` para incluir `fixed_pay_lines[]` + `totals.fixed_payments_cents`. Depende de T055
+- [X] T057 [US3] Refatorar `reportByProfessional` em `src/lib/core/reports/by-professional.ts` para branchear por `payment_mode` retornando shape específico (3 variantes — comissionado intocado por regressão, fixo, liberal)
+- [X] T058 [P] [US3] Implementar `computeOperatingResult(supabase, {tenantId, month})` somando os 6 termos da fórmula em `src/lib/core/reports/operating-result.ts`
+- [X] T059 [US3] Atualizar handler `GET /api/relatorios/mensal` em `src/app/api/relatorios/mensal/route.ts` para incluir `fixed_pay_lines` + `totals.fixed_payments_cents`. Depende de T056
+- [X] T060 [US3] Atualizar handler `GET /api/relatorios/por-profissional/[doctorId]` em `src/app/api/relatorios/por-profissional/[doctorId]/route.ts` para retornar shape conforme `payment_mode`. Depende de T057
+- [X] T061 [US3] Criar handler `GET /api/relatorios/resultado-operacional` em `src/app/api/relatorios/resultado-operacional/route.ts` com `?month=YYYY-MM` (RBAC admin+financeiro). Depende de T058
+- [X] T062 [P] [US3] Atualizar página em `src/app/(dashboard)/analise/relatorios/mensal/page.tsx` para renderizar seção "Pagamentos fixos" com linhas + total no card de resumo
+- [X] T063 [P] [US3] Atualizar página em `src/app/(dashboard)/analise/relatorios/por-profissional/[doctorId]/page.tsx` para renderizar UI conforme `payment_mode` (3 templates — comissionado, fixo, liberal)
+- [X] T064 [P] [US3] Criar página em `src/app/(dashboard)/analise/relatorios/resultado-operacional/page.tsx` exibindo a fórmula 6-linhas + drilldowns clicáveis para `/por-profissional`, `/mensal` e `/despesas`
 
 **Checkpoint**: US3 entregável em produção. Relatórios cobrem as 3 modalidades + fórmula consolidada.
 
