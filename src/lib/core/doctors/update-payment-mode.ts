@@ -33,7 +33,8 @@ export async function updateDoctorPaymentMode(
   switch (input.paymentMode) {
     case 'comissionado':
       if (
-        input.percentageBps == null ||
+        input.percentageBps === null ||
+        input.percentageBps === undefined ||
         input.percentageBps < 0 ||
         input.percentageBps > 10_000
       ) {
@@ -41,11 +42,16 @@ export async function updateDoctorPaymentMode(
       }
       break
     case 'fixo':
-      if (input.monthlyAmountCents == null || input.monthlyAmountCents <= 0) {
+      if (
+        input.monthlyAmountCents === null ||
+        input.monthlyAmountCents === undefined ||
+        input.monthlyAmountCents <= 0
+      ) {
         throw new ValidationError('Valor mensal deve ser maior que zero')
       }
       if (
-        input.billingDay == null ||
+        input.billingDay === null ||
+        input.billingDay === undefined ||
         input.billingDay < 1 ||
         input.billingDay > 28
       ) {
@@ -53,7 +59,11 @@ export async function updateDoctorPaymentMode(
       }
       break
     case 'liberal':
-      if (input.liberalDefaultCents == null || input.liberalDefaultCents <= 0) {
+      if (
+        input.liberalDefaultCents === null ||
+        input.liberalDefaultCents === undefined ||
+        input.liberalDefaultCents <= 0
+      ) {
         throw new ValidationError('Valor padrão por participação deve ser maior que zero')
       }
       break

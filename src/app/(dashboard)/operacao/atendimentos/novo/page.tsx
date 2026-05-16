@@ -81,7 +81,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       doctor_id: string
       liberal_default_cents: number | null
     }>) {
-      if (r.liberal_default_cents != null) {
+      if (r.liberal_default_cents !== null) {
         defaults.set(r.doctor_id, r.liberal_default_cents)
       }
     }

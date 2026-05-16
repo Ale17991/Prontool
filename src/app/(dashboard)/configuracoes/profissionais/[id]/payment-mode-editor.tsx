@@ -28,20 +28,20 @@ export function PaymentModeEditor(props: PaymentModeEditorProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<PaymentMode>(props.currentMode)
   const [percentStr, setPercentStr] = useState(
-    props.currentPercentageBps != null
+    props.currentPercentageBps !== null
       ? (props.currentPercentageBps / 100).toString().replace('.', ',')
       : '',
   )
   const [monthlyAmountStr, setMonthlyAmountStr] = useState(
-    props.currentMonthlyAmountCents != null
+    props.currentMonthlyAmountCents !== null
       ? (props.currentMonthlyAmountCents / 100).toFixed(2).replace('.', ',')
       : '',
   )
   const [billingDay, setBillingDay] = useState(
-    props.currentBillingDay != null ? String(props.currentBillingDay) : '1',
+    props.currentBillingDay !== null ? String(props.currentBillingDay) : '1',
   )
   const [liberalDefaultStr, setLiberalDefaultStr] = useState(
-    props.currentLiberalDefaultCents != null
+    props.currentLiberalDefaultCents !== null
       ? (props.currentLiberalDefaultCents / 100).toFixed(2).replace('.', ',')
       : '',
   )

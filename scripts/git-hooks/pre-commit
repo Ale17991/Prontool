@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Prontool pre-commit hook — bloqueia commit se lint falhar.
+# Instalado automaticamente via `pnpm install` (script `prepare` em package.json).
+#
+# Para pular em emergencias (NAO recomendado): git commit --no-verify
+set -e
+
+echo "[pre-commit] pnpm lint..."
+pnpm lint
+
+echo "[pre-commit] OK"

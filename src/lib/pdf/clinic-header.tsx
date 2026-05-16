@@ -133,6 +133,7 @@ export function ClinicHeader({ profile, signedLogoUrl, subtitle }: ClinicHeaderP
     <View style={styles.wrap}>
       <View style={styles.logoBox}>
         {signedLogoUrl ? (
+          // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf's <Image> does not accept alt
           <Image src={signedLogoUrl} style={styles.logoImage} />
         ) : (
           <Text style={styles.logoPlaceholder}>{p.displayName ?? p.corporateName ?? 'Logo'}</Text>

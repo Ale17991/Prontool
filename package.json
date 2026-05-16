@@ -13,6 +13,8 @@
     "lint": "next lint",
     "lint:auth": "node scripts/check-require-role.mjs",
     "typecheck": "tsc --noEmit",
+    "verify": "pnpm lint && pnpm typecheck",
+    "prepare": "git config core.hooksPath scripts/git-hooks 2>/dev/null || exit 0",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run tests/integration",

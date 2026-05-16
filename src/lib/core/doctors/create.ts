@@ -87,7 +87,8 @@ export async function createDoctor(
   switch (paymentMode) {
     case 'comissionado':
       if (
-        input.initialPercentageBps == null ||
+        input.initialPercentageBps === null ||
+        input.initialPercentageBps === undefined ||
         input.initialPercentageBps < 0 ||
         input.initialPercentageBps > 10_000
       ) {
@@ -96,11 +97,16 @@ export async function createDoctor(
       commissionBps = input.initialPercentageBps
       break
     case 'fixo':
-      if (input.monthlyAmountCents == null || input.monthlyAmountCents <= 0) {
+      if (
+        input.monthlyAmountCents === null ||
+        input.monthlyAmountCents === undefined ||
+        input.monthlyAmountCents <= 0
+      ) {
         throw new ValidationError('Valor mensal deve ser maior que zero')
       }
       if (
-        input.billingDay == null ||
+        input.billingDay === null ||
+        input.billingDay === undefined ||
         input.billingDay < 1 ||
         input.billingDay > 28
       ) {
@@ -109,7 +115,11 @@ export async function createDoctor(
       commissionBps = 0 // Fixos não recebem comissão variável (Decisão 10).
       break
     case 'liberal':
-      if (input.liberalDefaultCents == null || input.liberalDefaultCents <= 0) {
+      if (
+        input.liberalDefaultCents === null ||
+        input.liberalDefaultCents === undefined ||
+        input.liberalDefaultCents <= 0
+      ) {
         throw new ValidationError('Valor padrão por participação deve ser maior que zero')
       }
       commissionBps = 0
