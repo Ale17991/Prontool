@@ -93,7 +93,39 @@ async function refreshAndPersist(
   } catch (err) {
     if (err instanceof RefreshError && !err.transient) {
       // Permanente — marcar token_expired e alertar.
-      await markTokenExpired(supabase, tenantId)
+      //
+      // CAS: se outro worker conseguiu refresh nesse meio-tempo (race),
+      // updated_at mudou e markTokenExpired retorna lost_race. Nesse caso
+      // NÃO marcamos expirado nem alertamos — o outro worker já persistiu
+      // tokens válidos. Re-lemos e devolvemos.
+      const expireResult = await markTokenExpired(supabase, tenantId, {
+        expectedUpdatedAt,
+      })
+      if (expireResult.kind === 'lost_race') {
+        logger.info(
+          { tenant_id: tenantId, expected_updated_at: expectedUpdatedAt },
+          'ghl-mark-expired-lost-race',
+        )
+        const refreshedRow = await getIntegrationConfig(supabase, tenantId, 'ghl')
+        if (!refreshedRow || !refreshedRow.enabled) return { kind: 'not_connected' }
+        const refreshedStatus = (refreshedRow as unknown as { status?: string }).status
+        if (refreshedStatus === 'token_expired') return { kind: 'token_expired' }
+        try {
+          const persisted = await decryptCredentials(
+            supabase,
+            refreshedRow,
+            ghlOAuthCredentialsSchema,
+          )
+          return {
+            kind: 'connected',
+            accessToken: persisted.access_token,
+            locationId: persisted.location_id,
+            tokenJustRefreshed: false,
+          }
+        } catch {
+          return { kind: 'token_expired' }
+        }
+      }
       try {
         await recordSimpleIntegrationEvent(supabase, {
           type: 'integration.refresh_failed',

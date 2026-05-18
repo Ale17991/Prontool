@@ -72,19 +72,43 @@ export async function writeTokens(
   if (error) throw new Error(`writeTokens failed: ${error.message}`)
 }
 
+export type MarkExpiredResult = { kind: 'marked' } | { kind: 'lost_race' }
+
 /**
  * Marca a linha como `status='token_expired'` sem apagar credentials.
  * Permite reconexão rápida (admin clica Reconectar) sem precisar inserir
  * uma nova linha.
+ *
+ * Quando `expectedUpdatedAt` é fornecido, faz CAS — se outro worker
+ * persistiu um refresh bem-sucedido no meio tempo (updated_at mudou),
+ * retorna `lost_race` SEM sobrescrever. Caller deve então re-ler e
+ * NÃO emitir audit/alert de expiração.
+ *
+ * Sem `expectedUpdatedAt`, mantém comportamento legado (UPDATE direto).
  */
 export async function markTokenExpired(
   supabase: SupabaseClient<Database>,
   tenantId: string,
-): Promise<void> {
-  const { error } = await supabase
+  opts: { expectedUpdatedAt?: string } = {},
+): Promise<MarkExpiredResult> {
+  const update = supabase
     .from('tenant_integrations')
     .update({ status: 'token_expired', updated_at: new Date().toISOString() })
     .eq('tenant_id', tenantId)
     .eq('provider', 'ghl')
+
+  if (opts.expectedUpdatedAt !== undefined) {
+    const { data, error } = await update
+      .eq('updated_at', opts.expectedUpdatedAt)
+      .select('updated_at')
+    if (error) throw new Error(`markTokenExpired failed: ${error.message}`)
+    if (!data || data.length === 0) {
+      return { kind: 'lost_race' }
+    }
+    return { kind: 'marked' }
+  }
+
+  const { error } = await update
   if (error) throw new Error(`markTokenExpired failed: ${error.message}`)
+  return { kind: 'marked' }
 }
