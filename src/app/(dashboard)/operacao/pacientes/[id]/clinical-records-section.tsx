@@ -390,7 +390,7 @@ function RecordItem({
               variant="outline"
               onClick={() => void handleDelete()}
               disabled={deleting}
-              className="h-7 gap-1 px-2 text-[11px] text-rose-600 hover:text-rose-700 print:hidden"
+              className="h-7 gap-1 px-2 text-[11px] text-destructive hover:text-destructive print:hidden"
               title="Remover da ficha (soft-delete; admin only)"
             >
               {deleting ? (
@@ -404,7 +404,7 @@ function RecordItem({
         </div>
       </div>
       {deleteError ? (
-        <p className="mt-2 text-[11px] font-semibold text-rose-700">{deleteError}</p>
+        <p className="mt-2 text-[11px] font-semibold text-destructive">{deleteError}</p>
       ) : null}
 
       {record.type === 'texto' && record.content ? (
@@ -468,7 +468,7 @@ function TypeIcon({ type }: { type: ClinicalRecordRow['type'] }) {
   }
   if (type === 'arquivo') {
     return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
         <Paperclip className="h-4 w-4" />
       </div>
     )
@@ -481,7 +481,7 @@ function TypeIcon({ type }: { type: ClinicalRecordRow['type'] }) {
     )
   }
   return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success-bg text-success-strong">
       <ClipboardCheck className="h-4 w-4" />
     </div>
   )
@@ -697,7 +697,7 @@ function NewTextForm({
         />
       </div>
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}
@@ -793,7 +793,7 @@ function UploadFileForm({
         </p>
       </div>
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}
@@ -1129,7 +1129,7 @@ function NewEvolutionForm({
       </div>
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}
@@ -1300,7 +1300,7 @@ function NewAnamneseForm({
           </Select>
         )}
         {loadError ? (
-          <p className="text-[11px] text-rose-600">{loadError}</p>
+          <p className="text-[11px] text-destructive">{loadError}</p>
         ) : null}
       </div>
 
@@ -1319,7 +1319,7 @@ function NewAnamneseForm({
       ) : null}
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}

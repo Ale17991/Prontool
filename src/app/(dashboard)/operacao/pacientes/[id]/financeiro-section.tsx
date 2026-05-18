@@ -157,11 +157,11 @@ function Stat({
 }) {
   const toneCls =
     tone === 'emerald'
-      ? 'text-emerald-700'
+      ? 'text-success-strong'
       : tone === 'amber'
-        ? 'text-amber-700'
+        ? 'text-[hsl(var(--warning-foreground))]'
         : tone === 'rose'
-          ? 'text-rose-700'
+          ? 'text-destructive'
           : 'text-slate-900'
   return (
     <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
@@ -232,7 +232,7 @@ function PaymentRow({
           <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 md:grid-cols-4">
             <span>Pago: <strong className="text-slate-900">{formatCurrency(record.paidAmountCents)}</strong></span>
             <span>Pendente: <strong className="text-slate-900">{formatCurrency(record.pendingAmountCents)}</strong></span>
-            <span>Atrasado: <strong className={record.overdueAmountCents > 0 ? 'text-rose-700' : 'text-slate-900'}>{formatCurrency(record.overdueAmountCents)}</strong></span>
+            <span>Atrasado: <strong className={record.overdueAmountCents > 0 ? 'text-destructive' : 'text-slate-900'}>{formatCurrency(record.overdueAmountCents)}</strong></span>
             <span>Status: <RecordStatusBadge status={record.paymentStatus} /></span>
           </div>
           <ul className="mt-3 divide-y divide-slate-100">

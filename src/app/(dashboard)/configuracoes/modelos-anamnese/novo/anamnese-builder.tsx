@@ -66,12 +66,14 @@ const FIELD_TYPES: Array<{
   icon: React.ComponentType<{ className?: string }>
   color: string
 }> = [
-  { type: 'texto_curto', label: 'Campo de texto', icon: Type, color: 'text-blue-600 bg-blue-50' },
+  // 016 — campos categoricos (tipos de field) — usa paleta do designer
+  // onde semantic e Tailwind defaults para variedade categorica.
+  { type: 'texto_curto', label: 'Campo de texto', icon: Type, color: 'text-info-text bg-info-bg' },
   { type: 'texto_longo', label: 'Área de texto', icon: AlignLeft, color: 'text-indigo-600 bg-indigo-50' },
-  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, color: 'text-emerald-600 bg-emerald-50' },
+  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, color: 'text-success-strong bg-success-bg' },
   { type: 'radio', label: 'Múltipla escolha', icon: Radio, color: 'text-violet-600 bg-violet-50' },
-  { type: 'select', label: 'Seleção única', icon: ChevronDown, color: 'text-amber-600 bg-amber-50' },
-  { type: 'data', label: 'Data', icon: Calendar, color: 'text-rose-600 bg-rose-50' },
+  { type: 'select', label: 'Seleção única', icon: ChevronDown, color: 'text-[hsl(var(--warning-foreground))] bg-[hsl(var(--warning)/0.15)]' },
+  { type: 'data', label: 'Data', icon: Calendar, color: 'text-destructive bg-destructive/10' },
   { type: 'numero', label: 'Numérico', icon: Hash, color: 'text-slate-600 bg-slate-50' },
 ]
 
@@ -222,7 +224,7 @@ export function AnamneseBuilder() {
       </div>
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}
@@ -400,7 +402,7 @@ export function AnamneseBuilder() {
                                             )
                                             updateField(field.id, { options: next })
                                           }}
-                                          className="px-2 text-rose-400 hover:text-rose-600"
+                                          className="px-2 text-destructive/70 hover:text-destructive"
                                           aria-label="Remover opção"
                                         >
                                           <Trash2 className="h-3.5 w-3.5" />
@@ -458,7 +460,7 @@ export function AnamneseBuilder() {
                                 <button
                                   type="button"
                                   onClick={() => removeField(field.id)}
-                                  className="rounded bg-rose-50 p-1 text-rose-500 hover:bg-rose-100"
+                                  className="rounded bg-destructive/10 p-1 text-destructive hover:bg-destructive/20"
                                   aria-label="Remover campo"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
