@@ -183,6 +183,7 @@ function PeriodHeader({
 function QuickRangeButtons({ period }: { period: { from: string; to: string } }) {
   const now = new Date()
   const today = toYmd(now)
+  const thisWeek = weekRange(now)
   const thisMonth = monthRange(now)
   const lastMonth = monthRange(new Date(now.getFullYear(), now.getMonth() - 1, 1))
   const ytd = ytdRange(now)
@@ -190,6 +191,7 @@ function QuickRangeButtons({ period }: { period: { from: string; to: string } })
 
   const presets: Array<{ label: string; range: { from: string; to: string } }> = [
     { label: 'Hoje', range: { from: today, to: today } },
+    { label: 'Esta semana', range: thisWeek },
     { label: 'Este mês', range: thisMonth },
     { label: 'Mês anterior', range: lastMonth },
     { label: 'Ano (YTD)', range: ytd },
@@ -805,6 +807,14 @@ function resolvePeriod(sp: PageProps['searchParams']): { from: string; to: strin
   const toValid = sp.to && /^\d{4}-\d{2}-\d{2}$/.test(sp.to) ? sp.to : null
   if (fromValid && toValid && fromValid <= toValid) return { from: fromValid, to: toValid }
   return monthRange(new Date())
+}
+
+function weekRange(ref: Date): { from: string; to: string } {
+  // Semana começa no domingo — mesma convenção do calendário (calendar-filters.ts).
+  const day = ref.getDay()
+  const start = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - day)
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6)
+  return { from: toYmd(start), to: toYmd(end) }
 }
 
 function monthRange(ref: Date): { from: string; to: string } {
