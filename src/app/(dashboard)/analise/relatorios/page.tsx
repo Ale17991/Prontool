@@ -182,12 +182,14 @@ function PeriodHeader({
 
 function QuickRangeButtons({ period }: { period: { from: string; to: string } }) {
   const now = new Date()
+  const today = toYmd(now)
   const thisMonth = monthRange(now)
   const lastMonth = monthRange(new Date(now.getFullYear(), now.getMonth() - 1, 1))
   const ytd = ytdRange(now)
   const last12 = lastNMonthsRange(now, 12)
 
   const presets: Array<{ label: string; range: { from: string; to: string } }> = [
+    { label: 'Hoje', range: { from: today, to: today } },
     { label: 'Este mês', range: thisMonth },
     { label: 'Mês anterior', range: lastMonth },
     { label: 'Ano (YTD)', range: ytd },
