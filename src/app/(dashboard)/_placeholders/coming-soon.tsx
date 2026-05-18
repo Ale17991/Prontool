@@ -37,7 +37,7 @@ export function ComingSoon({
 
       <Card>
         <CardContent className="p-8">
-          <div className="mb-6 inline-flex rounded-2xl border border-blue-100 bg-blue-50 p-4 text-primary">
+          <div className="mb-6 inline-flex rounded-2xl border border-info/30 bg-info-bg p-4 text-info-text">
             <Icon className="h-6 w-6" />
           </div>
           <p className="text-sm leading-relaxed text-slate-600">{description}</p>

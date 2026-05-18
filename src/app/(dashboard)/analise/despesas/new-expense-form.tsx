@@ -380,8 +380,8 @@ export function NewExpenseForm() {
         </p>
       </div>
 
-      {error ? <p className="text-xs font-semibold text-rose-600">{error}</p> : null}
-      {success ? <p className="text-xs font-semibold text-emerald-600">{success}</p> : null}
+      {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
+      {success ? <p className="text-xs font-semibold text-success-text">{success}</p> : null}
 
       <Button type="submit" disabled={pending} className="w-full gap-2">
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}

@@ -36,7 +36,7 @@ export function SoftDeleteExpenseButton({ id }: { id: string }) {
 
   return (
     <div className="flex items-center justify-end gap-2">
-      {error ? <span className="text-[10px] font-medium text-rose-600">{error}</span> : null}
+      {error ? <span className="text-[10px] font-medium text-destructive">{error}</span> : null}
       <Button
         type="button"
         variant="ghost"

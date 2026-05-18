@@ -128,7 +128,7 @@ export function TussListDialog({
         </div>
 
         {showsBuffer ? (
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
+          <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-[11px] font-semibold text-[hsl(var(--warning-foreground))]">
             Mostrando os 200 primeiros resultados — refine a busca para ver mais.
           </p>
         ) : null}
@@ -137,7 +137,7 @@ export function TussListDialog({
           {loading ? (
             <p className="px-4 py-12 text-center text-xs text-slate-500">Carregando…</p>
           ) : error ? (
-            <p className="px-4 py-12 text-center text-xs text-rose-600">Erro: {error}</p>
+            <p className="px-4 py-12 text-center text-xs text-destructive">Erro: {error}</p>
           ) : visible.length === 0 ? (
             <p className="px-4 py-12 text-center text-xs text-slate-500">
               {query.trim().length === 0

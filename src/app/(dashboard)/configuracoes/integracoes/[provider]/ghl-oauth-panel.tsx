@@ -105,7 +105,7 @@ export async function GhlOAuthPanel({
       </div>
 
       {isLegacyTenant ? (
-        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="flex items-start gap-2 rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-3 text-sm text-[hsl(var(--warning-foreground))]">
           <AlertTriangle className="h-4 w-4 mt-0.5" />
           <div>
             <p className="font-semibold">Reconexão necessária</p>
@@ -124,7 +124,7 @@ export async function GhlOAuthPanel({
       ) : null}
 
       {callbackStatus === 'connected' ? (
-        <div className="flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <div className="flex items-start gap-2 rounded-md border border-success/30 bg-success-bg p-3 text-sm text-success-text">
           <CheckCircle2 className="h-4 w-4 mt-0.5" />
           <div>
             <p className="font-semibold">Integração conectada com sucesso</p>

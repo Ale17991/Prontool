@@ -463,7 +463,7 @@ export function ClinicProfileForm({ initial }: Props) {
       <div className="flex items-center justify-between">
         <div className="text-xs text-slate-500">
           {savedAt ? <span>Salvo às {new Date(savedAt).toLocaleTimeString('pt-BR')}</span> : null}
-          {error ? <span className="text-red-600">{error}</span> : null}
+          {error ? <span className="text-destructive">{error}</span> : null}
         </div>
         <Button type="submit" disabled={saving || logoUploading}>
           {saving ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}

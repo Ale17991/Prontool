@@ -129,7 +129,7 @@ export function MateriaisEditor({
                         value={m.quantity}
                         onChange={(e) => updateQuantity(i, e.target.value)}
                         disabled={disabled}
-                        className={`h-7 w-14 text-center tabular-nums ${invalid ? 'border-red-400 focus-visible:ring-red-300' : ''}`}
+                        className={`h-7 w-14 text-center tabular-nums ${invalid ? 'border-destructive/60 focus-visible:ring-destructive/30' : ''}`}
                       />
                       <Button
                         type="button"

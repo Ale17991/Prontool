@@ -239,7 +239,7 @@ export function PatientTypeahead({
                 Buscando…
               </div>
             ) : error ? (
-              <p className="py-6 text-center text-xs text-rose-600">{error}</p>
+              <p className="py-6 text-center text-xs text-destructive">{error}</p>
             ) : items.length === 0 ? (
               <CommandEmpty className="py-6 text-center text-xs text-slate-500">
                 {search.trim()
