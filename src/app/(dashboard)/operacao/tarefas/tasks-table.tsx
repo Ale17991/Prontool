@@ -67,7 +67,7 @@ export function TasksTable({ tasks, isAdmin, members }: Props) {
               onClick={() => setSelected(t)}
               className={cn(
                 'cursor-pointer transition-colors hover:bg-slate-50',
-                t.is_overdue && 'bg-rose-50/40 hover:bg-rose-50/60',
+                t.is_overdue && 'bg-destructive/5 hover:bg-destructive/10',
               )}
             >
               <TableCell>
@@ -82,7 +82,7 @@ export function TasksTable({ tasks, isAdmin, members }: Props) {
               <TableCell
                 className={cn(
                   'text-xs font-semibold tabular-nums',
-                  t.is_overdue ? 'text-rose-700' : 'text-slate-700',
+                  t.is_overdue ? 'text-destructive' : 'text-slate-700',
                 )}
               >
                 {new Date(t.due_date + 'T00:00:00').toLocaleDateString('pt-BR')}

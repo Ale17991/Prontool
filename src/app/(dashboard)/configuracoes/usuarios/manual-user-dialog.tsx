@@ -170,7 +170,7 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
                 ))}
               </select>
               {doctors.length === 0 ? (
-                <p className="mt-0.5 text-[10px] text-amber-600">
+                <p className="mt-0.5 text-[10px] text-[hsl(var(--warning-foreground))]">
                   Nenhum profissional disponível (todos já têm login vinculado ou não há profissionais cadastrados).
                 </p>
               ) : null}

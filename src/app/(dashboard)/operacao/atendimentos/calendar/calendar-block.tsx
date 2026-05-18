@@ -69,13 +69,13 @@ export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
       </span>
       {assignment.conflict ? (
         <span className="absolute right-0.5 top-0.5">
-          <AlertTriangle className="h-3 w-3 text-rose-600" />
+          <AlertTriangle className="h-3 w-3 text-destructive" />
         </span>
       ) : null}
       <span className="truncate font-bold leading-tight">
         {a.patientName}
         {a.planId === null ? (
-          <span className="ml-1 inline-block rounded border border-amber-300 bg-amber-100 px-1 text-[8px] font-bold uppercase tracking-wider text-amber-900">
+          <span className="ml-1 inline-block rounded border border-warning/40 bg-[hsl(var(--warning)/0.2)] px-1 text-[8px] font-bold uppercase tracking-wider text-[hsl(var(--warning-foreground))]">
             P
           </span>
         ) : null}

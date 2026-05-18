@@ -44,8 +44,8 @@ export function CurrentTimeLine({ currentDayIndex, columnCount }: Props) {
         width: `${colWidthPercent}%`,
       }}
     >
-      <span className="-ml-1.5 h-3 w-3 rounded-full bg-rose-500 shadow ring-2 ring-white" />
-      <span className="h-px flex-1 bg-rose-500" />
+      <span className="-ml-1.5 h-3 w-3 rounded-full bg-alert shadow ring-2 ring-white" />
+      <span className="h-px flex-1 bg-alert" />
     </div>
   )
 }

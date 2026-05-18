@@ -285,9 +285,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           {cepLookup === 'loading' ? (
             <p className="text-[11px] text-slate-500">Buscando CEP…</p>
           ) : cepLookup === 'not-found' ? (
-            <p className="text-[11px] text-amber-700">CEP não encontrado no ViaCEP.</p>
+            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">CEP não encontrado no ViaCEP.</p>
           ) : cepLookup === 'error' ? (
-            <p className="text-[11px] text-amber-700">
+            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">
               Não foi possível consultar o CEP — preencha manualmente.
             </p>
           ) : null}
@@ -344,7 +344,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
       </section>
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}

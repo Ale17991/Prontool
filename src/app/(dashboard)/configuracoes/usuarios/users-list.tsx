@@ -128,7 +128,7 @@ export function UsersList({ initial }: Props) {
                     {u.linkedDoctor ? (
                       <span className="font-semibold">{u.linkedDoctor.fullName}</span>
                     ) : u.role === 'profissional_saude' ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[hsl(var(--warning-foreground))]">
                         <AlertCircle className="h-3 w-3" />
                         Sem profissional vinculado
                       </span>
@@ -181,9 +181,9 @@ export function UsersList({ initial }: Props) {
                         title={u.status === 'disabled' ? 'Reativar' : 'Desativar'}
                       >
                         {u.status === 'disabled' ? (
-                          <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                          <ShieldCheck className="h-3 w-3 text-success-strong" />
                         ) : (
-                          <ShieldOff className="h-3 w-3 text-red-600" />
+                          <ShieldOff className="h-3 w-3 text-destructive" />
                         )}
                       </Button>
                     </div>

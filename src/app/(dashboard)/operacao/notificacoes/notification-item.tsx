@@ -17,10 +17,12 @@ const ICON_BY_TYPE = {
   aniversarios_mes: Cake,
 } as const
 
+// 016 — paleta do designer. aniversarios mantem purple Tailwind
+// (sem match natural nas 3 famílias).
 const COLOR_BY_TYPE: Record<NotificationRow['type'], string> = {
-  atendimento: 'text-blue-600 bg-blue-50',
-  tarefa: 'text-emerald-600 bg-emerald-50',
-  tarefa_atrasada: 'text-rose-600 bg-rose-50',
+  atendimento: 'text-info-text bg-info-bg',
+  tarefa: 'text-success-strong bg-success-bg',
+  tarefa_atrasada: 'text-destructive bg-destructive/10',
   aniversarios_mes: 'text-purple-600 bg-purple-50',
 }
 

@@ -343,7 +343,7 @@ export default async function AtendimentoDetailPage({
                       </TableCell>
                       <TableCell className="text-xs">
                         {line.planId === null ? (
-                          <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-800">
+                          <span className="rounded bg-[hsl(var(--warning)/0.15)] px-1.5 py-0.5 text-[hsl(var(--warning-foreground))]">
                             Particular
                           </span>
                         ) : (
@@ -361,7 +361,7 @@ export default async function AtendimentoDetailPage({
                         {formatCurrency(line.lineAmountCents)}
                         {line.amountWasOverridden ? (
                           <span
-                            className="ml-1 text-[10px] text-amber-700"
+                            className="ml-1 text-[10px] text-[hsl(var(--warning-foreground))]"
                             title={`Vigente: ${formatCurrency(line.vigenteAmountCents)}`}
                           >
                             ★
@@ -460,7 +460,7 @@ export default async function AtendimentoDetailPage({
             <ClinicalRow icon={Receipt} label="Valor líquido">
               <span
                 className={
-                  status === 'estornado' ? 'font-black text-rose-600' : 'font-black'
+                  status === 'estornado' ? 'font-black text-destructive' : 'font-black'
                 }
               >
                 {formatCurrency(appointment.net_amount_cents)}
@@ -636,15 +636,15 @@ function ClinicalRow({
 function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
   if (allergies.length === 0) {
     return (
-      <Card className="border-emerald-200 bg-emerald-50/40">
+      <Card className="border-success/30 bg-success-bg/60">
         <CardContent className="flex items-center gap-3 p-4">
-          <ShieldAlert className="h-5 w-5 text-emerald-600" />
+          <ShieldAlert className="h-5 w-5 text-success-strong" />
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-success-strong">
               Alergias do paciente
             </p>
             <p
-              className="text-sm font-bold text-emerald-900"
+              className="text-sm font-bold text-success-text"
               title="NKDA — No Known Drug Allergies"
             >
               Sem alergias conhecidas
@@ -662,20 +662,24 @@ function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
     <Card
       className={
         accent === 'rose'
-          ? 'border-rose-200 bg-rose-50/40'
-          : 'border-amber-200 bg-amber-50/40'
+          ? 'border-destructive/30 bg-destructive/5'
+          : 'border-warning/30 bg-[hsl(var(--warning)/0.05)]'
       }
     >
       <CardHeader className="pb-2">
         <CardTitle
           className={
             accent === 'rose'
-              ? 'flex items-center gap-2 text-sm text-rose-900'
-              : 'flex items-center gap-2 text-sm text-amber-900'
+              ? 'flex items-center gap-2 text-sm text-destructive'
+              : 'flex items-center gap-2 text-sm text-[hsl(var(--warning-foreground))]'
           }
         >
           <AlertTriangle
-            className={accent === 'rose' ? 'h-4 w-4 text-rose-600' : 'h-4 w-4 text-amber-600'}
+            className={
+              accent === 'rose'
+                ? 'h-4 w-4 text-destructive'
+                : 'h-4 w-4 text-warning'
+            }
           />
           Alergias do paciente — {allergies.length} registrada
           {allergies.length === 1 ? '' : 's'}
@@ -690,7 +694,7 @@ function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
                 a.severity === 'grave'
                   ? ''
                   : a.severity === 'moderada'
-                    ? 'border-amber-300 bg-amber-100 text-amber-900'
+                    ? 'border-warning/40 bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]'
                     : 'border-slate-300 bg-slate-100 text-slate-700'
               }
             >

@@ -207,9 +207,9 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
       ) : null}
 
       {duplicate ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs">
-          <p className="font-bold text-amber-800">CPF já cadastrado.</p>
-          <p className="mt-1 text-amber-700">
+        <div className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs">
+          <p className="font-bold text-[hsl(var(--warning-foreground))]">CPF já cadastrado.</p>
+          <p className="mt-1 text-[hsl(var(--warning-foreground))]">
             <Link
               href={`/operacao/pacientes/${duplicate.patientId}`}
               className="font-semibold text-primary underline"
@@ -222,7 +222,7 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
       ) : null}
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}

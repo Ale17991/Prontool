@@ -74,6 +74,16 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     availableTenants = []
   }
 
+  // DIAGNOSTIC (julienea810 bug — Trocar clínica sumindo):
+  // emite no stdout do `pnpm dev` mesmo se logger filtrar por nível.
+  // eslint-disable-next-line no-console
+  console.log('[dashboard-layout] availableTenants.length =', availableTenants.length, {
+    user_id: session.userId,
+    current_tenant_id: session.tenantId,
+    will_show_trocar_clinica: availableTenants.length > 1,
+    tenant_ids: availableTenants.map((t) => t.tenantId),
+  })
+
   const [clinicProfile, userProfile] = await Promise.all([
     getClinicProfile(supabase, session.tenantId).catch(() => null),
     getUserProfile(supabase, session.userId, session.email ?? null).catch(() => null),

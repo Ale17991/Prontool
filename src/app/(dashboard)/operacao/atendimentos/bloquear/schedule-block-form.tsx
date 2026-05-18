@@ -190,7 +190,7 @@ export function ScheduleBlockForm({ doctors, defaultDate, defaultDoctorId }: Pro
       </div>
 
       {conflicts && conflicts.length > 0 ? (
-        <div className="md:col-span-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="md:col-span-2 rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-sm text-[hsl(var(--warning-foreground))]">
           <p className="flex items-center gap-1.5 font-bold">
             <AlertTriangle className="h-4 w-4" />
             {conflicts.length === 1
@@ -204,7 +204,7 @@ export function ScheduleBlockForm({ doctors, defaultDate, defaultDoctorId }: Pro
         </div>
       ) : null}
 
-      {error ? <p className="md:col-span-2 text-sm text-rose-600">{error}</p> : null}
+      {error ? <p className="md:col-span-2 text-sm text-destructive">{error}</p> : null}
 
       <div className="md:col-span-2 flex items-center justify-end gap-2">
         <Button type="submit" disabled={pending}>

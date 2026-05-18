@@ -33,7 +33,7 @@ export function ResolveButton({ alertId }: { alertId: string }) {
       variant="outline"
       onClick={onResolve}
       disabled={pending}
-      className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
+      className="text-success-strong hover:bg-success-bg hover:text-success-text"
     >
       <Check className="mr-1 h-3 w-3" />
       {pending ? '…' : 'Resolver'}
