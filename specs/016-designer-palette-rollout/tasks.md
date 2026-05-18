@@ -119,11 +119,11 @@ description: "Task list for 016 Designer Palette Rollout"
 
 **Independent Test**: classes utilizáveis em qualquer componente; auditoria visual em 10 telas-chave confirma que nenhum texto cai abaixo de 12px.
 
-- [ ] T037 [US4] Adicionar bloco `@layer components` em `src/app/globals.css` com as 7 classes utilitárias exatas conforme `contracts/typography-scale.contract.md`
-- [ ] T038 [P] [US4] Auditar texto < 12px no codebase (`rg -n "text-\[1[01]px\]|text-xs" src/`); para cada ocorrência, decidir se é (a) rótulo de métrica autorizado (11px), (b) candidato a `text-caption` (12px), ou (c) usado em componente terceiro/charts; registrar em `baselines/small-text-audit.md`
-- [ ] T039 [P] [US4] Verificar em 10 telas-chave (`/login`, `/`, `/operacao/atendimentos`, `/operacao/pacientes`, `/configuracoes`, `/relatorios`, `/financeiro`, `/cadastros`, `/tarefas`, `/integracoes`) que nenhum texto da UI principal renderiza abaixo de 12px — exceto rótulos de métrica autorizados; documentar em `visual-validation/typography-audit.md` (SC-007)
-- [ ] T040 [US4] Rodar `pnpm typecheck`
-- [ ] T041 [US4] Commit + push: `git add -A && git commit -m "feat(ui): escala tipografica (display/h1..body/caption/mono) com piso de 12px (US4)"`
+- [x] T037 [US4] Adicionar bloco `@layer components` em `src/app/globals.css` com as 7 classes utilitárias exatas conforme `contracts/typography-scale.contract.md`
+- [x] T038 [P] [US4] Auditar texto < 12px no codebase — ~40 ocorrências documentadas em `baselines/small-text-audit.md`; migração fora do escopo de 016 conforme `typography-scale.contract.md` §Out of scope; backlog de follow-up
+- [~] T039 [P] [US4] Inspeção visual de 10 telas-chave — **manual, pendente** (documentado em audit)
+- [x] T040 [US4] `pnpm typecheck` — exit 0
+- [x] T041 [US4] Commit + push
 
 **Checkpoint**: classes utilitárias disponíveis; piso de 12px validado.
 
