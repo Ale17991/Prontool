@@ -177,7 +177,10 @@ export async function summaryByProfessional(
     }
     existing.procedureCount += qty
     existing.totalRevenueCents += lineTotal
-    existing.totalCommissionCents += Math.floor(
+    // Camada 3 T2 — Math.round padronizado (era floor, criava drift de
+    // até 1 cent em valores half-point vs cálculos de imposto/percentual
+    // que usavam round em apply-plan-tax e financial-report).
+    existing.totalCommissionCents += Math.round(
       (lineTotal * a.frozen_commission_bps) / 10000,
     )
     map.set(doctorId, existing)
@@ -267,7 +270,8 @@ export async function detailByProfessional(
     const bps = a.frozen_commission_bps
     const qty = l.quantity || 1
     const lineTotal = l.line_amount_cents * qty
-    const commissionCents = Math.floor((lineTotal * bps) / 10000)
+    // Camada 3 T2 — Math.round padronizado (ver summary acima).
+    const commissionCents = Math.round((lineTotal * bps) / 10000)
     return {
       appointmentId: l.appointment_id,
       appointmentAt: a.appointment_at,
