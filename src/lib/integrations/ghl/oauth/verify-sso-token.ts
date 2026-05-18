@@ -123,7 +123,13 @@ export async function verifySsoToken(rawToken: string): Promise<SsoTokenClaims> 
   if (claims.aud !== SSO_AUDIENCE) {
     throw new InvalidSsoTokenError('aud mismatch')
   }
-  if (claims.iss && !ALLOWED_ISS.some((i) => claims.iss === i || claims.iss?.startsWith(i))) {
+  // iss: aceita exato OU com path suffix iniciado em '/'. O `startsWith(i)`
+  // anterior aceitava `https://marketplace.gohighlevel.com.attacker.com`
+  // como prefixo válido — subdomain hijack se atacante controlasse JWKS key.
+  if (
+    claims.iss &&
+    !ALLOWED_ISS.some((i) => claims.iss === i || claims.iss?.startsWith(`${i}/`))
+  ) {
     throw new InvalidSsoTokenError('iss not allowed')
   }
   if (!claims.locationId) throw new InvalidSsoTokenError('locationId claim missing')
