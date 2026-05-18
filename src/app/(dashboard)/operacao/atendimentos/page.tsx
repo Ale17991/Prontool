@@ -8,6 +8,10 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { Badge } from '@/components/ui/badge'
+import {
+  AppointmentStatusBadge,
+  effectiveStatusToVariant,
+} from '@/components/ui/appointment-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -356,25 +360,18 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col items-start gap-1">
-                          {r.effective_status === 'estornado' ? (
-                            <Badge variant="destructive">cancelado</Badge>
-                          ) : r.effective_status === 'agendado' ||
-                            (r.appointment_at &&
-                              new Date(r.appointment_at).getTime() > Date.now()) ? (
-                            <Badge
-                              variant="secondary"
-                              className="border-sky-200 bg-sky-50 text-sky-800"
-                            >
-                              agendado
-                            </Badge>
-                          ) : (
-                            <Badge variant="success">ativo</Badge>
-                          )}
+                          <AppointmentStatusBadge
+                            variant={effectiveStatusToVariant(
+                              r.effective_status === 'agendado' ||
+                                (r.appointment_at &&
+                                  new Date(r.appointment_at).getTime() > Date.now())
+                                ? 'agendado'
+                                : r.effective_status,
+                            )}
+                            size="sm"
+                          />
                           {r.plan_id === null ? (
-                            <Badge
-                              variant="secondary"
-                              className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
-                            >
+                            <Badge variant="warning" className="text-[10px]">
                               particular
                             </Badge>
                           ) : null}

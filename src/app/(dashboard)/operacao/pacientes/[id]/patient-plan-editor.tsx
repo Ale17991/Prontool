@@ -65,7 +65,7 @@ export function PatientPlanEditor({
             {currentPlanName ?? currentPlanId}
           </Badge>
         ) : (
-          <Badge variant="outline" className="border-amber-300 text-amber-700 text-xs">
+          <Badge variant="warning" className="text-xs">
             Sem plano
           </Badge>
         )}

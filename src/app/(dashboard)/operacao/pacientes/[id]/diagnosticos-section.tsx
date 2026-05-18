@@ -56,10 +56,13 @@ const STATUS_LABEL: Record<DiagnosisStatus, string> = {
   resolvido: 'Resolvido',
 }
 
+// 016 — paleta do designer: ativo usa info-bg/info-text (azul institucional),
+// em_acompanhamento usa warning (amber), resolvido usa success-bg/text (verde
+// do designer).
 const STATUS_CLASS: Record<DiagnosisStatus, string> = {
-  ativo: 'bg-blue-100 text-blue-800',
-  em_acompanhamento: 'bg-amber-100 text-amber-800',
-  resolvido: 'bg-emerald-100 text-emerald-800',
+  ativo: 'bg-info-bg text-info-text',
+  em_acompanhamento: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
+  resolvido: 'bg-success-bg text-success-text',
 }
 
 export function DiagnosticsSection({

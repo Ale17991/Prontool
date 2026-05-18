@@ -26,11 +26,14 @@ interface Props {
   members: MemberOption[]
 }
 
+// 016 — consome tokens do design system. urgente usa --alert (vermelho
+// clinico distinto de --destructive). alta usa amber/warning. normal
+// usa info do designer. baixa usa neutro slate.
 const PRIORITY_BADGE: Record<string, string> = {
   baixa: 'bg-slate-100 text-slate-700',
-  normal: 'bg-blue-50 text-blue-700',
-  alta: 'bg-amber-50 text-amber-700',
-  urgente: 'bg-rose-50 text-rose-700',
+  normal: 'bg-info-bg text-info-text',
+  alta: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+  urgente: 'bg-[hsl(var(--alert)/0.1)] text-[hsl(var(--alert))]',
 }
 
 export function TasksTable({ tasks, isAdmin, members }: Props) {

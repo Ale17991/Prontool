@@ -504,13 +504,13 @@ function TypeBadge({ type }: { type: ClinicalRecordRow['type'] }) {
   }
   if (type === 'evolucao') {
     return (
-      <Badge variant="secondary" className="h-5 bg-blue-100 px-1.5 text-[10px] text-blue-800">
+      <Badge variant="info" className="h-5 px-1.5 text-[10px]">
         Evolução SOAP
       </Badge>
     )
   }
   return (
-    <Badge variant="secondary" className="h-5 bg-emerald-100 px-1.5 text-[10px] text-emerald-800">
+    <Badge variant="success" className="h-5 px-1.5 text-[10px]">
       Anamnese
     </Badge>
   )

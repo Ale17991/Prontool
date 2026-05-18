@@ -22,6 +22,10 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listAssistantsByAppointment } from '@/lib/core/appointment-assistants/list-by-appointment'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
+import {
+  AppointmentStatusBadge,
+  effectiveStatusToVariant,
+} from '@/components/ui/appointment-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -211,27 +215,12 @@ export default async function AtendimentoDetailPage({
           <p className="mt-1 font-mono text-xs text-slate-400">{appointment.id}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          {status === 'estornado' ? (
-            <Badge variant="destructive" className="self-start">
-              Cancelado
-            </Badge>
-          ) : status === 'agendado' ? (
-            <Badge
-              variant="secondary"
-              className="self-start border-sky-200 bg-sky-50 text-sky-800"
-            >
-              Agendado
-            </Badge>
-          ) : (
-            <Badge variant="success" className="self-start">
-              Ativo
-            </Badge>
-          )}
+          <AppointmentStatusBadge
+            variant={effectiveStatusToVariant(status)}
+            className="self-start"
+          />
           {appointment.plan_id === null ? (
-            <Badge
-              variant="secondary"
-              className="self-start border-amber-200 bg-amber-50 text-amber-800"
-            >
+            <Badge variant="warning" className="self-start">
               Particular
             </Badge>
           ) : null}
