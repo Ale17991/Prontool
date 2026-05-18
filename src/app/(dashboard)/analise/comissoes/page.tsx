@@ -106,7 +106,7 @@ export default async function ComissoesPage() {
           ) : heads.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-slate-500">
               Nenhum profissional ativo com comissão vigente. Cadastre em{' '}
-              <Link href="/configuracoes/profissionais" className="font-semibold text-primary underline">
+              <Link href="/configuracoes/profissionais" className="font-semibold text-link hover:text-link-hover underline">
                 Profissionais
               </Link>
               .
@@ -139,7 +139,7 @@ export default async function ComissoesPage() {
                       {h.doctors?.id ? (
                         <Link
                           href={`/configuracoes/profissionais/${h.doctors.id}`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                          className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
                         >
                           Abrir <ArrowRight className="h-3 w-3" />
                         </Link>
@@ -188,7 +188,7 @@ export default async function ComissoesPage() {
                       <TableCell>
                         <Link
                           href={`/configuracoes/profissionais/${r.doctor_id}`}
-                          className="font-semibold text-slate-900 hover:text-primary hover:underline"
+                          className="font-semibold text-slate-900 hover:text-link hover:underline"
                         >
                           {r.doctors?.full_name ?? '—'}
                         </Link>

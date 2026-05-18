@@ -88,7 +88,7 @@ export function DoctorFilter({ doctors, selected }: Props) {
             <button
               type="button"
               onClick={selectAll}
-              className="text-[11px] text-primary hover:underline"
+              className="text-[11px] text-link hover:text-link-hover hover:underline"
             >
               Todos
             </button>

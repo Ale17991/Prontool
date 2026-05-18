@@ -162,7 +162,7 @@ export default async function PacientesPage({ searchParams }: PageProps) {
                     <TableCell className="text-right">
                       <Link
                         href={`/operacao/pacientes/${p.id}`}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         Abrir <ChevronRight className="h-3 w-3" />
                       </Link>

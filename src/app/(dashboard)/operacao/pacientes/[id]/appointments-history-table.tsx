@@ -131,7 +131,7 @@ function AppointmentRowView({
           ) : null}
           <Link
             href={`/operacao/atendimentos/${row.id}`}
-            className="text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+            className="text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
           >
             Abrir
           </Link>

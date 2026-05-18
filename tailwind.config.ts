@@ -76,6 +76,10 @@ const config: Config = {
           bg: 'hsl(var(--info-bg))',
           text: 'hsl(var(--info-text))',
         },
+        link: {
+          DEFAULT: 'hsl(var(--link))',
+          hover: 'hsl(var(--info))',
+        },
         alert: {
           DEFAULT: 'hsl(var(--alert))',
           foreground: 'hsl(var(--alert-foreground))',

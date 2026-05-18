@@ -160,7 +160,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
             aparecem acima.{' '}
             <Link
               href="/configuracoes/convenios"
-              className="font-semibold text-primary underline"
+              className="font-semibold text-link hover:text-link-hover underline"
             >
               Cadastrar plano
             </Link>

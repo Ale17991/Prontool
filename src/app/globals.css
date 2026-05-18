@@ -47,6 +47,8 @@
     --info-bg: 204 80% 88%;               /* #CBE6F8 — azul claro do designer */
     --info-text: 205 73% 21%;             /* #0E3C5B — azul institucional do designer */
 
+    --link: 204 64% 34%;                  /* #1F628E — azul medio escuro do designer; links inline (nao CTAs). Hover usa --info */
+
     --alert: 0 84% 60%;                   /* red-600 — distinto de --destructive (que continua para confirmações de delete) */
     --alert-foreground: 0 0% 100%;
 

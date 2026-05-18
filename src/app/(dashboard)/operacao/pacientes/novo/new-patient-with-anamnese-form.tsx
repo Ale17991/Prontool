@@ -212,7 +212,7 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
           <p className="mt-1 text-[hsl(var(--warning-foreground))]">
             <Link
               href={`/operacao/pacientes/${duplicate.patientId}`}
-              className="font-semibold text-primary underline"
+              className="font-semibold text-link hover:text-link-hover underline"
             >
               Abrir ficha de {duplicate.fullName}
             </Link>{' '}

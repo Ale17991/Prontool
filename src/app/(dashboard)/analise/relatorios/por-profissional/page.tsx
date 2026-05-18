@@ -106,7 +106,7 @@ export default async function PorProfissionalPage({ searchParams }: PageProps) {
             Nenhum profissional ativo cadastrado.{' '}
             <Link
               href="/configuracoes/profissionais"
-              className="font-semibold text-primary underline"
+              className="font-semibold text-link hover:text-link-hover underline"
             >
               Cadastrar profissional
             </Link>

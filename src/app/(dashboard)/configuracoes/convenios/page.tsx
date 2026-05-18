@@ -177,7 +177,7 @@ export default async function ConveniosPage() {
                           ) : null}
                           <Link
                             href={`/configuracoes/convenios/${p.id}`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover hover:underline"
                           >
                             Abrir <ChevronRight className="h-3 w-3" />
                           </Link>

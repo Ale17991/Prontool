@@ -1276,7 +1276,7 @@ function NewAnamneseForm({
             Nenhum modelo cadastrado.{' '}
             <a
               href="/configuracoes/modelos-anamnese/novo"
-              className="font-semibold text-primary underline"
+              className="font-semibold text-link hover:text-link-hover underline"
               target="_blank"
               rel="noreferrer"
             >
