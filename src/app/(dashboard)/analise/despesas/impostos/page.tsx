@@ -129,7 +129,7 @@ export default async function ImpostosPage() {
                       </TableCell>
                       <TableCell>
                         {t.is_active ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-success-strong">
                             <CheckCircle2 className="h-3 w-3" /> Ativo
                           </span>
                         ) : (
@@ -161,11 +161,12 @@ export default async function ImpostosPage() {
   )
 }
 
+// 016 — paleta do designer (info/warning) + purple Tailwind para federal.
 function categoryBadge(cat: string): string {
   const map: Record<string, string> = {
-    municipal: 'bg-blue-50 text-blue-700',
-    estadual: 'bg-amber-50 text-amber-700',
-    federal: 'bg-purple-50 text-purple-700',
+    municipal: 'bg-info-bg text-info-text',
+    estadual: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+    federal: 'bg-[#FAF5FF] text-[#6B21A8]',
     outro: 'bg-slate-100 text-slate-700',
   }
   return map[cat] ?? map.outro!

@@ -179,11 +179,11 @@ export function LocalProcedureTypeahead({
                         />
                         <span className="mr-2 mt-0.5 flex shrink-0 items-center gap-1.5">
                           {item.isCustomCoded ? (
-                            <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                            <span className="rounded border border-[#DDD6FE] bg-[#EDE9FE] px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#5B21B6]">
                               Pers.
                             </span>
                           ) : item.isUnlisted ? (
-                            <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                            <span className="rounded border border-[#E9D5FF] bg-[#FAF5FF] px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#6B21A8]">
                               Não list.
                             </span>
                           ) : null}

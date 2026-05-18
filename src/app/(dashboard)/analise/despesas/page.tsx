@@ -247,12 +247,12 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                             </p>
                           ) : null}
                           {(e as { tax_name?: string | null }).tax_name ? (
-                            <p className="text-[11px] font-semibold text-purple-700">
+                            <p className="text-[11px] font-semibold text-[#6B21A8]">
                               Imposto: {(e as { tax_name?: string | null }).tax_name}
                             </p>
                           ) : null}
                           {e.recurring ? (
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-info-text">
                               Recorrente · {e.frequency}
                             </p>
                           ) : null}
@@ -314,14 +314,17 @@ function StatCard(props: { label: string; value: string; icon: React.ReactNode }
   )
 }
 
+// 016 — categorias de despesa harmonizadas com paleta do designer onde
+// fazem sentido semantico. Categorias sem match natural (indigo/purple/
+// orange) mantem Tailwind defaults para preservar diferenciacao visual.
 function categoryBadge(cat: string): string {
   const map: Record<string, string> = {
     aluguel: 'bg-indigo-50 text-indigo-700',
-    equipamentos: 'bg-amber-50 text-amber-700',
-    materiais: 'bg-emerald-50 text-emerald-700',
-    pessoal: 'bg-blue-50 text-blue-700',
-    servicos: 'bg-rose-50 text-rose-700',
-    impostos: 'bg-purple-50 text-purple-700',
+    equipamentos: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+    materiais: 'bg-success-bg text-success-text',
+    pessoal: 'bg-info-bg text-info-text',
+    servicos: 'bg-destructive/10 text-destructive',
+    impostos: 'bg-[#FAF5FF] text-[#6B21A8]',
     manutencao: 'bg-orange-50 text-orange-700',
     outros: 'bg-slate-100 text-slate-700',
   }

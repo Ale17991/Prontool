@@ -436,11 +436,11 @@ export function ProcedurasEditor({
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         {proc?.isCustomCoded ? (
-                          <span className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-700">
+                          <span className="rounded border border-[#DDD6FE] bg-[#EDE9FE] px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#5B21B6]">
                             Pers.
                           </span>
                         ) : proc?.isUnlisted ? (
-                          <span className="rounded border border-amber-200 bg-amber-50 px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700">
+                          <span className="rounded border border-[#E9D5FF] bg-[#FAF5FF] px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest text-[#6B21A8]">
                             Não list.
                           </span>
                         ) : null}
@@ -557,7 +557,7 @@ export function ProcedurasEditor({
                         type="button"
                         onClick={() => removeLine(i)}
                         disabled={disabled}
-                        className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-destructive/10 hover:text-destructive"
                         title="Remover procedimento"
                         aria-label="Remover procedimento"
                       >
