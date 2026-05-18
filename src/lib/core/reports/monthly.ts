@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import {
+  getTenantTimezone,
+  ymdStartOfDayUtc,
+  ymdNextDayStartUtc,
+} from '@/lib/utils/tenant-tz'
 
 /**
  * T139 — Agrega `appointments_effective` em receita-por-plano e
@@ -78,8 +83,11 @@ export async function buildMonthlyReport(
   }
 
   // Inclusive upper bound: use < next-day midnight to capture the whole day.
-  const fromTs = `${input.from}T00:00:00Z`
-  const toExclusiveTs = nextDayIso(input.to)
+  // Boundaries resolved no fuso do tenant — agendamento à noite no último
+  // dia do mês não escorre pro mês seguinte (Camada 3, T1).
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const fromTs = ymdStartOfDayUtc(input.from, tz)
+  const toExclusiveTs = ymdNextDayStartUtc(input.to, tz)
 
   // Paginate: PostgREST caps each response at `db-max-rows` (default 1000
   // locally; typically 1000 in Supabase cloud too). SC-004 expects the
@@ -211,8 +219,3 @@ export function monthlyReportToWire(report: MonthlyReport): {
   }
 }
 
-function nextDayIso(ymd: string): string {
-  const d = new Date(`${ymd}T00:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + 1)
-  return d.toISOString()
-}
