@@ -161,7 +161,7 @@ function ProfessionalCard({
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Comissão
             </p>
-            <p className="text-xl font-black text-emerald-600 tabular-nums">
+            <p className="text-xl font-black text-success-strong tabular-nums">
               {formatCurrency(row.totalCommissionCents)}
             </p>
           </div>
@@ -191,7 +191,7 @@ function SummaryStat({
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
+        <div className="mb-3 inline-flex rounded-xl border border-info/30 bg-info-bg p-2.5 text-info-text">
           <Users className="h-4 w-4" />
         </div>
         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -200,7 +200,7 @@ function SummaryStat({
         <p
           className={
             highlight
-              ? 'mt-2 text-2xl font-black tabular-nums text-emerald-600'
+              ? 'mt-2 text-2xl font-black tabular-nums text-success-strong'
               : 'mt-2 text-2xl font-black tabular-nums text-slate-900'
           }
         >

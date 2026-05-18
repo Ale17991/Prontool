@@ -251,7 +251,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                 {formatCurrency(totalGross)}
               </p>
             </div>
-            <div className="rounded-xl bg-blue-50 p-2.5 text-primary">
+            <div className="rounded-xl bg-info-bg p-2.5 text-info-text">
               <LayoutDashboard className="h-4 w-4" />
             </div>
           </CardHeader>
@@ -284,7 +284,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                       </TableCell>
                       <TableCell className="text-right">
                         {row.taxRateBps > 0 ? (
-                          <span className="text-purple-700 tabular-nums">
+                          <span className="text-[#6B21A8] tabular-nums">
                             −{formatCurrency(row.taxFromPlanCents)}
                             <span className="ml-1 text-[10px] text-slate-400">
                               ({(row.taxRateBps / 100).toFixed(2).replace('.', ',')}%)
@@ -419,7 +419,7 @@ function TaxSection({ report }: { report: FinancialReport }) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-6">
-            <div className="mb-3 inline-flex rounded-xl border border-purple-100 bg-purple-50 p-2.5 text-purple-700">
+            <div className="mb-3 inline-flex rounded-xl border border-[#EDE9FE] bg-[#FAF5FF] p-2.5 text-[#6B21A8]">
               <Calculator className="h-4 w-4" />
             </div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -432,7 +432,7 @@ function TaxSection({ report }: { report: FinancialReport }) {
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-blue-700">
+            <div className="mb-3 inline-flex rounded-xl border border-info/30 bg-info-bg p-2.5 text-info-text">
               <Building2 className="h-4 w-4" />
             </div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -448,7 +448,7 @@ function TaxSection({ report }: { report: FinancialReport }) {
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="mb-3 inline-flex rounded-xl border border-rose-100 bg-rose-50 p-2.5 text-rose-700">
+            <div className="mb-3 inline-flex rounded-xl border border-destructive/30 bg-destructive/10 p-2.5 text-destructive">
               <Receipt className="h-4 w-4" />
             </div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -489,7 +489,7 @@ function ExpensesSection({ report }: { report: FinancialReport }) {
                   {formatCurrency(report.totals.totalExpensesCents)}
                 </p>
               </div>
-              <div className="rounded-xl bg-rose-50 p-2.5 text-rose-600">
+              <div className="rounded-xl bg-destructive/10 p-2.5 text-destructive">
                 <TrendingDown className="h-4 w-4" />
               </div>
             </div>
@@ -498,8 +498,8 @@ function ExpensesSection({ report }: { report: FinancialReport }) {
                 className={cn(
                   'mt-4 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold',
                   expensesGood
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-rose-50 text-rose-700',
+                    ? 'bg-success-bg text-success-text'
+                    : 'bg-destructive/10 text-destructive',
                 )}
               >
                 {expensesPct >= 0 ? (
@@ -664,7 +664,7 @@ function ResultMiniCard({
           <div
             className={cn(
               'rounded-lg p-1.5',
-              tone === 'positive' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600',
+              tone === 'positive' ? 'bg-success-bg text-success-strong' : 'bg-destructive/10 text-destructive',
             )}
           >
             <Icon className="h-3.5 w-3.5" />
@@ -771,7 +771,7 @@ function ComparisonBadge({
           <p
             className={cn(
               'mt-2 inline-flex items-center gap-1 text-2xl font-black tracking-tight',
-              isGood ? 'text-emerald-600' : 'text-rose-600',
+              isGood ? 'text-success-strong' : 'text-destructive',
             )}
           >
             <Arrow className="h-5 w-5" />
@@ -783,7 +783,7 @@ function ComparisonBadge({
         <div
           className={cn(
             'rounded-lg p-2',
-            isGood ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600',
+            isGood ? 'bg-success-bg text-success-strong' : 'bg-destructive/10 text-destructive',
           )}
         >
           {icon}

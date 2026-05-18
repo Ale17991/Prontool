@@ -217,7 +217,7 @@ export function NewExpenseForm() {
             </SelectContent>
           </Select>
           {taxLoadError ? (
-            <p className="mt-1 text-[11px] text-rose-600">
+            <p className="mt-1 text-[11px] text-destructive">
               Falha ao carregar impostos: {taxLoadError}
             </p>
           ) : null}
@@ -347,7 +347,7 @@ export function NewExpenseForm() {
                   onClick={() => {
                     setReceiptFiles((prev) => prev.filter((_, i) => i !== idx))
                   }}
-                  className="text-slate-400 hover:text-rose-600"
+                  className="text-slate-400 hover:text-destructive"
                   aria-label="Remover comprovante"
                 >
                   <X className="h-3.5 w-3.5" />

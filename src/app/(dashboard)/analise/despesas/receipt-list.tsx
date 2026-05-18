@@ -256,7 +256,7 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
                       onClick={() => void handleRemove(r)}
                       disabled={pending !== null}
                       title="Remover"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded text-slate-400 hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
                     >
                       {pending === 'remove' ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -300,7 +300,7 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
         </>
       ) : null}
 
-      {error ? <p className="text-[10px] font-semibold text-rose-600">{error}</p> : null}
+      {error ? <p className="text-[10px] font-semibold text-destructive">{error}</p> : null}
     </div>
   )
 }

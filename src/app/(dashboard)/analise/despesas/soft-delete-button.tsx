@@ -43,7 +43,7 @@ export function SoftDeleteExpenseButton({ id }: { id: string }) {
         size="icon"
         onClick={handleDelete}
         disabled={loading}
-        className="h-8 w-8 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+        className="h-8 w-8 text-slate-400 hover:bg-destructive/10 hover:text-destructive"
         aria-label="Remover despesa"
       >
         {loading ? (

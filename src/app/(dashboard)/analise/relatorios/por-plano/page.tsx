@@ -242,7 +242,7 @@ function SummaryStat({
         <p
           className={
             highlight
-              ? 'mt-2 text-2xl font-black tabular-nums text-emerald-600'
+              ? 'mt-2 text-2xl font-black tabular-nums text-success-strong'
               : 'mt-2 text-2xl font-black tabular-nums text-slate-900'
           }
         >

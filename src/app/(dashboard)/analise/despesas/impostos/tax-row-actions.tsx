@@ -65,7 +65,7 @@ export function TaxRowActions(props: TaxRowActionsProps) {
         </Button>
       </div>
       {error ? (
-        <span className="text-[10px] text-rose-600" title={error}>
+        <span className="text-[10px] text-destructive" title={error}>
           Erro: {error}
         </span>
       ) : null}

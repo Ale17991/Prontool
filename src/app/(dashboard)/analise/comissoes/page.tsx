@@ -102,7 +102,7 @@ export default async function ComissoesPage() {
         </CardHeader>
         <CardContent className="p-0">
           {headsRes.error ? (
-            <p className="px-6 pb-6 text-sm text-rose-600">Erro: {headsRes.error.message}</p>
+            <p className="px-6 pb-6 text-sm text-destructive">Erro: {headsRes.error.message}</p>
           ) : heads.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-slate-500">
               Nenhum profissional ativo com comissão vigente. Cadastre em{' '}

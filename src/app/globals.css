@@ -37,6 +37,7 @@
     --success-foreground: 0 0% 100%;
     --success-bg: 180 22% 84%;            /* #CBE1E1 — verde suave do designer */
     --success-text: 182 86% 16%;          /* #05494B — verde escuro do designer */
+    --success-strong: 182 72% 26%;        /* #126F72 — verde forte para destaques monetarios positivos */
 
     --warning: 38 92% 50%;                /* amber-500 — fora da paleta do designer, padrão consolidado */
     --warning-foreground: 26 83% 14%;     /* amber-950 */

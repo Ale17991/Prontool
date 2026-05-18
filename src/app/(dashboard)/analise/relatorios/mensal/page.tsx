@@ -290,7 +290,7 @@ function SummaryCard({
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
+        <div className="mb-3 inline-flex rounded-xl border border-info/30 bg-info-bg p-2.5 text-info-text">
           <Icon className="h-4 w-4" />
         </div>
         <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -299,7 +299,7 @@ function SummaryCard({
         <p
           className={
             accent
-              ? 'text-xl font-black tracking-tight text-rose-600'
+              ? 'text-xl font-black tracking-tight text-destructive'
               : 'text-xl font-black tracking-tight text-slate-900'
           }
         >
