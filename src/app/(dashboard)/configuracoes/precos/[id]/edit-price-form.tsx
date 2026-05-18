@@ -129,12 +129,12 @@ export function EditPriceForm({
       </Button>
 
       {conflict ? (
-        <p className="rounded-md border border-amber-100 bg-amber-50 p-3 text-xs font-medium text-amber-800">
+        <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-3 text-xs font-medium text-[hsl(var(--warning-foreground))]">
           {conflict}
         </p>
       ) : null}
       {error ? (
-        <p className="rounded-md border border-rose-100 bg-rose-50 p-3 text-xs font-medium text-rose-700">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs font-medium text-destructive">
           {error}
         </p>
       ) : null}

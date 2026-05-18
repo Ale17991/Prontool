@@ -48,7 +48,7 @@ export function GhlDisconnectButton(): JSX.Element {
         {submitting ? 'Desconectando…' : 'Desconectar'}
       </Button>
       {error ? (
-        <span className="text-xs text-rose-600">{error}</span>
+        <span className="text-xs text-destructive">{error}</span>
       ) : null}
     </div>
   )

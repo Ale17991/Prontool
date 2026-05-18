@@ -153,11 +153,11 @@ export function OnboardingForm({ initialName }: { initialName: string }) {
             </div>
             {slug ? (
               slugAvailable === true ? (
-                <p className="text-[11px] font-medium text-emerald-600">
+                <p className="text-[11px] font-medium text-success-strong">
                   Disponível.
                 </p>
               ) : slugAvailable === false && slugSuggested ? (
-                <p className="text-[11px] font-medium text-amber-700">
+                <p className="text-[11px] font-medium text-[hsl(var(--warning-foreground))]">
                   Em uso. Sugestão:{' '}
                   <button
                     type="button"

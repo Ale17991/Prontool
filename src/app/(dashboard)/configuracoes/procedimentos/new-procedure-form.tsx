@@ -144,7 +144,7 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <label className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs">
+      <label className="flex items-start gap-2 rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.05)] px-3 py-2 text-xs">
         <input
           type="checkbox"
           checked={isUnlisted}
@@ -353,12 +353,12 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
       </Button>
 
       {error ? (
-        <p className="rounded-md border border-rose-100 bg-rose-50 p-3 text-xs font-medium text-rose-700">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs font-medium text-destructive">
           {error}
         </p>
       ) : null}
       {success ? (
-        <p className="rounded-md border border-emerald-100 bg-emerald-50 p-3 text-xs font-medium text-emerald-700">
+        <p className="rounded-md border border-success/30 bg-success-bg p-3 text-xs font-medium text-success-text">
           {success}
         </p>
       ) : null}

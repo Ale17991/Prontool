@@ -158,7 +158,7 @@ export function UserProfileForm({ initial }: Props) {
                   size="sm"
                   disabled={avatarBusy}
                   onClick={onAvatarRemove}
-                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="mr-2 h-3 w-3" /> Remover
                 </Button>
@@ -210,7 +210,7 @@ export function UserProfileForm({ initial }: Props) {
       <div className="flex items-center justify-between">
         <div className="text-xs text-slate-500">
           {savedAt ? <span>Salvo às {new Date(savedAt).toLocaleTimeString('pt-BR')}</span> : null}
-          {error ? <span className="text-red-600">{error}</span> : null}
+          {error ? <span className="text-destructive">{error}</span> : null}
         </div>
         <Button type="submit" disabled={saving || avatarBusy}>
           {saving ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}

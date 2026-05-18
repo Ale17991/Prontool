@@ -580,16 +580,16 @@ export function NewAppointmentForm({
       {conflictWarning ? (
         <div
           role="alert"
-          className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"
+          className="md:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive"
         >
           {conflictWarning}
         </div>
       ) : null}
       {error ? (
-        <p className="md:col-span-2 text-sm text-rose-600">{error}</p>
+        <p className="md:col-span-2 text-sm text-destructive">{error}</p>
       ) : null}
       {warning ? (
-        <p className="md:col-span-2 text-sm text-amber-700">{warning}</p>
+        <p className="md:col-span-2 text-sm text-[hsl(var(--warning-foreground))]">{warning}</p>
       ) : null}
 
       <div className="md:col-span-2 flex items-center justify-end gap-2">

@@ -172,7 +172,7 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
       <Card>
         <CardContent className="p-0">
           {error ? (
-            <p className="px-6 py-8 text-sm text-rose-600">Erro: {error.message}</p>
+            <p className="px-6 py-8 text-sm text-destructive">Erro: {error.message}</p>
           ) : pageRows.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <ScrollText className="h-8 w-8 text-slate-300" />
@@ -214,13 +214,13 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
                     <TableCell className="max-w-sm text-[11px]">
                       <div className="space-y-1">
                         {r.old_value ? (
-                          <p className="text-rose-600">
+                          <p className="text-destructive">
                             <span className="font-bold">−</span>{' '}
                             <span className="font-mono break-words">{r.old_value}</span>
                           </p>
                         ) : null}
                         {r.new_value ? (
-                          <p className="text-emerald-700">
+                          <p className="text-success-strong">
                             <span className="font-bold">+</span>{' '}
                             <span className="font-mono break-words">{r.new_value}</span>
                           </p>

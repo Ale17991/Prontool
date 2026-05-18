@@ -105,8 +105,8 @@ export function ChangePasswordForm() {
           </div>
           <div className="md:col-span-3 flex items-center justify-between">
             <div className="text-xs">
-              {success ? <span className="text-green-600">Senha alterada com sucesso</span> : null}
-              {error ? <span className="text-red-600">{error}</span> : null}
+              {success ? <span className="text-success-strong">Senha alterada com sucesso</span> : null}
+              {error ? <span className="text-destructive">{error}</span> : null}
             </div>
             <Button type="submit" disabled={busy || !currentPassword || !newPassword}>
               {busy ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}

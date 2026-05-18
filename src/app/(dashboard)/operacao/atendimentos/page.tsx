@@ -253,7 +253,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
             {reversedCount > 0 ? (
               <>
                 {' '}·{' '}
-                <span className="font-semibold text-rose-600">
+                <span className="font-semibold text-destructive">
                   {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
                 </span>
               </>
@@ -286,7 +286,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
       <Card>
         <CardContent className="p-0">
           {error ? (
-            <p className="px-6 py-8 text-sm text-rose-600">Erro ao carregar: {error.message}</p>
+            <p className="px-6 py-8 text-sm text-destructive">Erro ao carregar: {error.message}</p>
           ) : filteredRows.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <Stethoscope className="h-8 w-8 text-slate-300" />

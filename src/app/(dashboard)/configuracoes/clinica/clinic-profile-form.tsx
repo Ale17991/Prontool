@@ -266,7 +266,7 @@ export function ClinicProfileForm({ initial }: Props) {
                   size="sm"
                   disabled={logoUploading}
                   onClick={onLogoRemove}
-                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="mr-2 h-3 w-3" /> Remover logo
                 </Button>
@@ -315,7 +315,7 @@ export function ClinicProfileForm({ initial }: Props) {
               maxLength={18}
               aria-invalid={cnpjError ? 'true' : undefined}
             />
-            {cnpjError ? <p className="mt-1 text-xs text-red-600">{cnpjError}</p> : null}
+            {cnpjError ? <p className="mt-1 text-xs text-destructive">{cnpjError}</p> : null}
           </div>
           <div>
             <Label htmlFor="phone">Telefone</Label>

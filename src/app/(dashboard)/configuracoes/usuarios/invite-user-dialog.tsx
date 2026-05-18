@@ -84,7 +84,7 @@ export function InviteUserDialog({ open, onOpenChange, onSuccess }: Props) {
               ))}
             </select>
           </div>
-          {error ? <p className="text-xs text-red-600">{error}</p> : null}
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <div className="flex items-center justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
               Cancelar

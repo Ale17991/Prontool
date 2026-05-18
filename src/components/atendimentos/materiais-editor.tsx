@@ -149,14 +149,14 @@ export function MateriaisEditor({
                         size="sm"
                         onClick={() => removeAt(i)}
                         disabled={disabled}
-                        className="ml-1 h-7 w-7 p-0 text-slate-400 hover:text-red-600"
+                        className="ml-1 h-7 w-7 p-0 text-slate-400 hover:text-destructive"
                         title="Remover material"
                       >
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                     {invalid ? (
-                      <span className="basis-full text-[11px] text-red-600">
+                      <span className="basis-full text-[11px] text-destructive">
                         Quantidade deve ser um número inteiro maior que zero.
                       </span>
                     ) : null}

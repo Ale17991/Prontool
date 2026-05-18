@@ -309,7 +309,7 @@ export function ProcedurasEditor({
               type="button"
               onClick={clearAllLines}
               disabled={disabled}
-              className="text-[11px] font-semibold text-slate-500 hover:text-rose-600"
+              className="text-[11px] font-semibold text-slate-500 hover:text-destructive"
             >
               Limpar todos
             </button>
@@ -498,7 +498,7 @@ export function ProcedurasEditor({
                       {line.particularLocked ? (
                         <span
                           title="Procedimento não coberto pelo plano — sempre particular"
-                          className="inline-flex items-center gap-1 text-[11px] text-amber-700"
+                          className="inline-flex items-center gap-1 text-[11px] text-[hsl(var(--warning-foreground))]"
                         >
                           Particular
                           <span className="text-[10px] text-amber-600">(não coberto)</span>

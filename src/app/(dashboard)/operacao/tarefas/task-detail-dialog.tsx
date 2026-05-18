@@ -366,7 +366,7 @@ function DetailRow({
       <p
         className={cn(
           'mt-0.5 font-semibold tabular-nums',
-          emphasis === 'rose' ? 'text-rose-700' : 'text-slate-900',
+          emphasis === 'rose' ? 'text-destructive' : 'text-slate-900',
         )}
       >
         {value}
