@@ -11,6 +11,7 @@ import { DashboardShell } from './_components/dashboard-shell'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { getUserProfile } from '@/lib/core/user-profile/read'
 import { getAvailableTenants } from '@/lib/auth/available-tenants'
+import { logger } from '@/lib/observability/logger'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await getSession()
@@ -41,11 +42,35 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   // ativos (decisão "mostrar Trocar clínica?"). O service client pode
   // estourar no allowlist (ver supabase-service.ts) — se acontecer, cai
   // pra []: usuário não vê "trocar clínica" mas o dashboard funciona.
+  //
+  // IMPORTANTE: falhas aqui são silenciosas para o usuário (a única
+  // consequência é o link "Trocar clínica" sumir), mas precisam aparecer
+  // em observabilidade — caso contrário um service-role key ausente em
+  // produção fica indistinguível de "usuário tem 1 tenant só".
   let availableTenants: Awaited<ReturnType<typeof getAvailableTenants>> = []
   try {
     const supabaseService = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
-    availableTenants = await getAvailableTenants(supabaseService, session.userId).catch(() => [])
-  } catch {
+    try {
+      availableTenants = await getAvailableTenants(supabaseService, session.userId)
+    } catch (err) {
+      logger.error(
+        {
+          err: err instanceof Error ? err.message : String(err),
+          user_id: session.userId,
+          tenant_id: session.tenantId,
+        },
+        'dashboard-layout-available-tenants-failed',
+      )
+      availableTenants = []
+    }
+  } catch (err) {
+    logger.error(
+      {
+        err: err instanceof Error ? err.message : String(err),
+        user_id: session.userId,
+      },
+      'dashboard-layout-service-client-failed',
+    )
     availableTenants = []
   }
 

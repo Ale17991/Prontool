@@ -28,19 +28,48 @@ export async function getAvailableTenants(
   supabase: SupabaseClient<Database>,
   userId: string,
 ): Promise<AvailableTenant[]> {
+  // Selecionamos user_tenants.status explicitamente para filtrar em JS —
+  // antes usávamos .eq('status', 'active') no PostgREST, mas como tanto
+  // user_tenants quanto tenants têm coluna `status`, dependiam da forma
+  // como PostgREST qualifica o WHERE. Filtrando em JS removemos toda
+  // ambiguidade.
   const { data: links, error: linksErr } = await supabase
     .from('user_tenants')
-    .select('tenant_id, role, tenants!inner(id, name, slug, status)')
+    .select('tenant_id, role, status, tenants!inner(id, name, slug, status)')
     .eq('user_id', userId)
-    .eq('status', 'active')
   if (linksErr) {
     logger.error({ err: linksErr.message, user_id: userId }, 'available-tenants-links-failed')
     throw new Error(`getAvailableTenants links failed: ${linksErr.message}`)
   }
+  // Normalize: Supabase às vezes retorna o embedded `tenants` como array
+  // (relação ambígua, FK múltipla). Aqui só temos um FK
+  // (user_tenants.tenant_id → tenants.id), mas tratamos defensivamente.
+  interface PickedTenant {
+    id: string
+    name: string
+    slug: string
+    status: string
+  }
+  function pickTenant(row: unknown): PickedTenant | null {
+    const t = (row as { tenants: unknown }).tenants
+    if (t === null || t === undefined) return null
+    if (Array.isArray(t)) return (t[0] as PickedTenant | undefined) ?? null
+    return t as PickedTenant
+  }
   const rows = (links ?? []).filter((row) => {
-    const tenant = (row as { tenants: { status: string } | null }).tenants
+    const linkStatus = (row as { status: string }).status
+    if (linkStatus !== 'active') return false
+    const tenant = pickTenant(row)
     return tenant !== null && tenant.status === 'active'
   })
+  logger.debug(
+    {
+      user_id: userId,
+      total_links: links?.length ?? 0,
+      active_after_filter: rows.length,
+    },
+    'available-tenants-resolved',
+  )
   if (rows.length === 0) return []
 
   const tenantIds = rows.map((row) => row.tenant_id)
@@ -77,9 +106,7 @@ export async function getAvailableTenants(
   const lastTimestamp = lastUsed?.updated_at ?? null
 
   return rows.map((row) => {
-    const tenant = (row as unknown as {
-      tenants: { id: string; name: string; slug: string }
-    }).tenants
+    const tenant = pickTenant(row)!
     return {
       tenantId: row.tenant_id,
       name: tenant.name,
