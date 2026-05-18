@@ -15,20 +15,48 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;               /* blue-600 */
+    --primary: 217 91% 60%;               /* blue-600 — CTA, preservado em 016 */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;             /* slate-100 */
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;      /* slate-500 */
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    /* --accent atualizado em 016 — verde suave do designer (#CBE1E1), distinto de --secondary */
+    --accent: 180 22% 84%;
+    --accent-foreground: 182 86% 16%;     /* #05494B do designer */
     --destructive: 0 72% 51%;             /* rose-600 */
     --destructive-foreground: 210 40% 98%;
     --border: 214 32% 91%;                /* slate-200 */
     --input: 214 32% 91%;
     --ring: 217 91% 60%;
     --radius: 0.625rem;
+
+    /* --- 016 semantic tokens — paleta híbrida do designer + neutros consolidados --- */
+    --success: 182 72% 40%;               /* #1CABB0 — verde principal do designer */
+    --success-foreground: 0 0% 100%;
+    --success-bg: 180 22% 84%;            /* #CBE1E1 — verde suave do designer */
+    --success-text: 182 86% 16%;          /* #05494B — verde escuro do designer */
+
+    --warning: 38 92% 50%;                /* amber-500 — fora da paleta do designer, padrão consolidado */
+    --warning-foreground: 26 83% 14%;     /* amber-950 */
+
+    --info: 204 49% 56%;                  /* #569AC6 — azul médio do designer */
+    --info-foreground: 0 0% 100%;
+    --info-bg: 204 80% 88%;               /* #CBE6F8 — azul claro do designer */
+    --info-text: 205 73% 21%;             /* #0E3C5B — azul institucional do designer */
+
+    --alert: 0 84% 60%;                   /* red-600 — distinto de --destructive (que continua para confirmações de delete) */
+    --alert-foreground: 0 0% 100%;
+
+    /* --- 016 sidebar tokens — alpha intrínseca, NÃO HSL (ver research.md §6) --- */
+    --sidebar-bg: #0E3C5B;                /* azul institucional do designer */
+    --sidebar-text: rgba(255, 255, 255, 0.75);
+    --sidebar-active-bg: rgba(86, 154, 198, 0.2);
+    --sidebar-active-text: #CBE6F8;       /* clarified em 2026-05-18 — não é #93C5FD */
+    --sidebar-switch: #569AC6;            /* azul médio do designer */
+    --sidebar-hover: rgba(255, 255, 255, 0.05);
+    --sidebar-section-label: rgba(255, 255, 255, 0.4);
+    --sidebar-separator: rgba(255, 255, 255, 0.1);
   }
   * {
     @apply border-border;

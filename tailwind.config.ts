@@ -57,6 +57,38 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // 016 — semantic tokens (HSL triples consumed via hsl(var(--token)))
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+          bg: 'hsl(var(--success-bg))',
+          text: 'hsl(var(--success-text))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+          bg: 'hsl(var(--info-bg))',
+          text: 'hsl(var(--info-text))',
+        },
+        alert: {
+          DEFAULT: 'hsl(var(--alert))',
+          foreground: 'hsl(var(--alert-foreground))',
+        },
+        // 016 — sidebar tokens (hex/rgba direto — alpha intrínseca, ver research.md §6)
+        sidebar: {
+          DEFAULT: 'var(--sidebar-bg)',
+          text: 'var(--sidebar-text)',
+          'active-bg': 'var(--sidebar-active-bg)',
+          'active-text': 'var(--sidebar-active-text)',
+          switch: 'var(--sidebar-switch)',
+          hover: 'var(--sidebar-hover)',
+          'section-label': 'var(--sidebar-section-label)',
+          separator: 'var(--sidebar-separator)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

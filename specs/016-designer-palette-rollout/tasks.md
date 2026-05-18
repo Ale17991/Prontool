@@ -39,12 +39,12 @@ description: "Task list for 016 Designer Palette Rollout"
 
 **⚠️ CRITICAL**: nenhum trabalho de US1/US2/US5 pode começar até esta phase fechar.
 
-- [ ] T005 Adicionar 12 tokens **semânticos novos** em `:root` de `src/app/globals.css` conforme `contracts/tokens.schema.json` → `semantic`: `--success`, `--success-foreground`, `--success-bg`, `--success-text`, `--warning`, `--warning-foreground`, `--info`, `--info-foreground`, `--info-bg`, `--info-text`, `--alert`, `--alert-foreground` (todos em formato HSL triple)
-- [ ] T006 Atualizar tokens existentes `--accent` (de `210 40% 96%` para `180 22% 84%`) e `--accent-foreground` (de `222 47% 11%` para `182 86% 16%`) em `src/app/globals.css`
-- [ ] T007 Adicionar 8 tokens de **sidebar** em `:root` de `src/app/globals.css` conforme `contracts/tokens.schema.json` → `sidebar`: `--sidebar-bg`, `--sidebar-text`, `--sidebar-active-bg`, `--sidebar-active-text`, `--sidebar-switch`, `--sidebar-hover`, `--sidebar-section-label`, `--sidebar-separator` (formato hex/rgba direto, NÃO HSL — ver `research.md` §6)
-- [ ] T008 Estender `theme.extend.colors` em `tailwind.config.ts` para expor os novos tokens semânticos: `success` (DEFAULT + foreground + bg + text), `warning` (DEFAULT + foreground), `info` (DEFAULT + foreground + bg + text), `alert` (DEFAULT + foreground) — usando o padrão `hsl(var(--token))` já existente para `primary`/`secondary`
-- [ ] T009 Estender `theme.extend.colors.sidebar` em `tailwind.config.ts` com as 8 chaves consumindo as vars sidebar via `var(--sidebar-*)` direto (sem `hsl()`) — ver `research.md` §6 para justificativa
-- [ ] T010 Rodar `pnpm typecheck`; se falhar, corrigir até passar
+- [x] T005 Adicionar 12 tokens **semânticos novos** em `:root` de `src/app/globals.css` conforme `contracts/tokens.schema.json` → `semantic`: `--success`, `--success-foreground`, `--success-bg`, `--success-text`, `--warning`, `--warning-foreground`, `--info`, `--info-foreground`, `--info-bg`, `--info-text`, `--alert`, `--alert-foreground` (todos em formato HSL triple)
+- [x] T006 Atualizar tokens existentes `--accent` (de `210 40% 96%` para `180 22% 84%`) e `--accent-foreground` (de `222 47% 11%` para `182 86% 16%`) em `src/app/globals.css`
+- [x] T007 Adicionar 8 tokens de **sidebar** em `:root` de `src/app/globals.css` conforme `contracts/tokens.schema.json` → `sidebar`: `--sidebar-bg`, `--sidebar-text`, `--sidebar-active-bg`, `--sidebar-active-text`, `--sidebar-switch`, `--sidebar-hover`, `--sidebar-section-label`, `--sidebar-separator` (formato hex/rgba direto, NÃO HSL — ver `research.md` §6)
+- [x] T008 Estender `theme.extend.colors` em `tailwind.config.ts` para expor os novos tokens semânticos: `success` (DEFAULT + foreground + bg + text), `warning` (DEFAULT + foreground), `info` (DEFAULT + foreground + bg + text), `alert` (DEFAULT + foreground) — usando o padrão `hsl(var(--token))` já existente para `primary`/`secondary`
+- [x] T009 Estender `theme.extend.colors.sidebar` em `tailwind.config.ts` com as 8 chaves consumindo as vars sidebar via `var(--sidebar-*)` direto (sem `hsl()`) — ver `research.md` §6 para justificativa
+- [x] T010 Rodar `pnpm typecheck`; se falhar, corrigir até passar — **exit 0**
 
 **Checkpoint**: tokens prontos para consumo. US1, US2, US3, US5 podem começar em paralelo.
 
