@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   ArrowLeftRight,
   Lock,
@@ -74,6 +74,36 @@ export function DashboardShell({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
+  // Defensa em profundidade contra falha silenciosa do path SSR. Se o
+  // server-side disser que isMultiTenant=false, ainda assim consultamos
+  // /api/auth/me/tenants do cliente — essa rota usa o mesmo
+  // createSupabaseServiceClient e o mesmo getAvailableTenants, mas
+  // independe do prefetch do layout (que pode ter falhado silenciosamente,
+  // ex.: SUPABASE_SERVICE_ROLE_KEY ausente, cache de build velho, etc.).
+  // Se a API confirmar ≥ 2 tenants, ligamos o link via state local.
+  const [clientMultiTenant, setClientMultiTenant] = useState(false)
+  useEffect(() => {
+    if (isMultiTenant) return // SSR já disse sim — não precisa checar
+    let cancelled = false
+    fetch('/api/auth/me/tenants', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body) => {
+        if (cancelled || !body) return
+        const tenants = body.tenants
+        if (Array.isArray(tenants) && tenants.length > 1) {
+          setClientMultiTenant(true)
+        }
+      })
+      .catch(() => {
+        // silencioso — pior caso o link continua escondido
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isMultiTenant])
+
+  const effectiveMultiTenant = isMultiTenant || clientMultiTenant
+
   async function handleSignOut() {
     if (signingOut) return
     setSigningOut(true)
@@ -105,7 +135,7 @@ export function DashboardShell({
       role={role}
       clinicLogoUrl={clinicLogoUrl}
       clinicName={clinicName}
-      isMultiTenant={isMultiTenant}
+      isMultiTenant={effectiveMultiTenant}
       userAvatarUrl={userAvatarUrl}
       userFullName={userFullName}
       onNavigate={() => setDrawerOpen(false)}
