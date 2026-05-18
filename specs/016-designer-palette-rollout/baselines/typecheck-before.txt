@@ -1,0 +1,11 @@
+Task: T004
+Date: 2026-05-18
+Branch: 016-designer-palette-rollout (at same commit as master)
+Command: pnpm typecheck
+
+Output (relevant tail):
+> prontool@0.1.0 typecheck C:\My project
+> tsc --noEmit
+
+Exit code: 0
+Status: ✅ PASS — baseline limpo. Qualquer falha em typecheck pós-mudança é regressão da feature 016.

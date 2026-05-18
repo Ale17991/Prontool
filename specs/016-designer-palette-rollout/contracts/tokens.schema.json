@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Prontool Design Tokens — 016",
+  "description": "Canonical list of CSS custom properties exposed by the Prontool design system after the 016 rollout. Source of truth for token names, formats, values, and expected foreground pairing.",
+  "type": "object",
+  "properties": {
+    "core": {
+      "type": "object",
+      "description": "Tokens already present in the system before 016. Preserved as-is unless explicitly noted in `_updated`.",
+      "properties": {
+        "--background": { "format": "hsl-triple", "value": "210 40% 98%" },
+        "--foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
+        "--card": { "format": "hsl-triple", "value": "0 0% 100%" },
+        "--card-foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
+        "--popover": { "format": "hsl-triple", "value": "0 0% 100%" },
+        "--popover-foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
+        "--primary": { "format": "hsl-triple", "value": "217 91% 60%", "note": "Blue 600 — preserved as CTA per FR-003" },
+        "--primary-foreground": { "format": "hsl-triple", "value": "210 40% 98%" },
+        "--secondary": { "format": "hsl-triple", "value": "210 40% 96%" },
+        "--secondary-foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
+        "--muted": { "format": "hsl-triple", "value": "210 40% 96%" },
+        "--muted-foreground": { "format": "hsl-triple", "value": "215 16% 47%" },
+        "--destructive": { "format": "hsl-triple", "value": "0 72% 51%" },
+        "--destructive-foreground": { "format": "hsl-triple", "value": "210 40% 98%" },
+        "--border": { "format": "hsl-triple", "value": "214 32% 91%" },
+        "--input": { "format": "hsl-triple", "value": "214 32% 91%" },
+        "--ring": { "format": "hsl-triple", "value": "217 91% 60%" },
+        "--radius": { "format": "other", "value": "0.625rem" }
+      }
+    },
+    "_updated": {
+      "type": "object",
+      "description": "Existing tokens whose value changes in 016.",
+      "properties": {
+        "--accent": {
+          "format": "hsl-triple",
+          "value": "180 22% 84%",
+          "previous": "210 40% 96%",
+          "hex_equivalent": "#CBE1E1",
+          "note": "Distinct from --secondary per FR-010; now uses designer green soft."
+        },
+        "--accent-foreground": {
+          "format": "hsl-triple",
+          "value": "182 86% 16%",
+          "previous": "222 47% 11%",
+          "hex_equivalent": "#05494B"
+        }
+      }
+    },
+    "semantic": {
+      "type": "object",
+      "description": "New semantic tokens introduced in 016 (success/warning/info/alert + soft variants).",
+      "properties": {
+        "--success": { "format": "hsl-triple", "value": "182 72% 40%", "hex_equivalent": "#1CABB0" },
+        "--success-foreground": { "format": "hsl-triple", "value": "0 0% 100%" },
+        "--success-bg": { "format": "hsl-triple", "value": "180 22% 84%", "hex_equivalent": "#CBE1E1" },
+        "--success-text": { "format": "hsl-triple", "value": "182 86% 16%", "hex_equivalent": "#05494B" },
+        "--warning": { "format": "hsl-triple", "value": "38 92% 50%", "hex_equivalent": "#F59E0B" },
+        "--warning-foreground": { "format": "hsl-triple", "value": "26 83% 14%" },
+        "--info": { "format": "hsl-triple", "value": "204 49% 56%", "hex_equivalent": "#569AC6" },
+        "--info-foreground": { "format": "hsl-triple", "value": "0 0% 100%" },
+        "--info-bg": { "format": "hsl-triple", "value": "204 80% 88%", "hex_equivalent": "#CBE6F8" },
+        "--info-text": { "format": "hsl-triple", "value": "205 73% 21%", "hex_equivalent": "#0E3C5B" },
+        "--alert": { "format": "hsl-triple", "value": "0 84% 60%", "hex_equivalent": "#DC2626" },
+        "--alert-foreground": { "format": "hsl-triple", "value": "0 0% 100%" }
+      }
+    },
+    "sidebar": {
+      "type": "object",
+      "description": "Sidebar-specific tokens. Use hex/rgba directly (alpha is intrinsic) — NOT HSL — per research.md §6.",
+      "properties": {
+        "--sidebar-bg": { "format": "hex", "value": "#0E3C5B" },
+        "--sidebar-text": { "format": "rgba", "value": "rgba(255,255,255,0.75)" },
+        "--sidebar-active-bg": { "format": "rgba", "value": "rgba(86,154,198,0.2)" },
+        "--sidebar-active-text": {
+          "format": "hex",
+          "value": "#CBE6F8",
+          "note": "Clarified in 2026-05-18 session — NOT #93C5FD. Designer palette consistency."
+        },
+        "--sidebar-switch": { "format": "hex", "value": "#569AC6" },
+        "--sidebar-hover": { "format": "rgba", "value": "rgba(255,255,255,0.05)" },
+        "--sidebar-section-label": { "format": "rgba", "value": "rgba(255,255,255,0.4)" },
+        "--sidebar-separator": { "format": "rgba", "value": "rgba(255,255,255,0.1)" }
+      }
+    },
+    "removed": {
+      "type": "array",
+      "description": "Tokens / declarations removed in 016.",
+      "items": [
+        {
+          "name": "darkMode: ['class']",
+          "location": "tailwind.config.ts:10",
+          "reason": "FR-015 — dark mode declarado sem implementação; remoção fixa light mode como padrão."
+        }
+      ]
+    }
+  },
+  "_metadata": {
+    "feature": "016-designer-palette-rollout",
+    "spec_link": "../spec.md",
+    "research_link": "../research.md",
+    "wcag_validated": true,
+    "wcag_summary_link": "../research.md#10-validação-de-contraste-wcag-aa--pares-críticos"
+  }
+}
