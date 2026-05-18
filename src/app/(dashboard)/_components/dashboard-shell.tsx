@@ -144,8 +144,8 @@ export function DashboardShell({
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans">
-      {/* Sidebar fixa (≥md) */}
-      <aside className="z-20 hidden w-64 shrink-0 flex-col bg-slate-900 p-6 shadow-xl md:flex">
+      {/* Sidebar fixa (≥md) — 016: bg #0E3C5B (azul institucional do designer) */}
+      <aside className="z-20 hidden w-64 shrink-0 flex-col bg-sidebar p-6 shadow-xl md:flex">
         {sidebarInner}
       </aside>
 
@@ -153,7 +153,7 @@ export function DashboardShell({
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
         <SheetContent
           side="left"
-          className="flex w-72 max-w-[80vw] flex-col bg-slate-900 p-6 sm:max-w-[80vw]"
+          className="flex w-72 max-w-[80vw] flex-col bg-sidebar p-6 sm:max-w-[80vw]"
         >
           <SheetTitle className="sr-only">Navegação</SheetTitle>
           {sidebarInner}
@@ -255,7 +255,7 @@ function SidebarInner({
           <Link
             href="/selecionar-clinica"
             onClick={onNavigate}
-            className="ml-12 inline-flex items-center gap-1.5 self-start rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-sky-300 transition-colors hover:bg-sky-500/10 hover:text-sky-200"
+            className="ml-12 inline-flex items-center gap-1.5 self-start rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-sidebar-switch transition-colors hover:bg-sidebar-hover hover:opacity-80"
           >
             <ArrowLeftRight className="h-3 w-3 shrink-0" />
             <span>Trocar clínica</span>
@@ -268,14 +268,14 @@ function SidebarInner({
           <div
             key={section.id}
             className={
-              section.id === 'configuracoes' ? 'mt-2 border-t border-white/5 pt-4' : undefined
+              section.id === 'configuracoes' ? 'mt-2 border-t border-sidebar-separator pt-4' : undefined
             }
           >
             {/* Feature 014 — seção "Configurações" colapsada para botão único;
                 escondemos o heading (o próprio item já se chama "Configurações")
                 e adicionamos separador visual antes dela. */}
             {section.id === 'configuracoes' ? null : (
-              <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-sidebar-section-label">
                 {section.label}
               </div>
             )}
@@ -295,7 +295,7 @@ function SidebarInner({
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-white/5 pt-6">
+      <div className="mt-auto border-t border-sidebar-separator pt-6">
         <SidebarIntegrationsBadge integrations={integrations} />
         <div className="flex items-center gap-2 rounded-xl bg-white/5 p-2 text-slate-400">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
@@ -338,11 +338,16 @@ function SidebarLink({
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200',
         active
-          ? 'bg-primary/15 text-white shadow-inner ring-1 ring-primary/30'
-          : 'text-slate-400 hover:bg-white/5 hover:text-white',
+          ? 'bg-sidebar-active-bg text-sidebar-active-text'
+          : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white',
       )}
     >
-      <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : 'text-slate-500')} />
+      <Icon
+        className={cn(
+          'h-4 w-4 shrink-0',
+          active ? 'text-sidebar-active-text' : 'opacity-80',
+        )}
+      />
       <span className="truncate">{label}</span>
     </Link>
   )

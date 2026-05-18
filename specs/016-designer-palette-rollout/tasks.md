@@ -135,15 +135,15 @@ description: "Task list for 016 Designer Palette Rollout"
 
 **Independent Test**: inspeção via DevTools dos 8 elementos da sidebar (fundo, texto, item ativo fundo/texto, hover, separador, label de seção, "Trocar clínica") batendo com `data-model.md` §5.
 
-- [ ] T042 [US5] Em `src/app/(dashboard)/_components/dashboard-shell.tsx`, substituir `bg-slate-900` (linha 148) por `bg-sidebar` consumindo o novo token
-- [ ] T043 [US5] Substituir as classes do item ativo (linha 341) `bg-primary/15 text-white shadow-inner ring-1 ring-primary/30` por `bg-sidebar-active-bg text-sidebar-active-text` — manter `shadow-inner` ou remover é decisão de revisão visual (não está no spec; default: remover, validar visualmente em T046)
-- [ ] T044 [US5] Substituir hover (linha 342) `hover:bg-white/5 hover:text-white` por `hover:bg-sidebar-hover hover:text-white` — `bg-sidebar-hover` é `rgba(255,255,255,0.05)`, idêntico ao atual
-- [ ] T045 [US5] Substituir labels de seção (linhas 278-279) `text-slate-500` por `text-sidebar-section-label`; substituir separadores (linhas 271, 298) `border-white/5` por `border-sidebar-separator` — **atenção**: valor muda de 0.05 para 0.1, separador fica ligeiramente mais visível
-- [ ] T046 [US5] Substituir link "Trocar clínica" (linhas 256-262) `text-sky-300 hover:text-sky-200` por `text-sidebar-switch hover:text-sidebar-switch/80` (ou hover equivalente)
-- [ ] T047 [US5] Inspeção visual da sidebar abrindo qualquer página do dashboard; comparar com a tabela de cores em `data-model.md` §5 — zero divergência (SC-005). Capturar screenshot em `visual-validation/sidebar.png`
-- [ ] T048 [US5] Verificar que o link "Trocar clínica" só aparece quando `isMultiTenant` é true (lógica existente preservada); contraste do `#569AC6` sobre `#0E3C5B` ≥ 4.5:1
-- [ ] T049 [US5] Rodar `pnpm typecheck`
-- [ ] T050 [US5] Commit + push: `git add -A && git commit -m "feat(ui): sidebar com paleta institucional do designer (US5)"`
+- [x] T042 [US5] Sidebar fundo: `bg-slate-900` → `bg-sidebar` (aside + SheetContent mobile)
+- [x] T043 [US5] Item ativo: `bg-primary/15 text-white shadow-inner ring-1 ring-primary/30` → `bg-sidebar-active-bg text-sidebar-active-text` (shadow-inner e ring removidos — não no spec)
+- [x] T044 [US5] Hover: `text-slate-400 hover:bg-white/5 hover:text-white` → `text-sidebar-text hover:bg-sidebar-hover hover:text-white`
+- [x] T045 [US5] Labels seção: `text-slate-500` → `text-sidebar-section-label`; separadores `border-white/5` → `border-sidebar-separator` (valor sobe de 0.05 para 0.1)
+- [x] T046 [US5] "Trocar clínica": `text-sky-300 hover:bg-sky-500/10 hover:text-sky-200` → `text-sidebar-switch hover:bg-sidebar-hover hover:opacity-80`
+- [~] T047 [US5] Screenshot da sidebar — **manual, pendente**
+- [x] T048 [US5] "Trocar clínica" condicional a `isMultiTenant` preservada; contraste `#569AC6` sobre `#0E3C5B` ≥ 4.5:1 (validado em contrast-audit.md)
+- [x] T049 [US5] `pnpm typecheck` — exit 0
+- [x] T050 [US5] Commit + push
 
 **Checkpoint**: sidebar fiel ao designer; identidade institucional aplicada.
 
