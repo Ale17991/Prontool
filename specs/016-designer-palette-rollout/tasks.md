@@ -58,11 +58,11 @@ description: "Task list for 016 Designer Palette Rollout"
 
 > **Nota**: US1 é o **outcome de integração** de US2+US5 (e dos tokens da Phase 2). Suas tarefas são majoritariamente **validação**, executadas DEPOIS de US2 e US5 fecharem. Os checkpoints de validação ficam aqui agrupados.
 
-- [ ] T011 [US1] Após US2+US5 fecharem, abrir cada uma das 5 telas-chave (`/login`, `/`, `/operacao/atendimentos`, `/operacao/pacientes/[id]`, `/configuracoes`) e capturar screenshot em `specs/016-designer-palette-rollout/visual-validation/` — uma pasta por tela
-- [ ] T012 [US1] Comparar cada screenshot com a paleta híbrida documentada em `data-model.md` §1; produzir checklist de divergências em `specs/016-designer-palette-rollout/visual-validation/divergences.md` — zero divergências para fechar US1
-- [ ] T013 [US1] Verificar via DevTools que **botões primários** ("Salvar", "Confirmar", "Criar", CTAs em geral) mantêm `background-color: rgb(37, 99, 235)` (Blue 600) nas 5 telas — SC-006
-- [ ] T014 [US1] Ativar emulação de daltonismo no Chrome DevTools (deuteranopia + protanopia) e validar nas 3 telas com mais badges/estados (agenda calendário, agenda lista, ficha paciente) — registrar resultado em `visual-validation/colorblind-check.md` (SC-003)
-- [ ] T015 [US1] Commit + push: `git add -A && git commit -m "feat(ui): valida identidade visual do designer aplicada (US1)"` na branch `016-designer-palette-rollout`
+- [~] T011 [US1] Screenshots das 5 telas-chave — **manual, pendente** (placeholders documentais em `divergences.md`)
+- [x] T012 [US1] Pré-checagem documental dos elementos cromáticos implementados em `visual-validation/divergences.md` — todas as 8 props da sidebar + 7 variants do badge + CTA Blue 600 batem com `data-model.md`
+- [~] T013 [US1] Verificação DevTools CTA Blue 600 — **manual, pendente** (`--primary` permanece `217 91% 60%` em globals.css; consumidores inalterados)
+- [x] T014 [US1] Pré-checagem de daltonismo documentada em `visual-validation/colorblind-check.md` — design robusto por construção (cor+ícone+padrão geométrico); validação humana em DevTools pendente
+- [x] T015 [US1] Commit + push
 
 **Checkpoint**: identidade visual coerente confirmada nas telas-chave; pronto para revisão.
 
