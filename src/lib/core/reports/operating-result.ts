@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { selectMonthlyFixedPayLines } from './monthly-fixed-pay-lines'
+import { getTenantTimezone, ymdStartOfDayUtc } from '@/lib/utils/tenant-tz'
 
 export interface OperatingResultLines {
   grossRevenueCents: number
@@ -49,12 +50,23 @@ export async function computeOperatingResult(
   const [yStr, mStr] = args.month.split('-')
   const year = Number(yStr)
   const month = Number(mStr)
-  const fromDate = new Date(Date.UTC(year, month - 1, 1))
-  const toDate = new Date(Date.UTC(year, month, 1))
-  const fromIso = fromDate.toISOString()
-  const toIso = toDate.toISOString()
-  const fromDateStr = fromDate.toISOString().slice(0, 10)
-  const toDateStr = toDate.toISOString().slice(0, 10)
+  // Camada 3 T1 — boundaries do mês no fuso do tenant.
+  // fromYmd / toYmd são YMD puros (DATE-equivalent, sem TZ) usados para
+  // o filtro de `competence_date` (coluna DATE em expenses). fromIso /
+  // toIso são os mesmos YMDs convertidos para meia-noite no fuso do
+  // tenant, usados para o filtro de `appointment_at` (TIMESTAMPTZ).
+  const fromYmd = `${args.month}-01`
+  const toYmd =
+    month === 12
+      ? `${year + 1}-01-01`
+      : `${year}-${String(month + 1).padStart(2, '0')}-01`
+  const tz = await getTenantTimezone(supabase, args.tenantId)
+  const fromIso = ymdStartOfDayUtc(fromYmd, tz)
+  const toIso = ymdStartOfDayUtc(toYmd, tz)
+  const fromDateStr = fromYmd
+  const toDateStr = toYmd
+  const fromMs = new Date(fromIso).getTime()
+  const toMs = new Date(toIso).getTime()
 
   // 1) Gross + commissions: appointments_effective no mês com status 'ativo'.
   const { data: apptRaw, error: apptErr } = await supabase
@@ -111,7 +123,7 @@ export async function computeOperatingResult(
     const at = r.appointment?.appointment_at
     if (!at) return false
     const t = new Date(at).getTime()
-    return t >= fromDate.getTime() && t < toDate.getTime()
+    return t >= fromMs && t < toMs
   })
   let liberalPaymentsCents = 0
   if (assistInMonth.length > 0) {
