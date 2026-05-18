@@ -102,10 +102,14 @@ export async function verifySsoToken(rawToken: string): Promise<SsoTokenClaims> 
     throw new InvalidSsoTokenError('payload not valid base64url JSON')
   }
   const nowSec = Math.floor(Date.now() / 1000)
-  if (claims.exp && claims.exp < nowSec) {
+  // exp é obrigatório — sem ele, um JWT comprometido seria aceito eternamente.
+  if (typeof claims.exp !== 'number') {
+    throw new InvalidSsoTokenError('exp claim missing')
+  }
+  if (claims.exp < nowSec) {
     throw new InvalidSsoTokenError('exp in the past')
   }
-  if (claims.iat && claims.iat > nowSec + 60) {
+  if (typeof claims.iat === 'number' && claims.iat > nowSec + 60) {
     throw new InvalidSsoTokenError('iat in the future')
   }
   if (SSO_AUDIENCE && claims.aud && claims.aud !== SSO_AUDIENCE) {
