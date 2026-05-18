@@ -9,6 +9,9 @@ export default async function AnalisePage() {
   const flags = listFeatureFlags()
   if (flags.relatorios && can(session.role, 'report.read')) redirect('/analise/relatorios')
   if (flags.comissoes && can(session.role, 'doctor.read')) redirect('/analise/comissoes')
-  if (can(session.role, 'audit.read')) redirect('/analise/auditoria')
+  // Feature 014 — Auditoria mudou de casa: /analise/auditoria foi para
+  // /configuracoes/auditoria. Se for o único acesso disponível em
+  // Análise, mandamos direto pra nova rota canônica.
+  if (can(session.role, 'audit.read')) redirect('/configuracoes/auditoria')
   redirect('/configuracoes')
 }
