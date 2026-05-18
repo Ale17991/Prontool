@@ -61,12 +61,18 @@ export function readGhlOAuthEnv(): GhlOAuthEnv {
 
 export interface GhlSsoEnv {
   jwksUrl: string
+  /** Audience esperada no claim `aud` do JWT — sempre o GHL_CLIENT_ID. */
+  audience: string
 }
 
 export function readGhlSsoEnv(): GhlSsoEnv {
   const url = process.env.GHL_SSO_JWKS_URL
-  if (!url) throw new OauthConfigMissingError(['GHL_SSO_JWKS_URL'])
-  return { jwksUrl: url }
+  const audience = process.env.GHL_CLIENT_ID
+  const missing: string[] = []
+  if (!url) missing.push('GHL_SSO_JWKS_URL')
+  if (!audience) missing.push('GHL_CLIENT_ID')
+  if (missing.length > 0) throw new OauthConfigMissingError(missing)
+  return { jwksUrl: url as string, audience: audience as string }
 }
 
 /**

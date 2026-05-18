@@ -61,13 +61,15 @@ export class InvalidSsoTokenError extends Error {
 let jwksCache: { fetchedAt: number; keys: Jwk[] } | null = null
 const JWKS_TTL_MS = 60 * 60 * 1000 // 1h
 
-const SSO_AUDIENCE = process.env.GHL_CLIENT_ID ?? ''
 const ALLOWED_ISS = [
   'https://services.leadconnectorhq.com',
   'https://marketplace.gohighlevel.com',
 ]
 
 export async function verifySsoToken(rawToken: string): Promise<SsoTokenClaims> {
+  // Env lida por chamada — module-level read pode pegar valor vazio em
+  // build/cold-start sem env, e a checagem de aud viraria no-op.
+  const { audience: SSO_AUDIENCE } = readGhlSsoEnv()
   const parts = rawToken.split('.')
   if (parts.length !== 3) throw new InvalidSsoTokenError('not a JWS compact')
   const [headerB64, payloadB64, sigB64] = parts as [string, string, string]
@@ -112,7 +114,13 @@ export async function verifySsoToken(rawToken: string): Promise<SsoTokenClaims> 
   if (typeof claims.iat === 'number' && claims.iat > nowSec + 60) {
     throw new InvalidSsoTokenError('iat in the future')
   }
-  if (SSO_AUDIENCE && claims.aud && claims.aud !== SSO_AUDIENCE) {
+  // aud é obrigatório — sem ele, qualquer JWT assinado pela chave JWKS
+  // passaria. SSO_AUDIENCE vem de readGhlSsoEnv() que falha se a env
+  // GHL_CLIENT_ID estiver ausente, então aqui está sempre presente.
+  if (!claims.aud) {
+    throw new InvalidSsoTokenError('aud claim missing')
+  }
+  if (claims.aud !== SSO_AUDIENCE) {
     throw new InvalidSsoTokenError('aud mismatch')
   }
   if (claims.iss && !ALLOWED_ISS.some((i) => claims.iss === i || claims.iss?.startsWith(i))) {
