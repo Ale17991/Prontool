@@ -4,31 +4,16 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, type ReactNode } from 'react'
 import {
-  AlertTriangle,
   ArrowLeftRight,
-  Bell,
-  Building2,
-  Calculator,
-  Calendar,
-  ClipboardCheck,
-  DollarSign,
-  ListChecks,
   Lock,
   Menu,
-  Plug,
-  ScrollText,
   Search,
   Stethoscope,
-  TrendingDown,
-  UserCheck,
-  UserCircle,
-  Users,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
-import { can } from '@/lib/auth/rbac'
-import { listFeatureFlags, type FeatureName } from '@/lib/feature-flags'
+import { listFeatureFlags } from '@/lib/feature-flags'
 import type { TenantRole } from '@/lib/db/types'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import {
@@ -36,163 +21,20 @@ import {
   type SidebarIntegrationBadgeItem,
 } from './sidebar-integrations-badge'
 import { NotificationBell } from './notification-bell'
+import {
+  getVisibleSections,
+  type NavContext,
+  type VisibleSection,
+} from './sidebar-sections'
 
 /**
- * Feature 009 (US2) — sidebar reorganizada em 3 seções com itens
- * individuais clicáveis. Sem mais tab bar horizontal: cada item leva
- * direto à sua página.
- *
- * Visibilidade por item respeita a função do usuário via predicado `show`.
- * Itens onde nenhum role passa caem fora do render — uma seção sem itens
- * visíveis fica escondida.
+ * Feature 014 — sidebar enxugada para 3 + 3 + 1 itens (Operação,
+ * Análise, e botão único Configurações). Notificações, Alertas e
+ * Pendências moveram para /operacao/notificacoes (tab bar acessada pelo
+ * sininho); Auditoria moveu para /configuracoes/auditoria (acessada pelo
+ * hub). A configuração concreta vive em `sidebar-sections.ts` para ser
+ * testável em ambiente node.
  */
-
-interface NavItem {
-  href: string
-  label: string
-  icon: LucideIcon
-  show: (ctx: NavContext) => boolean
-}
-
-interface NavSection {
-  id: 'operacao' | 'analise' | 'configuracoes'
-  label: string
-  items: NavItem[]
-}
-
-interface NavContext {
-  role: TenantRole
-  flags: Record<FeatureName, boolean>
-}
-
-const SECTIONS: readonly NavSection[] = [
-  {
-    id: 'operacao',
-    label: 'Operação',
-    items: [
-      {
-        href: '/operacao/atendimentos',
-        label: 'Agenda',
-        icon: Calendar,
-        show: ({ role }) => can(role, 'appointment.read'),
-      },
-      {
-        href: '/operacao/pacientes',
-        label: 'Pacientes',
-        icon: Users,
-        show: ({ role }) => can(role, 'appointment.read'),
-      },
-      {
-        href: '/operacao/tarefas',
-        label: 'Tarefas',
-        icon: ClipboardCheck,
-        show: ({ role }) => can(role, 'task.read'),
-      },
-      {
-        href: '/operacao/notificacoes',
-        label: 'Notificações',
-        icon: Bell,
-        show: () => true,
-      },
-      {
-        href: '/operacao/alertas',
-        label: 'Alertas do sistema',
-        icon: AlertTriangle,
-        show: ({ role }) => can(role, 'alert.read'),
-      },
-      {
-        href: '/operacao/dlq',
-        label: 'Pendências',
-        icon: AlertTriangle,
-        show: ({ role }) => can(role, 'dlq.read'),
-      },
-    ],
-  },
-  {
-    id: 'analise',
-    label: 'Análise',
-    items: [
-      {
-        href: '/analise/relatorios',
-        label: 'Relatórios',
-        icon: ScrollText,
-        show: ({ role, flags }) => flags.relatorios && can(role, 'report.read'),
-      },
-      {
-        href: '/analise/comissoes',
-        label: 'Comissões',
-        icon: Calculator,
-        show: ({ role, flags }) => flags.comissoes && can(role, 'doctor.read'),
-      },
-      {
-        href: '/analise/despesas',
-        label: 'Despesas',
-        icon: TrendingDown,
-        show: ({ role, flags }) => flags.despesas && role === 'admin',
-      },
-      {
-        href: '/analise/auditoria',
-        label: 'Auditoria',
-        icon: ScrollText,
-        show: ({ role }) => can(role, 'audit.read'),
-      },
-    ],
-  },
-  {
-    id: 'configuracoes',
-    label: 'Configurações',
-    items: [
-      {
-        href: '/configuracoes/clinica',
-        label: 'Clínica',
-        icon: Building2,
-        show: ({ role }) => role === 'admin',
-      },
-      {
-        href: '/configuracoes/perfil',
-        label: 'Meu Perfil',
-        icon: UserCircle,
-        show: () => true,
-      },
-      {
-        href: '/configuracoes/usuarios',
-        label: 'Usuários',
-        icon: Users,
-        show: ({ role }) => role === 'admin',
-      },
-      {
-        href: '/configuracoes/procedimentos',
-        label: 'Procedimentos',
-        icon: ListChecks,
-        show: ({ role }) => can(role, 'procedure.read'),
-      },
-      {
-        href: '/configuracoes/convenios',
-        label: 'Convênios',
-        icon: DollarSign,
-        show: ({ role }) => can(role, 'plan.read'),
-      },
-      {
-        href: '/configuracoes/profissionais',
-        label: 'Profissionais',
-        icon: UserCheck,
-        show: ({ role }) => can(role, 'doctor.read'),
-      },
-      {
-        href: '/configuracoes/modelos-anamnese',
-        label: 'Modelos de Anamnese',
-        icon: ClipboardCheck,
-        show: ({ role, flags }) => flags.anamnese && role === 'admin',
-      },
-      {
-        href: '/configuracoes/integracoes',
-        label: 'Integrações',
-        icon: Plug,
-        show: ({ role }) => role === 'admin',
-      },
-    ],
-  },
-]
 
 interface DashboardShellProps {
   role: TenantRole
@@ -247,10 +89,7 @@ export function DashboardShell({
   }
 
   // Calcula uma vez quais seções/itens aparecem para esta sessão.
-  const visibleSections = SECTIONS.map((section) => ({
-    ...section,
-    visibleItems: section.items.filter((it) => it.show(ctx)),
-  })).filter((s) => s.visibleItems.length > 0)
+  const visibleSections = getVisibleSections(ctx)
 
   // Heading do header global = label do item ativo.
   const activeItem = visibleSections
@@ -339,10 +178,6 @@ export function DashboardShell({
   )
 }
 
-interface VisibleSection extends NavSection {
-  visibleItems: NavItem[]
-}
-
 function SidebarInner({
   sections,
   pathname,
@@ -400,10 +235,20 @@ function SidebarInner({
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
         {sections.map((section) => (
-          <div key={section.id}>
-            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              {section.label}
-            </div>
+          <div
+            key={section.id}
+            className={
+              section.id === 'configuracoes' ? 'mt-2 border-t border-white/5 pt-4' : undefined
+            }
+          >
+            {/* Feature 014 — seção "Configurações" colapsada para botão único;
+                escondemos o heading (o próprio item já se chama "Configurações")
+                e adicionamos separador visual antes dela. */}
+            {section.id === 'configuracoes' ? null : (
+              <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                {section.label}
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               {section.visibleItems.map((it) => (
                 <SidebarLink
