@@ -205,7 +205,7 @@ function SidebarInner({
 }) {
   return (
     <>
-      <div className="mb-8 flex flex-col gap-2">
+      <div className="mb-8 flex flex-col gap-1.5">
         <div className="flex items-center gap-3 text-base font-bold text-white">
           {clinicLogoUrl ? (
             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
@@ -221,6 +221,16 @@ function SidebarInner({
             {clinicName ?? 'Prontool'}
           </span>
         </div>
+        {isMultiTenant ? (
+          <Link
+            href="/selecionar-clinica"
+            onClick={onNavigate}
+            className="ml-12 inline-flex items-center gap-1.5 self-start rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-sky-300 transition-colors hover:bg-sky-500/10 hover:text-sky-200"
+          >
+            <ArrowLeftRight className="h-3 w-3 shrink-0" />
+            <span>Trocar clínica</span>
+          </Link>
+        ) : null}
       </div>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
@@ -257,16 +267,6 @@ function SidebarInner({
 
       <div className="mt-auto border-t border-white/5 pt-6">
         <SidebarIntegrationsBadge integrations={integrations} />
-        {isMultiTenant ? (
-          <Link
-            href="/selecionar-clinica"
-            onClick={onNavigate}
-            className="mb-2 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:border-primary/40 hover:bg-primary/10 hover:text-white"
-          >
-            <ArrowLeftRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <span className="truncate">Trocar clínica</span>
-          </Link>
-        ) : null}
         <div className="flex items-center gap-2 rounded-xl bg-white/5 p-2 text-slate-400">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
             {userAvatarUrl ? (
