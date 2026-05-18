@@ -101,21 +101,38 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
 
   if (toEmails.length > 0) {
     const path = input.dashboardPath ?? DEFAULT_PATH[input.type]
-    await sendAlertEmail({
-      tenantId: input.tenantId,
-      to: toEmails,
-      subject: subjectFor(input.type),
-      bodyMarkdown: renderSafeDetail(input.type, input.detail),
-      dashboardUrl: path,
-    })
-
-    await supabase
-      .from('alerts')
-      .update({
-        email_sent_to: toEmails,
-        email_last_sent_at: new Date().toISOString(),
+    // I2 (Camada 4) — email é best-effort. Resend down NÃO derruba o
+    // dispatch: a row em `alerts` já foi persistida e o admin vê o
+    // alerta na dashboard (single source of truth). Email é canal
+    // secundário de notificação.
+    try {
+      await sendAlertEmail({
+        tenantId: input.tenantId,
+        to: toEmails,
+        subject: subjectFor(input.type),
+        bodyMarkdown: renderSafeDetail(input.type, input.detail),
+        dashboardUrl: path,
       })
-      .eq('id', alertId)
+      await supabase
+        .from('alerts')
+        .update({
+          email_sent_to: toEmails,
+          email_last_sent_at: new Date().toISOString(),
+        })
+        .eq('id', alertId)
+    } catch (emailErr) {
+      logger.warn(
+        {
+          tenantId: input.tenantId,
+          type: input.type,
+          alertId,
+          err: emailErr instanceof Error ? emailErr.message : String(emailErr),
+        },
+        'alert-email-send-failed',
+      )
+      // Não atualiza email_sent_to — fica null, sinalizando que o email
+      // não saiu. Admin vê o alert no dashboard sem precisar do email.
+    }
   }
 
   return { alertId, deduped: false }

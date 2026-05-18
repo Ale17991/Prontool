@@ -128,17 +128,37 @@ async function routeToDlq(
     reason: err.code,
   })
 
+  // I1 (Camada 4) — dispatchAlert é best-effort dentro do DLQ flow.
+  // Sem try/catch, uma falha em dispatchAlert (Resend down, DB de alerts
+  // indisponível) virava transient throw → QStash retries → mas o status
+  // já está 'dlq' no banco, e o early return em processWebhookEvent linha
+  // 44 pula a re-tentativa do alert. Resultado anterior: row no DLQ sem
+  // alert correspondente, admin não recebia notificação. Espelha o pattern
+  // de dispatchDomainEvent (lib/core/events/dispatch.ts:54-71).
   const alertType = alertTypeForDomainError(err.code)
-  await dispatchAlert({
-    tenantId,
-    type: alertType,
-    subjectRef: { raw_event_id: rawEventId, failure_code: err.code },
-    detail: {
-      raw_event_id: rawEventId,
-      failure_reason: err.code,
-      ...(err.meta ?? {}),
-    },
-  })
+  try {
+    await dispatchAlert({
+      tenantId,
+      type: alertType,
+      subjectRef: { raw_event_id: rawEventId, failure_code: err.code },
+      detail: {
+        raw_event_id: rawEventId,
+        failure_reason: err.code,
+        ...(err.meta ?? {}),
+      },
+    })
+  } catch (alertErr) {
+    logger.error(
+      {
+        err: alertErr instanceof Error ? alertErr.message : String(alertErr),
+        trace_id: traceId,
+        raw_event_id: rawEventId,
+        tenant_id: tenantId,
+        failure_code: err.code,
+      },
+      'dlq-alert-dispatch-failed',
+    )
+  }
 
   logger.warn(
     {
