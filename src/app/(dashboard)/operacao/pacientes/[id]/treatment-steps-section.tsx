@@ -330,10 +330,7 @@ function StepRow({
           <p className="text-sm font-bold text-slate-900">{step.title}</p>
           <StatusBadge status={step.status} />
           {step.healthPlan === null ? (
-            <Badge
-              variant="secondary"
-              className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
-            >
+            <Badge variant="warning" className="text-[10px]">
               Particular
             </Badge>
           ) : null}
@@ -485,7 +482,7 @@ function PriceIndicator({
   if (particularOnly || shouldFallbackToParticular) {
     if (procedure.defaultAmountCents !== null) {
       return (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+        <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs font-bold text-[hsl(var(--warning-foreground))]">
           {formatCurrency(procedure.defaultAmountCents)}
           <span className="ml-2 font-normal text-amber-700/80">
             (valor particular do procedimento)
@@ -494,7 +491,7 @@ function PriceIndicator({
       )
     }
     return (
-      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+      <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs font-semibold text-[hsl(var(--warning-foreground))]">
         Sem valor particular cadastrado neste procedimento.{' '}
         <Link href="/configuracoes/procedimentos" className="underline">
           Cadastrar valor particular
@@ -511,7 +508,7 @@ function PriceIndicator({
   }
   if (priceState.status === 'found') {
     return (
-      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+      <p className="rounded-md border border-success/30 bg-success-bg px-3 py-2 text-xs font-bold text-success-text">
         {formatCurrency(priceState.amountCents)}
         <span className="ml-2 font-normal text-emerald-700/80">
           (preço vigente para essa combinação)
@@ -524,7 +521,7 @@ function PriceIndicator({
       ? `/configuracoes/convenios/${planIdForMissingLink}`
       : '/configuracoes/convenios'
     return (
-      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+      <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs font-semibold text-[hsl(var(--warning-foreground))]">
         Sem preço cadastrado para este procedimento neste plano.{' '}
         <Link href={href} className="underline">
           Cadastrar preço
@@ -800,7 +797,7 @@ function NewStepForm({
           Profissional responsável <span className="text-rose-500">*</span>
         </Label>
         {doctors.length === 0 ? (
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+          <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs font-semibold text-[hsl(var(--warning-foreground))]">
             Nenhum profissional ativo cadastrado.{' '}
             <Link href="/configuracoes/profissionais" className="underline">
               Cadastrar profissional
@@ -837,7 +834,7 @@ function NewStepForm({
             </span>
           ) : null}
         </Label>
-        <label className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs text-amber-900">
+        <label className="flex items-center gap-2 rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.05)] px-3 py-2 text-xs text-[hsl(var(--warning-foreground))]">
           <input
             type="checkbox"
             checked={effectiveParticular}
@@ -846,7 +843,7 @@ function NewStepForm({
               setParticular(e.target.checked)
               setParticularUserOverride(true)
             }}
-            className="h-4 w-4 rounded border-amber-300"
+            className="h-4 w-4 rounded border-warning/40"
           />
           <span>
             <span className="font-bold">Atendimento particular</span>
@@ -929,7 +926,7 @@ function NewStepForm({
       {conflictWarning ? (
         <div
           role="alert"
-          className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"
+          className="md:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive"
         >
           {conflictWarning}
         </div>
@@ -950,7 +947,7 @@ function NewStepForm({
       </div>
 
       {error ? (
-        <div className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="md:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}

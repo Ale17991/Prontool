@@ -38,11 +38,12 @@ interface Props {
 
 type Priority = 'baixa' | 'normal' | 'alta' | 'urgente'
 
+// 016 — design system tokens. Sincronizado com tasks-table.tsx.
 const PRIORITY_BADGE: Record<Priority, string> = {
   baixa: 'bg-slate-100 text-slate-700',
-  normal: 'bg-blue-50 text-blue-700',
-  alta: 'bg-amber-50 text-amber-700',
-  urgente: 'bg-rose-50 text-rose-700',
+  normal: 'bg-info-bg text-info-text',
+  alta: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+  urgente: 'bg-[hsl(var(--alert)/0.1)] text-[hsl(var(--alert))]',
 }
 
 export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
@@ -217,7 +218,7 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
             </div>
 
             {error ? (
-              <p className="rounded-md border border-rose-100 bg-rose-50 p-3 text-xs font-medium text-rose-700">
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs font-medium text-destructive">
                 {error}
               </p>
             ) : null}
@@ -290,7 +291,7 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
             </div>
 
             {error ? (
-              <p className="rounded-md border border-rose-100 bg-rose-50 p-3 text-xs font-medium text-rose-700">
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs font-medium text-destructive">
                 {error}
               </p>
             ) : null}
@@ -330,7 +331,7 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
                     size="sm"
                     onClick={onDelete}
                     disabled={pending}
-                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   >
                     <Trash2 className="mr-2 h-3.5 w-3.5" />
                     Excluir

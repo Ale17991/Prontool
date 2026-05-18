@@ -389,11 +389,11 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       ) : null}
 
       {isAnonymized ? (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-4 py-3 text-sm text-[hsl(var(--warning-foreground))]">
+          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div>
             <p className="font-semibold">Paciente anonimizado por retenção LGPD</p>
-            <p className="text-xs text-amber-800">
+            <p className="text-xs text-[hsl(var(--warning-foreground))]">
               Anonimizado em {formatDateTime(patient.anonymizedAt)}. Histórico financeiro
               permanece íntegro.
             </p>
@@ -641,10 +641,11 @@ function ContactChip({
   value: string | null | undefined
   color: 'emerald' | 'blue' | 'amber'
 }) {
+  // 016 — paleta do designer (success/info) + warning para amber.
   const colors: Record<string, string> = {
-    emerald: 'bg-emerald-50 text-emerald-600',
-    blue: 'bg-blue-50 text-blue-600',
-    amber: 'bg-amber-50 text-amber-600',
+    emerald: 'bg-success-bg text-success-strong',
+    blue: 'bg-info-bg text-info-text',
+    amber: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
   }
   return (
     <div className="flex items-center gap-3">

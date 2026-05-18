@@ -251,7 +251,7 @@ export function PaymentModeEditor(props: PaymentModeEditorProps) {
       </p>
 
       {error ? (
-        <p className="rounded-md border border-rose-100 bg-rose-50 p-2 text-xs font-medium text-rose-700">
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs font-medium text-destructive">
           {error}
         </p>
       ) : null}

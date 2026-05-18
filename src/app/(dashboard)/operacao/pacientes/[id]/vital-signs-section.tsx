@@ -53,11 +53,18 @@ function bmiClassification(bmi: number | null): {
 } | null {
   if (bmi === null) return null
   if (bmi < 18.5)
-    return { label: 'Abaixo do peso', className: 'bg-blue-100 text-blue-800' }
-  if (bmi < 25) return { label: 'Normal', className: 'bg-emerald-100 text-emerald-800' }
+    return { label: 'Abaixo do peso', className: 'bg-info-bg text-info-text' }
+  if (bmi < 25)
+    return { label: 'Normal', className: 'bg-success-bg text-success-text' }
   if (bmi < 30)
-    return { label: 'Sobrepeso', className: 'bg-yellow-100 text-yellow-800' }
-  return { label: 'Obeso', className: 'bg-rose-100 text-rose-800' }
+    return {
+      label: 'Sobrepeso',
+      className: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
+    }
+  return {
+    label: 'Obeso',
+    className: 'bg-[hsl(var(--alert)/0.15)] text-[hsl(var(--alert))]',
+  }
 }
 
 function fmtDate(iso: string): string {
@@ -511,7 +518,7 @@ function NewVitalSignsForm({
         />
       </div>
       {error ? (
-        <p className="col-span-2 md:col-span-4 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <p className="col-span-2 md:col-span-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </p>
       ) : null}

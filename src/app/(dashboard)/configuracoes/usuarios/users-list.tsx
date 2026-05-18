@@ -19,9 +19,10 @@ interface Props {
   initial: TeamMember[]
 }
 
+// 016 — design system tokens.
 const STATUS_BADGE: Record<TeamMemberStatus, string> = {
-  active: 'bg-emerald-100 text-emerald-800',
-  pending: 'bg-amber-100 text-amber-800',
+  active: 'bg-success-bg text-success-text',
+  pending: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
   disabled: 'bg-slate-200 text-slate-700',
 }
 
@@ -78,7 +79,7 @@ export function UsersList({ initial }: Props) {
         </div>
 
         {globalError ? (
-          <div className="border-b border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">
+          <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-xs text-destructive">
             {globalError}
           </div>
         ) : null}

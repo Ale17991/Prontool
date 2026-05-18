@@ -40,10 +40,13 @@ const SEVERITY_LABEL: Record<AllergySeverity, string> = {
   grave: 'Grave',
 }
 
+// 016 — design system: leve (warning amarelo), moderada (orange — fora
+// das 3 familias do designer mas mantido para gradação semantica),
+// grave (alert vermelho clínico forte).
 const SEVERITY_CLASS: Record<AllergySeverity, string> = {
-  leve: 'bg-yellow-100 text-yellow-800',
+  leve: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
   moderada: 'bg-orange-100 text-orange-800',
-  grave: 'bg-rose-100 text-rose-800',
+  grave: 'bg-[hsl(var(--alert)/0.15)] text-[hsl(var(--alert))]',
 }
 
 const HISTORY_CATEGORY_LABEL: Record<HistoryCategory, string> = {
@@ -156,7 +159,7 @@ function AllergiesCard({
         ) : null}
 
         {!hasAllergies ? (
-          <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success-bg px-3 py-2 text-sm text-success-text">
             <CheckCircle2 className="h-4 w-4" />
             <span className="font-semibold" title="NKDA — No Known Drug Allergies">
               Sem alergias conhecidas
@@ -340,7 +343,7 @@ function NewAllergyForm({
         />
       </div>
       {error ? (
-        <p className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <p className="md:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </p>
       ) : null}
@@ -621,7 +624,7 @@ function NewHistoryForm({
         />
       </div>
       {error ? (
-        <p className="md:col-span-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <p className="md:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </p>
       ) : null}

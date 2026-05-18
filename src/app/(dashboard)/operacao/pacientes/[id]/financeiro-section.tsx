@@ -418,7 +418,7 @@ function RecordPaymentDialog({
             />
           </div>
           {error ? (
-            <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
               {error}
             </p>
           ) : null}
