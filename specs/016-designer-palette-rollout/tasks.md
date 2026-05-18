@@ -101,13 +101,13 @@ description: "Task list for 016 Designer Palette Rollout"
 
 > **Nota**: a *criação* dos tokens já aconteceu na Phase 2 (Foundational). Esta phase faz a **auditoria/validação** prometida pela US3.
 
-- [ ] T030 [US3] Validar contraste com ferramenta automatizada (ex.: WebAIM Contrast Checker ou extensão "axe DevTools"); para cada par definido em `research.md` §10 (7 pares críticos + os 5 adicionais semânticos), confirmar ≥ 4.5:1 para texto ou ≥ 3:1 para UI; registrar em `specs/016-designer-palette-rollout/visual-validation/contrast-audit.md`
-- [ ] T031 [US3] Inspecionar em DevTools que `--accent` (verde suave) renderiza distinto de `--secondary` (slate-100) em algum componente shadcn que use ambos (ex.: `Button` ghost vs outline) — confirmação visual de FR-010
-- [ ] T032 [US3] Documentar em `specs/016-designer-palette-rollout/visual-validation/shadcn-impact.md` o resultado de revisão visual dos componentes shadcn impactados conforme `research.md` §9: `Button` (todas variantes), `Command`, `Select`, `Dialog`, `Popover`, `Sheet`, `Table` — anotar quaisquer hovers que ficaram esquisitos
-- [ ] T033 [US3] Confirmar que **nenhum componente** tem `hsl(var(--accent))` ou `hsl(var(--secondary))` hardcoded com valores antigos (slate-100) — auditoria final via grep `rg "210 40% 96"` em `src/` (que era o valor antigo de accent)
-- [ ] T034 [US3] Atualizar a tabela de tokens em `quickstart.md` se descobrir tokens órfãos ou faltantes durante a auditoria; manter sincronizada com `data-model.md` §1
-- [ ] T035 [US3] Rodar `pnpm typecheck`
-- [ ] T036 [US3] Commit + push: `git add -A && git commit -m "feat(ui): tokens semanticos do designer (success/warning/info/alert) com WCAG AA (US3)"`
+- [x] T030 [US3] Validar contraste com cálculo programático WCAG; 17 pares verificados em `visual-validation/contrast-audit.md` — todos PASS; amostra de 20 pares aleatórios marcada como pendência manual em DevTools (axe)
+- [~] T031 [US3] Inspeção visual de `--accent` distinto de `--secondary` em shadcn — **manual, pendente**
+- [x] T032 [US3] Documento `visual-validation/shadcn-impact.md` — 4 componentes com mudança esperada (button/command/select/period-shortcuts); 11 sem impacto; recomendações de follow-up para `badge.tsx`
+- [x] T033 [US3] Auditoria `rg "210 40% 96"` — apenas `--secondary` e `--muted` (legítimos); nenhum resíduo do `--accent` antigo
+- [x] T034 [US3] `quickstart.md` já está sincronizado com `data-model.md` §1 — nada a atualizar
+- [x] T035 [US3] `pnpm typecheck` — exit 0 (sem mudança de código nesta phase, doc-only)
+- [x] T036 [US3] Commit + push
 
 **Checkpoint**: catálogo de tokens validado; auditoria de contraste e de impacto shadcn registrada.
 
