@@ -284,14 +284,14 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                       </TableCell>
                       <TableCell className="text-right">
                         {row.taxRateBps > 0 ? (
-                          <span className="text-[#6B21A8] tabular-nums">
+                          <span className="text-destructive tabular-nums">
                             −{formatCurrency(row.taxFromPlanCents)}
                             <span className="ml-1 text-[10px] text-slate-400">
                               ({(row.taxRateBps / 100).toFixed(2).replace('.', ',')}%)
                             </span>
                           </span>
                         ) : (
-                          <span className="text-slate-300">R$ 0,00</span>
+                          <span className="text-muted-foreground">R$ 0,00</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right font-bold text-slate-900 tabular-nums">
@@ -612,7 +612,7 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
               <p
                 className={cn(
                   'mt-2 text-4xl font-black tracking-tight',
-                  profitNeg ? 'text-rose-400' : 'text-white',
+                  profitNeg ? 'text-destructive' : 'text-white',
                 )}
               >
                 {formatCurrency(report.totals.operatingProfitCents)}
@@ -628,7 +628,7 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
               <p
                 className={cn(
                   'mt-2 text-3xl font-black tracking-tight',
-                  profitNeg ? 'text-rose-400' : 'text-emerald-400',
+                  profitNeg ? 'text-destructive' : 'text-success',
                 )}
               >
                 {report.totals.operatingMarginPct.toFixed(1)}%

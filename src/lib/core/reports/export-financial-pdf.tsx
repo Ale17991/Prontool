@@ -104,8 +104,10 @@ const styles = StyleSheet.create({
   },
   profitLabel: { color: '#94a3b8', fontSize: 8, letterSpacing: 1 },
   profitValue: { color: '#ffffff', fontSize: 22, fontFamily: 'Helvetica-Bold' },
-  profitMargin: { color: '#22c55e', fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 4 },
-  profitMarginNeg: { color: '#ef4444' },
+  // 016 — paleta do designer: success medium (#1CABB0) sobre fundo escuro
+  // (slate-900), destructive (#DC2626) para negativo
+  profitMargin: { color: '#1CABB0', fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 4 },
+  profitMarginNeg: { color: '#DC2626' },
   footer: {
     marginTop: 18,
     fontSize: 7,
@@ -119,8 +121,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#e2e8f0',
   },
-  pos: { color: '#16a34a', fontFamily: 'Helvetica-Bold' },
-  neg: { color: '#dc2626', fontFamily: 'Helvetica-Bold' },
+  // 016 — designer success-strong para positivo, destructive para negativo
+  pos: { color: '#126F72', fontFamily: 'Helvetica-Bold' },
+  neg: { color: '#DC2626', fontFamily: 'Helvetica-Bold' },
 })
 
 const CATEGORY_LABEL: Record<string, string> = {
