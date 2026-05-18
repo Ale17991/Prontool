@@ -89,7 +89,7 @@ export function EditDoctorName({
       >
         Cancelar
       </Button>
-      {error ? <span className="text-[10px] text-rose-600">{error}</span> : null}
+      {error ? <span className="text-[10px] text-destructive">{error}</span> : null}
     </form>
   )
 }

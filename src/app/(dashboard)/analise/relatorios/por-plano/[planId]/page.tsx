@@ -279,7 +279,7 @@ function SummaryCard({
         <p
           className={
             highlight
-              ? 'mt-1 truncate text-xl font-black tracking-tight text-emerald-600'
+              ? 'mt-1 truncate text-xl font-black tracking-tight text-success-strong'
               : 'mt-1 truncate text-xl font-black tracking-tight text-slate-900'
           }
           title={value}

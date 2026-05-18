@@ -176,7 +176,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                             href={`/configuracoes/modelos-anamnese/${t.id}/usar`}
                             aria-label={`Usar modelo ${t.title}`}
                             title="Usar modelo"
-                            className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-[11px] font-bold uppercase tracking-widest text-emerald-700 hover:bg-emerald-100"
+                            className="inline-flex items-center gap-1 rounded-md bg-success-bg px-2 py-1 text-[11px] font-bold uppercase tracking-widest text-success-text hover:bg-success/20"
                           >
                             <Play className="h-3 w-3" /> Usar
                           </Link>

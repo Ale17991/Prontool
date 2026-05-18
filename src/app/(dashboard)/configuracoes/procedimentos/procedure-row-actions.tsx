@@ -123,7 +123,7 @@ export function ProcedureRowActions({
           size="sm"
           onClick={onDelete}
           disabled={pendingDelete || pendingToggle}
-          className="h-8 gap-1.5 px-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+          className="h-8 gap-1.5 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
           title="Remover procedimento"
         >
           {pendingDelete ? (
@@ -135,7 +135,7 @@ export function ProcedureRowActions({
         </Button>
       </div>
       {error ? (
-        <span className="text-[10px] text-rose-600" title={error}>
+        <span className="text-[10px] text-destructive" title={error}>
           {error}
         </span>
       ) : null}
@@ -267,7 +267,7 @@ function EditProcedureDialog({
           </label>
 
           {error ? (
-            <p className="rounded-md border border-rose-100 bg-rose-50 p-2 text-xs font-medium text-rose-700">
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs font-medium text-destructive">
               {error}
             </p>
           ) : null}

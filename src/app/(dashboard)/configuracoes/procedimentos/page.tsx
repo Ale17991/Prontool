@@ -100,7 +100,7 @@ export default async function ProcedimentosPage() {
           </CardHeader>
           <CardContent className="p-0">
             {combinedError ? (
-              <p className="px-6 pb-6 text-sm text-rose-600">Erro: {combinedError.message}</p>
+              <p className="px-6 pb-6 text-sm text-destructive">Erro: {combinedError.message}</p>
             ) : rows.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <ListChecks className="h-8 w-8 text-slate-300" />
@@ -137,10 +137,7 @@ export default async function ProcedimentosPage() {
                                 <span>{r.custom_procedure_codes.code}</span>
                               </div>
                             ) : (
-                              <Badge
-                                variant="secondary"
-                                className="border-amber-200 bg-amber-50 text-[10px] text-amber-800"
-                              >
+                              <Badge variant="warning" className="text-[10px]">
                                 Não listado
                               </Badge>
                             )}
@@ -176,8 +173,7 @@ export default async function ProcedimentosPage() {
                       <TableCell>
                         <div className="flex items-center gap-2 text-[11px]">
                           <Badge
-                            variant={r.covered_by_plan ? 'secondary' : 'outline'}
-                            className={r.covered_by_plan ? '' : 'border-amber-300 text-amber-700'}
+                            variant={r.covered_by_plan ? 'secondary' : 'warning'}
                           >
                             {r.covered_by_plan ? 'Coberto por planos' : 'Particular'}
                           </Badge>

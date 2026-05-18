@@ -19,7 +19,7 @@ export function SidebarIntegrationsBadge({
 
   if (integrations.length >= 4) {
     return (
-      <div className="mb-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-200">
+      <div className="mb-3 flex items-center gap-2 rounded-lg bg-success/15 px-3 py-2 text-[11px] font-semibold text-success-bg">
         <Plug className="h-3 w-3" aria-hidden />
         <span>{integrations.length} integrações conectadas</span>
       </div>
@@ -31,7 +31,7 @@ export function SidebarIntegrationsBadge({
       {integrations.map((i) => (
         <span
           key={i.provider}
-          className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-200"
+          className="inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-success-bg"
           title={`${i.label} conectado`}
         >
           <Plug className="h-2.5 w-2.5" aria-hidden />

@@ -41,7 +41,7 @@ export default function PacientesError({
       </div>
       <Card>
         <CardContent className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div className="max-w-lg space-y-2">

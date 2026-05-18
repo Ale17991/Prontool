@@ -98,9 +98,9 @@ export default async function PacientesPage({ searchParams }: PageProps) {
       </div>
 
       {listError ? (
-        <Card className="border-rose-200 bg-rose-50/40">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="space-y-2 p-4 text-sm">
-            <p className="font-bold text-rose-900">
+            <p className="font-bold text-destructive">
               Falha ao carregar pacientes (visível só para admin):
             </p>
             <p className="font-mono text-[11px] text-rose-800">{listError.cause}</p>

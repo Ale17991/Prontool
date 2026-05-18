@@ -43,14 +43,19 @@ interface PaymentTermsHead {
 }
 
 const MODE_BADGE: Record<PaymentMode, { label: string; cls: string }> = {
+  // 016 — sincroniza com badges do sistema (Badge variant comissionado/
+  // fixo/liberal); aqui usa as classes inline equivalentes.
   comissionado: {
     label: 'Comissionado',
-    cls: 'bg-blue-50 text-blue-700 border-blue-200',
+    cls: 'bg-success-bg text-success-text border-success/30',
   },
-  fixo: { label: 'Fixo', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  fixo: {
+    label: 'Fixo',
+    cls: 'bg-[#FFF7ED] text-[#9A3412] border-[#FED7AA]',
+  },
   liberal: {
     label: 'Liberal',
-    cls: 'bg-violet-50 text-violet-700 border-violet-200',
+    cls: 'bg-info-bg text-info-text border-info/30',
   },
 }
 
@@ -131,7 +136,7 @@ export default async function ProfissionaisPage() {
           </CardHeader>
           <CardContent className="p-0">
             {doctorsRes.error ? (
-              <p className="px-6 pb-6 text-sm text-rose-600">Erro: {doctorsRes.error.message}</p>
+              <p className="px-6 pb-6 text-sm text-destructive">Erro: {doctorsRes.error.message}</p>
             ) : doctors.length === 0 ? (
               <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
                 <UserCheck className="h-8 w-8 text-slate-300" />

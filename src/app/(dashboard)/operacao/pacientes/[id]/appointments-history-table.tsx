@@ -118,7 +118,7 @@ function AppointmentRowView({
               type="button"
               onClick={handleImport}
               disabled={isPending}
-              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-md border border-success/30 bg-success-bg px-2.5 py-1 text-[11px] font-bold text-success-text transition-colors hover:bg-success/20 disabled:cursor-not-allowed disabled:opacity-60"
               title="Cria uma etapa no plano de tratamento vinculada a este atendimento"
             >
               {isPending ? (
@@ -137,7 +137,7 @@ function AppointmentRowView({
           </Link>
         </div>
         {error ? (
-          <p className="mt-1 text-right text-[11px] text-rose-600">{error}</p>
+          <p className="mt-1 text-right text-[11px] text-destructive">{error}</p>
         ) : null}
       </TableCell>
     </TableRow>

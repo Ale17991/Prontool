@@ -27,8 +27,8 @@ export const TUSS_TABLES: readonly TussTableOption[] = [
     value: '19',
     label: 'Materiais',
     short: 'Mat',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    selectedClass: 'border-emerald-300 bg-emerald-50 ring-1 ring-emerald-200',
+    badgeClass: 'bg-success-bg text-success-text border-success/30',
+    selectedClass: 'border-success/40 bg-success-bg ring-1 ring-success/30',
   },
   {
     value: '20',

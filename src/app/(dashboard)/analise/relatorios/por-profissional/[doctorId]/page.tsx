@@ -221,7 +221,7 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
                     <TableCell className="text-right font-bold text-slate-900 tabular-nums">
                       {formatCurrency(row.amountCents)}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-emerald-700 tabular-nums">
+                    <TableCell className="text-right font-bold text-success-strong tabular-nums">
                       {formatCurrency(row.commissionCents)}
                     </TableCell>
                     <TableCell>
@@ -263,7 +263,7 @@ function SummaryCard({
         <p
           className={
             highlight
-              ? 'mt-1 truncate text-xl font-black tracking-tight text-emerald-600'
+              ? 'mt-1 truncate text-xl font-black tracking-tight text-success-strong'
               : 'mt-1 truncate text-xl font-black tracking-tight text-slate-900'
           }
           title={value}

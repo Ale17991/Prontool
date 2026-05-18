@@ -113,7 +113,7 @@ export default async function ConveniosPage() {
 
       {plansRes.error ? (
         <Card>
-          <CardContent className="px-6 py-12 text-sm text-rose-600">
+          <CardContent className="px-6 py-12 text-sm text-destructive">
             Erro: {plansRes.error.message}
           </CardContent>
         </Card>

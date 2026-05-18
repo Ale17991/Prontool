@@ -44,7 +44,7 @@ export function ToggleActiveDoctor({ doctorId, active }: { doctorId: string; act
         {pending ? '…' : active ? 'Desativar' : 'Ativar'}
       </Button>
       {error ? (
-        <span className="text-[10px] text-rose-600" title={error}>
+        <span className="text-[10px] text-destructive" title={error}>
           Erro
         </span>
       ) : null}

@@ -261,7 +261,7 @@ function DiagnosisRow({
           </Badge>
         )}
         {error ? (
-          <p className="mt-1 text-[10px] font-semibold text-rose-600">{error}</p>
+          <p className="mt-1 text-[10px] font-semibold text-destructive">{error}</p>
         ) : null}
       </TableCell>
       <TableCell className="text-right">
@@ -289,7 +289,7 @@ function DiagnosisRow({
               size="sm"
               onClick={() => void handleDelete()}
               disabled={pending !== null}
-              className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600"
+              className="h-7 w-7 p-0 text-slate-400 hover:text-destructive"
               aria-label="Remover diagnóstico"
             >
               {pending === 'delete' ? (
@@ -403,7 +403,7 @@ function NewDiagnosisForm({
                 setCidQuery('')
                 setCidResults(null)
               }}
-              className="text-slate-400 hover:text-rose-600"
+              className="text-slate-400 hover:text-destructive"
               aria-label="Remover seleção"
             >
               <X className="h-3.5 w-3.5" />
@@ -489,7 +489,7 @@ function NewDiagnosisForm({
         </div>
       </div>
 
-      {error ? <p className="text-xs font-semibold text-rose-600">{error}</p> : null}
+      {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

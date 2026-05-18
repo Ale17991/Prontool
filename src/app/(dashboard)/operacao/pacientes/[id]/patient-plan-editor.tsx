@@ -101,7 +101,7 @@ export function PatientPlanEditor({
       {healthPlans.length === 0 ? (
         <Link
           href="/configuracoes/convenios"
-          className="text-[10px] font-semibold text-amber-700 underline"
+          className="text-[10px] font-semibold text-[hsl(var(--warning-foreground))] underline"
         >
           Cadastrar plano
         </Link>
@@ -126,7 +126,7 @@ export function PatientPlanEditor({
       >
         <X className="h-3 w-3" />
       </button>
-      {error ? <p className="text-[11px] font-semibold text-rose-700">{error}</p> : null}
+      {error ? <p className="text-[11px] font-semibold text-destructive">{error}</p> : null}
     </div>
   )
 }

@@ -220,9 +220,9 @@ export function AddressEditor({
           {cepLookup === 'loading' ? (
             <p className="text-[11px] text-slate-500">Buscando CEP…</p>
           ) : cepLookup === 'not-found' ? (
-            <p className="text-[11px] text-amber-700">CEP não encontrado.</p>
+            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">CEP não encontrado.</p>
           ) : cepLookup === 'error' ? (
-            <p className="text-[11px] text-amber-700">Falha ao consultar — preencha manual.</p>
+            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">Falha ao consultar — preencha manual.</p>
           ) : null}
         </div>
         <div className="space-y-1.5 md:col-span-3">
@@ -279,7 +279,7 @@ export function AddressEditor({
       </div>
 
       {error ? (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
           {error}
         </div>
       ) : null}

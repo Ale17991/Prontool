@@ -63,7 +63,7 @@ export async function TabDlq({ role }: Props) {
       <Card>
         <CardContent className="p-0">
           {error ? (
-            <p className="px-6 py-8 text-sm text-rose-600">Erro: {error.message}</p>
+            <p className="px-6 py-8 text-sm text-destructive">Erro: {error.message}</p>
           ) : rows.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <AlertTriangle className="h-8 w-8 text-emerald-300" />

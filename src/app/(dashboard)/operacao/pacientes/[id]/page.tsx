@@ -79,7 +79,7 @@ function FailuresOnlyView({
       >
         <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
       </Link>
-      <Card className="border-rose-200 bg-rose-50/40">
+      <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="space-y-2 p-4 text-sm">
           <p className="font-bold text-rose-900">
             {failures.length} secao(oes) falharam (visivel so para admin):
@@ -367,7 +367,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       </div>
 
       {showFailuresCard ? (
-        <Card className="border-rose-200 bg-rose-50/40">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="space-y-2 p-4 text-sm">
             <p className="font-bold text-rose-900">
               {failures.length} seção(ões) falharam (visível só para admin):
@@ -683,7 +683,7 @@ function SummaryCard({
         <p
           className={
             accent
-              ? 'text-xl font-black tracking-tight text-rose-600'
+              ? 'text-xl font-black tracking-tight text-destructive'
               : 'text-xl font-black tracking-tight text-slate-900'
           }
         >

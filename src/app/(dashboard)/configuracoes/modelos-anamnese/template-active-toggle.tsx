@@ -58,13 +58,13 @@ export function TemplateActiveToggle({
         {pending ? (
           <Loader2 className="h-3 w-3 animate-spin" />
         ) : currentActive ? (
-          <Power className="h-3 w-3 text-rose-600" />
+          <Power className="h-3 w-3 text-destructive" />
         ) : (
-          <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+          <CheckCircle2 className="h-3 w-3 text-success-strong" />
         )}
         {currentActive ? 'Desativar' : 'Reativar'}
       </Button>
-      {error ? <p className="text-[10px] text-rose-600">{error}</p> : null}
+      {error ? <p className="text-[10px] text-destructive">{error}</p> : null}
     </div>
   )
 }
