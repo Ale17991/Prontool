@@ -122,7 +122,7 @@ function AllergiesCard({
   return (
     <Card
       className={cn(
-        hasGrave ? 'border-rose-300 bg-rose-50/50' : '',
+        hasGrave ? 'border-destructive/40 bg-destructive/5' : '',
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -130,7 +130,7 @@ function AllergiesCard({
           <AlertTriangle
             className={cn(
               'h-4 w-4',
-              hasGrave ? 'text-rose-600' : 'text-amber-500',
+              hasGrave ? 'text-destructive' : 'text-warning',
             )}
           />
           Alergias
@@ -236,7 +236,7 @@ function AllergyItem({
         <p className="mt-0.5 text-[10px] text-slate-400">
           Registrada em {formatDate(allergy.reportedAt)}
         </p>
-        {error ? <p className="text-[11px] text-rose-600">{error}</p> : null}
+        {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
       </div>
       {canWrite ? (
         <Button
@@ -244,7 +244,7 @@ function AllergyItem({
           variant="ghost"
           onClick={() => void handleDelete()}
           disabled={pending}
-          className="h-7 gap-1 px-2 text-[11px] text-rose-600 hover:bg-rose-50"
+          className="h-7 gap-1 px-2 text-[11px] text-destructive hover:bg-destructive/10"
         >
           {pending ? (
             <Loader2 className="h-3 w-3 animate-spin" />
@@ -500,7 +500,7 @@ function HistoryItem({
             ? `Em ${formatDate(item.dateReported)}`
             : `Registrado em ${formatDate(item.createdAt)}`}
         </p>
-        {error ? <p className="text-[11px] text-rose-600">{error}</p> : null}
+        {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
       </div>
       {canWrite ? (
         <Button
@@ -508,7 +508,7 @@ function HistoryItem({
           variant="ghost"
           onClick={() => void handleDelete()}
           disabled={pending}
-          className="h-7 gap-1 px-2 text-[11px] text-rose-600 hover:bg-rose-50"
+          className="h-7 gap-1 px-2 text-[11px] text-destructive hover:bg-destructive/10"
         >
           {pending ? (
             <Loader2 className="h-3 w-3 animate-spin" />

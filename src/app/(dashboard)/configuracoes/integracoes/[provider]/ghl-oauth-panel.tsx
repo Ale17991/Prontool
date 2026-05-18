@@ -138,7 +138,7 @@ export async function GhlOAuthPanel({
       ) : null}
 
       {callbackStatus === 'rejected' && callbackCode ? (
-        <div className="flex items-start gap-2 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900">
+        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           <AlertTriangle className="h-4 w-4 mt-0.5" />
           <div>
             <p className="font-semibold">Conexão rejeitada</p>
@@ -164,7 +164,7 @@ export async function GhlOAuthPanel({
               fields clínicos do Prontool (CPF, plano, profissional, último
               atendimento, diagnósticos, alergias) e os webhooks de contato.
             </p>
-            <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+            <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-2 text-xs text-[hsl(var(--warning-foreground))]">
               Cada clínica pode ser conectada a apenas uma conta Homio.
               Antes de conectar, certifique-se de que a sub-account não está
               vinculada a outra clínica do Prontool.
@@ -181,7 +181,7 @@ export async function GhlOAuthPanel({
           </CardContent>
         </Card>
       ) : status === 'token_expired' ? (
-        <Card className="border-amber-300">
+        <Card className="border-warning/40">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -319,8 +319,8 @@ export async function GhlOAuthPanel({
                   <span
                     className={
                       entry.status === 'success'
-                        ? 'inline-flex items-center gap-1 text-emerald-700'
-                        : 'inline-flex items-center gap-1 text-rose-700'
+                        ? 'inline-flex items-center gap-1 text-success-strong'
+                        : 'inline-flex items-center gap-1 text-destructive'
                     }
                   >
                     {entry.status === 'success' ? '●' : '✕'} {entry.kind}
@@ -331,7 +331,7 @@ export async function GhlOAuthPanel({
                     })}
                   </span>
                   {entry.error_code ? (
-                    <span className="text-rose-600 truncate max-w-[12rem]">
+                    <span className="text-destructive truncate max-w-[12rem]">
                       {entry.error_code}
                     </span>
                   ) : null}
@@ -383,21 +383,21 @@ function renderMenuStatus(
   switch (menuStatus) {
     case 'registered':
       return (
-        <p className="text-xs text-emerald-700">
+        <p className="text-xs text-success-strong">
           ✓ Menu registrado na sub-account. O usuário Homio pode abrir o Prontool
           direto pelo menu da sub-account.
         </p>
       )
     case 'unsupported':
       return (
-        <p className="text-xs text-amber-700">
+        <p className="text-xs text-[hsl(var(--warning-foreground))]">
           A API atual do Homio não suportou o registro automático do Custom Menu.
           Configure manualmente apontando para <code>/api/sso/ghl</code>.
         </p>
       )
     case 'failed':
       return (
-        <p className="text-xs text-rose-700">
+        <p className="text-xs text-destructive">
           O registro do Custom Menu falhou. Reconecte ou registre manualmente.
         </p>
       )

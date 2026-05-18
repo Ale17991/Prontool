@@ -263,15 +263,15 @@ function MiniStat({
 }) {
   const accentCls =
     accent === 'amber'
-      ? 'text-amber-700'
+      ? 'text-[hsl(var(--warning-foreground))]'
       : accent === 'emerald'
-        ? 'text-emerald-700'
+        ? 'text-success-strong'
         : 'text-slate-900'
   return (
     <div className="rounded-md bg-white px-3 py-2 shadow-sm">
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
       <p className={cn('mt-0.5 text-sm font-bold tabular-nums', accentCls)}>{value}</p>
-      {sub ? <p className="mt-0.5 text-[10px] text-amber-700">{sub}</p> : null}
+      {sub ? <p className="mt-0.5 text-[10px] text-[hsl(var(--warning-foreground))]">{sub}</p> : null}
     </div>
   )
 }
@@ -386,7 +386,7 @@ function StepRow({
           </div>
         ) : null}
         {error ? (
-          <p className="mt-1 text-[11px] font-semibold text-rose-700">{error}</p>
+          <p className="mt-1 text-[11px] font-semibold text-destructive">{error}</p>
         ) : null}
       </div>
       {canWrite && step.status === 'pendente' ? (
@@ -405,7 +405,7 @@ function StepRow({
             variant="outline"
             disabled={isPending}
             onClick={() => patchStatus('cancelado')}
-            className="h-7 gap-1 px-2 text-[11px] text-rose-600 hover:text-rose-700"
+            className="h-7 gap-1 px-2 text-[11px] text-destructive hover:text-destructive"
           >
             <X className="h-3 w-3" />
             Cancelar
@@ -484,7 +484,7 @@ function PriceIndicator({
       return (
         <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs font-bold text-[hsl(var(--warning-foreground))]">
           {formatCurrency(procedure.defaultAmountCents)}
-          <span className="ml-2 font-normal text-amber-700/80">
+          <span className="ml-2 font-normal text-[hsl(var(--warning-foreground)/0.8)]">
             (valor particular do procedimento)
           </span>
         </p>
@@ -510,7 +510,7 @@ function PriceIndicator({
     return (
       <p className="rounded-md border border-success/30 bg-success-bg px-3 py-2 text-xs font-bold text-success-text">
         {formatCurrency(priceState.amountCents)}
-        <span className="ml-2 font-normal text-emerald-700/80">
+        <span className="ml-2 font-normal text-success-strong/80">
           (preço vigente para essa combinação)
         </span>
       </p>
@@ -848,7 +848,7 @@ function NewStepForm({
           <span>
             <span className="font-bold">Atendimento particular</span>
             {particularLocked ? (
-              <span className="ml-1 text-amber-700">
+              <span className="ml-1 text-[hsl(var(--warning-foreground))]">
                 (procedimento não coberto por plano)
               </span>
             ) : null}
