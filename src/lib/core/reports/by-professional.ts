@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import {
+  getTenantTimezone,
+  ymdStartOfDayUtc,
+  ymdNextDayStartUtc,
+} from '@/lib/utils/tenant-tz'
 
 /**
  * Agregadores para o relatorio "Por Profissional":
@@ -126,8 +131,10 @@ export async function summaryByProfessional(
 ): Promise<ProfessionalSummaryRow[]> {
   validatePeriod(input.from, input.to)
 
-  const fromTs = `${input.from}T00:00:00Z`
-  const toExclusive = nextDayIso(input.to)
+  // Camada 3 T1 — boundaries no fuso do tenant.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const fromTs = ymdStartOfDayUtc(input.from, tz)
+  const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   const active = await fetchActiveAppointments(
     supabase,
@@ -209,8 +216,10 @@ export async function detailByProfessional(
     throw new Error('PATIENT_DATA_ENCRYPTION_KEY required to decrypt patient names')
   }
 
-  const fromTs = `${input.from}T00:00:00Z`
-  const toExclusive = nextDayIso(input.to)
+  // Camada 3 T1 — boundaries no fuso do tenant.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const fromTs = ymdStartOfDayUtc(input.from, tz)
+  const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   const doctor = await fetchDoctorById(supabase, input.tenantId, input.doctorId)
 
@@ -476,8 +485,3 @@ function validatePeriod(from: string, to: string): void {
   }
 }
 
-function nextDayIso(ymd: string): string {
-  const d = new Date(`${ymd}T00:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + 1)
-  return d.toISOString()
-}
