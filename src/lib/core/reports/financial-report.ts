@@ -2,6 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { applyPlanTax } from './apply-plan-tax'
+import {
+  getTenantTimezone,
+  ymdStartOfDayUtc,
+  ymdNextDayStartUtc,
+  dateToTenantYmd,
+} from '@/lib/utils/tenant-tz'
 
 /**
  * Relatório financeiro consolidado de um período arbitrário [from, to]:
@@ -148,10 +154,18 @@ export async function buildFinancialReport(
   }
 
   const previousPeriod = computePreviousPeriod(input.from, input.to)
+  // Camada 3 T1 — boundaries resolvidas no fuso do tenant.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
 
   const [current, previousAppointments, expenses, previousExpenses] = await Promise.all([
-    fetchAppointments(supabase, input.tenantId, input.from, input.to),
-    fetchAppointmentsTotals(supabase, input.tenantId, previousPeriod.from, previousPeriod.to),
+    fetchAppointments(supabase, input.tenantId, input.from, input.to, tz),
+    fetchAppointmentsTotals(
+      supabase,
+      input.tenantId,
+      previousPeriod.from,
+      previousPeriod.to,
+      tz,
+    ),
     fetchExpenses(supabase, input.tenantId, input.from, input.to),
     fetchExpenses(supabase, input.tenantId, previousPeriod.from, previousPeriod.to),
   ])
@@ -167,7 +181,7 @@ export async function buildFinancialReport(
   const topDoctors = aggregateTopDoctors(current, 5)
   const topProcedures = aggregateTopProceduresFromLines(lines, 10)
   const expensesByCategory = aggregateExpensesByCategory(expenses)
-  const dailyRevenue = aggregateDailyRevenue(current, input.from, input.to)
+  const dailyRevenue = aggregateDailyRevenue(current, input.from, input.to, tz)
 
   // Feature 011 — US4: aplica tax_rate_bps de cada plano para deduzir
   // "Imposto do convênio" das linhas de receita.
@@ -214,6 +228,7 @@ export async function buildFinancialReport(
     input.tenantId,
     previousPeriod.from,
     previousPeriod.to,
+    tz,
   )
   const previousProfit =
     previousNetRevenue - previousExpenses.totalCents - previousTaxFromPlansCents
@@ -282,9 +297,10 @@ async function computeTaxFromPlansForPeriod(
   tenantId: string,
   from: string,
   to: string,
+  tz: string,
 ): Promise<number> {
-  const fromTs = `${from}T00:00:00Z`
-  const toExclusiveTs = nextDayIso(to)
+  const fromTs = ymdStartOfDayUtc(from, tz)
+  const toExclusiveTs = ymdNextDayStartUtc(to, tz)
   // Fetch appointment ids ativos no período + suas linhas (mesma estrutura
   // do principal, mas só o necessário para totalizar por plano).
   const PAGE_SIZE = 1000
@@ -329,9 +345,10 @@ async function fetchAppointments(
   tenantId: string,
   from: string,
   to: string,
+  tz: string,
 ): Promise<AppointmentRow[]> {
-  const fromTs = `${from}T00:00:00Z`
-  const toExclusiveTs = nextDayIso(to)
+  const fromTs = ymdStartOfDayUtc(from, tz)
+  const toExclusiveTs = ymdNextDayStartUtc(to, tz)
 
   const PAGE_SIZE = 1000
   const rows: AppointmentRow[] = []
@@ -360,8 +377,9 @@ async function fetchAppointmentsTotals(
   tenantId: string,
   from: string,
   to: string,
+  tz: string,
 ): Promise<{ grossRevenueCents: number; commissionsCents: number; appointmentCount: number }> {
-  const rows = await fetchAppointments(supabase, tenantId, from, to)
+  const rows = await fetchAppointments(supabase, tenantId, from, to, tz)
   let gross = 0
   let comm = 0
   for (const r of rows) {
@@ -551,6 +569,7 @@ function aggregateDailyRevenue(
   rows: AppointmentRow[],
   from: string,
   to: string,
+  tz: string,
 ): DailyRevenuePoint[] {
   const map = new Map<string, DailyRevenuePoint>()
   // Pre-fill all dates so the chart has continuous x-axis.
@@ -558,7 +577,9 @@ function aggregateDailyRevenue(
     map.set(date, { date, grossRevenueCents: 0, appointmentCount: 0 })
   }
   for (const r of rows) {
-    const date = r.appointment_at.slice(0, 10)
+    // Camada 3 T4 — agrupa pelo dia NO FUSO DO TENANT. Antes usava
+    // `r.appointment_at.slice(0, 10)` que dava o dia UTC.
+    const date = dateToTenantYmd(new Date(r.appointment_at), tz)
     const existing = map.get(date)
     if (!existing) continue // shouldn't happen given range filter
     existing.grossRevenueCents += r.net_amount_cents ?? 0
@@ -601,11 +622,6 @@ function dateRangeYmd(from: string, to: string): string[] {
   return out
 }
 
-function nextDayIso(ymd: string): string {
-  const d = new Date(`${ymd}T00:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + 1)
-  return d.toISOString()
-}
 
 function toYmd(d: Date): string {
   const y = d.getUTCFullYear()
