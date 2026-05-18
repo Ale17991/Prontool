@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { AppointmentPriceMissingError } from '@/lib/observability/errors'
+import { getTenantTimezone, dateToTenantYmd } from '@/lib/utils/tenant-tz'
 
 /**
  * T079 — resolve the price row that was "active" for a (procedure, plan)
@@ -29,7 +30,12 @@ export async function resolvePrice(
   supabase: SupabaseClient<Database>,
   input: ResolvePriceInput,
 ): Promise<ResolvedPrice> {
-  const asOfDate = input.asOf.toISOString().slice(0, 10)
+  // Camada 3 T3 — asOf é um instante absoluto (Date). Convertemos para a
+  // data do calendário no fuso do tenant antes de comparar com `valid_from`.
+  // Antes: `input.asOf.toISOString().slice(0, 10)` dava a data UTC, fazendo
+  // agendamento às 22:30 BRT pegar `price_version` do dia SEGUINTE.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const asOfDate = dateToTenantYmd(input.asOf, tz)
   const { data, error } = await supabase
     .from('price_versions')
     .select('id, amount_cents, valid_from, created_at')
