@@ -2,6 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { applyPlanTax } from './apply-plan-tax'
+import {
+  getTenantTimezone,
+  ymdStartOfDayUtc,
+  ymdNextDayStartUtc,
+} from '@/lib/utils/tenant-tz'
 
 /**
  * Agregadores para o relatorio "Por Plano":
@@ -110,8 +115,10 @@ export async function summaryByPlan(
 ): Promise<PlanSummaryRow[]> {
   validatePeriod(input.from, input.to)
 
-  const fromTs = `${input.from}T00:00:00Z`
-  const toExclusive = nextDayIso(input.to)
+  // Camada 3 T1 — boundaries no fuso do tenant.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const fromTs = ymdStartOfDayUtc(input.from, tz)
+  const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   // 1) Atendimentos ATIVOS no periodo.
   const activeIds = await fetchActiveAppointmentIds(
@@ -219,8 +226,10 @@ export async function detailByPlan(
   // ramos e da pro TS um `string` (em vez de `string | null`).
   const planIdForExports: string = input.planId ?? PARTICULAR_KEY
 
-  const fromTs = `${input.from}T00:00:00Z`
-  const toExclusive = nextDayIso(input.to)
+  // Camada 3 T1 — boundaries no fuso do tenant.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const fromTs = ymdStartOfDayUtc(input.from, tz)
+  const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   // 1) Atendimentos ATIVOS no periodo (com dados do profissional).
   const active = await fetchActiveAppointments(
@@ -517,8 +526,3 @@ function validatePeriod(from: string, to: string): void {
   }
 }
 
-function nextDayIso(ymd: string): string {
-  const d = new Date(`${ymd}T00:00:00Z`)
-  d.setUTCDate(d.getUTCDate() + 1)
-  return d.toISOString()
-}
