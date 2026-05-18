@@ -7,18 +7,26 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { summaryByProfessional } from '@/lib/core/reports/by-professional'
 import type { Database } from '@/lib/db/types'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { PeriodShortcuts } from '@/components/ui/period-shortcuts'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ReportsSubNav } from '../reports-sub-nav'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PorProfissionalPage() {
+interface PageProps {
+  searchParams: { from?: string; to?: string }
+}
+
+export default async function PorProfissionalPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
   if (!can(session.role, 'report.read')) redirect('/operacao/atendimentos')
 
-  const period = currentMonthRange(new Date())
+  const period = resolvePeriod(searchParams)
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
   const summary = await summaryByProfessional(supabase, {
@@ -45,14 +53,48 @@ export default async function PorProfissionalPage() {
 
       <ReportsSubNav active="por-profissional" />
 
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          <PeriodShortcuts
+            basePath="/analise/relatorios/por-profissional"
+            currentFrom={period.from}
+            currentTo={period.to}
+          />
+          <form
+            method="get"
+            className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="from" className="text-xs">
+                Data início
+              </Label>
+              <Input
+                id="from"
+                name="from"
+                type="date"
+                defaultValue={period.from}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="to" className="text-xs">
+                Data fim
+              </Label>
+              <Input id="to" name="to" type="date" defaultValue={period.to} required />
+            </div>
+            <Button type="submit">Atualizar</Button>
+          </form>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <SummaryStat label="Profissionais ativos" value={summary.length.toString()} />
         <SummaryStat
-          label="Procedimentos no mês"
+          label="Procedimentos no período"
           value={totalProcedures.toString()}
         />
         <SummaryStat
-          label="Faturamento no mês"
+          label="Faturamento no período"
           value={formatCurrency(totalRevenue)}
           highlight
         />
@@ -167,6 +209,13 @@ function SummaryStat({
       </CardContent>
     </Card>
   )
+}
+
+function resolvePeriod(sp: PageProps['searchParams']): { from: string; to: string } {
+  const fromValid = sp.from && /^\d{4}-\d{2}-\d{2}$/.test(sp.from) ? sp.from : null
+  const toValid = sp.to && /^\d{4}-\d{2}-\d{2}$/.test(sp.to) ? sp.to : null
+  if (fromValid && toValid && fromValid <= toValid) return { from: fromValid, to: toValid }
+  return currentMonthRange(new Date())
 }
 
 function currentMonthRange(ref: Date): { from: string; to: string } {

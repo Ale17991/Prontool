@@ -184,14 +184,12 @@ function QuickRangeButtons({ period }: { period: { from: string; to: string } })
   const now = new Date()
   const thisMonth = monthRange(now)
   const lastMonth = monthRange(new Date(now.getFullYear(), now.getMonth() - 1, 1))
-  const last3 = lastNMonthsRange(now, 3)
   const ytd = ytdRange(now)
   const last12 = lastNMonthsRange(now, 12)
 
   const presets: Array<{ label: string; range: { from: string; to: string } }> = [
     { label: 'Este mês', range: thisMonth },
     { label: 'Mês anterior', range: lastMonth },
-    { label: '3 meses', range: last3 },
     { label: 'Ano (YTD)', range: ytd },
     { label: '12 meses', range: last12 },
   ]
