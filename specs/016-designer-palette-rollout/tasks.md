@@ -155,16 +155,16 @@ description: "Task list for 016 Designer Palette Rollout"
 
 **Independent Test**: medir LCP em conexão 3G emulada e comparar com baseline T001 (≥ 100ms melhoria OU FOUT ausente confirmado); inspecionar network e confirmar zero requests a `fonts.googleapis.com`; confirmar que `darkMode: ['class']` saiu de `tailwind.config.ts`.
 
-- [ ] T051 [US6] Em `src/app/layout.tsx`, adicionar `import { Inter } from 'next/font/google'` e instanciar `const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })`; aplicar `inter.variable` como className no `<html>`
-- [ ] T052 [US6] Em `src/app/globals.css` (linha 1), remover `@import url('https://fonts.googleapis.com/css2?family=Inter:...')`; em linhas 36-40, alterar `font-family: 'Inter', ui-sans-serif, ...` para `font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif`; **manter** `font-feature-settings: 'cv11', 'ss01'` exatamente como está (FR-020)
-- [ ] T053 [US6] Em `tailwind.config.ts`, manter `fontFamily.sans: ['Inter', ...]` ou alterar para `['var(--font-sans)', ...]` — alinhar com a estratégia de variable. Recomendado: usar `'var(--font-sans)'` para consistência
-- [ ] T054 [US6] Em `tailwind.config.ts`, **remover** a linha `darkMode: ['class']` (linha 10) — FR-015
-- [ ] T055 [US6] Para cada ocorrência de prefixo `dark:` encontrada em T002, decidir caso a caso: (a) remover se for órfã, (b) preservar com comentário explicando por quê. Registrar decisões em `baselines/dark-prefix-usages.md` ao lado de cada entry
-- [ ] T056 [US6] Rodar `pnpm typecheck`
-- [ ] T057 [US6] Build local (`pnpm build`) para validar que `next/font` baixa e cacheia Inter sem erro
-- [ ] T058 [US6] Re-medir LCP em Lighthouse mobile + Slow 3G nas mesmas páginas que T001; comparar com baseline; documentar em `visual-validation/lcp-after.md` (SC-006, SC-008)
-- [ ] T059 [US6] Verificar via DevTools Network (com `Disable cache`) que `fonts.googleapis.com` recebe zero requests durante carregamento do dashboard (SC-009)
-- [ ] T060 [US6] Commit + push: `git add -A && git commit -m "perf(ui): Inter via next/font + remove dead dark mode declaration (US6)"`
+- [x] T051 [US6] `src/app/layout.tsx`: import + instância de Inter com `variable: '--font-sans'`, `display: 'swap'`; `inter.variable` aplicado em `<html>`
+- [x] T052 [US6] `globals.css`: `@import url(fonts.googleapis.com)` removido; `font-family: var(--font-sans)...`; `cv11`/`ss01` preservados (FR-020)
+- [x] T053 [US6] `tailwind.config.ts`: `fontFamily.sans` -> `['var(--font-sans)', ...]`
+- [x] T054 [US6] `tailwind.config.ts`: `darkMode: ['class']` removido (FR-015)
+- [x] T055 [US6] Limpeza `dark:` orfao — **no-op** (zero usos confirmados em T002)
+- [x] T056 [US6] `pnpm typecheck` — exit 0
+- [x] T057 [US6] `pnpm build` — sucesso, next/font baixou e cacheou Inter sem erro
+- [~] T058 [US6] LCP re-medicao — **manual, pendente** (placeholder em `lcp-after.md`)
+- [~] T059 [US6] Audit `fonts.googleapis.com` em runtime — **manual, pendente** (zero requests esperado pela arquitetura)
+- [x] T060 [US6] Commit + push
 
 **Checkpoint**: fonte self-hosted, sem FOUT visível, dark mode órfão limpo.
 

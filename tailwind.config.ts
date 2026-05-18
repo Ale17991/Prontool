@@ -7,7 +7,7 @@ import type { Config } from 'tailwindcss'
  * blue-600, emerald-500) já vêm do palette padrão do Tailwind.
  */
 const config: Config = {
-  darkMode: ['class'],
+  // 016 — dark mode removido (FR-015). Light mode é definitivo.
   content: [
     './src/app/**/*.{ts,tsx}',
     './src/components/**/*.{ts,tsx}',
@@ -21,7 +21,8 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // 016 — Inter via next/font/google injeta --font-sans em <html>.
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
