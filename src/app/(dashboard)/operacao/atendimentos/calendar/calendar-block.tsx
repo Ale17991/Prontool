@@ -6,6 +6,10 @@ import { cn } from '@/lib/utils'
 import type { AppointmentWeekRow } from '@/lib/core/appointments/list-week'
 import type { LaneAssignment } from '@/lib/utils/calendar'
 import { slotForAppointment } from '@/lib/utils/calendar'
+import {
+  APPOINTMENT_STATUS_STYLES,
+  effectiveStatusToVariant,
+} from '@/components/ui/appointment-status-badge'
 
 interface Props {
   assignment: LaneAssignment<{
@@ -19,10 +23,9 @@ interface Props {
 }
 
 /**
- * Bloco individual de atendimento no calendario. Cor por status:
- *   - ativo     -> azul
- *   - estornado -> vermelho
- *   - concluido -> verde (mapeamento futuro; hoje cai em ativo)
+ * Bloco individual de atendimento no calendario. Cor + icone + label
+ * provenientes do design system 016 (AppointmentStatusBadge variants):
+ * o bloco inteiro reflete o status via paleta hibrida do designer.
  */
 export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
   const a = assignment.block.appointment
@@ -32,12 +35,9 @@ export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
   const widthPercent = 100 / assignment.totalLanes
   const leftPercent = assignment.lane * widthPercent
 
-  const statusClass =
-    a.effectiveStatus === 'estornado'
-      ? 'bg-rose-100 border-rose-300 text-rose-900 hover:bg-rose-200'
-      : a.effectiveStatus === 'agendado'
-        ? 'bg-sky-50 border-sky-200 text-sky-900 hover:bg-sky-100'
-        : 'bg-blue-100 border-blue-300 text-blue-900 hover:bg-blue-200'
+  const variant = effectiveStatusToVariant(a.effectiveStatus)
+  const { className: statusClass, Icon: StatusIcon, label: statusLabel, style: statusStyle } =
+    APPOINTMENT_STATUS_STYLES[variant]
 
   return (
     <Link
@@ -55,13 +55,18 @@ export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
         height: `${pos.heightRem}rem`,
         left: `calc(${leftPercent}% + 2px)`,
         width: `calc(${widthPercent}% - 4px)`,
+        ...statusStyle,
       }}
       title={
         assignment.conflict
-          ? `Conflito detectado · ${a.patientName} · ${a.procedureLabel}`
-          : `${a.patientName} · ${a.procedureLabel}`
+          ? `Conflito detectado · ${a.patientName} · ${a.procedureLabel} · ${statusLabel}`
+          : `${a.patientName} · ${a.procedureLabel} · ${statusLabel}`
       }
+      aria-label={`${a.patientName}, ${a.procedureLabel}, ${statusLabel}`}
     >
+      <span aria-hidden="true" className="absolute left-0.5 top-0.5">
+        <StatusIcon className="h-2.5 w-2.5 opacity-80" />
+      </span>
       {assignment.conflict ? (
         <span className="absolute right-0.5 top-0.5">
           <AlertTriangle className="h-3 w-3 text-rose-600" />

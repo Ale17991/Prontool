@@ -74,20 +74,20 @@ description: "Task list for 016 Designer Palette Rollout"
 
 **Independent Test**: abrir calendário e lista de atendimentos, verificar que cada card mostra cor + ícone + label simultaneamente; ativar emulação de daltonismo e confirmar que estados continuam distinguíveis por ícone + padrão visual (listrado/tracejado/opaco).
 
-- [ ] T016 [US2] Criar `src/components/ui/appointment-status-badge.tsx` exportando `AppointmentStatusVariant` (union dos 7 estados) e `AppointmentStatusBadge` com props `{ variant, iconOnly?, size?, className? }` conforme `contracts/appointment-status-badge.contract.md` — incluir importação dos 7 ícones lucide (`Calendar`, `Check`, `CheckCheck`, `Clock`, `UserX`, `X`, `RotateCcw`)
-- [ ] T017 [US2] Implementar o map interno `VARIANT_CONFIG` no componente associando cada `variant` a `{ label_pt, Icon, bgClass, textClass, pattern, motion }` exatamente como em `data-model.md` §3 — usar classes Tailwind dos novos tokens (`bg-info-bg text-info-text`, `bg-success-bg text-success-text`, etc.)
-- [ ] T018 [US2] Implementar render de padrões visuais não-cromáticos: `no_show` com `repeating-linear-gradient` (listrado), `cancelado` com `border-dashed`, `concluido` com opacidade 60% no fundo via `bg-success-bg/60`
-- [ ] T019 [US2] Implementar o indicador "em atendimento" como `<span aria-hidden className="motion-safe:animate-pulse h-1.5 w-1.5 rounded-full bg-warning-foreground" />` à esquerda do ícone — atende SC-013 e WCAG 2.3.3 (ver `research.md` §4)
-- [ ] T020 [US2] Implementar variante `iconOnly`: label vai em `<span className="sr-only">{label_pt}</span>` + `aria-label={label_pt}` no wrapper
-- [ ] T021 [US2] Implementar variantes `size`: `sm` usa 11px + padding reduzido (exceção autorizada da escala tipográfica); `md` (default) usa `text-caption` (12px)
-- [ ] T022 [US2] Migrar `src/app/(dashboard)/operacao/atendimentos/calendar/calendar-block.tsx` — remover `statusClass` inline (linhas 35-40) e usar `<AppointmentStatusBadge variant={statusToVariant(a.effectiveStatus)} iconOnly size="sm" />`; criar helper `statusToVariant` localmente conforme `contracts/appointment-status-badge.contract.md` (mapper de domínio)
-- [ ] T023 [P] [US2] Migrar `appointments-history-table.tsx` (path exato a confirmar com baseline T003) para usar `AppointmentStatusBadge` (provavelmente `size="md"` por estar em tabela, não em célula compacta)
-- [ ] T024 [P] [US2] Migrar `filter-bar.tsx` (path exato a confirmar com baseline T003) — verificar se ele renderiza status ou só filtra; ajustar conforme caso
-- [ ] T025 [US2] Re-rodar audit de `effectiveStatus` (`rg "effectiveStatus" src/`); para qualquer callsite ainda usando cor inline, migrar para `AppointmentStatusBadge`; atualizar `baselines/appointment-status-callsites.md` marcando ✅ cada migração
-- [ ] T026 [US2] Inspeção visual: abrir `/operacao/atendimentos` em modo calendário e modo lista; confirmar que os 3 estados ativos do banco (`agendado`/`ativo`/`estornado`) renderizam corretamente cada um com cor + ícone + label
-- [ ] T027 [US2] Inspeção em DevTools com emulação de `prefers-reduced-motion: reduce`: confirmar que o ponto do "em atendimento" fica estático (não há instância real desse estado hoje no banco, mas testar via Storybook-substitute — criar uma rota dev/playground temporária ou usar React DevTools para forçar a variant)
-- [ ] T028 [US2] Rodar `pnpm typecheck`; corrigir até passar
-- [ ] T029 [US2] Commit + push: `git add -A && git commit -m "feat(ui): AppointmentStatusBadge com cor+icone+label, 7 variantes, prefers-reduced-motion (US2)"`
+- [x] T016 [US2] Criar `src/components/ui/appointment-status-badge.tsx` exportando `AppointmentStatusVariant` (union dos 7 estados) e `AppointmentStatusBadge` com props `{ variant, iconOnly?, size?, className? }` conforme `contracts/appointment-status-badge.contract.md` — incluir importação dos 7 ícones lucide (`Calendar`, `Check`, `CheckCheck`, `Clock`, `UserX`, `X`, `RotateCcw`)
+- [x] T017 [US2] Implementar o map interno `APPOINTMENT_STATUS_STYLES` (exportado para reuso por chips de calendário) associando cada `variant` a `{ label, Icon, className, style, showPulseDot }` conforme `data-model.md` §3
+- [x] T018 [US2] Implementar render de padrões visuais não-cromáticos: `no_show` com `repeating-linear-gradient` (listrado), `cancelado` com `border-dashed`, `concluido` com opacidade 60% no fundo via `bg-success-bg/60`
+- [x] T019 [US2] Implementar o indicador "em atendimento" como `<span aria-hidden className="motion-safe:animate-pulse h-1.5 w-1.5 rounded-full bg-[hsl(var(--warning-foreground))]" />` à esquerda do ícone — atende SC-013 e WCAG 2.3.3 (ver `research.md` §4)
+- [x] T020 [US2] Implementar variante `iconOnly`: label vai em `<span className="sr-only">{label}</span>` + `aria-label={label}` no wrapper
+- [x] T021 [US2] Implementar variantes `size`: `sm` usa 11px + padding reduzido (exceção autorizada da escala tipográfica); `md` (default) usa 12px
+- [x] T022 [US2] Migrar `src/app/(dashboard)/operacao/atendimentos/calendar/calendar-block.tsx` — remover `statusClass` inline; consome `APPOINTMENT_STATUS_STYLES` para className + ícone Lucide na esquerda do bloco; helper `effectiveStatusToVariant` reaproveitado do componente
+- [x] T023 [P] [US2] Migrar `appointments-history-table.tsx` — substitui `<Badge variant="destructive|success">` por `<AppointmentStatusBadge variant={effectiveStatusToVariant(row.effectiveStatus)} />`
+- [~] T024 [P] [US2] Migrar `filter-bar.tsx` — **arquivo não existe**; a lógica de filtro fica em `calendar-shell.tsx` (sem render de badge). Marcado como N/A.
+- [x] T025 [US2] Re-rodar audit de `effectiveStatus` (incorporado ao baseline `appointment-status-callsites.md`) — **descoberto callsite adicional**: `month-view.tsx` (com `STATUS_COLOR` inline); migrado também
+- [~] T026 [US2] Inspeção visual de `/operacao/atendimentos` (calendário + lista) — **manual, pendente**
+- [~] T027 [US2] Inspeção `prefers-reduced-motion: reduce` — **manual, pendente** (estado "em atendimento" não existe no DB hoje; teste via React DevTools forçando a variant)
+- [x] T028 [US2] Rodar `pnpm typecheck` — **exit 0**
+- [x] T029 [US2] Commit + push
 
 **Checkpoint**: componente único de status pronto; 3 callsites migrados; daltonismo e reduced-motion validados.
 

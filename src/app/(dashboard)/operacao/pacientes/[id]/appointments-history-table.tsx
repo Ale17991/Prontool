@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ClipboardPlus, Loader2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import {
+  AppointmentStatusBadge,
+  effectiveStatusToVariant,
+} from '@/components/ui/appointment-status-badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 
@@ -106,11 +109,7 @@ function AppointmentRowView({
         {formatCurrency(row.netAmountCents)}
       </TableCell>
       <TableCell>
-        {isReversed ? (
-          <Badge variant="destructive">Cancelado</Badge>
-        ) : (
-          <Badge variant="success">Ativo</Badge>
-        )}
+        <AppointmentStatusBadge variant={effectiveStatusToVariant(row.effectiveStatus)} />
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">

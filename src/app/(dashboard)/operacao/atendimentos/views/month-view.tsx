@@ -12,13 +12,17 @@ import {
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import {
+  APPOINTMENT_STATUS_STYLES,
+  effectiveStatusToVariant,
+} from '@/components/ui/appointment-status-badge'
 
 /**
  * Feature 010 (US4 / R12) — visualização Mês.
  *
  * Grid 7×5–6. Cada célula:
  *   - cabeçalho com número do dia (vazio para dias fora do mês)
- *   - até 3 chips de atendimento (cor por status)
+ *   - até 3 chips de atendimento (cor por status — design system 016)
  *   - chip "+N mais" quando excede 3 → leva ao Day-view do dia.
  *   - clique em célula vazia abre /operacao/atendimentos/novo?date=...
  *
@@ -41,13 +45,6 @@ interface MonthViewProps {
 }
 
 const WEEK_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-const STATUS_COLOR: Record<string, string> = {
-  agendado: 'border-sky-300 bg-sky-50 text-sky-800',
-  ativo: 'border-emerald-300 bg-emerald-50 text-emerald-800',
-  realizado: 'border-emerald-300 bg-emerald-50 text-emerald-800',
-  cancelado: 'border-slate-300 bg-slate-100 text-slate-600 line-through',
-  estornado: 'border-slate-300 bg-slate-100 text-slate-600 line-through',
-}
 
 export function MonthView({ date, appointments }: MonthViewProps) {
   const monthAnchor = startOfMonth(date)
@@ -104,20 +101,32 @@ export function MonthView({ date, appointments }: MonthViewProps) {
                 ) : null}
               </div>
               <div className="flex flex-1 flex-col gap-1">
-                {visible.map((a) => (
-                  <Link
-                    key={a.id}
-                    href={`/operacao/atendimentos/${a.id}`}
-                    className={cn(
-                      'truncate rounded border px-1.5 py-0.5 text-[10px] font-medium',
-                      STATUS_COLOR[a.effectiveStatus] ??
-                        'border-slate-200 bg-slate-50 text-slate-700',
-                    )}
-                  >
-                    {format(new Date(a.appointmentAt), 'HH:mm', { locale: ptBR })}{' '}
-                    · {a.patientLabel}
-                  </Link>
-                ))}
+                {visible.map((a) => {
+                  const variant = effectiveStatusToVariant(a.effectiveStatus)
+                  const style = APPOINTMENT_STATUS_STYLES[variant]
+                  const Icon = style.Icon
+                  return (
+                    <Link
+                      key={a.id}
+                      href={`/operacao/atendimentos/${a.id}`}
+                      className={cn(
+                        'flex items-center gap-1 truncate rounded border px-1.5 py-0.5 text-[10px] font-medium',
+                        style.className,
+                        // Chips de cancelado/estornado mantem strikethrough para reforco visual.
+                        (variant === 'cancelado' || variant === 'estornado') && 'line-through',
+                      )}
+                      style={style.style}
+                      title={`${a.patientLabel} · ${style.label}`}
+                      aria-label={`${a.patientLabel}, ${style.label}`}
+                    >
+                      <Icon className="h-2.5 w-2.5 shrink-0 opacity-80" aria-hidden="true" />
+                      <span className="truncate">
+                        {format(new Date(a.appointmentAt), 'HH:mm', { locale: ptBR })}{' '}
+                        · {a.patientLabel}
+                      </span>
+                    </Link>
+                  )
+                })}
                 {overflow > 0 ? (
                   <Link
                     href={`/operacao/atendimentos?view=dia&date=${iso}`}
