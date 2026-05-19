@@ -1,20 +1,29 @@
 /**
  * Feature 017 — POST /api/public/booking/[slug]/create
  *
- * Rota PÚBLICA (sem auth). Cria appointment a partir do form do paciente.
- *
- * Versão US1 (Phase 4): SEM Turnstile e SEM rate limit. Esses entram na
- * Phase 5 (US3) com testes de contrato.
+ * Rota PÚBLICA (sem auth). Pipeline de segurança:
+ * 1. Zod validação payload
+ * 2. Rate limit (3/h por IP+tenant+submit)
+ * 3. Turnstile siteverify
+ * 4. createPublicBooking (que valida tenant, janela, combinação publicada)
+ * 5. INSERT rate_limit
  *
  * Resposta: 201 com { appointmentId, cancelToken, redirectUrl, ... } ou
  * códigos de erro estruturados conforme api-create-booking.contract.md.
  */
 
-import { createHash } from 'node:crypto'
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { createPublicBooking } from '@/lib/core/public-booking/create-booking'
+import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
+import {
+  checkRateLimit,
+  bumpRateLimit,
+  RATE_LIMITS,
+} from '@/lib/core/public-booking/rate-limit'
+import { verifyTurnstile } from '@/lib/core/public-booking/turnstile-verify'
+import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -45,10 +54,6 @@ function extractIp(request: NextRequest): string {
   const real = request.headers.get('x-real-ip')
   if (real) return real.trim()
   return 'unknown'
-}
-
-function hashIp(ip: string, slug: string): string {
-  return createHash('sha256').update(`${ip}:${slug}`).digest('hex')
 }
 
 export async function POST(
@@ -88,10 +93,57 @@ export async function POST(
   }
 
   const ip = extractIp(request)
-  const ipHash = hashIp(ip, slugCheck.data)
+  const ipHash = hashIpForTenant(ip, slugCheck.data)
   const ua = request.headers.get('user-agent')
 
   const supabase = createSupabaseServiceClient()
+
+  // Pre-resolve tenant para rate-limit por tenant.
+  const tenant = await resolveTenantBySlug(supabase, slugCheck.data)
+  if (!tenant) {
+    return NextResponse.json(
+      { error: 'TENANT_NOT_FOUND_OR_DISABLED' },
+      { status: 404 },
+    )
+  }
+
+  // Rate limit submit (3/h por IP+tenant).
+  const cfg = RATE_LIMITS.submit
+  const rate = await checkRateLimit({
+    supabase,
+    tenantId: tenant.tenantId,
+    ipHash,
+    action: 'submit',
+    limit: cfg.limit,
+    windowSeconds: cfg.windowSeconds,
+  })
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'RATE_LIMITED', retryAfter: rate.retryAfterSec },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rate.retryAfterSec) },
+      },
+    )
+  }
+
+  // Turnstile siteverify (bypass automático em dev sem secret).
+  const turnstile = await verifyTurnstile(
+    parsed.data.turnstile_token ?? '',
+    ip,
+  )
+  if (!turnstile.ok) {
+    return NextResponse.json({ error: 'CAPTCHA_FAILED' }, { status: 403 })
+  }
+
+  // Bumpa rate limit DEPOIS de validar Turnstile, para não punir requests
+  // bloqueadas por captcha (UX).
+  await bumpRateLimit({
+    supabase,
+    tenantId: tenant.tenantId,
+    ipHash,
+    action: 'submit',
+  })
 
   const result = await createPublicBooking(supabase, {
     slug: slugCheck.data,

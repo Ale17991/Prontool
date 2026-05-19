@@ -1,12 +1,9 @@
 /**
  * Feature 017 — GET /api/public/booking/[slug]/slots
  *
- * Rota PÚBLICA (sem auth). Retorna lista de slots disponíveis para uma
- * combinação slug+médico+procedimento dentro de uma janela.
- *
- * Sem Turnstile/rate-limit ainda — entra na US3 (Phase 5).
- *
- * Resposta: { slots: SlotDTO[], timezone }
+ * Rota PÚBLICA (sem auth). Rate-limit 10/min por IP+tenant+action='view_slots'.
+ * Retorna lista de slots disponíveis para uma combinação
+ * slug+médico+procedimento dentro de uma janela.
  */
 
 import { NextResponse, type NextRequest } from 'next/server'
@@ -14,6 +11,12 @@ import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 import { listPublicBookingSlots } from '@/lib/core/public-booking/list-slots'
+import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
+import {
+  checkRateLimit,
+  bumpRateLimit,
+  RATE_LIMITS,
+} from '@/lib/core/public-booking/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -26,6 +29,14 @@ const QuerySchema = z.object({
 })
 
 const SlugSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{2,31}$/)
+
+function extractIp(request: NextRequest): string {
+  const xff = request.headers.get('x-forwarded-for')
+  if (xff) return xff.split(',')[0]!.trim()
+  const real = request.headers.get('x-real-ip')
+  if (real) return real.trim()
+  return 'unknown'
+}
 
 export async function GET(
   request: NextRequest,
@@ -68,6 +79,34 @@ export async function GET(
       { status: 404 },
     )
   }
+
+  // Rate limit: 10/min por IP+tenant para action='view_slots'.
+  const ip = extractIp(request)
+  const ipHash = hashIpForTenant(ip, slugCheck.data)
+  const cfg = RATE_LIMITS.view_slots
+  const rate = await checkRateLimit({
+    supabase,
+    tenantId: tenant.tenantId,
+    ipHash,
+    action: 'view_slots',
+    limit: cfg.limit,
+    windowSeconds: cfg.windowSeconds,
+  })
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'RATE_LIMITED', retryAfter: rate.retryAfterSec },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rate.retryAfterSec) },
+      },
+    )
+  }
+  await bumpRateLimit({
+    supabase,
+    tenantId: tenant.tenantId,
+    ipHash,
+    action: 'view_slots',
+  })
 
   const slots = await listPublicBookingSlots(supabase, {
     slug: slugCheck.data,

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { TurnstileWidget } from './turnstile-widget'
 
 interface PatientFormProps {
   slug: string
@@ -50,11 +51,16 @@ export function PatientForm({
   const [consent, setConsent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!consent) {
       setError('Você precisa aceitar a política de privacidade.')
+      return
+    }
+    if (!turnstileToken) {
+      setError('Aguarde a verificação anti-spam terminar e tente novamente.')
       return
     }
     setSubmitting(true)
@@ -71,6 +77,7 @@ export function PatientForm({
           birth_date: birthDate,
         },
         lgpd_consent: true,
+        turnstile_token: turnstileToken,
       }
       const cleanedCpf = cpf.replace(/\D/g, '')
       if (cleanedCpf.length === 11) {
@@ -229,6 +236,14 @@ export function PatientForm({
         </label>
       </section>
 
+      <div className="rounded-lg border border-border bg-card p-4">
+        <TurnstileWidget
+          onToken={(t) => setTurnstileToken(t)}
+          onExpired={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+        />
+      </div>
+
       {error && (
         <div
           role="alert"
@@ -240,7 +255,7 @@ export function PatientForm({
 
       <button
         type="submit"
-        disabled={submitting || !consent}
+        disabled={submitting || !consent || !turnstileToken}
         className="w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting ? 'Agendando...' : 'Confirmar agendamento'}
