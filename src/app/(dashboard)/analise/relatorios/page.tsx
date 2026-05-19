@@ -86,13 +86,13 @@ export default async function RelatoriosPage({ searchParams }: PageProps) {
         </Card>
       ) : null}
 
+      <OperationalResultSection report={report} />
+
       <RevenueSection report={report} />
 
       <TaxSection report={report} />
 
       <ExpensesSection report={report} />
-
-      <OperationalResultSection report={report} />
 
       <ProductivityComparisonSection report={report} />
     </div>
