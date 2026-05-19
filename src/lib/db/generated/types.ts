@@ -1950,6 +1950,202 @@ export type Database = {
           },
         ]
       }
+      public_booking_doctor_procedures: {
+        Row: {
+          created_at: string
+          display_name: string
+          display_order: number
+          doctor_id: string
+          duration_minutes: number
+          procedure_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          display_order?: number
+          doctor_id: string
+          duration_minutes: number
+          procedure_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          display_order?: number
+          doctor_id?: string
+          duration_minutes?: number
+          procedure_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_booking_doctor_procedures_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_booking_doctor_procedures_tenant_id_doctor_id_fkey"
+            columns: ["tenant_id", "doctor_id"]
+            isOneToOne: false
+            referencedRelation: "public_booking_doctors"
+            referencedColumns: ["tenant_id", "doctor_id"]
+          },
+        ]
+      }
+      public_booking_doctors: {
+        Row: {
+          available_from: string
+          available_until: string
+          available_weekdays: number[]
+          bio: string | null
+          created_at: string
+          display_order: number
+          doctor_id: string
+          lunch_break_from: string | null
+          lunch_break_until: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          available_from?: string
+          available_until?: string
+          available_weekdays?: number[]
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          doctor_id: string
+          lunch_break_from?: string | null
+          lunch_break_until?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          available_from?: string
+          available_until?: string
+          available_weekdays?: number[]
+          bio?: string | null
+          created_at?: string
+          display_order?: number
+          doctor_id?: string
+          lunch_break_from?: string | null
+          lunch_break_until?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_booking_doctors_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_booking_doctors_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "public_booking_doctors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_booking_rate_limits: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_hash: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_hash: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_hash?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_booking_rate_limits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_booking_tokens: {
+        Row: {
+          action: string
+          appointment_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          tenant_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          action: string
+          appointment_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          tenant_id: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          action?: string
+          appointment_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          tenant_id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_booking_tokens_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_booking_tokens_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_booking_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       raw_webhook_events: {
         Row: {
           ghl_event_id: string
@@ -2189,6 +2385,11 @@ export type Database = {
           logo_path: string | null
           logo_uploaded_at: string | null
           phone: string | null
+          public_booking_cancel_min_hours: number
+          public_booking_enabled: boolean
+          public_booking_max_days_advance: number
+          public_booking_min_hours_advance: number
+          public_booking_slug: string | null
           tech_responsible_council: string | null
           tech_responsible_name: string | null
           tech_responsible_registration: string | null
@@ -2210,6 +2411,11 @@ export type Database = {
           logo_path?: string | null
           logo_uploaded_at?: string | null
           phone?: string | null
+          public_booking_cancel_min_hours?: number
+          public_booking_enabled?: boolean
+          public_booking_max_days_advance?: number
+          public_booking_min_hours_advance?: number
+          public_booking_slug?: string | null
           tech_responsible_council?: string | null
           tech_responsible_name?: string | null
           tech_responsible_registration?: string | null
@@ -2231,6 +2437,11 @@ export type Database = {
           logo_path?: string | null
           logo_uploaded_at?: string | null
           phone?: string | null
+          public_booking_cancel_min_hours?: number
+          public_booking_enabled?: boolean
+          public_booking_max_days_advance?: number
+          public_booking_min_hours_advance?: number
+          public_booking_slug?: string | null
           tech_responsible_council?: string | null
           tech_responsible_name?: string | null
           tech_responsible_registration?: string | null
@@ -3301,6 +3512,41 @@ export type Database = {
         Returns: string
       }
       patient_enc_key: { Args: never; Returns: string }
+      public_booking_find_patient_by_cpf: {
+        Args: { p_cpf: string; p_key: string; p_tenant_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          patient_id: string
+          phone: string
+        }[]
+      }
+      public_booking_resolve_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          address_line: string
+          cancel_min_hours: number
+          display_name: string
+          logo_path: string
+          max_days_advance: number
+          min_hours_advance: number
+          phone: string
+          tenant_id: string
+        }[]
+      }
+      public_booking_slots: {
+        Args: {
+          p_doctor_id: string
+          p_from: string
+          p_procedure_id: string
+          p_slug: string
+          p_to: string
+        }
+        Returns: {
+          slot_end: string
+          slot_start: string
+        }[]
+      }
       record_payment_terms_change: {
         Args: {
           p_actor: string

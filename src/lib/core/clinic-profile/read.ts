@@ -29,6 +29,12 @@ function syntheticEmptyRow(tenantId: string): Row {
     tech_responsible_name: null,
     tech_responsible_council: null,
     tech_responsible_registration: null,
+    // Feature 017 — defaults consistentes com a migration 0093.
+    public_booking_slug: null,
+    public_booking_enabled: false,
+    public_booking_min_hours_advance: 24,
+    public_booking_max_days_advance: 30,
+    public_booking_cancel_min_hours: 6,
     created_at: now,
     updated_at: now,
   }

@@ -117,11 +117,11 @@ CREATE TABLE IF NOT EXISTS public.public_booking_doctors (
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (tenant_id, doctor_id),
-  CONSTRAINT pb_doctors_weekdays_chk CHECK (
+  -- Validação de tamanho do array via CHECK (sem subquery).
+  -- Validação dos valores 0-6 do array via trigger BEFORE INSERT/UPDATE
+  -- abaixo (Postgres não permite subquery em CHECK — SQLSTATE 0A000).
+  CONSTRAINT pb_doctors_weekdays_length_chk CHECK (
     array_length(available_weekdays, 1) BETWEEN 1 AND 7
-    AND NOT EXISTS (
-      SELECT 1 FROM unnest(available_weekdays) AS w WHERE w < 0 OR w > 6
-    )
   ),
   CONSTRAINT pb_doctors_window_chk CHECK (available_until > available_from),
   CONSTRAINT pb_doctors_lunch_chk CHECK (
@@ -140,6 +140,30 @@ DROP TRIGGER IF EXISTS pb_doctors_touch_updated_at ON public.public_booking_doct
 CREATE TRIGGER pb_doctors_touch_updated_at
   BEFORE UPDATE ON public.public_booking_doctors
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+-- Validação dos valores do array available_weekdays (0=dom..6=sáb).
+-- Substitui o NOT EXISTS que não é permitido em CHECK constraint.
+CREATE OR REPLACE FUNCTION public.validate_public_booking_doctors_weekdays()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  v_min SMALLINT;
+  v_max SMALLINT;
+BEGIN
+  SELECT MIN(w), MAX(w)
+    INTO v_min, v_max
+    FROM unnest(NEW.available_weekdays) AS w;
+  IF v_min < 0 OR v_max > 6 THEN
+    RAISE EXCEPTION USING
+      MESSAGE = 'public_booking_doctors.available_weekdays must contain only values in [0..6] (0=Sun..6=Sat)',
+      ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS pb_doctors_validate_weekdays ON public.public_booking_doctors;
+CREATE TRIGGER pb_doctors_validate_weekdays
+  BEFORE INSERT OR UPDATE OF available_weekdays ON public.public_booking_doctors
+  FOR EACH ROW EXECUTE FUNCTION public.validate_public_booking_doctors_weekdays();
 
 ALTER TABLE public.public_booking_doctors ENABLE ROW LEVEL SECURITY;
 
