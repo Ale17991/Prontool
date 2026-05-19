@@ -361,7 +361,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-800 bg-slate-900 text-white shadow-md">
+          <Card className="border-[#2D4E4D] bg-[#1A3741] text-white shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm text-white">
                 <Stethoscope className="h-4 w-4 text-blue-300" />
@@ -602,7 +602,7 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
         />
       </div>
 
-      <Card className="border-slate-800 bg-slate-900 text-white shadow-md">
+      <Card className="border-[#2D4E4D] bg-[#1A3741] text-white shadow-md">
         <CardContent className="p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
