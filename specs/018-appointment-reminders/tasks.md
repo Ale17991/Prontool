@@ -119,17 +119,17 @@ description: "Task list for 018 Appointment Reminders (Phase 1 — email)"
 
 ### Tests for User Story 4
 
-- [ ] T041 [P] [US4] Teste de integração: paciente com `reminders_opt_in=FALSE` em agendamento elegível → `sendOneReminder` UPDATE status=skipped_opt_out sem chamar Resend (mock garante 0 chamadas). Em `tests/integration/reminders-opt-out.spec.ts`
+- [x] T041 [P] [US4] `tests/unit/reminders-opt-in.spec.ts`: 8 tests PASS (defaults TRUE, tenant_id filter Princípio III, erros). Mocks Supabase com vitest
 
 ### Implementation for User Story 4
 
-- [ ] T042 [US4] Criar `src/lib/core/reminders/opt-in.ts` com `getPatientOptIn(supabase, patientId)` e `setPatientOptIn(supabase, patientId, optIn, tenantId)` (com filtro explícito de tenant_id — defense in depth)
-- [ ] T043 [US4] Atualizar `src/app/(dashboard)/configuracoes/lembretes/actions.ts` — implementação completa de `setPatientReminderOptIn` (era placeholder em US1)
-- [ ] T044 [US4] Criar `src/app/(dashboard)/operacao/pacientes/[id]/reminders-opt-in-toggle.tsx` (client) — toggle pequeno na seção de preferências do paciente; chama `setPatientReminderOptIn` action
-- [ ] T045 [US4] Adicionar o toggle na página `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx` — em uma seção "Preferências de comunicação" (criar seção se não existir)
-- [ ] T046 [US4] Rodar tests US4 (T041) — deve passar
-- [ ] T047 [US4] `pnpm typecheck` + `pnpm test:unit` (subset com testes da reminders/)
-- [ ] T048 [US4] Commit + push: `feat(reminders): opt-in/opt-out por paciente (US4)`
+- [x] T042 [US4] `src/lib/core/reminders/opt-in.ts`: `getPatientOptIn` + `setPatientOptIn` com filtro tenant_id obrigatório
+- [x] T043 [US4] `actions.ts` `setPatientReminderOptIn` implementação completa: RBAC + revalidatePath
+- [x] T044 [US4] `reminders-opt-in-toggle.tsx`: client component com optimistic update + revert em erro; BellRing/BellOff icons
+- [x] T045 [US4] Toggle adicionado em `pacientes/[id]/page.tsx` após AddressEditor (oculto quando paciente anonimizado). Query `reminders_opt_in` adicionada ao Promise.all
+- [x] T046 [US4] Tests US4 PASS — 8 unit
+- [x] T047 [US4] `pnpm typecheck` exit 0; unit tests reminders/ todos PASS (49+ total acumulado)
+- [x] T048 [US4] Commit + push
 
 **Checkpoint**: opt-out funcional. Próximo: US3 (histórico + reenvio).
 

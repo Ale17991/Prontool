@@ -18,6 +18,7 @@ import {
   updateReminderConfig,
   type ReminderConfigUpdate,
 } from '@/lib/core/reminders/config'
+import { setPatientOptIn } from '@/lib/core/reminders/opt-in'
 
 interface ActionOk {
   ok: true
@@ -82,16 +83,36 @@ export async function saveReminderConfig(
 }
 
 /**
- * US4 placeholder — implementação completa em Phase 5 (T043).
- * Mantido aqui para evitar import-quebrado se o toggle de paciente chamar antes.
+ * US4 — Define opt-in/opt-out de lembretes para um paciente.
+ * RBAC via mesma action `reminders.config` (admin + recepcionista).
+ * Audit automático pelo trigger existente em `patients`.
  */
 export async function setPatientReminderOptIn(
-  _patientId: string,
-  _optIn: boolean,
+  patientId: string,
+  optIn: boolean,
 ): Promise<ActionOk | ActionErr> {
-  return {
-    ok: false,
-    error: 'INTERNAL_ERROR',
-    message: 'Implementação completa em Phase 5 (US4)',
+  const auth = await authorize()
+  if (!auth.ok) return auth.response
+
+  if (typeof patientId !== 'string' || patientId.length === 0) {
+    return {
+      ok: false,
+      error: 'INVALID_PAYLOAD',
+      details: [{ field: 'patientId', message: 'patientId obrigatório' }],
+    }
+  }
+
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+
+  try {
+    await setPatientOptIn(supabase, patientId, auth.tenantId, optIn)
+    revalidatePath(`/operacao/pacientes/${patientId}`)
+    return { ok: true }
+  } catch (err) {
+    return {
+      ok: false,
+      error: 'INTERNAL_ERROR',
+      message: err instanceof Error ? err.message : 'unknown',
+    }
   }
 }
