@@ -28,6 +28,8 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - N/A — feature pura de UI; nenhuma migration, RLS, função SQL ou bucket é tocado. (014-sidebar-config-hub)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), `lucide-react ^1.8.0` (já instalado; ícones verificados), `next/font/google` (novo uso, sem nova dep — já em Next.js) (016-designer-palette-rollout)
 - N/A (feature pura de UI/CSS — `FR-027` proíbe qualquer mudança em DB) (016-designer-palette-rollout)
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router + Server Actions + RSC), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23 (validação payload público), Tailwind CSS 3.4, shadcn/ui (Radix), `date-fns` 4.1 + `date-fns-tz` (formatação timezone), Pino 9 (observabilidade). **Novas deps**: `ics` (~30kb gzipped, MIT). **Novas env vars**: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`. (017-public-booking)
+- PostgreSQL via Supabase. **Migration nova**: `0084_public_booking.sql`. **Tabelas tocadas**: `tenant_clinic_profile` (acrescenta 5 colunas), `notifications` (expande CHECK constraint do `type`). **Tabelas novas**: `public_booking_doctors`, `public_booking_doctor_procedures`, `public_booking_tokens`, `public_booking_rate_limits`. **Funções DB novas**: `public_booking_resolve_slug` (INVOKER), `public_booking_slots` (DEFINER), `public_booking_find_patient_by_cpf` (DEFINER, helper privado). (017-public-booking)
 
 - TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Pino 9, React 18.3, Radix UI, TailwindCSS 3.4 (002-ghl-optional-standalone)
 - PostgreSQL via Supabase (local stack: `supabase start` :54321) com RLS por `tenant_id`. Tabelas de integrações multi-provider: `tenant_integrations` (source-of-truth de "o tenant está conectado?" — zero linhas = standalone), `alerts` (type `integration_sync_failed` com `detail.provider`), `audit_log` (`event_type` `integration.{connect,reconfigure,disconnect}`). Tabela legada `tenant_ghl_config` ainda é lida pelo worker de ingestão GHL — drop planejado (migration 0041 já existe como NOOP placeholder). (002-ghl-optional-standalone)
@@ -81,9 +83,9 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 017-public-booking: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router + Server Actions + RSC), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23 (validação payload público), Tailwind CSS 3.4, shadcn/ui (Radix), `date-fns` 4.1 + `date-fns-tz` (formatação timezone), Pino 9 (observabilidade). **Novas deps**: `ics` (~30kb gzipped, MIT). **Novas env vars**: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`.
 - 016-designer-palette-rollout: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), `lucide-react ^1.8.0` (já instalado; ícones verificados), `next/font/google` (novo uso, sem nova dep — já em Next.js)
 - 014-sidebar-config-hub: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), `lucide-react`. **Sem novas deps** — usa apenas o que já está no projeto.
-- 013-modalidades-pagamento-assistente: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind CSS 3.4, shadcn/ui (Radix), `lucide-react`, `date-fns` 4.1, Pino 9. **Sem novas deps**.
 
 
 
