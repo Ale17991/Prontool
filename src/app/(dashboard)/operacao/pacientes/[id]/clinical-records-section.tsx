@@ -530,8 +530,8 @@ function SoapView({ soap }: { soap: SoapData }) {
         if (typeof value !== 'string' || !value.trim()) return null
         return (
           <div key={s.letter}>
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-700">
-              <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded bg-blue-600 text-[9px] text-white">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+              <span className="mr-1 inline-flex h-4 w-4 items-center justify-center rounded bg-primary text-[9px] text-primary-foreground">
                 {s.letter}
               </span>
               {s.label}

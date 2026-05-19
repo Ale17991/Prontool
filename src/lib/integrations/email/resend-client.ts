@@ -67,7 +67,7 @@ function renderAlertHtml(x: { subject: string; bodyMarkdown: string; dashboardUr
   <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px;">
     <h2 style="color: #b91c1c;">${escapeHtml(x.subject)}</h2>
     <pre style="white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px;">${escaped}</pre>
-    <p><a href="${escapeHtml(x.dashboardUrl)}" style="background: #2563eb; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block;">Abrir no dashboard</a></p>
+    <p><a href="${escapeHtml(x.dashboardUrl)}" style="background: #1C4F71; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block;">Abrir no dashboard</a></p>
     <p style="color: #64748b; font-size: 12px;">Este e-mail não contém dados pessoais de pacientes. Os detalhes completos requerem autenticação no dashboard.</p>
   </body>
 </html>`

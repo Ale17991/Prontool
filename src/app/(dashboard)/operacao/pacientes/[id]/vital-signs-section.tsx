@@ -240,7 +240,7 @@ export function VitalSignsSection({ patientId, initial, canWrite }: Props) {
                       type="monotone"
                       dataKey="diastolica"
                       name="Diastólica"
-                      stroke="#2563eb"
+                      stroke="#1C4F71"
                       strokeWidth={2}
                       dot={{ r: 2 }}
                     />

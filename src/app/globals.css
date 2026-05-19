@@ -16,8 +16,8 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;               /* blue-600 — CTA, preservado em 016 */
-    --primary-foreground: 210 40% 98%;
+    --primary: 207 61% 28%;               /* #1C4F71 — azul institucional escuro (CTA). Contraste com branco ~8.7:1 (WCAG AAA) */
+    --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;             /* slate-100 */
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96%;
@@ -29,7 +29,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214 32% 91%;                /* slate-200 */
     --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --ring: 207 61% 28%;                  /* alinhado a --primary */
     --radius: 0.625rem;
 
     /* --- 016 semantic tokens — paleta híbrida do designer + neutros consolidados --- */

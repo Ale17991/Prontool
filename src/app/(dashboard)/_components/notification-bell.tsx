@@ -50,7 +50,7 @@ export function NotificationBell() {
         <span
           className={cn(
             'absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white ring-2 ring-white',
-            hasOverdue ? 'bg-rose-600' : 'bg-blue-600',
+            hasOverdue ? 'bg-destructive' : 'bg-primary',
           )}
         >
           {count > 99 ? '99+' : count}
