@@ -1,17 +1,16 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ChevronRight, Plus, Search, User, Users } from 'lucide-react'
+import { ChevronRight, Plus, User, Users } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { listPatients } from '@/lib/core/patients/list'
 import type { Database } from '@/lib/db/types'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
+import { PatientQuickFind } from './patient-quick-find'
 
 export const dynamic = 'force-dynamic'
 
@@ -80,20 +79,10 @@ export default async function PacientesPage({ searchParams }: PageProps) {
               Novo paciente
             </Link>
           ) : null}
-        <form method="get" className="flex w-full items-center gap-2 md:w-auto">
-          <div className="relative flex-1 md:w-80">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              name="q"
-              placeholder="Buscar por nome ou CPF…"
-              defaultValue={searchParams.q ?? ''}
-              className="pl-10"
-            />
-          </div>
-          <Button type="submit" variant="outline">
-            Buscar
-          </Button>
-        </form>
+          {/* 016 punch list #3 — typeahead client-side: digite -> resultado em
+              tempo real -> click abre ficha. Substitui o form GET tradicional
+              ("Buscar -> linha -> Abrir"). Reduz a jornada de ~5 passos para 2. */}
+          <PatientQuickFind />
         </div>
       </div>
 

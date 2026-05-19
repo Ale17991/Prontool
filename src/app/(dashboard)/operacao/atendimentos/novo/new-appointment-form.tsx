@@ -110,6 +110,16 @@ export function NewAppointmentForm({
     new Date().toISOString().slice(0, 10),
   )
 
+  // 016 punch list #4 — split de pagamento em 2 metodos.
+  // Quando ativo, cria DOIS payment_records sobre o mesmo appointment_id,
+  // cada um com metodo e valor proprio. Resolve a queixa #1 do iClinic
+  // na Reclame Aqui (impossivel pagar 50% PIX + 50% cartao numa consulta).
+  const [splitPayment, setSplitPayment] = useState(false)
+  const [splitMethodA, setSplitMethodA] = useState<PaymentMethod>('pix')
+  const [splitMethodB, setSplitMethodB] = useState<PaymentMethod>('cartao_credito')
+  // Percentual da parte A (1-99). Parte B = 100 - A. Default 50/50.
+  const [splitPercentA, setSplitPercentA] = useState<number>(50)
+
   // Recalcula datas das parcelas quando o numero muda.
   useEffect(() => {
     if (installmentsCount <= 0) return
@@ -301,38 +311,83 @@ export function NewAppointmentForm({
         0,
       )
       if (totalCents > 0) {
-        const installments = installmentDates.map((due, idx) => {
-          const base = Math.floor(totalCents / installmentsCount)
-          const remainder = totalCents - base * installmentsCount
-          return {
-            installment_number: idx + 1,
-            amount_cents: idx === 0 ? base + remainder : base,
-            due_date: due,
+        const paidAtIso =
+          paymentStatus === 'pago' ? new Date(paymentPaidAt).toISOString() : null
+
+        // Split em 2 metodos: cria dois payment_records distintos (cada
+        // um com seu metodo), ambos vinculados ao mesmo appointment_id.
+        // Cada um vira 1 parcela com vencimento hoje (caso pago) ou
+        // mantém a politica padrao do banco.
+        if (splitPayment) {
+          const today = new Date().toISOString().slice(0, 10)
+          const amountA = Math.floor((totalCents * splitPercentA) / 100)
+          const amountB = totalCents - amountA
+          const parts: Array<{ method: PaymentMethod; amount: number }> = [
+            { method: splitMethodA, amount: amountA },
+            { method: splitMethodB, amount: amountB },
+          ]
+          for (const part of parts) {
+            if (part.amount <= 0) continue
+            const res = await fetch('/api/pagamentos', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                patient_id: patientId,
+                appointment_id: body.appointment_id,
+                total_amount_cents: part.amount,
+                payment_method: part.method,
+                installments: [
+                  {
+                    installment_number: 1,
+                    amount_cents: part.amount,
+                    due_date: today,
+                  },
+                ],
+                initial_status: paymentStatus,
+                paid_at: paidAtIso,
+              }),
+            })
+            if (!res.ok) {
+              const payBody = (await res.json().catch(() => ({}))) as {
+                error?: { message?: string }
+              }
+              setWarning(
+                `Atendimento salvo, mas uma das partes do pagamento falhou (${part.method}): ${payBody.error?.message ?? 'erro desconhecido'}. Registre manualmente em /operacao/pacientes/${patientId}.`,
+              )
+              break
+            }
           }
-        })
-        const payRes = await fetch('/api/pagamentos', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            patient_id: patientId,
-            appointment_id: body.appointment_id,
-            total_amount_cents: totalCents,
-            payment_method: paymentMethod,
-            installments,
-            initial_status: paymentStatus,
-            paid_at:
-              paymentStatus === 'pago'
-                ? new Date(paymentPaidAt).toISOString()
-                : null,
-          }),
-        })
-        if (!payRes.ok) {
-          const payBody = (await payRes.json().catch(() => ({}))) as {
-            error?: { message?: string }
+        } else {
+          const installments = installmentDates.map((due, idx) => {
+            const base = Math.floor(totalCents / installmentsCount)
+            const remainder = totalCents - base * installmentsCount
+            return {
+              installment_number: idx + 1,
+              amount_cents: idx === 0 ? base + remainder : base,
+              due_date: due,
+            }
+          })
+          const payRes = await fetch('/api/pagamentos', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              patient_id: patientId,
+              appointment_id: body.appointment_id,
+              total_amount_cents: totalCents,
+              payment_method: paymentMethod,
+              installments,
+              initial_status: paymentStatus,
+              paid_at: paidAtIso,
+            }),
+          })
+          if (!payRes.ok) {
+            const payBody = (await payRes.json().catch(() => ({}))) as {
+              error?: { message?: string }
+            }
+            setWarning(
+              `Atendimento salvo, mas o pagamento falhou: ${payBody.error?.message ?? 'erro desconhecido'}. Registre manualmente em /operacao/pacientes/${patientId}.`,
+            )
           }
-          setWarning(
-            `Atendimento salvo, mas o pagamento falhou: ${payBody.error?.message ?? 'erro desconhecido'}. Registre manualmente em /operacao/pacientes/${patientId}.`,
-          )
         }
       }
 
@@ -546,7 +601,90 @@ export function NewAppointmentForm({
           ) : null}
         </div>
 
-        {installmentsCount > 1 ? (
+        {/* 016 punch list #4 — toggle split de pagamento em 2 metodos */}
+        <div className="mt-3 border-t border-slate-200 pt-3">
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
+            <input
+              type="checkbox"
+              checked={splitPayment}
+              onChange={(e) => {
+                setSplitPayment(e.target.checked)
+                if (e.target.checked) setInstallmentsCount(1)
+              }}
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30"
+            />
+            <span>Dividir pagamento em 2 métodos</span>
+            <span className="text-[10px] font-normal text-slate-500">
+              (ex.: 50% PIX + 50% cartão)
+            </span>
+          </label>
+          {splitPayment ? (
+            <div className="mt-3 grid grid-cols-1 gap-3 rounded-md bg-info-bg/30 p-3 md:grid-cols-[2fr_2fr_1fr]">
+              <div className="space-y-1.5">
+                <Label htmlFor="split_method_a" className="text-[11px]">
+                  Método A
+                </Label>
+                <Select
+                  value={splitMethodA}
+                  onValueChange={(v) => setSplitMethodA(v as PaymentMethod)}
+                >
+                  <SelectTrigger id="split_method_a">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {METHOD_OPTIONS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="split_method_b" className="text-[11px]">
+                  Método B
+                </Label>
+                <Select
+                  value={splitMethodB}
+                  onValueChange={(v) => setSplitMethodB(v as PaymentMethod)}
+                >
+                  <SelectTrigger id="split_method_b">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {METHOD_OPTIONS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="split_percent_a" className="text-[11px]">
+                  % Método A
+                </Label>
+                <Input
+                  id="split_percent_a"
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={splitPercentA}
+                  onChange={(e) =>
+                    setSplitPercentA(
+                      Math.min(99, Math.max(1, Number(e.target.value) || 50)),
+                    )
+                  }
+                />
+                <p className="text-[10px] text-slate-500">
+                  Método B = {100 - splitPercentA}%
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {!splitPayment && installmentsCount > 1 ? (
           <div className="mt-4 space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
               Datas de vencimento

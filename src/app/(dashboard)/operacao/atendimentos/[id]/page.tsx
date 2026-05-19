@@ -243,7 +243,16 @@ export default async function AtendimentoDetailPage({
             {endIso ? formatDateTime(endIso) : '—'}
           </ClinicalRow>
           <ClinicalRow icon={User} label="Paciente">
-            <span className="font-bold">{patientName}</span>
+            {appointment.patient_id ? (
+              <Link
+                href={`/operacao/pacientes/${appointment.patient_id}`}
+                className="font-bold text-link hover:text-link-hover hover:underline"
+              >
+                {patientName}
+              </Link>
+            ) : (
+              <span className="font-bold">{patientName}</span>
+            )}
           </ClinicalRow>
           <ClinicalRow icon={Stethoscope} label="Profissional">
             <div>
