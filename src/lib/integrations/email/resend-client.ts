@@ -59,6 +59,63 @@ export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: stri
   }
 }
 
+// =========================================================================
+// Feature 017 — Emails de booking público (paciente + admin)
+// =========================================================================
+
+export interface SendBookingEmailInput {
+  tenantId: string
+  to: string
+  subject: string
+  html: string
+  attachments?: Array<{
+    filename: string
+    /** Conteúdo bruto (string utf-8 ou base64). */
+    content: string
+  }>
+}
+
+/**
+ * Envia email com suporte a attachments. Usado pelo fluxo de booking
+ * público (anexa .ics no email do paciente). Em ambiente sem RESEND_API_KEY
+ * registra warning e retorna { id: null } — não joga.
+ */
+export async function sendBookingEmail(
+  input: SendBookingEmailInput,
+): Promise<{ id: string | null }> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    logger.warn(
+      { tenantId: input.tenantId, subject: input.subject },
+      'resend-not-configured-skipping-booking-email',
+    )
+    return { id: null }
+  }
+
+  const from = process.env.RESEND_FROM ?? 'agendamentos@dev.prontool.io'
+
+  try {
+    const res = await getResend(key).emails.send({
+      from,
+      to: [input.to],
+      subject: input.subject,
+      html: input.html,
+      attachments: input.attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+      })),
+    })
+    return { id: res.data?.id ?? null }
+  } catch (err) {
+    logger.error(
+      { err, tenantId: input.tenantId, subject: input.subject },
+      'resend-send-booking-failed',
+    )
+    // Não joga — emails são fire-and-forget no fluxo de booking.
+    return { id: null }
+  }
+}
+
 function renderAlertHtml(x: { subject: string; bodyMarkdown: string; dashboardUrl: string }): string {
   // Very deliberate: no dynamic PII-bearing fields rendered here.
   const escaped = escapeHtml(x.bodyMarkdown)

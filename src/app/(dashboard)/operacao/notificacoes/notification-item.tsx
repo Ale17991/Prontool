@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Calendar, CheckCircle2, Cake } from 'lucide-react'
+import { AlertTriangle, Calendar, CalendarPlus, CheckCircle2, Cake } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { NotificationRow } from '@/lib/core/notifications/list'
 
@@ -15,6 +15,7 @@ const ICON_BY_TYPE = {
   tarefa: CheckCircle2,
   tarefa_atrasada: AlertTriangle,
   aniversarios_mes: Cake,
+  public_booking: CalendarPlus,
 } as const
 
 // 016 — paleta do designer. aniversarios mantem purple Tailwind
@@ -24,6 +25,7 @@ const COLOR_BY_TYPE: Record<NotificationRow['type'], string> = {
   tarefa: 'text-success-strong bg-success-bg',
   tarefa_atrasada: 'text-destructive bg-destructive/10',
   aniversarios_mes: 'text-purple-600 bg-purple-50',
+  public_booking: 'text-info-text bg-info-bg',
 }
 
 export function NotificationItem({ notification: n }: Props) {

@@ -27,6 +27,7 @@ import { createPatientManually } from '@/lib/core/patients/create-manual'
 import { createAppointmentManually } from '@/lib/core/appointments/create-manual'
 import { resolveTenantBySlug } from './resolve-tenant'
 import { generateCancelToken } from './tokens'
+import { sendBookingConfirmations } from './send-confirmation'
 import type { BookingCreatedResult, BookingPayload } from './types'
 
 export interface CreatePublicBookingInput extends BookingPayload {
@@ -206,6 +207,39 @@ export async function createPublicBooking(
         message: `token insert: ${tokenInsert.error.message}`,
       }
     }
+
+    // 9. Pós-commit (fire-and-forget): email paciente + email admin + bell.
+    //    Erros logados internamente; não falham a request.
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+    const cancelUrl = `${appUrl}/agendar/${input.slug}/cancelar/${token.raw}`
+    const dashboardUrl = `${appUrl}/operacao/atendimentos/${result.appointmentId}`
+
+    // Lookup do nome do médico (para email).
+    const { data: doctorRow } = await supabase
+      .from('doctors')
+      .select('full_name')
+      .eq('id', input.doctorId)
+      .eq('tenant_id', tenant.tenantId)
+      .maybeSingle()
+    const doctorName = (doctorRow?.full_name as string | undefined) ?? '—'
+
+    void sendBookingConfirmations({
+      supabase,
+      tenantId: tenant.tenantId,
+      tenantDisplayName: tenant.displayName,
+      tenantPhone: tenant.phone,
+      tenantAddress: tenant.addressLine,
+      appointmentId: result.appointmentId,
+      patientName: input.patient.fullName,
+      patientEmail: input.patient.email,
+      doctorName,
+      procedureName: procedureDisplayName,
+      scheduledAt: slotDate,
+      durationMinutes,
+      cancelUrl,
+      dashboardUrl,
+    })
 
     return {
       ok: true,

@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 import { hashToken } from '@/lib/core/public-booking/tokens'
+import { AddToCalendarButtons } from '@/components/public-booking/add-to-calendar-buttons'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,6 +87,15 @@ export default async function SucessoPage({
         </div>
       </section>
 
+      <AddToCalendarButtons
+        title={`Consulta — ${tenant.displayName}`}
+        description={`Agendamento confirmado pela ${tenant.displayName}.`}
+        location={tenant.addressLine ?? tenant.displayName}
+        startIso={appt.appointment_at}
+        durationMinutes={30}
+        icsDownloadUrl={`/api/public/booking/${params.slug}/ics/${params.token}`}
+      />
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href={cancelHref}
@@ -100,10 +110,6 @@ export default async function SucessoPage({
           Agendar outro horário
         </Link>
       </div>
-
-      <p className="text-center text-xs text-slate-400">
-        Adicionar à agenda (Google / Apple) será habilitado em breve.
-      </p>
     </div>
   )
 }
