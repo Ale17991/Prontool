@@ -39,6 +39,7 @@ type Action =
   | 'task.read'
   | 'task.write'
   | 'public_booking.config'
+  | 'reminders.config'
 
 const MATRIX: Record<TenantRole, readonly Action[]> = {
   admin: [
@@ -59,6 +60,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'tax.read', 'tax.write',
     'task.read', 'task.write',
     'public_booking.config',
+    'reminders.config',
   ],
   financeiro: [
     'price.read',
@@ -86,6 +88,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'tax.read',
     'task.read', 'task.write',
     'public_booking.config',
+    'reminders.config',
   ],
   profissional_saude: [
     'appointment.read',

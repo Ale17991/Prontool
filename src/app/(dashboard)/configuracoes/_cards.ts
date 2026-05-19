@@ -1,4 +1,5 @@
 import {
+  BellRing,
   Building2,
   CalendarPlus,
   ClipboardCheck,
@@ -34,6 +35,7 @@ export type HubCardId =
   | 'profissionais'
   | 'modelos-anamnese'
   | 'agendamento-publico'
+  | 'lembretes'
   | 'integracoes'
   | 'auditoria'
 
@@ -115,6 +117,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Link público pra paciente marcar consulta sem login.',
     icon: CalendarPlus,
     show: ({ role }) => can(role, 'public_booking.config'),
+  },
+  {
+    id: 'lembretes',
+    href: '/configuracoes/lembretes',
+    title: 'Lembretes automáticos',
+    description: 'Envia email antes da consulta. Reduz no-show.',
+    icon: BellRing,
+    show: ({ role }) => can(role, 'reminders.config'),
   },
   {
     id: 'integracoes',

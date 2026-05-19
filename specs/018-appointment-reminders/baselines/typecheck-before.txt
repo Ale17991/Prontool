@@ -1,0 +1,3 @@
+> prontool@0.1.0 typecheck C:\My project
+> tsc --noEmit
+

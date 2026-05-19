@@ -30,6 +30,8 @@ import { PatientPlanEditor } from './patient-plan-editor'
 import { ClinicalRecordsSection } from './clinical-records-section'
 import { AddressEditor } from './address-editor'
 import { PatientCleanupButton } from './cleanup-button'
+import { RemindersOptInToggle } from './reminders-opt-in-toggle'
+import { can } from '@/lib/auth/rbac'
 import { FinanceiroSection } from './financeiro-section'
 import { listPaymentsForPatient } from '@/lib/core/payments/list'
 import { DiagnosticsSection } from './diagnosticos-section'
@@ -190,6 +192,23 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     patientId: params.id,
   }).catch(safeFail<typeof paymentsFallback>('payments', paymentsFallback))
 
+  // Feature 018 — opt-in/opt-out de lembretes (carrega flag separadamente
+  // pois `getPatient` não retorna ainda; ler direto da tabela é simples).
+  const remindersOptInPromise: Promise<boolean> = (async () => {
+    try {
+      const res = await typedClient
+        .from('patients')
+        .select('reminders_opt_in')
+        .eq('id', params.id)
+        .eq('tenant_id', session.tenantId)
+        .maybeSingle()
+      const row = res.data as { reminders_opt_in: boolean | null } | null
+      return row?.reminders_opt_in !== false
+    } catch {
+      return true
+    }
+  })()
+
   const allergiesPromise: Promise<PatientAllergyDTO[]> = listAllergies(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
@@ -216,6 +235,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     medicalHistory,
     vitalSigns,
     diagnoses,
+    remindersOptIn,
   ] = await Promise.all([
     appointmentsPromise,
     recordsPromise,
@@ -225,6 +245,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     historyPromise,
     vitalSignsPromise,
     diagnosesPromise,
+    remindersOptInPromise,
   ])
 
   // Mapa appointment_id → step_id para distinguir orfaos (sem step
@@ -474,6 +495,14 @@ export default async function PacienteDetailPage({ params }: PageProps) {
           patientId={params.id}
           address={patient.address}
           canEdit={canEditPatient}
+        />
+      )}
+
+      {isAnonymized ? null : (
+        <RemindersOptInToggle
+          patientId={params.id}
+          initialOptIn={remindersOptIn}
+          canEdit={can(session.role, 'reminders.config')}
         />
       )}
 
