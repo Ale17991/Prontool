@@ -35,6 +35,15 @@ function syntheticEmptyRow(tenantId: string): Row {
     public_booking_min_hours_advance: 24,
     public_booking_max_days_advance: 30,
     public_booking_cancel_min_hours: 6,
+    // Feature 018 — defaults consistentes com a migration 0094.
+    reminder_enabled: false,
+    reminder_offsets_hours: [24],
+    reminder_send_weekends: true,
+    reminder_window_start: '08:00:00',
+    reminder_window_end: '20:00:00',
+    reminder_template_subject: null,
+    reminder_template_body: null,
+    reminder_last_run_at: null,
     created_at: now,
     updated_at: now,
   }

@@ -473,6 +473,70 @@ export type Database = {
           },
         ]
       }
+      appointment_reminders: {
+        Row: {
+          appointment_id: string
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          is_manual: boolean
+          provider_message_id: string | null
+          scheduled_offset_hours: number
+          sent_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id: string
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          is_manual?: boolean
+          provider_message_id?: string | null
+          scheduled_offset_hours: number
+          sent_at?: string | null
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          is_manual?: boolean
+          provider_message_id?: string | null
+          scheduled_offset_hours?: number
+          sent_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_reminders_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_reminders_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_reminders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_reversals: {
         Row: {
           appointment_id: string
@@ -1589,6 +1653,7 @@ export type Database = {
           id: string
           phone_enc: string | null
           plan_id: string | null
+          reminders_opt_in: boolean
           tenant_id: string
           updated_at: string
         }
@@ -1610,6 +1675,7 @@ export type Database = {
           id?: string
           phone_enc?: string | null
           plan_id?: string | null
+          reminders_opt_in?: boolean
           tenant_id: string
           updated_at?: string
         }
@@ -1631,6 +1697,7 @@ export type Database = {
           id?: string
           phone_enc?: string | null
           plan_id?: string | null
+          reminders_opt_in?: boolean
           tenant_id?: string
           updated_at?: string
         }
@@ -2390,6 +2457,14 @@ export type Database = {
           public_booking_max_days_advance: number
           public_booking_min_hours_advance: number
           public_booking_slug: string | null
+          reminder_enabled: boolean
+          reminder_last_run_at: string | null
+          reminder_offsets_hours: number[]
+          reminder_send_weekends: boolean
+          reminder_template_body: string | null
+          reminder_template_subject: string | null
+          reminder_window_end: string
+          reminder_window_start: string
           tech_responsible_council: string | null
           tech_responsible_name: string | null
           tech_responsible_registration: string | null
@@ -2416,6 +2491,14 @@ export type Database = {
           public_booking_max_days_advance?: number
           public_booking_min_hours_advance?: number
           public_booking_slug?: string | null
+          reminder_enabled?: boolean
+          reminder_last_run_at?: string | null
+          reminder_offsets_hours?: number[]
+          reminder_send_weekends?: boolean
+          reminder_template_body?: string | null
+          reminder_template_subject?: string | null
+          reminder_window_end?: string
+          reminder_window_start?: string
           tech_responsible_council?: string | null
           tech_responsible_name?: string | null
           tech_responsible_registration?: string | null
@@ -2442,6 +2525,14 @@ export type Database = {
           public_booking_max_days_advance?: number
           public_booking_min_hours_advance?: number
           public_booking_slug?: string | null
+          reminder_enabled?: boolean
+          reminder_last_run_at?: string | null
+          reminder_offsets_hours?: number[]
+          reminder_send_weekends?: boolean
+          reminder_template_body?: string | null
+          reminder_template_subject?: string | null
+          reminder_window_end?: string
+          reminder_window_start?: string
           tech_responsible_council?: string | null
           tech_responsible_name?: string | null
           tech_responsible_registration?: string | null
