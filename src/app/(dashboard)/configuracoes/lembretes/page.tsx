@@ -6,7 +6,9 @@ import { can } from '@/lib/auth/rbac'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import type { Database } from '@/lib/db/types'
 import { getReminderConfig } from '@/lib/core/reminders/config'
+import { listRemindersHistory } from '@/lib/core/reminders/history'
 import { ConfigForm } from './config-form'
+import { HistoryTable } from './history-table'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +18,12 @@ export default async function LembretesPage() {
   if (!can(session.role, 'reminders.config')) redirect('/configuracoes')
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
-  const config = await getReminderConfig(supabase, session.tenantId)
+  const [config, history] = await Promise.all([
+    getReminderConfig(supabase, session.tenantId),
+    listRemindersHistory(supabase, { tenantId: session.tenantId, limit: 20 }).catch(
+      () => [],
+    ),
+  ])
 
   return (
     <div className="space-y-6">
@@ -32,7 +39,14 @@ export default async function LembretesPage() {
 
       <ConfigForm initial={config} />
 
-      {/* Histórico vem em US3 (Phase 6). */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">Histórico de envios</h2>
+        <p className="text-sm text-slate-500">
+          Últimos 20 lembretes processados pelo motor. Clique em &quot;Reenviar&quot; para
+          disparar uma nova tentativa.
+        </p>
+        <HistoryTable rows={history} />
+      </section>
     </div>
   )
 }
