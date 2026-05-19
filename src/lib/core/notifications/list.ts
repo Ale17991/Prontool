@@ -6,6 +6,7 @@ export type NotificationType =
   | 'tarefa'
   | 'tarefa_atrasada'
   | 'aniversarios_mes'
+  | 'public_booking'
 
 export interface NotificationRow {
   id: string

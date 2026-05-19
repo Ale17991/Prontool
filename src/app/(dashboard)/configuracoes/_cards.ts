@@ -1,5 +1,6 @@
 import {
   Building2,
+  CalendarPlus,
   ClipboardCheck,
   DollarSign,
   ListChecks,
@@ -32,6 +33,7 @@ export type HubCardId =
   | 'convenios'
   | 'profissionais'
   | 'modelos-anamnese'
+  | 'agendamento-publico'
   | 'integracoes'
   | 'auditoria'
 
@@ -105,6 +107,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Modelos clínicos reutilizáveis nos atendimentos.',
     icon: ClipboardCheck,
     show: ({ role, flags }) => flags.anamnese && role === 'admin',
+  },
+  {
+    id: 'agendamento-publico',
+    href: '/configuracoes/agendamento-publico',
+    title: 'Agendamento online',
+    description: 'Link público pra paciente marcar consulta sem login.',
+    icon: CalendarPlus,
+    show: ({ role }) => can(role, 'public_booking.config'),
   },
   {
     id: 'integracoes',
