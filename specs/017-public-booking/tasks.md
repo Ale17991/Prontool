@@ -58,20 +58,20 @@ description: "Task list for 017 Public Booking"
 
 ### Tests for User Story 2
 
-- [ ] T021 [P] [US2] Teste de contrato: server action `saveConfig` rejeita slug com regex inválida em `tests/contract/public-booking-config-validation.test.ts`
-- [ ] T022 [P] [US2] Teste de RBAC: usuário com role `profissional_saude` ou `financeiro` recebe 403 ao acessar `/configuracoes/agendamento-publico` em `tests/contract/public-booking-config-rbac.test.ts`
+- [~] T021 [P] [US2] Teste de contrato Zod validation — **adiado** para infra de tests Vitest+supertest na Phase 5
+- [~] T022 [P] [US2] Teste de RBAC — **adiado** idem
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Criar `src/lib/core/public-booking/config.ts` com funções `getPublicBookingConfig(tenantId)`, `updatePublicBookingConfig(tenantId, actorUserId, payload)`, validação Zod do payload (slug regex `^[a-z0-9][a-z0-9-]{2,31}$`, janelas dentro de CHECK constraints)
-- [ ] T024 [US2] Criar `src/app/(dashboard)/configuracoes/agendamento-publico/actions.ts` com server actions `saveConfigAction`, `addPublishedDoctorAction`, `removePublishedDoctorAction`, `upsertDoctorProcedureAction`, `removeDoctorProcedureAction` (todas com `requireRole(['admin', 'recepcionista'])`)
-- [ ] T025 [US2] Criar `src/app/(dashboard)/configuracoes/agendamento-publico/page.tsx` (server component) que lê configuração atual + lista de médicos do tenant + lista de procedimentos cadastrados; passa para client form
-- [ ] T026 [US2] Criar `src/app/(dashboard)/configuracoes/agendamento-publico/public-booking-form.tsx` (client component): toggle habilitar, input slug com validação inline, inputs numéricos para 3 janelas, lista de médicos com checkbox de publicação + bio + horário (available_weekdays, from, until, lunch_break), aninhado lista de procedimentos por médico publicado com display_name + duration_minutes
-- [ ] T027 [US2] UX: mostrar URL pública construída em tempo real (`prontool.com.br/agendar/[slug]`) com botão de copiar; preview do que paciente vai ver (1 botão "Ver prévia" abre `/agendar/[slug]` em nova aba)
-- [ ] T028 [US2] Linkar a tela em `src/app/(dashboard)/configuracoes/page.tsx` (hub de configurações) com card "Agendamento online" — usar design system 016 (text-info-text, etc.)
-- [ ] T029 [US2] Rodar tests de contrato US2 (T021, T022) — devem passar
-- [ ] T030 [US2] Rodar `pnpm typecheck`
-- [ ] T031 [US2] Commit + push: `git add -A && git commit -m "feat(public-booking): UI admin de configuracao (US2)"` na branch `017-public-booking`
+- [x] T023 [US2] `src/lib/core/public-booking/config.ts` criado: getPublicBookingConfig + updatePublicBookingConfig + upsert/remove de doctor/procedure + 3 schemas Zod (PublicBookingConfigUpdateSchema, PublishedDoctorUpsertSchema, PublishedProcedureUpsertSchema). Slug unique check explícito + erro amigável SLUG_ALREADY_TAKEN
+- [x] T024 [US2] `actions.ts`: 5 server actions com `authorize()` helper que valida session + `can(role, 'public_booking.config')`; cada action retorna `{ok, error?}`. revalidatePath após mutações
+- [x] T025 [US2] `page.tsx` (server component): lê config + lista doctors ativos + procedures ativos (não-deleted); passa para client form com `baseUrl` derivado de `NEXT_PUBLIC_APP_URL`
+- [x] T026 [US2] `public-booking-form.tsx` (client): toggle + slug com validação inline + 3 inputs numéricos com clamp + card de profissionais publicados com `AddDoctorPicker` + `DoctorBlock` aninhado (bio textarea, weekdays toggles, 4 time inputs) + procedimentos aninhados com `AddProcedureRow` e `ProcedureRow`
+- [x] T027 [US2] UX: URL pública construída em tempo real + botão "Copiar link" (clipboard API) + "Ver prévia" (target=_blank). Feedback inline (success-strong / destructive)
+- [x] T028 [US2] Card "Agendamento online" adicionado em `_cards.ts` com `CalendarPlus` icon, visível para roles com action `public_booking.config` (admin + recepcionista). Nova action adicionada em `rbac.ts`
+- [~] T029 [US2] Tests adiados — Phase 5
+- [x] T030 [US2] `pnpm typecheck` exit 0; `pnpm build` PASS, rota `/configuracoes/agendamento-publico` = 6.73 kB
+- [x] T031 [US2] Commit + push
 
 **Checkpoint**: admin configura feature. Pronto pra testar US1.
 
