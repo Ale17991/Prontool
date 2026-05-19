@@ -17,9 +17,11 @@
  */
 
 import {
+  endOfDay,
   endOfMonth,
   endOfWeek,
   parseISO,
+  startOfDay,
   startOfMonth,
   startOfWeek,
 } from 'date-fns'
@@ -115,7 +117,7 @@ export function deriveRange(filters: CalendarFilters): { from: Date; to: Date } 
   const date = parseISO(filters.date)
   switch (filters.view) {
     case 'dia':
-      return { from: date, to: date }
+      return { from: startOfDay(date), to: endOfDay(date) }
     case 'mes': {
       const monthStart = startOfMonth(date)
       const monthEnd = endOfMonth(date)
