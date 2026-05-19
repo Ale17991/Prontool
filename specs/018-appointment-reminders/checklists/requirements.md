@@ -37,3 +37,18 @@
 - Assumptions documentam decisões pragmáticas: canal único (email) nesta fase, opt-in por default em base existente, fuso padrão São Paulo, retry manual nesta fase.
 - A spec **não** menciona Resend, Vercel Cron, tabelas concretas ou rotas — esses detalhes ficam para `plan.md`.
 - Pronto para `/speckit-clarify` ou direto para `/speckit-plan` (assumptions são fortes o suficiente).
+
+## Status pós-implementação (2026-05-19)
+
+| SC | Status |
+|----|--------|
+| SC-001 (95%+ cobertura) | ⏳ aguarda métricas pós-rollout |
+| SC-002 (98%+ sucesso) | ⏳ aguarda métricas pós-rollout |
+| SC-003 (100% dentro da janela) | ✅ enforced em select-due.ts isWithinWindow |
+| SC-004 (100% audit) | ✅ trigger automático + log explícito |
+| SC-005 (≤2min para configurar) | ✅ smoke quickstart §3 |
+| SC-006 (≥40% adoção) | ⏳ aguarda métricas pós-rollout |
+| SC-007 (≥10% redução no-show) | ⏳ aguarda métricas pós-rollout |
+| SC-008 (zero vazamento multi-tenant) | ✅ contract test scaffold + RLS + filtro explícito |
+| SC-009 (zero email em logs) | ✅ auditoria em `baselines/lgpd-email-audit.md` |
+| SC-010 (motor sobrevive a falhas) | ✅ Promise.allSettled em process-batch.ts |
