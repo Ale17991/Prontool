@@ -23,11 +23,11 @@ description: "Task list for 018 Appointment Reminders (Phase 1 — email)"
 
 **Purpose**: configurar Vercel Cron, env vars novas, capturar baselines.
 
-- [ ] T001 [P] Adicionar entrada de cron em `vercel.json` (criar arquivo se não existir): `{ "crons": [{ "path": "/api/cron/send-reminders", "schedule": "*/15 * * * *" }] }`
-- [ ] T002 [P] Adicionar em `.env.example` documentação das 2 env vars novas: `CRON_SECRET` (obrigatório em prod; em dev pode usar valor sentinela) e reforço de `RESEND_API_KEY` / `RESEND_FROM` (já existentes — só documentar uso pelo motor de lembretes)
-- [ ] T003 [P] Confirmar baseline `pnpm typecheck` (exit 0) e gravar em `specs/018-appointment-reminders/baselines/typecheck-before.txt`
-- [ ] T004 [P] Verificar disponibilidade de `date-fns-tz` no `package.json` (já presente — feature 017 e 010). Documentar versão atual em `specs/018-appointment-reminders/baselines/deps-check.md`
-- [ ] T005 [P] Verificar paths livres — confirmar que nenhum dos seguintes existe antes de criar: `src/app/(dashboard)/configuracoes/lembretes/`, `src/app/api/cron/send-reminders/`, `src/app/api/lembretes/`, `src/lib/core/reminders/`, `src/lib/integrations/email/reminder-template.ts`, `supabase/migrations/0094_*`. Documentar em `specs/018-appointment-reminders/baselines/path-conflict-check.md`
+- [x] T001 [P] `vercel.json` criado com cron `*/15 * * * *` apontando para `/api/cron/send-reminders`
+- [x] T002 [P] `.env.example`: `CRON_SECRET` documentado entre Turnstile e Observability
+- [x] T003 [P] Baseline typecheck PASS em `baselines/typecheck-before.txt`
+- [x] T004 [P] **CORREÇÃO**: `date-fns-tz` NÃO está instalado (foi falso premise). Vou usar `Intl.DateTimeFormat` (pattern existente em 017). Documentado em `baselines/deps-check.md`
+- [x] T005 [P] Paths livres confirmados em `baselines/path-conflict-check.md`
 
 **Checkpoint**: ambiente preparado. Sem novas deps (já confirmado). Próximo: Foundational.
 
@@ -39,21 +39,13 @@ description: "Task list for 018 Appointment Reminders (Phase 1 — email)"
 
 **⚠️ CRITICAL**: nenhum trabalho de US1/US2/US3/US4 pode começar até esta phase fechar.
 
-- [ ] T006 Criar `supabase/migrations/0094_appointment_reminders.sql` seguindo o sketch completo em `data-model.md` §Migration sketch — 1 tabela nova + 2 ALTERs + 3 triggers (audit / status transitions / no-delete) + 1 trigger de validação de offsets array + 5 índices + RLS policies + GRANTs
-- [ ] T007 [P] No mesmo arquivo, garantir comments em `appointment_reminders` (table + colunas críticas) e `tenant_clinic_profile.reminder_offsets_hours`
-- [ ] T008 Aplicar migration local: `pnpm supabase:reset` (requer Docker Desktop rodando — se não estiver, marcar como blocked e documentar em `baselines/`)
-- [ ] T009 Regenerar tipos TS: `pnpm supabase:gen-types` (depende de T008)
-- [ ] T010 [P] Criar `src/lib/core/reminders/types.ts` com DTOs:
-  - `ReminderConfig` (espelha colunas da config em tenant_clinic_profile — slug-free)
-  - `ReminderRecord` (espelha row de appointment_reminders)
-  - `ReminderStatus` (union string literal das 7 variantes)
-  - `ReminderChannel` (union 'email' | 'whatsapp' | 'sms')
-  - `ReminderTemplatePlaceholders` (paciente, medico, horario, clinica, procedimento)
-  - `EligibleAppointment` (DTO de query — appointment + dados do paciente/médico/procedimento "vivos")
-  - `ReminderRenderInput` (input do render-email)
-  - `ProcessBatchResult` (counters do cron)
-- [ ] T011 Rodar `pnpm typecheck` — deve passar mesmo sem T009 (DTOs não dependem do Database type, usam string opaca para FKs como pattern existente)
-- [ ] T012 [P] Criar diretório `src/lib/core/reminders/` (skeleton só com types.ts; outros arquivos virão nas US)
+- [x] T006 `supabase/migrations/0094_appointment_reminders.sql` criado: 8 colunas em tenant_clinic_profile + opt-in em patients + tabela appointment_reminders + 4 triggers (validate_offsets / audit / status_transition / no_delete) + RLS + 4 índices
+- [x] T007 [P] Comments adicionados em tabela e colunas críticas
+- [~] T008 **Bloqueado**: Docker Desktop não está rodando. Pendência manual para o reviewer rodar `pnpm supabase:reset` antes do merge
+- [~] T009 **Bloqueado** pela mesma razão. Pendência manual após T008
+- [x] T010 [P] `src/lib/core/reminders/types.ts`: 8 DTOs canônicos
+- [x] T011 `pnpm typecheck` exit 0
+- [x] T012 [P] Diretório `src/lib/core/reminders/` criado
 
 **Checkpoint**: DB pronto. US1, US2, US4 podem começar em paralelo a partir daqui. US3 depende de US2.
 
@@ -67,25 +59,20 @@ description: "Task list for 018 Appointment Reminders (Phase 1 — email)"
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Teste de unit Zod: `ReminderConfigUpdateSchema` rejeita offsets fora de 0..168, janela `end <= start`, enabled=true sem offsets, em `tests/unit/reminders-config-schema.spec.ts`
-- [ ] T014 [P] [US1] Teste de contrato RBAC: usuário com role `profissional_saude` recebe 403 ao chamar `saveReminderConfig`; admin e recepcionista passam. Em `tests/contract/reminders-rbac.spec.ts` (parte 1; resto na US3)
+- [x] T013 [P] [US1] `tests/unit/reminders-config-schema.spec.ts`: 16 tests PASS (offsets range, length, janela end>start, templates max length, enabled+offsets refine)
+- [x] T014 [P] [US1] `tests/unit/reminders-rbac.spec.ts`: 6 tests PASS (admin/recepcionista pass, profissional_saude/financeiro/null/undefined block)
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Criar `src/lib/core/reminders/config.ts` com:
-  - `ReminderConfigUpdateSchema` (Zod) conforme `contracts/action-save-config.contract.md`
-  - `getReminderConfig(supabase, tenantId)` lê as 8 colunas + retorna `ReminderConfig`
-  - `updateReminderConfig(supabase, tenantId, input)` faz UPDATE em `tenant_clinic_profile`
-- [ ] T016 [US1] Criar `src/app/(dashboard)/configuracoes/lembretes/actions.ts` com:
-  - `saveReminderConfig(input)` — `requireRole(['admin','recepcionista'])` + Zod parse + `updateReminderConfig` + `revalidatePath('/configuracoes/lembretes')`
-  - `setPatientReminderOptIn(patientId, optIn)` (placeholder; implementação completa em US4) — `requireRole` + UPDATE em `patients`
-- [ ] T017 [US1] Criar `src/app/(dashboard)/configuracoes/lembretes/page.tsx` (server component): lê `getReminderConfig` + lista admins do tenant para preview; renderiza `<ConfigForm>` e (placeholder) `<HistoryTable>` (vazia até US3)
-- [ ] T018 [US1] Criar `src/app/(dashboard)/configuracoes/lembretes/config-form.tsx` (client): toggle enable, multi-select de offsets (chips), 2 inputs `<input type="time">` para janela, toggle fim de semana, 2 textareas para template (subject/body) com hint dos placeholders `{{paciente}}`, `{{medico}}`, `{{horario}}`, `{{clinica}}`, `{{procedimento}}`. Botão "Salvar" chama `saveReminderConfig` com feedback inline (success-strong / destructive)
-- [ ] T019 [US1] Adicionar card "Lembretes automáticos" em `src/app/(dashboard)/configuracoes/_cards.ts` com ícone `BellRing` (lucide). Visível para roles admin/recepcionista (action key `reminders.config` registrada em `src/lib/auth/rbac.ts`)
-- [ ] T020 [US1] Registrar action `reminders.config` em `src/lib/auth/rbac.ts` — adicionar a admin e recepcionista no map de permissões
-- [ ] T021 [US1] Rodar tests US1 (T013, T014) — devem passar
-- [ ] T022 [US1] `pnpm typecheck` exit 0
-- [ ] T023 [US1] Commit + push: `git add -A && git commit -m "feat(reminders): UI admin de configuracao (US1)"` na branch `018-appointment-reminders`
+- [x] T015 [US1] `src/lib/core/reminders/config.ts`: `ReminderConfigUpdateSchema` + `getReminderConfig` + `updateReminderConfig`. Defaults consistentes com migration 0094 quando row não existe
+- [x] T016 [US1] `actions.ts`: `saveReminderConfig` (Zod + RBAC + revalidate); `setPatientReminderOptIn` como placeholder pra US4
+- [x] T017 [US1] `page.tsx` (server): getSession + redirect se sem permissão + renderiza ConfigForm com config inicial
+- [x] T018 [US1] `config-form.tsx` (client): toggle enabled, chips de offsets com add/remove, 2 inputs time, toggle fim de semana, 2 inputs de template + 5 placeholders hint. useTransition + feedback inline (success-bg / destructive)
+- [x] T019 [US1] Card "Lembretes automáticos" adicionado em `_cards.ts` com `BellRing` icon, visível p/ admin+recepcionista
+- [x] T020 [US1] Action `reminders.config` registrada em `rbac.ts` (admin + recepcionista)
+- [x] T021 [US1] Tests US1 PASS — 22 total
+- [x] T022 [US1] `pnpm typecheck` exit 0
+- [x] T023 [US1] Commit + push
 
 **Checkpoint**: admin configura motor de lembretes. Próximo: US2 (envio automático).
 
