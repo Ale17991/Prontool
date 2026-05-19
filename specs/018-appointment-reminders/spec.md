@@ -5,6 +5,15 @@
 **Status**: Draft
 **Input**: User description: ver `/speckit-specify` argumentos completos no histórico
 
+## Clarifications
+
+### Session 2026-05-19
+
+- Q: Quantos lembretes por ciclo (15min) o motor deve tentar enviar antes de pausar para o próximo ciclo? → A: Batch limitado a 200 lembretes por ciclo; excesso cai no ciclo seguinte (perda máxima de pontualidade ≈ 15 minutos).
+- Q: Reenvio manual pode ser usado em lembretes já enviados com sucesso, ou só em falhados/pulados? → A: Permitir em qualquer status (sent, failed, skipped); cada reenvio cria registro novo e é sempre auditado — admin assume a decisão.
+- Q: No email de lembrete, quando o agendamento veio pela via interna (não pela rota pública), o que aparece em "como cancelar"? → A: Link clicável para a landing pública da clínica (`/agendar/[slug]`) quando a clínica tem essa página habilitada — paciente vê telefone/endereço e contato. Sem token de cancelamento direto. Se a clínica não tiver a landing pública habilitada, o email exibe apenas o telefone da clínica como instrução textual.
+- Q: Se o profissional ou procedimento foi alterado/removido entre o agendamento e o envio do lembrete, qual dado aparece no email? → A: Dados atuais no momento do envio (JOIN com estado vigente). Reflete a realidade da clínica que o paciente encontrará; divergências em relação ao agendamento original são raras e devem ser gerenciadas manualmente pela clínica nesses casos extremos.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Clínica configura motor de lembretes em poucos minutos (Priority: P1)
@@ -55,7 +64,7 @@ O admin abre o painel de lembretes e vê os últimos envios (paciente, profissio
 
 1. **Given** que existem 5 lembretes enviados no último mês, **When** abro o painel, **Then** vejo os 5 em uma lista paginada com paciente, horário do agendamento, data/hora do envio e status.
 2. **Given** que há um lembrete com status=failed, **When** olho o registro, **Then** vejo a razão amigável da falha (ex.: "Email do paciente inválido").
-3. **Given** que sou admin, **When** clico em "Reenviar" em um lembrete já enviado, **Then** o sistema dispara novo email e cria um registro distinto no histórico, marcado como envio manual.
+3. **Given** que sou admin, **When** clico em "Reenviar" em um lembrete já enviado com sucesso, **Then** o sistema dispara novo email e cria um registro distinto no histórico, marcado como envio manual; o registro original permanece intacto.
 4. **Given** que sou recepcionista, **When** vejo o painel, **Then** consigo ver histórico e disparar reenvio (mesmo nível operacional do admin).
 5. **Given** que abro o painel, **When** olho a seção "Próximos envios", **Then** vejo até 20 lembretes agendados para as próximas 24h.
 
@@ -83,6 +92,7 @@ A clínica registra, no perfil de cada paciente, se ele autoriza ou não receber
 - **Paciente sem email cadastrado**: registro é criado como "pulado — sem canal de contato"; permite visibilidade ao admin sem entupir o histórico de falhas reais.
 - **Múltiplas antecedências configuradas**: cada antecedência gera um registro independente; cliente recebe 2 emails (ex.: 48h antes + 2h antes); idempotência garante um envio por combinação.
 - **Email do paciente foi atualizado após criar agendamento**: o motor usa o email atual no momento do envio (não congela no momento do agendamento).
+- **Profissional ou procedimento foi alterado/removido após criar agendamento**: o motor usa os dados vigentes no momento do envio (mesma política do email do paciente); divergência entre o que o paciente combinou e o que aparece no lembrete deve ser tratada manualmente pela clínica.
 - **Clínica em fuso horário diferente**: a janela de envio é interpretada no fuso configurado da clínica (default horário de Brasília).
 - **Provedor de email indisponível (rate limit, instabilidade)**: registro fica como "falhou" com motivo legível; sem nova tentativa automática nesta fase (Fase 2 traz retry exponencial).
 - **Fim de semana com toggle desligado**: lembretes que cairiam em sábado ou domingo são adiados; clínica define se aceita ou não.
@@ -105,7 +115,7 @@ A clínica registra, no perfil de cada paciente, se ele autoriza ou não receber
 
 **Envio automático**
 
-- **FR-007**: O sistema MUST verificar periodicamente (a cada 15 minutos) os agendamentos próximos e enviar lembrete para todos que entrem na janela do offset configurado.
+- **FR-007**: O sistema MUST verificar periodicamente (a cada 15 minutos) os agendamentos próximos e enviar lembrete para todos que entrem na janela da antecedência configurada, processando no máximo 200 lembretes por ciclo (o excedente fica elegível no ciclo seguinte).
 - **FR-008**: O sistema MUST garantir idempotência por combinação `(agendamento, antecedência, canal)`: nunca enviar dois lembretes para a mesma combinação, mesmo que o job rode múltiplas vezes ou tenha falhas transitórias.
 - **FR-009**: O sistema MUST registrar cada tentativa de envio (sucesso, falha, ou pulado) em uma tabela append-only com motivo legível para falhas.
 - **FR-010**: O sistema MUST gravar registros de auditoria para cada envio (`reminder_sent` e `reminder_failed`).
@@ -119,7 +129,7 @@ A clínica registra, no perfil de cada paciente, se ele autoriza ou não receber
 
 - **FR-016**: O sistema MUST exibir no painel administrativo um histórico paginado dos últimos lembretes enviados/tentados, incluindo paciente, profissional, data/hora do agendamento, data/hora do envio, status e motivo de falha.
 - **FR-017**: O sistema MUST exibir no painel administrativo os próximos N lembretes (até 20) que serão enviados nas próximas 24h.
-- **FR-018**: O sistema MUST permitir reenvio manual de um lembrete específico para um agendamento, registrando o reenvio como tentativa distinta e auditada.
+- **FR-018**: O sistema MUST permitir reenvio manual de um lembrete específico para um agendamento independentemente do status anterior (sucesso, falha ou pulado), registrando cada reenvio como tentativa distinta no histórico e sempre gerando registro de auditoria.
 
 **LGPD e privacidade**
 
@@ -129,8 +139,8 @@ A clínica registra, no perfil de cada paciente, se ele autoriza ou não receber
 
 **Conteúdo do email**
 
-- **FR-022**: O email de lembrete MUST conter nome do paciente, data e hora do agendamento (com fuso explícito), nome do profissional, nome da clínica, e telefone/endereço quando disponíveis.
-- **FR-023**: O email de lembrete MUST oferecer link ou orientação clara para cancelamento/contato (reusando o token público quando o agendamento foi criado pela rota pública; caso interno, orientar contato direto com a clínica).
+- **FR-022**: O email de lembrete MUST conter nome do paciente, data e hora do agendamento (com fuso explícito), nome do profissional, nome do procedimento, nome da clínica, e telefone/endereço quando disponíveis. Os dados de profissional, procedimento e clínica refletem o estado vigente no momento do envio, não o estado no momento do agendamento.
+- **FR-023**: O email de lembrete MUST oferecer caminho claro para o paciente cancelar ou entrar em contato, com a seguinte hierarquia: (a) quando o agendamento foi criado pela rota pública, exibir link com token de cancelamento direto; (b) quando o agendamento foi criado pela via interna E a clínica tem landing pública habilitada, exibir link para a landing pública da clínica (sem token; serve para o paciente ver dados de contato); (c) quando nenhum dos dois aplica, exibir o telefone da clínica como instrução textual.
 
 ### Key Entities *(include if feature involves data)*
 
