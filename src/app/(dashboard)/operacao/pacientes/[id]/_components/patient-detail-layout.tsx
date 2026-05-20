@@ -8,6 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientQuickView } from './patient-quick-view'
 import { ClinicalTimeline } from './clinical-timeline'
 import { CadastroTab } from './cadastro-tab'
+import { NewEvolutionSheet } from './sheets/new-evolution-sheet'
+import { NewAnamneseSheet } from './sheets/new-anamnese-sheet'
+import { NewVitalSheet } from './sheets/new-vital-sheet'
+import { NewDiagnosisSheet } from './sheets/new-diagnosis-sheet'
+import { MobileQuickViewHeader } from './mobile-quick-view-header'
+import { MobileActionBar } from './mobile-action-bar'
 import { cn } from '@/lib/utils'
 import type {
   AuthorMap,
@@ -88,6 +94,7 @@ export function PatientDetailLayout({
   const [tab, setTab] = useState<'clinico' | 'cadastro'>(
     isValidTab(tabFromUrl) ? tabFromUrl : initialTab,
   )
+  const [activeSheet, setActiveSheet] = useState<SheetKind | null>(null)
 
   useEffect(() => {
     if (isValidTab(tabFromUrl) && tabFromUrl !== tab) {
@@ -114,11 +121,20 @@ export function PatientDetailLayout({
   )
 
   const handleOpenSheet = useCallback(
-    (_sheet: SheetKind) => {
-      // MVP US1: ações da sidebar levam para a aba "Cadastro" onde os
-      // formulários existentes seguem funcionais. Sheets dedicados ficam
-      // como follow-up (US2).
-      updateTab('cadastro')
+    (sheet: SheetKind) => {
+      // US2: sheets dedicados para os 4 fluxos clínicos mais frequentes.
+      // Os outros 4 (texto, arquivo, alergia, antecedente) ainda levam
+      // para a aba Cadastro — promover se houver feedback de uso.
+      if (
+        sheet === 'new-evolution' ||
+        sheet === 'new-anamnese' ||
+        sheet === 'new-vital' ||
+        sheet === 'new-diagnosis'
+      ) {
+        setActiveSheet(sheet)
+      } else {
+        updateTab('cadastro')
+      }
     },
     [updateTab],
   )
@@ -140,14 +156,22 @@ export function PatientDetailLayout({
         </Link>
       </div>
 
+      {/* Header compacto colapsável — só mobile */}
+      <MobileQuickViewHeader
+        snapshot={snapshot}
+        onOpenSheet={handleOpenSheet}
+        onSwitchToCadastro={() => updateTab('cadastro')}
+        onPrint={handlePrint}
+      />
+
       <div
         className={cn(
           'grid grid-cols-1 gap-4',
           'md:grid-cols-[320px_minmax(0,1fr)]',
         )}
       >
-        {/* Sidebar (desktop sticky / mobile inline top) */}
-        <aside className="md:sticky md:top-4 md:max-h-[calc(100vh-2rem)] md:overflow-y-auto md:pr-1">
+        {/* Sidebar full — só desktop (md+) */}
+        <aside className="hidden md:sticky md:top-4 md:block md:max-h-[calc(100vh-2rem)] md:overflow-y-auto md:pr-1">
           <PatientQuickView
             snapshot={snapshot}
             onOpenSheet={handleOpenSheet}
@@ -208,6 +232,52 @@ export function PatientDetailLayout({
           </Tabs>
         </section>
       </div>
+
+      {/* US2 Sheets — montados no orquestrador para preservar o state
+          do ?tab atrás. Fechamento via Esc/overlay/X do Radix Dialog. */}
+      <NewEvolutionSheet
+        open={activeSheet === 'new-evolution'}
+        onOpenChange={(open) => setActiveSheet(open ? 'new-evolution' : null)}
+        patientId={patientId}
+        patientName={patient.fullName || null}
+        initialRecords={cadastro.initialRecords}
+        canWrite={cadastro.canWriteClinical}
+        canDeleteAnamnese={cadastro.canDeleteAnamnese}
+      />
+      <NewAnamneseSheet
+        open={activeSheet === 'new-anamnese'}
+        onOpenChange={(open) => setActiveSheet(open ? 'new-anamnese' : null)}
+        patientId={patientId}
+        patientName={patient.fullName || null}
+        patientPrefill={cadastro.anamnesePrefill}
+        initialRecords={cadastro.initialRecords}
+        canApplyAnamnesis={cadastro.canApplyAnamnesis}
+        canDeleteAnamnese={cadastro.canDeleteAnamnese}
+      />
+      <NewVitalSheet
+        open={activeSheet === 'new-vital'}
+        onOpenChange={(open) => setActiveSheet(open ? 'new-vital' : null)}
+        patientId={patientId}
+        initialVitalSigns={cadastro.initialVitalSigns}
+        canWrite={cadastro.canWriteVitals}
+      />
+      <NewDiagnosisSheet
+        open={activeSheet === 'new-diagnosis'}
+        onOpenChange={(open) => setActiveSheet(open ? 'new-diagnosis' : null)}
+        patientId={patientId}
+        initialDiagnoses={cadastro.initialDiagnoses}
+        canWrite={cadastro.canWriteDiagnosis}
+        canDelete={cadastro.canDeleteDiagnosis}
+      />
+
+      {/* FAB bar fixa no rodapé — só mobile. Padding-bottom no body global
+          via CSS para evitar a barra cobrir conteúdo do final da timeline. */}
+      <div className="h-16 md:hidden" aria-hidden="true" />
+      <MobileActionBar
+        permissions={snapshot.permissions}
+        onOpenSheet={handleOpenSheet}
+        onPrint={handlePrint}
+      />
     </div>
   )
 }
