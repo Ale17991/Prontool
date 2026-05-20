@@ -1,43 +1,13 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Mail,
-  MessageCircle,
-  Phone,
-  Receipt,
-  ShieldAlert,
-  Stethoscope,
-  User,
-} from 'lucide-react'
-import { buildWhatsAppUrl } from '@/lib/utils/whatsapp'
+import { ArrowLeft } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { getPatient } from '@/lib/core/patients/get'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
 import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
-import type { Database } from '@/lib/db/types'
-import {
-  TreatmentStepsSection,
-  type DoctorOption,
-  type HealthPlanOption,
-  type ProcedureOption,
-} from './treatment-steps-section'
-import { PatientPlanEditor } from './patient-plan-editor'
-import { ClinicalRecordsSection } from './clinical-records-section'
-import { AddressEditor } from './address-editor'
-import { PatientCleanupButton } from './cleanup-button'
-import { RemindersOptInToggle } from './reminders-opt-in-toggle'
-import { can } from '@/lib/auth/rbac'
-import { FinanceiroSection } from './financeiro-section'
 import { listPaymentsForPatient } from '@/lib/core/payments/list'
-import { DiagnosticsSection } from './diagnosticos-section'
-import { MedicalHistorySection } from './medical-history-section'
-import { VitalSignsSection } from './vital-signs-section'
-import { PrintChartButton } from './print-chart-button'
 import { listAllergies, type PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
 import {
   listDiagnoses,
@@ -45,29 +15,38 @@ import {
 } from '@/lib/core/patient-medical/diagnoses'
 import { listHistory, type PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import { listVitalSigns, type VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
+import {
+  assembleTimelineEvents,
+  buildQuickViewSnapshot,
+  collectAuthorUserIds,
+  resolveAuthors,
+  type AppointmentTimelineRow,
+} from '@/lib/core/patient-timeline'
+import { can } from '@/lib/auth/rbac'
+import { Card, CardContent } from '@/components/ui/card'
+import type { Database } from '@/lib/db/types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
 import type {
   PaymentRecordDTO,
   PatientFinancialSummary,
 } from '@/lib/core/payments/list'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { calculateAge, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import {
-  AppointmentsHistoryTable,
-  type AppointmentHistoryRow,
-} from './appointments-history-table'
+  type DoctorOption,
+  type HealthPlanOption,
+  type ProcedureOption,
+} from './treatment-steps-section'
+import { PatientCleanupButton } from './cleanup-button'
+import { PatientDetailLayout } from './_components/patient-detail-layout'
+import type { AnamnesePatientPrefill } from './clinical-records-section'
 
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: { id: string }
+  searchParams: { tab?: string }
 }
 
-/**
- * Renderizada quando getPatient falha mas o usuario e admin — mostra
- * apenas as causas das falhas. Para nao-admins o throw original sobe.
- */
 function FailuresOnlyView({
   failures,
 }: {
@@ -84,7 +63,7 @@ function FailuresOnlyView({
       <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="space-y-2 p-4 text-sm">
           <p className="font-bold text-rose-900">
-            {failures.length} secao(oes) falharam (visivel so para admin):
+            {failures.length} seção(ões) falharam (visível só para admin):
           </p>
           <ul className="space-y-2">
             {failures.map((f, idx) => (
@@ -112,19 +91,16 @@ interface AppointmentRow {
   effective_status: string | null
 }
 
-export default async function PacienteDetailPage({ params }: PageProps) {
+export default async function PacienteDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  // RLS + RPCs SECURITY DEFINER com grant para authenticated cobrem tudo
-  // que essa página lê. O cast abaixo alinha o tipo do @supabase/ssr com
-  // o SupabaseClient<Database> esperado pelos core helpers.
   const supabase = createSupabaseServerClient()
   const typedClient = supabase as unknown as SupabaseClient<Database>
 
-  // Cada secao roda em try/catch independente. Se uma migration nao
-  // estiver em prod, a secao volta vazia e o erro e logado/exibido para
-  // admin — em vez de quebrar a pagina inteira via error boundary.
   const failures: Array<{ section: string; message: string }> = []
   function recordFailure(section: string, err: unknown): void {
     const message = err instanceof Error ? err.message : String(err)
@@ -161,7 +137,9 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   const appointmentsPromise: Promise<AppointmentRow[]> = (async () => {
     const res = await supabase
       .from('appointments_effective')
-      .select('id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status')
+      .select(
+        'id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status',
+      )
       .eq('patient_id', params.id)
       .order('appointment_at', { ascending: false })
       .limit(50)
@@ -192,8 +170,6 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     patientId: params.id,
   }).catch(safeFail<typeof paymentsFallback>('payments', paymentsFallback))
 
-  // Feature 018 — opt-in/opt-out de lembretes (carrega flag separadamente
-  // pois `getPatient` não retorna ainda; ler direto da tabela é simples).
   const remindersOptInPromise: Promise<boolean> = (async () => {
     try {
       const res = await typedClient
@@ -209,22 +185,22 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     }
   })()
 
-  const allergiesPromise: Promise<PatientAllergyDTO[]> = listAllergies(typedClient, {
-    tenantId: session.tenantId,
-    patientId: params.id,
-  }).catch(safeFail<PatientAllergyDTO[]>('allergies', []))
+  const allergiesPromise: Promise<PatientAllergyDTO[]> = listAllergies(
+    typedClient,
+    { tenantId: session.tenantId, patientId: params.id },
+  ).catch(safeFail<PatientAllergyDTO[]>('allergies', []))
   const historyPromise: Promise<PatientHistoryDTO[]> = listHistory(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
   }).catch(safeFail<PatientHistoryDTO[]>('history', []))
-  const vitalSignsPromise: Promise<VitalSignsDTO[]> = listVitalSigns(typedClient, {
-    tenantId: session.tenantId,
-    patientId: params.id,
-  }).catch(safeFail<VitalSignsDTO[]>('vital-signs', []))
-  const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(typedClient, {
-    tenantId: session.tenantId,
-    patientId: params.id,
-  }).catch(safeFail<PatientDiagnosisDTO[]>('diagnoses', []))
+  const vitalSignsPromise: Promise<VitalSignsDTO[]> = listVitalSigns(
+    typedClient,
+    { tenantId: session.tenantId, patientId: params.id },
+  ).catch(safeFail<VitalSignsDTO[]>('vital-signs', []))
+  const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(
+    typedClient,
+    { tenantId: session.tenantId, patientId: params.id },
+  ).catch(safeFail<PatientDiagnosisDTO[]>('diagnoses', []))
 
   const [
     appointments,
@@ -248,42 +224,6 @@ export default async function PacienteDetailPage({ params }: PageProps) {
     remindersOptInPromise,
   ])
 
-  // Mapa appointment_id → step_id para distinguir orfaos (sem step
-  // vinculada) dos ja importados no plano. O botao "Adicionar ao plano"
-  // so aparece nos orfaos.
-  const appointmentIds = appointments
-    .map((a) => a.id)
-    .filter((v): v is string => typeof v === 'string' && v.length > 0)
-  const stepByAppointment = new Map<string, string>()
-  if (appointmentIds.length > 0) {
-    try {
-      const stepsRes = await supabase
-        .from('treatment_plan_steps')
-        .select('id, appointment_id')
-        .eq('tenant_id', session.tenantId)
-        .in('appointment_id', appointmentIds)
-      if (stepsRes.error) throw new Error(stepsRes.error.message)
-      for (const row of (stepsRes.data ?? []) as Array<{
-        id: string
-        appointment_id: string | null
-      }>) {
-        if (row.appointment_id) stepByAppointment.set(row.appointment_id, row.id)
-      }
-    } catch (err) {
-      recordFailure('appointment-step-link', err)
-    }
-  }
-  const historyRows: AppointmentHistoryRow[] = appointments
-    .filter((a): a is AppointmentRow & { id: string } => typeof a.id === 'string' && a.id.length > 0)
-    .map((a) => ({
-      id: a.id,
-      appointmentAt: a.appointment_at,
-      frozenAmountCents: a.frozen_amount_cents,
-      netAmountCents: a.net_amount_cents,
-      effectiveStatus: a.effective_status,
-      stepId: stepByAppointment.get(a.id) ?? null,
-    }))
-
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
     supabase
       .from('procedures')
@@ -302,7 +242,7 @@ export default async function PacienteDetailPage({ params }: PageProps) {
       .order('name', { ascending: true }),
     supabase
       .from('doctors')
-      .select('id, full_name, role, specialty')
+      .select('id, user_id, full_name, role, specialty')
       .eq('active', true)
       .order('full_name', { ascending: true }),
   ])
@@ -332,61 +272,118 @@ export default async function PacienteDetailPage({ params }: PageProps) {
   })
   const healthPlansList: HealthPlanOption[] = (
     (healthPlansRes.data ?? []) as Array<{ id: string; name: string }>
-  ).map((hp) => ({
-    id: hp.id,
-    name: hp.name,
-  }))
-  const doctorsList: DoctorOption[] = (
-    (doctorsRes.data ?? []) as Array<{
-      id: string
-      full_name: string
-      role: string | null
-      specialty: string | null
-    }>
-  ).map((d) => ({
+  ).map((hp) => ({ id: hp.id, name: hp.name }))
+
+  const doctorRows = (doctorsRes.data ?? []) as Array<{
+    id: string
+    user_id: string | null
+    full_name: string
+    role: string | null
+    specialty: string | null
+  }>
+  const doctorsList: DoctorOption[] = doctorRows.map((d) => ({
     id: d.id,
     fullName: d.full_name,
     role: d.role,
     specialty: d.specialty,
   }))
 
+  const appointmentTimelineRows: AppointmentTimelineRow[] = appointments
+    .filter(
+      (a): a is AppointmentRow & { id: string } =>
+        typeof a.id === 'string' && a.id.length > 0,
+    )
+    .map((a) => ({
+      id: a.id,
+      appointmentAt: a.appointment_at,
+      frozenAmountCents: a.frozen_amount_cents,
+      netAmountCents: a.net_amount_cents,
+      effectiveStatus: a.effective_status,
+      procedureName: null,
+      tussCode: null,
+      doctorName: null,
+      planName: null,
+      createdBy: null,
+    }))
+
+  const events = assembleTimelineEvents({
+    clinicalRecords: records,
+    vitalSigns,
+    appointments: appointmentTimelineRows,
+    payments: payments.records,
+    isAnonymized: patient.anonymizedAt !== null,
+    limit: 200,
+  })
+
+  const authorIds = collectAuthorUserIds(events)
+  let authors: ReadonlyMap<string, string> = new Map()
+  if (authorIds.size > 0) {
+    authors = await resolveAuthors(typedClient, {
+      tenantId: session.tenantId,
+      userIds: authorIds,
+      knownDoctors: doctorRows.map((d) => ({
+        user_id: d.user_id,
+        full_name: d.full_name,
+      })),
+    }).catch(safeFail<ReadonlyMap<string, string>>('authors', new Map()))
+  }
+
+  const snapshot = buildQuickViewSnapshot({
+    patient,
+    summary,
+    allergies,
+    diagnoses,
+    vitalSigns,
+    payments: payments.records,
+    role: session.role,
+  })
+
+  const canEditPatient =
+    session.role === 'admin' || session.role === 'recepcionista'
+  const canWriteClinical =
+    session.role === 'admin' ||
+    session.role === 'financeiro' ||
+    session.role === 'profissional_saude'
   const canWriteTreatment =
     session.role === 'admin' ||
     session.role === 'financeiro' ||
     session.role === 'profissional_saude'
-
-  const canEditPatient = session.role === 'admin' || session.role === 'recepcionista'
-  const canWriteClinicalRecords =
-    session.role === 'admin' ||
-    session.role === 'financeiro' ||
-    session.role === 'profissional_saude'
-  // /api/anamnesis-templates/[id]/apply só aceita admin (route.ts:22). Se
-  // expandirem o RBAC depois, este gate sobe junto.
   const canApplyAnamnesis = session.role === 'admin'
+  const canDeleteAnamnese = session.role === 'admin'
+  const canWriteVitals =
+    session.role === 'admin' || session.role === 'profissional_saude'
+  const canWriteDiagnosis =
+    session.role === 'admin' || session.role === 'profissional_saude'
+  const canDeleteDiagnosis = session.role === 'admin'
+  const canRecordPayment =
+    session.role === 'admin' || session.role === 'financeiro'
+  const canConfigReminders = can(session.role, 'reminders.config')
 
-  const isAnonymized = Boolean(patient.anonymizedAt)
-  const initial = (patient.fullName || '?').charAt(0).toUpperCase()
-  const age = calculateAge(patient.birthDate)
+  const isAnonymized = patient.anonymizedAt !== null
+  const anamnesePrefill: AnamnesePatientPrefill | undefined = isAnonymized
+    ? undefined
+    : {
+        fullName: patient.fullName || null,
+        cpf: patient.cpf || null,
+        phone: patient.phone,
+        email: patient.email,
+        birthDate: patient.birthDate,
+        healthPlanName: patient.healthPlan?.name ?? null,
+        address: patient.address,
+        allergies: allergies.map((a) => ({
+          substance: a.substance,
+          severity: a.severity,
+          notes: a.notes,
+        })),
+      }
+
+  const initialTab: 'clinico' | 'cadastro' =
+    searchParams.tab === 'cadastro' ? 'cadastro' : 'clinico'
 
   const showFailuresCard = session.role === 'admin' && failures.length > 0
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          href="/operacao/pacientes"
-          className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
-        >
-          <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
-        </Link>
-        <div className="flex flex-wrap items-center gap-2">
-          {!isAnonymized ? <PrintChartButton patientId={params.id} /> : null}
-          {session.role === 'admin' && !isAnonymized ? (
-            <PatientCleanupButton patientId={params.id} />
-          ) : null}
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {showFailuresCard ? (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="space-y-2 p-4 text-sm">
@@ -409,317 +406,44 @@ export default async function PacienteDetailPage({ params }: PageProps) {
         </Card>
       ) : null}
 
-      {isAnonymized ? (
-        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-4 py-3 text-sm text-[hsl(var(--warning-foreground))]">
-          <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-          <div>
-            <p className="font-semibold">Paciente anonimizado por retenção LGPD</p>
-            <p className="text-xs text-[hsl(var(--warning-foreground))]">
-              Anonimizado em {formatDateTime(patient.anonymizedAt)}. Histórico financeiro
-              permanece íntegro.
-            </p>
-          </div>
+      {session.role === 'admin' && !isAnonymized ? (
+        <div className="flex justify-end">
+          <PatientCleanupButton patientId={params.id} />
         </div>
       ) : null}
 
-      <Card>
-        <CardContent className="p-8">
-          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary text-3xl font-black text-white shadow-xl">
-              {isAnonymized ? <User className="h-8 w-8" /> : initial}
-            </div>
-            <div className="flex-1 space-y-3">
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-slate-900">
-                  {isAnonymized ? '[anonimizado]' : patient.fullName || '—'}
-                </h1>
-                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                  <span className="rounded bg-slate-100 px-2 py-0.5 font-mono font-bold text-slate-600">
-                    CPF: {isAnonymized ? '—' : patient.cpf || '—'}
-                  </span>
-                  {patient.birthDate ? (
-                    <span className="flex items-center gap-1 text-slate-500">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(patient.birthDate)}
-                      {age !== null ? ` (${age} anos)` : ''}
-                    </span>
-                  ) : null}
-                  {patient.ghlContactId ? (
-                    <span className="font-mono text-[11px] text-slate-400">
-                      Homio: {patient.ghlContactId}
-                    </span>
-                  ) : null}
-                </div>
-                {isAnonymized ? null : (
-                  <div className="mt-3 flex items-center gap-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      Plano de saúde
-                    </span>
-                    <PatientPlanEditor
-                      patientId={patient.id}
-                      currentPlanId={patient.healthPlan?.id ?? null}
-                      currentPlanName={patient.healthPlan?.name ?? null}
-                      healthPlans={healthPlansList}
-                      canEdit={canEditPatient}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 md:grid-cols-3">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <ContactChip
-                      icon={Phone}
-                      label="Telefone"
-                      value={patient.phone}
-                      color="emerald"
-                    />
-                  </div>
-                  <WhatsAppButton phone={patient.phone} />
-                </div>
-                <ContactChip icon={Mail} label="Email" value={patient.email} color="blue" />
-                <ContactChip
-                  icon={Clock}
-                  label="Cadastrado em"
-                  value={formatDate(patient.createdAt)}
-                  color="amber"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {isAnonymized ? null : (
-        <AddressEditor
-          patientId={params.id}
-          address={patient.address}
-          canEdit={canEditPatient}
-        />
-      )}
-
-      {isAnonymized ? null : (
-        <RemindersOptInToggle
-          patientId={params.id}
-          initialOptIn={remindersOptIn}
-          canEdit={can(session.role, 'reminders.config')}
-        />
-      )}
-
-      {isAnonymized ? null : (
-        <MedicalHistorySection
-          patientId={params.id}
-          initialAllergies={allergies}
-          initialHistory={medicalHistory}
-          canWrite={canWriteClinicalRecords}
-        />
-      )}
-
-      {isAnonymized ? null : (
-        <VitalSignsSection
-          patientId={params.id}
-          initial={vitalSigns}
-          canWrite={
-            session.role === 'admin' || session.role === 'profissional_saude'
-          }
-        />
-      )}
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <SummaryCard
-          label="Atendimentos"
-          value={summary.appointmentCount.toString()}
-          sub={`${summary.activeAppointmentCount} ativo${summary.activeAppointmentCount === 1 ? '' : 's'}`}
-        />
-        <SummaryCard
-          label="Cancelados"
-          value={summary.reversedAppointmentCount.toString()}
-          accent={summary.reversedAppointmentCount > 0}
-        />
-        <SummaryCard
-          label="Receita bruta"
-          value={formatCurrency(summary.totalRevenueCents)}
-        />
-        <SummaryCard
-          label="Receita líquida"
-          value={formatCurrency(summary.netRevenueCents)}
-          sub={
-            summary.lastAppointmentAt
-              ? `Último: ${formatDate(summary.lastAppointmentAt)}`
-              : 'Sem atendimentos'
-          }
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Stethoscope className="h-4 w-4 text-primary" />
-            Histórico de atendimentos
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <AppointmentsHistoryTable
-            patientId={params.id}
-            rows={historyRows}
-            canImportToPlan={canWriteTreatment && !isAnonymized}
-          />
-        </CardContent>
-      </Card>
-
-      {isAnonymized ? null : (
-        <TreatmentStepsSection
-          patientId={params.id}
-          patientPlanId={patient.healthPlan?.id ?? null}
-          patientPlanName={patient.healthPlan?.name ?? null}
-          initialSteps={treatmentSteps}
-          procedures={procedures}
-          healthPlans={healthPlansList}
-          doctors={doctorsList}
-          canWrite={canWriteTreatment}
-        />
-      )}
-
-      {isAnonymized ? null : (
-        <FinanceiroSection
-          patientId={params.id}
-          initialRecords={payments.records}
-          initialSummary={payments.summary}
-          canRecordPayment={
-            session.role === 'admin' || session.role === 'financeiro'
-          }
-        />
-      )}
-
-      {isAnonymized ? null : (
-        <DiagnosticsSection
-          patientId={params.id}
-          initialDiagnoses={diagnoses}
-          canWrite={session.role === 'admin' || session.role === 'profissional_saude'}
-          canDelete={session.role === 'admin'}
-        />
-      )}
-
-      <ClinicalRecordsSection
+      <PatientDetailLayout
         patientId={params.id}
-        patientName={isAnonymized ? '[anonimizado]' : patient.fullName || null}
-        patientPrefill={
-          isAnonymized
-            ? undefined
-            : {
-                fullName: patient.fullName || null,
-                cpf: patient.cpf || null,
-                phone: patient.phone,
-                email: patient.email,
-                birthDate: patient.birthDate,
-                healthPlanName: patient.healthPlan?.name ?? null,
-                address: patient.address,
-                allergies: allergies.map((a) => ({
-                  substance: a.substance,
-                  severity: a.severity,
-                  notes: a.notes,
-                })),
-              }
-        }
-        initialRecords={records}
-        canWrite={canWriteClinicalRecords && !isAnonymized}
-        canApplyAnamnesis={canApplyAnamnesis && !isAnonymized}
-        canDeleteAnamnese={session.role === 'admin' && !isAnonymized}
+        patient={patient}
+        snapshot={snapshot}
+        events={events}
+        authors={authors}
+        initialTab={initialTab}
+        cadastro={{
+          initialAllergies: allergies,
+          initialHistory: medicalHistory,
+          initialDiagnoses: diagnoses,
+          initialVitalSigns: vitalSigns,
+          initialRecords: records,
+          initialTreatmentSteps: treatmentSteps,
+          initialPayments: payments,
+          procedures,
+          healthPlansList,
+          doctorsList,
+          remindersOptIn,
+          anamnesePrefill,
+          canEditPatient,
+          canConfigReminders,
+          canWriteClinical,
+          canWriteTreatment,
+          canApplyAnamnesis,
+          canDeleteAnamnese,
+          canRecordPayment,
+          canWriteVitals,
+          canWriteDiagnosis,
+          canDeleteDiagnosis,
+        }}
       />
-
     </div>
-  )
-}
-
-function WhatsAppButton({ phone }: { phone: string | null | undefined }) {
-  const url = buildWhatsAppUrl(phone)
-  if (!url) {
-    return (
-      <span
-        title="Sem telefone cadastrado"
-        aria-disabled="true"
-        className="inline-flex h-9 cursor-not-allowed items-center gap-1.5 rounded-md bg-slate-100 px-3 text-xs font-bold text-slate-400"
-      >
-        <MessageCircle className="h-3.5 w-3.5" />
-        WhatsApp
-      </span>
-    )
-  }
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex h-9 items-center gap-1.5 rounded-md bg-green-600 px-3 text-xs font-bold text-white transition hover:bg-green-700"
-      title="Abrir conversa no WhatsApp"
-    >
-      <MessageCircle className="h-3.5 w-3.5" />
-      WhatsApp
-    </a>
-  )
-}
-
-function ContactChip({
-  icon: Icon,
-  label,
-  value,
-  color,
-}: {
-  icon: typeof Phone
-  label: string
-  value: string | null | undefined
-  color: 'emerald' | 'blue' | 'amber'
-}) {
-  // 016 — paleta do designer (success/info) + warning para amber.
-  const colors: Record<string, string> = {
-    emerald: 'bg-success-bg text-success-strong',
-    blue: 'bg-info-bg text-info-text',
-    amber: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
-  }
-  return (
-    <div className="flex items-center gap-3">
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colors[color]}`}>
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
-        <p className="text-sm font-bold text-slate-700">{value || 'Não informado'}</p>
-      </div>
-    </div>
-  )
-}
-
-function SummaryCard({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string
-  value: string
-  sub?: string
-  accent?: boolean
-}) {
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
-          <Receipt className="h-4 w-4" />
-        </div>
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
-        <p
-          className={
-            accent
-              ? 'text-xl font-black tracking-tight text-destructive'
-              : 'text-xl font-black tracking-tight text-slate-900'
-          }
-        >
-          {value}
-        </p>
-        {sub ? <p className="mt-1 text-xs text-slate-500">{sub}</p> : null}
-      </CardContent>
-    </Card>
   )
 }
