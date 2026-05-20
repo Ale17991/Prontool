@@ -33,6 +33,8 @@ import type {
   HistoryCategory,
   PatientHistoryDTO,
 } from '@/lib/core/patient-medical/history'
+import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
+import { VitalHistoryCompactCard } from './_components/vital-history-compact'
 
 const SEVERITY_LABEL: Record<AllergySeverity, string> = {
   leve: 'Leve',
@@ -63,6 +65,9 @@ interface Props {
   initialAllergies: PatientAllergyDTO[]
   initialHistory: PatientHistoryDTO[]
   canWrite: boolean
+  /** Quando passado, renderiza um card compacto "Sinais vitais (histórico)"
+   * abaixo dos antecedentes. Read-only — apenas exibição. */
+  initialVitalSigns?: VitalSignsDTO[]
 }
 
 export function MedicalHistorySection({
@@ -70,6 +75,7 @@ export function MedicalHistorySection({
   initialAllergies,
   initialHistory,
   canWrite,
+  initialVitalSigns,
 }: Props) {
   const router = useRouter()
   const [allergies, setAllergies] = useState(initialAllergies)
@@ -100,6 +106,9 @@ export function MedicalHistorySection({
         canWrite={canWrite}
         onRefresh={refreshHistory}
       />
+      {initialVitalSigns !== undefined ? (
+        <VitalHistoryCompactCard measurements={initialVitalSigns} />
+      ) : null}
     </div>
   )
 }
