@@ -119,6 +119,7 @@ export function CadastroTab({
         initialAllergies={initialAllergies}
         initialHistory={initialHistory}
         canWrite={canWriteClinical}
+        initialVitalSigns={initialVitalSigns}
       />
 
       <VitalSignsSection
