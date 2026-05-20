@@ -45,6 +45,8 @@ interface Props {
   patientId: string
   initial: VitalSignsDTO[]
   canWrite: boolean
+  defaultShowForm?: boolean
+  onSaved?: () => void
 }
 
 function bmiClassification(bmi: number | null): {
@@ -76,10 +78,16 @@ function fmtDate(iso: string): string {
   })
 }
 
-export function VitalSignsSection({ patientId, initial, canWrite }: Props) {
+export function VitalSignsSection({
+  patientId,
+  initial,
+  canWrite,
+  defaultShowForm = false,
+  onSaved,
+}: Props) {
   const router = useRouter()
   const [items, setItems] = useState(initial)
-  const [showForm, setShowForm] = useState(false)
+  const [showForm, setShowForm] = useState(defaultShowForm)
 
   async function refresh() {
     const res = await fetch(`/api/pacientes/${patientId}/sinais-vitais`)
@@ -108,7 +116,7 @@ export function VitalSignsSection({ patientId, initial, canWrite }: Props) {
           <Activity className="h-4 w-4 text-primary" />
           Sinais Vitais
         </CardTitle>
-        {canWrite ? (
+        {canWrite && !defaultShowForm ? (
           <Button
             size="sm"
             variant={showForm ? 'outline' : 'default'}
@@ -127,6 +135,7 @@ export function VitalSignsSection({ patientId, initial, canWrite }: Props) {
             onCreated={async () => {
               setShowForm(false)
               await refresh()
+              onSaved?.()
             }}
           />
         ) : null}

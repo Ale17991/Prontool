@@ -48,6 +48,10 @@ interface Props {
   initialDiagnoses: PatientDiagnosisDTO[]
   canWrite: boolean
   canDelete: boolean
+  /** Inicializa o form de novo diagnóstico já aberto (usado quando a section é montada dentro de um Sheet). */
+  defaultShowForm?: boolean
+  /** Callback disparado após salvamento bem-sucedido — Sheet fecha aqui. */
+  onSaved?: () => void
 }
 
 const STATUS_LABEL: Record<DiagnosisStatus, string> = {
@@ -70,10 +74,12 @@ export function DiagnosticsSection({
   initialDiagnoses,
   canWrite,
   canDelete,
+  defaultShowForm = false,
+  onSaved,
 }: Props) {
   const router = useRouter()
   const [diagnoses, setDiagnoses] = useState(initialDiagnoses)
-  const [showForm, setShowForm] = useState(false)
+  const [showForm, setShowForm] = useState(defaultShowForm)
 
   useEffect(() => {
     setDiagnoses(initialDiagnoses)
@@ -92,7 +98,7 @@ export function DiagnosticsSection({
           <Stethoscope className="h-4 w-4 text-primary" />
           Diagnósticos (CID-10)
         </CardTitle>
-        {canWrite ? (
+        {canWrite && !defaultShowForm ? (
           <Button
             type="button"
             size="sm"
@@ -109,10 +115,14 @@ export function DiagnosticsSection({
         {showForm ? (
           <NewDiagnosisForm
             patientId={patientId}
-            onCancel={() => setShowForm(false)}
+            onCancel={() => {
+              setShowForm(false)
+              onSaved?.()
+            }}
             onCreated={async () => {
               setShowForm(false)
               await refresh()
+              onSaved?.()
             }}
           />
         ) : null}

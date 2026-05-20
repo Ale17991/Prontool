@@ -12,10 +12,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
-import { getSession } from '@/lib/auth/get-session'
-import { can } from '@/lib/auth/rbac'
+import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { ForbiddenError, UnauthorizedError } from '@/lib/observability/errors'
 import type { Database } from '@/lib/db/types'
 import { sendOneReminder } from '@/lib/core/reminders/send-one'
 import type {
@@ -27,21 +27,31 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: { id: string } },
 ) {
-  // 1. Auth
-  const session = await getSession()
-  if (!session) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
-  }
-  if (!can(session.role, 'reminders.config')) {
-    return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 })
-  }
-
   const appointmentId = context.params.id
   if (!appointmentId) {
     return NextResponse.json({ error: 'APPOINTMENT_NOT_FOUND' }, { status: 404 })
+  }
+
+  // 1. Auth — admin OU recepcionista (ambos têm reminders.config).
+  let session
+  try {
+    session = await requireRole(['admin', 'recepcionista'], {
+      entity: 'appointment_reminders',
+      entityId: appointmentId,
+      route: `/api/lembretes/${appointmentId}/reenviar`,
+      request,
+    })
+  } catch (err) {
+    if (err instanceof UnauthorizedError) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
+    }
+    if (err instanceof ForbiddenError) {
+      return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 })
+    }
+    throw err
   }
 
   // 2. Carrega contexto via service-role (precisa decrypt PII + write em reminders)

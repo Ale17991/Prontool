@@ -68,9 +68,13 @@ interface Props {
   canWrite: boolean
   canApplyAnamnesis: boolean
   canDeleteAnamnese: boolean
+  /** Quando renderizado em um Sheet: pré-seleciona o pane e oculta os toggles do header. */
+  defaultPane?: Pane
+  /** Callback disparado após salvamento — Sheet fecha aqui. */
+  onSaved?: () => void
 }
 
-type Pane = null | 'texto' | 'arquivo' | 'anamnese' | 'evolucao'
+export type Pane = null | 'texto' | 'arquivo' | 'anamnese' | 'evolucao'
 
 export function ClinicalRecordsSection({
   patientId,
@@ -80,11 +84,14 @@ export function ClinicalRecordsSection({
   canWrite,
   canApplyAnamnesis,
   canDeleteAnamnese,
+  defaultPane = null,
+  onSaved,
 }: Props) {
   const router = useRouter()
   const [records, setRecords] = useState<ClinicalRecordRow[]>(initialRecords)
-  const [pane, setPane] = useState<Pane>(null)
+  const [pane, setPane] = useState<Pane>(defaultPane)
   const [isPending, startTransition] = useTransition()
+  const inSheet = defaultPane !== null
 
   async function refresh() {
     const res = await fetch(`/api/pacientes/${patientId}/registros`)
@@ -104,7 +111,7 @@ export function ClinicalRecordsSection({
             <FileText className="h-4 w-4 text-primary" />
             Ficha clínica
           </CardTitle>
-          {canWrite || canApplyAnamnesis ? (
+          {(canWrite || canApplyAnamnesis) && !inSheet ? (
             <div className="flex flex-wrap items-center gap-2 print:hidden">
               {canWrite ? (
                 <Button
@@ -176,6 +183,7 @@ export function ClinicalRecordsSection({
               onCreated={async () => {
                 setPane(null)
                 await refresh()
+                onSaved?.()
               }}
             />
           ) : null}
@@ -186,6 +194,7 @@ export function ClinicalRecordsSection({
               onUploaded={async () => {
                 setPane(null)
                 await refresh()
+                onSaved?.()
               }}
             />
           ) : null}
@@ -197,6 +206,7 @@ export function ClinicalRecordsSection({
               onCreated={async () => {
                 setPane(null)
                 await refresh()
+                onSaved?.()
               }}
             />
           ) : null}
@@ -207,6 +217,7 @@ export function ClinicalRecordsSection({
               onCreated={async () => {
                 setPane(null)
                 await refresh()
+                onSaved?.()
               }}
             />
           ) : null}
