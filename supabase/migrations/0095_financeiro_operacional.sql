@@ -35,11 +35,17 @@
 CREATE OR REPLACE FUNCTION public.enforce_append_only_columns()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 DECLARE
-  v_allowed TEXT[] := COALESCE(TG_ARGV[0]::TEXT[], ARRAY[]::TEXT[]);
+  v_allowed TEXT[];
   v_col TEXT;
   v_old JSONB;
   v_new JSONB;
 BEGIN
+  -- TG_ARGV[0] é uma string CSV (vazio = sem whitelist).
+  IF TG_NARGS >= 1 AND length(TG_ARGV[0]) > 0 THEN
+    v_allowed := string_to_array(TG_ARGV[0], ',');
+  ELSE
+    v_allowed := ARRAY[]::TEXT[];
+  END IF;
   IF TG_OP = 'DELETE' THEN
     RAISE EXCEPTION USING
       MESSAGE = format('DELETE not allowed on append-only table %s', TG_TABLE_NAME),
@@ -53,6 +59,8 @@ BEGIN
     SELECT column_name FROM information_schema.columns
      WHERE table_schema = TG_TABLE_SCHEMA
        AND table_name = TG_TABLE_NAME
+       -- GENERATED STORED é recomputado fora do BEFORE UPDATE — pular
+       AND COALESCE(is_generated, 'NEVER') = 'NEVER'
   LOOP
     -- updated_at sempre alterável
     IF v_col = 'updated_at' THEN CONTINUE; END IF;
@@ -62,8 +70,10 @@ BEGIN
     IF v_old -> v_col IS DISTINCT FROM v_new -> v_col THEN
       RAISE EXCEPTION USING
         MESSAGE = format(
-          'Column %I is append-only on table %s (allowed updates: %s)',
-          v_col, TG_TABLE_NAME, COALESCE(array_to_string(v_allowed, ','), '<none>')
+          'Column %I is append-only on table %s (allowed updates: %s) — old=%s new=%s',
+          v_col, TG_TABLE_NAME,
+          COALESCE(array_to_string(v_allowed, ','), '<none>'),
+          v_old -> v_col, v_new -> v_col
         ),
         ERRCODE = '42501';
     END IF;
@@ -146,6 +156,25 @@ COMMENT ON COLUMN public.expenses.superseded_by IS
   'Feature 023 — FK para nova versão criada em reajuste de despesa recorrente. NULL em despesas que nunca foram reajustadas.';
 
 -- =========================================================================
+-- 2b. ALTER payment_installments — acrescenta 'parcial' ao status check
+--     e relaxa paid_amount_cents para permitir estornos (negativo) refletidos
+--     pelo cache (clarify Q2)
+-- =========================================================================
+
+ALTER TABLE public.payment_installments
+  DROP CONSTRAINT IF EXISTS payment_installments_status_check;
+ALTER TABLE public.payment_installments
+  ADD CONSTRAINT payment_installments_status_check CHECK (
+    status IN ('pendente', 'pago', 'atrasado', 'cancelado', 'parcial', 'inadimplencia')
+  );
+
+ALTER TABLE public.payment_installments
+  DROP CONSTRAINT IF EXISTS payment_installments_paid_amount_cents_check;
+-- paid_amount_cents pode ir a negativo se houver estornos acumulados — é cache
+-- derivado de installment_payments (que permite amount_cents negativo). Mantemos
+-- referencial para auditoria; UI mostra o estado real.
+
+-- =========================================================================
 -- 3. CREATE TABLE installment_payments + trigger cache de paid_amount
 -- =========================================================================
 
@@ -185,7 +214,7 @@ GRANT SELECT, INSERT ON public.installment_payments TO service_role;
 DROP TRIGGER IF EXISTS ip_append_only ON public.installment_payments;
 CREATE TRIGGER ip_append_only
   BEFORE UPDATE OR DELETE ON public.installment_payments
-  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('{}'::TEXT[]);
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('');
 
 -- Trigger cache: atualiza payment_installments.paid_amount_cents e status (R1)
 CREATE OR REPLACE FUNCTION public.refresh_installment_paid_cache()
@@ -307,13 +336,13 @@ DROP TRIGGER IF EXISTS mp_append_only_calc ON public.monthly_payouts;
 CREATE TRIGGER mp_append_only_calc
   BEFORE UPDATE ON public.monthly_payouts
   FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns(
-    '{closed_at,closed_by,paid_at,paid_amount_cents,payment_method,payment_note,updated_at}'::TEXT[]
+    'closed_at,closed_by,paid_at,paid_amount_cents,payment_method,payment_note,updated_at'
   );
 
 DROP TRIGGER IF EXISTS mp_no_delete ON public.monthly_payouts;
 CREATE TRIGGER mp_no_delete
   BEFORE DELETE ON public.monthly_payouts
-  FOR EACH STATEMENT EXECUTE FUNCTION public.enforce_append_only_columns('{}'::TEXT[]);
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('');
 
 COMMENT ON TABLE public.monthly_payouts IS
   'Feature 023 — Snapshot append-only do repasse mensal por médico. UNIQUE(tenant, doctor, month). Valores calculados são imutáveis (gross/commission/fixed/liberal/adjustments); colunas de pagamento (closed_at, paid_at, etc.) são alteráveis via whitelist do trigger.';
@@ -363,7 +392,7 @@ GRANT SELECT, INSERT ON public.monthly_payouts_adjustments TO service_role;
 DROP TRIGGER IF EXISTS mpa_append_only ON public.monthly_payouts_adjustments;
 CREATE TRIGGER mpa_append_only
   BEFORE UPDATE OR DELETE ON public.monthly_payouts_adjustments
-  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('{}'::TEXT[]);
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('');
 
 COMMENT ON TABLE public.monthly_payouts_adjustments IS
   'Feature 023 — ajustes auto-gerados quando atendimento de mês fechado é estornado. delta_cents negativo = redução no próximo repasse.';
@@ -402,7 +431,7 @@ GRANT SELECT, INSERT ON public.monthly_payouts_reopens TO service_role;
 DROP TRIGGER IF EXISTS mpr_append_only ON public.monthly_payouts_reopens;
 CREATE TRIGGER mpr_append_only
   BEFORE UPDATE OR DELETE ON public.monthly_payouts_reopens
-  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('{}'::TEXT[]);
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('');
 
 COMMENT ON TABLE public.monthly_payouts_reopens IS
   'Feature 023 — registro forense de cada reabertura de mês (FR-032a). snapshot_before preserva valores antes da reabertura via jsonb_agg(row_to_json(...)).';
@@ -448,7 +477,7 @@ GRANT SELECT, INSERT ON public.tenant_cash_balance_adjustments TO service_role;
 DROP TRIGGER IF EXISTS tcba_append_only ON public.tenant_cash_balance_adjustments;
 CREATE TRIGGER tcba_append_only
   BEFORE UPDATE OR DELETE ON public.tenant_cash_balance_adjustments
-  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('{}'::TEXT[]);
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only_columns('');
 
 COMMENT ON TABLE public.tenant_cash_balance_adjustments IS
   'Feature 023 — saldo de caixa do tenant modelado como sequência append-only de ajustes. amount_cents pode ser negativo (retirada). Saldo em data D = SUM amount_cents WHERE effective_from <= D.';
