@@ -205,8 +205,26 @@ export async function buildFinancialReport(
   }
 
   const grossRevenueCents = current.reduce((acc, r) => acc + (r.net_amount_cents ?? 0), 0)
+
+  // Comissões "pagas" no card de KPIs deve refletir apenas medicos que
+  // ATUALMENTE tem comissao > 0% (fiel ao cadastro corrente). Sem este
+  // filtro, valores frozen historicos de medicos hoje em 0% inflam o card
+  // e confundem o admin ("Padilha aparece devendo, mas esta a 0%").
+  // O dado bruto continua intacto em appointments_effective (Principio I);
+  // este e um filtro de APRESENTACAO no relatorio do periodo.
+  const doctorIdsInPeriod = Array.from(
+    new Set(current.map((r) => r.doctor_id).filter((id): id is string => !!id)),
+  )
+  const commissionedDoctorIds = await fetchCurrentlyCommissionedDoctorIds(
+    supabase,
+    input.tenantId,
+    doctorIdsInPeriod,
+  )
   const commissionsCents = current.reduce(
-    (acc, r) => acc + (r.net_commission_cents ?? 0),
+    (acc, r) =>
+      commissionedDoctorIds.has(r.doctor_id)
+        ? acc + (r.net_commission_cents ?? 0)
+        : acc,
     0,
   )
   const netRevenueCents = grossRevenueCents - commissionsCents
@@ -387,6 +405,42 @@ async function fetchAppointmentsTotals(
     comm += r.net_commission_cents ?? 0
   }
   return { grossRevenueCents: gross, commissionsCents: comm, appointmentCount: rows.length }
+}
+
+/**
+ * Retorna o Set de doctor_ids do tenant que ATUALMENTE têm
+ * commission_bps > 0 (linha mais recente em doctor_commission_history,
+ * percentage_bps positivo). Médicos sem linha ou com 0% ficam fora.
+ * Usado para filtrar o card "Comissões pagas" do relatório — exibe
+ * apenas o que ainda é devido a médicos hoje comissionados.
+ */
+async function fetchCurrentlyCommissionedDoctorIds(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  doctorIds: string[],
+): Promise<Set<string>> {
+  if (doctorIds.length === 0) return new Set()
+  const today = new Date().toISOString().slice(0, 10)
+  const { data, error } = await supabase
+    .from('doctor_commission_history')
+    .select('doctor_id, percentage_bps, valid_from, created_at')
+    .eq('tenant_id', tenantId)
+    .in('doctor_id', doctorIds)
+    .lte('valid_from', today)
+    .order('valid_from', { ascending: false })
+    .order('created_at', { ascending: false })
+  if (error) {
+    throw new Error(`fetchCurrentlyCommissionedDoctorIds failed: ${error.message}`)
+  }
+  // Pega a linha mais recente (>= today) de cada doctor; mantém só os com bps > 0.
+  const seen = new Set<string>()
+  const result = new Set<string>()
+  for (const row of (data ?? []) as Array<{ doctor_id: string; percentage_bps: number }>) {
+    if (seen.has(row.doctor_id)) continue
+    seen.add(row.doctor_id)
+    if (row.percentage_bps > 0) result.add(row.doctor_id)
+  }
+  return result
 }
 
 // Feature 011 — US4: tipo intermediário usado antes do applyPlanTax adicionar
