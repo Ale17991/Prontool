@@ -1274,10 +1274,16 @@ export type Database = {
           description: string
           frequency: string | null
           id: string
+          paid_amount_cents: number | null
+          paid_at: string | null
+          payment_method: string | null
           receipt_file_name: string | null
           receipt_file_size: number | null
           receipt_file_url: string | null
           recurring: boolean
+          recurring_ends_at: string | null
+          recurring_starts_at: string | null
+          superseded_by: string | null
           supplier: string | null
           tax_id: string | null
           tenant_id: string
@@ -1293,10 +1299,16 @@ export type Database = {
           description: string
           frequency?: string | null
           id?: string
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
           receipt_file_name?: string | null
           receipt_file_size?: number | null
           receipt_file_url?: string | null
           recurring?: boolean
+          recurring_ends_at?: string | null
+          recurring_starts_at?: string | null
+          superseded_by?: string | null
           supplier?: string | null
           tax_id?: string | null
           tenant_id: string
@@ -1312,15 +1324,28 @@ export type Database = {
           description?: string
           frequency?: string | null
           id?: string
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
           receipt_file_name?: string | null
           receipt_file_size?: number | null
           receipt_file_url?: string | null
           recurring?: boolean
+          recurring_ends_at?: string | null
+          recurring_starts_at?: string | null
+          superseded_by?: string | null
           supplier?: string | null
           tax_id?: string | null
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_tax_id_fkey"
             columns: ["tax_id"]
@@ -1375,6 +1400,57 @@ export type Database = {
           },
         ]
       }
+      installment_payments: {
+        Row: {
+          actor_user_id: string
+          amount_cents: number
+          created_at: string
+          id: string
+          installment_id: string
+          note: string | null
+          paid_at: string
+          payment_method: string
+          tenant_id: string
+        }
+        Insert: {
+          actor_user_id: string
+          amount_cents: number
+          created_at?: string
+          id?: string
+          installment_id: string
+          note?: string | null
+          paid_at: string
+          payment_method: string
+          tenant_id: string
+        }
+        Update: {
+          actor_user_id?: string
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          installment_id?: string
+          note?: string | null
+          paid_at?: string
+          payment_method?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_payments_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_installments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "installment_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_sync_log: {
         Row: {
           detail: Json | null
@@ -1412,6 +1488,204 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "integration_sync_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_payouts: {
+        Row: {
+          adjustments_cents: number
+          closed_at: string | null
+          closed_by: string | null
+          commission_cents: number
+          created_at: string
+          doctor_id: string
+          fixed_payment_cents: number
+          gross_revenue_cents: number
+          id: string
+          liberal_payment_cents: number
+          month: string
+          paid_amount_cents: number | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_note: string | null
+          tenant_id: string
+          total_due_cents: number
+          updated_at: string
+        }
+        Insert: {
+          adjustments_cents?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          commission_cents?: number
+          created_at?: string
+          doctor_id: string
+          fixed_payment_cents?: number
+          gross_revenue_cents?: number
+          id?: string
+          liberal_payment_cents?: number
+          month: string
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_note?: string | null
+          tenant_id: string
+          total_due_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          adjustments_cents?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          commission_cents?: number
+          created_at?: string
+          doctor_id?: string
+          fixed_payment_cents?: number
+          gross_revenue_cents?: number
+          id?: string
+          liberal_payment_cents?: number
+          month?: string
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_note?: string | null
+          tenant_id?: string
+          total_due_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_payouts_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_payouts_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "monthly_payouts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_payouts_adjustments: {
+        Row: {
+          applied_month: string
+          created_at: string
+          delta_cents: number
+          doctor_id: string
+          id: string
+          original_appointment_id: string
+          original_month: string
+          reason: string
+          tenant_id: string
+        }
+        Insert: {
+          applied_month: string
+          created_at?: string
+          delta_cents: number
+          doctor_id: string
+          id?: string
+          original_appointment_id: string
+          original_month: string
+          reason: string
+          tenant_id: string
+        }
+        Update: {
+          applied_month?: string
+          created_at?: string
+          delta_cents?: number
+          doctor_id?: string
+          id?: string
+          original_appointment_id?: string
+          original_month?: string
+          reason?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_payouts_adjustments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_payouts_adjustments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "monthly_payouts_adjustments_original_appointment_id_fkey"
+            columns: ["original_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_payouts_adjustments_original_appointment_id_fkey"
+            columns: ["original_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_payouts_adjustments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_payouts_reopens: {
+        Row: {
+          created_at: string
+          id: string
+          month: string
+          reason: string
+          reopened_at: string
+          reopened_by: string
+          snapshot_before: Json
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: string
+          reason: string
+          reopened_at?: string
+          reopened_by: string
+          snapshot_before: Json
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: string
+          reason?: string
+          reopened_at?: string
+          reopened_by?: string
+          snapshot_before?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_payouts_reopens_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2436,6 +2710,44 @@ export type Database = {
           },
         ]
       }
+      tenant_cash_balance_adjustments: {
+        Row: {
+          actor_user_id: string
+          amount_cents: number
+          created_at: string
+          effective_from: string
+          id: string
+          reason: string
+          tenant_id: string
+        }
+        Insert: {
+          actor_user_id: string
+          amount_cents: number
+          created_at?: string
+          effective_from: string
+          id?: string
+          reason: string
+          tenant_id: string
+        }
+        Update: {
+          actor_user_id?: string
+          amount_cents?: number
+          created_at?: string
+          effective_from?: string
+          id?: string
+          reason?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_cash_balance_adjustments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_clinic_profile: {
         Row: {
           address_cep: string | null
@@ -3431,6 +3743,10 @@ export type Database = {
         Returns: Json
       }
       auth_hook_custom_claims: { Args: { event: Json }; Returns: Json }
+      close_monthly_payout: {
+        Args: { p_month: string; p_tenant_id: string }
+        Returns: Json
+      }
       create_appointment_with_materials: {
         Args: {
           p_actor: string
@@ -3657,8 +3973,16 @@ export type Database = {
         Args: { p_actor: string; p_id: string }
         Returns: undefined
       }
+      reopen_monthly_payout: {
+        Args: { p_month: string; p_reason: string; p_tenant_id: string }
+        Returns: Json
+      }
       session_text: { Args: { key: string }; Returns: string }
       session_uuid: { Args: { key: string }; Returns: string }
+      tenant_cash_balance_at: {
+        Args: { p_date: string; p_tenant_id: string }
+        Returns: number
+      }
       test_truncate_all_mutable: {
         Args: { wipe_catalog?: boolean }
         Returns: undefined
