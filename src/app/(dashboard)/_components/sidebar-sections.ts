@@ -13,10 +13,13 @@ import {
   Calculator,
   Calendar,
   ClipboardCheck,
+  Receipt,
   ScrollText,
   Settings,
   TrendingDown,
+  TrendingUp,
   Users,
+  Wallet,
   type LucideIcon,
 } from 'lucide-react'
 import type { Route } from 'next'
@@ -82,6 +85,34 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Comissões',
         icon: Calculator,
         show: ({ role, flags }) => flags.comissoes && can(role, 'doctor.read'),
+      },
+      {
+        href: '/analise/contas-a-receber',
+        label: 'Contas a Receber',
+        icon: Receipt,
+        show: ({ role }) =>
+          role === 'admin' || role === 'financeiro' || role === 'recepcionista',
+      },
+      {
+        href: '/analise/contas-a-pagar',
+        label: 'Contas a Pagar',
+        icon: TrendingDown,
+        show: ({ role }) => role === 'admin' || role === 'financeiro',
+      },
+      {
+        href: '/analise/fluxo-caixa',
+        label: 'Fluxo de Caixa',
+        icon: TrendingUp,
+        show: ({ role }) => role === 'admin' || role === 'financeiro',
+      },
+      {
+        href: '/analise/repasse-medico',
+        label: 'Repasse Médico',
+        icon: Wallet,
+        show: ({ role }) =>
+          role === 'admin' ||
+          role === 'financeiro' ||
+          role === 'profissional_saude',
       },
       {
         href: '/analise/despesas',
