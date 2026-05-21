@@ -13,6 +13,7 @@ import {
   Calculator,
   Calendar,
   ClipboardCheck,
+  LayoutDashboard,
   Receipt,
   ScrollText,
   Settings,
@@ -85,6 +86,12 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Comissões',
         icon: Calculator,
         show: ({ role, flags }) => flags.comissoes && can(role, 'doctor.read'),
+      },
+      {
+        href: '/analise/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        show: ({ role }) => role === 'admin' || role === 'financeiro',
       },
       {
         href: '/analise/contas-a-receber',
