@@ -141,14 +141,27 @@ describe('useCalendarFilters — round-trip URL ↔ state', () => {
     expect(to.getMonth()).toBeGreaterThanOrEqual(4) // ≥ maio (pode ser jun)
   })
 
-  it('range custom sobrepõe view-derived', () => {
+  it('range custom sobrepõe view-derived (inclusivo no ultimo dia)', () => {
     const filters: CalendarFilters = {
       ...parseUrl(''),
       from: '2026-01-01',
       to: '2026-01-31',
     }
     const { from, to } = deriveRange(filters)
-    expect(from.toISOString().slice(0, 10)).toBe('2026-01-01')
-    expect(to.toISOString().slice(0, 10)).toBe('2026-01-31')
+    // Use getters LOCAIS — toISOString() converte pra UTC e em fuso negativo
+    // o endOfDay de Jan 31 (23:59:59.999 local) vira Feb 1 em UTC, mascarando
+    // a correcao. O contrato e "intervalo inclusivo no fuso local".
+    expect(from.getFullYear()).toBe(2026)
+    expect(from.getMonth()).toBe(0)
+    expect(from.getDate()).toBe(1)
+    expect(from.getHours()).toBe(0)
+    expect(from.getMinutes()).toBe(0)
+    expect(to.getFullYear()).toBe(2026)
+    expect(to.getMonth()).toBe(0)
+    expect(to.getDate()).toBe(31)
+    // endOfDay → 23:59:59.999 local. Regressao guard contra a volta do bug
+    // que deixava o ultimo dia inteiro fora do gte/lte.
+    expect(to.getHours()).toBe(23)
+    expect(to.getMinutes()).toBe(59)
   })
 })

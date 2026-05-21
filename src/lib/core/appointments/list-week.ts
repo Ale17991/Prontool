@@ -58,6 +58,15 @@ const SELECT_WITHOUT_DURATION =
   'doctors:doctor_id(full_name), ' +
   'procedures:procedure_id(tuss_code, display_name)'
 
+/**
+ * Teto duro de linhas retornadas. Subido de 500 -> 5000 porque clinicas
+ * movimentadas em mes-view (35 dias × varios profissionais) ultrapassavam
+ * 500 e a query (sorted ASC) truncava o FINAL do periodo — exatamente o
+ * sintoma "ultimos dias do filtro aparecem vazios". A UI checa
+ * appointments.length >= APPOINTMENT_WEEK_ROW_LIMIT e mostra aviso.
+ */
+export const APPOINTMENT_WEEK_ROW_LIMIT = 5000
+
 export async function listAppointmentsForWeek(
   supabase: SupabaseClient<Database>,
   input: ListWeekInput,
@@ -79,7 +88,7 @@ export async function listAppointmentsForWeek(
       .gte('appointment_at', input.weekStart.toISOString())
       .lte('appointment_at', input.weekEnd.toISOString())
       .order('appointment_at', { ascending: true })
-      .limit(500)
+      .limit(APPOINTMENT_WEEK_ROW_LIMIT)
     if (input.doctorIds && input.doctorIds.length > 0) {
       q = q.in('doctor_id', input.doctorIds)
     }
@@ -93,6 +102,13 @@ export async function listAppointmentsForWeek(
   if (result.error) throw new Error(`appointments week fetch failed: ${result.error.message}`)
   const rows = (result.data ?? []) as unknown as RawRow[]
   if (rows.length === 0) return []
+  if (rows.length >= APPOINTMENT_WEEK_ROW_LIMIT) {
+    // Sinaliza ao operador: a UI cuida do banner amarelo, mas log permite
+    // alertar ops antes do usuario perceber.
+    console.warn(
+      `[list-week] row limit ${APPOINTMENT_WEEK_ROW_LIMIT} atingido para tenant=${input.tenantId} range=${input.weekStart.toISOString()}..${input.weekEnd.toISOString()}; resultado truncado`,
+    )
+  }
 
   // Descriptografia de nomes em batch (mesmo padrao da pagina Lista).
   const patientNames = new Map<string, string>()

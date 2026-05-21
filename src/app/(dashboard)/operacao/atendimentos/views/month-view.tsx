@@ -56,10 +56,14 @@ export function MonthView({ date, appointments }: MonthViewProps) {
     days.push(new Date(cur))
   }
 
-  // Agrupa atendimentos por dia (yyyy-MM-dd).
+  // Agrupa atendimentos por dia LOCAL. `appointmentAt` vem em UTC ISO; slice(0,10)
+  // pega a data UTC, que em fuso negativo (UTC-3) joga atendimentos noturnos
+  // (>= 21:00 local) no dia seguinte do grid. Converter via Date e usar
+  // getFullYear/Month/Date garante bucket no fuso da maquina (que casa com o
+  // grid render, tambem montado por date-fns em fuso local).
   const byDay = new Map<string, MonthViewAppointment[]>()
   for (const a of appointments) {
-    const key = a.appointmentAt.slice(0, 10) // 'YYYY-MM-DD' (UTC, mas suficiente para grouping)
+    const key = format(new Date(a.appointmentAt), 'yyyy-MM-dd')
     const list = byDay.get(key) ?? []
     list.push(a)
     byDay.set(key, list)

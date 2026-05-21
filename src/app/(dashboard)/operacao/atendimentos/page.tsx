@@ -15,8 +15,12 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { format } from 'date-fns'
 import { formatDateTime } from '@/lib/utils'
-import { listAppointmentsForWeek } from '@/lib/core/appointments/list-week'
+import {
+  APPOINTMENT_WEEK_ROW_LIMIT,
+  listAppointmentsForWeek,
+} from '@/lib/core/appointments/list-week'
 import { listScheduleBlocks } from '@/lib/core/schedule-blocks/list'
 import { ModeToggle } from './mode-toggle'
 import { CalendarShell } from './calendar-shell'
@@ -110,10 +114,13 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
 
       // Bloqueios de agenda da mesma janela. Degrada gracioso (lista vazia)
       // se migration 0083 nao estiver aplicada no ambiente.
+      // Datas em fuso LOCAL (schedule_blocks.block_date e date sem fuso).
+      // toISOString().slice(0,10) pegava a data UTC e em fuso UTC-3 o `to`
+      // (endOfWeek = 23:59:59 local = next-day UTC) vinha 1 dia a frente.
       const scheduleBlocks = await listScheduleBlocks(supabase, {
         tenantId: session.tenantId,
-        from: range.from.toISOString().slice(0, 10),
-        to: range.to.toISOString().slice(0, 10),
+        from: format(range.from, 'yyyy-MM-dd'),
+        to: format(range.to, 'yyyy-MM-dd'),
         doctorId: filters.doctor ?? undefined,
       }).catch(() => [])
 
@@ -122,9 +129,16 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
-              <p className="mt-1 text-sm text-slate-500">
-                {appointments.length} no período carregado
-              </p>
+              {appointments.length >= APPOINTMENT_WEEK_ROW_LIMIT ? (
+                <p className="mt-1 text-sm font-medium text-amber-600">
+                  Limite de {APPOINTMENT_WEEK_ROW_LIMIT} atendimentos atingido —
+                  estreite o período para garantir que nada esteja oculto.
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-slate-500">
+                  {appointments.length} no período carregado
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <ModeToggle mode={mode} />
@@ -163,6 +177,9 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   // Defense in depth: filtro explícito de tenant_id mesmo na view
   // appointments_effective. A migration 0068 garante security_invoker=true,
   // mas o filtro explícito é cinto + suspensório caso RLS falhe.
+  // Limit 1000 (subido de 200): periodos longos com tenant ativo passavam
+  // facil de 200 e truncavam silenciosamente os dias mais antigos.
+  const LIST_MODE_LIMIT = 1000
   let query = supabase
     .from('appointments_effective')
     .select(
@@ -172,13 +189,13 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     )
     .eq('tenant_id', session.tenantId)
     .order('appointment_at', { ascending: false })
-    .limit(200)
+    .limit(LIST_MODE_LIMIT)
 
   if (filters.from) {
     query = query.gte('appointment_at', new Date(`${filters.from}T00:00:00`).toISOString())
   }
   if (filters.to) {
-    query = query.lte('appointment_at', new Date(`${filters.to}T23:59:59`).toISOString())
+    query = query.lte('appointment_at', new Date(`${filters.to}T23:59:59.999`).toISOString())
   }
   if (filters.status) {
     query = query.eq('effective_status', UI_TO_DB_STATUS[filters.status])
@@ -242,23 +259,31 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   })
 
   const reversedCount = filteredRows.filter((r) => r.effective_status === 'estornado').length
+  const listTruncated = rows.length >= LIST_MODE_LIMIT
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {filteredRows.length} atendimento{filteredRows.length === 1 ? '' : 's'}
-            {reversedCount > 0 ? (
-              <>
-                {' '}·{' '}
-                <span className="font-semibold text-destructive">
-                  {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
-                </span>
-              </>
-            ) : null}
-          </p>
+          {listTruncated ? (
+            <p className="mt-1 text-sm font-medium text-amber-600">
+              Limite de {LIST_MODE_LIMIT} atendimentos atingido — estreite o período
+              para garantir que nada esteja oculto.
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-slate-500">
+              {filteredRows.length} atendimento{filteredRows.length === 1 ? '' : 's'}
+              {reversedCount > 0 ? (
+                <>
+                  {' '}·{' '}
+                  <span className="font-semibold text-destructive">
+                    {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
+                  </span>
+                </>
+              ) : null}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <ModeToggle mode={mode} />

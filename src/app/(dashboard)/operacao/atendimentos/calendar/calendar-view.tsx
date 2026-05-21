@@ -17,6 +17,7 @@ import {
 } from '@/lib/utils/calendar'
 import type { AppointmentWeekRow } from '@/lib/core/appointments/list-week'
 import type { ScheduleBlockRow } from '@/lib/core/schedule-blocks/types'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { CalendarBlock } from './calendar-block'
 import { CurrentTimeLine } from './current-time-line'
 
@@ -110,6 +111,7 @@ export function CalendarView({
   }
 
   return (
+    <TooltipProvider delayDuration={150} skipDelayDuration={50}>
     <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <div
         className="grid"
@@ -329,6 +331,7 @@ export function CalendarView({
         </div>
       </div>
     </div>
+    </TooltipProvider>
   )
 }
 

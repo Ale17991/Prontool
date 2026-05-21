@@ -29,6 +29,20 @@ const config = {
       },
     ]
   },
+  async redirects() {
+    return [
+      {
+        source: '/analise/relatorios/por-profissional',
+        destination: '/analise/repasse-medico/por-profissional',
+        permanent: true,
+      },
+      {
+        source: '/analise/relatorios/por-profissional/:path*',
+        destination: '/analise/repasse-medico/por-profissional/:path*',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default config

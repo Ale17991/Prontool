@@ -111,8 +111,15 @@ export function parseFiltersFromRecord(
 }
 
 export function deriveRange(filters: CalendarFilters): { from: Date; to: Date } {
+  // Custom range tem precedencia. parseISO de "YYYY-MM-DD" volta a meia-noite
+  // LOCAL — sem startOfDay/endOfDay o `to` ficaria no comeco do dia escolhido
+  // e o `lte` da query DROPARIA todos os atendimentos daquele dia inteiro.
+  // (Esse era o bug "ultimo dia do periodo aparece vazio".)
   if (filters.from && filters.to) {
-    return { from: parseISO(filters.from), to: parseISO(filters.to) }
+    return {
+      from: startOfDay(parseISO(filters.from)),
+      to: endOfDay(parseISO(filters.to)),
+    }
   }
   const date = parseISO(filters.date)
   switch (filters.view) {

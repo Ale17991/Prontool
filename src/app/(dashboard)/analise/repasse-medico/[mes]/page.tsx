@@ -1,5 +1,6 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Users, Lock, Unlock } from 'lucide-react'
+import { ArrowRight, Users, Lock, Unlock } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
@@ -10,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import { PayoutsView } from './payouts-view'
+import { RepasseSubNav } from '../repasse-sub-nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +58,14 @@ export default async function RepasseMesPage({ params }: PageProps) {
 
   const canManage = session.role === 'admin'
 
+  // Range YYYY-MM-DD do mês civil para o cross-link com Por profissional.
+  const [yearStr, monthStr] = params.mes.split('-') as [string, string]
+  const yearNum = Number(yearStr)
+  const monthNum = Number(monthStr)
+  const firstDay = `${params.mes}-01`
+  const lastDayDate = new Date(yearNum, monthNum, 0)
+  const lastDay = `${params.mes}-${String(lastDayDate.getDate()).padStart(2, '0')}`
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -81,6 +91,16 @@ export default async function RepasseMesPage({ params }: PageProps) {
           {snapshot.isClosed ? 'Fechado' : 'Aberto'}
         </Badge>
       </div>
+
+      <RepasseSubNav active="mensal" />
+
+      <Link
+        href={`/analise/repasse-medico/por-profissional?from=${firstDay}&to=${lastDay}`}
+        className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-link hover:text-link-hover"
+      >
+        Ver detalhamento do mês por profissional
+        <ArrowRight className="h-3 w-3" />
+      </Link>
 
       <Card>
         <CardContent className="p-5">
