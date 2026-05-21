@@ -110,15 +110,20 @@ export function NewAppointmentForm({
     new Date().toISOString().slice(0, 10),
   )
 
-  // 016 punch list #4 — split de pagamento em 2 metodos.
-  // Quando ativo, cria DOIS payment_records sobre o mesmo appointment_id,
+  // 016 punch list #4 — split de pagamento em N metodos.
+  // Quando ativo, cria N payment_records sobre o mesmo appointment_id,
   // cada um com metodo e valor proprio. Resolve a queixa #1 do iClinic
-  // na Reclame Aqui (impossivel pagar 50% PIX + 50% cartao numa consulta).
+  // na Reclame Aqui (impossivel pagar 50% PIX + 50% cartao). Estendido
+  // para N (≤5) na correcao de pagamentos: clinicas pedem suporte a
+  // parcelar entre 3+ metodos (ex.: PIX + cartao + dinheiro).
   const [splitPayment, setSplitPayment] = useState(false)
-  const [splitMethodA, setSplitMethodA] = useState<PaymentMethod>('pix')
-  const [splitMethodB, setSplitMethodB] = useState<PaymentMethod>('cartao_credito')
-  // Percentual da parte A (1-99). Parte B = 100 - A. Default 50/50.
-  const [splitPercentA, setSplitPercentA] = useState<number>(50)
+  const [splitParts, setSplitParts] = useState<
+    Array<{ method: PaymentMethod; percent: number }>
+  >([
+    { method: 'pix', percent: 50 },
+    { method: 'cartao_credito', percent: 50 },
+  ])
+  const MAX_SPLIT_PARTS = 5
 
   // Recalcula datas das parcelas quando o numero muda.
   useEffect(() => {
@@ -210,6 +215,43 @@ export function NewAppointmentForm({
     if (!validatedProcedures) {
       setError('Preencha plano e valor (> 0) em todas as linhas.')
       return
+    }
+
+    // Particular = pagamento obrigatorio. Detectamos procedimentos sem
+    // plano (planId null/empty) e exigimos valor > 0 — o que garante que
+    // um payment_record sera criado e a forma de pagamento ficara
+    // registrada. Convenio (com planId) pode ter valor 0 (cobertura
+    // 100%).
+    const hasParticular = validatedProcedures.some(
+      (p) => !p.planId || p.planId === '',
+    )
+    const totalCentsCheck = validatedProcedures.reduce(
+      (acc, p) => acc + p.amountCentsOverride * p.quantity,
+      0,
+    )
+    if (hasParticular && totalCentsCheck <= 0) {
+      setError(
+        'Atendimento particular exige valor maior que 0 para registrar a forma de pagamento.',
+      )
+      return
+    }
+
+    // Split em N metodos: valida que a soma dos percentuais = 100 e
+    // todos os metodos foram preenchidos.
+    if (splitPayment) {
+      if (splitParts.length < 2) {
+        setError('Split de pagamento exige pelo menos 2 métodos.')
+        return
+      }
+      const sumPercent = splitParts.reduce((s, p) => s + p.percent, 0)
+      if (sumPercent !== 100) {
+        setError(`A soma dos percentuais deve ser 100% (atual: ${sumPercent}%).`)
+        return
+      }
+      if (splitParts.some((p) => p.percent <= 0)) {
+        setError('Cada método do split deve ter percentual > 0.')
+        return
+      }
     }
 
     // Para 'dia inteiro' forcamos appointment_at = data 00:00 local
@@ -314,18 +356,23 @@ export function NewAppointmentForm({
         const paidAtIso =
           paymentStatus === 'pago' ? new Date(paymentPaidAt).toISOString() : null
 
-        // Split em 2 metodos: cria dois payment_records distintos (cada
-        // um com seu metodo), ambos vinculados ao mesmo appointment_id.
-        // Cada um vira 1 parcela com vencimento hoje (caso pago) ou
-        // mantém a politica padrao do banco.
+        // Split em N metodos: cria N payment_records distintos (cada
+        // um com seu metodo), todos vinculados ao mesmo appointment_id.
+        // Distribui o totalCents proporcional aos percentuais. O ultimo
+        // pega o residuo de divisao para fechar exatamente o total.
         if (splitPayment) {
           const today = new Date().toISOString().slice(0, 10)
-          const amountA = Math.floor((totalCents * splitPercentA) / 100)
-          const amountB = totalCents - amountA
-          const parts: Array<{ method: PaymentMethod; amount: number }> = [
-            { method: splitMethodA, amount: amountA },
-            { method: splitMethodB, amount: amountB },
-          ]
+          const parts: Array<{ method: PaymentMethod; amount: number }> = []
+          let allocated = 0
+          for (let i = 0; i < splitParts.length; i++) {
+            const sp = splitParts[i]!
+            const isLast = i === splitParts.length - 1
+            const amount = isLast
+              ? totalCents - allocated
+              : Math.floor((totalCents * sp.percent) / 100)
+            allocated += amount
+            parts.push({ method: sp.method, amount })
+          }
           for (const part of parts) {
             if (part.amount <= 0) continue
             const res = await fetch('/api/pagamentos', {
@@ -539,9 +586,16 @@ export function NewAppointmentForm({
       </div>
 
       <div className="md:col-span-2 mt-2 rounded-lg border border-slate-200 bg-slate-50/40 p-4">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-          Pagamento
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+            Pagamento
+          </p>
+          {procedureLines.some((p) => !p.planId || p.planId === '') ? (
+            <span className="rounded-md bg-[hsl(var(--warning)/0.15)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--warning-foreground))]">
+              Particular · obrigatório
+            </span>
+          ) : null}
+        </div>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="payment_method">Método</Label>
@@ -601,7 +655,7 @@ export function NewAppointmentForm({
           ) : null}
         </div>
 
-        {/* 016 punch list #4 — toggle split de pagamento em 2 metodos */}
+        {/* Split de pagamento em N metodos (≤5) */}
         <div className="mt-3 border-t border-slate-200 pt-3">
           <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700">
             <input
@@ -613,72 +667,111 @@ export function NewAppointmentForm({
               }}
               className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30"
             />
-            <span>Dividir pagamento em 2 métodos</span>
+            <span>Dividir pagamento em múltiplos métodos</span>
             <span className="text-[10px] font-normal text-slate-500">
-              (ex.: 50% PIX + 50% cartão)
+              (ex.: PIX + cartão + dinheiro)
             </span>
           </label>
           {splitPayment ? (
-            <div className="mt-3 grid grid-cols-1 gap-3 rounded-md bg-info-bg/30 p-3 md:grid-cols-[2fr_2fr_1fr]">
-              <div className="space-y-1.5">
-                <Label htmlFor="split_method_a" className="text-[11px]">
-                  Método A
-                </Label>
-                <Select
-                  value={splitMethodA}
-                  onValueChange={(v) => setSplitMethodA(v as PaymentMethod)}
+            <div className="mt-3 space-y-2 rounded-md bg-info-bg/30 p-3">
+              {splitParts.map((part, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-1 gap-2 md:grid-cols-[2fr_1fr_auto]"
                 >
-                  <SelectTrigger id="split_method_a">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {METHOD_OPTIONS.map((m) => (
-                      <SelectItem key={m.value} value={m.value}>
-                        {m.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="split_method_b" className="text-[11px]">
-                  Método B
-                </Label>
-                <Select
-                  value={splitMethodB}
-                  onValueChange={(v) => setSplitMethodB(v as PaymentMethod)}
-                >
-                  <SelectTrigger id="split_method_b">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {METHOD_OPTIONS.map((m) => (
-                      <SelectItem key={m.value} value={m.value}>
-                        {m.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="split_percent_a" className="text-[11px]">
-                  % Método A
-                </Label>
-                <Input
-                  id="split_percent_a"
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={splitPercentA}
-                  onChange={(e) =>
-                    setSplitPercentA(
-                      Math.min(99, Math.max(1, Number(e.target.value) || 50)),
-                    )
+                  <div className="space-y-1">
+                    <Label htmlFor={`split_method_${idx}`} className="text-[11px]">
+                      Método {idx + 1}
+                    </Label>
+                    <Select
+                      value={part.method}
+                      onValueChange={(v) => {
+                        const next = [...splitParts]
+                        next[idx] = { ...part, method: v as PaymentMethod }
+                        setSplitParts(next)
+                      }}
+                    >
+                      <SelectTrigger id={`split_method_${idx}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {METHOD_OPTIONS.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor={`split_percent_${idx}`} className="text-[11px]">
+                      %
+                    </Label>
+                    <Input
+                      id={`split_percent_${idx}`}
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={part.percent}
+                      onChange={(e) => {
+                        const next = [...splitParts]
+                        next[idx] = {
+                          ...part,
+                          percent: Math.max(1, Math.min(99, Number(e.target.value) || 1)),
+                        }
+                        setSplitParts(next)
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    {splitParts.length > 2 ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-2 text-destructive"
+                        onClick={() =>
+                          setSplitParts(splitParts.filter((_, i) => i !== idx))
+                        }
+                        title="Remover método"
+                      >
+                        ×
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between border-t border-info-text/10 pt-2">
+                <span
+                  className={
+                    splitParts.reduce((s, p) => s + p.percent, 0) === 100
+                      ? 'text-[11px] font-semibold text-success-text'
+                      : 'text-[11px] font-semibold text-destructive'
                   }
-                />
-                <p className="text-[10px] text-slate-500">
-                  Método B = {100 - splitPercentA}%
-                </p>
+                >
+                  Soma:{' '}
+                  {splitParts.reduce((s, p) => s + p.percent, 0)}% / 100%
+                </span>
+                {splitParts.length < MAX_SPLIT_PARTS ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[11px]"
+                    onClick={() =>
+                      setSplitParts([
+                        ...splitParts,
+                        { method: 'dinheiro', percent: 0 },
+                      ])
+                    }
+                  >
+                    + Adicionar método
+                  </Button>
+                ) : (
+                  <span className="text-[10px] text-slate-500">
+                    Máximo de {MAX_SPLIT_PARTS} métodos
+                  </span>
+                )}
               </div>
             </div>
           ) : null}
