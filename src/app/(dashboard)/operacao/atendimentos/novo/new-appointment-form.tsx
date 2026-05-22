@@ -2,8 +2,16 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCheck, CheckCircle2, Loader2, Save } from 'lucide-react'
+import { AlertTriangle, CheckCheck, CheckCircle2, Loader2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -103,6 +111,8 @@ export function NewAppointmentForm({
   type PostSaveAction = 'save' | 'confirm' | 'realize'
   const submitActionRef = useRef<PostSaveAction>('save')
   const [activeAction, setActiveAction] = useState<PostSaveAction | null>(null)
+  const [confirmAction, setConfirmAction] = useState<'confirm' | 'realize' | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const durationMinutes = computeDurationMinutes(appointmentAt, endTime)
 
@@ -487,8 +497,24 @@ export function NewAppointmentForm({
     setActiveAction(action)
   }
 
+  function handleProtectedAction(action: 'confirm' | 'realize') {
+    setConfirmAction(action)
+  }
+
+  function proceedAfterDialogConfirm() {
+    if (!confirmAction) return
+    submitActionRef.current = confirmAction
+    setActiveAction(confirmAction)
+    setConfirmAction(null)
+    formRef.current?.requestSubmit()
+  }
+
   return (
-    <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      className="grid grid-cols-1 gap-4 md:grid-cols-2"
+    >
       <div className="space-y-1.5 md:col-span-2">
         <Label htmlFor="patient_id">Paciente</Label>
         <PatientTypeahead
@@ -886,11 +912,11 @@ export function NewAppointmentForm({
           )}
         </Button>
         <Button
-          type="submit"
+          type="button"
           variant="secondary"
           disabled={pending || !!conflictWarning}
-          onClick={() => triggerSubmit('confirm')}
-          title="Salva e marca como confirmado (paciente avisou que vira)."
+          onClick={() => handleProtectedAction('confirm')}
+          title="Salva e marca como confirmado (paciente avisou que vira). Acao irreversivel."
         >
           {pending && activeAction === 'confirm' ? (
             <>
@@ -905,10 +931,10 @@ export function NewAppointmentForm({
           )}
         </Button>
         <Button
-          type="submit"
+          type="button"
           disabled={pending || !!conflictWarning}
-          onClick={() => triggerSubmit('realize')}
-          title="Salva e registra que o paciente compareceu (marca como realizado)."
+          onClick={() => handleProtectedAction('realize')}
+          title="Salva e registra que o paciente compareceu (marca como realizado). Acao irreversivel."
         >
           {pending && activeAction === 'realize' ? (
             <>
@@ -923,6 +949,70 @@ export function NewAppointmentForm({
           )}
         </Button>
       </div>
+
+      <Dialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmAction(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-[hsl(var(--warning-foreground))]" />
+              {confirmAction === 'realize'
+                ? 'Confirmar presença do paciente?'
+                : 'Confirmar agendamento?'}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmAction === 'realize' ? (
+                <>
+                  Esta ação <strong>não é reversível</strong>. O atendimento será
+                  criado e marcado como <strong>realizado</strong> imediatamente —
+                  com impacto no plano de tratamento, comissões e financeiro.
+                  Para desfazer depois é necessário <em>estorno financeiro</em>.
+                </>
+              ) : (
+                <>
+                  Esta ação <strong>não é reversível</strong>. O atendimento será
+                  criado e marcado como <strong>confirmado</strong> (paciente
+                  avisou que vai comparecer). Para desfazer depois só
+                  cancelando o agendamento.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmAction(null)}
+              disabled={pending}
+            >
+              Voltar
+            </Button>
+            <Button
+              type="button"
+              variant={confirmAction === 'realize' ? 'default' : 'secondary'}
+              onClick={proceedAfterDialogConfirm}
+              disabled={pending}
+              className="gap-2"
+            >
+              {confirmAction === 'realize' ? (
+                <>
+                  <CheckCheck className="h-4 w-4" />
+                  Sim, confirmar presença
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Sim, confirmar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   )
 }
