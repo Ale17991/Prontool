@@ -480,9 +480,11 @@ export default async function AtendimentoDetailPage({
             <p className="mb-4 text-sm text-slate-500">
               {status === 'ativo'
                 ? 'Cancela o atendimento já realizado e reverte automaticamente o impacto financeiro. Use para registrar no-show ou desmarcação tardia.'
-                : status === 'estornado'
-                  ? 'O atendimento foi estornado financeiramente. Registre o motivo de cancelamento da agenda (ex.: paciente não compareceu).'
-                  : 'Cancela o agendamento e libera o horário do profissional para reagendar. Registre o motivo (no-show, paciente desmarcou etc.).'}
+                : status === 'confirmado'
+                  ? 'Cancela o atendimento confirmado pelo paciente. Como o paciente já tinha assumido compromisso, o impacto financeiro é estornado automaticamente.'
+                  : status === 'estornado'
+                    ? 'O atendimento foi estornado financeiramente. Registre o motivo de cancelamento da agenda (ex.: paciente não compareceu).'
+                    : 'Cancela o agendamento e libera o horário do profissional para reagendar. Como o atendimento estava apenas agendado, não gera estorno.'}
             </p>
             <CancelAppointmentForm appointmentId={appointment.id} />
           </CardContent>
