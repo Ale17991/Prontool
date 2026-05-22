@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientQuickView } from './patient-quick-view'
 import { ClinicalTimeline } from './clinical-timeline'
 import { CadastroTab } from './cadastro-tab'
+import { PatientEvolutionTab } from './patient-evolution-tab'
 import { NewEvolutionSheet } from './sheets/new-evolution-sheet'
 import { NewAnamneseSheet } from './sheets/new-anamnese-sheet'
 import { NewVitalSheet } from './sheets/new-vital-sheet'
@@ -16,13 +17,13 @@ import { MobileQuickViewHeader } from './mobile-quick-view-header'
 import { MobileActionBar } from './mobile-action-bar'
 import { cn } from '@/lib/utils'
 import type {
+  AppointmentTimelineRow,
   AuthorMap,
   QuickViewSnapshot,
   SheetKind,
   TimelineEvent,
 } from '@/lib/core/patient-timeline'
 import type { PatientDetail } from '@/lib/core/patients/get'
-import type { PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
 import type { PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import type { PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
@@ -44,10 +45,10 @@ interface Props {
   patient: PatientDetail
   snapshot: QuickViewSnapshot
   events: TimelineEvent[]
+  appointments: AppointmentTimelineRow[]
   authors: AuthorMap
-  initialTab: 'clinico' | 'cadastro'
+  initialTab: 'clinico' | 'evolucao' | 'cadastro'
   cadastro: {
-    initialAllergies: PatientAllergyDTO[]
     initialHistory: PatientHistoryDTO[]
     initialDiagnoses: PatientDiagnosisDTO[]
     initialVitalSigns: VitalSignsDTO[]
@@ -75,8 +76,10 @@ interface Props {
   }
 }
 
-function isValidTab(value: string | null): value is 'clinico' | 'cadastro' {
-  return value === 'clinico' || value === 'cadastro'
+function isValidTab(
+  value: string | null,
+): value is 'clinico' | 'evolucao' | 'cadastro' {
+  return value === 'clinico' || value === 'evolucao' || value === 'cadastro'
 }
 
 export function PatientDetailLayout({
@@ -84,6 +87,7 @@ export function PatientDetailLayout({
   patient,
   snapshot,
   events,
+  appointments,
   authors,
   initialTab,
   cadastro,
@@ -91,7 +95,7 @@ export function PatientDetailLayout({
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab')
-  const [tab, setTab] = useState<'clinico' | 'cadastro'>(
+  const [tab, setTab] = useState<'clinico' | 'evolucao' | 'cadastro'>(
     isValidTab(tabFromUrl) ? tabFromUrl : initialTab,
   )
   const [activeSheet, setActiveSheet] = useState<SheetKind | null>(null)
@@ -103,7 +107,7 @@ export function PatientDetailLayout({
   }, [tabFromUrl, tab])
 
   const updateTab = useCallback(
-    (next: 'clinico' | 'cadastro') => {
+    (next: 'clinico' | 'evolucao' | 'cadastro') => {
       setTab(next)
       const params = new URLSearchParams(searchParams.toString())
       if (next === 'clinico') {
@@ -158,6 +162,7 @@ export function PatientDetailLayout({
 
       {/* Header compacto colapsável — só mobile */}
       <MobileQuickViewHeader
+        patientId={patientId}
         snapshot={snapshot}
         onOpenSheet={handleOpenSheet}
         onSwitchToCadastro={() => updateTab('cadastro')}
@@ -173,6 +178,7 @@ export function PatientDetailLayout({
         {/* Sidebar full — só desktop (md+) */}
         <aside className="hidden md:sticky md:top-4 md:block md:max-h-[calc(100vh-2rem)] md:overflow-y-auto md:pr-1">
           <PatientQuickView
+            patientId={patientId}
             snapshot={snapshot}
             onOpenSheet={handleOpenSheet}
             onSwitchToCadastro={() => updateTab('cadastro')}
@@ -184,10 +190,15 @@ export function PatientDetailLayout({
         <section className="min-w-0">
           <Tabs
             value={tab}
-            onValueChange={(v) => updateTab(v as 'clinico' | 'cadastro')}
+            onValueChange={(v) =>
+              updateTab(v as 'clinico' | 'evolucao' | 'cadastro')
+            }
           >
             <TabsList>
               <TabsTrigger value="clinico">Clínico</TabsTrigger>
+              {!isAnonymized ? (
+                <TabsTrigger value="evolucao">Evolução do paciente</TabsTrigger>
+              ) : null}
               {!isAnonymized ? (
                 <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
               ) : null}
@@ -200,11 +211,21 @@ export function PatientDetailLayout({
               />
             </TabsContent>
             {!isAnonymized ? (
+              <TabsContent value="evolucao" className="space-y-4">
+                <PatientEvolutionTab
+                  patientId={patientId}
+                  appointments={appointments}
+                  initialNotes={cadastro.initialRecords}
+                  authors={authors}
+                  canWriteNote={cadastro.canWriteClinical}
+                />
+              </TabsContent>
+            ) : null}
+            {!isAnonymized ? (
               <TabsContent value="cadastro">
                 <CadastroTab
                   patient={patient}
                   patientId={patientId}
-                  initialAllergies={cadastro.initialAllergies}
                   initialHistory={cadastro.initialHistory}
                   initialDiagnoses={cadastro.initialDiagnoses}
                   initialVitalSigns={cadastro.initialVitalSigns}

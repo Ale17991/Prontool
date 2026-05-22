@@ -17,7 +17,6 @@ import {
 } from '../treatment-steps-section'
 import { FinanceiroSection } from '../financeiro-section'
 import type { PatientDetail } from '@/lib/core/patients/get'
-import type { PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
 import type { PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import type { PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
@@ -32,7 +31,6 @@ import type { AnamnesePatientPrefill } from '../clinical-records-section'
 interface Props {
   patient: PatientDetail
   patientId: string
-  initialAllergies: PatientAllergyDTO[]
   initialHistory: PatientHistoryDTO[]
   initialDiagnoses: PatientDiagnosisDTO[]
   initialVitalSigns: VitalSignsDTO[]
@@ -59,7 +57,6 @@ interface Props {
 export function CadastroTab({
   patient,
   patientId,
-  initialAllergies,
   initialHistory,
   initialDiagnoses,
   initialVitalSigns,
@@ -116,7 +113,6 @@ export function CadastroTab({
 
       <MedicalHistorySection
         patientId={patientId}
-        initialAllergies={initialAllergies}
         initialHistory={initialHistory}
         canWrite={canWriteClinical}
         initialVitalSigns={initialVitalSigns}

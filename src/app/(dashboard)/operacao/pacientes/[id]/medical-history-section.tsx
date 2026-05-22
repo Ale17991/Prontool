@@ -3,15 +3,12 @@
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  AlertTriangle,
-  CheckCircle2,
   ClipboardList,
   Loader2,
   Plus,
   Trash2,
   X,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,32 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn, formatDate } from '@/lib/utils'
-import type {
-  AllergySeverity,
-  PatientAllergyDTO,
-} from '@/lib/core/patient-medical/allergies'
+import { formatDate } from '@/lib/utils'
 import type {
   HistoryCategory,
   PatientHistoryDTO,
 } from '@/lib/core/patient-medical/history'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
 import { VitalHistoryCompactCard } from './_components/vital-history-compact'
-
-const SEVERITY_LABEL: Record<AllergySeverity, string> = {
-  leve: 'Leve',
-  moderada: 'Moderada',
-  grave: 'Grave',
-}
-
-// 016 — design system: leve (warning amarelo), moderada (orange — fora
-// das 3 familias do designer mas mantido para gradação semantica),
-// grave (alert vermelho clínico forte).
-const SEVERITY_CLASS: Record<AllergySeverity, string> = {
-  leve: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
-  moderada: 'bg-orange-100 text-orange-800',
-  grave: 'bg-[hsl(var(--alert)/0.15)] text-[hsl(var(--alert))]',
-}
 
 const HISTORY_CATEGORY_LABEL: Record<HistoryCategory, string> = {
   doenca_pregressa: 'Doenças pregressas',
@@ -62,7 +40,6 @@ const HISTORY_CATEGORY_LABEL: Record<HistoryCategory, string> = {
 
 interface Props {
   patientId: string
-  initialAllergies: PatientAllergyDTO[]
   initialHistory: PatientHistoryDTO[]
   canWrite: boolean
   /** Quando passado, renderiza um card compacto "Sinais vitais (histórico)"
@@ -72,20 +49,13 @@ interface Props {
 
 export function MedicalHistorySection({
   patientId,
-  initialAllergies,
   initialHistory,
   canWrite,
   initialVitalSigns,
 }: Props) {
   const router = useRouter()
-  const [allergies, setAllergies] = useState(initialAllergies)
   const [history, setHistory] = useState(initialHistory)
 
-  async function refreshAllergies() {
-    const res = await fetch(`/api/pacientes/${patientId}/alergias`)
-    if (res.ok) setAllergies((await res.json()) as PatientAllergyDTO[])
-    router.refresh()
-  }
   async function refreshHistory() {
     const res = await fetch(`/api/pacientes/${patientId}/antecedentes`)
     if (res.ok) setHistory((await res.json()) as PatientHistoryDTO[])
@@ -94,12 +64,6 @@ export function MedicalHistorySection({
 
   return (
     <div className="space-y-4">
-      <AllergiesCard
-        patientId={patientId}
-        allergies={allergies}
-        canWrite={canWrite}
-        onRefresh={refreshAllergies}
-      />
       <HistoryCard
         patientId={patientId}
         history={history}
@@ -110,263 +74,6 @@ export function MedicalHistorySection({
         <VitalHistoryCompactCard measurements={initialVitalSigns} />
       ) : null}
     </div>
-  )
-}
-
-function AllergiesCard({
-  patientId,
-  allergies,
-  canWrite,
-  onRefresh,
-}: {
-  patientId: string
-  allergies: PatientAllergyDTO[]
-  canWrite: boolean
-  onRefresh: () => Promise<void>
-}) {
-  const [showForm, setShowForm] = useState(false)
-  const hasAllergies = allergies.length > 0
-  const hasGrave = allergies.some((a) => a.severity === 'grave')
-
-  return (
-    <Card
-      className={cn(
-        hasGrave ? 'border-destructive/40 bg-destructive/5' : '',
-      )}
-    >
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <AlertTriangle
-            className={cn(
-              'h-4 w-4',
-              hasGrave ? 'text-destructive' : 'text-warning',
-            )}
-          />
-          Alergias
-        </CardTitle>
-        {canWrite ? (
-          <Button
-            size="sm"
-            variant={showForm ? 'outline' : 'default'}
-            onClick={() => setShowForm((v) => !v)}
-            className="gap-1.5"
-          >
-            {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-            {showForm ? 'Cancelar' : 'Adicionar alergia'}
-          </Button>
-        ) : null}
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {showForm && canWrite ? (
-          <NewAllergyForm
-            patientId={patientId}
-            onCreated={async () => {
-              setShowForm(false)
-              await onRefresh()
-            }}
-          />
-        ) : null}
-
-        {!hasAllergies ? (
-          <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success-bg px-3 py-2 text-sm text-success-text">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="font-semibold" title="NKDA — No Known Drug Allergies">
-              Sem alergias conhecidas
-            </span>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {allergies.map((a) => (
-              <AllergyItem
-                key={a.id}
-                patientId={patientId}
-                allergy={a}
-                canWrite={canWrite}
-                onDeleted={onRefresh}
-              />
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function AllergyItem({
-  patientId,
-  allergy,
-  canWrite,
-  onDeleted,
-}: {
-  patientId: string
-  allergy: PatientAllergyDTO
-  canWrite: boolean
-  onDeleted: () => Promise<void>
-}) {
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function handleDelete() {
-    if (!confirm(`Remover alergia: ${allergy.substance}?`)) return
-    setError(null)
-    setPending(true)
-    try {
-      const res = await fetch(`/api/pacientes/${patientId}/alergias/${allergy.id}`, {
-        method: 'DELETE',
-      })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string }
-        }
-        setError(body.error?.message ?? 'Falha ao remover.')
-        return
-      }
-      await onDeleted()
-    } finally {
-      setPending(false)
-    }
-  }
-
-  return (
-    <li className="flex items-start justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-bold text-slate-900">{allergy.substance}</span>
-          <Badge
-            variant="secondary"
-            className={cn('h-5 px-2 text-[10px]', SEVERITY_CLASS[allergy.severity])}
-          >
-            {SEVERITY_LABEL[allergy.severity]}
-          </Badge>
-        </div>
-        {allergy.notes ? (
-          <p className="mt-1 text-[11px] text-slate-600">{allergy.notes}</p>
-        ) : null}
-        <p className="mt-0.5 text-[10px] text-slate-400">
-          Registrada em {formatDate(allergy.reportedAt)}
-        </p>
-        {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
-      </div>
-      {canWrite ? (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => void handleDelete()}
-          disabled={pending}
-          className="h-7 gap-1 px-2 text-[11px] text-destructive hover:bg-destructive/10"
-        >
-          {pending ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <Trash2 className="h-3 w-3" />
-          )}
-          Remover
-        </Button>
-      ) : null}
-    </li>
-  )
-}
-
-function NewAllergyForm({
-  patientId,
-  onCreated,
-}: {
-  patientId: string
-  onCreated: () => Promise<void>
-}) {
-  const [substance, setSubstance] = useState('')
-  const [severity, setSeverity] = useState<AllergySeverity>('moderada')
-  const [notes, setNotes] = useState('')
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    if (substance.trim().length < 1) {
-      setError('Informe a substância.')
-      return
-    }
-    setPending(true)
-    try {
-      const res = await fetch(`/api/pacientes/${patientId}/alergias`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          substance: substance.trim(),
-          severity,
-          notes: notes.trim() || null,
-        }),
-      })
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string }
-        }
-        setError(body.error?.message ?? 'Falha ao salvar.')
-        return
-      }
-      setSubstance('')
-      setSeverity('moderada')
-      setNotes('')
-      await onCreated()
-    } finally {
-      setPending(false)
-    }
-  }
-
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="grid grid-cols-1 gap-3 rounded-md border border-slate-200 bg-slate-50/50 p-3 md:grid-cols-2"
-    >
-      <div className="space-y-1.5 md:col-span-2">
-        <Label htmlFor="substance">Substância</Label>
-        <Input
-          id="substance"
-          autoFocus
-          placeholder="Ex.: Dipirona, Penicilina, Látex"
-          value={substance}
-          onChange={(e) => setSubstance(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Severidade</Label>
-        <Select value={severity} onValueChange={(v) => setSeverity(v as AllergySeverity)}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="leve">Leve</SelectItem>
-            <SelectItem value="moderada">Moderada</SelectItem>
-            <SelectItem value="grave">Grave</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-1.5 md:col-span-2">
-        <Label htmlFor="notes">Observações (reações observadas)</Label>
-        <Textarea
-          id="notes"
-          className="min-h-[60px]"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </div>
-      {error ? (
-        <p className="md:col-span-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
-          {error}
-        </p>
-      ) : null}
-      <div className="md:col-span-2 flex justify-end">
-        <Button type="submit" size="sm" disabled={pending} className="gap-2">
-          {pending ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Plus className="h-3.5 w-3.5" />
-          )}
-          Adicionar
-        </Button>
-      </div>
-    </form>
   )
 }
 

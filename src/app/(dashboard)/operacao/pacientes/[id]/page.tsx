@@ -89,6 +89,9 @@ interface AppointmentRow {
   frozen_amount_cents: number | null
   net_amount_cents: number | null
   effective_status: string | null
+  observacoes: string | null
+  doctors: { full_name: string | null } | null
+  procedures: { tuss_code: string | null; display_name: string | null } | null
 }
 
 export default async function PacienteDetailPage({
@@ -138,13 +141,15 @@ export default async function PacienteDetailPage({
     const res = await supabase
       .from('appointments_effective')
       .select(
-        'id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status',
+        'id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status, observacoes, ' +
+          'doctors:doctor_id(full_name), ' +
+          'procedures:procedure_id(tuss_code, display_name)',
       )
       .eq('patient_id', params.id)
       .order('appointment_at', { ascending: false })
       .limit(50)
     if (res.error) throw new Error(res.error.message)
-    return (res.data ?? []) as AppointmentRow[]
+    return (res.data ?? []) as unknown as AppointmentRow[]
   })().catch(safeFail<AppointmentRow[]>('appointments', []))
 
   const recordsPromise: Promise<ClinicalRecordRow[]> = listClinicalRecords(
@@ -299,10 +304,11 @@ export default async function PacienteDetailPage({
       frozenAmountCents: a.frozen_amount_cents,
       netAmountCents: a.net_amount_cents,
       effectiveStatus: a.effective_status,
-      procedureName: null,
-      tussCode: null,
-      doctorName: null,
+      procedureName: a.procedures?.display_name ?? null,
+      tussCode: a.procedures?.tuss_code ?? null,
+      doctorName: a.doctors?.full_name ?? null,
       planName: null,
+      notes: a.observacoes ?? null,
       createdBy: null,
     }))
 
@@ -377,8 +383,12 @@ export default async function PacienteDetailPage({
         })),
       }
 
-  const initialTab: 'clinico' | 'cadastro' =
-    searchParams.tab === 'cadastro' ? 'cadastro' : 'clinico'
+  const initialTab: 'clinico' | 'evolucao' | 'cadastro' =
+    searchParams.tab === 'cadastro'
+      ? 'cadastro'
+      : searchParams.tab === 'evolucao'
+        ? 'evolucao'
+        : 'clinico'
 
   const showFailuresCard = session.role === 'admin' && failures.length > 0
 
@@ -417,10 +427,10 @@ export default async function PacienteDetailPage({
         patient={patient}
         snapshot={snapshot}
         events={events}
+        appointments={appointmentTimelineRows}
         authors={authors}
         initialTab={initialTab}
         cadastro={{
-          initialAllergies: allergies,
           initialHistory: medicalHistory,
           initialDiagnoses: diagnoses,
           initialVitalSigns: vitalSigns,

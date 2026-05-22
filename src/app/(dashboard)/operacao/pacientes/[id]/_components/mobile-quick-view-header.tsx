@@ -10,6 +10,7 @@ import type {
 } from '@/lib/core/patient-timeline'
 
 interface Props {
+  patientId: string
   snapshot: QuickViewSnapshot
   onOpenSheet: (sheet: SheetKind) => void
   onSwitchToCadastro: () => void
@@ -22,6 +23,7 @@ interface Props {
  * <PatientQuickView /> completa inline.
  */
 export function MobileQuickViewHeader({
+  patientId,
   snapshot,
   onOpenSheet,
   onSwitchToCadastro,
@@ -79,6 +81,7 @@ export function MobileQuickViewHeader({
       {expanded ? (
         <div id="mobile-quick-view-body" className="mt-3">
           <PatientQuickView
+            patientId={patientId}
             snapshot={snapshot}
             onOpenSheet={(s) => {
               setExpanded(false)

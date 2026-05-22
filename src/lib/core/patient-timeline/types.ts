@@ -32,6 +32,7 @@ export interface AppointmentTimelineRow {
   tussCode?: string | null
   doctorName?: string | null
   planName?: string | null
+  notes?: string | null
   createdBy?: string | null
   stepId?: string | null
 }

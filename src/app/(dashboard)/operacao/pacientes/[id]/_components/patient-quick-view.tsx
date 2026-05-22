@@ -1,8 +1,6 @@
 'use client'
 
 import {
-  Activity,
-  AlertTriangle,
   Calendar,
   Heart,
   Mail,
@@ -12,10 +10,8 @@ import {
   Printer,
   ShieldAlert,
   Stethoscope,
-  User,
   Wallet,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
@@ -23,19 +19,14 @@ import type {
   QuickViewSnapshot,
   SheetKind,
 } from '@/lib/core/patient-timeline'
-import type { AllergySeverity } from '@/lib/core/patient-medical/allergies'
+import { QuickViewAllergiesCard } from './quick-view-allergies-card'
 
 interface Props {
+  patientId: string
   snapshot: QuickViewSnapshot
   onOpenSheet: (sheet: SheetKind) => void
   onSwitchToCadastro: () => void
   onPrint: () => void
-}
-
-const SEVERITY_CLASSES: Record<AllergySeverity, string> = {
-  leve: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
-  moderada: 'bg-orange-100 text-orange-800',
-  grave: 'bg-[hsl(var(--alert)/0.15)] text-[hsl(var(--alert))]',
 }
 
 function bmiClass(bmi: number | null): {
@@ -60,6 +51,7 @@ function bmiClass(bmi: number | null): {
 }
 
 export function PatientQuickView({
+  patientId,
   snapshot,
   onOpenSheet,
   onSwitchToCadastro,
@@ -89,8 +81,6 @@ export function PatientQuickView({
   }
 
   const initial = (identity.fullName || '?').charAt(0).toUpperCase()
-  const visibleAllergies = allergies.slice(0, 5)
-  const moreAllergies = allergies.length - visibleAllergies.length
 
   return (
     <div className="space-y-3">
@@ -181,45 +171,12 @@ export function PatientQuickView({
         </Card>
       ) : null}
 
-      {/* Alergias */}
-      {allergies.length > 0 ? (
-        <Card>
-          <CardContent className="space-y-2 p-3">
-            <div className="flex items-center gap-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-[hsl(var(--alert))]" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Alergias ({allergies.length})
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {visibleAllergies.map((a) => (
-                <span
-                  key={a.id}
-                  className={cn(
-                    'inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold',
-                    SEVERITY_CLASSES[a.severity],
-                  )}
-                  role={a.severity === 'grave' ? 'status' : undefined}
-                  title={a.notes ?? undefined}
-                >
-                  <span className="font-mono">{a.substance}</span>
-                  <span className="opacity-70">·</span>
-                  <span className="capitalize">{a.severity}</span>
-                </span>
-              ))}
-              {moreAllergies > 0 ? (
-                <button
-                  type="button"
-                  onClick={onSwitchToCadastro}
-                  className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600 hover:bg-slate-200"
-                >
-                  +{moreAllergies} mais
-                </button>
-              ) : null}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
+      {/* Alergias — gerenciamento inline (add/remove) */}
+      <QuickViewAllergiesCard
+        patientId={patientId}
+        initial={allergies}
+        canWrite={permissions.canCreateAllergy}
+      />
 
       {/* Diagnósticos */}
       {diagnoses.length > 0 ? (
@@ -348,12 +305,6 @@ export function PatientQuickView({
             <ActionButton
               label="Diagnóstico"
               onClick={() => onOpenSheet('new-diagnosis')}
-            />
-          ) : null}
-          {permissions.canCreateAllergy ? (
-            <ActionButton
-              label="Alergia"
-              onClick={() => onOpenSheet('new-allergy')}
             />
           ) : null}
           {permissions.canCreateHistory ? (
