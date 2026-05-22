@@ -171,7 +171,7 @@ function statusBadge(status: string | null): {
   }
   // Default: 'agendado' (apenas salvo, sem confirmacao do paciente).
   return {
-    label: 'Salvo',
+    label: 'Agendado',
     className: 'bg-info-bg text-info-text',
     Icon: Clock,
   }
