@@ -271,11 +271,13 @@ export async function createAppointmentManually(
     }
     const lineAmount =
       raw.amountCentsOverride !== undefined ? raw.amountCentsOverride : vigenteAmountCents
-    if (lineAmount <= 0) {
+    // Valor zero e' valido (procedimento gratuito: cortesia, 1a avaliacao,
+    // programa social). Apenas valores negativos sao rejeitados — defensivo.
+    if (lineAmount < 0) {
       const label = proc.tussCode ?? '(nao listado)'
       throw new DomainError(
-        'PROCEDURE_LINE_AMOUNT_REQUIRED',
-        `Valor obrigatorio para o procedimento ${label}. Cadastre um valor particular para o procedimento ou informe o valor no atendimento.`,
+        'PROCEDURE_LINE_AMOUNT_INVALID',
+        `Valor invalido para o procedimento ${label} (negativo).`,
         { status: 400 },
       )
     }
