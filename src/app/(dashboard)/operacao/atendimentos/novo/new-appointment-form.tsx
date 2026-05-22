@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Save } from 'lucide-react'
+import { CheckCheck, CheckCircle2, Loader2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,6 +98,11 @@ export function NewAppointmentForm({
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const [conflictWarning, setConflictWarning] = useState<string | null>(null)
+  // Acao a executar apos salvar: somente salvar (agendado), confirmar
+  // (chama /confirmar) ou marcar presenca (chama /realizado).
+  type PostSaveAction = 'save' | 'confirm' | 'realize'
+  const submitActionRef = useRef<PostSaveAction>('save')
+  const [activeAction, setActiveAction] = useState<PostSaveAction | null>(null)
 
   const durationMinutes = computeDurationMinutes(appointmentAt, endTime)
 
@@ -438,11 +443,48 @@ export function NewAppointmentForm({
         }
       }
 
+      // Acao pos-criacao: confirmar ou marcar presenca. Sequencial — se
+      // falhar, atendimento ja esta salvo e mostramos warning.
+      const action = submitActionRef.current
+      if (action === 'confirm') {
+        const confirmRes = await fetch(
+          `/api/atendimentos/${body.appointment_id}/confirmar`,
+          { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' },
+        )
+        if (!confirmRes.ok) {
+          const cb = (await confirmRes.json().catch(() => ({}))) as {
+            error?: { message?: string }
+          }
+          setWarning(
+            `Atendimento salvo, mas a confirmacao falhou: ${cb.error?.message ?? 'erro desconhecido'}. Voce pode confirmar manualmente na tela do atendimento.`,
+          )
+        }
+      } else if (action === 'realize') {
+        const realizeRes = await fetch(
+          `/api/atendimentos/${body.appointment_id}/realizado`,
+          { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' },
+        )
+        if (!realizeRes.ok) {
+          const rb = (await realizeRes.json().catch(() => ({}))) as {
+            error?: { message?: string }
+          }
+          setWarning(
+            `Atendimento salvo, mas o registro de presenca falhou: ${rb.error?.message ?? 'erro desconhecido'}. Voce pode confirmar presenca manualmente na tela do atendimento.`,
+          )
+        }
+      }
+
       router.push(`/operacao/atendimentos/${body.appointment_id}`)
       router.refresh()
     } finally {
       setPending(false)
+      setActiveAction(null)
     }
+  }
+
+  function triggerSubmit(action: PostSaveAction) {
+    submitActionRef.current = action
+    setActiveAction(action)
   }
 
   return (
@@ -823,9 +865,15 @@ export function NewAppointmentForm({
         <p className="md:col-span-2 text-sm text-[hsl(var(--warning-foreground))]">{warning}</p>
       ) : null}
 
-      <div className="md:col-span-2 flex items-center justify-end gap-2">
-        <Button type="submit" disabled={pending || !!conflictWarning}>
-          {pending ? (
+      <div className="md:col-span-2 flex flex-wrap items-center justify-end gap-2">
+        <Button
+          type="submit"
+          variant="outline"
+          disabled={pending || !!conflictWarning}
+          onClick={() => triggerSubmit('save')}
+          title="Salva o atendimento como agendado. Pode ser confirmado ou cancelado depois."
+        >
+          {pending && activeAction === 'save' ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Salvando…
@@ -833,7 +881,44 @@ export function NewAppointmentForm({
           ) : (
             <>
               <Save className="mr-2 h-4 w-4" />
-              Registrar atendimento
+              Salvar
+            </>
+          )}
+        </Button>
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={pending || !!conflictWarning}
+          onClick={() => triggerSubmit('confirm')}
+          title="Salva e marca como confirmado (paciente avisou que vira)."
+        >
+          {pending && activeAction === 'confirm' ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Salvando…
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Salvar e confirmar
+            </>
+          )}
+        </Button>
+        <Button
+          type="submit"
+          disabled={pending || !!conflictWarning}
+          onClick={() => triggerSubmit('realize')}
+          title="Salva e registra que o paciente compareceu (marca como realizado)."
+        >
+          {pending && activeAction === 'realize' ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Salvando…
+            </>
+          ) : (
+            <>
+              <CheckCheck className="mr-2 h-4 w-4" />
+              Salvar e confirmar presença
             </>
           )}
         </Button>

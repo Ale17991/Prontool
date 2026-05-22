@@ -44,6 +44,13 @@ export async function markAppointmentRealized(
         { status: 409 },
       )
     }
+    if (/APPOINTMENT_CANCELLED/i.test(msg)) {
+      throw new DomainError(
+        'APPOINTMENT_CANCELLED',
+        'atendimento cancelado nao pode ser marcado como realizado',
+        { status: 409 },
+      )
+    }
     if (/duplicate key|unique/i.test(msg)) {
       throw new DomainError(
         'APPOINTMENT_ALREADY_REALIZED',
