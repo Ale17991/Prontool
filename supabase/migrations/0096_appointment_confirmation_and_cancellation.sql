@@ -279,11 +279,19 @@ BEGIN
     RAISE EXCEPTION USING MESSAGE = 'APPOINTMENT_NOT_FOUND', ERRCODE = '02000';
   END IF;
 
-  -- Estados terminais bloqueiam cancelamento.
-  IF EXISTS (SELECT 1 FROM public.appointment_reversals   WHERE appointment_id = p_appointment_id) THEN
-    RAISE EXCEPTION USING MESSAGE = 'APPOINTMENT_REVERSED', ERRCODE = '23514';
-  END IF;
-  IF EXISTS (SELECT 1 FROM public.appointment_completions WHERE appointment_id = p_appointment_id) THEN
+  -- Cancelamento e' permitido ATE em atendimentos estornados — caso de
+  -- uso: paciente nao compareceu, estorno financeiro feito e agora se
+  -- registra o motivo de cancelamento de agenda (no-show). Apenas
+  -- bloqueia se ja realizado (sem estorno), pois nesse caso ele esta
+  -- ativo e nao faz sentido cancelar a agenda.
+  IF EXISTS (
+    SELECT 1
+      FROM public.appointment_completions c
+     WHERE c.appointment_id = p_appointment_id
+       AND NOT EXISTS (
+         SELECT 1 FROM public.appointment_reversals r WHERE r.appointment_id = p_appointment_id
+       )
+  ) THEN
     RAISE EXCEPTION USING MESSAGE = 'APPOINTMENT_REALIZED', ERRCODE = '23514';
   END IF;
 

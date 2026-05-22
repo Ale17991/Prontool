@@ -2,16 +2,17 @@
 
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2 } from 'lucide-react'
+import { CheckCheck, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 /**
- * Botao "Marcar realizado" para atendimentos agendados. Cria uma
- * appointment_completion (append-only) que:
+ * Botao "Confirmar presenca" para atendimentos agendados/confirmados.
+ * Cria uma appointment_completion (append-only) que:
  *   - faz a view appointments_effective retornar status 'ativo'
  *   - sincroniza a etapa vinculada do plano de tratamento (concluido)
+ *   - libera o atendimento para entrar nos faturamentos
  */
 export function MarkRealizedForm({ appointmentId }: { appointmentId: string }) {
   const router = useRouter()
@@ -69,8 +70,8 @@ export function MarkRealizedForm({ appointmentId }: { appointmentId: string }) {
             </>
           ) : (
             <>
-              <CheckCircle2 className="h-4 w-4" />
-              Confirmar atendimento
+              <CheckCheck className="h-4 w-4" />
+              Confirmar presença
             </>
           )}
         </Button>

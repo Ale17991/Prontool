@@ -637,7 +637,8 @@ export function validateProcedures(
     if (!l.procedureId) return null
     if (l.planId !== null && (l.planId === '' || !l.planId)) return null
     const cents = amountReaisToCents(l.amountReais)
-    if (cents <= 0) return null
+    // Permite valor zero (consulta/procedimento gratuito).
+    if (cents < 0) return null
     const notesTrimmed = (l.notes ?? '').trim()
     if (notesTrimmed.length > 500) return null
     const qty = Number.isInteger(l.quantity) && l.quantity >= 1 ? l.quantity : 1

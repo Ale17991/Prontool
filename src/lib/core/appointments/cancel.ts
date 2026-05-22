@@ -48,13 +48,6 @@ export async function cancelAppointment(
         status: 404,
       })
     }
-    if (/APPOINTMENT_REVERSED/i.test(msg)) {
-      throw new DomainError(
-        'APPOINTMENT_REVERSED',
-        'atendimento estornado nao pode ser cancelado',
-        { status: 409 },
-      )
-    }
     if (/APPOINTMENT_REALIZED/i.test(msg)) {
       throw new DomainError(
         'APPOINTMENT_REALIZED',

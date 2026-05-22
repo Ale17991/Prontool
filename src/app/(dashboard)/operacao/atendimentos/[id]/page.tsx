@@ -178,35 +178,42 @@ export default async function AtendimentoDetailPage({
     .order('timestamp_utc', { ascending: true })
   const audit = (auditRaw ?? []) as AuditRow[]
 
-  // Fallback de seguranca: ambientes sem a migration 0054 retornam apenas
-  // 'ativo'/'estornado'. Calculamos 'agendado' por timestamp para que o
-  // detalhe funcione em qualquer estado do schema. Os estados 'confirmado'
-  // e 'cancelado' (migration 0096) tambem sao preservados se vierem.
-  const rawStatus = appointment.effective_status ?? 'ativo'
+  // Resolve effective_status com prioridade no valor do banco. O heuristico
+  // isFuture so e usado quando rawStatus nao bate em um dos estados
+  // conhecidos (legacy / pre-0054). Isso evita que um atendimento ja
+  // realizado em data futura seja reportado erroneamente como 'agendado'.
+  const KNOWN_STATUSES = ['agendado', 'confirmado', 'ativo', 'cancelado', 'estornado'] as const
+  const rawStatus = appointment.effective_status ?? ''
   const isFuture =
     appointment.appointment_at !== null &&
     new Date(appointment.appointment_at).getTime() > Date.now()
-  const status =
-    rawStatus === 'estornado'
-      ? 'estornado'
-      : rawStatus === 'cancelado'
-        ? 'cancelado'
-        : rawStatus === 'confirmado'
-          ? 'confirmado'
-          : rawStatus === 'agendado' || isFuture
-            ? 'agendado'
-            : 'ativo'
-  const canReverse = can(session.role, 'appointment.reverse') && status !== 'estornado'
+  const status: (typeof KNOWN_STATUSES)[number] = (
+    KNOWN_STATUSES as readonly string[]
+  ).includes(rawStatus)
+    ? (rawStatus as (typeof KNOWN_STATUSES)[number])
+    : isFuture
+      ? 'agendado'
+      : 'ativo'
+  const canReverse = can(session.role, 'appointment.reverse') && status === 'ativo'
   const canManageSchedule =
     session.role === 'admin' ||
     session.role === 'recepcionista' ||
     session.role === 'profissional_saude'
-  const canConfirm = status === 'agendado' && canManageSchedule
-  const canMarkRealized =
+  // Card unico progressivo: 'agendado' -> mostra Confirmar agendamento;
+  // 'confirmado' -> mostra Confirmar presenca; demais -> esconde o card.
+  const canProgressSchedule =
     (status === 'agendado' || status === 'confirmado') &&
-    (session.role === 'admin' || session.role === 'profissional_saude')
+    (session.role === 'admin' ||
+      session.role === 'recepcionista' ||
+      session.role === 'profissional_saude')
+  // Cancelar agendamento: permitido enquanto nao foi realizado.
+  // Tambem permitido em estornado para registrar motivo de no-show /
+  // desmarcacao apos estorno financeiro.
   const canCancelSchedule =
-    (status === 'agendado' || status === 'confirmado') && canManageSchedule
+    (status === 'agendado' ||
+      status === 'confirmado' ||
+      status === 'estornado') &&
+    canManageSchedule
 
   // Hora fim derivada de inicio + duracao.
   const endIso = appointment.appointment_at
@@ -430,33 +437,35 @@ export default async function AtendimentoDetailPage({
         </Card>
       ) : null}
 
-      {canConfirm && appointment.id ? (
+      {canProgressSchedule && appointment.id ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Confirmar agendamento</CardTitle>
+            <CardTitle className="text-base">
+              {status === 'agendado'
+                ? 'Confirmar agendamento'
+                : 'Confirmar presença (atendimento realizado)'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm text-slate-500">
-              Marca que o paciente avisou que vai comparecer (confirmação prévia).
-              Não significa que o atendimento já foi realizado.
-            </p>
-            <ConfirmAppointmentButton appointmentId={appointment.id} />
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {canMarkRealized && appointment.id ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Confirmar presença (atendimento realizado)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4 text-sm text-slate-500">
-              Registra que o paciente compareceu e o atendimento foi realizado. A
-              etapa vinculada do plano de tratamento (se houver) é marcada como
-              concluída automaticamente.
-            </p>
-            <MarkRealizedForm appointmentId={appointment.id} />
+            {status === 'agendado' ? (
+              <>
+                <p className="mb-4 text-sm text-slate-500">
+                  Marca que o paciente avisou que vai comparecer (confirmação
+                  prévia). Não significa que o atendimento já foi realizado.
+                </p>
+                <ConfirmAppointmentButton appointmentId={appointment.id} />
+              </>
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-slate-500">
+                  Registra que o paciente compareceu e o atendimento foi
+                  realizado. A etapa vinculada do plano de tratamento (se
+                  houver) é marcada como concluída automaticamente e o
+                  atendimento passa a entrar nos faturamentos.
+                </p>
+                <MarkRealizedForm appointmentId={appointment.id} />
+              </>
+            )}
           </CardContent>
         </Card>
       ) : null}
@@ -468,17 +477,16 @@ export default async function AtendimentoDetailPage({
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-sm text-slate-500">
-              Cancela o agendamento e libera o horário do profissional para
-              reagendar. Registre o motivo (no-show, paciente desmarcou etc.).
-              Este é um cancelamento de agenda — não confunda com estorno
-              financeiro.
+              {status === 'estornado'
+                ? 'O atendimento foi estornado financeiramente. Registre o motivo de cancelamento da agenda (ex.: paciente não compareceu).'
+                : 'Cancela o agendamento e libera o horário do profissional para reagendar. Registre o motivo (no-show, paciente desmarcou etc.). Este é um cancelamento de agenda — não confunda com estorno financeiro.'}
             </p>
             <CancelAppointmentForm appointmentId={appointment.id} />
           </CardContent>
         </Card>
       ) : null}
 
-      {canReverse && status === 'ativo' && appointment.id ? (
+      {canReverse && appointment.id ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Estornar atendimento (financeiro)</CardTitle>

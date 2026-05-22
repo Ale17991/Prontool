@@ -228,28 +228,13 @@ export function NewAppointmentForm({
     }
     const validatedProcedures = validateProcedures(procedureLines)
     if (!validatedProcedures) {
-      setError('Preencha plano e valor (> 0) em todas as linhas.')
+      setError('Preencha plano e valor (>= 0) em todas as linhas.')
       return
     }
 
-    // Particular = pagamento obrigatorio. Detectamos procedimentos sem
-    // plano (planId null/empty) e exigimos valor > 0 — o que garante que
-    // um payment_record sera criado e a forma de pagamento ficara
-    // registrada. Convenio (com planId) pode ter valor 0 (cobertura
-    // 100%).
-    const hasParticular = validatedProcedures.some(
-      (p) => !p.planId || p.planId === '',
-    )
-    const totalCentsCheck = validatedProcedures.reduce(
-      (acc, p) => acc + p.amountCentsOverride * p.quantity,
-      0,
-    )
-    if (hasParticular && totalCentsCheck <= 0) {
-      setError(
-        'Atendimento particular exige valor maior que 0 para registrar a forma de pagamento.',
-      )
-      return
-    }
+    // Atendimentos com valor zero sao permitidos (consultas/procedimentos
+    // gratuitos). Quando totalCents === 0 nao geramos payment_record e
+    // tambem nao exigimos forma de pagamento.
 
     // Split em N metodos: valida que a soma dos percentuais = 100 e
     // todos os metodos foram preenchidos.
@@ -660,7 +645,7 @@ export function NewAppointmentForm({
           </p>
           {procedureLines.some((p) => !p.planId || p.planId === '') ? (
             <span className="rounded-md bg-[hsl(var(--warning)/0.15)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--warning-foreground))]">
-              Particular · obrigatório
+              Particular
             </span>
           ) : null}
         </div>
