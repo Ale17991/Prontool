@@ -206,12 +206,13 @@ export default async function AtendimentoDetailPage({
     (session.role === 'admin' ||
       session.role === 'recepcionista' ||
       session.role === 'profissional_saude')
-  // Cancelar agendamento: permitido enquanto nao foi realizado.
-  // Tambem permitido em estornado para registrar motivo de no-show /
-  // desmarcacao apos estorno financeiro.
+  // Cancelar agendamento: permitido em todo estado nao-terminal de
+  // cancelamento. Em 'ativo' o RPC cria o estorno financeiro
+  // automaticamente (no-show de atendimento ja registrado).
   const canCancelSchedule =
     (status === 'agendado' ||
       status === 'confirmado' ||
+      status === 'ativo' ||
       status === 'estornado') &&
     canManageSchedule
 
@@ -473,13 +474,15 @@ export default async function AtendimentoDetailPage({
       {canCancelSchedule && appointment.id ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Cancelar agendamento</CardTitle>
+            <CardTitle className="text-base">Cancelar atendimento</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-sm text-slate-500">
-              {status === 'estornado'
-                ? 'O atendimento foi estornado financeiramente. Registre o motivo de cancelamento da agenda (ex.: paciente não compareceu).'
-                : 'Cancela o agendamento e libera o horário do profissional para reagendar. Registre o motivo (no-show, paciente desmarcou etc.). Este é um cancelamento de agenda — não confunda com estorno financeiro.'}
+              {status === 'ativo'
+                ? 'Cancela o atendimento já realizado e reverte automaticamente o impacto financeiro. Use para registrar no-show ou desmarcação tardia.'
+                : status === 'estornado'
+                  ? 'O atendimento foi estornado financeiramente. Registre o motivo de cancelamento da agenda (ex.: paciente não compareceu).'
+                  : 'Cancela o agendamento e libera o horário do profissional para reagendar. Registre o motivo (no-show, paciente desmarcou etc.).'}
             </p>
             <CancelAppointmentForm appointmentId={appointment.id} />
           </CardContent>
@@ -487,18 +490,26 @@ export default async function AtendimentoDetailPage({
       ) : null}
 
       {canReverse && appointment.id ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Estornar atendimento (financeiro)</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <details className="group rounded-lg border border-slate-200 bg-white">
+          <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-700">
+            <span>Estornar atendimento (sem cancelar agenda)</span>
+            <span className="text-xs font-medium text-slate-400 group-open:hidden">
+              mostrar
+            </span>
+            <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
+              ocultar
+            </span>
+          </summary>
+          <div className="border-t border-slate-100 p-4">
             <p className="mb-4 text-sm text-slate-500">
-              Reverte o impacto financeiro de um atendimento já realizado. O
-              registro original é preservado e a operação fica no histórico.
+              Use apenas para correções puramente financeiras (cobrança duplicada,
+              erro de valor) onde o atendimento aconteceu de fato. Para no-show
+              ou desmarcação use &quot;Cancelar atendimento&quot; acima — ele já
+              cuida do estorno automaticamente.
             </p>
             <ReversalForm appointmentId={appointment.id} />
-          </CardContent>
-        </Card>
+          </div>
+        </details>
       ) : null}
 
       {/* ---- Dados financeiros (colapsável, no final) ---- */}

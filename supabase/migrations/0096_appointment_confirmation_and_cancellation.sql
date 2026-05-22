@@ -279,11 +279,14 @@ BEGIN
     RAISE EXCEPTION USING MESSAGE = 'APPOINTMENT_NOT_FOUND', ERRCODE = '02000';
   END IF;
 
-  -- Cancelamento e' permitido ATE em atendimentos estornados — caso de
-  -- uso: paciente nao compareceu, estorno financeiro feito e agora se
-  -- registra o motivo de cancelamento de agenda (no-show). Apenas
-  -- bloqueia se ja realizado (sem estorno), pois nesse caso ele esta
-  -- ativo e nao faz sentido cancelar a agenda.
+  -- Cancelamento e' permitido em qualquer estado nao terminal:
+  --   agendado, confirmado, ativo (realizado), estornado.
+  -- Quando ativo (realizado mas nao estornado), criamos o estorno
+  -- automaticamente — caso de uso: paciente compareceu, foi registrado,
+  -- mas precisa ser revertido como no-show ou desmarcacao tardia.
+  -- Pulamos o estorno automatico se o atendimento e' gratuito
+  -- (frozen_amount_cents = 0) — a constraint reversal_amount_cents < 0
+  -- nao permitiria, e nao ha o que reverter financeiramente.
   IF EXISTS (
     SELECT 1
       FROM public.appointment_completions c
@@ -292,7 +295,18 @@ BEGIN
          SELECT 1 FROM public.appointment_reversals r WHERE r.appointment_id = p_appointment_id
        )
   ) THEN
-    RAISE EXCEPTION USING MESSAGE = 'APPOINTMENT_REALIZED', ERRCODE = '23514';
+    INSERT INTO public.appointment_reversals
+      (tenant_id, appointment_id, reversal_amount_cents, reason, created_by)
+    SELECT
+      a.tenant_id,
+      a.id,
+      -a.frozen_amount_cents,
+      'cancelamento: ' || p_reason || COALESCE(' — ' || p_notes, ''),
+      p_by
+      FROM public.appointments a
+     WHERE a.id = p_appointment_id
+       AND a.frozen_amount_cents > 0
+    ON CONFLICT (tenant_id, appointment_id) DO NOTHING;
   END IF;
 
   INSERT INTO public.appointment_cancellations
