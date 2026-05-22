@@ -47,7 +47,7 @@ interface Props {
   events: TimelineEvent[]
   appointments: AppointmentTimelineRow[]
   authors: AuthorMap
-  initialTab: 'clinico' | 'evolucao' | 'cadastro'
+  initialTab: 'evolucao' | 'clinico' | 'cadastro'
   cadastro: {
     initialHistory: PatientHistoryDTO[]
     initialDiagnoses: PatientDiagnosisDTO[]
@@ -78,8 +78,8 @@ interface Props {
 
 function isValidTab(
   value: string | null,
-): value is 'clinico' | 'evolucao' | 'cadastro' {
-  return value === 'clinico' || value === 'evolucao' || value === 'cadastro'
+): value is 'evolucao' | 'clinico' | 'cadastro' {
+  return value === 'evolucao' || value === 'clinico' || value === 'cadastro'
 }
 
 export function PatientDetailLayout({
@@ -95,7 +95,7 @@ export function PatientDetailLayout({
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab')
-  const [tab, setTab] = useState<'clinico' | 'evolucao' | 'cadastro'>(
+  const [tab, setTab] = useState<'evolucao' | 'clinico' | 'cadastro'>(
     isValidTab(tabFromUrl) ? tabFromUrl : initialTab,
   )
   const [activeSheet, setActiveSheet] = useState<SheetKind | null>(null)
@@ -107,10 +107,10 @@ export function PatientDetailLayout({
   }, [tabFromUrl, tab])
 
   const updateTab = useCallback(
-    (next: 'clinico' | 'evolucao' | 'cadastro') => {
+    (next: 'evolucao' | 'clinico' | 'cadastro') => {
       setTab(next)
       const params = new URLSearchParams(searchParams.toString())
-      if (next === 'clinico') {
+      if (next === 'evolucao') {
         params.delete('tab')
       } else {
         params.set('tab', next)
@@ -191,25 +191,18 @@ export function PatientDetailLayout({
           <Tabs
             value={tab}
             onValueChange={(v) =>
-              updateTab(v as 'clinico' | 'evolucao' | 'cadastro')
+              updateTab(v as 'evolucao' | 'clinico' | 'cadastro')
             }
           >
             <TabsList>
-              <TabsTrigger value="clinico">Clínico</TabsTrigger>
               {!isAnonymized ? (
                 <TabsTrigger value="evolucao">Evolução do paciente</TabsTrigger>
               ) : null}
+              <TabsTrigger value="clinico">Clínico</TabsTrigger>
               {!isAnonymized ? (
                 <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
               ) : null}
             </TabsList>
-            <TabsContent value="clinico" className="space-y-4">
-              <ClinicalTimeline
-                events={events}
-                authors={authors}
-                isAnonymized={isAnonymized}
-              />
-            </TabsContent>
             {!isAnonymized ? (
               <TabsContent value="evolucao" className="space-y-4">
                 <PatientEvolutionTab
@@ -221,6 +214,13 @@ export function PatientDetailLayout({
                 />
               </TabsContent>
             ) : null}
+            <TabsContent value="clinico" className="space-y-4">
+              <ClinicalTimeline
+                events={events}
+                authors={authors}
+                isAnonymized={isAnonymized}
+              />
+            </TabsContent>
             {!isAnonymized ? (
               <TabsContent value="cadastro">
                 <CadastroTab

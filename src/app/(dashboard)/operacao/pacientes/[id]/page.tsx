@@ -94,6 +94,11 @@ interface AppointmentRow {
   procedures: { tuss_code: string | null; display_name: string | null } | null
 }
 
+interface AppointmentObservationRow {
+  id: string
+  observacoes: string | null
+}
+
 export default async function PacienteDetailPage({
   params,
   searchParams,
@@ -138,18 +143,38 @@ export default async function PacienteDetailPage({
   const { patient, summary } = detail
 
   const appointmentsPromise: Promise<AppointmentRow[]> = (async () => {
-    const res = await supabase
-      .from('appointments_effective')
-      .select(
-        'id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status, observacoes, ' +
-          'doctors:doctor_id(full_name), ' +
-          'procedures:procedure_id(tuss_code, display_name)',
-      )
-      .eq('patient_id', params.id)
-      .order('appointment_at', { ascending: false })
-      .limit(50)
-    if (res.error) throw new Error(res.error.message)
-    return (res.data ?? []) as unknown as AppointmentRow[]
+    // `appointments_effective` (criada em 0055) usa `a.*` e portanto NÃO
+    // expõe colunas adicionadas em ALTERs posteriores como `observacoes`
+    // (PostgreSQL congela a lista de colunas na criação da view). Fazemos
+    // uma segunda query enxuta direto em `appointments` e mesclamos.
+    const [effectiveRes, observacoesRes] = await Promise.all([
+      supabase
+        .from('appointments_effective')
+        .select(
+          'id, appointment_at, frozen_amount_cents, net_amount_cents, effective_status, ' +
+            'doctors:doctor_id(full_name), ' +
+            'procedures:procedure_id(tuss_code, display_name)',
+        )
+        .eq('patient_id', params.id)
+        .order('appointment_at', { ascending: false })
+        .limit(50),
+      supabase
+        .from('appointments')
+        .select('id, observacoes')
+        .eq('patient_id', params.id)
+        .order('appointment_at', { ascending: false })
+        .limit(50),
+    ])
+    if (effectiveRes.error) throw new Error(effectiveRes.error.message)
+    const obsRows = (observacoesRes.data ?? []) as AppointmentObservationRow[]
+    const obsMap = new Map(obsRows.map((r) => [r.id, r.observacoes]))
+    const rows = (effectiveRes.data ?? []) as unknown as Array<
+      Omit<AppointmentRow, 'observacoes'>
+    >
+    return rows.map((r) => ({
+      ...r,
+      observacoes: r.id ? (obsMap.get(r.id) ?? null) : null,
+    }))
   })().catch(safeFail<AppointmentRow[]>('appointments', []))
 
   const recordsPromise: Promise<ClinicalRecordRow[]> = listClinicalRecords(
@@ -383,12 +408,15 @@ export default async function PacienteDetailPage({
         })),
       }
 
-  const initialTab: 'clinico' | 'evolucao' | 'cadastro' =
+  // Default: 'evolucao'. Paciente anonimizado não tem essa aba — vai para 'clinico'.
+  const initialTab: 'evolucao' | 'clinico' | 'cadastro' =
     searchParams.tab === 'cadastro'
       ? 'cadastro'
-      : searchParams.tab === 'evolucao'
-        ? 'evolucao'
-        : 'clinico'
+      : searchParams.tab === 'clinico'
+        ? 'clinico'
+        : isAnonymized
+          ? 'clinico'
+          : 'evolucao'
 
   const showFailuresCard = session.role === 'admin' && failures.length > 0
 
