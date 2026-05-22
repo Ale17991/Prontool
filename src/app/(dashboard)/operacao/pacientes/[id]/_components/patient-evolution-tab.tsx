@@ -3,7 +3,9 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  Ban,
   Calendar,
+  CheckCheck,
   CheckCircle2,
   Clock,
   Loader2,
@@ -136,11 +138,28 @@ function statusBadge(status: string | null): {
   className: string
   Icon: typeof CheckCircle2
 } {
-  if (status === 'agendado') {
+  // 'ativo' e' o unico estado que conta como Realizado — exige
+  // appointment_completion (presenca confirmada). 'confirmado' (paciente
+  // avisou que vem) NAO e' realizado ainda.
+  if (status === 'ativo' || status === 'realizado') {
     return {
-      label: 'A realizar',
-      className: 'bg-info-bg text-info-text',
-      Icon: Clock,
+      label: 'Realizado',
+      className: 'bg-success-bg text-success-strong',
+      Icon: CheckCheck,
+    }
+  }
+  if (status === 'confirmado') {
+    return {
+      label: 'Confirmado',
+      className: 'bg-success-bg/60 text-success-text',
+      Icon: CheckCircle2,
+    }
+  }
+  if (status === 'cancelado') {
+    return {
+      label: 'Cancelado',
+      className: 'bg-muted text-muted-foreground',
+      Icon: Ban,
     }
   }
   if (status === 'estornado') {
@@ -150,10 +169,11 @@ function statusBadge(status: string | null): {
       Icon: RotateCcw,
     }
   }
+  // Default: 'agendado' (ou qualquer status desconhecido) — fallback seguro.
   return {
-    label: 'Realizado',
-    className: 'bg-success-bg text-success-strong',
-    Icon: CheckCircle2,
+    label: 'A realizar',
+    className: 'bg-info-bg text-info-text',
+    Icon: Clock,
   }
 }
 
