@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -70,7 +69,7 @@ export function PatientEvolutionTab({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-100/70 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-sm font-bold text-slate-900">
@@ -105,13 +104,11 @@ export function PatientEvolutionTab({
       ) : null}
 
       {items.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-sm text-slate-500">
-              Nenhum atendimento ou nota registrada ainda.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border border-slate-200 bg-white py-10 text-center shadow-md">
+          <p className="text-sm text-slate-500">
+            Nenhum atendimento ou nota registrada ainda.
+          </p>
+        </div>
       ) : (
         <ul className="space-y-2">
           {items.map((it) =>
@@ -169,7 +166,7 @@ function AppointmentCard({
   const BadgeIcon = badge.Icon
   return (
     <li>
-      <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-md">
         <header className="flex flex-wrap items-start gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
             <Calendar className="h-4 w-4" />
@@ -225,7 +222,7 @@ function NoteCard({
 }) {
   return (
     <li>
-      <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-md">
         <header className="flex items-start gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
             <NotebookPen className="h-4 w-4" />
@@ -315,7 +312,7 @@ function NewNoteForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-3 rounded-md border border-slate-200 bg-slate-50/50 p-3"
+      className="space-y-3 rounded-md border border-slate-200 bg-white p-3 shadow-sm"
     >
       <div className="space-y-1.5">
         <Label htmlFor="note-title">Título (opcional)</Label>
