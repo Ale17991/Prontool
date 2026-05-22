@@ -407,6 +407,23 @@ export async function createAppointmentManually(
         { status: 400 },
       )
     }
+    if (/PROCEDURES_TOTAL_ZERO/i.test(msg)) {
+      // Defesa em profundidade: a migration 0102 reescreve a RPC para
+      // aceitar total=0 (atendimento gratuito). Este branch so' dispara
+      // se a 0102 ainda nao foi aplicada — mensagem orientativa.
+      throw new DomainError(
+        'PROCEDURES_TOTAL_ZERO',
+        'O banco ainda exige total > 0 para o atendimento. Aplique a migration 0102 para liberar atendimentos gratuitos com plano.',
+        { status: 400 },
+      )
+    }
+    if (/PROCEDURES_TOTAL_NEGATIVE/i.test(msg)) {
+      throw new DomainError(
+        'PROCEDURES_TOTAL_NEGATIVE',
+        'Total do atendimento negativo (payload invalido).',
+        { status: 400 },
+      )
+    }
     if (/PROCEDURE_LINE_TUSS_RETIRED|TUSS_CODE_RETIRED/i.test(msg)) {
       throw new DomainError(
         'TUSS_CODE_RETIRED',
