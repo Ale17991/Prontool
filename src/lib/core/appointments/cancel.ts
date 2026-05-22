@@ -61,7 +61,22 @@ export async function cancelAppointment(
         status: 400,
       })
     }
-    throw new Error(`cancelAppointment failed: ${msg}`)
+    // RPC ausente (migration 0096 nao aplicada) — sinaliza claramente.
+    if (
+      /could not find the function|function .* does not exist|schema cache/i.test(msg)
+    ) {
+      throw new DomainError(
+        'CANCEL_RPC_NOT_DEPLOYED',
+        'A funcao de cancelamento ainda nao esta disponivel no banco. Aplique as migrations 0096 e 0097 em producao.',
+        { status: 503 },
+      )
+    }
+    // Demais erros: surface a mensagem original para facilitar debug em prod.
+    throw new DomainError(
+      'CANCEL_APPOINTMENT_FAILED',
+      `Falha ao cancelar atendimento: ${msg}`,
+      { status: 500 },
+    )
   }
 
   if (!data) {
