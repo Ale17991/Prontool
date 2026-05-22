@@ -244,7 +244,11 @@ export async function createAppointmentManually(
     }
     let sourcePriceVersionId: string | null = null
     let vigenteAmountCents = 0
-    if (raw.planId !== null) {
+    // Procedimento gratuito (override explicito = 0) NAO precisa de
+    // price_version. O trigger de DB (migration 0101) aceita
+    // line_amount=0 com source_price_version_id NULL.
+    const isFreeOverride = raw.amountCentsOverride === 0
+    if (raw.planId !== null && !isFreeOverride) {
       try {
         const price = await resolvePrice(supabase, {
           tenantId: input.tenantId,
@@ -266,9 +270,10 @@ export async function createAppointmentManually(
         }
         vigenteAmountCents = proc.defaultAmountCents ?? 0
       }
-    } else {
+    } else if (raw.planId === null) {
       vigenteAmountCents = proc.defaultAmountCents ?? 0
     }
+    // isFreeOverride com plan_id: vigenteAmountCents=0, sourcePriceVersionId=null
     const lineAmount =
       raw.amountCentsOverride !== undefined ? raw.amountCentsOverride : vigenteAmountCents
     // Valor zero e' valido (procedimento gratuito: cortesia, 1a avaliacao,
