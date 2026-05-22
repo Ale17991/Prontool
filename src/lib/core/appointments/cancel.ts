@@ -6,6 +6,7 @@ export type CancellationReason =
   | 'no_show'
   | 'paciente_desmarcou'
   | 'clinica_desmarcou'
+  | 'estornado'
   | 'outro'
 
 /**

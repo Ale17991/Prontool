@@ -19,6 +19,7 @@ const REASON_LABEL: Record<CancellationReason, string> = {
   no_show: 'Não compareceu (paciente faltou)',
   paciente_desmarcou: 'Paciente desmarcou',
   clinica_desmarcou: 'Clínica desmarcou',
+  estornado: 'Estornado (cancelar após realizado)',
   outro: 'Outro',
 }
 

@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS public.appointment_cancellations (
   appointment_id  UUID NOT NULL REFERENCES public.appointments(id) ON DELETE RESTRICT,
   cancelled_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   cancelled_by    UUID NOT NULL,
-  reason          TEXT NOT NULL CHECK (reason IN ('no_show', 'paciente_desmarcou', 'clinica_desmarcou', 'outro')),
+  reason          TEXT NOT NULL CHECK (reason IN ('no_show', 'paciente_desmarcou', 'clinica_desmarcou', 'estornado', 'outro')),
   notes           TEXT,
   UNIQUE (tenant_id, appointment_id)
 );
@@ -262,7 +262,7 @@ BEGIN
   v_jwt_tenant := public.jwt_tenant_id();
   v_jwt_role   := public.jwt_role();
 
-  IF p_reason IS NULL OR p_reason NOT IN ('no_show', 'paciente_desmarcou', 'clinica_desmarcou', 'outro') THEN
+  IF p_reason IS NULL OR p_reason NOT IN ('no_show', 'paciente_desmarcou', 'clinica_desmarcou', 'estornado', 'outro') THEN
     RAISE EXCEPTION USING MESSAGE = 'INVALID_REASON', ERRCODE = '22023';
   END IF;
 

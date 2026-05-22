@@ -22,6 +22,7 @@ const bodySchema = z.object({
     'no_show',
     'paciente_desmarcou',
     'clinica_desmarcou',
+    'estornado',
     'outro',
   ]),
   notes: z.string().trim().max(500).optional(),
