@@ -140,7 +140,7 @@ function statusBadge(status: string | null): {
 } {
   // 'ativo' e' o unico estado que conta como Realizado — exige
   // appointment_completion (presenca confirmada). 'confirmado' (paciente
-  // avisou que vem) NAO e' realizado ainda.
+  // avisou que vem) e' apenas "A Realizar" — atendimento futuro confirmado.
   if (status === 'ativo' || status === 'realizado') {
     return {
       label: 'Realizado',
@@ -150,7 +150,7 @@ function statusBadge(status: string | null): {
   }
   if (status === 'confirmado') {
     return {
-      label: 'Confirmado',
+      label: 'A Realizar',
       className: 'bg-success-bg/60 text-success-text',
       Icon: CheckCircle2,
     }
@@ -169,9 +169,9 @@ function statusBadge(status: string | null): {
       Icon: RotateCcw,
     }
   }
-  // Default: 'agendado' (ou qualquer status desconhecido) — fallback seguro.
+  // Default: 'agendado' (apenas salvo, sem confirmacao do paciente).
   return {
-    label: 'A realizar',
+    label: 'Salvo',
     className: 'bg-info-bg text-info-text',
     Icon: Clock,
   }

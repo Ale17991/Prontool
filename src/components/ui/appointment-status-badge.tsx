@@ -35,17 +35,17 @@ export interface AppointmentStatusVariantStyle {
 // com fallback motion-safe (WCAG 2.3.3).
 export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatusVariant, AppointmentStatusVariantStyle> = {
   agendado: {
-    label: 'Agendado',
+    label: 'Salvo',
     Icon: Calendar,
     className: 'bg-info-bg text-info-text border-info-bg',
   },
   confirmado: {
-    label: 'Confirmado',
+    label: 'A Realizar',
     Icon: Check,
     className: 'bg-success-bg text-success-text border-success-bg',
   },
   concluido: {
-    label: 'Concluído',
+    label: 'Realizado',
     Icon: CheckCheck,
     className: 'bg-success-bg/60 text-success-text border-success-bg/60',
   },
