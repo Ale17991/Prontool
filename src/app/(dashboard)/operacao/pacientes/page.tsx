@@ -81,7 +81,7 @@ export default async function PacientesPage({ searchParams }: PageProps) {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Pacientes</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {total} paciente{total === 1 ? '' : 's'} no tenant
+            {total} paciente{total === 1 ? '' : 's'} na clínica
           </p>
         </div>
         <div className="flex w-full flex-col items-stretch gap-2 md:w-auto md:flex-row md:items-center">

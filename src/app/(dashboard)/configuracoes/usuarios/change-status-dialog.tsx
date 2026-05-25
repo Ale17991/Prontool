@@ -52,8 +52,8 @@ export function ChangeStatusDialog({ target, onOpenChange, onSuccess }: Props) {
         <div className="space-y-4">
           <p className="text-sm text-slate-700">
             {isDisable
-              ? 'O usuário perderá acesso ao tenant na próxima requisição. Histórico fica preservado.'
-              : 'O vínculo será restabelecido — o usuário volta a ter acesso ao tenant. Não enviamos novo convite.'}
+              ? 'O usuário perderá acesso à clínica na próxima requisição. Histórico fica preservado.'
+              : 'O vínculo será restabelecido — o usuário volta a ter acesso à clínica. Não enviamos novo convite.'}
           </p>
           <p className="text-xs text-slate-500">
             Usuário: <strong>{target.fullName ?? target.email}</strong>

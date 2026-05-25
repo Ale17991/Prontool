@@ -434,7 +434,7 @@ export async function createAppointmentManually(
     if (/PROCEDURE_LINE_UNKNOWN|APPOINTMENT_PROCEDURE_UNKNOWN/i.test(msg)) {
       throw new DomainError(
         'PROCEDURE_NOT_FOUND',
-        'Procedimento não encontrado para este tenant.',
+        'Procedimento não encontrado para esta clínica.',
         { status: 400 },
       )
     }
@@ -570,7 +570,7 @@ async function ensureBelongsToTenant(
   if (res.error) throw new Error(`${table} lookup failed: ${res.error.message}`)
   if (!res.data) {
     const label = PT_TABLE_LABEL[table] ?? table
-    throw new DomainError(notFoundCode, `${label} não encontrado(a) neste tenant.`, { status: 404 })
+    throw new DomainError(notFoundCode, `${label} não encontrado(a) nesta clínica.`, { status: 404 })
   }
 }
 

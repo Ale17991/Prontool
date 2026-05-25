@@ -96,7 +96,7 @@ export async function createManualUser(
     if (existingLink && (existingLink as { status: string }).status === 'active') {
       throw new ConflictError(
         'USER_ALREADY_ACTIVE',
-        'Esse e-mail já está vinculado ao tenant.',
+        'Esse e-mail já está vinculado à clínica.',
       )
     }
   }
@@ -154,7 +154,7 @@ export async function createManualUser(
       if (upDocErr.code === '23505') {
         throw new ConflictError(
           'DOCTOR_ALREADY_LINKED',
-          'Profissional já vinculado a outro usuário neste tenant.',
+          'Profissional já vinculado a outro usuário nesta clínica.',
         )
       }
       throw new Error(`createManualUser update doctor failed: ${upDocErr.message}`)

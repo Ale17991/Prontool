@@ -82,7 +82,7 @@ export async function inviteTeamMember(
     .maybeSingle()
 
   if (existingLink && (existingLink as { status: string }).status === 'active') {
-    throw new ConflictError('USER_ALREADY_ACTIVE', 'Usuário já está ativo neste tenant')
+    throw new ConflictError('USER_ALREADY_ACTIVE', 'Usuário já está ativo nesta clínica')
   }
 
   if (existingLink) {
@@ -149,7 +149,7 @@ export async function resendInvite(
     .eq('user_id', targetUserId)
     .eq('tenant_id', tenantId)
     .maybeSingle()
-  if (!link) throw new ConflictError('USER_NOT_FOUND', 'Usuário não vinculado ao tenant')
+  if (!link) throw new ConflictError('USER_NOT_FOUND', 'Usuário não vinculado à clínica')
   if ((link as { status: string }).status !== 'active') {
     throw new ConflictError('NOT_PENDING', 'Usuário não está em estado de convite pendente')
   }

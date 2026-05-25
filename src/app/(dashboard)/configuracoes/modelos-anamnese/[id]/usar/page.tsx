@@ -66,7 +66,7 @@ export default async function UsarAnamneseTemplatePage({ params }: PageProps) {
         <CardContent>
           {(activePatientCount ?? 0) === 0 ? (
             <p className="py-8 text-center text-sm text-slate-500">
-              Nenhum paciente ativo no tenant. Cadastre um paciente antes de aplicar o modelo.
+              Nenhum paciente ativo nesta clínica. Cadastre um paciente antes de aplicar o modelo.
             </p>
           ) : (
             <ApplyTemplateForm templateId={template.id} fields={fields} />

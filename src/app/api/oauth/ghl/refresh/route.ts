@@ -39,7 +39,7 @@ export async function POST(req: Request): Promise<Response> {
     const row = await getIntegrationConfig(supabase, session.tenantId, 'ghl')
     if (!row) {
       return NextResponse.json(
-        { error: { code: 'NOT_CONNECTED', message: 'Sem integração Homio ativa neste tenant.' } },
+        { error: { code: 'NOT_CONNECTED', message: 'Sem integração Homio ativa nesta clínica.' } },
         { status: 404 },
       )
     }

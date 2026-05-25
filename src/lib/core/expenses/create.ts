@@ -59,7 +59,7 @@ export async function createExpense(
     const taxRow = tax as { id: string; is_active: boolean; deleted_at: string | null } | null
     if (!taxRow || taxRow.deleted_at || !taxRow.is_active) {
       throw new ValidationError(
-        'Imposto inválido: não encontrado, inativo ou de outro tenant.',
+        'Imposto inválido: não encontrado, inativo ou de outra clínica.',
         { taxId: input.taxId },
       )
     }

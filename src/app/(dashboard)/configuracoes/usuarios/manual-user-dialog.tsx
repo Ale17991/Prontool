@@ -84,9 +84,9 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
         error?: { code?: string; message?: string }
       }
       const code = body.error?.code
-      if (code === 'USER_ALREADY_ACTIVE') setError('Esse e-mail já está vinculado ao tenant.')
+      if (code === 'USER_ALREADY_ACTIVE') setError('Esse e-mail já está vinculado à clínica.')
       else if (code === 'DOCTOR_ALREADY_LINKED') setError('Este profissional já tem login vinculado.')
-      else if (code === 'DOCTOR_NOT_FOUND') setError('Profissional não encontrado neste tenant.')
+      else if (code === 'DOCTOR_NOT_FOUND') setError('Profissional não encontrado nesta clínica.')
       else setError(body.error?.message ?? `HTTP ${res.status}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

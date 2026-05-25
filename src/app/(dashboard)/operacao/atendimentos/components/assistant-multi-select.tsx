@@ -56,7 +56,7 @@ export function AssistantMultiSelect({
   if (options.length === 0) {
     return (
       <p className="text-[11px] text-slate-500">
-        Nenhum profissional Liberal cadastrado neste tenant. Para adicionar assistentes,
+        Nenhum profissional Liberal cadastrado nesta clínica. Para adicionar assistentes,
         cadastre um profissional com modalidade Liberal em{' '}
         <a
           href="/configuracoes/profissionais"

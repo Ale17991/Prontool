@@ -129,7 +129,7 @@ export function NewDoctorForm() {
       })
       if (res.status === 409) {
         const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
-        setError(body.error?.message ?? 'Nº de registro já cadastrado neste tenant.')
+        setError(body.error?.message ?? 'Nº de registro já cadastrado nesta clínica.')
         return
       }
       if (!res.ok) {

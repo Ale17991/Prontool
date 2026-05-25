@@ -150,7 +150,7 @@ export async function createDoctor(
     if (doctorInsert.error.code === '23505') {
       const msg = /external/i.test(doctorInsert.error.message)
         ? `Identificador externo já usado por outro profissional`
-        : `Já existe um profissional com o nº de registro ${crm} neste tenant`
+        : `Já existe um profissional com o nº de registro ${crm} nesta clínica`
       throw new ConflictError('DOCTOR_DUPLICATE', msg, {
         crm,
         external_identifier: input.externalIdentifier ?? null,

@@ -42,7 +42,7 @@ export function InviteUserDialog({ open, onOpenChange, onSuccess }: Props) {
       }
       const body = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } }
       const code = body.error?.code
-      if (code === 'USER_ALREADY_ACTIVE') setError('Esse e-mail já está vinculado ao tenant')
+      if (code === 'USER_ALREADY_ACTIVE') setError('Esse e-mail já está vinculado à clínica')
       else setError(body.error?.message ?? `HTTP ${res.status}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

@@ -82,7 +82,7 @@ export async function createPatientWithAnamnesis(
     if (existing) {
       throw new ConflictError(
         'PATIENT_CPF_DUPLICATE',
-        'Paciente com este CPF já existe no tenant',
+        'Paciente com este CPF já existe nesta clínica',
         { patient_id: existing.id, full_name: existing.fullName },
       )
     }

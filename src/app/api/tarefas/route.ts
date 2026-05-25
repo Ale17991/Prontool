@@ -117,7 +117,7 @@ export async function POST(req: Request): Promise<Response> {
     } catch (err) {
       if (err instanceof NotFoundError) {
         return NextResponse.json(
-          { error: { code: 'USER_NOT_FOUND', message: 'Responsável não pertence ao tenant.' } },
+          { error: { code: 'USER_NOT_FOUND', message: 'Responsável não pertence à clínica.' } },
           { status: 404 },
         )
       }

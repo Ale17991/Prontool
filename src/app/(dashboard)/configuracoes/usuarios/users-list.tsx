@@ -65,7 +65,7 @@ export function UsersList({ initial }: Props) {
     <Card>
       <CardContent className="p-0">
         <div className="flex items-center justify-between border-b border-slate-200 p-4">
-          <p className="text-xs text-slate-500">{users.length} usuário(s) no tenant</p>
+          <p className="text-xs text-slate-500">{users.length} usuário(s) na clínica</p>
           <div className="flex items-center gap-2">
             <Button onClick={() => setManualOpen(true)} size="sm" variant="outline">
               <UserPlus className="mr-2 h-3 w-3" />

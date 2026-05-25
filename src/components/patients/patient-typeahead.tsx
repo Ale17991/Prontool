@@ -256,7 +256,7 @@ export function PatientTypeahead({
               <CommandEmpty className="py-6 text-center text-xs text-slate-500">
                 {search.trim()
                   ? 'Nenhum paciente encontrado.'
-                  : 'Nenhum paciente no tenant.'}
+                  : 'Nenhum paciente nesta clínica.'}
               </CommandEmpty>
             ) : (
               <CommandGroup heading="Pacientes">
