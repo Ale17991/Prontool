@@ -22,6 +22,20 @@ function untyped(supabase: SupabaseClient<Database>): { from: UntypedFrom } {
   return supabase as unknown as { from: UntypedFrom }
 }
 
+/**
+ * SQLSTATE 42P01 = "relation does not exist". Acontece quando a 0103 ainda
+ * não foi aplicada em algum ambiente (deploy novo antes de migrar o DB).
+ * Para os reads bulk (listas/typeahead), tratamos como "sem tags" em vez
+ * de quebrar o request inteiro. Para os writes, propaga (UI mostra erro).
+ */
+function isMissingTable(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false
+  return (
+    err.code === '42P01' ||
+    /relation .* does not exist/i.test(err.message ?? '')
+  )
+}
+
 export interface PatientTag {
   id: string
   tenantId: string
@@ -74,7 +88,10 @@ export async function listPatientTags(
     .select('id, tenant_id, name, color, created_at, updated_at')
     .eq('tenant_id', tenantId)
     .order('name', { ascending: true })
-  if (error) throw new Error(`list patient_tags failed: ${error.message}`)
+  if (error) {
+    if (isMissingTable(error)) return []
+    throw new Error(`list patient_tags failed: ${error.message}`)
+  }
   return ((data ?? []) as TagRow[]).map(toTag)
 }
 
@@ -182,7 +199,10 @@ export async function listTagsForPatient(
     )
     .eq('tenant_id', args.tenantId)
     .eq('patient_id', args.patientId)
-  if (error) throw new Error(`list tags for patient failed: ${error.message}`)
+  if (error) {
+    if (isMissingTable(error)) return []
+    throw new Error(`list tags for patient failed: ${error.message}`)
+  }
 
   // Supabase tipa o embed como array, mas como tag_id é FK 1:1, o runtime
   // devolve objeto único — daí o cast via unknown.
@@ -212,7 +232,10 @@ export async function listTagsForPatients(
     )
     .eq('tenant_id', args.tenantId)
     .in('patient_id', args.patientIds)
-  if (error) throw new Error(`bulk tags for patients failed: ${error.message}`)
+  if (error) {
+    if (isMissingTable(error)) return result
+    throw new Error(`bulk tags for patients failed: ${error.message}`)
+  }
 
   for (const row of (data ?? []) as unknown as Array<{
     patient_id: string

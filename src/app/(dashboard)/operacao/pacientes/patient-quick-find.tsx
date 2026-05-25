@@ -72,7 +72,7 @@ export function PatientQuickFind() {
       try {
         const params = new URLSearchParams({
           page_size: '8',
-          include: 'plan,tags',
+          include: 'plan',
           q: search.trim(),
         })
         const res = await fetch(`/api/pacientes?${params.toString()}`, {

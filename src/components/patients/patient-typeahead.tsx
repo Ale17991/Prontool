@@ -148,7 +148,7 @@ export function PatientTypeahead({
       try {
         const params = new URLSearchParams({
           page_size: '20',
-          include: 'plan,tags',
+          include: 'plan',
         })
         const q = search.trim()
         if (q) params.set('q', q)
