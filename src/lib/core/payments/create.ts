@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError, ValidationError } from '@/lib/observability/errors'
+import { getTenantTimezone, dateToTenantYmd } from '@/lib/utils/tenant-tz'
 
 export type PaymentMethod =
   | 'dinheiro'
@@ -64,7 +65,11 @@ export async function createPaymentRecord(
   if (pat.error) throw new Error(`patient lookup: ${pat.error.message}`)
   if (!pat.data) throw new NotFoundError('patient', input.patientId)
 
-  const installments = normalizeInstallments(input)
+  // Datas de vencimento das parcelas usam o "hoje" no fuso da clínica, não
+  // o fuso do servidor (UTC na Vercel). Sem isto, parcelas criadas perto da
+  // meia-noite caíam com vencimento 1 dia errado para tenants em UTC-3.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
+  const installments = normalizeInstallments(input, dateToTenantYmd(new Date(), tz))
   const totalFromInstallments = installments.reduce((acc, i) => acc + i.amountCents, 0)
   if (Math.abs(totalFromInstallments - input.totalAmountCents) > installments.length) {
     // Tolera diferença de até 1 centavo por parcela (arredondamento).
@@ -127,30 +132,44 @@ export async function createPaymentRecord(
   }
 }
 
-function normalizeInstallments(input: CreatePaymentRecordInput): InstallmentSpec[] {
+function normalizeInstallments(
+  input: CreatePaymentRecordInput,
+  todayYmd: string,
+): InstallmentSpec[] {
   if (input.installments && input.installments.length > 0) {
     return input.installments
   }
   const count = Math.max(1, input.installmentsCount ?? 1)
   if (count > 60) throw new ValidationError('Máximo 60 parcelas')
-  // Divide o total em N parcelas; resto vai pra primeira parcela.
-  const base = Math.floor(input.totalAmountCents / count)
-  const remainder = input.totalAmountCents - base * count
-  const today = new Date()
+  return computeInstallmentSchedule(input.totalAmountCents, count, todayYmd)
+}
+
+/**
+ * Divide `totalAmountCents` em `count` parcelas mensais a partir de
+ * `todayYmd` (YYYY-MM-DD, já no fuso da clínica). O resto da divisão vai na
+ * primeira parcela (nenhum centavo é perdido). A soma das datas usa
+ * aritmética em UTC sobre os componentes da data — independente do fuso do
+ * servidor — então o vencimento é sempre o mesmo dia do mês seguinte.
+ *
+ * Puro e determinístico para facilitar teste.
+ */
+export function computeInstallmentSchedule(
+  totalAmountCents: number,
+  count: number,
+  todayYmd: string,
+): InstallmentSpec[] {
+  const [y, m, d] = todayYmd.split('-').map(Number)
+  if (!y || !m || !d) {
+    throw new ValidationError(`data base inválida para parcelas: '${todayYmd}'`)
+  }
+  const base = Math.floor(totalAmountCents / count)
+  const remainder = totalAmountCents - base * count
   return Array.from({ length: count }, (_, idx) => {
-    const due = new Date(today)
-    due.setMonth(due.getMonth() + idx)
+    const due = new Date(Date.UTC(y, m - 1 + idx, d))
     return {
       installmentNumber: idx + 1,
       amountCents: idx === 0 ? base + remainder : base,
-      dueDate: toYmd(due),
+      dueDate: due.toISOString().slice(0, 10),
     }
   })
-}
-
-function toYmd(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
 }

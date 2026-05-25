@@ -219,6 +219,7 @@ export async function buildFinancialReport(
     supabase,
     input.tenantId,
     doctorIdsInPeriod,
+    tz,
   )
   const commissionsCents = current.reduce(
     (acc, r) =>
@@ -418,9 +419,12 @@ async function fetchCurrentlyCommissionedDoctorIds(
   supabase: SupabaseClient<Database>,
   tenantId: string,
   doctorIds: string[],
+  tz: string,
 ): Promise<Set<string>> {
   if (doctorIds.length === 0) return new Set()
-  const today = new Date().toISOString().slice(0, 10)
+  // "Hoje" no fuso da clínica — `valid_from` é YYYY-MM-DD no fuso do tenant,
+  // então comparar com a data UTC do servidor erra perto da virada do dia.
+  const today = dateToTenantYmd(new Date(), tz)
   const { data, error } = await supabase
     .from('doctor_commission_history')
     .select('doctor_id, percentage_bps, valid_from, created_at')

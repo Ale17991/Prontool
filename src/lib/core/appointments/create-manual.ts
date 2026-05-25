@@ -9,6 +9,7 @@ import {
 import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'
 import { addAssistant } from '@/lib/core/appointment-assistants/add'
+import { getTenantTimezone, dateToTenantYmd } from '@/lib/utils/tenant-tz'
 
 /**
  * Cria um atendimento manualmente (admin/recepcionista) com N procedimentos.
@@ -197,8 +198,12 @@ export async function createAppointmentManually(
         .map((p) => p.tussCode as string),
     ),
   )
+  // Fuso da clínica para comparações de data — `valid_to` (TUSS) e
+  // `scheduled_date` (step) são datas no fuso do tenant; usar a data UTC do
+  // servidor erra perto da virada do dia.
+  const tz = await getTenantTimezone(supabase, input.tenantId)
   if (listedCodes.length > 0) {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = dateToTenantYmd(new Date(), tz)
     const tussRows = await supabase
       .from('tuss_codes')
       .select('code, valid_to')
@@ -494,7 +499,7 @@ export async function createAppointmentManually(
   if (shouldEnsurePlanStep && !anyStepLinkedOrCreated) {
     try {
       const primary = lines[0]!
-      const scheduledDate = when.toISOString().slice(0, 10)
+      const scheduledDate = dateToTenantYmd(when, tz)
       await supabase.from('treatment_plan_steps').insert({
         tenant_id: input.tenantId,
         patient_id: input.patientId,
