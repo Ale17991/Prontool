@@ -69,6 +69,8 @@ export function ScheduleBlockForm({ doctors, defaultDate, defaultDoctorId }: Pro
     }
 
     setPending(true)
+    // Flag para impedir double-submit durante a janela router.push.
+    let success = false
     try {
       const res = await fetch('/api/agenda/bloqueios', {
         method: 'POST',
@@ -101,10 +103,11 @@ export function ScheduleBlockForm({ doctors, defaultDate, defaultDoctorId }: Pro
         return
       }
 
+      success = true
       router.push(`/operacao/atendimentos?date=${blockDate}`)
       router.refresh()
     } finally {
-      setPending(false)
+      if (!success) setPending(false)
     }
   }
 

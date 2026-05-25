@@ -208,6 +208,8 @@ export function ApplyTemplateForm({ templateId, fields }: ApplyTemplateFormProps
     }
 
     setSubmitting(true)
+    // Flag para impedir double-submit durante a janela router.push.
+    let success = false
     try {
       const res = await fetch(`/api/anamnesis-templates/${templateId}/apply`, {
         method: 'POST',
@@ -221,10 +223,11 @@ export function ApplyTemplateForm({ templateId, fields }: ApplyTemplateFormProps
         setError(body.error?.message ?? 'Falha ao aplicar o modelo.')
         return
       }
+      success = true
       router.push(`/operacao/pacientes/${patientId}`)
       router.refresh()
     } finally {
-      setSubmitting(false)
+      if (!success) setSubmitting(false)
     }
   }
 

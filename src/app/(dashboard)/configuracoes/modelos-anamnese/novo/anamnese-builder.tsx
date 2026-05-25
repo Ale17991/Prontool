@@ -149,6 +149,8 @@ export function AnamneseBuilder() {
     }
 
     setLoading(true)
+    // Flag para impedir double-submit durante a janela router.push.
+    let success = false
     try {
       const res = await fetch('/api/anamnesis-templates', {
         method: 'POST',
@@ -166,10 +168,11 @@ export function AnamneseBuilder() {
         setError(body.error?.message ?? 'Falha ao salvar o modelo.')
         return
       }
+      success = true
       router.push('/configuracoes/modelos-anamnese')
       router.refresh()
     } finally {
-      setLoading(false)
+      if (!success) setLoading(false)
     }
   }
 

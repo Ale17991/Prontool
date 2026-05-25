@@ -37,6 +37,8 @@ export function EditPriceForm({
       return
     }
     setPending(true)
+    // Flag para impedir double-submit durante a janela router.push.
+    let success = false
     try {
       const res = await fetch('/api/precos/versions', {
         method: 'POST',
@@ -65,12 +67,13 @@ export function EditPriceForm({
         throw new Error(payload.error?.message ?? payload.message ?? `HTTP ${res.status}`)
       }
       const created = (await res.json()) as { id: string }
+      success = true
       router.push(`/configuracoes/precos/${created.id}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
-      setPending(false)
+      if (!success) setPending(false)
     }
   }
 

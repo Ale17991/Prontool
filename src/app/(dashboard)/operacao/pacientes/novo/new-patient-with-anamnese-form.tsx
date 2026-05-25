@@ -99,6 +99,8 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
     }
 
     setPending(true)
+    // Flag para impedir double-submit durante a janela router.push.
+    let success = false
     try {
       const res = await fetch('/api/pacientes/com-anamnese', {
         method: 'POST',
@@ -128,10 +130,11 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
         setError(body.error?.message ?? 'Falha ao criar paciente.')
         return
       }
+      success = true
       router.push(`/operacao/pacientes/${body.patient_id}`)
       router.refresh()
     } finally {
-      setPending(false)
+      if (!success) setPending(false)
     }
   }
 

@@ -64,6 +64,17 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
   const [birthDate, setBirthDate] = useState('')
   const [planId, setPlanId] = useState<string>('')
 
+  const [sex, setSex] = useState<string>('')
+  const [socialName, setSocialName] = useState('')
+  const [motherName, setMotherName] = useState('')
+  const [rg, setRg] = useState('')
+  const [insuranceCardNumber, setInsuranceCardNumber] = useState('')
+  const [emergencyContactName, setEmergencyContactName] = useState('')
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState('')
+  const [guardianName, setGuardianName] = useState('')
+  const [guardianCpf, setGuardianCpf] = useState('')
+  const [guardianRelationship, setGuardianRelationship] = useState('')
+
   const [cep, setCep] = useState('')
   const [street, setStreet] = useState('')
   const [number, setNumber] = useState('')
@@ -138,6 +149,11 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
     }
 
     setPending(true)
+    // Flag para distinguir "submit deu certo, vai navegar" de "submit
+    // falhou ou retornou erro". No primeiro caso, `pending` continua true
+    // para o componente desmontar sem dar chance de double-submit; no
+    // segundo, o `finally` re-habilita o botão para o usuário corrigir.
+    let success = false
     try {
       const cepDigits = cep.replace(/\D/g, '')
       const address = {
@@ -160,6 +176,16 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           email: email.trim() || null,
           birth_date: birthDate || null,
           plan_id: planId === '__none__' ? null : planId,
+          sex: sex || null,
+          social_name: socialName.trim() || null,
+          mother_name: motherName.trim() || null,
+          rg: rg.trim() || null,
+          insurance_card_number: insuranceCardNumber.trim() || null,
+          emergency_contact_name: emergencyContactName.trim() || null,
+          emergency_contact_phone: emergencyContactPhone.trim() || null,
+          guardian_name: guardianName.trim() || null,
+          guardian_cpf: guardianCpf.replace(/\D/g, '') || null,
+          guardian_relationship: guardianRelationship.trim() || null,
           address: hasAnyAddress ? address : null,
         }),
       })
@@ -172,10 +198,16 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         setError(body.error?.message ?? 'Falha ao criar paciente.')
         return
       }
+      success = true
       router.push(`/operacao/pacientes/${body.patientId}`)
       router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
-      setPending(false)
+      // Só re-habilita quando deu erro/cancel. No sucesso, o componente
+      // vai desmontar pela navegação — manter pending=true evita
+      // double-submit durante o intervalo entre router.push e a navegação.
+      if (!success) setPending(false)
     }
   }
 
@@ -238,6 +270,43 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           />
         </div>
 
+        <div className="space-y-1.5">
+          <Label htmlFor="sex">Sexo (opcional)</Label>
+          <Select value={sex} onValueChange={setSex}>
+            <SelectTrigger id="sex">
+              <SelectValue placeholder="Selecione…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="feminino">Feminino</SelectItem>
+              <SelectItem value="masculino">Masculino</SelectItem>
+              <SelectItem value="intersexo">Intersexo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="social_name">Nome social (opcional)</Label>
+          <Input
+            id="social_name"
+            value={socialName}
+            onChange={(e) => setSocialName(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="mother_name">Nome da mãe (opcional)</Label>
+          <Input
+            id="mother_name"
+            value={motherName}
+            onChange={(e) => setMotherName(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="rg">RG (opcional)</Label>
+          <Input id="rg" value={rg} onChange={(e) => setRg(e.target.value)} />
+        </div>
+
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="plan_id">
             Plano de saúde <span className="text-rose-500">*</span>
@@ -264,6 +333,75 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
               {' '}ou escolha &quot;Sem plano (particular)&quot;.
             </p>
           ) : null}
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="insurance_card_number">
+            Carteirinha do convênio (opcional)
+          </Label>
+          <Input
+            id="insurance_card_number"
+            placeholder="Número da carteira / matrícula"
+            value={insuranceCardNumber}
+            onChange={(e) => setInsuranceCardNumber(e.target.value)}
+          />
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <p className="md:col-span-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+          Contato de emergência (opcional)
+        </p>
+        <div className="space-y-1.5">
+          <Label htmlFor="emergency_contact_name">Nome</Label>
+          <Input
+            id="emergency_contact_name"
+            value={emergencyContactName}
+            onChange={(e) => setEmergencyContactName(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="emergency_contact_phone">Telefone</Label>
+          <Input
+            id="emergency_contact_phone"
+            inputMode="tel"
+            placeholder="(11) 99999-9999"
+            value={emergencyContactPhone}
+            onChange={(e) => setEmergencyContactPhone(e.target.value)}
+          />
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <p className="md:col-span-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+          Responsável legal (opcional — menores ou incapazes)
+        </p>
+        <div className="space-y-1.5">
+          <Label htmlFor="guardian_name">Nome do responsável</Label>
+          <Input
+            id="guardian_name"
+            value={guardianName}
+            onChange={(e) => setGuardianName(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="guardian_cpf">CPF do responsável</Label>
+          <Input
+            id="guardian_cpf"
+            inputMode="numeric"
+            placeholder="000.000.000-00"
+            value={guardianCpf}
+            onChange={(e) => setGuardianCpf(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="guardian_relationship">Parentesco</Label>
+          <Input
+            id="guardian_relationship"
+            placeholder="Mãe, pai, tutor…"
+            value={guardianRelationship}
+            onChange={(e) => setGuardianRelationship(e.target.value)}
+          />
         </div>
       </section>
 

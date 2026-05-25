@@ -325,6 +325,10 @@ export function NewAppointmentForm({
 
     setPending(true)
     setWarning(null)
+    // Flag para distinguir "submit deu certo, vai navegar" de "submit
+    // falhou". No primeiro caso `pending` segue true (componente desmonta);
+    // no segundo, o `finally` re-habilita o botão.
+    let success = false
     try {
       const res = await fetch('/api/atendimentos/manual', {
         method: 'POST',
@@ -469,11 +473,19 @@ export function NewAppointmentForm({
         }
       }
 
+      success = true
       router.push(`/operacao/atendimentos/${body.appointment_id}`)
       router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
-      setPending(false)
-      setActiveAction(null)
+      // Só re-habilita quando deu erro/cancel. No sucesso, mantém
+      // pending=true até a página desmontar pela navegação — evita
+      // double-submit (atendimento criado em duplicata).
+      if (!success) {
+        setPending(false)
+        setActiveAction(null)
+      }
     }
   }
 
