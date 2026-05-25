@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatient } from '@/lib/core/patients/get'
 import { updatePatientAddress } from '@/lib/core/patients/update-address'
+import { updatePatientIdentity } from '@/lib/core/patients/update-identity'
 import { NotFoundError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -27,14 +28,32 @@ const addressPatchSchema = z
   })
   .partial()
 
+const identityPatchSchema = z
+  .object({
+    sex: z.enum(['feminino', 'masculino', 'intersexo']).nullable(),
+    social_name: z.string().trim().max(200).nullable(),
+    mother_name: z.string().trim().max(200).nullable(),
+    rg: z.string().trim().max(40).nullable(),
+    insurance_card_number: z.string().trim().max(60).nullable(),
+    emergency_contact_name: z.string().trim().max(200).nullable(),
+    emergency_contact_phone: z.string().trim().max(40).nullable(),
+    guardian_name: z.string().trim().max(200).nullable(),
+    guardian_cpf: z.string().trim().max(20).nullable(),
+    guardian_relationship: z.string().trim().max(60).nullable(),
+  })
+  .partial()
+
 const patchSchema = z
   .object({
     plan_id: z.string().uuid().nullable().optional(),
     address: addressPatchSchema.optional(),
+    identity: identityPatchSchema.optional(),
   })
-  .refine((v) => v.plan_id !== undefined || v.address !== undefined, {
-    message: 'Informe plan_id ou address para atualizar.',
-  })
+  .refine(
+    (v) =>
+      v.plan_id !== undefined || v.address !== undefined || v.identity !== undefined,
+    { message: 'Informe plan_id, address ou identity para atualizar.' },
+  )
 
 export async function GET(
   req: Request,
@@ -119,6 +138,26 @@ export async function PATCH(
         tenantId: session.tenantId,
         patientId: params.id,
         address: parsed.data.address,
+      })
+    }
+
+    if (parsed.data.identity !== undefined) {
+      const i = parsed.data.identity
+      await updatePatientIdentity(supabase, {
+        tenantId: session.tenantId,
+        patientId: params.id,
+        fields: {
+          sex: i.sex,
+          socialName: i.social_name,
+          motherName: i.mother_name,
+          rg: i.rg,
+          insuranceCardNumber: i.insurance_card_number,
+          emergencyContactName: i.emergency_contact_name,
+          emergencyContactPhone: i.emergency_contact_phone,
+          guardianName: i.guardian_name,
+          guardianCpf: i.guardian_cpf,
+          guardianRelationship: i.guardian_relationship,
+        },
       })
     }
 

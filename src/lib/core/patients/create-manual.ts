@@ -24,6 +24,8 @@ export interface CreateManualPatientAddress {
   state?: string | null
 }
 
+export type PatientSex = 'feminino' | 'masculino' | 'intersexo'
+
 export interface CreateManualPatientInput {
   tenantId: string
   fullName: string
@@ -35,6 +37,17 @@ export interface CreateManualPatientInput {
   address?: CreateManualPatientAddress | undefined
   /** Health plan chosen by the operator at creation time (obrigatório na UI; nullable no banco). */
   planId?: string | null | undefined
+  // Identificação clínica (todos opcionais; PII cifrada, exceto `sex`).
+  sex?: PatientSex | null | undefined
+  socialName?: string | null | undefined
+  motherName?: string | null | undefined
+  rg?: string | null | undefined
+  insuranceCardNumber?: string | null | undefined
+  emergencyContactName?: string | null | undefined
+  emergencyContactPhone?: string | null | undefined
+  guardianName?: string | null | undefined
+  guardianCpf?: string | null | undefined
+  guardianRelationship?: string | null | undefined
   actorUserId: string
 }
 
@@ -73,6 +86,15 @@ export async function createPatientManually(
     addrNeighborhood,
     addrCity,
     addrState,
+    socialName,
+    motherName,
+    rg,
+    insuranceCardNumber,
+    emergencyContactName,
+    emergencyContactPhone,
+    guardianName,
+    guardianCpf,
+    guardianRelationship,
   ] = await Promise.all([
     encrypt(supabase, input.fullName, key),
     input.cpf ? encrypt(supabase, input.cpf, key) : Promise.resolve(null),
@@ -86,6 +108,15 @@ export async function createPatientManually(
     optEnc(addr.neighborhood),
     optEnc(addr.city),
     optEnc(addr.state),
+    optEnc(input.socialName),
+    optEnc(input.motherName),
+    optEnc(input.rg),
+    optEnc(input.insuranceCardNumber),
+    optEnc(input.emergencyContactName),
+    optEnc(input.emergencyContactPhone),
+    optEnc(input.guardianName),
+    optEnc(input.guardianCpf),
+    optEnc(input.guardianRelationship),
   ])
 
   const inserted = await supabase
@@ -106,6 +137,16 @@ export async function createPatientManually(
       address_city_enc: addrCity,
       address_state_enc: addrState,
       plan_id: input.planId ?? null,
+      sex: input.sex ?? null,
+      social_name_enc: socialName,
+      mother_name_enc: motherName,
+      rg_enc: rg,
+      insurance_card_number_enc: insuranceCardNumber,
+      emergency_contact_name_enc: emergencyContactName,
+      emergency_contact_phone_enc: emergencyContactPhone,
+      guardian_name_enc: guardianName,
+      guardian_cpf_enc: guardianCpf,
+      guardian_relationship_enc: guardianRelationship,
     })
     .select('id')
     .single()

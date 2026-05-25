@@ -18,14 +18,26 @@ export interface PatientAddress {
   state: string | null
 }
 
+export type PatientSex = 'feminino' | 'masculino' | 'intersexo'
+
 export interface PatientDetail {
   id: string
   ghlContactId: string
   fullName: string
+  socialName: string | null
+  sex: PatientSex | null
   cpf: string
+  rg: string | null
+  motherName: string | null
   phone: string | null
   email: string | null
   birthDate: string | null
+  insuranceCardNumber: string | null
+  emergencyContactName: string | null
+  emergencyContactPhone: string | null
+  guardianName: string | null
+  guardianCpf: string | null
+  guardianRelationship: string | null
   address: PatientAddress
   anonymizedAt: string | null
   createdAt: string
@@ -51,10 +63,20 @@ interface RpcRow {
   id: string
   ghl_contact_id: string
   full_name: string | null
+  social_name: string | null
+  sex: string | null
   cpf: string | null
+  rg: string | null
+  mother_name: string | null
   phone: string | null
   email: string | null
   birth_date: string | null
+  insurance_card_number: string | null
+  emergency_contact_name: string | null
+  emergency_contact_phone: string | null
+  guardian_name: string | null
+  guardian_cpf: string | null
+  guardian_relationship: string | null
   address_cep: string | null
   address_street: string | null
   address_number: string | null
@@ -107,10 +129,20 @@ export async function getPatient(
     id: row.id,
     ghlContactId: row.ghl_contact_id,
     fullName: row.full_name ?? '',
+    socialName: row.social_name,
+    sex: (row.sex as PatientSex | null) ?? null,
     cpf: row.cpf ?? '',
+    rg: row.rg,
+    motherName: row.mother_name,
     phone: row.phone,
     email: row.email,
     birthDate: row.birth_date,
+    insuranceCardNumber: row.insurance_card_number,
+    emergencyContactName: row.emergency_contact_name,
+    emergencyContactPhone: row.emergency_contact_phone,
+    guardianName: row.guardian_name,
+    guardianCpf: row.guardian_cpf,
+    guardianRelationship: row.guardian_relationship,
     address: {
       cep: row.address_cep,
       street: row.address_street,

@@ -1922,12 +1922,22 @@ export type Database = {
           cpf_enc: string | null
           created_at: string
           email_enc: string | null
+          emergency_contact_name_enc: string | null
+          emergency_contact_phone_enc: string | null
           full_name_enc: string
           ghl_contact_id: string | null
+          guardian_cpf_enc: string | null
+          guardian_name_enc: string | null
+          guardian_relationship_enc: string | null
           id: string
+          insurance_card_number_enc: string | null
+          mother_name_enc: string | null
           phone_enc: string | null
           plan_id: string | null
           reminders_opt_in: boolean
+          rg_enc: string | null
+          sex: string | null
+          social_name_enc: string | null
           tenant_id: string
           updated_at: string
         }
@@ -1944,12 +1954,22 @@ export type Database = {
           cpf_enc?: string | null
           created_at?: string
           email_enc?: string | null
+          emergency_contact_name_enc?: string | null
+          emergency_contact_phone_enc?: string | null
           full_name_enc: string
           ghl_contact_id?: string | null
+          guardian_cpf_enc?: string | null
+          guardian_name_enc?: string | null
+          guardian_relationship_enc?: string | null
           id?: string
+          insurance_card_number_enc?: string | null
+          mother_name_enc?: string | null
           phone_enc?: string | null
           plan_id?: string | null
           reminders_opt_in?: boolean
+          rg_enc?: string | null
+          sex?: string | null
+          social_name_enc?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -1966,12 +1986,22 @@ export type Database = {
           cpf_enc?: string | null
           created_at?: string
           email_enc?: string | null
+          emergency_contact_name_enc?: string | null
+          emergency_contact_phone_enc?: string | null
           full_name_enc?: string
           ghl_contact_id?: string | null
+          guardian_cpf_enc?: string | null
+          guardian_name_enc?: string | null
+          guardian_relationship_enc?: string | null
           id?: string
+          insurance_card_number_enc?: string | null
+          mother_name_enc?: string | null
           phone_enc?: string | null
           plan_id?: string | null
           reminders_opt_in?: boolean
+          rg_enc?: string | null
+          sex?: string | null
+          social_name_enc?: string | null
           tenant_id?: string
           updated_at?: string
         }
@@ -3867,10 +3897,20 @@ export type Database = {
           cpf: string
           created_at: string
           email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
           full_name: string
           ghl_contact_id: string
+          guardian_cpf: string
+          guardian_name: string
+          guardian_relationship: string
           id: string
+          insurance_card_number: string
+          mother_name: string
           phone: string
+          rg: string
+          sex: string
+          social_name: string
           updated_at: string
         }[]
       }

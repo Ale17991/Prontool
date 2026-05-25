@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Stethoscope } from 'lucide-react'
 import { AddressEditor } from '../address-editor'
+import { IdentityEditor } from '../identity-editor'
 import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { MedicalHistorySection } from '../medical-history-section'
@@ -81,6 +82,23 @@ export function CadastroTab({
 }: Props) {
   return (
     <div className="space-y-6">
+      <IdentityEditor
+        patientId={patientId}
+        identity={{
+          sex: patient.sex,
+          socialName: patient.socialName,
+          motherName: patient.motherName,
+          rg: patient.rg,
+          insuranceCardNumber: patient.insuranceCardNumber,
+          emergencyContactName: patient.emergencyContactName,
+          emergencyContactPhone: patient.emergencyContactPhone,
+          guardianName: patient.guardianName,
+          guardianCpf: patient.guardianCpf,
+          guardianRelationship: patient.guardianRelationship,
+        }}
+        canEdit={canEditPatient}
+      />
+
       <AddressEditor
         patientId={patientId}
         address={patient.address}

@@ -71,6 +71,17 @@ const addressSchema = z
   .optional()
   .nullable()
 
+// Campo de texto opcional: trim + '' vira null. Reutilizado nos novos campos
+// de identificação clínica.
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v : null))
+
 const createSchema = z.object({
   full_name: z.string().trim().min(2).max(200),
   cpf: cpfOptional,
@@ -84,6 +95,17 @@ const createSchema = z.object({
   // Obrigatório na UI mas nullable no backend pra não quebrar dados
   // legados; a UI manda sempre que puder.
   plan_id: z.string().uuid().optional().nullable(),
+  // Identificação clínica (todos opcionais).
+  sex: z.enum(['feminino', 'masculino', 'intersexo']).optional().nullable(),
+  social_name: optionalText(200),
+  mother_name: optionalText(200),
+  rg: optionalText(40),
+  insurance_card_number: optionalText(60),
+  emergency_contact_name: optionalText(200),
+  emergency_contact_phone: optionalText(40),
+  guardian_name: optionalText(200),
+  guardian_cpf: optionalText(20),
+  guardian_relationship: optionalText(60),
   address: addressSchema,
 })
 
@@ -196,6 +218,16 @@ export async function POST(req: Request): Promise<Response> {
       email: parsed.data.email ?? undefined,
       birthDate: parsed.data.birth_date ?? undefined,
       planId: parsed.data.plan_id ?? null,
+      sex: parsed.data.sex ?? null,
+      socialName: parsed.data.social_name,
+      motherName: parsed.data.mother_name,
+      rg: parsed.data.rg,
+      insuranceCardNumber: parsed.data.insurance_card_number,
+      emergencyContactName: parsed.data.emergency_contact_name,
+      emergencyContactPhone: parsed.data.emergency_contact_phone,
+      guardianName: parsed.data.guardian_name,
+      guardianCpf: parsed.data.guardian_cpf,
+      guardianRelationship: parsed.data.guardian_relationship,
       address: parsed.data.address ?? undefined,
     })
     return NextResponse.json(result, { status: 201 })
