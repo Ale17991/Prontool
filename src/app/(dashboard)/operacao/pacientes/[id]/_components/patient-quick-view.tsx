@@ -20,6 +20,7 @@ import type {
   SheetKind,
 } from '@/lib/core/patient-timeline'
 import { QuickViewAllergiesCard } from './quick-view-allergies-card'
+import { PatientTagsCard } from '@/components/patient-tags/patient-tags-card'
 
 interface Props {
   patientId: string
@@ -170,6 +171,9 @@ export function PatientQuickView({
           </CardContent>
         </Card>
       ) : null}
+
+      {/* Tags coloridas — gerenciamento inline */}
+      <PatientTagsCard patientId={patientId} />
 
       {/* Alergias — gerenciamento inline (add/remove) */}
       <QuickViewAllergiesCard

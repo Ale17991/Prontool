@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listPatients } from '@/lib/core/patients/list'
 import { createPatientManually } from '@/lib/core/patients/create-manual'
+import { listTagsForPatients } from '@/lib/core/patient-tags/service'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -28,7 +29,17 @@ const querySchema = z.object({
     .transform((v) => (v === undefined ? undefined : Number(v))),
   // Quando 'plan', enriquece cada item com planId e planName via batch
   // select em patients/health_plans. Usado pelo typeahead de paciente.
-  include: z.enum(['plan']).optional(),
+  // 'tags' acrescenta as tags atribuídas a cada paciente.
+  // Múltiplos valores separados por vírgula: include=plan,tags
+  include: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean) as Array<'plan' | 'tags'>,
+    ),
 })
 
 // CPF: opcional em fase de testes. Aceita vazio/null/ausente; se preenchido,
@@ -97,32 +108,51 @@ export async function GET(req: Request): Promise<Response> {
       pageSize: parsed.data.page_size,
     })
 
-    if (parsed.data.include === 'plan' && result.items.length > 0) {
-      // Batch lookup de plano (plan_id + nome) — não vem do RPC porque
-      // plan_id não é PII e fica em coluna em claro de `patients`.
+    const includes = new Set(parsed.data.include)
+    const wantPlan = includes.has('plan')
+    const wantTags = includes.has('tags')
+
+    if ((wantPlan || wantTags) && result.items.length > 0) {
       const ids = result.items.map((p) => p.id)
-      const { data: rows } = await supabase
-        .from('patients')
-        .select('id, plan_id, health_plans:plan_id ( id, name )')
-        .eq('tenant_id', session.tenantId)
-        .in('id', ids)
-      const byId = new Map<string, { planId: string | null; planName: string | null }>()
-      for (const row of (rows ?? []) as Array<{
-        id: string
-        plan_id: string | null
-        health_plans: { id: string; name: string } | null
-      }>) {
-        byId.set(row.id, {
-          planId: row.plan_id,
-          planName: row.health_plans?.name ?? null,
-        })
+      const planById = new Map<string, { planId: string | null; planName: string | null }>()
+      if (wantPlan) {
+        // Batch lookup de plano (plan_id + nome) — não vem do RPC porque
+        // plan_id não é PII e fica em coluna em claro de `patients`.
+        const { data: rows } = await supabase
+          .from('patients')
+          .select('id, plan_id, health_plans:plan_id ( id, name )')
+          .eq('tenant_id', session.tenantId)
+          .in('id', ids)
+        for (const row of (rows ?? []) as Array<{
+          id: string
+          plan_id: string | null
+          health_plans: { id: string; name: string } | null
+        }>) {
+          planById.set(row.id, {
+            planId: row.plan_id,
+            planName: row.health_plans?.name ?? null,
+          })
+        }
       }
+
+      const tagsById = wantTags
+        ? await listTagsForPatients(supabase, {
+            tenantId: session.tenantId,
+            patientIds: ids,
+          })
+        : new Map()
+
       const enriched = {
         ...result,
         items: result.items.map((p) => ({
           ...p,
-          planId: byId.get(p.id)?.planId ?? null,
-          planName: byId.get(p.id)?.planName ?? null,
+          ...(wantPlan
+            ? {
+                planId: planById.get(p.id)?.planId ?? null,
+                planName: planById.get(p.id)?.planName ?? null,
+              }
+            : {}),
+          ...(wantTags ? { tags: tagsById.get(p.id) ?? [] } : {}),
         })),
       }
       return NextResponse.json(enriched, { status: 200 })

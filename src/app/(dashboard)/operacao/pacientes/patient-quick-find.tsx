@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Search, User, X } from 'lucide-react'
+import { TagBadge } from '@/components/patient-tags/tag-badge'
+import type { PatientTagColor } from '@/lib/core/patient-tags/palette'
 
 /**
  * Busca instantanea de paciente na pagina /operacao/pacientes. Click no
@@ -14,12 +16,19 @@ import { Loader2, Search, User, X } from 'lucide-react'
  * Pacientes anonimizados sao filtrados na resposta — apenas ativos
  * aparecem aqui.
  */
+interface ApiTag {
+  id: string
+  name: string
+  color: PatientTagColor
+}
+
 interface ApiItem {
   id: string
   fullName: string
   cpf: string
   anonymizedAt: string | null
   planName?: string | null
+  tags?: ApiTag[]
 }
 
 interface Item {
@@ -27,6 +36,7 @@ interface Item {
   fullName: string
   cpf: string
   planName: string | null
+  tags: ApiTag[]
 }
 
 function maskCpf(raw: string): string {
@@ -62,7 +72,7 @@ export function PatientQuickFind() {
       try {
         const params = new URLSearchParams({
           page_size: '8',
-          include: 'plan',
+          include: 'plan,tags',
           q: search.trim(),
         })
         const res = await fetch(`/api/pacientes?${params.toString()}`, {
@@ -81,6 +91,7 @@ export function PatientQuickFind() {
             fullName: p.fullName || '(sem nome)',
             cpf: p.cpf ?? '',
             planName: p.planName ?? null,
+            tags: p.tags ?? [],
           }))
         setItems(mapped)
       } catch (err) {
@@ -182,8 +193,13 @@ export function PatientQuickFind() {
                       <User className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="truncate text-sm font-semibold text-slate-900">
-                        {p.fullName}
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-sm font-semibold text-slate-900">
+                          {p.fullName}
+                        </span>
+                        {p.tags.map((t) => (
+                          <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                        ))}
                       </span>
                       <span className="flex items-center gap-2 text-[11px] text-slate-500">
                         <span className="font-mono">{maskCpf(p.cpf)}</span>

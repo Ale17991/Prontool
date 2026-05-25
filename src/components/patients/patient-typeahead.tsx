@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronsUpDown, Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { TagBadge } from '@/components/patient-tags/tag-badge'
+import type { PatientTagColor } from '@/lib/core/patient-tags/palette'
 import {
   Command,
   CommandEmpty,
@@ -19,12 +21,19 @@ import { cn } from '@/lib/utils'
  * Inclui planId pra evitar uma segunda chamada quando o consumidor precisa
  * derivar plano default (ex.: form de novo atendimento).
  */
+export interface PatientTypeaheadTag {
+  id: string
+  name: string
+  color: PatientTagColor
+}
+
 export interface PatientTypeaheadValue {
   id: string
   fullName: string
   cpf: string
   planId: string | null
   planName: string | null
+  tags: PatientTypeaheadTag[]
 }
 
 interface ApiItem {
@@ -34,6 +43,7 @@ interface ApiItem {
   anonymizedAt: string | null
   planId?: string | null
   planName?: string | null
+  tags?: PatientTypeaheadTag[]
 }
 
 export interface PatientTypeaheadProps {
@@ -116,6 +126,7 @@ export function PatientTypeahead({
           cpf: body.patient.cpf ?? '',
           planId: body.patient.healthPlan?.id ?? null,
           planName: body.patient.healthPlan?.name ?? null,
+          tags: [],
         })
       })
       .catch(() => {
@@ -137,7 +148,7 @@ export function PatientTypeahead({
       try {
         const params = new URLSearchParams({
           page_size: '20',
-          include: 'plan',
+          include: 'plan,tags',
         })
         const q = search.trim()
         if (q) params.set('q', q)
@@ -158,6 +169,7 @@ export function PatientTypeahead({
             cpf: p.cpf ?? '',
             planId: p.planId ?? null,
             planName: p.planName ?? null,
+            tags: p.tags ?? [],
           }))
         setItems(mapped)
       } catch (err) {
@@ -262,8 +274,13 @@ export function PatientTypeahead({
                       )}
                     />
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="truncate font-semibold text-slate-900">
-                        {p.fullName}
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate font-semibold text-slate-900">
+                          {p.fullName}
+                        </span>
+                        {p.tags.map((t) => (
+                          <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                        ))}
                       </span>
                       <span className="flex items-center gap-2 text-[11px] text-slate-500">
                         <span className="font-mono">{maskCpf(p.cpf)}</span>

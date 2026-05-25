@@ -5,10 +5,13 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { listPatients } from '@/lib/core/patients/list'
+import { listTagsForPatients } from '@/lib/core/patient-tags/service'
+import type { PatientTag } from '@/lib/core/patient-tags/service'
 import type { Database } from '@/lib/db/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TagBadge } from '@/components/patient-tags/tag-badge'
 import { formatDate } from '@/lib/utils'
 import { PatientQuickFind } from './patient-quick-find'
 
@@ -56,6 +59,18 @@ export default async function PacientesPage({ searchParams }: PageProps) {
     listResult = { items: [], total: 0, page: 1, pageSize: 25 }
   }
   const { items, total, pageSize } = listResult
+
+  // Bulk lookup de tags atribuídas — evita N+1 no render da tabela.
+  // Se falhar, tags ficam vazias e o resto da página continua usável.
+  let tagsByPatient: Map<string, PatientTag[]> = new Map()
+  try {
+    tagsByPatient = await listTagsForPatients(supabase, {
+      tenantId: session.tenantId,
+      patientIds: items.map((p) => p.id),
+    })
+  } catch (err) {
+    console.error('[pacientes-list] listTagsForPatients failed', err)
+  }
 
   const totalPages = Math.max(Math.ceil(total / pageSize), 1)
   const canCreate = session.role === 'admin' || session.role === 'recepcionista'
@@ -116,6 +131,7 @@ export default async function PacientesPage({ searchParams }: PageProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Tags</TableHead>
                   <TableHead>CPF</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Cadastrado em</TableHead>
@@ -124,7 +140,9 @@ export default async function PacientesPage({ searchParams }: PageProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items.map((p) => (
+                {items.map((p) => {
+                  const tags = tagsByPatient.get(p.id) ?? []
+                  return (
                   <TableRow key={p.id} className="group">
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -135,6 +153,17 @@ export default async function PacientesPage({ searchParams }: PageProps) {
                           {p.anonymizedAt ? '[anonimizado]' : p.fullName || '—'}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {tags.length === 0 ? (
+                        <span className="text-xs text-slate-300">—</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {tags.map((t) => (
+                            <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                          ))}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-slate-600">
                       {p.anonymizedAt ? '—' : p.cpf || '—'}
@@ -157,7 +186,8 @@ export default async function PacientesPage({ searchParams }: PageProps) {
                       </Link>
                     </TableCell>
                   </TableRow>
-                ))}
+                  )
+                })}
               </TableBody>
             </Table>
           )}
