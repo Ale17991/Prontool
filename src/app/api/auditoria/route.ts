@@ -14,6 +14,7 @@ export const runtime = 'nodejs'
 
 const querySchema = z.object({
   entity: z.string().optional(),
+  actor_id: z.string().uuid().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
   result: z.enum(['success', 'denied', 'conflict']).optional(),
@@ -42,6 +43,7 @@ export async function GET(req: Request): Promise<Response> {
     const page = await listAuditPage(supabase, {
       tenantId: session.tenantId,
       entity: parsed.data.entity,
+      actorId: parsed.data.actor_id,
       from: parsed.data.from,
       to: parsed.data.to,
       result: parsed.data.result,

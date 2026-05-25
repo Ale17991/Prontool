@@ -7,7 +7,6 @@ import {
   ClipboardList,
   Clock,
   DollarSign,
-  History,
   Percent,
   Receipt,
   ShieldAlert,
@@ -64,16 +63,6 @@ interface AppointmentDetail {
   procedures: { tuss_code: string; display_name: string | null } | null
   doctors: { full_name: string | null } | null
   health_plans: { name: string | null } | null
-}
-
-interface AuditRow {
-  timestamp_utc: string | null
-  actor_label: string | null
-  field: string | null
-  old_value: string | null
-  new_value: string | null
-  reason: string | null
-  result: string | null
 }
 
 export default async function AtendimentoDetailPage({
@@ -169,14 +158,6 @@ export default async function AtendimentoDetailPage({
       // ignore — sub-bloco nao renderiza
     }
   }
-
-  const { data: auditRaw } = await supabase
-    .from('audit_log')
-    .select('timestamp_utc, actor_label, field, old_value, new_value, reason, result')
-    .eq('entity', 'appointments')
-    .eq('entity_id', params.id)
-    .order('timestamp_utc', { ascending: true })
-  const audit = (auditRaw ?? []) as AuditRow[]
 
   // Resolve effective_status com prioridade no valor do banco. O heuristico
   // isFuture so e usado quando rawStatus nao bate em um dos estados
@@ -552,48 +533,6 @@ export default async function AtendimentoDetailPage({
         </div>
       </details>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <History className="h-4 w-4 text-primary" />
-            Histórico de auditoria
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {audit.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-slate-500">Nenhum evento de auditoria.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Quando</TableHead>
-                  <TableHead>Ator</TableHead>
-                  <TableHead>Campo</TableHead>
-                  <TableHead>De</TableHead>
-                  <TableHead>Para</TableHead>
-                  <TableHead>Motivo</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {audit.map((row, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="text-slate-700">
-                      {formatDateTime(row.timestamp_utc)}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-500">
-                      {row.actor_label ?? '—'}
-                    </TableCell>
-                    <TableCell>{row.field ?? '—'}</TableCell>
-                    <TableCell className="font-mono text-xs">{row.old_value ?? '—'}</TableCell>
-                    <TableCell className="font-mono text-xs">{row.new_value ?? '—'}</TableCell>
-                    <TableCell>{row.reason ?? '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }

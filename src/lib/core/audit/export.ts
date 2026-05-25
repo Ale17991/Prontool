@@ -31,6 +31,7 @@ export type AuditRow = Record<AuditField, unknown>
 export interface AuditFilter {
   tenantId: string
   entity?: string
+  actorId?: string
   from?: string
   to?: string
   result?: 'success' | 'denied' | 'conflict'
@@ -98,6 +99,7 @@ function baseQuery(supabase: SupabaseClient<Database>, filter: AuditFilter) {
     .order('timestamp_utc', { ascending: false })
   if (filter.entity) q = q.eq('entity', filter.entity)
   if (filter.result) q = q.eq('result', filter.result)
+  if (filter.actorId) q = q.eq('actor_id', filter.actorId)
   if (filter.from) q = q.gte('timestamp_utc', filter.from)
   if (filter.to) q = q.lte('timestamp_utc', filter.to)
   return q

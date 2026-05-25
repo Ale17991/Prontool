@@ -33,10 +33,16 @@ interface PageProps {
   searchParams: {
     entity?: string
     result?: 'success' | 'denied' | 'conflict'
+    actor_id?: string
     from?: string
     to?: string
     cursor?: string
   }
+}
+
+interface ActorOption {
+  actorId: string
+  label: string
 }
 
 interface AuditRow {
@@ -69,6 +75,7 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
 
   if (searchParams.entity) q = q.eq('entity', searchParams.entity)
   if (searchParams.result) q = q.eq('result', searchParams.result)
+  if (searchParams.actor_id) q = q.eq('actor_id', searchParams.actor_id)
   if (searchParams.from) q = q.gte('timestamp_utc', searchParams.from)
   if (searchParams.to) q = q.lte('timestamp_utc', searchParams.to)
   if (searchParams.cursor) q = q.lt('timestamp_utc', searchParams.cursor)
@@ -78,6 +85,11 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
   const hasMore = rows.length > PAGE_SIZE
   const pageRows = hasMore ? rows.slice(0, PAGE_SIZE) : rows
   const nextCursor = hasMore ? pageRows[pageRows.length - 1]?.timestamp_utc : null
+
+  // Opções de "Ator" para o dropdown: distinct(actor_id, actor_label) do
+  // próprio audit_log do tenant. Vantagem sobre listar todos os usuários:
+  // mostra apenas quem tem eventos registrados, e dispensa auth.admin API.
+  const actorOptions = await loadActorOptions(supabase)
 
   const exportQs = buildExportQs(searchParams)
 
@@ -117,7 +129,7 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_auto] md:items-end">
+          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] md:items-end">
             <div className="space-y-1.5">
               <Label htmlFor="entity" className="text-xs">
                 Entidade
@@ -132,6 +144,24 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
                 {ENTITY_OPTIONS.map((e) => (
                   <option key={e} value={e}>
                     {e}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="actor_id" className="text-xs">
+                Usuário
+              </Label>
+              <select
+                id="actor_id"
+                name="actor_id"
+                defaultValue={searchParams.actor_id ?? ''}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Todos</option>
+                {actorOptions.map((a) => (
+                  <option key={a.actorId} value={a.actorId}>
+                    {a.label}
                   </option>
                 ))}
               </select>
@@ -266,6 +296,7 @@ function buildExportQs(sp: PageProps['searchParams']): string {
   const usp = new URLSearchParams()
   if (sp.entity) usp.set('entity', sp.entity)
   if (sp.result) usp.set('result', sp.result)
+  if (sp.actor_id) usp.set('actor_id', sp.actor_id)
   if (sp.from) usp.set('from', sp.from)
   if (sp.to) usp.set('to', sp.to)
   const s = usp.toString()
@@ -276,9 +307,39 @@ function buildPageQs(sp: PageProps['searchParams'], cursor: string): string {
   const usp = new URLSearchParams()
   if (sp.entity) usp.set('entity', sp.entity)
   if (sp.result) usp.set('result', sp.result)
+  if (sp.actor_id) usp.set('actor_id', sp.actor_id)
   if (sp.from) usp.set('from', sp.from)
   if (sp.to) usp.set('to', sp.to)
   usp.set('cursor', cursor)
   const s = usp.toString()
   return s ? `?${s}` : ''
+}
+
+/**
+ * Carrega opções (actor_id, label) distintas de audit_log do tenant. Usa
+ * o próprio audit_log via RLS — mais leve que enumerar user_tenants +
+ * auth.admin, e mostra só quem efetivamente já gerou eventos. Limit
+ * defensivo (500) cobre clínicas grandes sem encher o select.
+ */
+async function loadActorOptions(
+  supabase: ReturnType<typeof createSupabaseServerClient>,
+): Promise<ActorOption[]> {
+  const { data } = await supabase
+    .from('audit_log')
+    .select('actor_id, actor_label')
+    .not('actor_id', 'is', null)
+    .order('actor_label', { ascending: true })
+    .limit(2000)
+  const seen = new Set<string>()
+  const out: ActorOption[] = []
+  for (const r of (data ?? []) as Array<{ actor_id: string | null; actor_label: string | null }>) {
+    if (!r.actor_id || seen.has(r.actor_id)) continue
+    seen.add(r.actor_id)
+    out.push({
+      actorId: r.actor_id,
+      label: r.actor_label?.replace(/^user:/, '') || r.actor_id.slice(0, 8),
+    })
+    if (out.length >= 500) break
+  }
+  return out
 }
