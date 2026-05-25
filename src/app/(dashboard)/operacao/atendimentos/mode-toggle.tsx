@@ -30,6 +30,10 @@ export function ModeToggle({ mode }: { mode: 'list' | 'cal' }) {
     else params.set('mode', 'list')
     const qs = params.toString()
     router.push(qs ? `?${qs}` : '?')
+    // O modo é resolvido no servidor (page.tsx lê searchParams + cookie). Sem
+    // o refresh, o Router Cache do App Router serve o payload já renderizado
+    // para a URL e a troca só aparecia depois de um reload manual.
+    router.refresh()
   }
 
   return (
