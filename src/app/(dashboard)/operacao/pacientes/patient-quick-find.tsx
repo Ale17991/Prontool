@@ -72,7 +72,7 @@ export function PatientQuickFind() {
       try {
         const params = new URLSearchParams({
           page_size: '8',
-          include: 'plan',
+          include: 'plan,tags',
           q: search.trim(),
         })
         const res = await fetch(`/api/pacientes?${params.toString()}`, {
@@ -193,14 +193,16 @@ export function PatientQuickFind() {
                       <User className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate text-sm font-semibold text-slate-900">
-                          {p.fullName}
-                        </span>
-                        {p.tags.map((t) => (
-                          <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
-                        ))}
+                      <span className="truncate text-sm font-semibold text-slate-900">
+                        {p.fullName}
                       </span>
+                      {p.tags.length > 0 ? (
+                        <span className="flex flex-wrap items-center gap-1">
+                          {p.tags.map((t) => (
+                            <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                          ))}
+                        </span>
+                      ) : null}
                       <span className="flex items-center gap-2 text-[11px] text-slate-500">
                         <span className="font-mono">{maskCpf(p.cpf)}</span>
                         <span aria-hidden>·</span>

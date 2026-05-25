@@ -148,7 +148,7 @@ export function PatientTypeahead({
       try {
         const params = new URLSearchParams({
           page_size: '20',
-          include: 'plan',
+          include: 'plan,tags',
         })
         const q = search.trim()
         if (q) params.set('q', q)
@@ -274,14 +274,16 @@ export function PatientTypeahead({
                       )}
                     />
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate font-semibold text-slate-900">
-                          {p.fullName}
-                        </span>
-                        {p.tags.map((t) => (
-                          <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
-                        ))}
+                      <span className="truncate font-semibold text-slate-900">
+                        {p.fullName}
                       </span>
+                      {p.tags.length > 0 ? (
+                        <span className="flex flex-wrap items-center gap-1">
+                          {p.tags.map((t) => (
+                            <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                          ))}
+                        </span>
+                      ) : null}
                       <span className="flex items-center gap-2 text-[11px] text-slate-500">
                         <span className="font-mono">{maskCpf(p.cpf)}</span>
                         <span aria-hidden>·</span>

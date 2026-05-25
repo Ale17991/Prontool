@@ -187,29 +187,38 @@ export async function deletePatientTag(
 
 /**
  * Busca todas as tags atribuídas a um paciente.
+ *
+ * Implementação com 2 queries (em vez de embed PostgREST) porque o embed
+ * em alguns ambientes Supabase deduplica linhas ao agrupar pelo lado N=1,
+ * deixando o paciente com apenas a primeira tag. Duas queries explícitas
+ * são previsíveis e baratas (índices em patient_id e tag_id).
  */
 export async function listTagsForPatient(
   supabase: SupabaseClient<Database>,
   args: { tenantId: string; patientId: string },
 ): Promise<PatientTag[]> {
-  const { data, error } = await untyped(supabase)
+  const { data: assignments, error: assignErr } = await untyped(supabase)
     .from('patient_tag_assignments')
-    .select(
-      'patient_tags:tag_id ( id, tenant_id, name, color, created_at, updated_at )',
-    )
+    .select('tag_id')
     .eq('tenant_id', args.tenantId)
     .eq('patient_id', args.patientId)
-  if (error) {
-    if (isMissingTable(error)) return []
-    throw new Error(`list tags for patient failed: ${error.message}`)
+  if (assignErr) {
+    if (isMissingTable(assignErr)) return []
+    throw new Error(`list assignments for patient failed: ${assignErr.message}`)
   }
+  const tagIds = ((assignments ?? []) as Array<{ tag_id: string }>).map((a) => a.tag_id)
+  if (tagIds.length === 0) return []
 
-  // Supabase tipa o embed como array, mas como tag_id é FK 1:1, o runtime
-  // devolve objeto único — daí o cast via unknown.
-  const rows = (data ?? []) as unknown as Array<{ patient_tags: TagRow | null }>
-  return rows
-    .map((r) => r.patient_tags)
-    .filter((t): t is TagRow => t !== null)
+  const { data: tags, error: tagsErr } = await untyped(supabase)
+    .from('patient_tags')
+    .select('id, tenant_id, name, color, created_at, updated_at')
+    .eq('tenant_id', args.tenantId)
+    .in('id', tagIds)
+  if (tagsErr) {
+    if (isMissingTable(tagsErr)) return []
+    throw new Error(`fetch tags by id failed: ${tagsErr.message}`)
+  }
+  return ((tags ?? []) as TagRow[])
     .map(toTag)
     .sort((a, b) => a.name.localeCompare(b.name))
 }
@@ -217,6 +226,9 @@ export async function listTagsForPatient(
 /**
  * Bulk: tags por paciente para uma lista de patientIds. Usado pela
  * listagem de pacientes para evitar N+1.
+ *
+ * Mesma motivação do single: 2 queries puras em vez de embed PostgREST
+ * que pode reduzir o resultado a 1 tag por paciente.
  */
 export async function listTagsForPatients(
   supabase: SupabaseClient<Database>,
@@ -225,25 +237,38 @@ export async function listTagsForPatients(
   const result = new Map<string, PatientTag[]>()
   if (args.patientIds.length === 0) return result
 
-  const { data, error } = await untyped(supabase)
+  const { data: assignments, error: assignErr } = await untyped(supabase)
     .from('patient_tag_assignments')
-    .select(
-      'patient_id, patient_tags:tag_id ( id, tenant_id, name, color, created_at, updated_at )',
-    )
+    .select('patient_id, tag_id')
     .eq('tenant_id', args.tenantId)
     .in('patient_id', args.patientIds)
-  if (error) {
-    if (isMissingTable(error)) return result
-    throw new Error(`bulk tags for patients failed: ${error.message}`)
+  if (assignErr) {
+    if (isMissingTable(assignErr)) return result
+    throw new Error(`bulk assignments for patients failed: ${assignErr.message}`)
+  }
+  const rows = (assignments ?? []) as Array<{ patient_id: string; tag_id: string }>
+  if (rows.length === 0) return result
+
+  const tagIds = Array.from(new Set(rows.map((r) => r.tag_id)))
+  const { data: tags, error: tagsErr } = await untyped(supabase)
+    .from('patient_tags')
+    .select('id, tenant_id, name, color, created_at, updated_at')
+    .eq('tenant_id', args.tenantId)
+    .in('id', tagIds)
+  if (tagsErr) {
+    if (isMissingTable(tagsErr)) return result
+    throw new Error(`bulk fetch tags by id failed: ${tagsErr.message}`)
+  }
+  const tagById = new Map<string, PatientTag>()
+  for (const t of (tags ?? []) as TagRow[]) {
+    tagById.set(t.id, toTag(t))
   }
 
-  for (const row of (data ?? []) as unknown as Array<{
-    patient_id: string
-    patient_tags: TagRow | null
-  }>) {
-    if (!row.patient_tags) continue
+  for (const row of rows) {
+    const tag = tagById.get(row.tag_id)
+    if (!tag) continue
     const existing = result.get(row.patient_id) ?? []
-    existing.push(toTag(row.patient_tags))
+    existing.push(tag)
     result.set(row.patient_id, existing)
   }
   for (const [id, tags] of result.entries()) {
