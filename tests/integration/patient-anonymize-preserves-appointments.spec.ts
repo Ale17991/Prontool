@@ -60,7 +60,9 @@ describe('T173 — anonymization preserves appointment ledger', () => {
       'maria@example.com',
     )
 
-    // 3 appointments across the month: amounts 30_000, 30_000, 30_000.
+    // 3 atendimentos com datas fixas no passado (após o valid_from do preço).
+    // O status 'ativo' vem da completion logo abaixo, não da data — datas no
+    // passado são só higiene para não depender do relógio.
     const apt1 = await seedAppointment({
       tenantId,
       patientId,
@@ -71,7 +73,7 @@ describe('T173 — anonymization preserves appointment ledger', () => {
       commissionId,
       amountCents: 30_000,
       commissionBps: 4000,
-      at: '2026-05-05T10:00:00Z',
+      at: '2024-01-05T10:00:00Z',
     })
     const apt2 = await seedAppointment({
       tenantId,
@@ -83,7 +85,7 @@ describe('T173 — anonymization preserves appointment ledger', () => {
       commissionId,
       amountCents: 30_000,
       commissionBps: 4000,
-      at: '2026-05-15T10:00:00Z',
+      at: '2024-02-15T10:00:00Z',
     })
     const apt3 = await seedAppointment({
       tenantId,
@@ -95,9 +97,26 @@ describe('T173 — anonymization preserves appointment ledger', () => {
       commissionId,
       amountCents: 30_000,
       commissionBps: 4000,
-      at: '2026-05-25T10:00:00Z',
+      at: '2024-03-25T10:00:00Z',
     })
     const apptIds = [apt1, apt2, apt3]
+
+    // Marca os 3 como realizados. Desde a 0096 a view deriva
+    // `effective_status = 'ativo'` a partir de uma linha em
+    // `appointment_completions` (antes era por tempo). Sem completion, o
+    // atendimento fica 'agendado'.
+    await sb
+      .from('appointment_completions')
+      .insert(
+        apptIds.map((appointmentId) => ({
+          tenant_id: tenantId,
+          appointment_id: appointmentId,
+          completed_by: '00000000-0000-0000-0000-000000000001',
+          source: 'manual',
+          reason: 'seed',
+        })),
+      )
+      .throwOnError()
 
     const { POST } = await import('@/app/api/platform/patients/[id]/anonymize/route')
     const res = await POST(
