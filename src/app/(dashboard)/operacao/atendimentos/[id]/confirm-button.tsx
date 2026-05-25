@@ -7,9 +7,20 @@ import { Button } from '@/components/ui/button'
 
 interface Props {
   appointmentId: string
+  /** Disparado após `router.refresh()` em caso de sucesso. Usado pelo painel
+   *  lateral (feature 025) para re-fetch dos dados do atendimento. */
+  onSuccess?: () => void
+  /** Sinaliza ao caller que há request em andamento. Usado pelo guard de
+   *  fechamento do painel lateral (feature 025) para evitar fechar enquanto
+   *  uma ação está em curso. */
+  onPendingChange?: (pending: boolean) => void
 }
 
-export function ConfirmAppointmentButton({ appointmentId }: Props) {
+export function ConfirmAppointmentButton({
+  appointmentId,
+  onSuccess,
+  onPendingChange,
+}: Props) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -17,6 +28,7 @@ export function ConfirmAppointmentButton({ appointmentId }: Props) {
   async function handleClick() {
     setError(null)
     setPending(true)
+    onPendingChange?.(true)
     try {
       const res = await fetch(`/api/atendimentos/${appointmentId}/confirmar`, {
         method: 'POST',
@@ -30,10 +42,12 @@ export function ConfirmAppointmentButton({ appointmentId }: Props) {
         throw new Error(body.error?.message ?? `HTTP ${res.status}`)
       }
       router.refresh()
+      onSuccess?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setPending(false)
+      onPendingChange?.(false)
     }
   }
 

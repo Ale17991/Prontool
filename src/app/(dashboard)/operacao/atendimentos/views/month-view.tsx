@@ -113,6 +113,7 @@ export function MonthView({ date, appointments }: MonthViewProps) {
                     <Link
                       key={a.id}
                       href={`/operacao/atendimentos/${a.id}`}
+                      data-appointment-id={a.id}
                       className={cn(
                         'flex items-center gap-1 truncate rounded border px-1.5 py-0.5 text-[10px] font-medium',
                         style.className,

@@ -52,6 +52,7 @@ export function CalendarBlock({ assignment, overlapsBlock = false }: Props) {
       <TooltipTrigger asChild>
         <Link
           href={`/operacao/atendimentos/${a.id}`}
+          data-appointment-id={a.id}
           className={cn(
             'absolute z-10 flex flex-col gap-0.5 overflow-hidden rounded-md border px-1.5 py-1 text-[11px] shadow-sm transition-[left,width,box-shadow,z-index]',
             statusClass,

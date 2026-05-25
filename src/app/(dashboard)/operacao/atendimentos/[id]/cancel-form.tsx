@@ -25,19 +25,42 @@ const REASON_LABEL: Record<CancellationReason, string> = {
 
 interface Props {
   appointmentId: string
+  /** Painel lateral (feature 025): re-fetch após sucesso. */
+  onSuccess?: () => void
+  /** Painel lateral: sinaliza form sujo (notas modificadas) ao Host
+   *  para o guard de fechamento perguntar antes de descartar. */
+  onDirtyChange?: (dirty: boolean) => void
+  /** Painel lateral: sinaliza request em andamento para o guard
+   *  bloquear fechamento prematuro. */
+  onPendingChange?: (pending: boolean) => void
 }
 
-export function CancelAppointmentForm({ appointmentId }: Props) {
+export function CancelAppointmentForm({
+  appointmentId,
+  onSuccess,
+  onDirtyChange,
+  onPendingChange,
+}: Props) {
   const router = useRouter()
   const [reason, setReason] = useState<CancellationReason>('no_show')
   const [notes, setNotes] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  function handleNotesChange(value: string) {
+    const wasDirty = notes.length > 0
+    const isDirty = value.length > 0
+    setNotes(value)
+    if (wasDirty !== isDirty) {
+      onDirtyChange?.(isDirty)
+    }
+  }
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setPending(true)
+    onPendingChange?.(true)
     try {
       const res = await fetch(`/api/atendimentos/${appointmentId}/cancelar`, {
         method: 'POST',
@@ -53,11 +76,16 @@ export function CancelAppointmentForm({ appointmentId }: Props) {
         }
         throw new Error(body.error?.message ?? `HTTP ${res.status}`)
       }
+      // Sucesso: reset dirty (notas foram salvas) e dispara callbacks.
+      setNotes('')
+      onDirtyChange?.(false)
       router.refresh()
+      onSuccess?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setPending(false)
+      onPendingChange?.(false)
     }
   }
 
@@ -83,7 +111,7 @@ export function CancelAppointmentForm({ appointmentId }: Props) {
         <Textarea
           id="cancel_notes"
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => handleNotesChange(e.target.value)}
           placeholder="Detalhes do cancelamento (até 500 caracteres)."
           rows={2}
           maxLength={500}

@@ -25,6 +25,7 @@ import { listScheduleBlocks } from '@/lib/core/schedule-blocks/list'
 import { ModeToggle } from './mode-toggle'
 import { CalendarShell } from './calendar-shell'
 import { FilterBarBlock } from './filter-bar-block'
+import { AppointmentDetailHost } from './_components/appointment-detail-host'
 import {
   deriveRange,
   parseFiltersFromRecord,
@@ -125,47 +126,49 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
       }).catch(() => [])
 
       return (
-        <div className="space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
-              {appointments.length >= APPOINTMENT_WEEK_ROW_LIMIT ? (
-                <p className="mt-1 text-sm font-medium text-amber-600">
-                  Limite de {APPOINTMENT_WEEK_ROW_LIMIT} atendimentos atingido —
-                  estreite o período para garantir que nada esteja oculto.
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-slate-500">
-                  {appointments.length} no período carregado
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <ModeToggle mode={mode} />
-              <Button asChild variant="outline">
-                <Link href="/operacao/atendimentos/bloquear">
-                  <Lock className="mr-2 h-4 w-4" />
-                  Bloquear horário
-                </Link>
-              </Button>
-              {session.role === 'admin' || session.role === 'recepcionista' ? (
-                <Button asChild>
-                  <Link href="/operacao/atendimentos/novo">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo
+        <AppointmentDetailHost role={session.role}>
+          <div className="space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
+                {appointments.length >= APPOINTMENT_WEEK_ROW_LIMIT ? (
+                  <p className="mt-1 text-sm font-medium text-amber-600">
+                    Limite de {APPOINTMENT_WEEK_ROW_LIMIT} atendimentos atingido —
+                    estreite o período para garantir que nada esteja oculto.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-slate-500">
+                    {appointments.length} no período carregado
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <ModeToggle mode={mode} />
+                <Button asChild variant="outline">
+                  <Link href="/operacao/atendimentos/bloquear">
+                    <Lock className="mr-2 h-4 w-4" />
+                    Bloquear horário
                   </Link>
                 </Button>
-              ) : null}
+                {session.role === 'admin' || session.role === 'recepcionista' ? (
+                  <Button asChild>
+                    <Link href="/operacao/atendimentos/novo">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Novo
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
             </div>
-          </div>
 
-          <CalendarShell
-            appointments={appointments}
-            doctors={doctorOptions}
-            scheduleBlocks={scheduleBlocks}
-            canManageBlocks={true}
-          />
-        </div>
+            <CalendarShell
+              appointments={appointments}
+              doctors={doctorOptions}
+              scheduleBlocks={scheduleBlocks}
+              canManageBlocks={true}
+            />
+          </div>
+        </AppointmentDetailHost>
       )
     } catch (err) {
       console.error('atendimentos cal-mode failed, falling back to list', err)
@@ -262,6 +265,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const listTruncated = rows.length >= LIST_MODE_LIMIT
 
   return (
+    <AppointmentDetailHost role={session.role}>
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -406,6 +410,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                         {r.id ? (
                           <Link
                             href={`/operacao/atendimentos/${r.id}`}
+                            data-appointment-id={r.id}
                             className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
                           >
                             Abrir <ChevronRight className="h-3 w-3" />
@@ -421,5 +426,6 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
         </CardContent>
       </Card>
     </div>
+    </AppointmentDetailHost>
   )
 }

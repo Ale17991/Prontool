@@ -14,7 +14,15 @@ import { Textarea } from '@/components/ui/textarea'
  *   - sincroniza a etapa vinculada do plano de tratamento (concluido)
  *   - libera o atendimento para entrar nos faturamentos
  */
-export function MarkRealizedForm({ appointmentId }: { appointmentId: string }) {
+interface Props {
+  appointmentId: string
+  /** Painel lateral (feature 025): re-fetch após sucesso. */
+  onSuccess?: () => void
+  /** Painel lateral: sinaliza request em andamento. */
+  onPendingChange?: (pending: boolean) => void
+}
+
+export function MarkRealizedForm({ appointmentId, onSuccess, onPendingChange }: Props) {
   const router = useRouter()
   const [reason, setReason] = useState('')
   const [pending, setPending] = useState(false)
@@ -24,6 +32,7 @@ export function MarkRealizedForm({ appointmentId }: { appointmentId: string }) {
     e.preventDefault()
     setError(null)
     setPending(true)
+    onPendingChange?.(true)
     try {
       const res = await fetch(`/api/atendimentos/${appointmentId}/realizado`, {
         method: 'POST',
@@ -38,10 +47,12 @@ export function MarkRealizedForm({ appointmentId }: { appointmentId: string }) {
       }
       router.refresh()
       setReason('')
+      onSuccess?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setPending(false)
+      onPendingChange?.(false)
     }
   }
 
