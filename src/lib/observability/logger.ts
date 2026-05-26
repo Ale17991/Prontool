@@ -42,7 +42,7 @@ const baseOptions = {
     censor: '[redacted]',
   },
   timestamp: pino.stdTimeFunctions.isoTime,
-  base: { service: 'prontool' },
+  base: { service: 'clinni' },
 }
 
 export const logger: Logger = isDev

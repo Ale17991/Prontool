@@ -44,7 +44,7 @@ interface DashboardShellProps {
   clinicLogoUrl?: string | null
   /**
    * Feature 010 (US3 / R13) — tenants.name (display name). Cai para
-   * corporate_name e por fim "Prontool" como último recurso.
+   * corporate_name e por fim "Clinni" como último recurso.
    */
   clinicName?: string | null
   /** Feature 010 (US3) — usuário tem >1 tenant ativo? Mostra "Trocar clínica". */
@@ -248,7 +248,7 @@ function SidebarInner({
             </div>
           )}
           <span className="truncate tracking-tight" title={clinicName ?? undefined}>
-            {clinicName ?? 'Prontool'}
+            {clinicName ?? 'Clinni'}
           </span>
         </div>
         {isMultiTenant ? (

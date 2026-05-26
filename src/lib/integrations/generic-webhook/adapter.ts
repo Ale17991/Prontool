@@ -5,7 +5,7 @@ import type { IntegrationAdapter, AdapterContext, DomainEvent } from '../types'
  * Generic webhook adapter — fire-and-forget POST of domain events to any
  * configured URL. Optional Bearer token. Useful for customers that want to
  * plug their own data lake, Zapier, n8n, or a bespoke backend without the
- * Prontool team having to ship a dedicated provider.
+ * Clinni team having to ship a dedicated provider.
  */
 
 const eventTypes = z.enum([
@@ -36,7 +36,7 @@ export const genericWebhookAdapter: IntegrationAdapter<
   provider: 'generic_webhook',
   label: 'Webhook genérico',
   description:
-    'Dispara POST JSON para uma URL configurada a cada evento do Prontool (patient.created, appointment.created, appointment.reversed).',
+    'Dispara POST JSON para uma URL configurada a cada evento do Clinni (patient.created, appointment.created, appointment.reversed).',
   configSchema: genericWebhookConfigSchema,
   credentialsSchema: genericWebhookCredentialsSchema,
   redactCredentials: redact,

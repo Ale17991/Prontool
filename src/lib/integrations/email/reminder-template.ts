@@ -41,7 +41,7 @@ export function getDefaultReminderBody(): string {
 
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 16px;" />
     <p style="color: #64748b; font-size: 12px;">
-      Mensagem automática enviada pela {{clinica}} via Prontool. Se você não
+      Mensagem automática enviada pela {{clinica}} via Clinni. Se você não
       é o destinatário, ignore este email.
     </p>
   </body>

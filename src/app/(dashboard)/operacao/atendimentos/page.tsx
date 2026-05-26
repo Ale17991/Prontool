@@ -65,7 +65,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
 
   // Mode: querystring > cookie > 'cal'. Cookie legado mantém preferência por
   // dispositivo entre recargas sem querystring (feature 005).
-  const cookieMode = cookies().get('prontool_atendimentos_view')?.value
+  const cookieMode = cookies().get('clinni_atendimentos_view')?.value
   const modeParam = typeof searchParams.mode === 'string' ? searchParams.mode : null
   const mode: 'list' | 'cal' =
     modeParam === 'list'

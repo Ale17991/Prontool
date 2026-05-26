@@ -20,7 +20,7 @@ import {
  * `/custom-fields/?locationId=...`, decide:
  *   (a) match exato (name + dataType) → reusa o ID;
  *   (b) match só por name (tipo divergente) → cria novo com sufixo
- *       " (Prontool)" (Q2 da spec → opção C);
+ *       " (Clinni)" (Q2 da spec → opção C);
  *   (c) sem match → cria do zero.
  * Persiste mapa `custom_field_ids` em `tenant_integrations.config`.
  */
@@ -76,7 +76,7 @@ export async function customFieldsSetup(
         id = decision.id
       } else {
         const name =
-          decision.action === 'create_suffixed' ? `${def.name} (Prontool)` : def.name
+          decision.action === 'create_suffixed' ? `${def.name} (Clinni)` : def.name
         id = await createCustomField(accessToken, locationId, {
           name,
           dataType: def.dataType,
@@ -136,7 +136,7 @@ function decideCustomField(
 
   // Existe com nome igual mas tipo divergente — Q2:C → cria sufixado.
   // (Mas se já temos um sufixado anterior, reusa.)
-  const suffixedName = `${def.name} (Prontool)`.toLowerCase()
+  const suffixedName = `${def.name} (Clinni)`.toLowerCase()
   const existingSuffixed = existing.find(
     (e) =>
       e.name.trim().toLowerCase() === suffixedName &&

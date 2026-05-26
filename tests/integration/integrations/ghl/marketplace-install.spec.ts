@@ -58,7 +58,7 @@ function makeInstallPayload(o: InstallPayloadOverrides = {}): string {
   return JSON.stringify({
     eventId: o.eventId ?? `evt_${Math.random().toString(36).slice(2)}`,
     type: 'INSTALL',
-    appId: 'app_prontool_test',
+    appId: 'app_clinni_test',
     companyId: o.companyId ?? 'comp_us2_default',
     locationId: o.locationId ?? 'loc_us2_default',
     location: {
@@ -89,7 +89,7 @@ function makeUninstallPayload(o: UninstallPayloadOverrides = {}): string {
   return JSON.stringify({
     eventId: o.eventId ?? `evt_${Math.random().toString(36).slice(2)}`,
     type: 'UNINSTALL',
-    appId: 'app_prontool_test',
+    appId: 'app_clinni_test',
     companyId: 'comp_us2_default',
     locationId: o.locationId ?? 'loc_us2_default',
     uninstalledAt: new Date().toISOString(),

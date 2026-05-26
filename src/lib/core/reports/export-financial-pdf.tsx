@@ -330,7 +330,7 @@ export function FinancialReportDocument({
 
         <Text style={styles.footer}>
           Gerado em {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} ·
-          Prontool — relatório financeiro consolidado.
+          Clinni — relatório financeiro consolidado.
         </Text>
       </Page>
     </Document>

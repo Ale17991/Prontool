@@ -1,6 +1,6 @@
 # Operations
 
-Operational playbooks for the Prontool stack. Read alongside
+Operational playbooks for the Clinni stack. Read alongside
 `docs/lgpd.md` for anything touching patient data.
 
 ## 1. Triaging a DLQ spike

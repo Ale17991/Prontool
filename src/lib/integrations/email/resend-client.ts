@@ -36,7 +36,7 @@ export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: stri
     return { id: null }
   }
 
-  const from = process.env.RESEND_FROM ?? 'alertas@dev.prontool.io'
+  const from = process.env.RESEND_FROM ?? 'alertas@dev.clinnipro.io'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   const html = renderAlertHtml({
@@ -92,7 +92,7 @@ export async function sendBookingEmail(
     return { id: null }
   }
 
-  const from = process.env.RESEND_FROM ?? 'agendamentos@dev.prontool.io'
+  const from = process.env.RESEND_FROM ?? 'agendamentos@dev.clinnipro.io'
 
   try {
     const res = await getResend(key).emails.send({

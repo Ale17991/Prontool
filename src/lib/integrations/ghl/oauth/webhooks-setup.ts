@@ -37,9 +37,9 @@ export async function webhooksSetup(
   tenantId: string,
   accessToken: string,
   locationId: string,
-  prontoolBaseUrl: string,
+  clinniBaseUrl: string,
 ): Promise<WebhooksSetupResult> {
-  const targetUrl = `${prontoolBaseUrl.replace(/\/$/, '')}/api/webhooks/ghl`
+  const targetUrl = `${clinniBaseUrl.replace(/\/$/, '')}/api/webhooks/ghl`
   const warnings: string[] = []
   const result: GhlConfigV2['webhook_ids'] = {}
 

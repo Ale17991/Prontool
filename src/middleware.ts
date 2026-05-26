@@ -182,7 +182,7 @@ export async function middleware(req: NextRequest) {
   // pelo domínio gohighlevel.com via CSP frame-ancestors. Sem o cookie
   // marker, mantém default seguro (frame-ancestors 'none' aplicado por
   // outras camadas).
-  const ssoOrigin = req.cookies.get('prontool_sso_origin')?.value
+  const ssoOrigin = req.cookies.get('clinni_sso_origin')?.value
   if (ssoOrigin === 'ghl') {
     res.headers.set(
       'Content-Security-Policy',

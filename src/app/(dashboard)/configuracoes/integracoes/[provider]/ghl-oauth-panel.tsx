@@ -146,7 +146,7 @@ export async function GhlOAuthPanel({
               {callbackCode === 'GHL_TENANT_ALREADY_CONNECTED'
                 ? 'Esta clínica já está conectada a outra conta Homio. Desconecte primeiro.'
                 : callbackCode === 'GHL_LOCATION_ALREADY_BOUND'
-                  ? 'Esta conta Homio já está vinculada a outra clínica no Prontool. Cada clínica pode usar apenas uma sub-account.'
+                  ? 'Esta conta Homio já está vinculada a outra clínica no Clinni. Cada clínica pode usar apenas uma sub-account.'
                   : 'Não foi possível concluir a conexão. Tente novamente.'}
             </p>
           </div>
@@ -161,13 +161,13 @@ export async function GhlOAuthPanel({
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600">
               Ao conectar, a sub-account escolhida no Homio receberá os custom
-              fields clínicos do Prontool (CPF, plano, profissional, último
+              fields clínicos do Clinni (CPF, plano, profissional, último
               atendimento, diagnósticos, alergias) e os webhooks de contato.
             </p>
             <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-2 text-xs text-[hsl(var(--warning-foreground))]">
               Cada clínica pode ser conectada a apenas uma conta Homio.
               Antes de conectar, certifique-se de que a sub-account não está
-              vinculada a outra clínica do Prontool.
+              vinculada a outra clínica do Clinni.
             </p>
             {isAdmin ? (
               <Button asChild>
@@ -190,7 +190,7 @@ export async function GhlOAuthPanel({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600">
-              O Prontool não conseguiu renovar o token. Reconecte para gerar um
+              O Clinni não conseguiu renovar o token. Reconecte para gerar um
               novo par de credenciais sem perder os custom fields nem os
               webhooks já registrados na sub-account.
             </p>
@@ -384,7 +384,7 @@ function renderMenuStatus(
     case 'registered':
       return (
         <p className="text-xs text-success-strong">
-          ✓ Menu registrado na sub-account. O usuário Homio pode abrir o Prontool
+          ✓ Menu registrado na sub-account. O usuário Homio pode abrir o Clinni
           direto pelo menu da sub-account.
         </p>
       )

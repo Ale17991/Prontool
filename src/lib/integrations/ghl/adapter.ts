@@ -359,7 +359,7 @@ function formatAppointmentNote(event: {
     currency: 'BRL',
   })
   return [
-    'Atendimento registrado no Prontool',
+    'Atendimento registrado no Clinni',
     `Data: ${when.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
     `Paciente: ${event.patient.fullName}`,
     event.appointment.procedureTussCode

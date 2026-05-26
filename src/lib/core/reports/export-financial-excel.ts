@@ -18,7 +18,7 @@ export async function renderFinancialReportExcel(
   opts: { tenantLabel?: string } = {},
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook()
-  wb.creator = 'Prontool'
+  wb.creator = 'Clinni'
   wb.created = new Date()
 
   // ----- Resumo

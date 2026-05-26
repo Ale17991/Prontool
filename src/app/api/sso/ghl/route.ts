@@ -13,14 +13,14 @@ import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-event
  * Endpoint chamado quando o usuário GHL clica no Custom Menu na sub-account.
  * Valida o JWT de contexto, identifica o tenant pela `location_id`, e
  * redireciona para `/login?next=/&sso_origin=ghl` com um cookie
- * `prontool_sso_origin` (HttpOnly, SameSite=None, Secure) que sinaliza
+ * `clinni_sso_origin` (HttpOnly, SameSite=None, Secure) que sinaliza
  * ao layout do dashboard que a sessão foi originada via GHL — ativa
  * `frame-ancestors` permissivos pra iframe.
  *
  * **Auto-login completo (sem digitar credenciais Supabase) é pós-MVP** —
  * decisão arquitetural sobre como mintar JWT compatível com `@supabase/ssr`
  * cookies sem regredir o modelo de auth foi adiada. Por enquanto o usuário
- * loga uma vez no domínio do Prontool e a sessão Supabase persiste no
+ * loga uma vez no domínio do Clinni e a sessão Supabase persiste no
  * iframe via cookie SameSite=None.
  *
  * AUTH_EXEMPT em lint:auth (rota está sob `sso/ghl`).
@@ -29,7 +29,7 @@ import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-event
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const SSO_ORIGIN_COOKIE = 'prontool_sso_origin'
+const SSO_ORIGIN_COOKIE = 'clinni_sso_origin'
 const SSO_ORIGIN_COOKIE_MAX_AGE = 60 * 60 * 8 // 8h, mesmo TTL típico de sessão.
 
 export async function GET(req: Request): Promise<Response> {
@@ -65,7 +65,7 @@ export async function GET(req: Request): Promise<Response> {
     return jsonError(
       401,
       'TENANT_NOT_CONNECTED',
-      'Sub-account sem integração ativa. Reconecte no Prontool.',
+      'Sub-account sem integração ativa. Reconecte no Clinni.',
     )
   }
 
@@ -112,7 +112,7 @@ export async function GET(req: Request): Promise<Response> {
 
 function sanitizeRedirectTo(raw: string | null): string {
   if (!raw) return '/'
-  // Aceita apenas paths absolutos relativos ao Prontool (evita open redirect).
+  // Aceita apenas paths absolutos relativos ao Clinni (evita open redirect).
   if (!raw.startsWith('/') || raw.startsWith('//')) return '/'
   return raw
 }

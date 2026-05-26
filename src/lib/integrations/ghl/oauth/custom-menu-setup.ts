@@ -29,9 +29,9 @@ export async function customMenuSetup(
   tenantId: string,
   accessToken: string,
   locationId: string,
-  prontoolBaseUrl: string,
+  clinniBaseUrl: string,
 ): Promise<CustomMenuSetupResult> {
-  const ssoUrl = `${prontoolBaseUrl.replace(/\/$/, '')}/api/sso/ghl`
+  const ssoUrl = `${clinniBaseUrl.replace(/\/$/, '')}/api/sso/ghl`
 
   let res: Response
   try {
@@ -45,7 +45,7 @@ export async function customMenuSetup(
       },
       body: JSON.stringify({
         locationId,
-        title: 'Prontool',
+        title: 'Clinni',
         url: ssoUrl,
         icon: 'plug',
         showOnCompany: false,

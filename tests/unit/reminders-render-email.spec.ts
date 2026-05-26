@@ -80,10 +80,10 @@ describe('renderReminderEmail', () => {
     const r = renderReminderEmail({
       template: { subject: null, body: null },
       placeholders: basePlaceholders,
-      publicBookingUrl: 'https://prontool.com.br/agendar/clinica-x',
+      publicBookingUrl: 'https://clinnipro.com.br/agendar/clinica-x',
       clinicPhone: null,
     })
-    expect(r.html).toContain('https://prontool.com.br/agendar/clinica-x')
+    expect(r.html).toContain('https://clinnipro.com.br/agendar/clinica-x')
     expect(r.html.toLowerCase()).toContain('cancelar')
   })
 

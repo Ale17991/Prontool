@@ -436,7 +436,7 @@ function RecordItem({
           {/* Cabeçalho extra que só aparece em mídia de impressão */}
           <div data-print-only="show" className="mt-4 border-b border-slate-300 pb-3">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Prontool — anamnese
+              Clinni — anamnese
             </p>
             <p className="mt-1 text-base font-bold text-slate-900">
               Paciente: {patientName ?? '—'}
@@ -453,7 +453,7 @@ function RecordItem({
         <>
           <div data-print-only="show" className="mt-4 border-b border-slate-300 pb-3">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Prontool — evolução clínica SOAP
+              Clinni — evolução clínica SOAP
             </p>
             <p className="mt-1 text-base font-bold text-slate-900">
               Paciente: {patientName ?? '—'}

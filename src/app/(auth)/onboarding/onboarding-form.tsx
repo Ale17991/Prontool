@@ -138,7 +138,7 @@ export function OnboardingForm({ initialName }: { initialName: string }) {
           <div className="space-y-2">
             <Label htmlFor="slug">URL da clínica (slug)</Label>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">prontool.app/</span>
+              <span className="text-xs text-slate-400">clinnipro.app/</span>
               <Input
                 id="slug"
                 type="text"

@@ -624,7 +624,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
         <View style={styles.footer} fixed>
           <View style={styles.footerRow}>
             <Text>
-              Prontuário gerado em {generated} pelo sistema Prontool.
+              Prontuário gerado em {generated} pelo sistema Clinni.
             </Text>
             <Text
               render={({ pageNumber, totalPages }) =>

@@ -20,7 +20,7 @@ import { ConflictError } from '@/lib/observability/errors'
  * Feature 008 — POST /api/webhooks/ghl/install
  *
  * Webhook do GHL Marketplace quando uma sub-account instala o app
- * Prontool. NÃO exige sessão — autenticidade via HMAC-SHA256 com
+ * Clinni. NÃO exige sessão — autenticidade via HMAC-SHA256 com
  * `GHL_MARKETPLACE_SHARED_SECRET`. AUTH_EXEMPT em lint:auth (rota está
  * sob `webhooks/`).
  */

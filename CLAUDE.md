@@ -1,4 +1,4 @@
-# Prontool Development Guidelines
+# Clinni Development Guidelines
 
 Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-27
 
@@ -38,6 +38,8 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0096_financeiro_operacional.sql`. **Tabelas novas**: `installment_payments`, `monthly_payouts`, `monthly_payouts_adjustments`, `monthly_payouts_reopens`, `tenant_cash_balance_adjustments`. **Tabela alterada**: `expenses` (6 colunas novas, todas nullable — backwards compatible). **Funções DB novas**: `close_monthly_payout(p_tenant_id, p_month)` SECURITY DEFINER, `reopen_monthly_payout(p_tenant_id, p_month, p_reason)` SECURITY DEFINER, `record_installment_payment(...)` SECURITY DEFINER, `tenant_cash_balance_at(p_tenant_id, p_date)`. **Triggers**: anti-UPDATE/DELETE em tabelas append-only + auto-geração de `monthly_payouts_adjustments` quando atendimento de mês fechado é estornado. (023-financeiro-fluxo-repasse)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router + Server Actions + RSC), React 18.3, shadcn/ui (`Sheet` já presente em `src/components/ui/sheet.tsx`, baseado em `@radix-ui/react-dialog`), `lucide-react`, Tailwind CSS 3.4. **Sem novas deps.** (025-agenda-sheet-modal)
 - N/A — feature pura de UI/orquestração. Não toca em migrations, RLS, funções SQL ou buckets. (025-agenda-sheet-modal)
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, Route Handlers, Server Actions, RSC), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Pino 9, Tailwind 3.4, shadcn/ui. **Sem novas deps de runtime** — `fetch` nativo + `AbortSignal.timeout(5000)` para a API Memed; carregamento do script Memed via `<script>` no cliente. (026-memed-prescricao-digital)
+- PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0108_memed_prescription.sql`. **Tabelas novas**: `tenant_memed_config` (credenciais por clínica, cifradas via `enc_text_with_key`), `memed_prescribers`, `prescription_records`. **Tabelas tocadas (uso)**: `audit_log` (via `log_audit_event`). **Sem mudança** em `tenant_integrations` (decisão D1: Memed é request/response, não event-bus — tabela dedicada em vez de reusar o provider GHL), nem em `doctors`/`patients` (campos já existem: `doctors.cpf/council_state/birth_date` da 0107; paciente em `_enc`). (026-memed-prescricao-digital)
 
 - TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Pino 9, React 18.3, Radix UI, TailwindCSS 3.4 (002-ghl-optional-standalone)
 - PostgreSQL via Supabase (local stack: `supabase start` :54321) com RLS por `tenant_id`. Tabelas de integrações multi-provider: `tenant_integrations` (source-of-truth de "o tenant está conectado?" — zero linhas = standalone), `alerts` (type `integration_sync_failed` com `detail.provider`), `audit_log` (`event_type` `integration.{connect,reconfigure,disconnect}`). Tabela legada `tenant_ghl_config` ainda é lida pelo worker de ingestão GHL — drop planejado (migration 0041 já existe como NOOP placeholder). (002-ghl-optional-standalone)
@@ -57,7 +59,7 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 
 - **Cápsula `oauth/`** em `src/lib/integrations/ghl/oauth/` é o **único** lugar autorizado a ler `process.env.GHL_CLIENT_ID/SECRET/REDIRECT_URI/SCOPES/MARKETPLACE_SHARED_SECRET/SSO_*`. Adapter (`adapter.ts`, `create-contact.ts`, `create-note.ts`, `update-contact.ts`) recebe `accessToken` via `withGhlAuth(supabase, tenantId)` que faz auto-refresh com CAS sobre `updated_at` (sem advisory lock, incompatível com pgBouncer transaction-mode).
 - **Marketplace lifecycle**: `/api/oauth/ghl/{authorize,callback,refresh}` para conexão manual; `/api/webhooks/ghl/{install,uninstall}` (HMAC-SHA256 + janela ±5min) para o Marketplace. Ambos convergem em `connectGhlTenant`/`disconnectGhlTenant` em `src/lib/core/integrations/ghl/`.
-- **Post-connect setup**: `runPostConnectSetup` (em `src/lib/core/integrations/ghl/post-connect-setup.ts`) orquestra `customFieldsSetup` (6 fields, sufixa "(Prontool)" em colisão de tipo) + `webhooksSetup` (3 hooks) + `customMenuSetup` (best-effort). Roda fire-and-forget em produção, `await` em testes.
+- **Post-connect setup**: `runPostConnectSetup` (em `src/lib/core/integrations/ghl/post-connect-setup.ts`) orquestra `customFieldsSetup` (6 fields, sufixa "(Clinni)" em colisão de tipo) + `webhooksSetup` (3 hooks) + `customMenuSetup` (best-effort). Roda fire-and-forget em produção, `await` em testes.
 - **Tabela `integration_sync_log`** (migration 0062) é append-only com RLS read-only-tenant; populada via `recordSyncSuccess/Failure` em `src/lib/core/integrations/ghl/sync-log.ts` com PII mascarada (`mask-pii.ts`). UI lê últimas 10 entradas em `/configuracoes/integracoes/ghl`.
 - **SSO/Custom Menu** (US5): `/api/sso/ghl` valida JWT contexto via JWKS (`verify-sso-token.ts` — RS256 com `crypto.createPublicKey({format:'jwk'})`, sem `jose`). Auto-login completo (mintar JWT Supabase) é follow-up.
 
@@ -91,9 +93,9 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 026-memed-prescricao-digital: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, Route Handlers, Server Actions, RSC), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Pino 9, Tailwind 3.4, shadcn/ui. **Sem novas deps de runtime** — `fetch` nativo + `AbortSignal.timeout(5000)` para a API Memed; carregamento do script Memed via `<script>` no cliente.
 - 025-agenda-sheet-modal: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router + Server Actions + RSC), React 18.3, shadcn/ui (`Sheet` já presente em `src/components/ui/sheet.tsx`, baseado em `@radix-ui/react-dialog`), `lucide-react`, Tailwind CSS 3.4. **Sem novas deps.**
 - 023-financeiro-fluxo-repasse: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router + RSC + Server Actions), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind CSS 3.4, shadcn/ui (Radix `Dialog`, `Sheet`, `Tabs`, `Table` já presentes), `date-fns` 4.1 + `date-fns-tz`, `lucide-react`, `recharts` (já em uso), Pino 9. **Sem novas deps de runtime**.
-- 019-prontuario-timeline-quickview: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router + RSC + Server Actions), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Tailwind CSS 3.4, shadcn/ui (Radix `Sheet`, `Dialog`, `Tabs` já presentes — confirmado em `src/components/ui/`), `date-fns` 4.1, `lucide-react`, `recharts` (já em uso por `VitalSignsSection`)
 
 
 

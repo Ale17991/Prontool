@@ -47,7 +47,7 @@ export function generateBookingIcs(input: GenerateBookingIcsInput): string {
     organizer: { name: input.organizer.name, email: input.organizer.email },
     status: 'CONFIRMED',
     busyStatus: 'BUSY',
-    productId: 'prontool/public-booking',
+    productId: 'clinni/public-booking',
   }
 
   const { error, value } = createEvent(event)

@@ -49,12 +49,12 @@ async function seedConnectedWithFields(slug: string, opts: { expiresInSec?: numb
         sub_account_name: `Clínica ${slug}`,
         timezone: null,
         custom_field_ids: {
-          cpf: { id: 'cf_cpf', alias: 'prontool_cpf' },
-          plano_saude: { id: 'cf_plano', alias: 'prontool_plano_saude' },
-          profissional_responsavel: { id: 'cf_prof', alias: 'prontool_profissional' },
-          ultimo_atendimento: { id: 'cf_ultimo', alias: 'prontool_ultimo_atendimento' },
-          diagnosticos_ativos: { id: 'cf_diag', alias: 'prontool_diagnosticos_ativos' },
-          alergias: { id: 'cf_alergias', alias: 'prontool_alergias' },
+          cpf: { id: 'cf_cpf', alias: 'clinni_cpf' },
+          plano_saude: { id: 'cf_plano', alias: 'clinni_plano_saude' },
+          profissional_responsavel: { id: 'cf_prof', alias: 'clinni_profissional' },
+          ultimo_atendimento: { id: 'cf_ultimo', alias: 'clinni_ultimo_atendimento' },
+          diagnosticos_ativos: { id: 'cf_diag', alias: 'clinni_diagnosticos_ativos' },
+          alergias: { id: 'cf_alergias', alias: 'clinni_alergias' },
         },
         webhook_ids: {},
         menu_id: null,
@@ -197,7 +197,7 @@ describe('US3 — sync bidirecional via adapter v2', () => {
     expect(captured).toBeTruthy()
     expect(captured!.url).toContain('/contacts/ghl_existing_contact/notes')
     const body = captured!.body as { body: string }
-    expect(body.body).toContain('Atendimento registrado no Prontool')
+    expect(body.body).toContain('Atendimento registrado no Clinni')
     expect(body.body).toContain('Carlos Mendes')
     expect(body.body).toContain('1.01.01.01-1')
   })

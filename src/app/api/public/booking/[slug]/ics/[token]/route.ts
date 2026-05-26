@@ -83,7 +83,7 @@ export async function GET(
       durationMinutes: 30,
       organizer: {
         name: tenant.displayName,
-        email: process.env.RESEND_FROM ?? 'agendamentos@dev.prontool.io',
+        email: process.env.RESEND_FROM ?? 'agendamentos@dev.clinnipro.io',
       },
     })
   } catch {

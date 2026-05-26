@@ -131,7 +131,7 @@ export default async function PrivacidadePage({
 
       <footer className="border-t border-border pt-4 text-xs text-slate-500">
         Esta política aplica-se exclusivamente ao link público de agendamento da{' '}
-        {tenant.displayName}, hospedado por Prontool. Em caso de dúvidas sobre
+        {tenant.displayName}, hospedado por Clinni. Em caso de dúvidas sobre
         privacidade, entre em contato com a clínica.
       </footer>
     </article>

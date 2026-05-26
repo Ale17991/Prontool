@@ -52,7 +52,7 @@ export async function runPostConnectSetup(
   }
 
   // 2. Webhooks de contato.
-  const baseUrl = readProntoolBaseUrl()
+  const baseUrl = readClinniBaseUrl()
   if (baseUrl) {
     try {
       const wh = await webhooksSetup(supabase, tenantId, accessToken, locationId, baseUrl)
@@ -96,7 +96,7 @@ export async function runPostConnectSetup(
   return { warnings: allWarnings }
 }
 
-function readProntoolBaseUrl(): string | null {
+function readClinniBaseUrl(): string | null {
   // NEXT_PUBLIC_APP_URL é a fonte canônica do projeto.
   return process.env.NEXT_PUBLIC_APP_URL ?? null
 }

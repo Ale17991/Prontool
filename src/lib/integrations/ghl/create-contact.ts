@@ -48,7 +48,7 @@ export async function createContactInGhl(
     ...(input.patient.email ? { email: input.patient.email } : {}),
     ...(input.patient.phone ? { phone: input.patient.phone } : {}),
     ...(customFields.length > 0 ? { customFields } : {}),
-    source: 'prontool',
+    source: 'clinni',
   }
 
   const res = await fetchWithRetry(`${GHL_API_BASE}/contacts/`, {

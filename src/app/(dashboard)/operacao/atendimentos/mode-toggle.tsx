@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
  * URL: `?mode=list` ou `?mode=cal` (default = cal). Antes era `?view=...`
  * que conflitava com o hook useCalendarFilters (view=dia|semana|mes).
  *
- * Cookie `prontool_atendimentos_view` (legado) ainda é gravado pra manter
+ * Cookie `clinni_atendimentos_view` (legado) ainda é gravado pra manter
  * preferência por dispositivo entre recargas sem querystring.
  */
 export function ModeToggle({ mode }: { mode: 'list' | 'cal' }) {
@@ -20,9 +20,9 @@ export function ModeToggle({ mode }: { mode: 'list' | 'cal' }) {
   function setMode(next: 'list' | 'cal') {
     if (typeof document !== 'undefined') {
       if (next === 'list') {
-        document.cookie = 'prontool_atendimentos_view=list; path=/; max-age=31536000; samesite=lax'
+        document.cookie = 'clinni_atendimentos_view=list; path=/; max-age=31536000; samesite=lax'
       } else {
-        document.cookie = 'prontool_atendimentos_view=; path=/; max-age=0; samesite=lax'
+        document.cookie = 'clinni_atendimentos_view=; path=/; max-age=0; samesite=lax'
       }
     }
     const params = new URLSearchParams(search?.toString() ?? '')

@@ -96,7 +96,7 @@ export function renderPatientBookingHtml(x: PatientBookingTemplateInput): string
 
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 16px;" />
     <p style="color: #64748b; font-size: 12px;">
-      Este email foi enviado por ${escapeHtml(x.clinicName)} via Prontool.
+      Este email foi enviado por ${escapeHtml(x.clinicName)} via Clinni.
       Se você não solicitou este agendamento, ignore este email.
     </p>
   </body>
@@ -136,7 +136,7 @@ export function renderAdminBookingHtml(x: AdminBookingTemplateInput): string {
 
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 16px;" />
     <p style="color: #64748b; font-size: 12px;">
-      Notificação automática do Prontool — agendamento via link público da clínica.
+      Notificação automática do Clinni — agendamento via link público da clínica.
     </p>
   </body>
 </html>`

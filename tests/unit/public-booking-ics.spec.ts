@@ -20,7 +20,7 @@ describe('generateBookingIcs', () => {
       location: 'Av. Brasil 100',
       startIso: '2026-06-15T14:00:00Z',
       durationMinutes: 30,
-      organizer: { name: 'Clínica X', email: 'agendamentos@dev.prontool.io' },
+      organizer: { name: 'Clínica X', email: 'agendamentos@dev.clinnipro.io' },
     })
 
     expect(ics).toContain('BEGIN:VCALENDAR')

@@ -1,4 +1,4 @@
-# Deploy Checklist — Prontool
+# Deploy Checklist — Clinni
 
 Passo-a-passo para levar o projeto de zero a produção. Itens marcados
 "👤 operador" precisam de um humano com acesso à conta paga (Supabase,
@@ -14,7 +14,7 @@ Supabase primeiro desbloqueia os env vars que todo mundo precisa.
 ## 0. Pré-requisitos
 
 - Acesso de admin nas contas: Supabase, Vercel, Upstash, Resend.
-- Domínio `prontool.io` apontável (DNS no Cloudflare/Registro.br/…).
+- Domínio `clinnipro.io` apontável (DNS no Cloudflare/Registro.br/…).
 - Repositório GitHub/GitLab com branch `main` protegida.
 - Última suite local verde: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e`.
 
@@ -24,7 +24,7 @@ Supabase primeiro desbloqueia os env vars que todo mundo precisa.
 
 1. **Criar projeto** em <https://supabase.com/dashboard>:
    - Organização: a da clínica
-   - Nome: `prontool-prod`
+   - Nome: `clinnipro-prod`
    - Region: **`sa-east-1`** (São Paulo — obrigatório; latência + LGPD)
    - Plano: **Pro** (RLS em escala, PITR 7d, connection pooling)
    - Postgres version: default (≥ 15)
@@ -77,11 +77,11 @@ Supabase primeiro desbloqueia os env vars que todo mundo precisa.
 
 ## 2. DNS e Resend (👤 operador)
 
-1. Resend → Add Domain → `prontool.io`.
+1. Resend → Add Domain → `clinnipro.io`.
 2. Copiar os 3 registros TXT/CNAME (SPF, DKIM, return-path) para o DNS.
 3. Esperar verificação (~5 min). Confirmar "Verified" no dashboard.
 4. Criar API key com escopo de envio e guardar em `RESEND_API_KEY`.
-5. Sender: `alertas@prontool.io` (ou subdomínio `no-reply@alerts.prontool.io`
+5. Sender: `alertas@clinnipro.io` (ou subdomínio `no-reply@alerts.clinnipro.io`
    se preferir separação) — preencher em `RESEND_FROM`.
 
 Teste fumaça (antes do deploy):
@@ -89,7 +89,7 @@ Teste fumaça (antes do deploy):
 curl -X POST https://api.resend.com/emails \
   -H "Authorization: Bearer $RESEND_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"from":"alertas@prontool.io","to":["voce@prontool.io"],"subject":"ping","text":"ok"}'
+  -d '{"from":"alertas@clinnipro.io","to":["voce@clinnipro.io"],"subject":"ping","text":"ok"}'
 ```
 
 ## 3. QStash (Upstash) (👤 operador)
@@ -117,7 +117,7 @@ curl -X POST https://api.resend.com/emails \
 
    | Var                            | Valor                                  |
    | ------------------------------ | -------------------------------------- |
-   | `NEXT_PUBLIC_APP_URL`          | `https://app.prontool.io`             |
+   | `NEXT_PUBLIC_APP_URL`          | `https://app.clinnipro.io`             |
    | `NEXT_PUBLIC_SUPABASE_URL`     | da seção 1                             |
    | `NEXT_PUBLIC_SUPABASE_ANON_KEY`| da seção 1                             |
    | `SUPABASE_SERVICE_ROLE_KEY`    | da seção 1                             |
@@ -128,12 +128,12 @@ curl -X POST https://api.resend.com/emails \
    | `QSTASH_CURRENT_SIGNING_KEY`   | da seção 3                             |
    | `QSTASH_NEXT_SIGNING_KEY`      | da seção 3                             |
    | `RESEND_API_KEY`               | da seção 2                             |
-   | `RESEND_FROM`                  | `alertas@prontool.io`                 |
+   | `RESEND_FROM`                  | `alertas@clinnipro.io`                 |
    | `PLATFORM_OPERATOR_TOKEN`      | `openssl rand -hex 32` (novo em prod)  |
    | `LOG_LEVEL`                    | `info`                                 |
    | `NEXT_PUBLIC_FEATURE_*`        | `true` para telas que vão ao ar        |
 
-5. Domain: vincule `app.prontool.io` (ou o subdomínio definido).
+5. Domain: vincule `app.clinnipro.io` (ou o subdomínio definido).
 6. Deploy. Primeiro build deve passar — se não, os culpados costumam ser
    env vars faltantes (Supabase/pgcrypto).
 

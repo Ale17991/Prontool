@@ -69,7 +69,7 @@ export function SignupForm() {
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-900">Criar conta</h1>
-            <p className="text-xs text-slate-500">Comece a usar o Prontool em 2 minutos</p>
+            <p className="text-xs text-slate-500">Comece a usar o Clinni em 2 minutos</p>
           </div>
         </div>
 

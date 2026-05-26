@@ -36,24 +36,24 @@ export const GHL_CUSTOM_FIELD_DEFINITIONS: Record<
   GhlCustomFieldSlug,
   { name: string; alias: string; dataType: GhlCustomFieldDataType }
 > = {
-  cpf: { name: 'CPF', alias: 'prontool_cpf', dataType: 'TEXT' },
-  plano_saude: { name: 'Plano de Saúde', alias: 'prontool_plano_saude', dataType: 'TEXT' },
+  cpf: { name: 'CPF', alias: 'clinni_cpf', dataType: 'TEXT' },
+  plano_saude: { name: 'Plano de Saúde', alias: 'clinni_plano_saude', dataType: 'TEXT' },
   profissional_responsavel: {
     name: 'Profissional Responsável',
-    alias: 'prontool_profissional',
+    alias: 'clinni_profissional',
     dataType: 'TEXT',
   },
   ultimo_atendimento: {
     name: 'Último Atendimento',
-    alias: 'prontool_ultimo_atendimento',
+    alias: 'clinni_ultimo_atendimento',
     dataType: 'DATE',
   },
   diagnosticos_ativos: {
     name: 'Diagnósticos Ativos',
-    alias: 'prontool_diagnosticos_ativos',
+    alias: 'clinni_diagnosticos_ativos',
     dataType: 'LARGE_TEXT',
   },
-  alergias: { name: 'Alergias', alias: 'prontool_alergias', dataType: 'TEXT' },
+  alergias: { name: 'Alergias', alias: 'clinni_alergias', dataType: 'TEXT' },
 }
 
 // ---------------------------------------------------------------------------

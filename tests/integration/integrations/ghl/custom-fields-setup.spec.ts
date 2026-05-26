@@ -5,7 +5,7 @@
  *   - Primeira conexão sem campos prévios → cria os 6 (TEXT, TEXT, TEXT,
  *     DATE, LARGE_TEXT, TEXT) e persiste IDs em config.custom_field_ids.
  *   - Reconectar com campos já criados → reusa IDs existentes (sem POST).
- *   - Colisão de tipo (CPF como NUMBER) → cria "CPF (Prontool)" sufixado.
+ *   - Colisão de tipo (CPF como NUMBER) → cria "CPF (Clinni)" sufixado.
  *   - Falha 5xx no GET inicial → não duplica setups; sync_log marca failure.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
@@ -148,7 +148,7 @@ describe('US3 — customFieldsSetup', () => {
     expect(result.warnings.length).toBe(0)
   })
 
-  it('Colisão de tipo: "CPF" como NUMBER → cria "CPF (Prontool)" sufixado', async () => {
+  it('Colisão de tipo: "CPF" como NUMBER → cria "CPF (Clinni)" sufixado', async () => {
     const { tenantId } = await seedTenant('us3-cf-collision')
     const sb = serviceClient()
     await sb.from('tenant_integrations').insert({
@@ -169,7 +169,7 @@ describe('US3 — customFieldsSetup', () => {
     const result = await customFieldsSetup(sb, tenantId, 'at_xxx', 'loc_us3_cf_collision')
 
     // CPF deveria ter sido criado como sufixado.
-    const cpfCall = create.createCalls.find((c) => c.name === 'CPF (Prontool)')
+    const cpfCall = create.createCalls.find((c) => c.name === 'CPF (Clinni)')
     expect(cpfCall).toBeDefined()
     expect(cpfCall?.dataType).toBe('TEXT')
     expect(result.ids.cpf?.id).toContain('cf_')

@@ -37,7 +37,7 @@ describe('US4 — /api/configuracoes/integracoes/ghl + sync-log', () => {
     const admin = await seedUser(tenantId, 'admin')
     await seedGhlIntegration(tenantId, {
       locationId: 'loc_us4_conn',
-      customFieldIds: { cpf: { id: 'cf_us4_cpf', alias: 'prontool_cpf' } },
+      customFieldIds: { cpf: { id: 'cf_us4_cpf', alias: 'clinni_cpf' } },
       webhookIds: { ContactCreate: 'hk_us4_cc' },
     })
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })

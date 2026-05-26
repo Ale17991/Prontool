@@ -72,7 +72,7 @@ async function sendPatientEmail(input: SendBookingConfirmationsInput): Promise<v
       durationMinutes: input.durationMinutes,
       organizer: {
         name: input.tenantDisplayName,
-        email: process.env.RESEND_FROM ?? 'agendamentos@dev.prontool.io',
+        email: process.env.RESEND_FROM ?? 'agendamentos@dev.clinnipro.io',
       },
     })
   } catch (err) {

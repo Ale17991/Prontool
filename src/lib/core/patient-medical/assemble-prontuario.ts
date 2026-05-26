@@ -178,7 +178,7 @@ export async function assemblePatientChart(
     }))
 
   return {
-    tenantName: tenantRow?.name ?? 'Prontool',
+    tenantName: tenantRow?.name ?? 'Clinni',
     clinicProfile,
     signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
     generatedAt: new Date().toISOString(),
