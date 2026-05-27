@@ -47,6 +47,22 @@ const paymentModeChangeSchema = z
 const patchSchema = z.object({
   full_name: z.string().min(1).max(200).optional(),
   active: z.boolean().optional(),
+  // Campos do prescritor (Memed). Aceitam null para limpar.
+  cpf: z
+    .string()
+    .regex(/^\d{11}$/, 'CPF deve conter 11 dígitos')
+    .nullable()
+    .optional(),
+  council_state: z
+    .string()
+    .regex(/^[A-Z]{2}$/, 'UF do conselho deve ter 2 letras')
+    .nullable()
+    .optional(),
+  birth_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de nascimento deve estar no formato YYYY-MM-DD')
+    .nullable()
+    .optional(),
   payment_mode_change: paymentModeChangeSchema.optional(),
 })
 
@@ -79,6 +95,9 @@ export async function GET(
         specialty: doctor.specialty,
         council_name: doctor.councilName,
         council_number: doctor.councilNumber,
+        council_state: doctor.councilState,
+        cpf: doctor.cpf,
+        birth_date: doctor.birthDate,
         active: doctor.active,
         created_at: doctor.createdAt,
         payment_mode: doctor.paymentMode,
@@ -156,15 +175,28 @@ export async function PATCH(
       }
     }
 
-    // 2) Demais campos via updateDoctor
-    let basicUpdated: { id: string; fullName: string; active: boolean } | null = null
-    if (parsed.data.full_name !== undefined || parsed.data.active !== undefined) {
+    // 2) Demais campos via updateDoctor (nome, status e dados do prescritor)
+    let basicUpdated: Awaited<ReturnType<typeof updateDoctor>> | null = null
+    const wantsBasicUpdate =
+      parsed.data.full_name !== undefined ||
+      parsed.data.active !== undefined ||
+      parsed.data.cpf !== undefined ||
+      parsed.data.council_state !== undefined ||
+      parsed.data.birth_date !== undefined
+    if (wantsBasicUpdate) {
       basicUpdated = await updateDoctor(supabase, {
         tenantId: session.tenantId,
         doctorId: params.id,
         patch: {
           ...(parsed.data.full_name !== undefined ? { fullName: parsed.data.full_name } : {}),
           ...(parsed.data.active !== undefined ? { active: parsed.data.active } : {}),
+          ...(parsed.data.cpf !== undefined ? { cpf: parsed.data.cpf } : {}),
+          ...(parsed.data.council_state !== undefined
+            ? { councilState: parsed.data.council_state }
+            : {}),
+          ...(parsed.data.birth_date !== undefined
+            ? { birthDate: parsed.data.birth_date }
+            : {}),
         },
       })
     }
@@ -173,7 +205,13 @@ export async function PATCH(
       {
         id: params.id,
         ...(basicUpdated
-          ? { full_name: basicUpdated.fullName, active: basicUpdated.active }
+          ? {
+              full_name: basicUpdated.fullName,
+              active: basicUpdated.active,
+              cpf: basicUpdated.cpf,
+              council_state: basicUpdated.councilState,
+              birth_date: basicUpdated.birthDate,
+            }
           : {}),
         ...(paymentModeUpdated ? { payment_mode: paymentModeUpdated } : {}),
       },

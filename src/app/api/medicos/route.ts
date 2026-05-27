@@ -34,6 +34,23 @@ const createSchema = z
     specialty: z.string().max(120).nullable().optional(),
     council_name: z.string().max(20).nullable().optional(),
     council_number: z.string().max(50).nullable().optional(),
+    // Campos do prescritor para integração de prescrição digital (Memed).
+    // Opcionais aqui; obrigatórios apenas no momento de registrar o prescritor.
+    cpf: z
+      .string()
+      .regex(/^\d{11}$/, 'CPF deve conter 11 dígitos')
+      .nullable()
+      .optional(),
+    council_state: z
+      .string()
+      .regex(/^[A-Z]{2}$/, 'UF do conselho deve ter 2 letras')
+      .nullable()
+      .optional(),
+    birth_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de nascimento deve estar no formato YYYY-MM-DD')
+      .nullable()
+      .optional(),
     payment_mode: z.enum(['comissionado', 'fixo', 'liberal']).default('comissionado'),
     initial_percentage_bps: z.number().int().min(0).max(10_000).optional(),
     monthly_amount_cents: z.number().int().positive().optional(),
@@ -109,6 +126,9 @@ export async function POST(req: Request): Promise<Response> {
         specialty: parsed.data.specialty ?? null,
         councilName: parsed.data.council_name ?? null,
         councilNumber: parsed.data.council_number ?? null,
+        cpf: parsed.data.cpf ?? null,
+        councilState: parsed.data.council_state ?? null,
+        birthDate: parsed.data.birth_date ?? null,
         paymentMode: parsed.data.payment_mode,
         initialPercentageBps: parsed.data.initial_percentage_bps ?? null,
         monthlyAmountCents: parsed.data.monthly_amount_cents ?? null,

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { UF_CODES } from '@/lib/core/clinic-profile/types'
 
 const ROLE_OPTIONS = [
   'Médico',
@@ -57,6 +58,9 @@ export function NewDoctorForm() {
   const [specialty, setSpecialty] = useState('')
   const [councilName, setCouncilName] = useState<(typeof COUNCIL_OPTIONS)[number]>('CRM')
   const [councilNumber, setCouncilNumber] = useState('')
+  const [councilState, setCouncilState] = useState('')
+  const [cpf, setCpf] = useState('')
+  const [birthDate, setBirthDate] = useState('')
   const [externalId, setExternalId] = useState('')
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('comissionado')
   // Comissionado
@@ -78,11 +82,21 @@ export function NewDoctorForm() {
     setError(null)
     setSuccess(null)
 
+    // CPF opcional; se preenchido, exige 11 dígitos (mesma regra do paciente).
+    const cpfDigits = cpf.replace(/\D/g, '')
+    if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
+      setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
+      return
+    }
+
     const payload: Record<string, unknown> = {
       full_name: fullName.trim(),
       crm: councilNumber.trim(),
       council_number: councilNumber.trim(),
       council_name: councilName,
+      council_state: councilState || null,
+      cpf: cpfDigits || null,
+      birth_date: birthDate || null,
       role,
       specialty: specialty.trim() || null,
       external_identifier: externalId.trim() || null,
@@ -140,6 +154,9 @@ export function NewDoctorForm() {
       setSuccess(`Profissional ${created.full_name} cadastrado.`)
       setFullName('')
       setCouncilNumber('')
+      setCouncilState('')
+      setCpf('')
+      setBirthDate('')
       setSpecialty('')
       setExternalId('')
       setPercentStr('')
@@ -206,7 +223,7 @@ export function NewDoctorForm() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="space-y-1.5">
           <Label htmlFor="council-name" className="text-xs">
             Conselho
@@ -226,6 +243,24 @@ export function NewDoctorForm() {
           </select>
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="council-state" className="text-xs">
+            UF <span className="text-slate-400">(opcional)</span>
+          </Label>
+          <select
+            id="council-state"
+            value={councilState}
+            onChange={(e) => setCouncilState(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">—</option>
+            {UF_CODES.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5 col-span-2">
           <Label htmlFor="council-number" className="text-xs">
             Nº de Registro
           </Label>
@@ -236,10 +271,41 @@ export function NewDoctorForm() {
             maxLength={50}
             value={councilNumber}
             onChange={(e) => setCouncilNumber(e.target.value)}
-            placeholder="Ex.: 123456-SP"
+            placeholder="Ex.: 123456"
           />
         </div>
       </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="cpf" className="text-xs">
+            CPF <span className="text-slate-400">(opcional)</span>
+          </Label>
+          <Input
+            id="cpf"
+            inputMode="numeric"
+            maxLength={14}
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+            placeholder="000.000.000-00"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="birth-date" className="text-xs">
+            Data de nascimento <span className="text-slate-400">(opcional)</span>
+          </Label>
+          <Input
+            id="birth-date"
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
+          />
+        </div>
+      </div>
+      <p className="text-[11px] text-slate-500">
+        CPF, UF do conselho e data de nascimento são necessários para emitir
+        prescrição digital (Memed). Podem ser preenchidos depois.
+      </p>
 
       <div className="space-y-1.5">
         <Label htmlFor="external-id" className="text-xs">

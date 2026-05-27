@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, Circle, History, Percent, Wallet } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Circle, FileText, History, Percent, Wallet } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatBps, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { EditDoctorName } from './edit-doctor-name'
+import { EditPrescriberFields } from './edit-prescriber-fields'
 import { NewCommissionForm } from './new-commission-form'
 import { PaymentModeEditor } from './payment-mode-editor'
 
@@ -24,6 +25,9 @@ interface DoctorRow {
   specialty: string | null
   council_name: string | null
   council_number: string | null
+  council_state: string | null
+  cpf: string | null
+  birth_date: string | null
   active: boolean
   created_at: string
   payment_mode: PaymentMode
@@ -74,7 +78,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const { data: doctorRaw, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, payment_mode',
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -171,6 +175,25 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
           </div>
         </CardContent>
       </Card>
+
+      {canWrite ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-primary" />
+              Dados para prescrição digital
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditPrescriberFields
+              doctorId={doctor.id}
+              currentCpf={doctor.cpf}
+              currentCouncilState={doctor.council_state}
+              currentBirthDate={doctor.birth_date}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <SummaryCard

@@ -1146,8 +1146,11 @@ export type Database = {
       doctors: {
         Row: {
           active: boolean
+          birth_date: string | null
           council_name: string | null
           council_number: string | null
+          council_state: string | null
+          cpf: string | null
           created_at: string
           created_by: string | null
           crm: string
@@ -1162,8 +1165,11 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          birth_date?: string | null
           council_name?: string | null
           council_number?: string | null
+          council_state?: string | null
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
           crm: string
@@ -1178,8 +1184,11 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          birth_date?: string | null
           council_name?: string | null
           council_number?: string | null
+          council_state?: string | null
+          cpf?: string | null
           created_at?: string
           created_by?: string | null
           crm?: string
