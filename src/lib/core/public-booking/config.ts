@@ -258,18 +258,20 @@ export async function updatePublicBookingConfig(
     }
   }
 
-  // Upsert via update (assume que tenant_clinic_profile já existe — criado
-  // em onboarding ou lazy pelo getClinicProfile).
-  const { error } = await supabase
-    .from('tenant_clinic_profile')
-    .update({
+  // Upsert real — cria a linha se ainda não existe (tenants novos que nunca
+  // visitaram /configuracoes/clinica). Antes era .update() puro, que afetava
+  // zero rows silenciosamente e o slug não era gravado.
+  const { error } = await supabase.from('tenant_clinic_profile').upsert(
+    {
+      tenant_id: tenantId,
       public_booking_slug: input.publicBookingSlug,
       public_booking_enabled: input.publicBookingEnabled,
       public_booking_min_hours_advance: input.publicBookingMinHoursAdvance,
       public_booking_max_days_advance: input.publicBookingMaxDaysAdvance,
       public_booking_cancel_min_hours: input.publicBookingCancelMinHours,
-    })
-    .eq('tenant_id', tenantId)
+    },
+    { onConflict: 'tenant_id' },
+  )
   if (error) {
     throw new Error(`updatePublicBookingConfig: ${error.message}`)
   }
