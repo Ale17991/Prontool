@@ -105,6 +105,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/api/workers') ||
+    pathname.startsWith('/agendar') ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next()
