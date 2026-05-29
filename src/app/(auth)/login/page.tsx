@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Stethoscope } from 'lucide-react'
@@ -82,13 +81,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
-          Não tem conta?{' '}
-          <Link href="/registrar" className="font-semibold text-link hover:text-link-hover hover:underline">
-            Criar conta
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-[11px] text-slate-400">
+        <p className="mt-6 text-center text-[11px] text-slate-400">
           Esqueceu sua senha? Fale com o administrador da clínica.
         </p>
       </div>
