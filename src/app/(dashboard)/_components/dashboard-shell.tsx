@@ -21,6 +21,7 @@ import {
   type SidebarIntegrationBadgeItem,
 } from './sidebar-integrations-badge'
 import { NotificationBell } from './notification-bell'
+import { SupportTicketDialog } from './support-ticket-dialog'
 import {
   getVisibleSections,
   type NavContext,
@@ -261,6 +262,7 @@ function SidebarInner({
             <span>Trocar clínica</span>
           </Link>
         ) : null}
+        <SupportTicketDialog />
       </div>
 
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">

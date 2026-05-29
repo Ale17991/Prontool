@@ -116,6 +116,92 @@ export async function sendBookingEmail(
   }
 }
 
+// =========================================================================
+// Tickets de suporte (bug/sugestao/suporte) — enviados pelos usuarios via
+// botao na sidebar. Destino: operations@homio.com.br (ou SUPPORT_TICKETS_TO
+// em env). Carrega contexto pra triagem (origem, role, page_url, user-agent).
+// =========================================================================
+
+export interface SendSupportTicketEmailInput {
+  ticketId: string
+  tenantId: string
+  tenantName: string | null
+  userEmail: string | null
+  userRole: string | null
+  kind: 'bug' | 'suggestion' | 'support'
+  title: string
+  description: string
+  pageUrl: string | null
+  userAgent: string | null
+  subject: string
+}
+
+export async function sendSupportTicketEmail(
+  input: SendSupportTicketEmailInput,
+): Promise<{ id: string | null }> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    logger.warn(
+      { ticket_id: input.ticketId, tenant_id: input.tenantId },
+      'resend-not-configured-skipping-support-ticket-email',
+    )
+    return { id: null }
+  }
+
+  const from = process.env.RESEND_FROM ?? 'alertas@dev.prontool.io'
+  const to = (process.env.SUPPORT_TICKETS_TO ?? 'operations@homio.com.br')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+  const html = renderSupportTicketHtml(input)
+
+  try {
+    const res = await getResend(key).emails.send({
+      from,
+      to,
+      subject: input.subject,
+      html,
+      replyTo: input.userEmail ?? undefined,
+    })
+    return { id: res.data?.id ?? null }
+  } catch (err) {
+    logger.error(
+      { err, ticket_id: input.ticketId, tenant_id: input.tenantId },
+      'resend-send-support-ticket-failed',
+    )
+    return { id: null }
+  }
+}
+
+function renderSupportTicketHtml(x: SendSupportTicketEmailInput): string {
+  const kindLabel =
+    x.kind === 'bug' ? 'Bug / Erro' : x.kind === 'suggestion' ? 'Sugestão' : 'Suporte'
+  const kindColor =
+    x.kind === 'bug' ? '#b91c1c' : x.kind === 'suggestion' ? '#1d4ed8' : '#15803d'
+  const row = (label: string, value: string | null) =>
+    value
+      ? `<tr><td style="padding: 4px 12px 4px 0; color: #64748b; vertical-align: top;">${escapeHtml(label)}</td><td style="padding: 4px 0; color: #0f172a;">${escapeHtml(value)}</td></tr>`
+      : ''
+  return `<!doctype html>
+<html lang="pt-BR">
+  <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; color: #0f172a;">
+    <div style="display: inline-block; padding: 4px 10px; background: ${kindColor}; color: white; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border-radius: 999px;">${escapeHtml(kindLabel)}</div>
+    <h2 style="margin: 16px 0 8px;">${escapeHtml(x.title)}</h2>
+    <table style="font-size: 13px; margin-bottom: 16px;">
+      ${row('Tenant', x.tenantName ?? x.tenantId)}
+      ${row('Usuário', x.userEmail)}
+      ${row('Papel', x.userRole)}
+      ${row('Página', x.pageUrl)}
+      ${row('User-Agent', x.userAgent)}
+      ${row('Ticket ID', x.ticketId)}
+    </table>
+    <pre style="white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px; font-family: inherit; font-size: 13px; border: 1px solid #e2e8f0;">${escapeHtml(x.description)}</pre>
+    <p style="color: #94a3b8; font-size: 11px; margin-top: 24px;">Responda a este e-mail para falar diretamente com o usuário (Reply-To configurado).</p>
+  </body>
+</html>`
+}
+
 function renderAlertHtml(x: { subject: string; bodyMarkdown: string; dashboardUrl: string }): string {
   // Very deliberate: no dynamic PII-bearing fields rendered here.
   const escaped = escapeHtml(x.bodyMarkdown)
