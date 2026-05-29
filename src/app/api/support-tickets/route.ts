@@ -13,8 +13,10 @@
  */
 
 import { NextResponse, type NextRequest } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import type { Database } from '@/lib/db/types'
 import {
   SupportTicketCreateSchema,
   createSupportTicket,
@@ -54,10 +56,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const supabase = createSupabaseServerClient()
+  // Cast segue padrao de outros route handlers (ver agendamento-publico/page.tsx)
+  // — o generico do client SSR diverge em um param do que core libs esperam.
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const userAgent = request.headers.get('user-agent')
 
-  // Resolve nome do tenant para o email (nao bloqueante).
+  // Resolve nome do tenant para o email (nao bloqueante). Cast manual segue
+  // padrao do projeto (ver tenant-tz.ts:41) — `.maybeSingle()` infere data
+  // como `never` no client com Database generico.
   let tenantName: string | null = null
   try {
     const { data } = await supabase
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
       .select('name')
       .eq('id', session.tenantId)
       .maybeSingle()
-    tenantName = data?.name ?? null
+    tenantName = (data as { name?: string | null } | null)?.name ?? null
   } catch {
     // tenant name é opcional — segue sem.
   }

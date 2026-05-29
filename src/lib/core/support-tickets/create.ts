@@ -19,6 +19,16 @@ export interface CreateSupportTicketResult {
 }
 
 /**
+ * support_tickets foi criada na 0109 mas ainda nao foi regerada em
+ * `Database` (gen-types depende de Docker local). Mesmo padrao usado em
+ * patient-tags/service.ts ate o proximo `pnpm supabase:gen-types`.
+ */
+type UntypedFrom = (table: string) => ReturnType<SupabaseClient['from']>
+function untyped(supabase: SupabaseClient<Database>): { from: UntypedFrom } {
+  return supabase as unknown as { from: UntypedFrom }
+}
+
+/**
  * Insere o ticket em support_tickets (rodando com role authenticated via RLS)
  * e dispara email best-effort para a equipe de operacoes. Falha de email
  * nao bloqueia a criacao do ticket — registro fica no DB de qualquer forma.
@@ -28,7 +38,7 @@ export async function createSupportTicket(
   ctx: CreateSupportTicketContext,
   input: SupportTicketCreateInput,
 ): Promise<CreateSupportTicketResult> {
-  const insertRes = await supabase
+  const insertRes = await untyped(supabase)
     .from('support_tickets')
     .insert({
       tenant_id: ctx.tenantId,
@@ -50,7 +60,7 @@ export async function createSupportTicket(
     )
   }
 
-  const ticketId = insertRes.data.id
+  const ticketId = (insertRes.data as { id: string }).id
 
   let emailDelivered = false
   try {

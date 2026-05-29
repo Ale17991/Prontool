@@ -162,7 +162,7 @@ export async function sendSupportTicketEmail(
       to,
       subject: input.subject,
       html,
-      replyTo: input.userEmail ?? undefined,
+      reply_to: input.userEmail ?? undefined,
     })
     return { id: res.data?.id ?? null }
   } catch (err) {
