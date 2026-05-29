@@ -46,7 +46,7 @@ export async function GET(
 
   const { data: appt } = await supabase
     .from('appointments')
-    .select('id, appointment_at, procedure_id, doctor_id')
+    .select('id, appointment_at, duration_minutes, procedure_id, doctor_id')
     .eq('id', tokenRow.appointment_id)
     .eq('tenant_id', tenant.tenantId)
     .maybeSingle()
@@ -56,7 +56,7 @@ export async function GET(
   const [procRow, doctorRow] = await Promise.all([
     supabase
       .from('procedures')
-      .select('display_name')
+      .select('display_name, tuss_code')
       .eq('id', appt.procedure_id)
       .eq('tenant_id', tenant.tenantId)
       .maybeSingle(),
@@ -68,19 +68,35 @@ export async function GET(
       .maybeSingle(),
   ])
 
-  const procedureName = (procRow.data?.display_name as string | undefined) ?? 'Consulta'
+  const procedureName =
+    (procRow.data?.display_name as string | null | undefined) ??
+    (procRow.data?.tuss_code as string | null | undefined) ??
+    'Consulta'
   const doctorName = (doctorRow.data?.full_name as string | undefined) ?? '—'
+  const durationMinutes = appt.duration_minutes ?? 30
+
+  // Descricao alinhada com o evento do Google Calendar (mantem paridade).
+  const description = [
+    `Atendimento: ${procedureName}`,
+    `Profissional: Dr(a). ${doctorName}`,
+    `Clínica: ${tenant.displayName}`,
+    tenant.phone ? `Telefone: ${tenant.phone}` : null,
+    tenant.addressLine ? `Endereço: ${tenant.addressLine}` : null,
+    '',
+    'Em caso de imprevisto, cancele com antecedência pelo link enviado no e-mail de confirmação.',
+  ]
+    .filter((line): line is string => line !== null)
+    .join('\n')
 
   let ics: string
   try {
     ics = generateBookingIcs({
       uid: appt.id,
-      title: `${procedureName} — ${tenant.displayName}`,
-      description: `Profissional: ${doctorName}\nClínica: ${tenant.displayName}`,
+      title: `${procedureName} — Dr(a). ${doctorName}`,
+      description,
       location: tenant.addressLine ?? tenant.displayName,
       startIso: appt.appointment_at,
-      // duração padrão se não acharmos — 30min é razoável para fallback.
-      durationMinutes: 30,
+      durationMinutes,
       organizer: {
         name: tenant.displayName,
         email: process.env.RESEND_FROM ?? 'agendamentos@dev.clinnipro.io',
@@ -90,10 +106,13 @@ export async function GET(
     return new Response('Internal Error', { status: 500 })
   }
 
+  // `inline` permite que iOS/macOS Safari abram direto no Calendar.app em
+  // vez de baixar o arquivo. Windows/Android tratam o text/calendar segundo
+  // o app default do usuario.
   return new Response(ics, {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="consulta.ics"',
+      'Content-Disposition': 'inline; filename="consulta.ics"',
     },
   })
 }
