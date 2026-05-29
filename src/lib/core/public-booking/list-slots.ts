@@ -44,3 +44,47 @@ export async function listPublicBookingSlots(
   }> | null) ?? []
   return rows.map((r) => ({ start: r.slot_start, end: r.slot_end }))
 }
+
+export interface ListAnyDoctorSlotsInput {
+  slug: string
+  doctorIds: string[]
+  procedureId: string
+  from: string
+  to: string
+}
+
+/**
+ * Modo "sem preferencia": chama public_booking_slots em paralelo para cada
+ * medico candidato e une os resultados, deduplicando por slot_start. Se
+ * dois medicos tem o mesmo slot livre, conta uma vez — paciente nao se
+ * preocupa com qual sera atribuido.
+ */
+export async function listAnyDoctorSlots(
+  supabase: SupabaseClient<Database>,
+  input: ListAnyDoctorSlotsInput,
+): Promise<SlotDTO[]> {
+  if (input.doctorIds.length === 0) return []
+  const settled = await Promise.allSettled(
+    input.doctorIds.map((doctorId) =>
+      listPublicBookingSlots(supabase, {
+        slug: input.slug,
+        doctorId,
+        procedureId: input.procedureId,
+        from: input.from,
+        to: input.to,
+      }),
+    ),
+  )
+  const seen = new Set<string>()
+  const merged: SlotDTO[] = []
+  for (const r of settled) {
+    if (r.status !== 'fulfilled') continue
+    for (const slot of r.value) {
+      if (seen.has(slot.start)) continue
+      seen.add(slot.start)
+      merged.push(slot)
+    }
+  }
+  merged.sort((a, b) => a.start.localeCompare(b.start))
+  return merged
+}

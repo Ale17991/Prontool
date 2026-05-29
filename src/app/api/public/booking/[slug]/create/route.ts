@@ -31,7 +31,8 @@ export const runtime = 'nodejs'
 const SlugSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{2,31}$/)
 
 const BodySchema = z.object({
-  doctor_id: z.string().uuid(),
+  // 'any' = paciente nao escolheu medico; backend faz a atribuicao.
+  doctor_id: z.union([z.string().uuid(), z.literal('any')]),
   procedure_id: z.string().uuid(),
   slot_start: z.string().datetime({ offset: true }),
   patient: z.object({

@@ -10,7 +10,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
-import { listPublicBookingSlots } from '@/lib/core/public-booking/list-slots'
+import {
+  listAnyDoctorSlots,
+  listPublicBookingSlots,
+} from '@/lib/core/public-booking/list-slots'
+import { listDoctorsForProcedure } from '@/lib/core/public-booking/list-published'
 import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
 import {
   checkRateLimit,
@@ -22,7 +26,9 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const QuerySchema = z.object({
-  doctor_id: z.string().uuid(),
+  // 'any' = modo "sem preferencia" — backend une slots de todos os medicos
+  // que oferecem o procedimento.
+  doctor_id: z.union([z.string().uuid(), z.literal('any')]),
   procedure_id: z.string().uuid(),
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -108,13 +114,26 @@ export async function GET(
     action: 'view_slots',
   })
 
-  const slots = await listPublicBookingSlots(supabase, {
-    slug: slugCheck.data,
-    doctorId: parsed.data.doctor_id,
-    procedureId: parsed.data.procedure_id,
-    from: parsed.data.from,
-    to: parsed.data.to,
-  })
+  const slots =
+    parsed.data.doctor_id === 'any'
+      ? await listAnyDoctorSlots(supabase, {
+          slug: slugCheck.data,
+          doctorIds: await listDoctorsForProcedure(
+            supabase,
+            tenant.tenantId,
+            parsed.data.procedure_id,
+          ),
+          procedureId: parsed.data.procedure_id,
+          from: parsed.data.from,
+          to: parsed.data.to,
+        })
+      : await listPublicBookingSlots(supabase, {
+          slug: slugCheck.data,
+          doctorId: parsed.data.doctor_id,
+          procedureId: parsed.data.procedure_id,
+          from: parsed.data.from,
+          to: parsed.data.to,
+        })
 
   return NextResponse.json({
     slots,

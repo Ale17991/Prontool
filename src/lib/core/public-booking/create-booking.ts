@@ -28,6 +28,8 @@ import { createAppointmentManually } from '@/lib/core/appointments/create-manual
 import { resolveTenantBySlug } from './resolve-tenant'
 import { generateCancelToken } from './tokens'
 import { sendBookingConfirmations } from './send-confirmation'
+import { listDoctorsForProcedure } from './list-published'
+import { pickAnyDoctorForSlot } from './pick-doctor'
 import type { BookingCreatedResult, BookingPayload } from './types'
 
 export interface CreatePublicBookingInput extends BookingPayload {
@@ -67,12 +69,39 @@ export async function createPublicBooking(
     return { ok: false, error: 'TENANT_NOT_FOUND_OR_DISABLED' }
   }
 
+  // 1.5 Modo "sem preferencia": resolve medico antes da validacao do par
+  // (medico, procedimento). Pick = medico do pool com slot livre + menor
+  // numero de appointments na semana; random tiebreak. Pool = todos que
+  // publicam o procedimento.
+  let resolvedDoctorId = input.doctorId
+  if (input.doctorId === 'any') {
+    const candidates = await listDoctorsForProcedure(
+      supabase,
+      tenant.tenantId,
+      input.procedureId,
+    )
+    if (candidates.length === 0) {
+      return { ok: false, error: 'DOCTOR_PROCEDURE_NOT_PUBLISHED' }
+    }
+    const picked = await pickAnyDoctorForSlot(supabase, {
+      slug: input.slug,
+      tenantId: tenant.tenantId,
+      procedureId: input.procedureId,
+      slotStartIso: input.slotStart,
+      candidateDoctorIds: candidates,
+    })
+    if (!picked) {
+      return { ok: false, error: 'SLOT_NO_LONGER_AVAILABLE' }
+    }
+    resolvedDoctorId = picked.doctorId
+  }
+
   // 2. Validar combinação publicada (médico + procedimento + tenant).
   const pubRow = await supabase
     .from('public_booking_doctor_procedures')
     .select('duration_minutes, display_name')
     .eq('tenant_id', tenant.tenantId)
-    .eq('doctor_id', input.doctorId)
+    .eq('doctor_id', resolvedDoctorId)
     .eq('procedure_id', input.procedureId)
     .maybeSingle()
 
@@ -159,7 +188,7 @@ export async function createPublicBooking(
       tenantId: tenant.tenantId,
       actorUserId,
       patientId,
-      doctorId: input.doctorId,
+      doctorId: resolvedDoctorId,
       procedures: [
         {
           procedureId: input.procedureId,
@@ -219,7 +248,7 @@ export async function createPublicBooking(
     const { data: doctorRow } = await supabase
       .from('doctors')
       .select('full_name')
-      .eq('id', input.doctorId)
+      .eq('id', resolvedDoctorId)
       .eq('tenant_id', tenant.tenantId)
       .maybeSingle()
     const doctorName = (doctorRow?.full_name as string | undefined) ?? '—'

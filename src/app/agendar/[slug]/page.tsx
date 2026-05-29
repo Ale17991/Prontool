@@ -47,7 +47,21 @@ export default async function AgendarSlugPage({
             Nenhum profissional disponível no momento. Entre em contato com a clínica.
           </p>
         ) : (
-          <DoctorList slug={params.slug} doctors={doctors} />
+          <>
+            <a
+              href={`/agendar/${params.slug}/horarios?doctor_id=any`}
+              className="mb-3 block rounded-md border border-dashed border-primary/40 bg-primary/5 p-4 transition hover:border-primary hover:bg-primary/10"
+            >
+              <div className="font-semibold text-slate-900">
+                Sem preferência de profissional
+              </div>
+              <p className="mt-1 text-sm text-slate-600">
+                Atenderei com quem tiver melhor disponibilidade.
+              </p>
+              <div className="mt-2 text-xs font-medium text-primary">Ver horários →</div>
+            </a>
+            <DoctorList slug={params.slug} doctors={doctors} />
+          </>
         )}
       </div>
 

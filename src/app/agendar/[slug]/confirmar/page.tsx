@@ -9,6 +9,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 import {
+  listProceduresAnyDoctor,
   listProceduresByDoctor,
   listPublishedDoctors,
 } from '@/lib/core/public-booking/list-published'
@@ -32,13 +33,25 @@ export default async function ConfirmarPage({
   const tenant = await resolveTenantBySlug(supabase, params.slug)
   if (!tenant) notFound()
 
-  const allDoctors = await listPublishedDoctors(supabase, tenant.tenantId)
-  const doctor = allDoctors.find((d) => d.doctorId === doctor_id)
-  if (!doctor) notFound()
+  let doctorName: string
+  let procedureName: string
 
-  const procs = await listProceduresByDoctor(supabase, tenant.tenantId, doctor_id)
-  const procedure = procs.find((p) => p.procedureId === procedure_id)
-  if (!procedure) notFound()
+  if (doctor_id === 'any') {
+    const procs = await listProceduresAnyDoctor(supabase, tenant.tenantId)
+    const procedure = procs.find((p) => p.procedureId === procedure_id)
+    if (!procedure) notFound()
+    procedureName = procedure.displayName
+    doctorName = 'A definir pela clínica'
+  } else {
+    const allDoctors = await listPublishedDoctors(supabase, tenant.tenantId)
+    const doctor = allDoctors.find((d) => d.doctorId === doctor_id)
+    if (!doctor) notFound()
+    const procs = await listProceduresByDoctor(supabase, tenant.tenantId, doctor_id)
+    const procedure = procs.find((p) => p.procedureId === procedure_id)
+    if (!procedure) notFound()
+    procedureName = procedure.displayName
+    doctorName = doctor.doctorFullName
+  }
 
   return (
     <div className="space-y-6">
@@ -55,9 +68,9 @@ export default async function ConfirmarPage({
       <PatientForm
         slug={params.slug}
         doctorId={doctor_id}
-        doctorName={doctor.doctorFullName}
+        doctorName={doctorName}
         procedureId={procedure_id}
-        procedureName={procedure.displayName}
+        procedureName={procedureName}
         slotStart={slot_start}
         clinicName={tenant.displayName}
       />
