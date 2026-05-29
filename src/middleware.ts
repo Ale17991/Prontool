@@ -101,6 +101,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl, 301)
   }
 
+  // Self-signup desabilitado: cadastro de novas clinicas e' feito por
+  // convite/onboarding controlado. Qualquer acesso direto a /registrar
+  // volta pro login; o endpoint POST do signup retorna 403.
+  if (pathname === '/registrar' || pathname.startsWith('/registrar/')) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    redirectUrl.search = ''
+    return NextResponse.redirect(redirectUrl)
+  }
+  if (pathname === '/api/auth/signup') {
+    return new NextResponse(JSON.stringify({ error: 'SIGNUP_DISABLED' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/webhooks') ||
