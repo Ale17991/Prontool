@@ -47,14 +47,52 @@ export default async function SucessoPage({
 
   const { data: appt } = await supabase
     .from('appointments')
-    .select('id, appointment_at')
+    .select('id, appointment_at, duration_minutes, doctor_id, procedure_id')
     .eq('id', tokenRow.appointment_id)
     .eq('tenant_id', tenant.tenantId)
     .maybeSingle()
 
   if (!appt) notFound()
 
+  // Nomes do medico e do procedimento — usados no resumo + no evento de
+  // calendario. Falhas sao tolerantes: a tela ainda renderiza, mas o evento
+  // do calendar fica com "—" no lugar do nome.
+  const [doctorRes, procRes] = await Promise.all([
+    supabase
+      .from('doctors')
+      .select('full_name')
+      .eq('id', appt.doctor_id)
+      .eq('tenant_id', tenant.tenantId)
+      .maybeSingle(),
+    supabase
+      .from('procedures')
+      .select('display_name, tuss_code')
+      .eq('id', appt.procedure_id)
+      .eq('tenant_id', tenant.tenantId)
+      .maybeSingle(),
+  ])
+  const doctorName = (doctorRes.data?.full_name as string | undefined) ?? '—'
+  const procedureName =
+    (procRes.data?.display_name as string | null | undefined) ??
+    (procRes.data?.tuss_code as string | null | undefined) ??
+    'Consulta'
+  const durationMinutes = appt.duration_minutes ?? 30
+
   const cancelHref = `/agendar/${params.slug}/cancelar/${params.token}`
+
+  // Descricao formatada para o evento no Google Calendar / .ics.
+  // Inclui procedimento, profissional, contato e endereco da clinica.
+  const eventDescription = [
+    `Atendimento: ${procedureName}`,
+    `Profissional: Dr(a). ${doctorName}`,
+    `Clínica: ${tenant.displayName}`,
+    tenant.phone ? `Telefone: ${tenant.phone}` : null,
+    tenant.addressLine ? `Endereço: ${tenant.addressLine}` : null,
+    '',
+    'Em caso de imprevisto, cancele com antecedência pelo link enviado no e-mail de confirmação.',
+  ]
+    .filter((line) => line !== null)
+    .join('\n')
 
   return (
     <div className="space-y-6">
@@ -70,6 +108,12 @@ export default async function SucessoPage({
       <section className="rounded-lg border border-border bg-card p-4 text-sm">
         <div className="font-semibold text-slate-900">{tenant.displayName}</div>
         <div className="mt-2 grid gap-1 text-slate-700">
+          <div>
+            <span className="text-slate-500">Atendimento:</span> {procedureName}
+          </div>
+          <div>
+            <span className="text-slate-500">Profissional:</span> Dr(a). {doctorName}
+          </div>
           <div>
             <span className="text-slate-500">Data e hora:</span>{' '}
             {formatBrasilia(appt.appointment_at)}
@@ -88,11 +132,11 @@ export default async function SucessoPage({
       </section>
 
       <AddToCalendarButtons
-        title={`Consulta — ${tenant.displayName}`}
-        description={`Agendamento confirmado pela ${tenant.displayName}.`}
+        title={`${procedureName} — Dr(a). ${doctorName}`}
+        description={eventDescription}
         location={tenant.addressLine ?? tenant.displayName}
         startIso={appt.appointment_at}
-        durationMinutes={30}
+        durationMinutes={durationMinutes}
         icsDownloadUrl={`/api/public/booking/${params.slug}/ics/${params.token}`}
       />
 
