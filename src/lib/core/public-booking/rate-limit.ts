@@ -90,6 +90,11 @@ export const RATE_LIMITS: Record<
   { limit: number; windowSeconds: number }
 > = {
   view_slots: { limit: 10, windowSeconds: 60 },
-  submit: { limit: 3, windowSeconds: 60 * 60 },
+  // submit "ilimitado" enquanto o produto valida — slot conflict (via
+  // appointment_slot_locks + SLOT_NO_LONGER_AVAILABLE) ja impede duplo
+  // agendamento, entao remover anti-spam por IP nao expoe a clinica a
+  // colisao de horario. Reabaixar para 3-5/h quando abrir publicamente
+  // para evitar enxurrada de bookings falsos.
+  submit: { limit: 100000, windowSeconds: 60 * 60 },
   cancel: { limit: 5, windowSeconds: 60 * 60 },
 }
