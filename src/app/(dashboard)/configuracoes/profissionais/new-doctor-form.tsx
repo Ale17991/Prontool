@@ -82,10 +82,18 @@ export function NewDoctorForm() {
     setError(null)
     setSuccess(null)
 
-    // CPF opcional; se preenchido, exige 11 dígitos (mesma regra do paciente).
+    // Dados exigidos pela Memed — obrigatórios em todo cadastro.
     const cpfDigits = cpf.replace(/\D/g, '')
-    if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
-      setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
+    if (cpfDigits.length !== 11) {
+      setError('Informe um CPF válido (11 dígitos).')
+      return
+    }
+    if (!councilState) {
+      setError('Informe a UF do conselho.')
+      return
+    }
+    if (!birthDate) {
+      setError('Informe a data de nascimento.')
       return
     }
 
@@ -94,9 +102,9 @@ export function NewDoctorForm() {
       crm: councilNumber.trim(),
       council_number: councilNumber.trim(),
       council_name: councilName,
-      council_state: councilState || null,
-      cpf: cpfDigits || null,
-      birth_date: birthDate || null,
+      council_state: councilState,
+      cpf: cpfDigits,
+      birth_date: birthDate,
       role,
       specialty: specialty.trim() || null,
       external_identifier: externalId.trim() || null,
@@ -244,10 +252,11 @@ export function NewDoctorForm() {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="council-state" className="text-xs">
-            UF <span className="text-slate-400">(opcional)</span>
+            UF
           </Label>
           <select
             id="council-state"
+            required
             value={councilState}
             onChange={(e) => setCouncilState(e.target.value)}
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -279,10 +288,11 @@ export function NewDoctorForm() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="cpf" className="text-xs">
-            CPF <span className="text-slate-400">(opcional)</span>
+            CPF
           </Label>
           <Input
             id="cpf"
+            required
             inputMode="numeric"
             maxLength={14}
             value={cpf}
@@ -292,11 +302,12 @@ export function NewDoctorForm() {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="birth-date" className="text-xs">
-            Data de nascimento <span className="text-slate-400">(opcional)</span>
+            Data de nascimento
           </Label>
           <Input
             id="birth-date"
             type="date"
+            required
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
           />

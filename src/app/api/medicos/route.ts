@@ -34,8 +34,9 @@ const createSchema = z
     specialty: z.string().max(120).nullable().optional(),
     council_name: z.string().max(20).nullable().optional(),
     council_number: z.string().max(50).nullable().optional(),
-    // Campos do prescritor para integração de prescrição digital (Memed).
-    // Opcionais aqui; obrigatórios apenas no momento de registrar o prescritor.
+    // Campos do prescritor (Memed). A obrigatoriedade é imposta no formulário
+    // de cadastro (cliente); backend permanece tolerante p/ não quebrar
+    // importação GHL e dados legados. Se preenchidos, validam o formato.
     cpf: z
       .string()
       .regex(/^\d{11}$/, 'CPF deve conter 11 dígitos')

@@ -42,9 +42,8 @@ const querySchema = z.object({
     ),
 })
 
-// CPF: opcional em fase de testes. Aceita vazio/null/ausente; se preenchido,
-// normaliza e exige 11 dígitos. Retorna `null` quando ausente (paciente sem
-// CPF cadastrado).
+// CPF: opcional no backend (GHL/legado podem não ter). A obrigatoriedade é
+// imposta no formulário de cadastro manual. Se preenchido, exige 11 dígitos.
 const cpfOptional = z
   .union([z.string(), z.null()])
   .optional()
@@ -55,7 +54,7 @@ const cpfOptional = z
   })
   .refine(
     (s) => s === null || s.length === 11,
-    'CPF deve ter 11 dígitos quando preenchido (ou pode ser deixado em branco).',
+    'CPF deve ter 11 dígitos quando preenchido.',
   )
 
 const addressSchema = z
@@ -84,6 +83,8 @@ const optionalText = (max: number) =>
 
 const createSchema = z.object({
   full_name: z.string().trim().min(2).max(200),
+  // Memed exige CPF/celular/e-mail/nascimento — a obrigatoriedade é imposta no
+  // formulário de cadastro (cliente). Backend permanece tolerante p/ GHL/legado.
   cpf: cpfOptional,
   phone: z.string().trim().max(40).optional().nullable(),
   email: z.string().trim().email().max(200).optional().nullable(),
