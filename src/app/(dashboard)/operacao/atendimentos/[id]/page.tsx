@@ -219,6 +219,24 @@ export default async function AtendimentoDetailPage({
     }
   }
 
+  // Prescrições já emitidas neste atendimento (indicador read-only para
+  // qualquer papel do tenant — RLS permite SELECT por tenant).
+  let prescriptions: Array<{
+    id: string
+    memed_prescription_id: string
+    status: string
+    issued_at: string
+    deleted_at: string | null
+  }> = []
+  if (appointment.id) {
+    const { data: prescRows } = await supabase
+      .from('prescription_records')
+      .select('id, memed_prescription_id, status, issued_at, deleted_at')
+      .eq('appointment_id', appointment.id)
+      .order('issued_at', { ascending: false })
+    prescriptions = (prescRows ?? []) as unknown as typeof prescriptions
+  }
+
   // Hora fim derivada de inicio + duracao.
   const endIso = appointment.appointment_at
     ? new Date(
@@ -361,6 +379,32 @@ export default async function AtendimentoDetailPage({
               appointmentId={appointment.id}
               doctorId={appointment.doctor_id}
             />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {prescriptions.length > 0 ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <ClipboardList className="h-4 w-4 text-primary" />
+              Prescrições ({prescriptions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1.5 text-xs">
+              {prescriptions.map((p) => (
+                <li key={p.id} className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-slate-600">#{p.memed_prescription_id}</span>
+                  <span className="ml-auto text-slate-500">{formatDateTime(p.issued_at)}</span>
+                  {p.status === 'deleted' ? (
+                    <Badge variant="secondary">Excluída</Badge>
+                  ) : (
+                    <Badge variant="success">Emitida</Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       ) : null}
