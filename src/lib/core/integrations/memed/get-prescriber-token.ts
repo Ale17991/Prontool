@@ -2,7 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getMemedConnection } from './credentials'
 import { memedFetch, MemedUpstreamError } from './client'
-import { MemedNotConnectedError, MemedPrescriberNotRegisteredError } from './errors'
+import {
+  MemedNotConnectedError,
+  MemedPrescriberNotRegisteredError,
+  MemedTermsRequiredError,
+} from './errors'
 
 /**
  * Busca o token JWT fresco do prescritor (Feature 026, US1).
@@ -28,6 +32,11 @@ export async function getPrescriberToken(
 
   const connection = await getMemedConnection(supabase, tenantId)
   if (!connection || !connection.connected) throw new MemedNotConnectedError()
+  // Gating US5: prescrever em produção exige o termo aceito (a constraint já
+  // impede produção sem termo, mas falhamos cedo com mensagem clara).
+  if (connection.environment === 'production' && !connection.termsAcceptedAt) {
+    throw new MemedTermsRequiredError()
+  }
 
   const { data: prescriber, error } = await supabase
     .from('memed_prescribers')

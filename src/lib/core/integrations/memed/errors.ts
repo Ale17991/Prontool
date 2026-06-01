@@ -38,6 +38,17 @@ export class MemedPrescriberFieldsMissingError extends DomainError {
   }
 }
 
+/** Tentou ativar produção sem aceitar o termo de responsabilidade (HTTP 400). */
+export class MemedTermsRequiredError extends DomainError {
+  constructor() {
+    super(
+      'MEMED_TERMS_REQUIRED',
+      'Aceite o termo de responsabilidade antes de ativar o ambiente de produção da Memed.',
+      { status: 400 },
+    )
+  }
+}
+
 /** Paciente sem dados obrigatórios para o setPaciente (HTTP 422). */
 export class MemedPatientFieldsMissingError extends DomainError {
   constructor(missing: string[]) {
