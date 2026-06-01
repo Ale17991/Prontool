@@ -1,5 +1,8 @@
 'use client'
 
+/* eslint-disable no-console -- logs `[memed]` são diagnóstico intencional do
+   SDK externo da Memed no navegador (timing de boot do iframe). */
+
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Pill } from 'lucide-react'
@@ -9,21 +12,24 @@ import { Button } from '@/components/ui/button'
  * Feature 026 (US1/US3) — Launcher de prescrição digital.
  *
  * Fluxo: busca o token do prescritor (proxy) + o payload do paciente
- * (decifrado server-side), carrega o script da Memed com `data-token`, aguarda
- * `core:moduleInit`, faz `setPaciente`, abre o módulo de prescrição e liga os
- * eventos `prescricaoImpressa`/`prescricaoExcluida` às rotas de registro.
+ * (decifrado server-side), carrega o script da Memed com `data-token`, espera
+ * o SDK (`MdSinapsePrescricao`/`MdHub`) ficar pronto via polling, faz
+ * `setPaciente`, abre o módulo e liga os eventos `prescricaoImpressa`/
+ * `prescricaoExcluida` às rotas de registro.
  *
  * As chaves NUNCA passam por aqui — só o token curto do prescritor.
  *
- * ⚠️ Integra o SDK externo da Memed (`MdHub`). A API do iframe e o formato dos
- * eventos devem ser confirmados contra a homologação da Memed; o parsing de id
- * é defensivo para tolerar variações de payload.
+ * ⚠️ Integra o SDK externo da Memed (`MdHub`). Como o script boota de forma
+ * assíncrona (mesmo após `onload`), NÃO confiamos só no evento one-shot
+ * `core:moduleInit` — fazemos polling do `MdHub` e mandamos `setPaciente`
+ * defensivamente. Logs no console (`[memed]`) ajudam a diagnosticar.
  */
 
 const MEMED_SCRIPT_ID = 'memed-sinapse-script'
 const MEMED_SCRIPT_SRC =
   'https://integrations.memed.com.br/modulos/plataforma.sinapse-prescricao/build/sinapse-prescricao.min.js'
 const PRESCRICAO_MODULE = 'plataforma.prescricao'
+const SDK_TIMEOUT_MS = 20_000
 
 interface MdHubLike {
   command: { send: (...args: unknown[]) => void }
@@ -61,9 +67,28 @@ function extractPrescriptionId(data: unknown): string | null {
   return null
 }
 
+/** Aguarda um global aparecer (script boota async). Rejeita após timeout. */
+function waitFor<T>(getter: () => T | undefined | null, timeoutMs: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const started = Date.now()
+    const tick = () => {
+      const value = getter()
+      if (value) {
+        resolve(value)
+        return
+      }
+      if (Date.now() - started > timeoutMs) {
+        reject(new Error(`Timeout aguardando ${label} da Memed.`))
+        return
+      }
+      setTimeout(tick, 150)
+    }
+    tick()
+  })
+}
+
 function loadMemedScript(token: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Recarrega com o token atual (o script lê `data-token` no load).
     const previous = document.getElementById(MEMED_SCRIPT_ID)
     if (previous) previous.remove()
     window.MdSinapsePrescricao = undefined
@@ -75,8 +100,14 @@ function loadMemedScript(token: string): Promise<void> {
     script.dataset.token = token
     script.dataset.color = '#2563eb'
     script.async = true
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Não foi possível carregar o módulo da Memed.'))
+    script.onload = () => {
+      console.info('[memed] script onload OK')
+      resolve()
+    }
+    script.onerror = () => {
+      console.error('[memed] falha ao carregar o script', MEMED_SCRIPT_SRC)
+      reject(new Error('Não foi possível carregar o módulo da Memed (script bloqueado ou offline).'))
+    }
     document.body.appendChild(script)
   })
 }
@@ -92,12 +123,14 @@ export function PrescreverLauncher({
   onRecorded?: () => void
 }): JSX.Element {
   const router = useRouter()
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [stage, setStage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const eventsBoundRef = useRef(false)
+  const loading = stage !== null
 
   const recordIssued = useCallback(
     async (data: unknown) => {
+      console.info('[memed] evento prescricaoImpressa', data)
       const memedId = extractPrescriptionId(data)
       if (!memedId) return
       await fetch(`/api/atendimentos/${appointmentId}/prescricoes`, {
@@ -113,6 +146,7 @@ export function PrescreverLauncher({
 
   const recordDeleted = useCallback(
     async (data: unknown) => {
+      console.info('[memed] evento prescricaoExcluida', data)
       const memedId = extractPrescriptionId(data)
       if (!memedId) return
       await fetch(`/api/atendimentos/${appointmentId}/prescricoes/${encodeURIComponent(memedId)}`, {
@@ -122,6 +156,17 @@ export function PrescreverLauncher({
       router.refresh()
     },
     [appointmentId, router, onRecorded],
+  )
+
+  const bindEvents = useCallback(
+    (hub: MdHubLike) => {
+      if (eventsBoundRef.current) return
+      hub.event.add('prescricaoImpressa', (data) => void recordIssued(data))
+      hub.event.add('prescricaoExcluida', (data) => void recordDeleted(data))
+      eventsBoundRef.current = true
+      console.info('[memed] eventos prescricaoImpressa/Excluida registrados')
+    },
+    [recordIssued, recordDeleted],
   )
 
   // Logout do prescritor ao desmontar (troca de atendimento/saída da página).
@@ -136,9 +181,10 @@ export function PrescreverLauncher({
   }, [])
 
   async function handlePrescrever() {
-    setStatus('loading')
+    setStage('Carregando dados do paciente…')
     setError(null)
     try {
+      console.info('[memed] buscando token + paciente')
       const [tokenRes, pacRes] = await Promise.all([
         fetch(`/api/medicos/${doctorId}/memed-token`),
         fetch(`/api/atendimentos/${appointmentId}/memed-paciente`),
@@ -153,36 +199,51 @@ export function PrescreverLauncher({
       }
       const { token } = (await tokenRes.json()) as { token: string }
       const { paciente } = (await pacRes.json()) as { paciente: unknown }
+      console.info('[memed] token e paciente OK; carregando script')
 
+      setStage('Carregando módulo Memed…')
       await loadMemedScript(token)
 
-      const sinapse = window.MdSinapsePrescricao
-      if (!sinapse) throw new Error('Módulo da Memed não inicializou.')
-
+      // Registra o moduleInit ASSIM QUE o event bus existir (envia setPaciente
+      // quando o módulo de prescrição inicializa).
+      setStage('Inicializando módulo…')
+      const sinapse = await waitFor(() => window.MdSinapsePrescricao, SDK_TIMEOUT_MS, 'MdSinapsePrescricao')
       sinapse.event.add('core:moduleInit', (module) => {
+        console.info('[memed] core:moduleInit', module?.name)
         if (module?.name !== PRESCRICAO_MODULE) return
         const hub = window.MdHub
         if (!hub) return
-        if (!eventsBoundRef.current) {
-          hub.event.add('prescricaoImpressa', (data) => void recordIssued(data))
-          hub.event.add('prescricaoExcluida', (data) => void recordDeleted(data))
-          eventsBoundRef.current = true
-        }
+        bindEvents(hub)
         hub.command.send(PRESCRICAO_MODULE, 'setPaciente', paciente)
-        hub.module.show(PRESCRICAO_MODULE)
-        setStatus('ready')
       })
+
+      // Espera o MdHub e abre o módulo.
+      const hub = await waitFor(() => window.MdHub, SDK_TIMEOUT_MS, 'MdHub')
+      bindEvents(hub)
+      console.info('[memed] abrindo módulo de prescrição')
+      hub.module.show(PRESCRICAO_MODULE)
+      // Defensivo: se o moduleInit já tinha passado, manda o paciente direto.
+      setTimeout(() => {
+        try {
+          hub.command.send(PRESCRICAO_MODULE, 'setPaciente', paciente)
+        } catch {
+          /* ignore */
+        }
+      }, 800)
+
+      setStage(null)
     } catch (err) {
-      setStatus('error')
+      console.error('[memed] falha no launcher', err)
+      setStage(null)
       setError(err instanceof Error ? err.message : 'Falha ao abrir a prescrição.')
     }
   }
 
   return (
     <div className="space-y-2">
-      <Button onClick={handlePrescrever} disabled={status === 'loading'} className="gap-2">
+      <Button onClick={handlePrescrever} disabled={loading} className="gap-2">
         <Pill className="h-4 w-4" />
-        {status === 'loading' ? 'Abrindo prescrição…' : 'Prescrever'}
+        {stage ?? 'Prescrever'}
       </Button>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
