@@ -9,6 +9,7 @@ import { listAllergies } from '@/lib/core/patient-medical/allergies'
 import { listAppointmentMaterials } from '@/lib/core/appointments/materials'
 import { listAppointmentProcedures } from '@/lib/core/appointments/procedures'
 import { listAssistantsByAppointment } from '@/lib/core/appointment-assistants/list-by-appointment'
+import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
 
 /**
  * GET /api/atendimentos/{id}.
@@ -108,6 +109,30 @@ export async function GET(
       throw new Error(`audit history read failed: ${auditR.error.message}`)
     }
 
+    // 4. Prescrição digital (Feature 026): botão só para admin/profissional
+    // quando a clínica está conectada e o médico é prescritor registrado.
+    const doctorId = appointment.doctor_id as string | null
+    let prescriberReady = false
+    if (doctorId && (session.role === 'admin' || session.role === 'profissional_saude')) {
+      const memed = await getMemedConfigPublic(supabase, session.tenantId).catch(() => null)
+      if (memed?.connected) {
+        const { data: presc } = await supabase
+          .from('memed_prescribers')
+          .select('status')
+          .eq('tenant_id', session.tenantId)
+          .eq('doctor_id', doctorId)
+          .maybeSingle()
+        prescriberReady = (presc as { status?: string } | null)?.status === 'registered'
+      }
+    }
+
+    const { data: prescRows } = await supabase
+      .from('prescription_records')
+      .select('id, memed_prescription_id, status, issued_at')
+      .eq('tenant_id', session.tenantId)
+      .eq('appointment_id', appointmentIdResolved)
+      .order('issued_at', { ascending: false })
+
     return NextResponse.json(
       {
         appointment,
@@ -118,6 +143,8 @@ export async function GET(
         assistants: assistantsR.active,
         assistantsRemovedCount: assistantsR.removedCount,
         audit: auditR.data ?? [],
+        memed: { prescriberReady },
+        prescriptions: prescRows ?? [],
       },
       { status: 200 },
     )

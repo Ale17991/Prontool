@@ -84,9 +84,12 @@ function loadMemedScript(token: string): Promise<void> {
 export function PrescreverLauncher({
   appointmentId,
   doctorId,
+  onRecorded,
 }: {
   appointmentId: string
   doctorId: string
+  /** Chamado após registrar emissão/exclusão — usado pelo sheet para refetch. */
+  onRecorded?: () => void
 }): JSX.Element {
   const router = useRouter()
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
@@ -102,9 +105,10 @@ export function PrescreverLauncher({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ memed_prescription_id: memedId, doctor_id: doctorId }),
       }).catch(() => {})
+      onRecorded?.()
       router.refresh()
     },
-    [appointmentId, doctorId, router],
+    [appointmentId, doctorId, router, onRecorded],
   )
 
   const recordDeleted = useCallback(
@@ -114,9 +118,10 @@ export function PrescreverLauncher({
       await fetch(`/api/atendimentos/${appointmentId}/prescricoes/${encodeURIComponent(memedId)}`, {
         method: 'PATCH',
       }).catch(() => {})
+      onRecorded?.()
       router.refresh()
     },
-    [appointmentId, router],
+    [appointmentId, router, onRecorded],
   )
 
   // Logout do prescritor ao desmontar (troca de atendimento/saída da página).
