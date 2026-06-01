@@ -1605,6 +1605,70 @@ export type Database = {
           },
         ]
       }
+      memed_prescribers: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          doctor_id: string
+          external_id: string
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          memed_specialty_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          doctor_id: string
+          external_id: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          memed_specialty_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          doctor_id?: string
+          external_id?: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          memed_specialty_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memed_prescribers_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memed_prescribers_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "memed_prescribers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_payouts: {
         Row: {
           adjustments_cents: number
@@ -2359,6 +2423,91 @@ export type Database = {
             columns: ["treatment_step_id"]
             isOneToOne: false
             referencedRelation: "treatment_plan_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescription_records: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          created_by_user_id: string
+          deleted_at: string | null
+          doctor_id: string
+          id: string
+          issued_at: string
+          memed_prescription_id: string
+          patient_id: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by_user_id: string
+          deleted_at?: string | null
+          doctor_id: string
+          id?: string
+          issued_at?: string
+          memed_prescription_id: string
+          patient_id: string
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          deleted_at?: string | null
+          doctor_id?: string
+          id?: string
+          issued_at?: string
+          memed_prescription_id?: string
+          patient_id?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_records_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_records_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "prescription_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescription_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -3195,6 +3344,53 @@ export type Database = {
             foreignKeyName: "tenant_integrations_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_memed_config: {
+        Row: {
+          api_key_enc: string
+          connected: boolean
+          created_at: string
+          created_by_user_id: string
+          environment: string
+          secret_key_enc: string
+          tenant_id: string
+          terms_accepted_at: string | null
+          terms_accepted_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_key_enc: string
+          connected?: boolean
+          created_at?: string
+          created_by_user_id: string
+          environment?: string
+          secret_key_enc: string
+          tenant_id: string
+          terms_accepted_at?: string | null
+          terms_accepted_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_key_enc?: string
+          connected?: boolean
+          created_at?: string
+          created_by_user_id?: string
+          environment?: string
+          secret_key_enc?: string
+          tenant_id?: string
+          terms_accepted_at?: string | null
+          terms_accepted_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_memed_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
