@@ -17,10 +17,18 @@ export interface MockMemedOptions {
   /** Quando >= 400, o POST /usuarios responde erro (testa caminho de validação). */
   registerStatus?: number
   registerError?: unknown
+  /** Catálogo de especialidades devolvido em GET /especialidades. */
+  specialties?: Array<{ id: string; nome: string }>
 }
+
+const DEFAULT_SPECIALTIES = [
+  { id: '10', nome: 'Cardiologia' },
+  { id: '20', nome: 'Clínica Geral' },
+]
 
 export function mockMemed(opts: MockMemedOptions = {}): { token: string } {
   const token = opts.token ?? 'mock.prescriber.jwt.token'
+  const specialties = opts.specialties ?? DEFAULT_SPECIALTIES
   mswServer.use(
     http.post(`${STAGING_BASE}/sinapse-prescricao/usuarios`, () => {
       if (opts.registerStatus && opts.registerStatus >= 400) {
@@ -36,6 +44,12 @@ export function mockMemed(opts: MockMemedOptions = {}): { token: string } {
     }),
     http.get(`${STAGING_BASE}/sinapse-prescricao/usuarios/:id`, () =>
       HttpResponse.json({ data: { type: 'usuarios', attributes: { token } } }, { status: 200 }),
+    ),
+    http.get(`${STAGING_BASE}/sinapse-prescricao/especialidades`, () =>
+      HttpResponse.json(
+        { data: specialties.map((s) => ({ id: s.id, type: 'especialidades', attributes: { nome: s.nome } })) },
+        { status: 200 },
+      ),
     ),
   )
   return { token }

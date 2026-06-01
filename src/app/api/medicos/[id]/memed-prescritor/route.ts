@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { enablePrescriber } from '@/lib/core/integrations/memed/register-prescriber'
@@ -13,6 +14,10 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+const bodySchema = z
+  .object({ memed_specialty_id: z.string().min(1).nullable().optional() })
+  .nullable()
+
 export async function POST(
   req: Request,
   { params }: { params: { id: string } },
@@ -25,11 +30,14 @@ export async function POST(
       route,
       request: req,
     })
+    const parsed = bodySchema.safeParse(await req.json().catch(() => null))
+    const memedSpecialtyId = parsed.success ? (parsed.data?.memed_specialty_id ?? null) : null
     const supabase = createSupabaseServiceClient()
     const result = await enablePrescriber({
       supabase,
       tenantId: session.tenantId,
       doctorId: params.id,
+      memedSpecialtyId,
       actorUserId: session.userId,
       actorLabel: session.email ? `user:${session.email}` : `user:${session.userId}`,
       ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,

@@ -17,6 +17,8 @@ export interface EnablePrescriberInput {
   supabase: SupabaseClient<Database>
   tenantId: string
   doctorId: string
+  /** ID da especialidade no catálogo Memed (de-para US4). Opcional. */
+  memedSpecialtyId?: string | null
   actorUserId: string
   actorLabel: string
   ip?: string | null
@@ -42,7 +44,10 @@ function splitName(full: string): { nome: string; sobrenome: string } {
  * Valida os campos obrigatórios do prescritor e monta o payload da Memed.
  * Lança `MemedPrescriberFieldsMissingError` listando o que falta.
  */
-export function buildPrescriberPayload(doctor: DoctorDetail): MemedPrescriberPayload {
+export function buildPrescriberPayload(
+  doctor: DoctorDetail,
+  specialtyId?: string | null,
+): MemedPrescriberPayload {
   const missing: string[] = []
   const cpfDigits = (doctor.cpf ?? '').replace(/\D/g, '')
   if (!doctor.fullName.trim()) missing.push('nome completo')
@@ -67,6 +72,9 @@ export function buildPrescriberPayload(doctor: DoctorDetail): MemedPrescriberPay
       board_state: doctor.councilState!.toUpperCase(),
     },
     data_nascimento: `${day}/${month}/${year}`,
+    // De-para de especialidade (US4): enviado quando mapeado; sem mapeamento
+    // o prescritor é registrado sem especialidade (não bloqueia).
+    ...(specialtyId ? { especialidade: specialtyId } : {}),
   })
 }
 
@@ -80,6 +88,7 @@ async function upsertPrescriber(
     lastError: string | null
     lastSyncedAt: string | null
     actorUserId: string
+    memedSpecialtyId?: string | null
   },
 ): Promise<void> {
   const { error } = await supabase.from('memed_prescribers').upsert(
@@ -91,6 +100,9 @@ async function upsertPrescriber(
       last_error: row.lastError,
       last_synced_at: row.lastSyncedAt,
       created_by_user_id: row.actorUserId,
+      // Só inclui a coluna quando informada, para não sobrescrever um
+      // mapeamento existente com null em re-habilitações sem especialidade.
+      ...(row.memedSpecialtyId !== undefined ? { memed_specialty_id: row.memedSpecialtyId } : {}),
     },
     { onConflict: 'tenant_id,doctor_id' },
   )
@@ -106,7 +118,7 @@ export async function enablePrescriber(
   if (!connection || !connection.connected) throw new MemedNotConnectedError()
 
   const doctor = await getDoctor(supabase, { tenantId, doctorId })
-  const payload = buildPrescriberPayload(doctor)
+  const payload = buildPrescriberPayload(doctor, input.memedSpecialtyId)
 
   try {
     await memedFetch(connection.environment, connection.credentials, {
@@ -125,6 +137,7 @@ export async function enablePrescriber(
       lastError: message,
       lastSyncedAt: null,
       actorUserId: input.actorUserId,
+      memedSpecialtyId: input.memedSpecialtyId,
     })
     await recordMemedAudit(supabase, {
       tenantId,
@@ -150,6 +163,7 @@ export async function enablePrescriber(
     lastError: null,
     lastSyncedAt: new Date().toISOString(),
     actorUserId: input.actorUserId,
+    memedSpecialtyId: input.memedSpecialtyId,
   })
 
   await recordMemedAudit(supabase, {
