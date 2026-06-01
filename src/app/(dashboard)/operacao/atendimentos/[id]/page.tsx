@@ -8,6 +8,7 @@ import {
   Clock,
   DollarSign,
   Percent,
+  Pill,
   Receipt,
   ShieldAlert,
   Stethoscope,
@@ -38,10 +39,12 @@ import {
   listAppointmentProcedures,
   type AppointmentProcedureLine,
 } from '@/lib/core/appointments/procedures'
+import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
 import { ReversalForm } from './reversal-form'
 import { MarkRealizedForm } from './mark-realized-form'
 import { ConfirmAppointmentButton } from './confirm-button'
 import { CancelAppointmentForm } from './cancel-form'
+import { PrescreverLauncher } from './prescrever-launcher'
 
 export const dynamic = 'force-dynamic'
 
@@ -197,6 +200,25 @@ export default async function AtendimentoDetailPage({
       status === 'estornado') &&
     canManageSchedule
 
+  // Prescrição digital (Memed) — só para admin/profissional quando a clínica
+  // está conectada e o profissional do atendimento é prescritor registrado.
+  const canPrescribe =
+    (session.role === 'admin' || session.role === 'profissional_saude') &&
+    appointment.doctor_id !== null &&
+    appointment.id !== null
+  let prescriberReady = false
+  if (canPrescribe) {
+    const memed = await getMemedConfigPublic(supabase, session.tenantId).catch(() => null)
+    if (memed?.connected) {
+      const { data: presc } = await supabase
+        .from('memed_prescribers')
+        .select('status')
+        .eq('doctor_id', appointment.doctor_id as string)
+        .maybeSingle()
+      prescriberReady = (presc as { status?: string } | null)?.status === 'registered'
+    }
+  }
+
   // Hora fim derivada de inicio + duracao.
   const endIso = appointment.appointment_at
     ? new Date(
@@ -322,6 +344,26 @@ export default async function AtendimentoDetailPage({
 
       {/* ---- Card de destaque: alergias do paciente ---- */}
       <AllergiesCard allergies={allergies} />
+
+      {prescriberReady && appointment.id && appointment.doctor_id ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Pill className="h-4 w-4 text-primary" />
+              Prescrição digital
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-slate-500">
+              Abre a prescrição digital da Memed com o paciente já carregado.
+            </p>
+            <PrescreverLauncher
+              appointmentId={appointment.id}
+              doctorId={appointment.doctor_id}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {procedureLines.length > 0 ? (
         <Card>
