@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, ChevronLeft, Plug } from 'lucide-react'
+import { ArrowRight, ChevronLeft, Plug, Stethoscope } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
+import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
 import { listAdapters } from '@/lib/integrations/registry'
 import type { Database } from '@/lib/db/types'
 
@@ -20,6 +21,8 @@ export default async function IntegracoesListPage() {
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const enabled = await getEnabledIntegrations(supabase, session.tenantId)
   const byProvider = new Map(enabled.map((r) => [r.provider, r]))
+  const memed = await getMemedConfigPublic(supabase, session.tenantId).catch(() => null)
+  const memedConnected = Boolean(memed?.connected)
 
   const items = listAdapters()
     .map((a) => {
@@ -93,6 +96,36 @@ export default async function IntegracoesListPage() {
           ))}
         </div>
       )}
+
+      <div>
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Prescrição digital
+        </h2>
+        <Link
+          href="/configuracoes/integracoes/memed"
+          className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Stethoscope className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900">Memed</h2>
+              {memedConnected ? (
+                <Badge variant="success">
+                  {memed?.environment === 'production' ? 'Produção' : 'Homologação'}
+                </Badge>
+              ) : (
+                <Badge variant="secondary">Não configurado</Badge>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Prescrição digital de medicamentos — conecte a conta Memed da clínica.
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 self-center text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+        </Link>
+      </div>
     </div>
   )
 }
