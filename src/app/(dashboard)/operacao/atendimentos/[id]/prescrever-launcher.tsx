@@ -125,6 +125,7 @@ export function PrescreverLauncher({
   const router = useRouter()
   const [stage, setStage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [debug, setDebug] = useState<string | null>(null)
   const eventsBoundRef = useRef(false)
   const loading = stage !== null
 
@@ -205,12 +206,15 @@ export function PrescreverLauncher({
       await loadMemedScript(token)
 
       // Diagnóstico: revela os nomes reais dos globais que a Memed cria
-      // (caso o hub não seja exatamente `window.MdHub`).
-      const dumpGlobals = (when: string) =>
-        console.info(
-          `[memed] globals (${when}):`,
-          Object.keys(window).filter((k) => /md|memed|sinapse|hub|prescri/i.test(k)),
-        )
+      // (caso o hub não seja exatamente `window.MdHub`). Mostra na TELA
+      // (abaixo do botão) para não depender do filtro do Console.
+      const memedGlobals = () =>
+        Object.keys(window).filter((k) => /md|memed|sinapse|hub|prescri/i.test(k))
+      const dumpGlobals = (when: string) => {
+        const g = memedGlobals()
+        console.info(`[memed] globals (${when}):`, g)
+        setDebug(`globais Memed (${when}): ${g.length ? g.join(', ') : '(nenhum)'}`)
+      }
       dumpGlobals('apos onload')
       setTimeout(() => dumpGlobals('apos 3s'), 3000)
 
@@ -256,6 +260,11 @@ export function PrescreverLauncher({
         {stage ?? 'Prescrever'}
       </Button>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {debug ? (
+        <p className="break-all rounded border border-slate-200 bg-slate-50 p-2 font-mono text-[11px] text-slate-600">
+          {debug}
+        </p>
+      ) : null}
     </div>
   )
 }
