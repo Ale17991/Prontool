@@ -24,6 +24,8 @@ const SEX_LABEL: Record<string, string> = {
 type IdentityFields = Pick<
   PatientDetail,
   | 'sex'
+  | 'phone'
+  | 'email'
   | 'socialName'
   | 'motherName'
   | 'rg'
@@ -47,6 +49,8 @@ export function IdentityEditor({
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [sex, setSex] = useState(identity.sex ?? '')
+  const [phone, setPhone] = useState(identity.phone ?? '')
+  const [email, setEmail] = useState(identity.email ?? '')
   const [socialName, setSocialName] = useState(identity.socialName ?? '')
   const [motherName, setMotherName] = useState(identity.motherName ?? '')
   const [rg, setRg] = useState(identity.rg ?? '')
@@ -69,6 +73,8 @@ export function IdentityEditor({
 
   function reset() {
     setSex(identity.sex ?? '')
+    setPhone(identity.phone ?? '')
+    setEmail(identity.email ?? '')
     setSocialName(identity.socialName ?? '')
     setMotherName(identity.motherName ?? '')
     setRg(identity.rg ?? '')
@@ -92,6 +98,8 @@ export function IdentityEditor({
         body: JSON.stringify({
           identity: {
             sex: sex || null,
+            phone: phone.trim() || null,
+            email: email.trim() || null,
             social_name: socialName.trim() || null,
             mother_name: motherName.trim() || null,
             rg: rg.trim() || null,
@@ -120,6 +128,8 @@ export function IdentityEditor({
 
   if (!editing) {
     const rows: Array<[string, string | null]> = [
+      ['Celular', identity.phone],
+      ['E-mail', identity.email],
       ['Sexo', identity.sex ? (SEX_LABEL[identity.sex] ?? identity.sex) : null],
       ['Nome social', identity.socialName],
       ['Nome da mãe', identity.motherName],
@@ -207,6 +217,27 @@ export function IdentityEditor({
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="id_phone">Celular</Label>
+          <Input
+            id="id_phone"
+            inputMode="tel"
+            placeholder="(11) 99999-9999"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="id_email">E-mail</Label>
+          <Input
+            id="id_email"
+            type="email"
+            inputMode="email"
+            placeholder="paciente@exemplo.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
         <div className="space-y-1.5">
           <Label htmlFor="id_sex">Sexo</Label>
           <Select value={sex} onValueChange={setSex}>

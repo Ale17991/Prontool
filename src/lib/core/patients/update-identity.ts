@@ -9,6 +9,9 @@ export interface UpdatePatientIdentityInput {
   fields: {
     /** `sex` é em claro; null limpa. */
     sex?: PatientSex | null
+    /** Contato principal (exigidos pela Memed para prescrever). */
+    phone?: string | null
+    email?: string | null
     socialName?: string | null
     motherName?: string | null
     rg?: string | null
@@ -25,6 +28,8 @@ export interface UpdatePatientIdentityInput {
 const ENC_COLUMNS: ReadonlyArray<
   [keyof UpdatePatientIdentityInput['fields'], string]
 > = [
+  ['phone', 'phone_enc'],
+  ['email', 'email_enc'],
   ['socialName', 'social_name_enc'],
   ['motherName', 'mother_name_enc'],
   ['rg', 'rg_enc'],
