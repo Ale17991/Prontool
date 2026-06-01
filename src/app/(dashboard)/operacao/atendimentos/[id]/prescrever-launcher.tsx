@@ -204,6 +204,16 @@ export function PrescreverLauncher({
       setStage('Carregando módulo Memed…')
       await loadMemedScript(token)
 
+      // Diagnóstico: revela os nomes reais dos globais que a Memed cria
+      // (caso o hub não seja exatamente `window.MdHub`).
+      const dumpGlobals = (when: string) =>
+        console.info(
+          `[memed] globals (${when}):`,
+          Object.keys(window).filter((k) => /md|memed|sinapse|hub|prescri/i.test(k)),
+        )
+      dumpGlobals('apos onload')
+      setTimeout(() => dumpGlobals('apos 3s'), 3000)
+
       // Registra o moduleInit ASSIM QUE o event bus existir (envia setPaciente
       // quando o módulo de prescrição inicializa).
       setStage('Inicializando módulo…')
