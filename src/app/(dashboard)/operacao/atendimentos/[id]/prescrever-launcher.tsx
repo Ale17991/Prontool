@@ -43,7 +43,21 @@ interface MdSinapseLike {
 declare global {
   interface Window {
     MdSinapsePrescricao?: MdSinapseLike
-    MdHub?: MdHubLike
+  }
+}
+
+// `MdHub` é um GLOBAL LÉXICO da Memed (let/const no escopo global) — acessível
+// por nome simples, NÃO como `window.MdHub`. Por isso o polling em window.MdHub
+// dava timeout mesmo com o hub presente (o `Object.keys(window)` só mostrava a
+// propriedade falsy que nós mesmos criávamos no reset).
+declare const MdHub: MdHubLike | undefined
+
+/** Lê o `MdHub` léxico com segurança (typeof não lança para nome inexistente). */
+function getMdHub(): MdHubLike | undefined {
+  try {
+    return typeof MdHub !== 'undefined' && MdHub ? MdHub : undefined
+  } catch {
+    return undefined
   }
 }
 
@@ -92,7 +106,6 @@ function loadMemedScript(token: string): Promise<void> {
     const previous = document.getElementById(MEMED_SCRIPT_ID)
     if (previous) previous.remove()
     window.MdSinapsePrescricao = undefined
-    window.MdHub = undefined
 
     const script = document.createElement('script')
     script.id = MEMED_SCRIPT_ID
@@ -174,7 +187,7 @@ export function PrescreverLauncher({
   useEffect(() => {
     return () => {
       try {
-        window.MdHub?.command.send(PRESCRICAO_MODULE, 'logout')
+        getMdHub()?.command.send(PRESCRICAO_MODULE, 'logout')
       } catch {
         /* módulo pode não ter carregado */
       }
@@ -225,14 +238,14 @@ export function PrescreverLauncher({
       sinapse.event.add('core:moduleInit', (module) => {
         console.info('[memed] core:moduleInit', module?.name)
         if (module?.name !== PRESCRICAO_MODULE) return
-        const hub = window.MdHub
+        const hub = getMdHub()
         if (!hub) return
         bindEvents(hub)
         hub.command.send(PRESCRICAO_MODULE, 'setPaciente', paciente)
       })
 
-      // Espera o MdHub e abre o módulo.
-      const hub = await waitFor(() => window.MdHub, SDK_TIMEOUT_MS, 'MdHub')
+      // Espera o MdHub (global léxico) e abre o módulo.
+      const hub = await waitFor(() => getMdHub(), SDK_TIMEOUT_MS, 'MdHub')
       bindEvents(hub)
       console.info('[memed] abrindo módulo de prescrição')
       hub.module.show(PRESCRICAO_MODULE)
