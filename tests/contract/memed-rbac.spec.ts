@@ -43,7 +43,7 @@ describe('Feature 026 — RBAC endpoints Memed', () => {
         new Request('http://localhost/api/integracoes/memed', {
           method: 'POST',
           headers: { 'content-type': 'application/json', authorization: `Bearer ${jwt[role]}` },
-          body: JSON.stringify({ api_key: 'k_test_value', secret_key: 's_test_value' }),
+          body: JSON.stringify({ environment: 'staging', accept_terms: true }),
         }),
       )
       expect(res.status).toBe(expected)

@@ -1,9 +1,9 @@
 /**
- * T026 (Feature 026) — o proxy de token NÃO vaza as chaves da Memed.
+ * T026 (Feature 026/028) — o proxy de token NÃO vaza credenciais da Memed.
  *
- * GET /api/medicos/{id}/memed-token devolve apenas `{ token }`; as chaves
- * api_key/secret_key (cifradas em repouso) jamais aparecem no corpo da
- * resposta. Constituição IV / conformidade 027 (FR-010).
+ * GET /api/medicos/{id}/memed-token devolve apenas `{ token }`. As credenciais
+ * (agora de plataforma, em env) jamais aparecem no corpo da resposta nem como
+ * campo/valor reconhecível. Constituição IV / conformidade 027 (FR-010).
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
@@ -11,21 +11,19 @@ import { seedTenant, seedUser, seedDoctor } from '@/tests/helpers/seed-factories
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 import { mockMemed, seedMemedConnection, seedMemedPrescriber } from '@/tests/helpers/memed-mock'
 
-describe('Feature 026 — token proxy sem vazamento de segredo', () => {
+describe('Feature 028 — token proxy sem vazamento de segredo', () => {
   beforeEach(async () => {
     await resetDatabase()
   })
 
   it('responde { token } sem expor api_key/secret_key', async () => {
-    const API_KEY = 'SECRET_API_KEY_DO_NOT_LEAK_AAA'
-    const SECRET_KEY = 'SECRET_SECRET_KEY_DO_NOT_LEAK_BBB'
     const { token } = mockMemed({ token: 'fresh.prescriber.jwt' })
 
     const sb = serviceClient()
     const { tenantId } = await seedTenant('memed-noleak')
     const admin = await seedUser(tenantId, 'admin')
     const { doctorId } = await seedDoctor(tenantId)
-    await seedMemedConnection(tenantId, { createdBy: admin.userId, apiKey: API_KEY, secretKey: SECRET_KEY })
+    await seedMemedConnection(tenantId, { createdBy: admin.userId }) // homologação
     await seedMemedPrescriber(tenantId, doctorId, { createdBy: admin.userId, status: 'registered' })
 
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
@@ -39,8 +37,13 @@ describe('Feature 026 — token proxy sem vazamento de segredo', () => {
 
     expect(res.status).toBe(200)
     const raw = await res.text()
+    // Devolve o token...
     expect(raw).toContain(token)
-    expect(raw).not.toContain(API_KEY)
-    expect(raw).not.toContain(SECRET_KEY)
+    // ...e NENHUM campo/valor de credencial (a chave de homologação real também
+    // não pode aparecer — a query vai server-side, não na resposta ao browser).
+    expect(raw).not.toMatch(/api[_-]?key|secret[_-]?key/i)
+    expect(raw).not.toContain('iJGiB4kjDGOLeDFPWMG3no9VnN7Abpqe3w1jEFm6olkhkZD6oSfSmYCm')
+    expect(raw).not.toContain('Xe8M5GvBGCr4FStKfxXKisRo3SfYKI7KrTMkJpCAstzu2yXVN4av5nmL')
+    expect(Object.keys(JSON.parse(raw))).toEqual(['token'])
   })
 })

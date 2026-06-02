@@ -25,11 +25,7 @@ describe('Feature 027 — erros não vazam credenciais (C7)', () => {
     const admin = await seedUser(tenantId, 'admin')
     const { doctorId } = await seedDoctor(tenantId)
     await setDoctorPrescriberFields(doctorId, tenantId)
-    await seedMemedConnection(tenantId, {
-      createdBy: admin.userId,
-      apiKey: 'mk_super_secret_aaaaaaaaaaaa',
-      secretKey: 'mk_super_secret_bbbbbbbbbbbb',
-    })
+    await seedMemedConnection(tenantId, { createdBy: admin.userId })
 
     let caught: unknown
     try {

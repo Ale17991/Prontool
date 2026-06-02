@@ -9,17 +9,17 @@ import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-clie
 import { seedTenant, seedUser, seedDoctor } from '@/tests/helpers/seed-factories'
 import { mockMemed, setDoctorPrescriberFields } from '@/tests/helpers/memed-mock'
 import { listMemedSpecialties } from '@/lib/core/integrations/memed/list-specialties'
-import { connectMemed } from '@/lib/core/integrations/memed/connect'
+import { activateMemed } from '@/lib/core/integrations/memed/connect'
 import { enablePrescriber } from '@/lib/core/integrations/memed/register-prescriber'
 
 async function connected(slug: string) {
   const sb = serviceClient()
   const { tenantId } = await seedTenant(slug)
   const admin = await seedUser(tenantId, 'admin')
-  await connectMemed({
+  await activateMemed({
     supabase: sb,
     tenantId,
-    credentials: { api_key: 'k', secret_key: 's' },
+    environment: 'staging',
     actorUserId: admin.userId,
     actorLabel: `user:${admin.email}`,
   })

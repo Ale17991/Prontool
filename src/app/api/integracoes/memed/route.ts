@@ -2,18 +2,17 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { connectMemed, disconnectMemed } from '@/lib/core/integrations/memed/connect'
+import { activateMemed, deactivateMemed } from '@/lib/core/integrations/memed/connect'
 import { setMemedEnvironment } from '@/lib/core/integrations/memed/environment'
-import { memedCredentialsSchema, memedEnvironmentSchema } from '@/lib/core/integrations/memed/types'
+import { memedEnvironmentSchema } from '@/lib/core/integrations/memed/types'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
- * POST   /api/integracoes/memed  → conectar (homologação), admin-only.
- * PATCH  /api/integracoes/memed  → trocar ambiente (staging/production), admin-only.
- * DELETE /api/integracoes/memed  → desconectar, admin-only.
- *
- * Segurança: o corpo recebe as chaves UMA vez (HTTPS) e elas são cifradas
- * server-side. NENHUMA resposta jamais devolve as chaves.
+ * POST   /api/integracoes/memed  → ativar prescrição digital (aceite do termo
+ *                                   embutido), admin-only. SEM chaves no corpo —
+ *                                   as credenciais são de plataforma (env).
+ * PATCH  /api/integracoes/memed  → trocar ambiente (staging/production), admin.
+ * DELETE /api/integracoes/memed  → desativar, admin.
  */
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -27,6 +26,12 @@ function actorLabel(email: string | null, userId: string): string {
   return email ? `user:${email}` : `user:${userId}`
 }
 
+const activateSchema = z.object({
+  environment: memedEnvironmentSchema,
+  // O cliente confirma que o termo foi lido e aceito (a UI exige antes).
+  accept_terms: z.literal(true),
+})
+
 export async function POST(req: Request): Promise<Response> {
   try {
     const session = await requireRole(['admin'], {
@@ -34,24 +39,23 @@ export async function POST(req: Request): Promise<Response> {
       route: ROUTE,
       request: req,
     })
-    const parsed = memedCredentialsSchema.safeParse(await req.json().catch(() => null))
+    const parsed = activateSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Informe api_key e secret_key.', issues: parsed.error.issues } },
+        { error: { code: 'INVALID_BODY', message: 'Aceite o termo e informe o ambiente para ativar.' } },
         { status: 400 },
       )
     }
     const supabase = createSupabaseServiceClient()
-    const result = await connectMemed({
+    const result = await activateMemed({
       supabase,
       tenantId: session.tenantId,
-      credentials: parsed.data,
+      environment: parsed.data.environment,
       actorUserId: session.userId,
       actorLabel: actorLabel(session.email, session.userId),
       ip: clientIp(req),
       userAgent: req.headers.get('user-agent'),
     })
-    // Resposta NUNCA inclui chaves — só estado público.
     return NextResponse.json({ environment: result.environment, connected: result.connected }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route: ROUTE })
@@ -98,7 +102,7 @@ export async function DELETE(req: Request): Promise<Response> {
       request: req,
     })
     const supabase = createSupabaseServiceClient()
-    const result = await disconnectMemed({
+    const result = await deactivateMemed({
       supabase,
       tenantId: session.tenantId,
       actorUserId: session.userId,

@@ -165,7 +165,20 @@ export async function enablePrescriber(
 
   try {
     if (alreadyRegistered) {
-      await sendToMemed('PATCH')
+      try {
+        await sendToMemed('PATCH')
+      } catch (err) {
+        // Prescritor não existe NESTE ambiente (ex.: registrado em homologação,
+        // agora trocou para produção) → o PATCH dá "não encontrado"; cadastra.
+        if (
+          err instanceof MemedValidationError &&
+          (err.memedStatus === 404 || /not.?found|n[ãa]o.?encontrad|inexistent/i.test(err.message))
+        ) {
+          await sendToMemed('POST')
+        } else {
+          throw err
+        }
+      }
     } else {
       try {
         await sendToMemed('POST')

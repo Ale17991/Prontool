@@ -3404,36 +3404,36 @@ export type Database = {
       }
       tenant_memed_config: {
         Row: {
-          api_key_enc: string
+          api_key_enc: string | null
           connected: boolean
           created_at: string
           created_by_user_id: string
           environment: string
-          secret_key_enc: string
+          secret_key_enc: string | null
           tenant_id: string
           terms_accepted_at: string | null
           terms_accepted_by: string | null
           updated_at: string
         }
         Insert: {
-          api_key_enc: string
+          api_key_enc?: string | null
           connected?: boolean
           created_at?: string
           created_by_user_id: string
           environment?: string
-          secret_key_enc: string
+          secret_key_enc?: string | null
           tenant_id: string
           terms_accepted_at?: string | null
           terms_accepted_by?: string | null
           updated_at?: string
         }
         Update: {
-          api_key_enc?: string
+          api_key_enc?: string | null
           connected?: boolean
           created_at?: string
           created_by_user_id?: string
           environment?: string
-          secret_key_enc?: string
+          secret_key_enc?: string | null
           tenant_id?: string
           terms_accepted_at?: string | null
           terms_accepted_by?: string | null

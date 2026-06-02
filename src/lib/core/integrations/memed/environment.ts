@@ -2,7 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
 import { recordMemedAudit } from './audit'
-import { MemedNotConnectedError, MemedTermsRequiredError } from './errors'
+import { isMemedProductionConfigured } from './credentials'
+import {
+  MemedNotConnectedError,
+  MemedProductionNotConfiguredError,
+  MemedTermsRequiredError,
+} from './errors'
 import type { MemedEnvironment } from './types'
 
 /**
@@ -76,6 +81,9 @@ export async function setMemedEnvironment(
 
   if (environment === 'production' && !(row as { terms_accepted_at: string | null }).terms_accepted_at) {
     throw new MemedTermsRequiredError()
+  }
+  if (environment === 'production' && !isMemedProductionConfigured()) {
+    throw new MemedProductionNotConfiguredError()
   }
 
   const { error } = await supabase
