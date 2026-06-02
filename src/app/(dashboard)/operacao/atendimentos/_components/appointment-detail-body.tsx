@@ -8,6 +8,7 @@ import {
   Clock,
   DollarSign,
   Percent,
+  Pill,
   Receipt,
   ShieldAlert,
   Stethoscope,
@@ -35,6 +36,7 @@ import { ReversalForm } from '../[id]/reversal-form'
 import { MarkRealizedForm } from '../[id]/mark-realized-form'
 import { ConfirmAppointmentButton } from '../[id]/confirm-button'
 import { CancelAppointmentForm } from '../[id]/cancel-form'
+import { PrescreverLauncher } from '../[id]/prescrever-launcher'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -67,6 +69,8 @@ export function AppointmentDetailBody({
   onPendingChange,
 }: Props) {
   const { appointment, patient, procedures, materials, allergies, assistants, assistantsRemovedCount } = data
+  const prescriberReady = data.memed?.prescriberReady ?? false
+  const prescriptions = data.prescriptions ?? []
 
   const rawStatus = appointment.effective_status ?? ''
   const isFuture =
@@ -211,6 +215,53 @@ export function AppointmentDetailBody({
 
       {/* ---- Alergias ---- */}
       <AllergiesCard allergies={allergies} />
+
+      {prescriberReady && appointment.id && appointment.doctor_id ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Pill className="h-4 w-4 text-primary" />
+              Prescrição digital
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-slate-500">
+              Abre a prescrição digital da Memed com o paciente já carregado.
+            </p>
+            <PrescreverLauncher
+              appointmentId={appointment.id}
+              doctorId={appointment.doctor_id}
+              onRecorded={refetch}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {prescriptions.length > 0 ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <ClipboardList className="h-4 w-4 text-primary" />
+              Prescrições ({prescriptions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1.5 text-xs">
+              {prescriptions.map((p) => (
+                <li key={p.id} className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-slate-600">#{p.memed_prescription_id}</span>
+                  <span className="ml-auto text-slate-500">{formatDateTime(p.issued_at)}</span>
+                  {p.status === 'deleted' ? (
+                    <Badge variant="secondary">Excluída</Badge>
+                  ) : (
+                    <Badge variant="success">Emitida</Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {procedures.length > 0 ? (
         <Card>

@@ -29,6 +29,12 @@ export interface CreateDoctorInput {
   specialty?: string | null
   councilName?: string | null
   councilNumber?: string | null
+  /** CPF do prescritor (11 dígitos), exigido pela Memed. Opcional no cadastro. */
+  cpf?: string | null
+  /** UF do conselho (board_state na Memed), 2 letras. Opcional no cadastro. */
+  councilState?: string | null
+  /** Data de nascimento do prescritor (YYYY-MM-DD), exigida pela Memed. Opcional no cadastro. */
+  birthDate?: string | null
   /** Default: 'comissionado' (retrocompat). */
   paymentMode?: PaymentMode
   /** Obrigatorio quando paymentMode = 'comissionado' (ou ausente). */
@@ -138,6 +144,9 @@ export async function createDoctor(
       specialty: input.specialty?.trim() || null,
       council_name: input.councilName?.trim() || null,
       council_number: councilNumber,
+      cpf: input.cpf?.trim() || null,
+      council_state: input.councilState?.trim().toUpperCase() || null,
+      birth_date: input.birthDate || null,
       created_by: input.actorUserId,
       payment_mode: paymentMode,
     } as never)

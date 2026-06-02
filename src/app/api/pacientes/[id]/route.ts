@@ -31,6 +31,8 @@ const addressPatchSchema = z
 const identityPatchSchema = z
   .object({
     sex: z.enum(['feminino', 'masculino', 'intersexo']).nullable(),
+    phone: z.string().trim().max(40).nullable(),
+    email: z.string().trim().email('E-mail inválido').max(200).nullable(),
     social_name: z.string().trim().max(200).nullable(),
     mother_name: z.string().trim().max(200).nullable(),
     rg: z.string().trim().max(40).nullable(),
@@ -148,6 +150,8 @@ export async function PATCH(
         patientId: params.id,
         fields: {
           sex: i.sex,
+          phone: i.phone,
+          email: i.email,
           socialName: i.social_name,
           motherName: i.mother_name,
           rg: i.rg,

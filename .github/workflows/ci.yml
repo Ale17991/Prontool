@@ -27,6 +27,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm lint:auth
+      - run: pnpm lint:memed
       - run: pnpm format:check
 
   typecheck:
@@ -107,3 +108,6 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
           NEXT_PUBLIC_SUPABASE_ANON_KEY: build-time-placeholder
+      # Conformidade Memed (FR-013): falha o build se alguma chave Memed
+      # escapou para o bundle JS entregue ao navegador.
+      - run: pnpm scan:memed-keys

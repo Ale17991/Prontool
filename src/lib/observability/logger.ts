@@ -5,7 +5,9 @@ import pino, { type Logger } from 'pino'
  * constraint / SC-013) out of application logs even if a caller
  * forgets to strip it.
  */
-const REDACTION_PATHS = [
+export const REDACT_CENSOR = '[redacted]'
+
+export const REDACTION_PATHS = [
   'req.headers.authorization',
   'req.headers.cookie',
   'req.headers["x-ghl-signature"]',
@@ -31,6 +33,17 @@ const REDACTION_PATHS = [
   'webhook_secret',
   'encryption_key',
   'PATIENT_DATA_ENCRYPTION_KEY',
+  // Segredos da Memed (Feature 027 / FR-012) — nunca em texto claro nos logs.
+  '*.api_key',
+  '*.secret_key',
+  '*.apiKey',
+  '*.secretKey',
+  'api_key',
+  'secret_key',
+  'apiKey',
+  'secretKey',
+  'config.credentials_enc',
+  'credentials_enc',
 ]
 
 const isDev = process.env.NODE_ENV !== 'production'
@@ -39,7 +52,7 @@ const baseOptions = {
   level: process.env.LOG_LEVEL ?? 'info',
   redact: {
     paths: REDACTION_PATHS,
-    censor: '[redacted]',
+    censor: REDACT_CENSOR,
   },
   timestamp: pino.stdTimeFunctions.isoTime,
   base: { service: 'clinni' },

@@ -41,6 +41,14 @@ export interface AppointmentAssistantSummary {
   frozenAmountCents: number
 }
 
+/** Resumo de uma prescrição emitida no atendimento (Feature 026). */
+export interface AppointmentPrescriptionSummary {
+  id: string
+  memed_prescription_id: string
+  status: string
+  issued_at: string
+}
+
 /** Payload completo retornado por GET /api/atendimentos/{id}. */
 export interface AppointmentDetailDTO {
   appointment: AppointmentEffectiveRow
@@ -52,6 +60,10 @@ export interface AppointmentDetailDTO {
   assistantsRemovedCount: number
   /** Mantido por back-compat; o painel não exibe auditoria. */
   audit: unknown[]
+  /** Prescrição digital (Feature 026): se o botão "Prescrever" deve aparecer. */
+  memed: { prescriberReady: boolean }
+  /** Prescrições já emitidas neste atendimento. */
+  prescriptions: AppointmentPrescriptionSummary[]
 }
 
 /** Estado do painel — usado pelo Host e pelo Panel. */

@@ -1,13 +1,18 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, Circle, History, Percent, Wallet } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Circle, FileText, History, Percent, Stethoscope, Wallet } from 'lucide-react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
 import { formatBps, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
+import type { Database } from '@/lib/db/types'
 import { EditDoctorName } from './edit-doctor-name'
+import { EditPrescriberFields } from './edit-prescriber-fields'
+import { EnablePrescriberPanel } from './enable-prescriber-panel'
 import { NewCommissionForm } from './new-commission-form'
 import { PaymentModeEditor } from './payment-mode-editor'
 
@@ -24,6 +29,9 @@ interface DoctorRow {
   specialty: string | null
   council_name: string | null
   council_number: string | null
+  council_state: string | null
+  cpf: string | null
+  birth_date: string | null
   active: boolean
   created_at: string
   payment_mode: PaymentMode
@@ -74,7 +82,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const { data: doctorRaw, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, payment_mode',
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -114,6 +122,30 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const futureCommissions = commissions.filter((c) => c.valid_from > today)
 
   const canWrite = can(session.role, 'doctor.write')
+
+  // Estado da prescrição digital (Memed) — conexão da clínica + status do prescritor.
+  const memed = await getMemedConfigPublic(
+    supabase as unknown as SupabaseClient<Database>,
+    session.tenantId,
+  ).catch(() => null)
+  const memedConnected = Boolean(memed?.connected)
+  const { data: prescriberRaw } = await supabase
+    .from('memed_prescribers')
+    .select('status, memed_specialty_id, last_error')
+    .eq('doctor_id', params.id)
+    .maybeSingle()
+  const prescriber = prescriberRaw as unknown as {
+    status: 'pending' | 'registered' | 'error'
+    memed_specialty_id: string | null
+    last_error: string | null
+  } | null
+  const cpfOk = (doctor.cpf ?? '').replace(/\D/g, '').length === 11
+  const hasPrescriberFields =
+    cpfOk &&
+    Boolean(doctor.council_name) &&
+    Boolean(doctor.council_number) &&
+    Boolean(doctor.council_state) &&
+    Boolean(doctor.birth_date)
 
   return (
     <div className="space-y-6">
@@ -171,6 +203,46 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
           </div>
         </CardContent>
       </Card>
+
+      {canWrite ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-primary" />
+              Dados para prescrição digital
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditPrescriberFields
+              doctorId={doctor.id}
+              currentCpf={doctor.cpf}
+              currentCouncilState={doctor.council_state}
+              currentBirthDate={doctor.birth_date}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {canWrite ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Stethoscope className="h-4 w-4 text-primary" />
+              Prescritor Memed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EnablePrescriberPanel
+              doctorId={doctor.id}
+              memedConnected={memedConnected}
+              hasRequiredFields={hasPrescriberFields}
+              initialStatus={prescriber?.status ?? 'none'}
+              initialSpecialtyId={prescriber?.memed_specialty_id ?? null}
+              lastError={prescriber?.last_error ?? null}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <SummaryCard

@@ -80,8 +80,12 @@ function main() {
     const verbs = [...src.matchAll(HTTP_VERB_RE)].map((m) => m[1])
     if (verbs.length === 0) continue
 
-    const hasRequireRole = /requireRole\s*\(/.test(src)
-    if (!hasRequireRole) {
+    // Autenticado se chama requireRole (gate por papel + service client) OU
+    // getSession/getSessionFromRequest (qualquer papel do tenant via client RLS,
+    // ex.: /api/support-tickets — getSession devolve 401 e a RLS isola o tenant).
+    const hasAuth =
+      /requireRole\s*\(/.test(src) || /getSession(FromRequest)?\s*\(/.test(src)
+    if (!hasAuth) {
       offenders.push({ rel, verbs })
     }
   }

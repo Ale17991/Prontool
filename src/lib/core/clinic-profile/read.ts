@@ -13,6 +13,8 @@ function syntheticEmptyRow(tenantId: string): Row {
   const now = new Date().toISOString()
   return {
     tenant_id: tenantId,
+    // Default consistente com a migration 0098 (NOT NULL DEFAULT 'America/Sao_Paulo').
+    timezone: 'America/Sao_Paulo',
     logo_path: null,
     logo_uploaded_at: null,
     corporate_name: null,

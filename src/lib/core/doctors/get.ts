@@ -16,6 +16,9 @@ export interface DoctorDetail {
   specialty: string | null
   councilName: string | null
   councilNumber: string | null
+  councilState: string | null
+  cpf: string | null
+  birthDate: string | null
   active: boolean
   createdAt: string
   paymentMode: PaymentMode
@@ -35,6 +38,9 @@ interface DoctorRow {
   specialty: string | null
   council_name: string | null
   council_number: string | null
+  council_state: string | null
+  cpf: string | null
+  birth_date: string | null
   active: boolean
   created_at: string
   payment_mode: PaymentMode
@@ -55,7 +61,7 @@ export async function getDoctor(
   const { data: rawDoctor, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, active, created_at, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, payment_mode',
     )
     .eq('id', args.doctorId)
     .eq('tenant_id', args.tenantId)
@@ -83,6 +89,9 @@ export async function getDoctor(
     specialty: doctor.specialty,
     councilName: doctor.council_name,
     councilNumber: doctor.council_number,
+    councilState: doctor.council_state,
+    cpf: doctor.cpf,
+    birthDate: doctor.birth_date,
     active: doctor.active,
     createdAt: doctor.created_at,
     paymentMode: doctor.payment_mode,
