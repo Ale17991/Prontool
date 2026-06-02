@@ -54,19 +54,19 @@ description: "Task list — Faturamento TISS de Convênios (feature 029)"
 **Independent Test**: cadastrar config TISS de uma operadora fictícia + certificado A1 de teste; reabrir e confirmar persistência + auditoria; outro tenant não vê.
 
 ### Tests for US1 ⚠️
-- [ ] T015 [P] [US1] Integration test `tests/integration/tiss-operator-config.spec.ts` — habilitar TISS; faltando Registro ANS → 422 com campo apontado; persistência + audit.
-- [ ] T016 [P] [US1] Integration test `tests/integration/tiss-certificate-upload.spec.ts` — upload de `.pfx`+senha lê CN/validade, cifra, e a resposta **não** contém o conteúdo do certificado nem a senha.
+- [X] T015 [P] [US1] Integration test `tiss-operator-config.spec.ts` — habilita TISS + audit; faltando Registro ANS → 422 com campo. ✓ (2 testes)
+- [X] T016 [P] [US1] Integration test `tiss-certificate-upload.spec.ts` — `.pfx` self-signed via node-forge; persiste cifrado; resposta não vaza conteúdo/senha; senha errada → 400. ✓ (2 testes)
 
 ### Implementation for US1
-- [ ] T017 [P] [US1] `src/lib/core/tiss/operator-config.ts` — CRUD de `tenant_tiss_operator_config` (validação Zod dos obrigatórios; UNIQUE por convênio).
-- [ ] T018 [P] [US1] `src/lib/core/tiss/signing/load-certificate.ts` — `node-forge`: ler `.pfx`/senha, extrair CN + `not_after` + PEM/cadeia; nunca logar conteúdo.
-- [ ] T019 [US1] `src/lib/core/tiss/certificates.ts` — persistir certificado cifrado (`enc_text_with_key`), regra de 1 ativo por tenant, audit. (depende T018)
-- [ ] T020 [US1] Route `src/app/api/tiss/operadoras/[planId]/route.ts` — POST/PATCH/DELETE com `requireRole(['admin'])`; 422 com lista de pendências. (depende T017)
-- [ ] T021 [US1] Route `src/app/api/tiss/certificados/route.ts` (POST multipart) + `certificados/[id]/route.ts` (DELETE) com `requireRole(['admin'])`. (depende T019)
-- [ ] T022 [P] [US1] UI `src/app/(dashboard)/configuracoes/integracoes/tiss/page.tsx` + `tiss-operator-form.tsx` — formulário de config por convênio (admin).
-- [ ] T023 [P] [US1] UI `tiss-certificate-form.tsx` — upload do A1 + senha, exibe CN/validade, alerta de expiração.
+- [X] T017 [P] [US1] `src/lib/core/tiss/operator-config.ts` — CRUD + Zod (Registro ANS 6díg, CNPJ 14díg, CNES 7díg). ✓ (+ `audit.ts`, `errors.ts`)
+- [X] T018 [P] [US1] `src/lib/core/tiss/signing/load-certificate.ts` — node-forge: `readCertificateInfo` (CN+notAfter) + `loadCertificateForSigning` (PEM+chave, p/ US4). ✓
+- [X] T019 [US1] `src/lib/core/tiss/certificates.ts` — cifra pfx+senha (`enc_text_with_key`), 1 ativo/tenant, audit, delete. ✓
+- [X] T020 [US1] Route `src/app/api/tiss/operadoras/[planId]/route.ts` — POST/DELETE admin; 422 com lista de pendências. ✓
+- [X] T021 [US1] Route `src/app/api/tiss/certificados/route.ts` (POST multipart) + `[id]/route.ts` (DELETE), admin. ✓ (lint:auth verde)
+- [X] T022 [P] [US1] UI `configuracoes/integracoes/tiss/page.tsx` + `tiss-operator-form.tsx`. ✓
+- [X] T023 [P] [US1] UI `tiss-certificate-form.tsx` — upload A1 + senha, CN/validade, alerta de expiração. ✓
 
-**Checkpoint**: operadora "TISS habilitado" + certificado ativo.
+**Checkpoint**: ✅ operadora "TISS habilitado" + certificado ativo (4 testes de integração verdes, typecheck+lint+lint:auth verdes).
 
 ---
 
