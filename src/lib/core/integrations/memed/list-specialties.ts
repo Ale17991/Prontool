@@ -25,10 +25,12 @@ export async function listMemedSpecialties(
   const connection = await getMemedConnection(supabase, tenantId)
   if (!connection || !connection.connected) throw new MemedNotConnectedError()
 
+  // Endpoint de catálogo da Memed: GET {base}/especialidades (sem auth, mas as
+  // chaves na query são ignoradas). Confirmado na doc da Memed.
   const res = await memedFetch<{ data?: MemedSpecialtyRaw[] }>(
     connection.environment,
     connection.credentials,
-    { method: 'GET', path: '/sinapse-prescricao/especialidades' },
+    { method: 'GET', path: '/especialidades' },
   )
 
   const items = Array.isArray(res?.data) ? res.data : []

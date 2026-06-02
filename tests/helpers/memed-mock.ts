@@ -45,7 +45,7 @@ export function mockMemed(opts: MockMemedOptions = {}): { token: string } {
     http.get(`${STAGING_BASE}/sinapse-prescricao/usuarios/:id`, () =>
       HttpResponse.json({ data: { type: 'usuarios', attributes: { token } } }, { status: 200 }),
     ),
-    http.get(`${STAGING_BASE}/sinapse-prescricao/especialidades`, () =>
+    http.get(`${STAGING_BASE}/especialidades`, () =>
       HttpResponse.json(
         { data: specialties.map((s) => ({ id: s.id, type: 'especialidades', attributes: { nome: s.nome } })) },
         { status: 200 },
