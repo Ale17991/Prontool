@@ -1248,6 +1248,7 @@ export type Database = {
         Row: {
           active: boolean
           birth_date: string | null
+          cbo: string | null
           council_name: string | null
           council_number: string | null
           council_state: string | null
@@ -1267,6 +1268,7 @@ export type Database = {
         Insert: {
           active?: boolean
           birth_date?: string | null
+          cbo?: string | null
           council_name?: string | null
           council_number?: string | null
           council_state?: string | null
@@ -1286,6 +1288,7 @@ export type Database = {
         Update: {
           active?: boolean
           birth_date?: string | null
+          cbo?: string | null
           council_name?: string | null
           council_number?: string | null
           council_state?: string | null
@@ -2021,6 +2024,64 @@ export type Database = {
           },
           {
             foreignKeyName: "patient_diagnoses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_health_plan_cards: {
+        Row: {
+          card_number_enc: string
+          card_valid_until: string | null
+          created_at: string
+          created_by_user_id: string
+          health_plan_id: string
+          id: string
+          patient_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          card_number_enc: string
+          card_valid_until?: string | null
+          created_at?: string
+          created_by_user_id: string
+          health_plan_id: string
+          id?: string
+          patient_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          card_number_enc?: string
+          card_valid_until?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          health_plan_id?: string
+          id?: string
+          patient_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_health_plan_cards_health_plan_id_fkey"
+            columns: ["health_plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_health_plan_cards_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_health_plan_cards_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -3449,6 +3510,116 @@ export type Database = {
           },
         ]
       }
+      tenant_tiss_certificates: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by_user_id: string
+          id: string
+          not_after: string
+          password_enc: string
+          pfx_enc: string
+          subject_cn: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          not_after: string
+          password_enc: string
+          pfx_enc: string
+          subject_cn: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          not_after?: string
+          password_enc?: string
+          pfx_enc?: string
+          subject_cn?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_tiss_certificates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_tiss_operator_config: {
+        Row: {
+          active: boolean
+          ans_registration: string
+          contracted_cnes: string | null
+          contracted_cnpj: string
+          contracted_code: string
+          created_at: string
+          created_by_user_id: string
+          health_plan_id: string
+          id: string
+          procedure_table_map: Json
+          tenant_id: string
+          tiss_version: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          ans_registration: string
+          contracted_cnes?: string | null
+          contracted_cnpj: string
+          contracted_code: string
+          created_at?: string
+          created_by_user_id: string
+          health_plan_id: string
+          id?: string
+          procedure_table_map?: Json
+          tenant_id: string
+          tiss_version?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          ans_registration?: string
+          contracted_cnes?: string | null
+          contracted_cnpj?: string
+          contracted_code?: string
+          created_at?: string
+          created_by_user_id?: string
+          health_plan_id?: string
+          id?: string
+          procedure_table_map?: Json
+          tenant_id?: string
+          tiss_version?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_tiss_operator_config_health_plan_id_fkey"
+            columns: ["health_plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_tiss_operator_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
@@ -3478,6 +3649,356 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tiss_domain_tables: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          domain_number: string
+          id: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          domain_number: string
+          id?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          domain_number?: string
+          id?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
+      tiss_glosas: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          glosado_amount_cents: number
+          guia_id: string
+          guia_procedure_id: string | null
+          id: string
+          motivo_code: string
+          motivo_text: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          glosado_amount_cents: number
+          guia_id: string
+          guia_procedure_id?: string | null
+          id?: string
+          motivo_code: string
+          motivo_text: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          glosado_amount_cents?: number
+          guia_id?: string
+          guia_procedure_id?: string | null
+          id?: string
+          motivo_code?: string
+          motivo_text?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiss_glosas_guia_id_fkey"
+            columns: ["guia_id"]
+            isOneToOne: false
+            referencedRelation: "tiss_guias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_glosas_guia_procedure_id_fkey"
+            columns: ["guia_procedure_id"]
+            isOneToOne: false
+            referencedRelation: "tiss_guia_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_glosas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiss_guia_procedures: {
+        Row: {
+          created_at: string
+          description: string
+          guia_id: string
+          id: string
+          procedure_code: string
+          quantity: number
+          sequence: number
+          tecnica: string | null
+          tenant_id: string
+          total_amount_cents: number
+          tuss_code_id: string | null
+          tuss_table: string
+          unit_amount_cents: number
+          via: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          guia_id: string
+          id?: string
+          procedure_code: string
+          quantity?: number
+          sequence: number
+          tecnica?: string | null
+          tenant_id: string
+          total_amount_cents: number
+          tuss_code_id?: string | null
+          tuss_table: string
+          unit_amount_cents: number
+          via?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          guia_id?: string
+          id?: string
+          procedure_code?: string
+          quantity?: number
+          sequence?: number
+          tecnica?: string | null
+          tenant_id?: string
+          total_amount_cents?: number
+          tuss_code_id?: string | null
+          tuss_table?: string
+          unit_amount_cents?: number
+          via?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiss_guia_procedures_guia_id_fkey"
+            columns: ["guia_id"]
+            isOneToOne: false
+            referencedRelation: "tiss_guias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guia_procedures_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guia_procedures_tuss_code_id_fkey"
+            columns: ["tuss_code_id"]
+            isOneToOne: false
+            referencedRelation: "tuss_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiss_guias: {
+        Row: {
+          appointment_id: string
+          beneficiary_snapshot_enc: string
+          created_at: string
+          created_by_user_id: string
+          executante_snapshot: Json
+          exported_at: string | null
+          frozen_amount_cents: number
+          guia_number_prestador: string
+          guia_type: string
+          health_plan_id: string
+          id: string
+          lote_id: string | null
+          status: string
+          supersedes_guia_id: string | null
+          tenant_id: string
+          tiss_version: string
+          tuss_catalog_version_id: string | null
+          updated_at: string
+          validation_errors: Json
+        }
+        Insert: {
+          appointment_id: string
+          beneficiary_snapshot_enc: string
+          created_at?: string
+          created_by_user_id: string
+          executante_snapshot?: Json
+          exported_at?: string | null
+          frozen_amount_cents: number
+          guia_number_prestador: string
+          guia_type: string
+          health_plan_id: string
+          id?: string
+          lote_id?: string | null
+          status?: string
+          supersedes_guia_id?: string | null
+          tenant_id: string
+          tiss_version?: string
+          tuss_catalog_version_id?: string | null
+          updated_at?: string
+          validation_errors?: Json
+        }
+        Update: {
+          appointment_id?: string
+          beneficiary_snapshot_enc?: string
+          created_at?: string
+          created_by_user_id?: string
+          executante_snapshot?: Json
+          exported_at?: string | null
+          frozen_amount_cents?: number
+          guia_number_prestador?: string
+          guia_type?: string
+          health_plan_id?: string
+          id?: string
+          lote_id?: string | null
+          status?: string
+          supersedes_guia_id?: string | null
+          tenant_id?: string
+          tiss_version?: string
+          tuss_catalog_version_id?: string | null
+          updated_at?: string
+          validation_errors?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiss_guias_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guias_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guias_health_plan_id_fkey"
+            columns: ["health_plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guias_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "tiss_lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guias_supersedes_guia_id_fkey"
+            columns: ["supersedes_guia_id"]
+            isOneToOne: false
+            referencedRelation: "tiss_guias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guias_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_guias_tuss_catalog_version_id_fkey"
+            columns: ["tuss_catalog_version_id"]
+            isOneToOne: false
+            referencedRelation: "tuss_catalog_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tiss_lotes: {
+        Row: {
+          certificate_id: string | null
+          created_at: string
+          created_by_user_id: string
+          exported_at: string | null
+          health_plan_id: string
+          id: string
+          lote_number: string
+          signed_at: string | null
+          status: string
+          tenant_id: string
+          tiss_version: string
+          updated_at: string
+          xml_content: string | null
+          xml_hash_md5: string | null
+        }
+        Insert: {
+          certificate_id?: string | null
+          created_at?: string
+          created_by_user_id: string
+          exported_at?: string | null
+          health_plan_id: string
+          id?: string
+          lote_number: string
+          signed_at?: string | null
+          status?: string
+          tenant_id: string
+          tiss_version?: string
+          updated_at?: string
+          xml_content?: string | null
+          xml_hash_md5?: string | null
+        }
+        Update: {
+          certificate_id?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          exported_at?: string | null
+          health_plan_id?: string
+          id?: string
+          lote_number?: string
+          signed_at?: string | null
+          status?: string
+          tenant_id?: string
+          tiss_version?: string
+          updated_at?: string
+          xml_content?: string | null
+          xml_hash_md5?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiss_lotes_certificate_id_fkey"
+            columns: ["certificate_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_tiss_certificates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_lotes_health_plan_id_fkey"
+            columns: ["health_plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_lotes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       treatment_plan_steps: {
         Row: {
