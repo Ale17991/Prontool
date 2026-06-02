@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getDoctor, type DoctorDetail } from '@/lib/core/doctors/get'
 import { getMemedConnection } from './credentials'
-import { memedFetch } from './client'
+import { memedFetch, MemedValidationError } from './client'
 import { recordMemedAudit } from './audit'
 import { MemedNotConnectedError, MemedPrescriberFieldsMissingError } from './errors'
 import { memedPrescriberPayloadSchema, type MemedPrescriberPayload } from './types'
@@ -120,12 +120,44 @@ export async function enablePrescriber(
   const doctor = await getDoctor(supabase, { tenantId, doctorId })
   const payload = buildPrescriberPayload(doctor, input.memedSpecialtyId)
 
-  try {
-    await memedFetch(connection.environment, connection.credentials, {
-      method: 'POST',
-      path: '/sinapse-prescricao/usuarios',
-      body: { data: { type: 'usuarios', attributes: payload } },
+  // Já registrado? Então habilitar é ATUALIZAR (ex.: mudar especialidade) →
+  // PATCH /usuarios/{external_id}. Cadastrar de novo com POST faria a Memed
+  // recusar com "já cadastrado para o parceiro com esse id externo".
+  const { data: existing } = await supabase
+    .from('memed_prescribers')
+    .select('status')
+    .eq('tenant_id', tenantId)
+    .eq('doctor_id', doctorId)
+    .maybeSingle()
+  const alreadyRegistered = (existing as { status?: string } | null)?.status === 'registered'
+
+  const body = { data: { type: 'usuarios', attributes: payload } }
+  const sendToMemed = (method: 'POST' | 'PATCH') =>
+    memedFetch(connection.environment, connection.credentials, {
+      method,
+      path:
+        method === 'PATCH'
+          ? `/sinapse-prescricao/usuarios/${encodeURIComponent(payload.external_id)}`
+          : '/sinapse-prescricao/usuarios',
+      body,
     })
+
+  try {
+    if (alreadyRegistered) {
+      await sendToMemed('PATCH')
+    } else {
+      try {
+        await sendToMemed('POST')
+      } catch (err) {
+        // A Memed pode já ter esse external_id (re-sync após erro, ou sandbox
+        // compartilhado) → atualiza via PATCH em vez de falhar.
+        if (err instanceof MemedValidationError && /cadastrad|already|externo|external/i.test(err.message)) {
+          await sendToMemed('PATCH')
+        } else {
+          throw err
+        }
+      }
+    }
   } catch (err) {
     // Persiste o estado de erro e audita a tentativa antes de propagar.
     const message = err instanceof Error ? err.message : 'Falha ao registrar prescritor'
