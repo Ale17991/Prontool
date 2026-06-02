@@ -57,39 +57,32 @@ export function mockMemed(opts: MockMemedOptions = {}): { token: string } {
 
 export interface SeedMemedConnectionOptions {
   createdBy: string
-  apiKey?: string
-  secretKey?: string
   environment?: 'staging' | 'production'
   connected?: boolean
+  termsAccepted?: boolean
 }
 
+/**
+ * Ativa a Memed para um tenant (modelo de plataforma — sem chaves por tenant).
+ * As credenciais vêm de env; aqui só criamos a linha de ativação/ambiente/termo.
+ */
 export async function seedMemedConnection(
   tenantId: string,
   opts: SeedMemedConnectionOptions,
-): Promise<{ apiKey: string; secretKey: string }> {
+): Promise<void> {
   const sb = serviceClient()
-  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
-  if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY not set for tests')
-  const apiKey = opts.apiKey ?? 'mock_api_key_value'
-  const secretKey = opts.secretKey ?? 'mock_secret_key_value'
-
-  const { data: apiEnc, error: e1 } = await sb.rpc('enc_text_with_key', { plain: apiKey, key })
-  if (e1) throw new Error(`enc api_key failed: ${e1.message}`)
-  const { data: secretEnc, error: e2 } = await sb.rpc('enc_text_with_key', { plain: secretKey, key })
-  if (e2) throw new Error(`enc secret_key failed: ${e2.message}`)
-
+  const termsAccepted = opts.termsAccepted ?? true
   await sb
     .from('tenant_memed_config')
     .insert({
       tenant_id: tenantId,
       environment: opts.environment ?? 'staging',
-      api_key_enc: apiEnc as unknown as string,
-      secret_key_enc: secretEnc as unknown as string,
       connected: opts.connected ?? true,
+      terms_accepted_at: termsAccepted ? new Date().toISOString() : null,
+      terms_accepted_by: termsAccepted ? opts.createdBy : null,
       created_by_user_id: opts.createdBy,
     } as never)
     .throwOnError()
-  return { apiKey, secretKey }
 }
 
 export async function seedMemedPrescriber(

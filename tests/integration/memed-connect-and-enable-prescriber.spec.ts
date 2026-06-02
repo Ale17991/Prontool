@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedDoctor } from '@/tests/helpers/seed-factories'
 import { mockMemed, setDoctorPrescriberFields } from '@/tests/helpers/memed-mock'
-import { connectMemed } from '@/lib/core/integrations/memed/connect'
+import { activateMemed } from '@/lib/core/integrations/memed/connect'
 import { enablePrescriber } from '@/lib/core/integrations/memed/register-prescriber'
 
 describe('Feature 026 — connect + enable prescriber', () => {
@@ -26,10 +26,10 @@ describe('Feature 026 — connect + enable prescriber', () => {
     const { doctorId } = await seedDoctor(tenantId)
     await setDoctorPrescriberFields(doctorId, tenantId)
 
-    await connectMemed({
+    await activateMemed({
       supabase: sb,
       tenantId,
-      credentials: { api_key: 'k_homolog', secret_key: 's_homolog' },
+      environment: 'staging',
       actorUserId: admin.userId,
       actorLabel: `user:${admin.email}`,
     })
@@ -66,10 +66,10 @@ describe('Feature 026 — connect + enable prescriber', () => {
     const admin = await seedUser(tenantId, 'admin')
     const { doctorId } = await seedDoctor(tenantId) // sem campos de prescritor
 
-    await connectMemed({
+    await activateMemed({
       supabase: sb,
       tenantId,
-      credentials: { api_key: 'k_homolog', secret_key: 's_homolog' },
+      environment: 'staging',
       actorUserId: admin.userId,
       actorLabel: `user:${admin.email}`,
     })

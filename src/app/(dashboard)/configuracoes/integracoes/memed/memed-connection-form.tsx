@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, CheckCircle2, FileText, FlaskConical, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, FileText, FlaskConical, ShieldCheck, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,12 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import type { MemedConfigPublic } from '@/lib/core/integrations/memed/types'
 
-/** Termo de responsabilidade da prescrição digital (exibido antes do aceite). */
+/** Termo de responsabilidade (exibido antes de ativar). */
 const MEMED_TERMS: Array<{ title: string; body: string }> = [
   {
     title: '1. Profissional qualificado',
@@ -34,7 +33,7 @@ const MEMED_TERMS: Array<{ title: string; body: string }> = [
   },
   {
     title: '4. Sigilo e proteção de dados',
-    body: 'A clínica mantém as credenciais de integração em sigilo e trata os dados pessoais e de saúde dos pacientes conforme a LGPD.',
+    body: 'A clínica trata os dados pessoais e de saúde dos pacientes conforme a LGPD.',
   },
   {
     title: '5. Validade legal em produção',
@@ -42,7 +41,7 @@ const MEMED_TERMS: Array<{ title: string; body: string }> = [
   },
   {
     title: '6. Termos da Memed',
-    body: 'A clínica declara aceitar os Termos de Uso e a Política de Privacidade da Memed. O descumprimento destes itens pode levar à revogação do acesso de produção pela Memed.',
+    body: 'A clínica declara aceitar os Termos de Uso e a Política de Privacidade da Memed. O descumprimento pode levar à revogação do acesso de produção pela Memed.',
   },
 ]
 
@@ -73,99 +72,165 @@ async function callApi(
 
 export function MemedConnectionForm({
   initialConfig,
+  productionConfigured,
 }: {
   initialConfig: MemedConfigPublic | null
+  productionConfigured: boolean
 }): JSX.Element {
   const router = useRouter()
-  const connected = Boolean(initialConfig?.connected)
-
-  if (!connected) {
-    return <ConnectCard onDone={() => router.refresh()} />
-  }
-  return <ConnectedPanel config={initialConfig!} onDone={() => router.refresh()} />
+  const active = Boolean(initialConfig?.connected)
+  const onDone = () => router.refresh()
+  return active ? (
+    <ActivePanel config={initialConfig!} productionConfigured={productionConfigured} onDone={onDone} />
+  ) : (
+    <ActivateCard productionConfigured={productionConfigured} onDone={onDone} />
+  )
 }
 
-function ConnectCard({ onDone }: { onDone: () => void }): JSX.Element {
-  const [apiKey, setApiKey] = useState('')
-  const [secretKey, setSecretKey] = useState('')
+function TermsBody(): JSX.Element {
+  return (
+    <div className="max-h-[45dvh] space-y-3 overflow-y-auto pr-1">
+      {MEMED_TERMS.map((s) => (
+        <div key={s.title}>
+          <p className="text-sm font-semibold text-slate-800">{s.title}</p>
+          <p className="text-xs text-slate-600">{s.body}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ActivateCard({
+  productionConfigured,
+  onDone,
+}: {
+  productionConfigured: boolean
+  onDone: () => void
+}): JSX.Element {
+  const [open, setOpen] = useState(false)
+  const [agreed, setAgreed] = useState(false)
+  const [environment, setEnvironment] = useState<'staging' | 'production'>(
+    productionConfigured ? 'production' : 'staging',
+  )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleConnect() {
+  async function activate() {
     setSubmitting(true)
     setError(null)
     const result = await callApi('/api/integracoes/memed', 'POST', {
-      api_key: apiKey.trim(),
-      secret_key: secretKey.trim(),
+      environment,
+      accept_terms: true,
     })
     setSubmitting(false)
     if (!result.ok) {
-      setError(result.message ?? 'Falha ao conectar')
+      setError(result.message ?? 'Falha ao ativar')
       return
     }
+    setOpen(false)
     onDone()
   }
-
-  const canSubmit = apiKey.trim().length > 0 && secretKey.trim().length > 0 && !submitting
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Conectar à Memed (homologação)</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Stethoscope className="h-4 w-4 text-primary" /> Ativar prescrição digital
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-slate-600">
-          Informe as chaves da Memed. Elas são cifradas no servidor e nunca aparecem no
-          navegador, em logs ou em respostas de API.
+          A prescrição digital usa as credenciais da plataforma Clinni com a Memed — você não
+          precisa de chave. Leia o termo de responsabilidade, confirme e ative.
         </p>
-        <div className="space-y-1.5">
-          <Label htmlFor="memed-api-key">API Key</Label>
-          <Input
-            id="memed-api-key"
-            type="password"
-            autoComplete="off"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="api-key da Memed"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="memed-secret-key">Secret Key</Label>
-          <Input
-            id="memed-secret-key"
-            type="password"
-            autoComplete="off"
-            value={secretKey}
-            onChange={(e) => setSecretKey(e.target.value)}
-            placeholder="secret-key da Memed"
-          />
-        </div>
-        <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-2 text-xs text-[hsl(var(--warning-foreground))]">
-          A conexão entra em <strong>modo homologação</strong> (sem validade legal). A
-          ativação de produção é feita depois, com aceite do termo de responsabilidade.
-        </p>
-        {error ? <p className="text-xs text-destructive">{error}</p> : null}
-        <Button onClick={handleConnect} disabled={!canSubmit}>
-          {submitting ? 'Conectando…' : 'Conectar'}
+        <Button
+          onClick={() => {
+            setAgreed(false)
+            setEnvironment(productionConfigured ? 'production' : 'staging')
+            setOpen(true)
+          }}
+          className="gap-2"
+        >
+          <FileText className="h-4 w-4" /> Ler termo e ativar
         </Button>
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" /> Termo de responsabilidade
+              </DialogTitle>
+            </DialogHeader>
+            <TermsBody />
+
+            <div className="space-y-2">
+              <Label className="text-xs text-slate-500">Ambiente</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={environment === 'staging' ? 'default' : 'outline'}
+                  onClick={() => setEnvironment('staging')}
+                >
+                  Homologação (teste)
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={environment === 'production' ? 'default' : 'outline'}
+                  disabled={!productionConfigured}
+                  onClick={() => setEnvironment('production')}
+                >
+                  Produção
+                </Button>
+              </div>
+              {!productionConfigured ? (
+                <p className="text-[11px] text-slate-400">
+                  Produção indisponível — a plataforma ainda não tem as chaves de produção
+                  configuradas.
+                </p>
+              ) : null}
+            </div>
+
+            <label className="flex items-start gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>Li e concordo com o termo de responsabilidade acima.</span>
+            </label>
+            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+            <DialogFooter>
+              <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
+              <Button size="sm" disabled={!agreed || submitting} onClick={activate} className="gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                {submitting ? 'Ativando…' : 'Ativar prescrição digital'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   )
 }
 
-function ConnectedPanel({
+function ActivePanel({
   config,
+  productionConfigured,
   onDone,
 }: {
   config: MemedConfigPublic
+  productionConfigured: boolean
   onDone: () => void
 }): JSX.Element {
-  const [busy, setBusy] = useState<null | 'env' | 'terms' | 'disconnect'>(null)
+  const [busy, setBusy] = useState<null | 'env' | 'deactivate'>(null)
   const [error, setError] = useState<string | null>(null)
   const [termsOpen, setTermsOpen] = useState(false)
-  const [agreed, setAgreed] = useState(false)
   const isProduction = config.environment === 'production'
-  const hasTerms = Boolean(config.termsAcceptedAt)
 
   async function switchEnvironment(environment: 'staging' | 'production') {
     if (environment === config.environment) return
@@ -180,33 +245,20 @@ function ConnectedPanel({
     onDone()
   }
 
-  async function acceptTerms() {
-    setBusy('terms')
-    setError(null)
-    const result = await callApi('/api/integracoes/memed/termo', 'POST')
-    setBusy(null)
-    if (!result.ok) {
-      setError(result.message ?? 'Falha ao registrar o termo')
-      return
-    }
-    setTermsOpen(false)
-    onDone()
-  }
-
-  async function disconnect() {
+  async function deactivate() {
     if (
       !window.confirm(
-        'Desconectar a Memed? A clínica deixa de oferecer prescrição digital até reconectar. O histórico de prescrições é preservado.',
+        'Desativar a prescrição digital? A clínica deixa de prescrever até reativar. O histórico é preservado.',
       )
     ) {
       return
     }
-    setBusy('disconnect')
+    setBusy('deactivate')
     setError(null)
     const result = await callApi('/api/integracoes/memed', 'DELETE')
     setBusy(null)
     if (!result.ok) {
-      setError(result.message ?? 'Falha ao desconectar')
+      setError(result.message ?? 'Falha ao desativar')
       return
     }
     onDone()
@@ -220,8 +272,8 @@ function ConnectedPanel({
           <div>
             <p className="font-semibold">Modo homologação — sem validade legal</p>
             <p className="mt-1 text-xs">
-              As prescrições emitidas agora são de teste. Ative a produção (com aceite do
-              termo) quando estiver pronto para emitir prescrições válidas.
+              As prescrições emitidas agora são de teste. Ative a produção quando estiver pronto
+              para emitir prescrições válidas.
             </p>
           </div>
         </div>
@@ -230,7 +282,7 @@ function ConnectedPanel({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className="h-4 w-4 text-success-strong" /> Conexão ativa
+            <CheckCircle2 className="h-4 w-4 text-success-strong" /> Prescrição digital ativa
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -243,15 +295,19 @@ function ConnectedPanel({
             )}
           </div>
           <div className="flex items-baseline justify-between gap-3 text-sm">
-            <span className="text-slate-500">Termo de responsabilidade</span>
+            <span className="text-slate-500">Termo aceito em</span>
             <span className="font-mono text-slate-700">
               {config.termsAcceptedAt
                 ? new Date(config.termsAcceptedAt).toLocaleString('pt-BR', {
                     timeZone: 'America/Sao_Paulo',
                   })
-                : 'pendente'}
+                : '—'}
             </span>
           </div>
+
+          <Button variant="outline" size="sm" onClick={() => setTermsOpen(true)} className="gap-2">
+            <FileText className="h-4 w-4" /> Ver termo de responsabilidade
+          </Button>
 
           <Separator />
 
@@ -269,40 +325,26 @@ function ConnectedPanel({
               <Button
                 size="sm"
                 variant={isProduction ? 'default' : 'outline'}
-                disabled={busy !== null}
+                disabled={busy !== null || !productionConfigured}
                 onClick={() => switchEnvironment('production')}
               >
                 Produção
               </Button>
             </div>
-            {!hasTerms ? (
-              <p className="text-xs text-slate-500">
-                A produção exige o aceite do termo de responsabilidade.
+            {!productionConfigured ? (
+              <p className="text-[11px] text-slate-400">
+                Produção indisponível — chaves de produção não configuradas na plataforma.
               </p>
             ) : null}
           </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={busy !== null}
-            onClick={() => {
-              setAgreed(false)
-              setTermsOpen(true)
-            }}
-            className="gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            {hasTerms ? 'Ver termo de responsabilidade' : 'Ver e aceitar termo de responsabilidade'}
-          </Button>
 
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
           <Separator />
 
           <div className="flex items-center gap-3">
-            <Button variant="destructive" size="sm" disabled={busy !== null} onClick={disconnect}>
-              {busy === 'disconnect' ? 'Desconectando…' : 'Desconectar'}
+            <Button variant="destructive" size="sm" disabled={busy !== null} onClick={deactivate}>
+              {busy === 'deactivate' ? 'Desativando…' : 'Desativar'}
             </Button>
             <span className="text-xs text-slate-500">
               Mantém o histórico de prescrições; interrompe novas emissões.
@@ -318,53 +360,20 @@ function ConnectedPanel({
               <ShieldCheck className="h-5 w-5 text-primary" /> Termo de responsabilidade
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600">
-            Ao ativar a prescrição digital em produção, a clínica declara estar ciente e de acordo
-            com os itens abaixo.
+          <TermsBody />
+          <p className="text-xs font-medium text-success-text">
+            ✓ Aceito em{' '}
+            {config.termsAcceptedAt
+              ? new Date(config.termsAcceptedAt).toLocaleString('pt-BR', {
+                  timeZone: 'America/Sao_Paulo',
+                })
+              : '—'}
+            .
           </p>
-          <div className="max-h-[45dvh] space-y-3 overflow-y-auto pr-1">
-            {MEMED_TERMS.map((s) => (
-              <div key={s.title}>
-                <p className="text-sm font-semibold text-slate-800">{s.title}</p>
-                <p className="text-xs text-slate-600">{s.body}</p>
-              </div>
-            ))}
-          </div>
-          {hasTerms ? (
-            <p className="text-xs font-medium text-success-text">
-              ✓ Termo aceito em{' '}
-              {new Date(config.termsAcceptedAt!).toLocaleString('pt-BR', {
-                timeZone: 'America/Sao_Paulo',
-              })}
-              .
-            </p>
-          ) : (
-            <label className="flex items-start gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-                className="mt-0.5"
-              />
-              <span>Li e concordo com o termo de responsabilidade acima.</span>
-            </label>
-          )}
-          {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setTermsOpen(false)}>
               Fechar
             </Button>
-            {!hasTerms ? (
-              <Button
-                size="sm"
-                disabled={!agreed || busy !== null}
-                onClick={acceptTerms}
-                className="gap-2"
-              >
-                <ShieldCheck className="h-4 w-4" />
-                {busy === 'terms' ? 'Registrando…' : 'Aceitar termo'}
-              </Button>
-            ) : null}
           </DialogFooter>
         </DialogContent>
       </Dialog>

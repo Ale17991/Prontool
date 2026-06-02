@@ -38,6 +38,17 @@ export class MemedPrescriberFieldsMissingError extends DomainError {
   }
 }
 
+/** Produção pedida mas as chaves de produção não estão configuradas no servidor (HTTP 503). */
+export class MemedProductionNotConfiguredError extends DomainError {
+  constructor() {
+    super(
+      'MEMED_PRODUCTION_NOT_CONFIGURED',
+      'Prescrição digital em produção ainda não foi configurada na plataforma. Contate o suporte do Clinni.',
+      { status: 503 },
+    )
+  }
+}
+
 /** Tentou ativar produção sem aceitar o termo de responsabilidade (HTTP 400). */
 export class MemedTermsRequiredError extends DomainError {
   constructor() {

@@ -1,15 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { memedCredentialsSchema, type MemedCredentials, type MemedEnvironment } from './types'
+import type { MemedCredentials, MemedEnvironment } from './types'
+import { MemedProductionNotConfiguredError } from './errors'
 
 /**
- * Leitura/escrita das credenciais Memed cifradas (`tenant_memed_config`).
+ * Credenciais Memed de PLATAFORMA (modelo de parceiro único: a Clinni é o
+ * integrador). As chaves de PRODUÇÃO vêm de env (`MEMED_API_KEY`/
+ * `MEMED_SECRET_KEY`), configuradas UMA vez no servidor — nunca por tenant,
+ * nunca no banco, nunca no front. Cada clínica apenas ativa + aceita o termo.
  *
- * As chaves vivem cifradas em `api_key_enc`/`secret_key_enc` (BYTEA) e só são
- * decifradas server-side via `dec_text_with_key` com `PATIENT_DATA_ENCRYPTION_KEY`.
- * NENHUMA rota deve serializar o retorno de `getMemedConnection` ao browser —
- * use `MemedConfigPublic` para isso.
+ * Homologação usa as chaves PÚBLICAS da doc da Memed (seguras em código
+ * backend; substituíveis por env se preciso).
  */
+
+const STAGING_API_KEY = 'iJGiB4kjDGOLeDFPWMG3no9VnN7Abpqe3w1jEFm6olkhkZD6oSfSmYCm'
+const STAGING_SECRET_KEY = 'Xe8M5GvBGCr4FStKfxXKisRo3SfYKI7KrTMkJpCAstzu2yXVN4av5nmL'
 
 export interface MemedConnection {
   environment: MemedEnvironment
@@ -18,44 +23,33 @@ export interface MemedConnection {
   credentials: MemedCredentials
 }
 
-function requireKey(): string {
-  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
-  if (!key) {
-    throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required to handle Memed credentials')
-  }
-  return key
-}
-
-async function decBytea(
-  supabase: SupabaseClient<Database>,
-  cipher: string,
-  key: string,
-): Promise<string> {
-  const { data, error } = await supabase.rpc('dec_text_with_key', { cipher, key })
-  if (error || data === null || data === undefined) {
-    throw new Error(`dec_text_with_key failed: ${error?.message ?? 'null plaintext'}`)
-  }
-  return data as unknown as string
-}
-
-async function encText(
-  supabase: SupabaseClient<Database>,
-  plain: string,
-  key: string,
-): Promise<string> {
-  const { data, error } = await supabase.rpc('enc_text_with_key', { plain, key })
-  if (error || data === null || data === undefined) {
-    throw new Error(`enc_text_with_key failed: ${error?.message ?? 'null ciphertext'}`)
-  }
-  return data as unknown as string
+/** As chaves de PRODUÇÃO da Clinni estão configuradas no servidor (env)? */
+export function isMemedProductionConfigured(): boolean {
+  return Boolean(process.env.MEMED_API_KEY && process.env.MEMED_SECRET_KEY)
 }
 
 /**
- * Carrega a conexão Memed de um tenant com as credenciais já decifradas.
- * Retorna `null` se a clínica não tem conta Memed configurada.
+ * Resolve as credenciais da plataforma para o ambiente. Produção exige as env
+ * vars configuradas (senão `MemedProductionNotConfiguredError`).
+ */
+export function getPlatformMemedCredentials(environment: MemedEnvironment): MemedCredentials {
+  if (environment === 'production') {
+    const api_key = process.env.MEMED_API_KEY
+    const secret_key = process.env.MEMED_SECRET_KEY
+    if (!api_key || !secret_key) throw new MemedProductionNotConfiguredError()
+    return { api_key, secret_key }
+  }
+  return {
+    api_key: process.env.MEMED_STAGING_API_KEY ?? STAGING_API_KEY,
+    secret_key: process.env.MEMED_STAGING_SECRET_KEY ?? STAGING_SECRET_KEY,
+  }
+}
+
+/**
+ * Conexão Memed de um tenant: lê o estado (ativado / ambiente / termo) e
+ * resolve as credenciais da plataforma pelo ambiente. `null` se não ativado.
  *
- * O `supabase` deve ter escopo apropriado para ler as colunas cifradas
- * (service client) — o caller é responsável pelo tenant scoping.
+ * O caller é responsável pelo tenant scoping (service client).
  */
 export async function getMemedConnection(
   supabase: SupabaseClient<Database>,
@@ -63,42 +57,17 @@ export async function getMemedConnection(
 ): Promise<MemedConnection | null> {
   const { data, error } = await supabase
     .from('tenant_memed_config')
-    .select('environment, connected, terms_accepted_at, api_key_enc, secret_key_enc')
+    .select('environment, connected, terms_accepted_at')
     .eq('tenant_id', tenantId)
     .maybeSingle()
-
   if (error) throw new Error(`failed to load tenant_memed_config: ${error.message}`)
   if (!data) return null
 
-  const key = requireKey()
-  const [apiKey, secretKey] = await Promise.all([
-    decBytea(supabase, data.api_key_enc as unknown as string, key),
-    decBytea(supabase, data.secret_key_enc as unknown as string, key),
-  ])
-
-  const credentials = memedCredentialsSchema.parse({ api_key: apiKey, secret_key: secretKey })
-
+  const environment = data.environment as MemedEnvironment
   return {
-    environment: data.environment as MemedEnvironment,
+    environment,
     connected: data.connected,
     termsAcceptedAt: data.terms_accepted_at,
-    credentials,
+    credentials: getPlatformMemedCredentials(environment),
   }
-}
-
-/**
- * Cifra um par de credenciais para persistência em `tenant_memed_config`.
- * Devolve os dois ciphertexts (hex `\x...`) prontos para INSERT/UPDATE.
- */
-export async function encryptMemedCredentials(
-  supabase: SupabaseClient<Database>,
-  credentials: MemedCredentials,
-): Promise<{ api_key_enc: string; secret_key_enc: string }> {
-  const parsed = memedCredentialsSchema.parse(credentials)
-  const key = requireKey()
-  const [api_key_enc, secret_key_enc] = await Promise.all([
-    encText(supabase, parsed.api_key, key),
-    encText(supabase, parsed.secret_key, key),
-  ])
-  return { api_key_enc, secret_key_enc }
 }

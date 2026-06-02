@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
+import { isMemedProductionConfigured } from '@/lib/core/integrations/memed/credentials'
 import type { Database } from '@/lib/db/types'
 import { MemedConnectionForm } from './memed-connection-form'
 
@@ -22,6 +23,7 @@ export default async function MemedIntegrationPage(): Promise<JSX.Element> {
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const config = await getMemedConfigPublic(supabase, session.tenantId)
+  const productionConfigured = isMemedProductionConfigured()
 
   return (
     <div className="space-y-6">
@@ -42,7 +44,7 @@ export default async function MemedIntegrationPage(): Promise<JSX.Element> {
         </p>
       </div>
 
-      <MemedConnectionForm initialConfig={config} />
+      <MemedConnectionForm initialConfig={config} productionConfigured={productionConfigured} />
     </div>
   )
 }
