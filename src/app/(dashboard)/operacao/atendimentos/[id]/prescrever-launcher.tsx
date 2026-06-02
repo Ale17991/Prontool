@@ -1,8 +1,5 @@
 'use client'
 
-/* eslint-disable no-console -- logs `[memed]` são diagnóstico intencional do
-   SDK externo da Memed no navegador (timing de boot do iframe). */
-
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Pill } from 'lucide-react'
@@ -13,16 +10,18 @@ import { Button } from '@/components/ui/button'
  *
  * Fluxo: busca o token do prescritor (proxy) + o payload do paciente
  * (decifrado server-side), carrega o script da Memed com `data-token`, espera
- * o SDK (`MdSinapsePrescricao`/`MdHub`) ficar pronto via polling, faz
- * `setPaciente`, abre o módulo e liga os eventos `prescricaoImpressa`/
- * `prescricaoExcluida` às rotas de registro.
+ * o SDK ficar pronto, faz `setPaciente`, abre o módulo e liga os eventos
+ * `prescricaoImpressa`/`prescricaoExcluida` às rotas de registro.
  *
  * As chaves NUNCA passam por aqui — só o token curto do prescritor.
  *
- * ⚠️ Integra o SDK externo da Memed (`MdHub`). Como o script boota de forma
- * assíncrona (mesmo após `onload`), NÃO confiamos só no evento one-shot
- * `core:moduleInit` — fazemos polling do `MdHub` e mandamos `setPaciente`
- * defensivamente. Logs no console (`[memed]`) ajudam a diagnosticar.
+ * Notas de integração com o SDK externo:
+ *  - O script boota de forma assíncrona mesmo após `onload`; esperamos os
+ *    globais por polling (com timeout) em vez de confiar só no evento one-shot
+ *    `core:moduleInit`.
+ *  - `MdSinapsePrescricao` é exposto em `window`; `MdHub` é um GLOBAL LÉXICO
+ *    (let/const no escopo global), acessível por nome simples — NÃO é
+ *    `window.MdHub`. Por isso lemos via `getMdHub()`.
  */
 
 const MEMED_SCRIPT_ID = 'memed-sinapse-script'
@@ -46,10 +45,7 @@ declare global {
   }
 }
 
-// `MdHub` é um GLOBAL LÉXICO da Memed (let/const no escopo global) — acessível
-// por nome simples, NÃO como `window.MdHub`. Por isso o polling em window.MdHub
-// dava timeout mesmo com o hub presente (o `Object.keys(window)` só mostrava a
-// propriedade falsy que nós mesmos criávamos no reset).
+// `MdHub` é global léxico da Memed (não vive em `window`).
 declare const MdHub: MdHubLike | undefined
 
 /** Lê o `MdHub` léxico com segurança (typeof não lança para nome inexistente). */
@@ -113,14 +109,9 @@ function loadMemedScript(token: string): Promise<void> {
     script.dataset.token = token
     script.dataset.color = '#2563eb'
     script.async = true
-    script.onload = () => {
-      console.info('[memed] script onload OK')
-      resolve()
-    }
-    script.onerror = () => {
-      console.error('[memed] falha ao carregar o script', MEMED_SCRIPT_SRC)
+    script.onload = () => resolve()
+    script.onerror = () =>
       reject(new Error('Não foi possível carregar o módulo da Memed (script bloqueado ou offline).'))
-    }
     document.body.appendChild(script)
   })
 }
@@ -138,13 +129,11 @@ export function PrescreverLauncher({
   const router = useRouter()
   const [stage, setStage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [debug, setDebug] = useState<string | null>(null)
   const eventsBoundRef = useRef(false)
   const loading = stage !== null
 
   const recordIssued = useCallback(
     async (data: unknown) => {
-      console.info('[memed] evento prescricaoImpressa', data)
       const memedId = extractPrescriptionId(data)
       if (!memedId) return
       await fetch(`/api/atendimentos/${appointmentId}/prescricoes`, {
@@ -160,7 +149,6 @@ export function PrescreverLauncher({
 
   const recordDeleted = useCallback(
     async (data: unknown) => {
-      console.info('[memed] evento prescricaoExcluida', data)
       const memedId = extractPrescriptionId(data)
       if (!memedId) return
       await fetch(`/api/atendimentos/${appointmentId}/prescricoes/${encodeURIComponent(memedId)}`, {
@@ -178,7 +166,6 @@ export function PrescreverLauncher({
       hub.event.add('prescricaoImpressa', (data) => void recordIssued(data))
       hub.event.add('prescricaoExcluida', (data) => void recordDeleted(data))
       eventsBoundRef.current = true
-      console.info('[memed] eventos prescricaoImpressa/Excluida registrados')
     },
     [recordIssued, recordDeleted],
   )
@@ -198,7 +185,6 @@ export function PrescreverLauncher({
     setStage('Carregando dados do paciente…')
     setError(null)
     try {
-      console.info('[memed] buscando token + paciente')
       const [tokenRes, pacRes] = await Promise.all([
         fetch(`/api/medicos/${doctorId}/memed-token`),
         fetch(`/api/atendimentos/${appointmentId}/memed-paciente`),
@@ -213,30 +199,13 @@ export function PrescreverLauncher({
       }
       const { token } = (await tokenRes.json()) as { token: string }
       const { paciente } = (await pacRes.json()) as { paciente: unknown }
-      console.info('[memed] token e paciente OK; carregando script')
 
       setStage('Carregando módulo Memed…')
       await loadMemedScript(token)
 
-      // Diagnóstico: revela os nomes reais dos globais que a Memed cria
-      // (caso o hub não seja exatamente `window.MdHub`). Mostra na TELA
-      // (abaixo do botão) para não depender do filtro do Console.
-      const memedGlobals = () =>
-        Object.keys(window).filter((k) => /md|memed|sinapse|hub|prescri/i.test(k))
-      const dumpGlobals = (when: string) => {
-        const g = memedGlobals()
-        console.info(`[memed] globals (${when}):`, g)
-        setDebug(`globais Memed (${when}): ${g.length ? g.join(', ') : '(nenhum)'}`)
-      }
-      dumpGlobals('apos onload')
-      setTimeout(() => dumpGlobals('apos 3s'), 3000)
-
-      // Registra o moduleInit ASSIM QUE o event bus existir (envia setPaciente
-      // quando o módulo de prescrição inicializa).
       setStage('Inicializando módulo…')
       const sinapse = await waitFor(() => window.MdSinapsePrescricao, SDK_TIMEOUT_MS, 'MdSinapsePrescricao')
       sinapse.event.add('core:moduleInit', (module) => {
-        console.info('[memed] core:moduleInit', module?.name)
         if (module?.name !== PRESCRICAO_MODULE) return
         const hub = getMdHub()
         if (!hub) return
@@ -244,10 +213,8 @@ export function PrescreverLauncher({
         hub.command.send(PRESCRICAO_MODULE, 'setPaciente', paciente)
       })
 
-      // Espera o MdHub (global léxico) e abre o módulo.
       const hub = await waitFor(() => getMdHub(), SDK_TIMEOUT_MS, 'MdHub')
       bindEvents(hub)
-      console.info('[memed] abrindo módulo de prescrição')
       hub.module.show(PRESCRICAO_MODULE)
       // Defensivo: se o moduleInit já tinha passado, manda o paciente direto.
       setTimeout(() => {
@@ -260,7 +227,6 @@ export function PrescreverLauncher({
 
       setStage(null)
     } catch (err) {
-      console.error('[memed] falha no launcher', err)
       setStage(null)
       setError(err instanceof Error ? err.message : 'Falha ao abrir a prescrição.')
     }
@@ -273,11 +239,6 @@ export function PrescreverLauncher({
         {stage ?? 'Prescrever'}
       </Button>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
-      {debug ? (
-        <p className="break-all rounded border border-slate-200 bg-slate-50 p-2 font-mono text-[11px] text-slate-600">
-          {debug}
-        </p>
-      ) : null}
     </div>
   )
 }
