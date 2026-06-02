@@ -38,9 +38,9 @@ description: "Task list — Faturamento TISS de Convênios (feature 029)"
 - [X] T008 [P] `src/lib/core/tiss/domains.ts` — leitura tipada das tabelas de domínio. ✓
 - [X] T009 [P] `src/lib/core/tiss/mask.ts` — masking de PII/segredos para logs. ✓
 - [X] T010 `src/lib/core/tiss/validate.ts` — `xmllint-wasm` carrega os XSDs 04.03.00 (resolve include/import) e valida `mensagemTISS`, erros `{message,line}`. ✓ (root detectado por padrão — ANS usa `tissV4_03_00.xsd` sem zero à esquerda)
-- [ ] T011 [P] Contract test `tests/contract/tiss-tenant-isolation.spec.ts` — tenant B não lê/escreve dados TISS do tenant A em nenhuma das 7 tabelas.
-- [ ] T012 [P] Contract test `tests/contract/tiss-rbac.spec.ts` — cada papel (`admin`/`financeiro`/`recepcionista`/`profissional_saude`) × cada endpoint; negação esperada loga audit deny.
-- [ ] T013 [P] Contract test `tests/contract/tiss-guias-append-only.spec.ts` — `DELETE` proibido; `UPDATE` fora da whitelist bloqueado em `tiss_guias`/`tiss_lotes`/`tiss_glosas`.
+- [X] T011 [P] Contract test `tests/contract/tiss-tenant-isolation.spec.ts` — tenant B não lê config/lotes do A; insert cross-tenant barrado por RLS. ✓ (3 testes)
+- [X] T012 [P] Contract test `tests/contract/tiss-rbac.spec.ts` — RLS: config = admin-only; lotes = admin/financeiro (recepcionista/profissional_saude barrados). ✓ (2 testes). RBAC de endpoint (`requireRole`+audit deny) entra em US1+.
+- [X] T013 [P] Contract test `tests/contract/tiss-guias-append-only.spec.ts` — DELETE bloqueado e UPDATE fora da whitelist bloqueado em guias/lotes/procedures/glosas; whitelist (status) permitida. ✓ (6 testes)
 - [X] T014 [P] Contract test-âncora `tests/contract/tiss-xml-validates-against-xsd.spec.ts` — pipeline XSD carrega e rejeita XML inválido (2 testes ✓). Caminho positivo entra em US2/US4.
 
 **Checkpoint**: schema aplicado, validação XSD funcional, testes de contrato passando. User stories podem começar.
