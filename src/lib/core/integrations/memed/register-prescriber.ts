@@ -30,6 +30,27 @@ export interface EnablePrescriberResult {
   externalId: string
 }
 
+/**
+ * O médico tem todos os campos que a Memed exige do prescritor? Usado para
+ * gatear "Prescrever": um prescritor registrado cujo cadastro ficou incompleto
+ * (ex.: nascimento removido depois) NÃO deve poder prescrever.
+ */
+export function doctorHasPrescriberFields(d: {
+  cpf?: string | null
+  council_name?: string | null
+  council_number?: string | null
+  council_state?: string | null
+  birth_date?: string | null
+}): boolean {
+  return (
+    (d.cpf ?? '').replace(/\D/g, '').length === 11 &&
+    Boolean(d.council_name) &&
+    Boolean(d.council_number) &&
+    Boolean(d.council_state && /^[A-Za-z]{2}$/.test(d.council_state)) &&
+    Boolean(d.birth_date && /^\d{4}-\d{2}-\d{2}$/.test(d.birth_date))
+  )
+}
+
 /** Divide `full_name` em nome (1ª palavra) + sobrenome (restante). */
 function splitName(full: string): { nome: string; sobrenome: string } {
   const parts = full.trim().split(/\s+/).filter(Boolean)

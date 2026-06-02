@@ -40,6 +40,7 @@ import {
   type AppointmentProcedureLine,
 } from '@/lib/core/appointments/procedures'
 import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
+import { doctorHasPrescriberFields } from '@/lib/core/integrations/memed/register-prescriber'
 import { ReversalForm } from './reversal-form'
 import { MarkRealizedForm } from './mark-realized-form'
 import { ConfirmAppointmentButton } from './confirm-button'
@@ -210,12 +211,21 @@ export default async function AtendimentoDetailPage({
   if (canPrescribe) {
     const memed = await getMemedConfigPublic(supabase, session.tenantId).catch(() => null)
     if (memed?.connected) {
-      const { data: presc } = await supabase
-        .from('memed_prescribers')
-        .select('status')
-        .eq('doctor_id', appointment.doctor_id as string)
-        .maybeSingle()
-      prescriberReady = (presc as { status?: string } | null)?.status === 'registered'
+      const [{ data: presc }, { data: doc }] = await Promise.all([
+        supabase
+          .from('memed_prescribers')
+          .select('status')
+          .eq('doctor_id', appointment.doctor_id as string)
+          .maybeSingle(),
+        supabase
+          .from('doctors')
+          .select('cpf, council_name, council_number, council_state, birth_date')
+          .eq('id', appointment.doctor_id as string)
+          .maybeSingle(),
+      ])
+      prescriberReady =
+        (presc as { status?: string } | null)?.status === 'registered' &&
+        doctorHasPrescriberFields((doc ?? {}) as Parameters<typeof doctorHasPrescriberFields>[0])
     }
   }
 

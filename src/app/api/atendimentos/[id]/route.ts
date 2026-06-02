@@ -10,6 +10,7 @@ import { listAppointmentMaterials } from '@/lib/core/appointments/materials'
 import { listAppointmentProcedures } from '@/lib/core/appointments/procedures'
 import { listAssistantsByAppointment } from '@/lib/core/appointment-assistants/list-by-appointment'
 import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
+import { doctorHasPrescriberFields } from '@/lib/core/integrations/memed/register-prescriber'
 
 /**
  * GET /api/atendimentos/{id}.
@@ -116,13 +117,25 @@ export async function GET(
     if (doctorId && (session.role === 'admin' || session.role === 'profissional_saude')) {
       const memed = await getMemedConfigPublic(supabase, session.tenantId).catch(() => null)
       if (memed?.connected) {
-        const { data: presc } = await supabase
-          .from('memed_prescribers')
-          .select('status')
-          .eq('tenant_id', session.tenantId)
-          .eq('doctor_id', doctorId)
-          .maybeSingle()
-        prescriberReady = (presc as { status?: string } | null)?.status === 'registered'
+        const [{ data: presc }, { data: doc }] = await Promise.all([
+          supabase
+            .from('memed_prescribers')
+            .select('status')
+            .eq('tenant_id', session.tenantId)
+            .eq('doctor_id', doctorId)
+            .maybeSingle(),
+          supabase
+            .from('doctors')
+            .select('cpf, council_name, council_number, council_state, birth_date')
+            .eq('tenant_id', session.tenantId)
+            .eq('id', doctorId)
+            .maybeSingle(),
+        ])
+        // Registrado E com cadastro ainda completo — se um campo exigido foi
+        // removido depois, o prescritor deixa de estar apto.
+        prescriberReady =
+          (presc as { status?: string } | null)?.status === 'registered' &&
+          doctorHasPrescriberFields((doc ?? {}) as Parameters<typeof doctorHasPrescriberFields>[0])
       }
     }
 
