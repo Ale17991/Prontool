@@ -2,14 +2,49 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, CheckCircle2, FlaskConical, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, FileText, FlaskConical, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import type { MemedConfigPublic } from '@/lib/core/integrations/memed/types'
+
+/** Termo de responsabilidade da prescrição digital (exibido antes do aceite). */
+const MEMED_TERMS: Array<{ title: string; body: string }> = [
+  {
+    title: '1. Profissional qualificado',
+    body: 'As prescrições são emitidas exclusivamente por profissionais de saúde legalmente habilitados, com registro ativo no respectivo conselho de classe.',
+  },
+  {
+    title: '2. Veracidade dos dados',
+    body: 'A clínica é responsável pela exatidão dos dados cadastrais dos prescritores (CPF, conselho, UF e data de nascimento) e dos pacientes.',
+  },
+  {
+    title: '3. Responsabilidade clínica',
+    body: 'A responsabilidade pelo conteúdo clínico de cada prescrição (medicamentos, posologia, indicações) é exclusiva do profissional prescritor.',
+  },
+  {
+    title: '4. Sigilo e proteção de dados',
+    body: 'A clínica mantém as credenciais de integração em sigilo e trata os dados pessoais e de saúde dos pacientes conforme a LGPD.',
+  },
+  {
+    title: '5. Validade legal em produção',
+    body: 'Em ambiente de produção, as prescrições têm validade legal (assinatura digital via Memed). O uso indevido da ferramenta é de responsabilidade da clínica.',
+  },
+  {
+    title: '6. Termos da Memed',
+    body: 'A clínica declara aceitar os Termos de Uso e a Política de Privacidade da Memed. O descumprimento destes itens pode levar à revogação do acesso de produção pela Memed.',
+  },
+]
 
 interface ApiError {
   error?: { code?: string; message?: string }
@@ -127,6 +162,8 @@ function ConnectedPanel({
 }): JSX.Element {
   const [busy, setBusy] = useState<null | 'env' | 'terms' | 'disconnect'>(null)
   const [error, setError] = useState<string | null>(null)
+  const [termsOpen, setTermsOpen] = useState(false)
+  const [agreed, setAgreed] = useState(false)
   const isProduction = config.environment === 'production'
   const hasTerms = Boolean(config.termsAcceptedAt)
 
@@ -152,6 +189,7 @@ function ConnectedPanel({
       setError(result.message ?? 'Falha ao registrar o termo')
       return
     }
+    setTermsOpen(false)
     onDone()
   }
 
@@ -244,18 +282,19 @@ function ConnectedPanel({
             ) : null}
           </div>
 
-          {!hasTerms ? (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={busy !== null}
-              onClick={acceptTerms}
-              className="gap-2"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              {busy === 'terms' ? 'Registrando…' : 'Aceitar termo de responsabilidade'}
-            </Button>
-          ) : null}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={busy !== null}
+            onClick={() => {
+              setAgreed(false)
+              setTermsOpen(true)
+            }}
+            className="gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            {hasTerms ? 'Ver termo de responsabilidade' : 'Ver e aceitar termo de responsabilidade'}
+          </Button>
 
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
@@ -271,6 +310,64 @@ function ConnectedPanel({
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" /> Termo de responsabilidade
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-600">
+            Ao ativar a prescrição digital em produção, a clínica declara estar ciente e de acordo
+            com os itens abaixo.
+          </p>
+          <div className="max-h-[45dvh] space-y-3 overflow-y-auto pr-1">
+            {MEMED_TERMS.map((s) => (
+              <div key={s.title}>
+                <p className="text-sm font-semibold text-slate-800">{s.title}</p>
+                <p className="text-xs text-slate-600">{s.body}</p>
+              </div>
+            ))}
+          </div>
+          {hasTerms ? (
+            <p className="text-xs font-medium text-success-text">
+              ✓ Termo aceito em{' '}
+              {new Date(config.termsAcceptedAt!).toLocaleString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+              })}
+              .
+            </p>
+          ) : (
+            <label className="flex items-start gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>Li e concordo com o termo de responsabilidade acima.</span>
+            </label>
+          )}
+          {error ? <p className="text-xs text-destructive">{error}</p> : null}
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setTermsOpen(false)}>
+              Fechar
+            </Button>
+            {!hasTerms ? (
+              <Button
+                size="sm"
+                disabled={!agreed || busy !== null}
+                onClick={acceptTerms}
+                className="gap-2"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                {busy === 'terms' ? 'Registrando…' : 'Aceitar termo'}
+              </Button>
+            ) : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
