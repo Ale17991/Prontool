@@ -143,7 +143,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
       setError('Informe o celular.')
       return
     }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    // E-mail é opcional no cadastro; se preenchido, deve ser válido.
+    // (A prescrição digital exige e-mail e avisa na hora, caso falte.)
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError('Informe um e-mail válido.')
       return
     }
@@ -181,7 +183,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           full_name: fullName.trim(),
           cpf: cpfDigits,
           phone: phone.trim(),
-          email: email.trim(),
+          email: email.trim() || null,
           birth_date: birthDate,
           plan_id: planId === '__none__' ? null : planId,
           sex: sex || null,
@@ -261,11 +263,10 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">E-mail</Label>
+          <Label htmlFor="email">E-mail (opcional)</Label>
           <Input
             id="email"
             type="email"
-            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

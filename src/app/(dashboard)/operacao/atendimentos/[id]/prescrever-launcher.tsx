@@ -58,7 +58,7 @@ function getMdHub(): MdHubLike | undefined {
 }
 
 interface ApiError {
-  error?: { code?: string; message?: string }
+  error?: { code?: string; message?: string; meta?: { missing?: string[] } }
 }
 
 function extractPrescriptionId(data: unknown): string | null {
@@ -129,6 +129,9 @@ export function PrescreverLauncher({
   const router = useRouter()
   const [stage, setStage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Quando o paciente não tem os campos obrigatórios para prescrever, listamos
+  // o que falta num aviso acima do botão (em vez de um erro genérico).
+  const [missingFields, setMissingFields] = useState<string[] | null>(null)
   const eventsBoundRef = useRef(false)
   const loading = stage !== null
 
@@ -184,6 +187,7 @@ export function PrescreverLauncher({
   async function handlePrescrever() {
     setStage('Carregando dados do paciente…')
     setError(null)
+    setMissingFields(null)
     try {
       const [tokenRes, pacRes] = await Promise.all([
         fetch(`/api/medicos/${doctorId}/memed-token`),
@@ -195,6 +199,12 @@ export function PrescreverLauncher({
       }
       if (!pacRes.ok) {
         const body = (await pacRes.json().catch(() => ({}))) as ApiError
+        // Paciente sem os campos obrigatórios → aviso amigável acima do botão.
+        if (pacRes.status === 422 && body.error?.code === 'MEMED_PATIENT_FIELDS_MISSING') {
+          setMissingFields(body.error?.meta?.missing ?? [])
+          setStage(null)
+          return
+        }
         throw new Error(body.error?.message ?? `Erro ao carregar paciente (${pacRes.status})`)
       }
       const { token } = (await tokenRes.json()) as { token: string }
@@ -234,6 +244,23 @@ export function PrescreverLauncher({
 
   return (
     <div className="space-y-2">
+      {missingFields ? (
+        <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+          <p className="font-semibold">
+            Falta{missingFields.length > 1 ? 'm' : ''} algum(ns) dos campos obrigatórios para a
+            prescrição.
+          </p>
+          <p className="mt-1">Por favor, atualize a ficha do paciente.</p>
+          {missingFields.length > 0 ? (
+            <p className="mt-1">
+              Faltando: <strong>{missingFields.join(', ')}</strong>.
+            </p>
+          ) : null}
+          <p className="mt-1 text-amber-700">
+            Campos obrigatórios para prescrever: nome, CPF, e-mail, celular e data de nascimento.
+          </p>
+        </div>
+      ) : null}
       <Button onClick={handlePrescrever} disabled={loading} className="gap-2">
         <Pill className="h-4 w-4" />
         {stage ?? 'Prescrever'}
