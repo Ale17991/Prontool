@@ -42,6 +42,7 @@ const AUTH_EXEMPT_PREFIXES = [
   'onboarding',         // pós-signup, sem tenant claim ainda (feature 010 US2 — FR-014)
   'public/',            // booking público (feature 017 — slug + IP-hash + Turnstile)
   'cron/',              // Vercel Cron (feature 018 — Bearer ${CRON_SECRET})
+  'paciente/',          // portal do paciente (feature 030 — cookie HMAC + rate-limit; o '/' NÃO isenta 'pacientes/')
 ]
 
 const HTTP_VERB_RE = /export\s+(?:async\s+)?function\s+(GET|POST|PATCH|PUT|DELETE|HEAD|OPTIONS)\s*\(/g

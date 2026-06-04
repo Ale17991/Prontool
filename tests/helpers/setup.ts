@@ -38,6 +38,10 @@ process.env.GHL_SCOPES ??= 'contacts.readonly,contacts.write,custom-fields.reado
 process.env.GHL_MARKETPLACE_SHARED_SECRET ??= 'test_marketplace_shared_secret_min_32_chars_xxxx'
 process.env.GHL_SSO_JWKS_URL ??= 'https://services.leadconnectorhq.com/.well-known/jwks.json'
 
+// Feature 030 — segredo do cookie HMAC do portal do paciente. Produção usa
+// env dedicado; nos testes basta um valor estável e forte o bastante.
+process.env.PATIENT_SESSION_SECRET ??= 'test_patient_session_secret_min_32_chars_xxxxxxxx'
+
 beforeAll(() => {
   // Confirm Supabase local is up; if not, surface a clear error.
   // We deliberately don't start it automatically — developers should

@@ -122,6 +122,12 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/api/workers') ||
     pathname.startsWith('/agendar') ||
+    // Feature 030 — portal do paciente: público, com sessão própria (cookie
+    // HMAC verificado na página/endpoint, não aqui). O prefixo com '/' em
+    // /api/paciente/ evita capturar /api/pacientes (staff, requireRole).
+    pathname.startsWith('/paciente/') ||
+    pathname === '/paciente' ||
+    pathname.startsWith('/api/paciente/') ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next()

@@ -388,3 +388,55 @@ export async function seedPatient(tenantId: string): Promise<string> {
     .throwOnError()
   return id
 }
+
+/**
+ * Feature 030 — perfil da clínica com slug público (portal do paciente /
+ * agendamento). Todas as colunas além de tenant_id são nullable.
+ */
+export async function seedClinicProfile(
+  tenantId: string,
+  opts: { slug: string; corporateName?: string; publicBookingEnabled?: boolean },
+): Promise<void> {
+  const sb = serviceClient()
+  await sb
+    .from('tenant_clinic_profile')
+    .upsert({
+      tenant_id: tenantId,
+      corporate_name: opts.corporateName ?? 'Clínica Teste 030',
+      public_booking_slug: opts.slug,
+      public_booking_enabled: opts.publicBookingEnabled ?? false,
+    })
+    .throwOnError()
+}
+
+/**
+ * Feature 030 — paciente com PII REAL cifrada (CPF/nascimento/nome) via
+ * enc_text_with_key, para testes de login do portal. birthDate em
+ * 'YYYY-MM-DD' (mesmo formato do app).
+ */
+export async function seedPatientWithPii(
+  tenantId: string,
+  opts: { cpf: string; birthDate: string; fullName?: string },
+): Promise<string> {
+  const sb = serviceClient()
+  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY not set')
+  const enc = async (plain: string): Promise<string> => {
+    const { data, error } = await sb.rpc('enc_text_with_key', { plain, key })
+    if (error || data == null) throw new Error(`enc_text_with_key failed: ${error?.message}`)
+    return data as unknown as string
+  }
+  const id = randomUUID()
+  await sb
+    .from('patients')
+    .insert({
+      id,
+      tenant_id: tenantId,
+      ghl_contact_id: `contact-${id}`,
+      full_name_enc: await enc(opts.fullName ?? 'Paciente Portal Teste'),
+      cpf_enc: await enc(opts.cpf),
+      birth_date_enc: await enc(opts.birthDate),
+    })
+    .throwOnError()
+  return id
+}
