@@ -15,7 +15,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 
-export type RateLimitAction = 'view_slots' | 'submit' | 'cancel'
+export type RateLimitAction = 'view_slots' | 'submit' | 'cancel' | 'patient_login'
 
 export interface CheckRateLimitInput {
   supabase: SupabaseClient<Database>
@@ -97,4 +97,7 @@ export const RATE_LIMITS: Record<
   // para evitar enxurrada de bookings falsos.
   submit: { limit: 100000, windowSeconds: 60 * 60 },
   cancel: { limit: 5, windowSeconds: 60 * 60 },
+  // Feature 030 — login do portal do paciente (auth fraca CPF+nascimento):
+  // 5 tentativas falhas / 15 min, contadas por IP×clínica E por CPF×clínica.
+  patient_login: { limit: 5, windowSeconds: 15 * 60 },
 }

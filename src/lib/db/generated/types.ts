@@ -2082,6 +2082,148 @@ export type Database = {
           },
         ]
       }
+      patient_measurements: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          id: string
+          measured_at: string
+          metric_type: string
+          notes: string | null
+          patient_id: string
+          tenant_id: string
+          unit: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          measured_at: string
+          metric_type: string
+          notes?: string | null
+          patient_id: string
+          tenant_id: string
+          unit: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          measured_at?: string
+          metric_type?: string
+          notes?: string | null
+          patient_id?: string
+          tenant_id?: string
+          unit?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_measurements_metric_type_fkey"
+            columns: ["metric_type"]
+            isOneToOne: false
+            referencedRelation: "patient_metric_types"
+            referencedColumns: ["metric_type"]
+          },
+          {
+            foreignKeyName: "patient_measurements_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_measurements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_metric_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_order: number
+          label: string
+          max_plausible: number
+          metric_type: string
+          min_plausible: number
+          specialty: string
+          unit: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          label: string
+          max_plausible: number
+          metric_type: string
+          min_plausible: number
+          specialty: string
+          unit: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          label?: string
+          max_plausible?: number
+          metric_type?: string
+          min_plausible?: number
+          specialty?: string
+          unit?: string
+        }
+        Relationships: []
+      }
+      patient_portal_access_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_hash: string
+          patient_id: string | null
+          tenant_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_hash: string
+          patient_id?: string | null
+          tenant_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_hash?: string
+          patient_id?: string | null
+          tenant_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_portal_access_log_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_portal_access_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_tag_assignments: {
         Row: {
           created_at: string
@@ -4427,6 +4569,19 @@ export type Database = {
         Returns: string
       }
       patient_enc_key: { Args: never; Returns: string }
+      patient_portal_verify_login: {
+        Args: {
+          p_birthdate: string
+          p_cpf: string
+          p_key: string
+          p_slug: string
+        }
+        Returns: {
+          full_name: string
+          patient_id: string
+          tenant_id: string
+        }[]
+      }
       public_booking_find_patient_by_cpf: {
         Args: { p_cpf: string; p_key: string; p_tenant_id: string }
         Returns: {
