@@ -18,6 +18,15 @@ const BASE_URLS: Record<MemedEnvironment, string> = {
   production: 'https://api.memed.com.br/v1',
 }
 
+/**
+ * Override de teste (spec 027, contracts/memed-mock.md): quando `MEMED_BASE_URL`
+ * está definida — só no E2E, apontando para o mock local — ela substitui o base
+ * URL de qualquer ambiente. NUNCA definir em produção.
+ */
+function resolveBaseUrl(environment: MemedEnvironment): string {
+  return process.env.MEMED_BASE_URL || BASE_URLS[environment]
+}
+
 /** 4xx de validação da Memed — mensagem amigável apontando o problema (HTTP 422). */
 export class MemedValidationError extends DomainError {
   readonly memedStatus: number
@@ -67,7 +76,7 @@ export async function memedFetch<T = unknown>(
   req: MemedRequest,
 ): Promise<T> {
   // URL com segredos — mantida estritamente local a esta função.
-  const url = new URL(BASE_URLS[environment] + req.path)
+  const url = new URL(resolveBaseUrl(environment) + req.path)
   url.searchParams.set('api-key', credentials.api_key)
   url.searchParams.set('secret-key', credentials.secret_key)
   for (const [k, v] of Object.entries(req.query ?? {})) {
@@ -115,5 +124,5 @@ export async function memedFetch<T = unknown>(
 
 /** Base URL pública por ambiente (sem segredos) — útil para testes/diagnóstico. */
 export function memedBaseUrl(environment: MemedEnvironment): string {
-  return BASE_URLS[environment]
+  return resolveBaseUrl(environment)
 }

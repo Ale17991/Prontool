@@ -134,21 +134,14 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
       setError('Informe o nome completo.')
       return
     }
-    // Dados exigidos pela Memed — obrigatórios em todo cadastro.
-    if (cpfDigits.length !== 11) {
-      setError('Informe um CPF válido (11 dígitos).')
+    // Dados exigidos pela Memed (CPF/celular/e-mail/nascimento) — por ora
+    // opcionais no cadastro; a Memed valida na hora de prescrever.
+    if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
+      setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
       return
     }
-    if (!phone.trim()) {
-      setError('Informe o celular.')
-      return
-    }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Informe um e-mail válido.')
-      return
-    }
-    if (!birthDate) {
-      setError('Informe a data de nascimento.')
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Informe um e-mail válido (ou deixe em branco).')
       return
     }
     if (!planId) {
@@ -179,10 +172,10 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           full_name: fullName.trim(),
-          cpf: cpfDigits,
-          phone: phone.trim(),
-          email: email.trim(),
-          birth_date: birthDate,
+          cpf: cpfDigits || null,
+          phone: phone.trim() || null,
+          email: email.trim() || null,
+          birth_date: birthDate || null,
           plan_id: planId === '__none__' ? null : planId,
           sex: sex || null,
           social_name: socialName.trim() || null,
@@ -237,10 +230,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="cpf">CPF</Label>
+          <Label htmlFor="cpf">CPF (opcional)</Label>
           <Input
             id="cpf"
-            required
             inputMode="numeric"
             placeholder="000.000.000-00"
             value={cpf}
@@ -249,10 +241,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="phone">Celular</Label>
+          <Label htmlFor="phone">Celular (opcional)</Label>
           <Input
             id="phone"
-            required
             inputMode="tel"
             placeholder="(11) 99999-9999"
             value={phone}
@@ -261,22 +252,20 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">E-mail</Label>
+          <Label htmlFor="email">E-mail (opcional)</Label>
           <Input
             id="email"
             type="email"
-            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="birth_date">Data de nascimento</Label>
+          <Label htmlFor="birth_date">Data de nascimento (opcional)</Label>
           <Input
             id="birth_date"
             type="date"
-            required
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
           />

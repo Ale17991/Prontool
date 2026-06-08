@@ -23,6 +23,7 @@
     "test:integration": "vitest run tests/integration",
     "test:contract": "vitest run tests/contract",
     "test:e2e": "playwright test",
+    "test:e2e:memed": "playwright test --config playwright.memed.config.ts",
     "test:visual": "playwright test tests/e2e/responsive-snapshots.spec.ts",
     "test:visual:update": "playwright test tests/e2e/responsive-snapshots.spec.ts --update-snapshots",
     "test:coverage": "vitest run --coverage",

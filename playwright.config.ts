@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // E2E da Memed rodam SÓ via playwright.memed.config.ts (exigem o mock da
+  // Memed em :4001 + envs específicas). Ver pnpm test:e2e:memed.
+  testIgnore: /memed-.*\.spec\.ts/,
   globalSetup: './tests/e2e/global-setup.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

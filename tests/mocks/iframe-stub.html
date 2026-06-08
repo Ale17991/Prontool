@@ -1,0 +1,81 @@
+<!doctype html>
+<!--
+  Iframe stub da prescrição Memed — SOMENTE E2E (spec 027, contracts/memed-mock.md).
+
+  Servido pelo mock (:4001/iframe-stub.html) e injetado pelo memed-sdk-stub.js
+  no lugar do módulo real. Comandos aceitos via postMessage:
+    { command: 'setPaciente', data }  → registra e mostra o nome do paciente
+    { command: 'logout' }             → limpa o estado
+    { command: '__emit', event, ... } → re-emite para o parent (drive de teste):
+        prescricaoImpressa / prescricaoExcluida → parent.postMessage({ event, data })
+        setFeatureToggle → esconde [data-feature=...] local + avisa o parent
+-->
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Memed — stub de prescrição (E2E)</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 16px; color: #0f172a; }
+      .muted { color: #64748b; font-size: 12px; }
+      button { padding: 6px 10px; margin-right: 8px; }
+      #paciente-nome { font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <h1 style="font-size:16px">Prescrição digital (stub E2E)</h1>
+    <p class="muted">Este iframe simula o módulo Sinapse da Memed nos testes.</p>
+    <p>Paciente: <span id="paciente-nome">(nenhum)</span></p>
+    <div id="acoes">
+      <button type="button" data-feature="manualPrescription" id="btn-manual">
+        Prescrição manual
+      </button>
+      <button type="button" data-feature="historyPrescription" id="btn-historico">
+        Histórico
+      </button>
+    </div>
+
+    <script>
+      ;(function () {
+        'use strict'
+        window.__lastSetPaciente = null
+
+        window.addEventListener('message', function (e) {
+          var d = e.data
+          if (!d || typeof d !== 'object') return
+
+          if (d.command === 'setPaciente') {
+            window.__lastSetPaciente = d.data
+            var nome = d.data && d.data.nome ? d.data.nome : '(sem nome)'
+            document.getElementById('paciente-nome').textContent = nome
+            return
+          }
+
+          if (d.command === 'logout') {
+            window.__lastSetPaciente = null
+            document.getElementById('paciente-nome').textContent = '(nenhum)'
+            return
+          }
+
+          if (d.command === '__emit') {
+            if (d.event === 'prescricaoImpressa' || d.event === 'prescricaoExcluida') {
+              window.parent.postMessage({ event: d.event, data: d.data }, '*')
+              return
+            }
+            if (d.event === 'setFeatureToggle') {
+              // A Memed controla as features DENTRO do iframe; o wrapper não
+              // pode reativar. Escondemos localmente e avisamos o parent.
+              var els = document.querySelectorAll('[data-feature="' + d.feature + '"]')
+              for (var i = 0; i < els.length; i++) {
+                els[i].style.display = d.enabled ? '' : 'none'
+              }
+              window.parent.postMessage(
+                { command: 'setFeatureToggle', feature: d.feature, enabled: d.enabled },
+                '*',
+              )
+            }
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>
