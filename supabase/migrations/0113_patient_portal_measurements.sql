@@ -56,18 +56,22 @@ CREATE TRIGGER patient_metric_types_enforce_append_only
   BEFORE UPDATE OR DELETE ON public.patient_metric_types
   FOR EACH ROW EXECUTE FUNCTION public.enforce_append_only();
 
--- Seed endócrino (faixas plausíveis = limites de "valor impossível", não
--- faixas de normalidade clínica; revisão clínica registrada em T034 do spec).
+-- Seed endócrino. Faixas plausíveis = limites de "valor impossível/typo",
+-- NÃO faixas de normalidade clínica. Tetos generosos para não bloquear
+-- extremos reais: glicemia >600 ocorre em estado hiperosmolar (SBD);
+-- colesterol/LDL muito altos em HF homozigótica; TG >5000 em
+-- hipertrigliceridemia grave. Validação final com profissional de saúde
+-- antes de produção (T034 do spec 030).
 INSERT INTO public.patient_metric_types
   (metric_type, label, unit, min_plausible, max_plausible, specialty, display_order)
 VALUES
-  ('glicemia_jejum',            'Glicemia de jejum',         'mg/dL', 20, 600,  'endocrino', 1),
-  ('hba1c',                     'Hemoglobina glicada (HbA1c)', '%',   2,  20,   'endocrino', 2),
-  ('circunferencia_abdominal',  'Circunferência abdominal',  'cm',    30, 250,  'endocrino', 3),
-  ('colesterol_total',          'Colesterol total',          'mg/dL', 50, 800,  'endocrino', 4),
-  ('ldl',                       'LDL',                       'mg/dL', 10, 600,  'endocrino', 5),
-  ('hdl',                       'HDL',                       'mg/dL', 5,  200,  'endocrino', 6),
-  ('triglicerides',             'Triglicérides',             'mg/dL', 20, 5000, 'endocrino', 7)
+  ('glicemia_jejum',            'Glicemia de jejum',         'mg/dL', 20, 1000,  'endocrino', 1),
+  ('hba1c',                     'Hemoglobina glicada (HbA1c)', '%',   2,  20,    'endocrino', 2),
+  ('circunferencia_abdominal',  'Circunferência abdominal',  'cm',    30, 250,   'endocrino', 3),
+  ('colesterol_total',          'Colesterol total',          'mg/dL', 50, 1000,  'endocrino', 4),
+  ('ldl',                       'LDL',                       'mg/dL', 10, 800,   'endocrino', 5),
+  ('hdl',                       'HDL',                       'mg/dL', 5,  200,   'endocrino', 6),
+  ('triglicerides',             'Triglicérides',             'mg/dL', 20, 10000, 'endocrino', 7)
 ON CONFLICT (metric_type) DO NOTHING;
 
 -- =========================================================================

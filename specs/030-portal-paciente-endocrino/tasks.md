@@ -63,9 +63,9 @@ description: "Task list — Portal do Paciente + Módulo de Endocrinologia (feat
 - [X] T020 [US1] `src/lib/core/patient-portal/read-portal.ts` — `buildPatientPortalBundle` (une `listVitalSigns` peso/IMC + `listMeasurements` + nome via `get_patient_for_tenant`), escopado a patient_id+tenant_id da sessão. (depende T019)
 - [X] T021 [US1] Route `src/app/api/paciente/login/route.ts` (POST, rate-limit + set cookie) + `logout/route.ts` (POST). (depende T018)
 - [X] T022 [US1] Route `src/app/api/paciente/dados/route.ts` (GET) — verifica cookie (senão 401), deriva patient_id/tenant_id **só do cookie**, retorna o bundle + audita `view`. (depende T020, T009)
-- [ ] T023 [P] [US1] Extrair o gráfico de evolução de `operacao/pacientes/[id]/vital-signs-section.tsx` para um componente reutilizável só-leitura (sem formulário) p/ o portal.
-- [ ] T024 [US1] UI `src/app/paciente/[slug]/page.tsx` — login (CPF + nascimento) + consentimento LGPD; resolve a clínica pelo slug (`public_booking_resolve_slug`).
-- [ ] T025 [US1] UI `src/app/paciente/[slug]/painel/page.tsx` — painel só-leitura: evolução de peso/IMC + gráficos das métricas metabólicas; estados vazios amigáveis; exige sessão (senão volta ao login). (depende T022, T023)
+- [X] T023 [P] [US1] Extrair o gráfico de evolução de `operacao/pacientes/[id]/vital-signs-section.tsx` para um componente reutilizável só-leitura (sem formulário) p/ o portal.
+- [X] T024 [US1] UI `src/app/paciente/[slug]/page.tsx` — login (CPF + nascimento) + consentimento LGPD; resolve a clínica pelo slug (`public_booking_resolve_slug`).
+- [X] T025 [US1] UI `src/app/paciente/[slug]/painel/page.tsx` — painel só-leitura: evolução de peso/IMC + gráficos das métricas metabólicas; estados vazios amigáveis; exige sessão (senão volta ao login). (depende T022, T023)
 
 **Checkpoint**: paciente loga e vê a própria evolução (com dados já existentes de peso/IMC). MVP parcial.
 
@@ -83,8 +83,8 @@ description: "Task list — Portal do Paciente + Módulo de Endocrinologia (feat
 ### Implementation for US2
 - [X] T027 [US2] Estender `src/lib/core/patient-portal/measurements.ts` com `recordMeasurement` (valida tipo+faixa via catálogo, insere append-only, `log_audit_event`).
 - [X] T028 [US2] Route `src/app/api/pacientes/[id]/medicoes/route.ts` (POST) — `requireRole(['admin','profissional_saude'])`; 422 com mensagem clara em valor inválido. (depende T027)
-- [ ] T029 [P] [US2] UI `src/app/(dashboard)/operacao/pacientes/[id]/metabolic-metrics-section.tsx` — seção no prontuário p/ registrar as métricas (reusa o padrão de `vital-signs-section.tsx`).
-- [ ] T030 [US2] Inserir a seção no prontuário do paciente (montagem da página de paciente) para a equipe acessar.
+- [X] T029 [P] [US2] UI `src/app/(dashboard)/operacao/pacientes/[id]/metabolic-metrics-section.tsx` — seção no prontuário p/ registrar as métricas (reusa o padrão de `vital-signs-section.tsx`).
+- [X] T030 [US2] Inserir a seção no prontuário do paciente (montagem da página de paciente) para a equipe acessar.
 
 **Checkpoint**: **MVP completo (Foundational+US1+US2)** — equipe registra métricas e o paciente as vê evoluir.
 
@@ -101,7 +101,7 @@ description: "Task list — Portal do Paciente + Módulo de Endocrinologia (feat
 
 ### Implementation for US3
 - [X] T032 [US3] Estender `read-portal.ts` com a leitura dos atendimentos do paciente (data, profissional, tipo/resumo), **omitindo** valores financeiros. (depende T020)
-- [ ] T033 [US3] Exibir a seção "Meus atendimentos" no painel `paciente/[slug]/painel/page.tsx`.
+- [X] T033 [US3] Exibir a seção "Meus atendimentos" no painel `paciente/[slug]/painel/page.tsx`.
 
 **Checkpoint**: portal com evolução + histórico.
 
@@ -109,11 +109,11 @@ description: "Task list — Portal do Paciente + Módulo de Endocrinologia (feat
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] **Revisão clínica das faixas plausíveis** das métricas (T005) com referência (SBD/Min. Saúde) antes de produção.
-- [ ] T035 [P] Tratamento de **CPF duplicado** na mesma clínica no login (bloquear acesso ambíguo + sinalizar à clínica), conforme edge case do spec.
-- [ ] T036 [P] UX: expiração de sessão (mensagem + volta ao login), responsivido/acessibilidade do portal, estados vazios.
-- [ ] T037 Revisão de segurança: confirmar que nenhum endpoint do portal aceita patient_id/tenant_id do cliente; mensagens de login genéricas; IP só como hash; nenhum dado financeiro/de terceiro vaza (grep + testes).
-- [ ] T038 [P] Rodar `pnpm typecheck`, `pnpm lint:auth` e a suíte (`pnpm test`); validar `quickstart.md` ponta a ponta.
+- [X] T034 [P] **Revisão clínica das faixas plausíveis** das métricas (T005) com referência (SBD/Min. Saúde) antes de produção.
+- [X] T035 [P] Tratamento de **CPF duplicado** na mesma clínica no login (bloquear acesso ambíguo + sinalizar à clínica), conforme edge case do spec.
+- [X] T036 [P] UX: expiração de sessão (mensagem + volta ao login), responsivido/acessibilidade do portal, estados vazios.
+- [X] T037 Revisão de segurança: confirmar que nenhum endpoint do portal aceita patient_id/tenant_id do cliente; mensagens de login genéricas; IP só como hash; nenhum dado financeiro/de terceiro vaza (grep + testes).
+- [X] T038 [P] Rodar `pnpm typecheck`, `pnpm lint:auth` e a suíte (`pnpm test`); validar `quickstart.md` ponta a ponta.
 
 ---
 

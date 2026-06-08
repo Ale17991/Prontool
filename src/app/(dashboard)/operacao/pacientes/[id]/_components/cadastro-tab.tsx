@@ -8,6 +8,7 @@ import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { MedicalHistorySection } from '../medical-history-section'
 import { VitalSignsSection } from '../vital-signs-section'
+import { MetabolicMetricsSection } from '../metabolic-metrics-section'
 import { DiagnosticsSection } from '../diagnosticos-section'
 import { ClinicalRecordsSection } from '../clinical-records-section'
 import {
@@ -21,6 +22,8 @@ import type { PatientDetail } from '@/lib/core/patients/get'
 import type { PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import type { PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
+import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
+import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
 import type {
@@ -35,6 +38,8 @@ interface Props {
   initialHistory: PatientHistoryDTO[]
   initialDiagnoses: PatientDiagnosisDTO[]
   initialVitalSigns: VitalSignsDTO[]
+  initialMeasurements: Record<string, MeasurementDTO[]>
+  metricTypes: PatientMetricType[]
   initialRecords: ClinicalRecordRow[]
   initialTreatmentSteps: TreatmentStep[]
   initialPayments: { records: PaymentRecordDTO[]; summary: PatientFinancialSummary }
@@ -61,6 +66,8 @@ export function CadastroTab({
   initialHistory,
   initialDiagnoses,
   initialVitalSigns,
+  initialMeasurements,
+  metricTypes,
   initialRecords,
   initialTreatmentSteps,
   initialPayments,
@@ -141,6 +148,13 @@ export function CadastroTab({
       <VitalSignsSection
         patientId={patientId}
         initial={initialVitalSigns}
+        canWrite={canWriteVitals}
+      />
+
+      <MetabolicMetricsSection
+        patientId={patientId}
+        initialMeasurements={initialMeasurements}
+        metricTypes={metricTypes}
         canWrite={canWriteVitals}
       />
 

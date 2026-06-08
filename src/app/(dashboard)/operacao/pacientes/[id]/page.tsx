@@ -15,6 +15,8 @@ import {
 } from '@/lib/core/patient-medical/diagnoses'
 import { listHistory, type PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import { listVitalSigns, type VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
+import { listMeasurements, type MeasurementDTO } from '@/lib/core/patient-portal/measurements'
+import { listMetricTypes, type PatientMetricType } from '@/lib/core/patient-portal/metric-types'
 import {
   assembleTimelineEvents,
   buildQuickViewSnapshot,
@@ -227,6 +229,16 @@ export default async function PacienteDetailPage({
     typedClient,
     { tenantId: session.tenantId, patientId: params.id },
   ).catch(safeFail<VitalSignsDTO[]>('vital-signs', []))
+  // Feature 030 — métricas metabólicas (motor de medições) + catálogo.
+  const measurementsPromise: Promise<Record<string, MeasurementDTO[]>> =
+    listMeasurements(typedClient, {
+      tenantId: session.tenantId,
+      patientId: params.id,
+    }).catch(safeFail<Record<string, MeasurementDTO[]>>('measurements', {}))
+  const metricTypesPromise: Promise<PatientMetricType[]> = listMetricTypes(
+    typedClient,
+    { specialty: 'endocrino' },
+  ).catch(safeFail<PatientMetricType[]>('metric-types', []))
   const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(
     typedClient,
     { tenantId: session.tenantId, patientId: params.id },
@@ -242,6 +254,8 @@ export default async function PacienteDetailPage({
     vitalSigns,
     diagnoses,
     remindersOptIn,
+    measurements,
+    metricTypes,
   ] = await Promise.all([
     appointmentsPromise,
     recordsPromise,
@@ -252,6 +266,8 @@ export default async function PacienteDetailPage({
     vitalSignsPromise,
     diagnosesPromise,
     remindersOptInPromise,
+    measurementsPromise,
+    metricTypesPromise,
   ])
 
   const [proceduresRes, healthPlansRes, doctorsRes] = await Promise.all([
@@ -462,6 +478,8 @@ export default async function PacienteDetailPage({
           initialHistory: medicalHistory,
           initialDiagnoses: diagnoses,
           initialVitalSigns: vitalSigns,
+          initialMeasurements: measurements,
+          metricTypes,
           initialRecords: records,
           initialTreatmentSteps: treatmentSteps,
           initialPayments: payments,

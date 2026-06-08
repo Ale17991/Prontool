@@ -27,6 +27,8 @@ import type { PatientDetail } from '@/lib/core/patients/get'
 import type { PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import type { PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
+import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
+import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
 import type {
@@ -52,6 +54,8 @@ interface Props {
     initialHistory: PatientHistoryDTO[]
     initialDiagnoses: PatientDiagnosisDTO[]
     initialVitalSigns: VitalSignsDTO[]
+    initialMeasurements: Record<string, MeasurementDTO[]>
+    metricTypes: PatientMetricType[]
     initialRecords: ClinicalRecordRow[]
     initialTreatmentSteps: TreatmentStep[]
     initialPayments: {
@@ -229,6 +233,8 @@ export function PatientDetailLayout({
                   initialHistory={cadastro.initialHistory}
                   initialDiagnoses={cadastro.initialDiagnoses}
                   initialVitalSigns={cadastro.initialVitalSigns}
+                  initialMeasurements={cadastro.initialMeasurements}
+                  metricTypes={cadastro.metricTypes}
                   initialRecords={cadastro.initialRecords}
                   initialTreatmentSteps={cadastro.initialTreatmentSteps}
                   initialPayments={cadastro.initialPayments}
