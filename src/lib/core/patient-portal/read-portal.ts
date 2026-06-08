@@ -45,24 +45,13 @@ export async function buildPatientPortalBundle(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required for the patient portal')
 
-  const [patientRows, vitals, metrics, metricTypes, appointments] = await Promise.all([
-    supabase.rpc('get_patient_for_tenant', {
-      p_tenant_id: args.tenantId,
-      p_patient_id: args.patientId,
-      p_key: key,
-    } as never),
+  const [firstName, vitals, metrics, metricTypes, appointments] = await Promise.all([
+    resolvePatientFirstName(supabase, args, key),
     listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
     listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
     listMetricTypes(supabase, { specialty: 'endocrino' }),
     listPortalAppointments(supabase, args),
   ])
-
-  if (patientRows.error) {
-    throw new Error(`get_patient_for_tenant failed: ${patientRows.error.message}`)
-  }
-  const patient = ((patientRows.data as unknown as Array<{ full_name: string | null }>) ?? [])[0]
-  // Minimização: só o primeiro nome sai para o portal.
-  const firstName = (patient?.full_name ?? '').trim().split(/\s+/)[0] ?? ''
 
   // Peso/IMC: reusa vital_signs (FR-007), ordem cronológica ascendente,
   // só pontos com peso ou IMC.
@@ -76,6 +65,34 @@ export async function buildPatientPortalBundle(
     .reverse()
 
   return { patient: { firstName }, weightImc, metrics, metricTypes, appointments }
+}
+
+/**
+ * Resolve APENAS o primeiro nome do paciente para a saudação do portal
+ * (minimização LGPD — o portal não precisa da PII completa). É tolerante a
+ * falha: `get_patient_for_tenant` decifra ~22 colunas, e se QUALQUER uma
+ * estiver corrompida ou cifrada com chave antiga (comum em dados legados/GHL)
+ * a função inteira lança "Wrong key or corrupt data". Nesse caso o portal
+ * degrada para saudação sem nome em vez de quebrar a página inteira — o login
+ * (que só decifra CPF+nascimento) já validou a identidade.
+ */
+async function resolvePatientFirstName(
+  supabase: SupabaseClient<Database>,
+  args: { tenantId: string; patientId: string },
+  key: string,
+): Promise<string> {
+  try {
+    const { data, error } = await supabase.rpc('get_patient_for_tenant', {
+      p_tenant_id: args.tenantId,
+      p_patient_id: args.patientId,
+      p_key: key,
+    } as never)
+    if (error) return ''
+    const patient = ((data as unknown as Array<{ full_name: string | null }>) ?? [])[0]
+    return (patient?.full_name ?? '').trim().split(/\s+/)[0] ?? ''
+  } catch {
+    return ''
+  }
 }
 
 /**
