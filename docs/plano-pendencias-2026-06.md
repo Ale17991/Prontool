@@ -31,13 +31,15 @@ Limpa o ruído para enxergar o que importa.
 
 Duas features 100% implementadas, presas apenas por passos operacionais.
 
-### 1a. Memed → produção (026/027/028) — **começar primeiro: espera externa**
+### 1a. Memed → produção (026/027/028) — ❌ APROVAÇÃO DISPENSADA
 
-Conformidade 9/9 já na master. O gargalo é validação de terceiro.
+**2026-06-09:** a Memed confirmou que **não é necessária aprovação/validação técnica**
+para uso em produção. A submissão do dossiê fica cancelada. O dossiê
+(`docs/legal/memed-submissao-producao.md`) permanece como registro de conformidade.
 
-- [ ] **P1-01** Enviar o dossiê `docs/legal/memed-submissao-producao.md` à equipe de integração da Memed, solicitando validação técnica para produção.
-- [ ] **P1-02** Confirmar que as env vars de produção (chave única de plataforma) estão provisionadas na Vercel e que as migrations 0110 + 0111 estão aplicadas em produção.
-- [ ] **P1-03** Aguardar liberação da Memed; ao receber, validar o fluxo em produção (registrar prescritor → carregar paciente → emitir → capturar eventos).
+- [~] **P1-01** ~~Enviar dossiê à Memed~~ — **dispensado pela Memed (2026-06-09)**.
+- [ ] **P1-02** Confirmar env vars de produção provisionadas na Vercel + migrations 0110 + 0111 aplicadas em produção. *(ação do usuário)*
+- [ ] **P1-03** Validar o fluxo em produção quando uma clínica ativar (registrar prescritor → carregar paciente → emitir → capturar eventos). *(ação do usuário)*
 
 ### 1b. Portal do paciente (030) → produção — 38/38 tasks ✓
 
