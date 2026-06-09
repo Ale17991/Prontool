@@ -17,13 +17,13 @@ Legenda: `[ ]` pendente · `[X]` concluído · `[~]` em andamento · `[P]` paral
 
 Limpa o ruído para enxergar o que importa.
 
-- [ ] **P0-01** Confirmar que o bug do calendário ("Hoje" não mostra atendimentos do dia) ainda existe na master; se sim, mesclar `fix/calendar-day-view-empty` (1 commit `17f7512`). Se já corrigido, deletar a branch.
-- [ ] **P0-02** Commitar os docs soltos: `docs/legal/memed-submissao-producao.md` e `docs/pr-030-portal-paciente.md`.
-- [ ] **P0-03** [P] Adicionar ao `.gitignore` (ou apagar) os diretórios de trabalho/marketing: `clinni-instagram/`, `homio-ref/`, `temp-impeccable/`, `tests/e2e/artifacts-memed/`.
-- [ ] **P0-04** [P] Deletar branches mortas/stale: `021-memed-prescricao-digital` (substituída por 026/027/028), `rebrand/clinni`, `rebrand/favicon`, `rebrand/favicon-round` (já mescladas, sem commits únicos).
-- [ ] **P0-05** [P] Descartar `stash@{0}` do 026 (só lockfile + 1 linha de middleware já obsoleta) após confirmar que nada útil restou.
+- [X] **P0-01** Bug do calendário **já estava corrigido na master** (`calendar-filters.ts` já usa `startOfDay/endOfDay` no `case 'dia'`). A branch `fix/calendar-day-view-empty` era redundante → **deletada**.
+- [X] **P0-02** Docs soltos commitados (`memed-submissao-producao.md`, `pr-030-portal-paciente.md` + este plano).
+- [X] **P0-03** [P] `.gitignore` atualizado para ignorar `clinni-instagram/`, `homio-ref/`, `temp-impeccable/`, `tests/e2e/artifacts-memed/`. **Não apagados** (contêm assets de marketing não versionados em outro lugar).
+- [X] **P0-04** [P] Branches deletadas: `021-memed-prescricao-digital`, `rebrand/clinni`, `rebrand/favicon`, `rebrand/favicon-round`.
+- [X] **P0-05** [P] `stash@{0}` descartado (lockfile + linha de middleware já presente na master via 030).
 
-**Checkpoint:** working tree limpo; só `029-faturamento-tiss` permanece como branch de trabalho aberta.
+**Checkpoint:** ✅ working tree limpo; só `029-faturamento-tiss` permanece como branch de trabalho aberta. (Restam ~28 branches de feature locais já mescladas — opcional deletar em lote.)
 
 ---
 
