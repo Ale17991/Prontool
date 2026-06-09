@@ -101,18 +101,18 @@ description: "Task list — Faturamento TISS de Convênios (feature 029)"
 **Independent Test**: 3 guias `pronta` da mesma operadora → lote fechado → XML baixa, valida no XSD oficial, tem `numeroLote`, `hash` (MD-5) e `Signature`; guia de outra operadora no mesmo lote é bloqueada.
 
 ### Pré-requisito de conformidade (bloqueante para US4)
-- [ ] T034 [US4] Ler o **Componente de Comunicação/Segurança e Privacidade 202511** e fixar: (a) a **regra exata de concatenação do hash MD-5** do epílogo; (b) o **formato de assinatura** exigido (algoritmo digest/canonicalização, se por guia ou por mensagem, conteúdo do `KeyInfo`). Registrar em `contracts/tiss-xml-contract.md`.
+- [X] T034 [US4] Ler o **Componente de Comunicação/Segurança e Privacidade 202511** e fixar: (a) a **regra exata de concatenação do hash MD-5** do epílogo; (b) o **formato de assinatura** exigido (algoritmo digest/canonicalização, se por guia ou por mensagem, conteúdo do `KeyInfo`). Registrar em `contracts/tiss-xml-contract.md`.
 
 ### Tests for US4 ⚠️
-- [ ] T035 [P] [US4] Integration test `tests/integration/tiss-lote-and-sign.spec.ts` — lote de 3 guias gera XML que valida no XSD, com hash e assinatura verificável; re-download reproduz o mesmo conteúdo/hash.
-- [ ] T036 [P] [US4] Integration test `tests/integration/tiss-lote-rules.spec.ts` — operadoras mistas → 409; guia não-`pronta` → bloqueio; sem certificado ativo → erro claro.
+- [X] T035 [P] [US4] Integration test `tests/integration/tiss-lote-and-sign.spec.ts` — lote de 3 guias gera XML que valida no XSD, com hash e assinatura verificável; re-download reproduz o mesmo conteúdo/hash.
+- [X] T036 [P] [US4] Integration test `tests/integration/tiss-lote-rules.spec.ts` — operadoras mistas → 409; guia não-`pronta` → bloqueio; sem certificado ativo → erro claro.
 
 ### Implementation for US4
-- [ ] T037 [P] [US4] `src/lib/core/tiss/xml/hash.ts` — hash MD-5 conforme T034 (`crypto.createHash('md5')`).
-- [ ] T038 [US4] `src/lib/core/tiss/xml/render-lote.ts` — `mensagemTISS` (cabeçalho + `prestadorParaOperadora/loteGuias` + `epilogo`/hash) agregando guias. (depende T037, T029)
-- [ ] T039 [US4] `src/lib/core/tiss/signing/sign-lote.ts` — `xml-crypto` XMLDSig enveloped RSA-SHA256 com cert A1 (via T018), conforme T034. (depende T038, T018)
-- [ ] T040 [US4] Persistência do lote: `tiss_lotes` (`lote_number`, `xml_content`, `xml_hash_md5`, `signed_at`, `certificate_id`, status), vincular guias (`lote_id`, status `exportada`), validar XSD antes de fechar, audit. (depende T038, T039, T010)
-- [ ] T041 [US4] Route `src/app/api/tiss/lotes/route.ts` (POST criar/fechar) + `lotes/[id]/xml/route.ts` (GET download `application/xml`) com `requireRole(['admin','financeiro'])`. (depende T040)
+- [X] T037 [P] [US4] `src/lib/core/tiss/xml/hash.ts` — hash MD-5 conforme T034 (`crypto.createHash('md5')`).
+- [X] T038 [US4] `src/lib/core/tiss/xml/render-lote.ts` — `mensagemTISS` (cabeçalho + `prestadorParaOperadora/loteGuias` + `epilogo`/hash) agregando guias. (depende T037, T029)
+- [X] T039 [US4] `src/lib/core/tiss/signing/sign-lote.ts` — `xml-crypto` XMLDSig enveloped RSA-SHA256 com cert A1 (via T018), conforme T034. (depende T038, T018)
+- [X] T040 [US4] Persistência do lote: `tiss_lotes` (`lote_number`, `xml_content`, `xml_hash_md5`, `signed_at`, `certificate_id`, status), vincular guias (`lote_id`, status `exportada`), validar XSD antes de fechar, audit. (depende T038, T039, T010)
+- [X] T041 [US4] Route `src/app/api/tiss/lotes/route.ts` (POST criar/fechar) + `lotes/[id]/xml/route.ts` (GET download `application/xml`) com `requireRole(['admin','financeiro'])`. (depende T040)
 - [ ] T042 [P] [US4] UI `src/app/(dashboard)/financeiro/tiss/page.tsx` + `guias-table.tsx` + `lote-detail.tsx` — selecionar guias, fechar lote, baixar XML, ver status.
 
 **Checkpoint**: **MVP mínimo viável completo (US1+US2+US4)** — ciclo configurar→gerar consulta→lote→assinar→exportar ponta a ponta.
