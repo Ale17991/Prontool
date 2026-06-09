@@ -37,6 +37,12 @@ test-results/
 .claude/settings.local.json
 .tmp/
 
+# Local working / marketing assets (not part of the app build)
+clinni-instagram/
+homio-ref/
+temp-impeccable/
+tests/e2e/artifacts-memed/
+
 # OS
 .DS_Store
 Thumbs.db
