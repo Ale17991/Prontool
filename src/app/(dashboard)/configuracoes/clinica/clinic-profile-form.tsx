@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatCnpj, isValidCnpj, stripCnpj } from '@/lib/core/clinic-profile/validate-cnpj'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import {
   COUNCIL_CODES,
   MAX_LOGO_BYTES,
@@ -87,7 +88,7 @@ function formToPatch(s: FormState) {
 }
 
 /** Base URL pública (inlined em build via NEXT_PUBLIC_). Fallback p/ dev. */
-const PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+const PUBLIC_BASE_URL = resolvePublicBaseUrl()
 
 export function ClinicProfileForm({ initial }: Props) {
   const [profile, setProfile] = useState(initial)

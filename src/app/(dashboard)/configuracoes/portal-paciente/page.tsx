@@ -4,6 +4,7 @@ import { HeartPulse } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { can } from '@/lib/auth/rbac'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import type { Database } from '@/lib/db/types'
 import {
   getPatientPortalConfig,
@@ -25,8 +26,7 @@ export default async function PortalPacientePage() {
     listMetricSettings(supabase, session.tenantId, { specialty: 'endocrino' }),
   ])
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+  const baseUrl = resolvePublicBaseUrl()
 
   return (
     <div className="space-y-6">
