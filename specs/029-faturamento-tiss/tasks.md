@@ -77,16 +77,16 @@ description: "Task list — Faturamento TISS de Convênios (feature 029)"
 **Independent Test**: atendimento completo → guia `pronta` com todos os campos; atendimento sem carteira/CBO → guia `rascunho` com pendências listadas campo a campo.
 
 ### Tests for US2 ⚠️
-- [ ] T024 [P] [US2] Integration test `tests/integration/tiss-generate-consulta.spec.ts` — atendimento completo gera guia `pronta`; XML da guia valida no XSD.
-- [ ] T025 [P] [US2] Integration test `tests/integration/tiss-validate-blocks-incomplete.spec.ts` — sem carteira do beneficiário / sem CBO → `rascunho` + `validation_errors` com `{field,message}`; guia não entra em lote.
+- [X] T024 [P] [US2] Integration test `tests/integration/tiss-generate-consulta.spec.ts` — atendimento completo gera guia `pronta`; XML da guia valida no XSD.
+- [X] T025 [P] [US2] Integration test `tests/integration/tiss-validate-blocks-incomplete.spec.ts` — sem carteira do beneficiário / sem CBO → `rascunho` + `validation_errors` com `{field,message}`; guia não entra em lote.
 
 ### Implementation for US2
-- [ ] T026 [P] [US2] `src/lib/core/tiss/patient-cards.ts` — CRUD de `patient_health_plan_cards` (carteira por paciente×operadora, cifrada).
-- [ ] T027 [P] [US2] `src/lib/core/tiss/build-guia.ts` — montar modelo normalizado da guia a partir de `appointments_effective` + `appointment_procedures` + `doctors` (conselho/UF/CBO) + `patients` (decifra via `get_patient_for_tenant`) + carteira + `tenant_tiss_operator_config`. Congela `frozen_amount_cents` e `tuss_catalog_version_id`.
+- [X] T026 [P] [US2] `src/lib/core/tiss/patient-cards.ts` — CRUD de `patient_health_plan_cards` (carteira por paciente×operadora, cifrada).
+- [X] T027 [P] [US2] `src/lib/core/tiss/build-guia.ts` — montar modelo normalizado da guia a partir de `appointments_effective` + `appointment_procedures` + `doctors` (conselho/UF/CBO) + `patients` (decifra via `get_patient_for_tenant`) + carteira + `tenant_tiss_operator_config`. Congela `frozen_amount_cents` e `tuss_catalog_version_id`.
 - [X] T028 [US2] `src/lib/core/tiss/xml/validate-content.ts` — regras de obrigatoriedade da **Guia de Consulta** (carteira, CBO, conselho/UF mapeados, CNES, par tabela+código, TUSS vigente, tipo/regime/acidente nos domínios). ✓ Puro, 8 testes `tests/contract/tiss-validate-content.spec.ts`. **Falta**: o `build-guia` montar o `GuiaConsultaDraft` a partir do banco. ~~regras de obrigatoriedade da **Guia de Consulta**~~ (contracts/tiss-xml-contract.md): par Tabela(87)+Código, CBO(24), UF(59), Tipo de Consulta(52), Indicação de Acidente(36), CNES, regra PF/PJ do executante, TUSS vigente; devolve `validation_errors[]`. (depende T027)
 - [X] T029 [US2] `src/lib/core/tiss/xml/render-consulta.ts` — modelo → XML `mensagemTISS`/`guiaConsulta` com `xmlbuilder2` (ordem exata do XSD). ✓ + `xml/domain-maps.ts` (conselho→cod dom.26, UF→IBGE dom.59) + teste-âncora `tests/contract/tiss-render-consulta-validates.spec.ts` (3 casos validam no XSD 04.03.00 via xmllint-wasm). Gotcha: `Padrao`=`4.03.00` sem zero à esquerda.
-- [ ] T030 [US2] Persistência da guia: gravar `tiss_guias` + `tiss_guia_procedures` (status `rascunho`/`pronta`), audit. (depende T028)
-- [ ] T031 [US2] Route `src/app/api/tiss/guias/route.ts` (POST gerar) + `guias/[id]/route.ts` (GET detalhe+revalida, PATCH status) com `requireRole(['admin','financeiro'])`. (depende T029, T030)
+- [X] T030 [US2] Persistência da guia: gravar `tiss_guias` + `tiss_guia_procedures` (status `rascunho`/`pronta`), audit. (depende T028)
+- [X] T031 [US2] Route `src/app/api/tiss/guias/route.ts` (POST gerar) com `requireRole(['admin','financeiro'])`. ✓ (GET detalhe+revalida / PATCH status ficam para refino US4/US5.)
 - [ ] T032 [P] [US2] UI: botão "Gerar guia TISS" no atendimento (`operacao/atendimentos/...`) e lista de pendências (espelha o bloqueio da prescrição Memed).
 - [ ] T033 [P] [US2] UI captura de carteira do beneficiário (em paciente/atendimento) e CBO do médico (em `doctors`).
 
