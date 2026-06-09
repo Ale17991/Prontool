@@ -34,6 +34,8 @@ function syntheticEmptyRow(tenantId: string): Row {
     // Feature 017 — defaults consistentes com a migration 0093.
     public_booking_slug: null,
     public_booking_enabled: false,
+    // Feature 030 — default consistente com a migration 0114.
+    patient_portal_enabled: false,
     public_booking_min_hours_advance: 24,
     public_booking_max_days_advance: 30,
     public_booking_cancel_min_hours: 6,

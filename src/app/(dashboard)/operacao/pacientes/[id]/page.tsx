@@ -16,7 +16,10 @@ import {
 import { listHistory, type PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import { listVitalSigns, type VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
 import { listMeasurements, type MeasurementDTO } from '@/lib/core/patient-portal/measurements'
-import { listMetricTypes, type PatientMetricType } from '@/lib/core/patient-portal/metric-types'
+import {
+  listEnabledMetricTypesForTenant,
+  type PatientMetricType,
+} from '@/lib/core/patient-portal/metric-types'
 import {
   assembleTimelineEvents,
   buildQuickViewSnapshot,
@@ -235,8 +238,9 @@ export default async function PacienteDetailPage({
       tenantId: session.tenantId,
       patientId: params.id,
     }).catch(safeFail<Record<string, MeasurementDTO[]>>('measurements', {}))
-  const metricTypesPromise: Promise<PatientMetricType[]> = listMetricTypes(
+  const metricTypesPromise: Promise<PatientMetricType[]> = listEnabledMetricTypesForTenant(
     typedClient,
+    session.tenantId,
     { specialty: 'endocrino' },
   ).catch(safeFail<PatientMetricType[]>('metric-types', []))
   const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(

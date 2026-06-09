@@ -39,6 +39,7 @@ type Action =
   | 'task.read'
   | 'task.write'
   | 'public_booking.config'
+  | 'patient_portal.config'
   | 'reminders.config'
 
 const MATRIX: Record<TenantRole, readonly Action[]> = {
@@ -60,6 +61,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'tax.read', 'tax.write',
     'task.read', 'task.write',
     'public_booking.config',
+    'patient_portal.config',
     'reminders.config',
   ],
   financeiro: [

@@ -2,7 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { listVitalSigns } from '@/lib/core/patient-medical/vital-signs'
 import { listMeasurements, type MeasurementDTO } from './measurements'
-import { listMetricTypes, type PatientMetricType } from './metric-types'
+import {
+  listEnabledMetricTypesForTenant,
+  type PatientMetricType,
+} from './metric-types'
 
 /**
  * Feature 030 — bundle de leitura do portal do paciente (FR-006..FR-010).
@@ -49,7 +52,7 @@ export async function buildPatientPortalBundle(
     resolvePatientFirstName(supabase, args, key),
     listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
     listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
-    listMetricTypes(supabase, { specialty: 'endocrino' }),
+    listEnabledMetricTypesForTenant(supabase, args.tenantId, { specialty: 'endocrino' }),
     listPortalAppointments(supabase, args),
   ])
 
