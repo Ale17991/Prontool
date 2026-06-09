@@ -3334,6 +3334,7 @@ export type Database = {
           email: string | null
           logo_path: string | null
           logo_uploaded_at: string | null
+          patient_portal_enabled: boolean
           phone: string | null
           public_booking_cancel_min_hours: number
           public_booking_enabled: boolean
@@ -3369,6 +3370,7 @@ export type Database = {
           email?: string | null
           logo_path?: string | null
           logo_uploaded_at?: string | null
+          patient_portal_enabled?: boolean
           phone?: string | null
           public_booking_cancel_min_hours?: number
           public_booking_enabled?: boolean
@@ -3404,6 +3406,7 @@ export type Database = {
           email?: string | null
           logo_path?: string | null
           logo_uploaded_at?: string | null
+          patient_portal_enabled?: boolean
           phone?: string | null
           public_booking_cancel_min_hours?: number
           public_booking_enabled?: boolean
@@ -3586,6 +3589,42 @@ export type Database = {
             foreignKeyName: "tenant_memed_config_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_patient_metric_settings: {
+        Row: {
+          enabled: boolean
+          metric_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          metric_type: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          metric_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_patient_metric_settings_metric_type_fkey"
+            columns: ["metric_type"]
+            isOneToOne: false
+            referencedRelation: "patient_metric_types"
+            referencedColumns: ["metric_type"]
+          },
+          {
+            foreignKeyName: "tenant_patient_metric_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },

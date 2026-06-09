@@ -29,9 +29,10 @@ export interface PortalClinic {
 }
 
 /**
- * Resolve a clínica do portal pelo slug público. Diferente do agendamento
- * (`public_booking_resolve_slug`), o portal NÃO exige `public_booking_enabled`
- * — o slug é a identidade pública da clínica; a flag governa só o booking.
+ * Resolve a clínica do portal pelo slug público. O slug é a identidade
+ * pública da clínica (compartilhado com o agendamento), mas o portal tem o
+ * seu próprio liga/desliga: `patient_portal_enabled` (config 0114). Clínica
+ * com o portal desabilitado NÃO resolve — login fica bloqueado.
  */
 export async function resolvePortalClinicBySlug(
   supabase: SupabaseClient<Database>,
@@ -39,11 +40,17 @@ export async function resolvePortalClinicBySlug(
 ): Promise<PortalClinic | null> {
   const profile = await supabase
     .from('tenant_clinic_profile')
-    .select('tenant_id, corporate_name')
+    .select('tenant_id, corporate_name, patient_portal_enabled')
     .eq('public_booking_slug', slug)
     .maybeSingle()
   if (profile.error || !profile.data) return null
-  const row = profile.data as { tenant_id: string; corporate_name: string | null }
+  const row = profile.data as {
+    tenant_id: string
+    corporate_name: string | null
+    patient_portal_enabled: boolean | null
+  }
+  // Liga/desliga do portal (FR/030 + 0114): desabilitado ⇒ não existe pra fora.
+  if (!row.patient_portal_enabled) return null
 
   let displayName = row.corporate_name ?? ''
   if (!displayName) {

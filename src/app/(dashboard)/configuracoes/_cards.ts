@@ -4,6 +4,7 @@ import {
   CalendarPlus,
   ClipboardCheck,
   DollarSign,
+  HeartPulse,
   ListChecks,
   Plug,
   ScrollText,
@@ -35,6 +36,7 @@ export type HubCardId =
   | 'profissionais'
   | 'modelos-anamnese'
   | 'agendamento-publico'
+  | 'portal-paciente'
   | 'lembretes'
   | 'integracoes'
   | 'auditoria'
@@ -117,6 +119,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Link público pra paciente marcar consulta sem login.',
     icon: CalendarPlus,
     show: ({ role }) => can(role, 'public_booking.config'),
+  },
+  {
+    id: 'portal-paciente',
+    href: '/configuracoes/portal-paciente',
+    title: 'Portal do paciente',
+    description: 'Paciente acompanha evolução e métricas; defina o que aparece.',
+    icon: HeartPulse,
+    show: ({ role }) => can(role, 'patient_portal.config'),
   },
   {
     id: 'lembretes',

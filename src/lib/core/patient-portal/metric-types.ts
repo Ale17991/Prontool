@@ -66,6 +66,37 @@ export async function listMetricTypes(
   return ((data ?? []) as unknown as DbRow[]).map(toDto)
 }
 
+/**
+ * Lista as métricas que uma clínica expõe (FR-015/030 + config 0114).
+ *
+ * Catálogo global ativo ∖ desativadas pela clínica. Ausência de linha em
+ * `tenant_patient_metric_settings` = habilitada (default "tudo ligado");
+ * `enabled=false` esconde a métrica daquele tenant — no portal do paciente
+ * e na tela da equipe. É a versão tenant-aware de `listMetricTypes`.
+ */
+export async function listEnabledMetricTypesForTenant(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  args: { specialty?: string } = {},
+): Promise<PatientMetricType[]> {
+  const [types, settingsRes] = await Promise.all([
+    listMetricTypes(supabase, args),
+    supabase
+      .from('tenant_patient_metric_settings')
+      .select('metric_type, enabled')
+      .eq('tenant_id', tenantId),
+  ])
+  if (settingsRes.error) {
+    throw new Error(`listEnabledMetricTypesForTenant settings: ${settingsRes.error.message}`)
+  }
+  const disabled = new Set(
+    ((settingsRes.data ?? []) as Array<{ metric_type: string; enabled: boolean }>)
+      .filter((s) => !s.enabled)
+      .map((s) => s.metric_type),
+  )
+  return types.filter((t) => !disabled.has(t.metricType))
+}
+
 /** Lookup de um tipo (inclui inativos — o caller decide o que fazer). */
 export async function getMetricType(
   supabase: SupabaseClient<Database>,

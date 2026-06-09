@@ -15,7 +15,7 @@ import {
   listMeasurements,
   recordMeasurement,
 } from '@/lib/core/patient-portal/measurements'
-import { listMetricTypes } from '@/lib/core/patient-portal/metric-types'
+import { listEnabledMetricTypesForTenant } from '@/lib/core/patient-portal/metric-types'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -42,7 +42,7 @@ export async function GET(
     const supabase = createSupabaseServiceClient()
     const [measurements, metricTypes] = await Promise.all([
       listMeasurements(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      listMetricTypes(supabase, { specialty: 'endocrino' }),
+      listEnabledMetricTypesForTenant(supabase, session.tenantId, { specialty: 'endocrino' }),
     ])
     return NextResponse.json({ measurements, metricTypes }, { status: 200 })
   } catch (err) {
