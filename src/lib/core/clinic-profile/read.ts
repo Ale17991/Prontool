@@ -84,6 +84,8 @@ function rowToProfile(
       council: row.tech_responsible_council,
       registration: row.tech_responsible_registration,
     },
+    publicBookingSlug: row.public_booking_slug,
+    publicBookingEnabled: row.public_booking_enabled,
     updatedAt: row.updated_at,
   }
 }

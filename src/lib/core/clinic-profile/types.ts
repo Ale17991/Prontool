@@ -35,6 +35,10 @@ export interface ClinicProfile {
   email: string | null
   address: ClinicProfileAddress
   techResponsible: ClinicProfileTechResponsible
+  /** Feature 017 — slug do portal público (`/agendar/<slug>`). null = desativado. */
+  publicBookingSlug: string | null
+  /** Feature 017 — portal habilitado de fato (gate da página pública). */
+  publicBookingEnabled: boolean
   updatedAt: string
 }
 

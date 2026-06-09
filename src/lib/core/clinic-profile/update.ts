@@ -1,9 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import type { Database } from '@/lib/db/types'
-import { ValidationError } from '@/lib/observability/errors'
+import { ConflictError, ValidationError } from '@/lib/observability/errors'
 import { isValidCnpj, stripCnpj } from './validate-cnpj'
 import { getClinicProfile } from './read'
+import { isBookingSlugTaken, normalizeBookingSlug } from './booking-slug'
 import { COUNCIL_CODES, UF_CODES, type ClinicProfile } from './types'
 
 const optionalString = (max: number) =>
@@ -76,6 +77,12 @@ export const clinicProfilePatchSchema = z.object({
     })
     .partial()
     .optional(),
+  /**
+   * Feature 017 — slug do portal público. Aceita string|null; formato,
+   * reservados e unicidade são validados em `updateClinicProfile` (mensagens
+   * amigáveis + checagem cross-tenant). '' / null → desativa o portal.
+   */
+  publicBookingSlug: z.string().nullable().optional(),
 })
 
 export type ClinicProfilePatch = z.infer<typeof clinicProfilePatchSchema>
@@ -176,6 +183,51 @@ export async function updateClinicProfile(
       })
     }
   }
+  // Feature 017 — slug do portal público. Tratado à parte do flatten porque
+  // exige validação amigável, checagem de unicidade cross-tenant e o
+  // acoplamento com `public_booking_enabled` (CHECK: habilitado exige slug).
+  if ('publicBookingSlug' in patch) {
+    const check = normalizeBookingSlug(patch.publicBookingSlug ?? null)
+    if (!check.ok) {
+      throw new ValidationError(check.reason, { field: 'publicBookingSlug' })
+    }
+    const newSlug = check.slug
+    const oldSlug = current.publicBookingSlug
+    if (newSlug !== oldSlug) {
+      if (newSlug !== null && (await isBookingSlugTaken(supabase, newSlug, tenantId))) {
+        throw new ConflictError(
+          'SLUG_ALREADY_TAKEN',
+          'Este link já está em uso por outra clínica. Escolha outro.',
+        )
+      }
+      type ProfileUpdate = Database['public']['Tables']['tenant_clinic_profile']['Update']
+      const slugUpdate: ProfileUpdate = { public_booking_slug: newSlug }
+      // Limpar o slug desativa o portal (satisfaz a CHECK enabled⇒slug).
+      if (newSlug === null) slugUpdate.public_booking_enabled = false
+      const { error: slugErr } = await supabase
+        .from('tenant_clinic_profile')
+        .update(slugUpdate)
+        .eq('tenant_id', tenantId)
+      if (slugErr) {
+        throw new Error(`updateClinicProfile slug update failed: ${slugErr.message}`)
+      }
+      await supabase.from('audit_log').insert({
+        tenant_id: tenantId,
+        actor_id: actorId,
+        actor_label: null,
+        entity: 'tenant_clinic_profile',
+        entity_id: tenantId,
+        field: 'public_booking_slug',
+        old_value: oldSlug,
+        new_value: newSlug,
+        reason: context.reason ?? 'updated via /api/configuracoes/clinica PUT',
+        ip: context.ip ?? null,
+        user_agent: context.userAgent ?? null,
+        result: 'success',
+      })
+    }
+  }
+
   const flat = flattenPatch(patch)
 
   // Calcula diffs por campo e prepara payloads.

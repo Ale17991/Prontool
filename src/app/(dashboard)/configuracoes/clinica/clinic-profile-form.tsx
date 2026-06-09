@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Loader2, Trash2, Upload } from 'lucide-react'
+import { Check, Copy, Loader2, Trash2, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -36,6 +36,7 @@ interface FormState {
   techName: string
   techCouncil: string
   techRegistration: string
+  publicBookingSlug: string
 }
 
 function profileToForm(p: ClinicProfile): FormState {
@@ -56,6 +57,7 @@ function profileToForm(p: ClinicProfile): FormState {
     techName: p.techResponsible.name ?? '',
     techCouncil: p.techResponsible.council ?? '',
     techRegistration: p.techResponsible.registration ?? '',
+    publicBookingSlug: p.publicBookingSlug ?? '',
   }
 }
 
@@ -80,8 +82,12 @@ function formToPatch(s: FormState) {
       council: s.techCouncil || null,
       registration: s.techRegistration.trim() || null,
     },
+    publicBookingSlug: s.publicBookingSlug.trim() || null,
   }
 }
+
+/** Base URL pública (inlined em build via NEXT_PUBLIC_). Fallback p/ dev. */
+const PUBLIC_BASE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 export function ClinicProfileForm({ initial }: Props) {
   const [profile, setProfile] = useState(initial)
@@ -92,6 +98,9 @@ export function ClinicProfileForm({ initial }: Props) {
   const [cnpjError, setCnpjError] = useState<string | null>(null)
   const [cepLoading, setCepLoading] = useState(false)
   const [logoUploading, setLogoUploading] = useState(false)
+  const [slugError, setSlugError] = useState<string | null>(null)
+  const [slugChecking, setSlugChecking] = useState(false)
+  const [slugCopied, setSlugCopied] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const update = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -138,6 +147,50 @@ export function ClinicProfileForm({ initial }: Props) {
       setCnpjError(null)
     } else {
       setCnpjError(null)
+    }
+  }
+
+  // Slug do portal: sanitiza para o formato aceito (minúsculas, números, hífen).
+  const onSlugChange = (raw: string) => {
+    const sanitized = raw.toLowerCase().replace(/[^a-z0-9-]/g, '')
+    setForm((prev) => ({ ...prev, publicBookingSlug: sanitized }))
+    setSlugError(null)
+  }
+
+  // Verifica disponibilidade em tempo real ao sair do campo.
+  const onSlugBlur = async () => {
+    const slug = form.publicBookingSlug.trim()
+    if (slug === '') {
+      setSlugError(null)
+      return
+    }
+    if (slug.length < 3) {
+      setSlugError('O link deve ter ao menos 3 caracteres.')
+      return
+    }
+    setSlugChecking(true)
+    try {
+      const res = await fetch(
+        `/api/configuracoes/clinica/slug-disponivel?slug=${encodeURIComponent(slug)}`,
+      )
+      const data = (await res.json()) as { available: boolean; reason?: string }
+      setSlugError(data.available ? null : (data.reason ?? 'Link indisponível.'))
+    } catch {
+      // Silencioso — a validação definitiva acontece no submit (backend).
+    } finally {
+      setSlugChecking(false)
+    }
+  }
+
+  const onCopyLink = async () => {
+    const slug = form.publicBookingSlug.trim()
+    if (!slug) return
+    try {
+      await navigator.clipboard.writeText(`${PUBLIC_BASE_URL}/agendar/${slug}`)
+      setSlugCopied(true)
+      setTimeout(() => setSlugCopied(false), 2000)
+    } catch {
+      // clipboard indisponível — ignora
     }
   }
 
@@ -193,6 +246,10 @@ export function ClinicProfileForm({ initial }: Props) {
     setError(null)
     if (form.cnpj.length > 0 && !isValidCnpj(form.cnpj)) {
       setCnpjError('CNPJ inválido')
+      return
+    }
+    if (slugError) {
+      setError('Corrija o link do portal de agendamento antes de salvar.')
       return
     }
     setSaving(true)
@@ -338,6 +395,74 @@ export function ClinicProfileForm({ initial }: Props) {
               maxLength={200}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Portal de agendamento público */}
+      <Card>
+        <CardContent className="space-y-4 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Portal de agendamento público</h2>
+              <p className="text-xs text-slate-500">
+                Link para o paciente agendar sozinho. Deixe vazio para desativar o portal.
+              </p>
+            </div>
+            {profile.publicBookingSlug ? (
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Portal ativo
+              </span>
+            ) : (
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" /> Portal desativado
+              </span>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="publicBookingSlug">Slug do portal</Label>
+            <Input
+              id="publicBookingSlug"
+              value={form.publicBookingSlug}
+              onChange={(e) => onSlugChange(e.target.value)}
+              onBlur={onSlugBlur}
+              placeholder="padilha-associados"
+              maxLength={32}
+              aria-invalid={slugError ? 'true' : undefined}
+            />
+            {slugChecking ? (
+              <p className="mt-1 text-[11px] text-slate-500">
+                <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
+                Verificando disponibilidade…
+              </p>
+            ) : null}
+            {slugError ? <p className="mt-1 text-xs text-destructive">{slugError}</p> : null}
+            <p className="mt-1 text-[11px] text-slate-500">
+              Apenas letras minúsculas, números e hífens. Mínimo 3 caracteres.
+            </p>
+          </div>
+          {form.publicBookingSlug.trim() ? (
+            <div className="flex items-center gap-2">
+              <a
+                href={`${PUBLIC_BASE_URL}/agendar/${form.publicBookingSlug.trim()}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 truncate rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-sky-700 hover:underline"
+              >
+                {PUBLIC_BASE_URL}/agendar/{form.publicBookingSlug.trim()}
+              </a>
+              <Button type="button" variant="outline" size="sm" onClick={onCopyLink}>
+                {slugCopied ? (
+                  <>
+                    <Check className="mr-2 h-3 w-3" /> Copiado
+                  </>
+                ) : (
+                  <>
+                    <Copy className="mr-2 h-3 w-3" /> Copiar link
+                  </>
+                )}
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
