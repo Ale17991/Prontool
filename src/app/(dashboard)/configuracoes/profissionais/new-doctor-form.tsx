@@ -61,6 +61,7 @@ export function NewDoctorForm() {
   const [councilState, setCouncilState] = useState('')
   const [cpf, setCpf] = useState('')
   const [birthDate, setBirthDate] = useState('')
+  const [cbo, setCbo] = useState('')
   const [externalId, setExternalId] = useState('')
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('comissionado')
   // Comissionado
@@ -105,6 +106,7 @@ export function NewDoctorForm() {
       council_state: councilState,
       cpf: cpfDigits,
       birth_date: birthDate,
+      cbo: cbo.replace(/\D/g, '') || null,
       role,
       specialty: specialty.trim() || null,
       external_identifier: externalId.trim() || null,
@@ -313,9 +315,23 @@ export function NewDoctorForm() {
           />
         </div>
       </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="cbo" className="text-xs">
+          CBO <span className="text-slate-400">(opcional)</span>
+        </Label>
+        <Input
+          id="cbo"
+          inputMode="numeric"
+          maxLength={6}
+          value={cbo}
+          onChange={(e) => setCbo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          placeholder="225125"
+        />
+      </div>
       <p className="text-[11px] text-slate-500">
         CPF, UF do conselho e data de nascimento são necessários para emitir
-        prescrição digital (Memed). Podem ser preenchidos depois.
+        prescrição digital (Memed). O CBO (6 dígitos, Classificação Brasileira de
+        Ocupações) é exigido para gerar guias TISS. Podem ser preenchidos depois.
       </p>
 
       <div className="space-y-1.5">

@@ -52,6 +52,12 @@ const createSchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de nascimento deve estar no formato YYYY-MM-DD')
       .nullable()
       .optional(),
+    // CBO (domínio TISS 24), 6 dígitos. Opcional; exigido para gerar guia TISS.
+    cbo: z
+      .string()
+      .regex(/^\d{6}$/, 'CBO deve conter 6 dígitos')
+      .nullable()
+      .optional(),
     payment_mode: z.enum(['comissionado', 'fixo', 'liberal']).default('comissionado'),
     initial_percentage_bps: z.number().int().min(0).max(10_000).optional(),
     monthly_amount_cents: z.number().int().positive().optional(),
@@ -130,6 +136,7 @@ export async function POST(req: Request): Promise<Response> {
         cpf: parsed.data.cpf ?? null,
         councilState: parsed.data.council_state ?? null,
         birthDate: parsed.data.birth_date ?? null,
+        cbo: parsed.data.cbo ?? null,
         paymentMode: parsed.data.payment_mode,
         initialPercentageBps: parsed.data.initial_percentage_bps ?? null,
         monthlyAmountCents: parsed.data.monthly_amount_cents ?? null,

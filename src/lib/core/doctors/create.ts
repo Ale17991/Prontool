@@ -35,6 +35,8 @@ export interface CreateDoctorInput {
   councilState?: string | null
   /** Data de nascimento do prescritor (YYYY-MM-DD), exigida pela Memed. Opcional no cadastro. */
   birthDate?: string | null
+  /** CBO (Classificação Brasileira de Ocupações, dom. TISS 24), 6 dígitos. Opcional. */
+  cbo?: string | null
   /** Default: 'comissionado' (retrocompat). */
   paymentMode?: PaymentMode
   /** Obrigatorio quando paymentMode = 'comissionado' (ou ausente). */
@@ -147,6 +149,7 @@ export async function createDoctor(
       cpf: input.cpf?.trim() || null,
       council_state: input.councilState?.trim().toUpperCase() || null,
       birth_date: input.birthDate || null,
+      cbo: input.cbo?.trim() || null,
       created_by: input.actorUserId,
       payment_mode: paymentMode,
     } as never)
