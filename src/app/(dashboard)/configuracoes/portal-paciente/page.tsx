@@ -10,7 +10,9 @@ import {
   getPatientPortalConfig,
   listMetricSettings,
 } from '@/lib/core/patient-portal/portal-config'
+import { resolvePortalSections } from '@/lib/core/patient-portal/sections'
 import { PortalConfigForm } from './portal-config-form'
+import { PortalSectionsForm } from './portal-sections-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,9 +23,12 @@ export default async function PortalPacientePage() {
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
-  const [config, metrics] = await Promise.all([
+  const [config, metrics, sections] = await Promise.all([
     getPatientPortalConfig(supabase, session.tenantId),
     listMetricSettings(supabase, session.tenantId, { specialty: 'endocrino' }),
+    // Sem hasModule por enquanto (entitlements 031 ainda não mesclado) →
+    // seções de módulo pago aparecem bloqueadas até a 031.
+    resolvePortalSections(supabase, session.tenantId),
   ])
 
   const baseUrl = resolvePublicBaseUrl()
@@ -46,6 +51,7 @@ export default async function PortalPacientePage() {
       </div>
 
       <PortalConfigForm initialConfig={config} initialMetrics={metrics} baseUrl={baseUrl} />
+      <PortalSectionsForm initialSections={sections} />
     </div>
   )
 }
