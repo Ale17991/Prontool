@@ -19,6 +19,7 @@ import { createVitalSigns } from '@/lib/core/patient-medical/vital-signs'
 import { recordMeasurement } from '@/lib/core/patient-portal/measurements'
 import { createAppointmentManually } from '@/lib/core/appointments/create-manual'
 import { createCareNote } from '@/lib/core/patient-portal/care-notes'
+import { setGoal } from '@/lib/core/patient-portal/goals'
 import { updatePatientPortalConfig } from '@/lib/core/patient-portal/portal-config'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
@@ -147,13 +148,15 @@ async function ensurePortal(sb: SB, tenantId: string, tenantSlug: string | null)
       patientPortalEnabled: true,
       publicBookingSlug: slug,
     })
-    // habilita também a seção de orientações (default off).
-    await sb
-      .from('tenant_portal_sections' as never)
-      .upsert(
-        { tenant_id: tenantId, section_key: 'orientacoes', enabled: true } as never,
-        { onConflict: 'tenant_id,section_key' },
-      )
+    // habilita seções extras p/ a demo (orientações + treino + dieta; default off).
+    for (const section_key of ['orientacoes', 'treino', 'dieta']) {
+      await sb
+        .from('tenant_portal_sections' as never)
+        .upsert(
+          { tenant_id: tenantId, section_key, enabled: true } as never,
+          { onConflict: 'tenant_id,section_key' },
+        )
+    }
   } catch (err) {
     console.warn(`[portal] não consegui habilitar o portal/seção automaticamente: ${String(err)}`)
   }
@@ -270,6 +273,11 @@ async function seedPatient(
   for (const body of p.orientacoes) {
     await createCareNote(sb, { tenantId: ctx.tenantId, patientId, body, actorUserId: ctx.actorUserId })
   }
+
+  // Metas (Dash de Metas): peso e glicemia a reduzir.
+  const currentWeight = p.weightStartKg - 5 * 1.2
+  await setGoal(sb, { tenantId: ctx.tenantId, patientId, metricType: 'peso_kg', direction: 'decrease', targetValue: Math.round((currentWeight - 4) * 10) / 10, actorUserId: ctx.actorUserId })
+  await setGoal(sb, { tenantId: ctx.tenantId, patientId, metricType: 'glicemia_jejum', direction: 'decrease', targetValue: 90, actorUserId: ctx.actorUserId })
 
   const [d, mo, y] = p.birthDate.split('-').reverse() // YYYY-MM-DD → [DD, MM, YYYY]
   console.log(`  ✓ ${p.fullName}  ·  login: CPF ${p.cpf} · nascimento ${d}${mo}${y}`)

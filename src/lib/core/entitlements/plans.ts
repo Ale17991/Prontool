@@ -9,7 +9,7 @@
 
 export type Plan = 'essencial' | 'pro' | 'clinica' | 'legacy'
 
-export type ModuleId = 'tiss' | 'portal_paciente' | 'telemedicina' | 'crm'
+export type ModuleId = 'tiss' | 'portal_paciente' | 'telemedicina' | 'crm' | 'treino' | 'dieta'
 
 export type Feature =
   // núcleo (Essencial)
@@ -43,6 +43,8 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'portal_paciente',
   'telemedicina',
   'crm',
+  'treino',
+  'dieta',
 ]
 
 const ESSENCIAL: Feature[] = [
@@ -88,7 +90,9 @@ export interface Entitlements {
 export function buildEntitlements(plan: Plan, modules: ModuleId[]): Entitlements {
   const features = PLAN_FEATURES[plan] ?? PLAN_FEATURES.essencial
   const mods = new Set<ModuleId>(modules)
-  if (plan === 'clinica' || plan === 'legacy') mods.add('crm')
+  if (plan === 'clinica') mods.add('crm')
+  // Legado = todos os módulos (inclui add-ons como treino/dieta).
+  if (plan === 'legacy') for (const m of ALL_MODULES) mods.add(m)
   const featureSet = new Set<Feature>(features)
   return {
     plan,

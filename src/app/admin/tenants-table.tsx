@@ -24,6 +24,8 @@ const MODULE_LABEL: Record<ModuleId, string> = {
   portal_paciente: 'Portal',
   telemedicina: 'Telemedicina',
   crm: 'CRM',
+  treino: 'Treino',
+  dieta: 'Dieta',
 }
 
 export function AdminTenantsTable({ rows }: { rows: AdminTenantRow[] }) {

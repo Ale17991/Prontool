@@ -11,6 +11,7 @@ import {
   listMetricSettings,
 } from '@/lib/core/patient-portal/portal-config'
 import { resolvePortalSections } from '@/lib/core/patient-portal/sections'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { PortalConfigForm } from './portal-config-form'
 import { PortalSectionsForm } from './portal-sections-form'
 
@@ -23,12 +24,11 @@ export default async function PortalPacientePage() {
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
+  const ent = await getTenantEntitlements(supabase, session.tenantId)
   const [config, metrics, sections] = await Promise.all([
     getPatientPortalConfig(supabase, session.tenantId),
     listMetricSettings(supabase, session.tenantId, { specialty: 'endocrino' }),
-    // Sem hasModule por enquanto (entitlements 031 ainda não mesclado) →
-    // seções de módulo pago aparecem bloqueadas até a 031.
-    resolvePortalSections(supabase, session.tenantId),
+    resolvePortalSections(supabase, session.tenantId, { hasModule: (m) => ent.hasModule(m) }),
   ])
 
   const baseUrl = resolvePublicBaseUrl()

@@ -19,11 +19,13 @@ import {
 } from '@/lib/core/patient-portal/session'
 import { buildPatientPortalBundle } from '@/lib/core/patient-portal/read-portal'
 import { listEnabledPortalSections } from '@/lib/core/patient-portal/sections'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { hashIpForPatientPortal, logPatientAccess } from '@/lib/core/patient-portal/audit'
 import { Card, CardContent } from '@/components/ui/card'
 import { PortalHeader } from '@/components/patient-portal/portal-header'
 import { PatientTimeline } from '@/components/patient-portal/patient-timeline'
 import { GoalsCard } from '@/components/patient-portal/goals-card'
+import { TreinoDemoCard, DietaDemoCard } from '@/components/patient-portal/demo-plans'
 import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
@@ -43,18 +45,21 @@ export default async function PacientePainelPage({
     redirect(`/paciente/${params.slug}${rawCookie ? '?sessao=expirada' : ''}`)
   }
 
+  const ent = await getTenantEntitlements(supabase, session.tenantId)
   const [bundle, enabledList] = await Promise.all([
     buildPatientPortalBundle(supabase, {
       tenantId: session.tenantId,
       patientId: session.patientId,
     }),
-    listEnabledPortalSections(supabase, session.tenantId),
+    listEnabledPortalSections(supabase, session.tenantId, { hasModule: (m) => ent.hasModule(m) }),
   ])
   const enabled = new Set(enabledList)
   const showMetas = enabled.has('metas')
   const showMetricas = enabled.has('metricas')
   const showAtendimentos = enabled.has('atendimentos')
   const showOrientacoes = enabled.has('orientacoes')
+  const showTreino = enabled.has('treino')
+  const showDieta = enabled.has('dieta')
 
   const h = headers()
   const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
@@ -71,6 +76,8 @@ export default async function PacientePainelPage({
   const showGoals = showMetas && bundle.goals.length > 0
   const hasContent =
     showGoals ||
+    showTreino ||
+    showDieta ||
     (showMetricas && (bundle.weightImc.length > 0 || hasAnyMetric)) ||
     (showAtendimentos && bundle.appointments.length > 0) ||
     (showOrientacoes && bundle.careNotes.length > 0)
@@ -110,6 +117,9 @@ export default async function PacientePainelPage({
           </CardContent>
         </Card>
       )}
+
+      {showTreino ? <TreinoDemoCard /> : null}
+      {showDieta ? <DietaDemoCard /> : null}
 
       <footer className="text-center text-xs text-slate-400">
         <p>Sessão de 30 minutos. Cada acesso é registrado por segurança (LGPD).</p>

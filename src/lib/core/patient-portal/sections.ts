@@ -55,8 +55,8 @@ export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
   { key: 'exames', label: 'Resultados de exames', description: 'Resultados com interpretação (nunca o valor cru isolado).', defaultEnabled: false, sensitivity: 'alta', implemented: false, order: 60 },
   { key: 'vacinas', label: 'Vacinas', description: 'Carteira de vacinação.', defaultEnabled: false, sensitivity: 'baixa', implemented: false, order: 70 },
   { key: 'faturas', label: 'Faturas', description: 'Pagamentos e faturas da clínica.', defaultEnabled: false, sensitivity: 'baixa', implemented: false, order: 80 },
-  { key: 'treino', label: 'Rotina de treino', description: 'Treino prescrito pelo profissional.', defaultEnabled: false, sensitivity: 'baixa', requiredModule: 'treino', implemented: false, order: 90 },
-  { key: 'dieta', label: 'Plano alimentar', description: 'Dieta prescrita pelo nutricionista.', defaultEnabled: false, sensitivity: 'media', requiredModule: 'dieta', implemented: false, order: 100 },
+  { key: 'treino', label: 'Rotina de treino', description: 'Treino prescrito pelo profissional.', defaultEnabled: false, sensitivity: 'baixa', requiredModule: 'treino', implemented: true, order: 90 },
+  { key: 'dieta', label: 'Plano alimentar', description: 'Dieta prescrita pelo nutricionista.', defaultEnabled: false, sensitivity: 'media', requiredModule: 'dieta', implemented: true, order: 100 },
 ]
 
 const BY_KEY = new Map<string, PortalSectionDef>(PORTAL_SECTIONS.map((s) => [s.key, s]))
