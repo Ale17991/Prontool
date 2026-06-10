@@ -1,15 +1,18 @@
 /**
- * Feature 030 — /paciente/[slug]/painel — portal do paciente (US1/US3).
+ * Feature 030/032 — /paciente/[slug]/painel — portal do paciente.
  *
  * Server component SÓ-LEITURA (FR-004/FR-006). Exige sessão de paciente
  * válida E da clínica do slug — senão volta ao login. A identidade vem
  * exclusivamente do cookie HMAC verificado; o bundle filtra tudo por
  * patient_id+tenant_id da sessão. Cada render registra `view` (FR-020).
+ *
+ * Feature 032: cada seção só renderiza se a clínica a habilitou
+ * (`listEnabledPortalSections`) — portal modular/configurável.
  */
 
 import { notFound, redirect } from 'next/navigation'
 import { cookies, headers } from 'next/headers'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, LineChart } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolvePortalClinicBySlug } from '@/lib/core/patient-portal/login'
 import {
@@ -17,6 +20,7 @@ import {
   verifyPatientSessionCookie,
 } from '@/lib/core/patient-portal/session'
 import { buildPatientPortalBundle } from '@/lib/core/patient-portal/read-portal'
+import { listEnabledPortalSections } from '@/lib/core/patient-portal/sections'
 import {
   hashIpForPatientPortal,
   logPatientAccess,
@@ -52,16 +56,20 @@ export default async function PacientePainelPage({
 
   const rawCookie = cookies().get(PATIENT_SESSION_COOKIE_NAME)?.value
   const session = verifyPatientSessionCookie(rawCookie)
-  // Sessão ausente/expirada ou de outra clínica → login. Cookie presente
-  // mas inválido ≈ sessão expirada → login mostra o aviso (T036).
   if (!session || session.tenantId !== clinic.tenantId) {
     redirect(`/paciente/${params.slug}${rawCookie ? '?sessao=expirada' : ''}`)
   }
 
-  const bundle = await buildPatientPortalBundle(supabase, {
-    tenantId: session.tenantId,
-    patientId: session.patientId,
-  })
+  const [bundle, enabledList] = await Promise.all([
+    buildPatientPortalBundle(supabase, {
+      tenantId: session.tenantId,
+      patientId: session.patientId,
+    }),
+    listEnabledPortalSections(supabase, session.tenantId),
+  ])
+  const enabled = new Set(enabledList)
+  const showMetricas = enabled.has('metricas')
+  const showAtendimentos = enabled.has('atendimentos')
 
   const h = headers()
   const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
@@ -75,8 +83,9 @@ export default async function PacientePainelPage({
   })
 
   const hasAnyMetric = Object.values(bundle.metrics).some((s) => s.length > 0)
-  const hasAnything =
-    bundle.weightImc.length > 0 || hasAnyMetric || bundle.appointments.length > 0
+  const hasMetricData = bundle.weightImc.length > 0 || hasAnyMetric
+  const hasVisibleContent =
+    (showMetricas && hasMetricData) || (showAtendimentos && bundle.appointments.length > 0)
 
   return (
     <div className="space-y-6">
@@ -89,34 +98,29 @@ export default async function PacientePainelPage({
             {bundle.patient.firstName ? `Olá, ${bundle.patient.firstName}` : 'Olá'}
           </h1>
           <p className="text-sm text-slate-500">
-            Sua evolução e seus atendimentos — somente leitura.
+            Acompanhe seus dados de saúde — somente leitura.
           </p>
         </div>
         <PatientLogoutButton slug={params.slug} />
       </header>
 
-      {!hasAnything ? (
+      {!hasVisibleContent ? (
         <Card>
           <CardContent className="p-6 text-center text-sm text-slate-500">
-            Ainda não há medições ou atendimentos registrados. Assim que a
-            equipe da clínica registrar seus dados, eles aparecem aqui.
+            Ainda não há informações para exibir. Assim que a equipe da clínica
+            registrar seus dados, eles aparecem aqui.
           </CardContent>
         </Card>
       ) : null}
 
-      {bundle.weightImc.length > 0 ? (
+      {showMetricas && bundle.weightImc.length > 0 ? (
         <WeightImcChart points={bundle.weightImc} />
-      ) : hasAnything ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-slate-500">
-            Ainda não há registros de peso/IMC.
-          </CardContent>
-        </Card>
       ) : null}
 
-      {hasAnyMetric ? (
+      {showMetricas && hasAnyMetric ? (
         <section className="space-y-4">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">
+          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-400">
+            <LineChart className="h-4 w-4 text-primary" />
             Métricas metabólicas
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -135,48 +139,42 @@ export default async function PacientePainelPage({
               ))}
           </div>
         </section>
-      ) : hasAnything ? (
+      ) : null}
+
+      {showAtendimentos ? (
         <Card>
-          <CardContent className="p-4 text-sm text-slate-500">
-            Ainda não há medições metabólicas registradas.
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CalendarDays className="h-4 w-4 text-primary" />
+              Meus atendimentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {bundle.appointments.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhum atendimento registrado ainda.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {bundle.appointments.map((a) => (
+                  <li key={a.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5">
+                    <span className="text-sm font-semibold tabular-nums text-slate-900">
+                      {formatDateTimePtBr(a.appointmentAt)}
+                    </span>
+                    {a.doctorName ? (
+                      <span className="text-sm text-slate-600">{a.doctorName}</span>
+                    ) : null}
+                    {a.procedureName ? (
+                      <span className="text-xs text-slate-400">{a.procedureName}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <CalendarDays className="h-4 w-4 text-primary" />
-            Meus atendimentos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {bundle.appointments.length === 0 ? (
-            <p className="text-sm text-slate-500">Nenhum atendimento registrado ainda.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {bundle.appointments.map((a) => (
-                <li key={a.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5">
-                  <span className="text-sm font-semibold tabular-nums text-slate-900">
-                    {formatDateTimePtBr(a.appointmentAt)}
-                  </span>
-                  {a.doctorName ? (
-                    <span className="text-sm text-slate-600">{a.doctorName}</span>
-                  ) : null}
-                  {a.procedureName ? (
-                    <span className="text-xs text-slate-400">{a.procedureName}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
       <footer className="text-center text-xs text-slate-400">
-        <p>
-          Sessão de 30 minutos. Cada acesso é registrado por segurança (LGPD).
-        </p>
+        <p>Sessão de 30 minutos. Cada acesso é registrado por segurança (LGPD).</p>
       </footer>
     </div>
   )
