@@ -30,6 +30,7 @@ import {
   WeightImcChart,
 } from '@/components/patient-portal/evolution-chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PortalHeader } from '@/components/patient-portal/portal-header'
 import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
@@ -92,20 +93,13 @@ export default async function PacientePainelPage({
 
   return (
     <div className="space-y-6">
-      <header className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            {clinic.displayName}
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {bundle.patient.firstName ? `Olá, ${bundle.patient.firstName}` : 'Olá'}
-          </h1>
-          <p className="text-sm text-slate-500">
-            Acompanhe seus dados de saúde — somente leitura.
-          </p>
-        </div>
-        <PatientLogoutButton slug={params.slug} />
-      </header>
+      <PortalHeader
+        clinicName={clinic.displayName}
+        logoUrl={clinic.logoUrl}
+        title={bundle.patient.firstName ? `Olá, ${bundle.patient.firstName} 👋` : 'Olá 👋'}
+        subtitle="Acompanhe seus dados de saúde — somente leitura."
+        right={<PatientLogoutButton slug={params.slug} />}
+      />
 
       {!hasVisibleContent ? (
         <Card>
@@ -117,10 +111,12 @@ export default async function PacientePainelPage({
       ) : null}
 
       {showOrientacoes && bundle.careNotes.length > 0 ? (
-        <Card>
+        <Card className="rounded-2xl border-slate-100 shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <ClipboardList className="h-4 w-4 text-primary" />
+            <CardTitle className="flex items-center gap-2.5 text-sm">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                <ClipboardList className="h-4 w-4" />
+              </span>
               Orientações da equipe
             </CardTitle>
           </CardHeader>
@@ -143,8 +139,10 @@ export default async function PacientePainelPage({
 
       {showMetricas && hasAnyMetric ? (
         <section className="space-y-4">
-          <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-400">
-            <LineChart className="h-4 w-4 text-primary" />
+          <h2 className="flex items-center gap-2.5 text-sm font-bold text-slate-700">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+              <LineChart className="h-4 w-4" />
+            </span>
             Métricas metabólicas
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -166,10 +164,12 @@ export default async function PacientePainelPage({
       ) : null}
 
       {showAtendimentos ? (
-        <Card>
+        <Card className="rounded-2xl border-slate-100 shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <CalendarDays className="h-4 w-4 text-primary" />
+            <CardTitle className="flex items-center gap-2.5 text-sm">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <CalendarDays className="h-4 w-4" />
+              </span>
               Meus atendimentos
             </CardTitle>
           </CardHeader>

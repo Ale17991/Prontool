@@ -14,6 +14,7 @@ import {
   PATIENT_SESSION_COOKIE_NAME,
   verifyPatientSessionCookie,
 } from '@/lib/core/patient-portal/session'
+import { PortalHeader } from '@/components/patient-portal/portal-header'
 import { PatientLoginForm } from './login-form'
 
 export const dynamic = 'force-dynamic'
@@ -38,14 +39,12 @@ export default async function PacienteLoginPage({
 
   return (
     <div className="mx-auto max-w-md space-y-6">
-      <header className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {clinic.displayName}
-        </h1>
-        <p className="text-sm text-slate-500">
-          Portal do paciente — acompanhe sua evolução e seus atendimentos.
-        </p>
-      </header>
+      <PortalHeader
+        clinicName={clinic.displayName}
+        logoUrl={clinic.logoUrl}
+        title="Portal do paciente"
+        subtitle="Entre para acompanhar sua evolução e seus atendimentos."
+      />
 
       {searchParams.sessao === 'expirada' ? (
         <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-semibold text-amber-800">

@@ -6,6 +6,8 @@ import {
   checkRateLimit,
   RATE_LIMITS,
 } from '@/lib/core/public-booking/rate-limit'
+import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
+import { CLINIC_LOGO_BUCKET } from '@/lib/core/clinic-profile/types'
 import { hashIpForPatientPortal, logPatientAccess } from './audit'
 
 /**
@@ -26,6 +28,8 @@ import { hashIpForPatientPortal, logPatientAccess } from './audit'
 export interface PortalClinic {
   tenantId: string
   displayName: string
+  /** URL assinada do logo da clínica (clinic-logos), ou null. */
+  logoUrl: string | null
 }
 
 /**
@@ -40,7 +44,7 @@ export async function resolvePortalClinicBySlug(
 ): Promise<PortalClinic | null> {
   const profile = await supabase
     .from('tenant_clinic_profile')
-    .select('tenant_id, corporate_name, patient_portal_enabled')
+    .select('tenant_id, corporate_name, patient_portal_enabled, logo_path')
     .eq('public_booking_slug', slug)
     .maybeSingle()
   if (profile.error || !profile.data) return null
@@ -48,6 +52,7 @@ export async function resolvePortalClinicBySlug(
     tenant_id: string
     corporate_name: string | null
     patient_portal_enabled: boolean | null
+    logo_path: string | null
   }
   // Liga/desliga do portal (FR/030 + 0114): desabilitado ⇒ não existe pra fora.
   if (!row.patient_portal_enabled) return null
@@ -61,7 +66,8 @@ export async function resolvePortalClinicBySlug(
       .maybeSingle()
     displayName = (tenant.data as { name: string } | null)?.name ?? slug
   }
-  return { tenantId: row.tenant_id, displayName }
+  const logoUrl = await createSignedUrlOrNull(supabase, CLINIC_LOGO_BUCKET, row.logo_path, 3600)
+  return { tenantId: row.tenant_id, displayName, logoUrl }
 }
 
 export type PatientLoginResult =
