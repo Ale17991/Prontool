@@ -14,6 +14,11 @@ import {
 } from '@/app/(dashboard)/_components/sidebar-sections'
 import type { TenantRole } from '@/lib/db/types'
 import type { FeatureName } from '@/lib/feature-flags'
+import { ALL_MODULES, buildEntitlements } from '@/lib/core/entitlements/plans'
+
+// Acesso total (legacy) para isolar estes testes do gate de plano — aqui
+// validamos a matriz role × flags; o gate de entitlement tem testes próprios.
+const FULL_ENT = buildEntitlements('legacy', [...ALL_MODULES])
 
 const ALL_FLAGS_ON: Record<FeatureName, boolean> = {
   despesas: true,
@@ -30,7 +35,7 @@ const ALL_FLAGS_OFF: Record<FeatureName, boolean> = {
 }
 
 function ctx(role: TenantRole, flags = ALL_FLAGS_ON): NavContext {
-  return { role, flags }
+  return { role, flags, ent: FULL_ENT }
 }
 
 function flatLabels(sections: ReturnType<typeof getVisibleSections>): string[] {

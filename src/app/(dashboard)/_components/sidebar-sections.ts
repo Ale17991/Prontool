@@ -26,11 +26,14 @@ import {
 import type { Route } from 'next'
 import { can } from '@/lib/auth/rbac'
 import type { FeatureName } from '@/lib/feature-flags'
+import type { Entitlements } from '@/lib/core/entitlements/plans'
 import type { TenantRole } from '@/lib/db/types'
 
 export interface NavContext {
   role: TenantRole
   flags: Record<FeatureName, boolean>
+  /** Feature 031 — plano/módulos do tenant. */
+  ent: Entitlements
 }
 
 export interface NavItem {
@@ -79,53 +82,58 @@ export const SECTIONS: readonly NavSection[] = [
         href: '/analise/relatorios',
         label: 'Relatórios',
         icon: ScrollText,
-        show: ({ role, flags }) => flags.relatorios && can(role, 'report.read'),
+        show: ({ role, flags, ent }) =>
+          flags.relatorios && ent.has('relatorios') && can(role, 'report.read'),
       },
       {
         href: '/analise/comissoes',
         label: 'Comissões',
         icon: Calculator,
-        show: ({ role, flags }) => flags.comissoes && can(role, 'doctor.read'),
+        show: ({ role, flags, ent }) =>
+          flags.comissoes && ent.has('comissoes') && can(role, 'doctor.read'),
       },
       {
         href: '/analise/dashboard',
         label: 'Dashboard',
         icon: LayoutDashboard,
-        show: ({ role }) => role === 'admin' || role === 'financeiro',
+        show: ({ role, ent }) =>
+          ent.has('dashboard') && (role === 'admin' || role === 'financeiro'),
       },
       {
         href: '/analise/contas-a-receber',
         label: 'Contas a Receber',
         icon: Receipt,
-        show: ({ role }) =>
-          role === 'admin' || role === 'financeiro' || role === 'recepcionista',
+        show: ({ role, ent }) =>
+          ent.has('contas_receber') &&
+          (role === 'admin' || role === 'financeiro' || role === 'recepcionista'),
       },
       {
         href: '/analise/contas-a-pagar',
         label: 'Contas a Pagar',
         icon: TrendingDown,
-        show: ({ role }) => role === 'admin' || role === 'financeiro',
+        show: ({ role, ent }) =>
+          ent.has('contas_pagar') && (role === 'admin' || role === 'financeiro'),
       },
       {
         href: '/analise/fluxo-caixa',
         label: 'Fluxo de Caixa',
         icon: TrendingUp,
-        show: ({ role }) => role === 'admin' || role === 'financeiro',
+        show: ({ role, ent }) =>
+          ent.has('fluxo_caixa') && (role === 'admin' || role === 'financeiro'),
       },
       {
         href: '/analise/repasse-medico',
         label: 'Repasse Médico',
         icon: Wallet,
-        show: ({ role }) =>
-          role === 'admin' ||
-          role === 'financeiro' ||
-          role === 'profissional_saude',
+        show: ({ role, ent }) =>
+          ent.has('repasse') &&
+          (role === 'admin' || role === 'financeiro' || role === 'profissional_saude'),
       },
       {
         href: '/analise/despesas',
         label: 'Despesas',
         icon: TrendingDown,
-        show: ({ role, flags }) => flags.despesas && role === 'admin',
+        show: ({ role, flags, ent }) => flags.despesas && ent.has('despesas') && role === 'admin',
       },
     ],
   },
