@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { LogIn, Loader2 } from 'lucide-react'
+import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ALL_MODULES, PLAN_LABEL, type ModuleId, type Plan } from '@/lib/core/entitlements/plans'
@@ -38,6 +40,7 @@ export function AdminTenantsTable({ rows }: { rows: AdminTenantRow[] }) {
 }
 
 function TenantRow({ row }: { row: AdminTenantRow }) {
+  const router = useRouter()
   const [plan, setPlan] = useState<Plan>(row.plan)
   const [modules, setModules] = useState<Set<ModuleId>>(
     new Set(row.modules.filter((m): m is ModuleId => (ALL_MODULES as readonly string[]).includes(m))),
@@ -63,6 +66,26 @@ function TenantRow({ row }: { row: AdminTenantRow }) {
           ? { kind: 'ok', msg: 'Salvo.' }
           : { kind: 'error', msg: res.error ?? 'Erro ao salvar.' },
       )
+    })
+  }
+
+  // Entrar na clínica: assume o tenant (auth_hook concede admin) e abre o app.
+  function enter() {
+    setFeedback(null)
+    startTransition(async () => {
+      const res = await fetch('/api/auth/switch-tenant', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ tenantId: row.tenantId }),
+      })
+      if (!res.ok) {
+        setFeedback({ kind: 'error', msg: 'Não foi possível entrar na clínica.' })
+        return
+      }
+      const sb = createSupabaseBrowserClient()
+      await sb.auth.refreshSession()
+      router.push('/operacao/atendimentos')
+      router.refresh()
     })
   }
 
@@ -111,6 +134,9 @@ function TenantRow({ row }: { row: AdminTenantRow }) {
           <Button size="sm" onClick={save} disabled={pending}>
             {pending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
             Salvar
+          </Button>
+          <Button size="sm" variant="outline" onClick={enter} disabled={pending}>
+            <LogIn className="mr-1 h-3 w-3" /> Entrar
           </Button>
         </div>
       </div>
