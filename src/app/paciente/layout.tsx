@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  */
 export default function PacienteLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-slate-50 to-slate-50 text-foreground">
+    <div className="min-h-screen bg-slate-50 text-foreground">
       <div className="mx-auto max-w-2xl px-4 py-6 sm:py-10">{children}</div>
     </div>
   )
