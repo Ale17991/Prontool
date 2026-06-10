@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientQuickView } from './patient-quick-view'
 import { ClinicalTimeline } from './clinical-timeline'
 import { CadastroTab } from './cadastro-tab'
+import { CareNotesEditor } from '../care-notes-editor'
 import { PatientEvolutionTab } from './patient-evolution-tab'
 import { NewEvolutionSheet } from './sheets/new-evolution-sheet'
 import { NewAnamneseSheet } from './sheets/new-anamnese-sheet'
@@ -224,6 +225,9 @@ export function PatientDetailLayout({
                 authors={authors}
                 isAnonymized={isAnonymized}
               />
+              {!isAnonymized ? (
+                <CareNotesEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+              ) : null}
             </TabsContent>
             {!isAnonymized ? (
               <TabsContent value="cadastro">
