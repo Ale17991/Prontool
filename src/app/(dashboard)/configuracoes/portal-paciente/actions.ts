@@ -11,6 +11,7 @@ import {
   setMetricEnabled,
   updatePatientPortalConfig,
 } from '@/lib/core/patient-portal/portal-config'
+import { setPortalSection } from '@/lib/core/patient-portal/sections'
 
 const PATH = '/configuracoes/portal-paciente'
 
@@ -59,6 +60,23 @@ export async function setMetricEnabledAction(
       return { ok: false, error: 'metricType obrigatório' }
     }
     await setMetricEnabled(supabase, session.tenantId, metricType, enabled)
+    revalidatePath(PATH)
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) }
+  }
+}
+
+export async function setPortalSectionAction(
+  sectionKey: string,
+  enabled: boolean,
+): Promise<ActionResult> {
+  try {
+    const { session, supabase } = await authorize()
+    if (!sectionKey || typeof sectionKey !== 'string') {
+      return { ok: false, error: 'sectionKey obrigatório' }
+    }
+    await setPortalSection(supabase, session.tenantId, sectionKey, enabled)
     revalidatePath(PATH)
     return { ok: true }
   } catch (err) {

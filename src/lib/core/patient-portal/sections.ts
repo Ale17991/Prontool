@@ -109,6 +109,23 @@ export async function resolvePortalSections(
     })
 }
 
+/** Liga/desliga uma seção para a clínica (upsert idempotente). Admin-only no caller. */
+export async function setPortalSection(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  sectionKey: string,
+  enabled: boolean,
+): Promise<void> {
+  if (!isPortalSectionKey(sectionKey)) {
+    throw new Error(`setPortalSection: seção desconhecida "${sectionKey}"`)
+  }
+  // O gate de plano (módulo) é aplicado no resolver; aqui só guardamos o override.
+  const { error } = await (supabase as unknown as SupabaseClient)
+    .from('tenant_portal_sections')
+    .upsert({ tenant_id: tenantId, section_key: sectionKey, enabled }, { onConflict: 'tenant_id,section_key' })
+  if (error) throw new Error(`setPortalSection: ${error.message}`)
+}
+
 /** Apenas as chaves das seções visíveis ao paciente (para o painel). */
 export async function listEnabledPortalSections(
   supabase: SupabaseClient<Database>,
