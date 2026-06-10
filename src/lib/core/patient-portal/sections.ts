@@ -14,6 +14,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 
 export type PortalSectionKey =
+  | 'metas'
   | 'atendimentos'
   | 'metricas'
   | 'orientacoes'
@@ -45,6 +46,7 @@ export interface PortalSectionDef {
 }
 
 export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
+  { key: 'metas', label: 'Minhas metas', description: 'Metas de saúde definidas pela equipe (peso, glicemia, etc.) com progresso.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 5 },
   { key: 'atendimentos', label: 'Meus atendimentos', description: 'Histórico de consultas e atendimentos.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 10 },
   { key: 'metricas', label: 'Minha evolução', description: 'Peso, IMC e métricas de acompanhamento, com tendência.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 20 },
   { key: 'orientacoes', label: 'Orientações', description: 'Orientações e plano de cuidado escritos pela equipe.', defaultEnabled: false, sensitivity: 'media', implemented: true, order: 30 },

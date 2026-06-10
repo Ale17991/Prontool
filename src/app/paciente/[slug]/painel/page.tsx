@@ -23,6 +23,7 @@ import { hashIpForPatientPortal, logPatientAccess } from '@/lib/core/patient-por
 import { Card, CardContent } from '@/components/ui/card'
 import { PortalHeader } from '@/components/patient-portal/portal-header'
 import { PatientTimeline } from '@/components/patient-portal/patient-timeline'
+import { GoalsCard } from '@/components/patient-portal/goals-card'
 import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,7 @@ export default async function PacientePainelPage({
     listEnabledPortalSections(supabase, session.tenantId),
   ])
   const enabled = new Set(enabledList)
+  const showMetas = enabled.has('metas')
   const showMetricas = enabled.has('metricas')
   const showAtendimentos = enabled.has('atendimentos')
   const showOrientacoes = enabled.has('orientacoes')
@@ -66,7 +68,9 @@ export default async function PacientePainelPage({
   })
 
   const hasAnyMetric = Object.values(bundle.metrics).some((s) => s.length > 0)
+  const showGoals = showMetas && bundle.goals.length > 0
   const hasContent =
+    showGoals ||
     (showMetricas && (bundle.weightImc.length > 0 || hasAnyMetric)) ||
     (showAtendimentos && bundle.appointments.length > 0) ||
     (showOrientacoes && bundle.careNotes.length > 0)
@@ -80,6 +84,15 @@ export default async function PacientePainelPage({
         subtitle="Acompanhe sua evolução de saúde."
         right={<PatientLogoutButton slug={params.slug} />}
       />
+
+      {showGoals ? (
+        <GoalsCard
+          goals={bundle.goals}
+          weightImc={bundle.weightImc}
+          metrics={bundle.metrics}
+          metricTypes={bundle.metricTypes}
+        />
+      ) : null}
 
       {hasContent ? (
         <PatientTimeline
