@@ -84,7 +84,7 @@ export function PatientLoginForm({ slug }: { slug: string }) {
               inputMode="numeric"
               autoComplete="username"
               value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
+              onChange={(e) => setCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
             />
           </div>
           <div className="space-y-1.5">
@@ -92,9 +92,10 @@ export function PatientLoginForm({ slug }: { slug: string }) {
             <Input
               id="pp_password"
               type="password"
+              inputMode="numeric"
               autoComplete="current-password"
               value={birthdate}
-              onChange={(e) => setBirthdate(e.target.value)}
+              onChange={(e) => setBirthdate(e.target.value.replace(/\D/g, '').slice(0, 8))}
             />
           </div>
 
