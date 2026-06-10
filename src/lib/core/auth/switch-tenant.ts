@@ -62,11 +62,35 @@ export async function switchActiveTenant(
   if (linkErr && linkErr.code !== 'PGRST116') {
     throw new Error(`switchActiveTenant link query failed: ${linkErr.message}`)
   }
-  if (!link) {
-    throw new ForbiddenError('not_a_member')
-  }
-  if ((link as { status: string }).status !== 'active') {
-    throw new ForbiddenError('not_a_member')
+  const isActiveMember = Boolean(link) && (link as { status: string }).status === 'active'
+
+  // Feature 031 — Admin-Agência assume clínica sem vínculo (o auth_hook concede
+  // role='admin'). Super entra em qualquer; suporte só nas clínicas atribuídas
+  // (platform_admin_tenants). Sem direito ⇒ bloqueia.
+  let crossTenant = false
+  if (!isActiveMember) {
+    // is_super/platform_admin_tenants vêm da 0119 (tipos regenerados depois) — cast.
+    const svc: any = supabaseService
+    const { data: pa } = await svc
+      .from('platform_admins')
+      .select('user_id, is_super')
+      .eq('user_id', input.userId)
+      .maybeSingle()
+    if (!pa) {
+      throw new ForbiddenError('not_a_member')
+    }
+    if (!(pa as { is_super: boolean }).is_super) {
+      const { data: assigned } = await svc
+        .from('platform_admin_tenants')
+        .select('tenant_id')
+        .eq('user_id', input.userId)
+        .eq('tenant_id', input.tenantId)
+        .maybeSingle()
+      if (!assigned) {
+        throw new ForbiddenError('not_assigned_to_tenant')
+      }
+    }
+    crossTenant = true
   }
 
   const { data: tenantRow, error: tenantErr } = await supabaseService
@@ -107,7 +131,9 @@ export async function switchActiveTenant(
     field: 'tenant_switch',
     old_value: previousTenantId ? JSON.stringify({ tenant_id: previousTenantId }) : null,
     new_value: JSON.stringify({ tenant_id: input.tenantId }),
-    reason: 'switch via /api/auth/switch-tenant',
+    reason: crossTenant
+      ? 'platform-admin cross-tenant (Admin-Agência)'
+      : 'switch via /api/auth/switch-tenant',
     ip: input.ip ?? null,
     user_agent: input.userAgent ?? null,
     result: 'success',

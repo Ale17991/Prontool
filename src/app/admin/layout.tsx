@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
-import { requirePlatformAdmin } from '@/lib/auth/platform-admin'
+import { requireSuperAdmin } from '@/lib/auth/platform-admin'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * Feature 031 — painel Admin-Agência (cross-tenant). Layout próprio (sem a
- * sidebar de clínica). Gateia toda a subárvore: só Admin-Agência entra; o
- * resto recebe 404 (requirePlatformAdmin → notFound).
+ * Feature 031 — painel Admin-Agência (gestão). Só admin GERAL (is_super):
+ * gerencia planos e os acessos do suporte. Usuários de suporte NÃO entram aqui
+ * (acessam suas clínicas pelo seletor). Não-super recebe 404.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  await requirePlatformAdmin()
+  await requireSuperAdmin()
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
