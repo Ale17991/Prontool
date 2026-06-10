@@ -17,6 +17,7 @@ import {
 import { MetricEvolutionChart, formatDateLabel } from '@/components/patient-portal/evolution-chart'
 import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
 import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
+import { GoalsEditor } from './goals-editor'
 
 /**
  * Feature 030 (US2) — entrada de métricas metabólicas no prontuário.
@@ -90,6 +91,8 @@ export function MetabolicMetricsSection({
         ) : null}
       </CardHeader>
       <CardContent className="space-y-4">
+        <GoalsEditor patientId={patientId} metricTypes={metricTypes} canWrite={canWrite} />
+
         {showForm && canWrite ? (
           <NewMeasurementForm
             patientId={patientId}
