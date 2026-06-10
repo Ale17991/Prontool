@@ -8,6 +8,8 @@ import {
 } from './metric-types'
 import { listCareNotes, type CareNote } from './care-notes'
 import { listGoals, type PatientGoal } from './goals'
+import { getActiveWorkoutPlan, type WorkoutPlan } from './workout'
+import { getActiveDietPlan, type DietPlan } from './diet'
 
 /**
  * Feature 030 — bundle de leitura do portal do paciente (FR-006..FR-010).
@@ -45,6 +47,10 @@ export interface PatientPortalBundle {
   careNotes: CareNote[]
   /** Metas ativas por métrica (seção `metas`). */
   goals: PatientGoal[]
+  /** Plano de treino ativo (seção `treino`), ou null. */
+  workout: WorkoutPlan | null
+  /** Plano alimentar ativo (seção `dieta`), ou null. */
+  diet: DietPlan | null
 }
 
 export async function buildPatientPortalBundle(
@@ -54,15 +60,18 @@ export async function buildPatientPortalBundle(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required for the patient portal')
 
-  const [firstName, vitals, metrics, metricTypes, appointments, careNotes, goals] = await Promise.all([
-    resolvePatientFirstName(supabase, args, key),
-    listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
-    listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
-    listEnabledMetricTypesForTenant(supabase, args.tenantId, { specialty: 'endocrino' }),
-    listPortalAppointments(supabase, args),
-    listCareNotes(supabase, args.tenantId, args.patientId),
-    listGoals(supabase, args.tenantId, args.patientId),
-  ])
+  const [firstName, vitals, metrics, metricTypes, appointments, careNotes, goals, workout, diet] =
+    await Promise.all([
+      resolvePatientFirstName(supabase, args, key),
+      listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
+      listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
+      listEnabledMetricTypesForTenant(supabase, args.tenantId, { specialty: 'endocrino' }),
+      listPortalAppointments(supabase, args),
+      listCareNotes(supabase, args.tenantId, args.patientId),
+      listGoals(supabase, args.tenantId, args.patientId),
+      getActiveWorkoutPlan(supabase, args.tenantId, args.patientId),
+      getActiveDietPlan(supabase, args.tenantId, args.patientId),
+    ])
 
   // Peso/IMC: reusa vital_signs (FR-007), ordem cronológica ascendente,
   // só pontos com peso ou IMC.
@@ -75,7 +84,7 @@ export async function buildPatientPortalBundle(
     }))
     .reverse()
 
-  return { patient: { firstName }, weightImc, metrics, metricTypes, appointments, careNotes, goals }
+  return { patient: { firstName }, weightImc, metrics, metricTypes, appointments, careNotes, goals, workout, diet }
 }
 
 /**

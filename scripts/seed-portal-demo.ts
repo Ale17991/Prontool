@@ -20,7 +20,49 @@ import { recordMeasurement } from '@/lib/core/patient-portal/measurements'
 import { createAppointmentManually } from '@/lib/core/appointments/create-manual'
 import { createCareNote } from '@/lib/core/patient-portal/care-notes'
 import { setGoal } from '@/lib/core/patient-portal/goals'
+import { createWorkoutPlan } from '@/lib/core/patient-portal/workout'
+import { createDietPlan } from '@/lib/core/patient-portal/diet'
 import { updatePatientPortalConfig } from '@/lib/core/patient-portal/portal-config'
+
+const DEMO_WORKOUT_SESSIONS = [
+  { name: 'Treino A', focus: 'Peito e tríceps', exercises: [
+    { name: 'Supino reto', sets: 4, reps: '10', loadKg: null, restSeconds: 90, notes: null },
+    { name: 'Supino inclinado com halteres', sets: 3, reps: '12', loadKg: null, restSeconds: 60, notes: null },
+    { name: 'Tríceps na corda', sets: 3, reps: '15', loadKg: null, restSeconds: 45, notes: null },
+  ]},
+  { name: 'Treino B', focus: 'Costas e bíceps', exercises: [
+    { name: 'Puxada frontal', sets: 4, reps: '10', loadKg: null, restSeconds: 90, notes: null },
+    { name: 'Remada curvada', sets: 3, reps: '12', loadKg: null, restSeconds: 60, notes: null },
+    { name: 'Rosca direta', sets: 3, reps: '12', loadKg: null, restSeconds: 45, notes: null },
+  ]},
+  { name: 'Treino C', focus: 'Pernas', exercises: [
+    { name: 'Agachamento livre', sets: 4, reps: '10', loadKg: null, restSeconds: 120, notes: null },
+    { name: 'Leg press', sets: 3, reps: '12', loadKg: null, restSeconds: 90, notes: null },
+    { name: 'Panturrilha em pé', sets: 4, reps: '20', loadKg: null, restSeconds: 45, notes: null },
+  ]},
+]
+
+const DEMO_DIET_MEALS = [
+  { name: 'Café da manhã', timeLabel: '07:00', notes: null, items: [
+    { food: '2 ovos mexidos', quantity: null, notes: null },
+    { food: 'Pão integral', quantity: '1 fatia', notes: null },
+    { food: 'Fruta', quantity: '1 unidade', notes: null },
+  ]},
+  { name: 'Almoço', timeLabel: '12:30', notes: null, items: [
+    { food: 'Arroz integral', quantity: '4 col. sopa', notes: null },
+    { food: 'Feijão', quantity: '1 concha', notes: null },
+    { food: 'Frango grelhado', quantity: '150 g', notes: null },
+    { food: 'Salada', quantity: 'à vontade', notes: null },
+  ]},
+  { name: 'Lanche', timeLabel: '16:00', notes: null, items: [
+    { food: 'Iogurte natural', quantity: '1 pote', notes: null },
+    { food: 'Castanhas', quantity: '1 punhado', notes: null },
+  ]},
+  { name: 'Jantar', timeLabel: '19:30', notes: null, items: [
+    { food: 'Omelete de legumes', quantity: null, notes: null },
+    { food: 'Salada verde', quantity: 'à vontade', notes: null },
+  ]},
+]
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 
@@ -278,6 +320,10 @@ async function seedPatient(
   const currentWeight = p.weightStartKg - 5 * 1.2
   await setGoal(sb, { tenantId: ctx.tenantId, patientId, metricType: 'peso_kg', direction: 'decrease', targetValue: Math.round((currentWeight - 4) * 10) / 10, actorUserId: ctx.actorUserId })
   await setGoal(sb, { tenantId: ctx.tenantId, patientId, metricType: 'glicemia_jejum', direction: 'decrease', targetValue: 90, actorUserId: ctx.actorUserId })
+
+  // Planos de treino e dieta (aparecem nas colunas laterais do portal).
+  await createWorkoutPlan(sb, { tenantId: ctx.tenantId, patientId, title: 'Treino de hipertrofia — A/B/C', notes: 'Treinar 3x por semana, com 1 dia de descanso entre os treinos.', sessions: DEMO_WORKOUT_SESSIONS, actorUserId: ctx.actorUserId })
+  await createDietPlan(sb, { tenantId: ctx.tenantId, patientId, title: 'Plano alimentar — manutenção', notes: 'Beber 2L de água por dia. Evitar açúcar e ultraprocessados.', meals: DEMO_DIET_MEALS, actorUserId: ctx.actorUserId })
 
   const [d, mo, y] = p.birthDate.split('-').reverse() // YYYY-MM-DD → [DD, MM, YYYY]
   console.log(`  ✓ ${p.fullName}  ·  login: CPF ${p.cpf} · nascimento ${d}${mo}${y}`)
