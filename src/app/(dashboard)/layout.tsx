@@ -10,6 +10,8 @@ import type { Database } from '@/lib/db/types'
 import { DashboardShell } from './_components/dashboard-shell'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { getUserProfile } from '@/lib/core/user-profile/read'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import { ALL_MODULES, buildEntitlements } from '@/lib/core/entitlements/plans'
 import { getAvailableTenants } from '@/lib/auth/available-tenants'
 import { logger } from '@/lib/observability/logger'
 
@@ -84,9 +86,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     tenant_ids: availableTenants.map((t) => t.tenantId),
   })
 
-  const [clinicProfile, userProfile] = await Promise.all([
+  const [clinicProfile, userProfile, entitlements] = await Promise.all([
     getClinicProfile(supabase, session.tenantId).catch(() => null),
     getUserProfile(supabase, session.userId, session.email ?? null).catch(() => null),
+    // Feature 031 — plano/módulos do tenant. Falha ⇒ legacy/full (nunca
+    // bloqueia o dashboard por erro de leitura de entitlement).
+    getTenantEntitlements(supabase, session.tenantId).catch(() =>
+      buildEntitlements('legacy', [...ALL_MODULES]),
+    ),
   ])
 
   // Feature 010 (R13) — tenants.name é a fonte primária do nome de exibição.
@@ -105,6 +112,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       isMultiTenant={availableTenants.length > 1}
       userAvatarUrl={userProfile?.avatar?.signedUrl ?? null}
       userFullName={userProfile?.fullName ?? null}
+      entitlements={{ plan: entitlements.plan, modules: entitlements.modules }}
     >
       {children}
     </DashboardShell>

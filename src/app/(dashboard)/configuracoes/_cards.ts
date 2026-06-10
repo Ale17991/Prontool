@@ -16,6 +16,7 @@ import {
 import type { Route } from 'next'
 import { can } from '@/lib/auth/rbac'
 import type { FeatureName } from '@/lib/feature-flags'
+import type { Entitlements } from '@/lib/core/entitlements/plans'
 import type { TenantRole } from '@/lib/db/types'
 
 /**
@@ -44,6 +45,8 @@ export type HubCardId =
 export interface HubCardCtx {
   role: TenantRole
   flags: Record<FeatureName, boolean>
+  /** Feature 031 — plano/módulos do tenant. */
+  ent: Entitlements
 }
 
 export interface HubCardDef {
@@ -110,7 +113,7 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     title: 'Modelos de Anamnese',
     description: 'Modelos clínicos reutilizáveis nos atendimentos.',
     icon: ClipboardCheck,
-    show: ({ role, flags }) => flags.anamnese && role === 'admin',
+    show: ({ role, flags, ent }) => flags.anamnese && ent.has('anamnese') && role === 'admin',
   },
   {
     id: 'agendamento-publico',
@@ -126,7 +129,7 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     title: 'Portal do paciente',
     description: 'Paciente acompanha evolução e métricas; defina o que aparece.',
     icon: HeartPulse,
-    show: ({ role }) => can(role, 'patient_portal.config'),
+    show: ({ role, ent }) => ent.hasModule('portal_paciente') && can(role, 'patient_portal.config'),
   },
   {
     id: 'lembretes',
@@ -140,7 +143,7 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     id: 'integracoes',
     href: '/configuracoes/integracoes',
     title: 'Integrações',
-    description: 'Conexões com WhatsApp, GHL e outros sistemas.',
+    description: 'Conexões com WhatsApp, Homio e outros sistemas.',
     icon: Plug,
     show: ({ role }) => role === 'admin',
   },
@@ -150,7 +153,7 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     title: 'Auditoria',
     description: 'Trilha completa de alterações e acessos sensíveis.',
     icon: ScrollText,
-    show: ({ role }) => can(role, 'audit.read'),
+    show: ({ role, ent }) => ent.has('auditoria') && can(role, 'audit.read'),
   },
 ]
 

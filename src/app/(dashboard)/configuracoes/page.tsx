@@ -1,7 +1,11 @@
 import { redirect } from 'next/navigation'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { Settings } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import type { Database } from '@/lib/db/types'
 import { listFeatureFlags } from '@/lib/feature-flags'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { getVisibleHubCards } from './_cards'
 import { HubCard } from './_components/hub-card'
 
@@ -24,7 +28,9 @@ export default async function ConfiguracoesPage() {
   if (!session) redirect('/login')
 
   const flags = listFeatureFlags()
-  const cards = getVisibleHubCards({ role: session.role, flags })
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+  const ent = await getTenantEntitlements(supabase, session.tenantId)
+  const cards = getVisibleHubCards({ role: session.role, flags, ent })
 
   return (
     <div className="space-y-6">

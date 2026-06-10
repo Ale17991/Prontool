@@ -3499,6 +3499,44 @@ export type Database = {
           },
         ]
       }
+      tenant_entitlements: {
+        Row: {
+          created_at: string
+          modules: string[]
+          plan: string
+          status: string
+          tenant_id: string
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          modules?: string[]
+          plan: string
+          status?: string
+          tenant_id: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          modules?: string[]
+          plan?: string
+          status?: string
+          tenant_id?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_entitlements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_ghl_config: {
         Row: {
           field_map_appointment_timestamp: string | null
@@ -5202,6 +5240,29 @@ export type Database = {
       }
       session_text: { Args: { key: string }; Returns: string }
       session_uuid: { Args: { key: string }; Returns: string }
+      set_tenant_entitlement: {
+        Args: {
+          p_modules?: string[]
+          p_plan: string
+          p_status?: string
+          p_tenant_id: string
+        }
+        Returns: {
+          created_at: string
+          modules: string[]
+          plan: string
+          status: string
+          tenant_id: string
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tenant_entitlements"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       tenant_cash_balance_at: {
         Args: { p_date: string; p_tenant_id: string }
         Returns: number
