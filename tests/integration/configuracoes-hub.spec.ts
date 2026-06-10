@@ -16,6 +16,10 @@ import {
 } from '@/app/(dashboard)/configuracoes/_cards'
 import type { TenantRole } from '@/lib/db/types'
 import type { FeatureName } from '@/lib/feature-flags'
+import { ALL_MODULES, buildEntitlements } from '@/lib/core/entitlements/plans'
+
+// Acesso total (legacy): isola estes testes do gate de plano (testado à parte).
+const FULL_ENT = buildEntitlements('legacy', [...ALL_MODULES])
 
 const ALL_FLAGS_ON: Record<FeatureName, boolean> = {
   despesas: true,
@@ -32,7 +36,7 @@ const ALL_FLAGS_OFF: Record<FeatureName, boolean> = {
 }
 
 function ctx(role: TenantRole, flags = ALL_FLAGS_ON): HubCardCtx {
-  return { role, flags }
+  return { role, flags, ent: FULL_ENT }
 }
 
 describe('HUB_CARDS — invariantes estruturais', () => {

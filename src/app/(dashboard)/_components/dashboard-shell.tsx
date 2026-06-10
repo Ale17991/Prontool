@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
 import { listFeatureFlags } from '@/lib/feature-flags'
+import { buildEntitlements, type ModuleId, type Plan } from '@/lib/core/entitlements/plans'
 import type { TenantRole } from '@/lib/db/types'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import {
@@ -54,6 +55,8 @@ interface DashboardShellProps {
   userAvatarUrl?: string | null
   /** Feature 009 — nome completo. null = fallback para email. */
   userFullName?: string | null
+  /** Feature 031 — plano + módulos do tenant (serializado pelo layout). */
+  entitlements?: { plan: Plan; modules: ModuleId[] }
   children: ReactNode
 }
 
@@ -66,12 +69,14 @@ export function DashboardShell({
   isMultiTenant = false,
   userAvatarUrl = null,
   userFullName = null,
+  entitlements = { plan: 'legacy', modules: [...['tiss', 'portal_paciente', 'telemedicina', 'crm'] as ModuleId[]] },
   children,
 }: DashboardShellProps) {
   const pathname = usePathname() ?? ''
   const router = useRouter()
   const flags = listFeatureFlags()
-  const ctx: NavContext = { role, flags }
+  const ent = buildEntitlements(entitlements.plan, entitlements.modules)
+  const ctx: NavContext = { role, flags, ent }
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
