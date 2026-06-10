@@ -12,7 +12,7 @@
 
 import { notFound, redirect } from 'next/navigation'
 import { cookies, headers } from 'next/headers'
-import { CalendarDays, LineChart } from 'lucide-react'
+import { CalendarDays, ClipboardList, LineChart } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolvePortalClinicBySlug } from '@/lib/core/patient-portal/login'
 import {
@@ -70,6 +70,7 @@ export default async function PacientePainelPage({
   const enabled = new Set(enabledList)
   const showMetricas = enabled.has('metricas')
   const showAtendimentos = enabled.has('atendimentos')
+  const showOrientacoes = enabled.has('orientacoes')
 
   const h = headers()
   const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
@@ -85,7 +86,9 @@ export default async function PacientePainelPage({
   const hasAnyMetric = Object.values(bundle.metrics).some((s) => s.length > 0)
   const hasMetricData = bundle.weightImc.length > 0 || hasAnyMetric
   const hasVisibleContent =
-    (showMetricas && hasMetricData) || (showAtendimentos && bundle.appointments.length > 0)
+    (showMetricas && hasMetricData) ||
+    (showAtendimentos && bundle.appointments.length > 0) ||
+    (showOrientacoes && bundle.careNotes.length > 0)
 
   return (
     <div className="space-y-6">
@@ -109,6 +112,27 @@ export default async function PacientePainelPage({
           <CardContent className="p-6 text-center text-sm text-slate-500">
             Ainda não há informações para exibir. Assim que a equipe da clínica
             registrar seus dados, eles aparecem aqui.
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {showOrientacoes && bundle.careNotes.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <ClipboardList className="h-4 w-4 text-primary" />
+              Orientações da equipe
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {bundle.careNotes.map((n) => (
+              <div key={n.id} className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+                <p className="whitespace-pre-wrap text-sm text-slate-700">{n.body}</p>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  {formatDateTimePtBr(n.createdAt)}
+                </p>
+              </div>
+            ))}
           </CardContent>
         </Card>
       ) : null}
