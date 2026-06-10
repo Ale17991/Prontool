@@ -39,20 +39,22 @@ export interface PortalSectionDef {
   sensitivity: SectionSensitivity
   /** Módulo pago exigido pelo plano. `undefined` = não exige plano. */
   requiredModule?: PortalSectionModule
+  /** Já renderiza no painel do paciente. `false` = "Em breve" (switch desabilitado). */
+  implemented: boolean
   order: number
 }
 
 export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
-  { key: 'atendimentos', label: 'Meus atendimentos', description: 'Histórico de consultas e atendimentos.', defaultEnabled: true, sensitivity: 'baixa', order: 10 },
-  { key: 'metricas', label: 'Minha evolução', description: 'Peso, IMC e métricas de acompanhamento, com tendência.', defaultEnabled: true, sensitivity: 'baixa', order: 20 },
-  { key: 'orientacoes', label: 'Orientações', description: 'Orientações e plano de cuidado escritos pela equipe.', defaultEnabled: false, sensitivity: 'media', order: 30 },
-  { key: 'prescricoes', label: 'Prescrições', description: 'Receitas e prescrições digitais.', defaultEnabled: false, sensitivity: 'media', order: 40 },
-  { key: 'documentos', label: 'Documentos', description: 'Atestados, laudos e declarações.', defaultEnabled: false, sensitivity: 'media', order: 50 },
-  { key: 'exames', label: 'Resultados de exames', description: 'Resultados com interpretação (nunca o valor cru isolado).', defaultEnabled: false, sensitivity: 'alta', order: 60 },
-  { key: 'vacinas', label: 'Vacinas', description: 'Carteira de vacinação.', defaultEnabled: false, sensitivity: 'baixa', order: 70 },
-  { key: 'faturas', label: 'Faturas', description: 'Pagamentos e faturas da clínica.', defaultEnabled: false, sensitivity: 'baixa', order: 80 },
-  { key: 'treino', label: 'Rotina de treino', description: 'Treino prescrito pelo profissional.', defaultEnabled: false, sensitivity: 'baixa', requiredModule: 'treino', order: 90 },
-  { key: 'dieta', label: 'Plano alimentar', description: 'Dieta prescrita pelo nutricionista.', defaultEnabled: false, sensitivity: 'media', requiredModule: 'dieta', order: 100 },
+  { key: 'atendimentos', label: 'Meus atendimentos', description: 'Histórico de consultas e atendimentos.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 10 },
+  { key: 'metricas', label: 'Minha evolução', description: 'Peso, IMC e métricas de acompanhamento, com tendência.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 20 },
+  { key: 'orientacoes', label: 'Orientações', description: 'Orientações e plano de cuidado escritos pela equipe.', defaultEnabled: false, sensitivity: 'media', implemented: true, order: 30 },
+  { key: 'prescricoes', label: 'Prescrições', description: 'Receitas e prescrições digitais.', defaultEnabled: false, sensitivity: 'media', implemented: false, order: 40 },
+  { key: 'documentos', label: 'Documentos', description: 'Atestados, laudos e declarações.', defaultEnabled: false, sensitivity: 'media', implemented: false, order: 50 },
+  { key: 'exames', label: 'Resultados de exames', description: 'Resultados com interpretação (nunca o valor cru isolado).', defaultEnabled: false, sensitivity: 'alta', implemented: false, order: 60 },
+  { key: 'vacinas', label: 'Vacinas', description: 'Carteira de vacinação.', defaultEnabled: false, sensitivity: 'baixa', implemented: false, order: 70 },
+  { key: 'faturas', label: 'Faturas', description: 'Pagamentos e faturas da clínica.', defaultEnabled: false, sensitivity: 'baixa', implemented: false, order: 80 },
+  { key: 'treino', label: 'Rotina de treino', description: 'Treino prescrito pelo profissional.', defaultEnabled: false, sensitivity: 'baixa', requiredModule: 'treino', implemented: false, order: 90 },
+  { key: 'dieta', label: 'Plano alimentar', description: 'Dieta prescrita pelo nutricionista.', defaultEnabled: false, sensitivity: 'media', requiredModule: 'dieta', implemented: false, order: 100 },
 ]
 
 const BY_KEY = new Map<string, PortalSectionDef>(PORTAL_SECTIONS.map((s) => [s.key, s]))

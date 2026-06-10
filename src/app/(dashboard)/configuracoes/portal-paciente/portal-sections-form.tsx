@@ -51,7 +51,8 @@ export function PortalSectionsForm({ initialSections }: Props) {
         <ul className="divide-y divide-slate-100">
           {sections.map((s) => {
             const sens = SENS_LABEL[s.sensitivity]
-            const locked = !s.allowedByPlan
+            const comingSoon = !s.implemented
+            const locked = comingSoon || !s.allowedByPlan
             return (
               <li key={s.key} className="flex items-center justify-between gap-3 py-2.5">
                 <div className="min-w-0">
@@ -64,7 +65,11 @@ export function PortalSectionsForm({ initialSections }: Props) {
                     ) : null}
                   </p>
                   <p className="text-[11px] text-slate-500">{s.description}</p>
-                  {locked ? (
+                  {comingSoon ? (
+                    <span className="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                      Em breve
+                    </span>
+                  ) : !s.allowedByPlan ? (
                     <p className="mt-0.5 text-[11px] font-medium text-slate-400">
                       Requer o módulo “{s.requiredModule}” no seu plano.
                     </p>
@@ -83,7 +88,7 @@ export function PortalSectionsForm({ initialSections }: Props) {
                     onChange={(e) => toggle(s.key, e.target.checked)}
                     className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-40"
                   />
-                  {s.enabled ? 'Visível' : 'Oculta'}
+                  {comingSoon ? 'Em breve' : s.enabled ? 'Visível' : 'Oculta'}
                 </label>
               </li>
             )
