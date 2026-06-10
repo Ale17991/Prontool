@@ -1,8 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getSession } from '@/lib/auth/get-session'
-import { isPlatformAdmin } from '@/lib/auth/platform-admin'
+import { platformAdminUserId } from '@/lib/auth/platform-admin'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 
 const PLANS = ['essencial', 'pro', 'clinica', 'legacy']
@@ -22,8 +21,7 @@ export async function setTenantPlanAction(input: {
   plan: string
   modules: string[]
 }): Promise<AdminActionResult> {
-  const session = await getSession()
-  if (!session || !(await isPlatformAdmin(session.userId))) {
+  if (!(await platformAdminUserId())) {
     return { ok: false, error: 'Não autorizado.' }
   }
   if (!input.tenantId || !PLANS.includes(input.plan)) {

@@ -128,6 +128,11 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/paciente/') ||
     pathname === '/paciente' ||
     pathname.startsWith('/api/paciente/') ||
+    // Feature 031 — painel Admin-Agência: papel de plataforma (cross-tenant).
+    // Não passa pelo gate de tenant/onboarding; a própria rota verifica
+    // platform_admins (requirePlatformAdmin → 404 para não-admin).
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next()
