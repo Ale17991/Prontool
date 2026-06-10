@@ -17,21 +17,6 @@ import { Label } from '@/components/ui/label'
  * - 429 mostra orientação de aguardar (FR-017).
  */
 
-function maskCpf(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 11)
-  return d
-    .replace(/^(\d{3})(\d)/, '$1.$2')
-    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2')
-}
-
-function maskBirthdate(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 8)
-  if (d.length <= 2) return d
-  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`
-  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`
-}
-
 export function PatientLoginForm({ slug }: { slug: string }) {
   const router = useRouter()
   const [cpf, setCpf] = useState('')
@@ -93,27 +78,24 @@ export function PatientLoginForm({ slug }: { slug: string }) {
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="pp_cpf">CPF</Label>
+            <Label htmlFor="pp_login">Login</Label>
             <Input
-              id="pp_cpf"
+              id="pp_login"
               inputMode="numeric"
-              autoComplete="off"
-              placeholder="000.000.000-00"
+              autoComplete="username"
               value={cpf}
-              onChange={(e) => setCpf(maskCpf(e.target.value))}
+              onChange={(e) => setCpf(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="pp_birth">Data de nascimento</Label>
+            <Label htmlFor="pp_password">Senha</Label>
             <Input
-              id="pp_birth"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="DD/MM/AAAA"
+              id="pp_password"
+              type="password"
+              autoComplete="current-password"
               value={birthdate}
-              onChange={(e) => setBirthdate(maskBirthdate(e.target.value))}
+              onChange={(e) => setBirthdate(e.target.value)}
             />
-            <p className="text-[11px] text-slate-400">Somente números — dia, mês e ano.</p>
           </div>
 
           <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/60 p-3 text-xs text-slate-600">
