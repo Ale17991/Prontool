@@ -1,8 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getSession } from '@/lib/auth/get-session'
-import { isPlatformAdmin } from '@/lib/auth/platform-admin'
+import { superAdminUserId } from '@/lib/auth/platform-admin'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 
 const PLANS = ['essencial', 'pro', 'clinica', 'legacy']
@@ -14,16 +13,14 @@ export interface AdminActionResult {
 }
 
 /**
- * Feature 031 — define plano/módulos de um tenant (painel Admin-Agência).
- * Re-verifica Admin-Agência (defense-in-depth) antes de escrever.
+ * Feature 031 — define plano/módulos de um tenant. Só admin GERAL (is_super).
  */
 export async function setTenantPlanAction(input: {
   tenantId: string
   plan: string
   modules: string[]
 }): Promise<AdminActionResult> {
-  const session = await getSession()
-  if (!session || !(await isPlatformAdmin(session.userId))) {
+  if (!(await superAdminUserId())) {
     return { ok: false, error: 'Não autorizado.' }
   }
   if (!input.tenantId || !PLANS.includes(input.plan)) {
@@ -39,6 +36,54 @@ export async function setTenantPlanAction(input: {
     p_status: 'active',
   } as never)
   if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin')
+  return { ok: true }
+}
+
+/**
+ * Feature 031 — atribui (on=true) ou remove (on=false) uma clínica de um
+ * usuário de SUPORTE (platform_admins.is_super=false). Só admin GERAL.
+ */
+export async function setSupportTenantAccessAction(input: {
+  supportUserId: string
+  tenantId: string
+  on: boolean
+}): Promise<AdminActionResult> {
+  if (!(await superAdminUserId())) {
+    return { ok: false, error: 'Não autorizado.' }
+  }
+  if (!input.supportUserId || !input.tenantId) {
+    return { ok: false, error: 'Parâmetros inválidos.' }
+  }
+  const sb: any = createSupabaseServiceClient()
+
+  // Garante que o alvo é um usuário de suporte (não-super).
+  const target = await sb
+    .from('platform_admins')
+    .select('user_id, is_super')
+    .eq('user_id', input.supportUserId)
+    .maybeSingle()
+  if (!target.data || target.data.is_super) {
+    return { ok: false, error: 'Alvo não é um usuário de suporte.' }
+  }
+
+  if (input.on) {
+    const { error } = await sb
+      .from('platform_admin_tenants')
+      .upsert(
+        { user_id: input.supportUserId, tenant_id: input.tenantId },
+        { onConflict: 'user_id,tenant_id' },
+      )
+    if (error) return { ok: false, error: error.message }
+  } else {
+    const { error } = await sb
+      .from('platform_admin_tenants')
+      .delete()
+      .eq('user_id', input.supportUserId)
+      .eq('tenant_id', input.tenantId)
+    if (error) return { ok: false, error: error.message }
+  }
 
   revalidatePath('/admin')
   return { ok: true }
