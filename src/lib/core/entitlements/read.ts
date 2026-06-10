@@ -27,8 +27,11 @@ export async function getTenantEntitlements(
     .select('plan, status, modules')
     .eq('tenant_id', tenantId)
     .maybeSingle()
-  if (error) throw new Error(`getTenantEntitlements: ${error.message}`)
-  if (!data) return buildEntitlements('legacy', [...ALL_MODULES])
+  // Fail-open: erro de leitura OU ausência de row ⇒ legacy/full. Não bloqueia
+  // ninguém por erro transitório, nem antes da migration 0115 estar aplicada
+  // no ambiente (código pode subir antes da migração rodar). Grandfather é a
+  // postura segura aqui — gating mais restrito sempre vem de uma row explícita.
+  if (error || !data) return buildEntitlements('legacy', [...ALL_MODULES])
 
   const row = data as { plan: string; status: string; modules: string[] | null }
   const plan: Plan = VALID_PLANS.has(row.plan) ? (row.plan as Plan) : 'legacy'
