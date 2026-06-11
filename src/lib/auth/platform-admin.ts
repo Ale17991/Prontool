@@ -51,7 +51,14 @@ async function currentUserId(): Promise<string | null> {
   try {
     const supabase = createSupabaseServerClient()
     const { data } = await supabase.auth.getUser()
-    return data.user?.id ?? null
+    if (data.user?.id) return data.user.id
+    // Fallback: em Server Component o access token pode estar momentaneamente
+    // stale (o middleware renova no response, mas o render lê o cookie da
+    // request) e `getUser` devolve null (401 no /user). `getSession` lê a
+    // sessão do cookie sem 401 — a identidade é cruzada com platform_admins
+    // (is_super) no DB logo em seguida, então é seguro para este guard.
+    const { data: s } = await supabase.auth.getSession()
+    return s.session?.user?.id ?? null
   } catch {
     return null
   }
