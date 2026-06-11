@@ -37,6 +37,15 @@ function isApiRoute(pathname: string): boolean {
   return pathname.startsWith('/api/')
 }
 
+/**
+ * Feature 031 — painel Admin-Agência (papel de plataforma, cross-tenant). Passa
+ * pelo refresh de sessão (senão o token expira e a página 404a), mas NÃO pelo
+ * gate de tenant/onboarding — um Admin-Agência pode não ter clínica nenhuma.
+ */
+function isAdminRoute(pathname: string): boolean {
+  return pathname === '/admin' || pathname.startsWith('/admin/')
+}
+
 function decodeJwtTenantId(accessToken: string | null): string | null {
   if (!accessToken) return null
   const parts = accessToken.split('.')
@@ -128,11 +137,6 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/paciente/') ||
     pathname === '/paciente' ||
     pathname.startsWith('/api/paciente/') ||
-    // Feature 031 — painel Admin-Agência: papel de plataforma (cross-tenant).
-    // Não passa pelo gate de tenant/onboarding; a própria rota verifica
-    // platform_admins (requirePlatformAdmin → 404 para não-admin).
-    pathname === '/admin' ||
-    pathname.startsWith('/admin/') ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next()
@@ -190,7 +194,9 @@ export async function middleware(req: NextRequest) {
     }
 
     // Autenticado sem tenant em rota dashboard -> /onboarding.
-    if (isAuthed && !hasTenant && !isAuthRoute(pathname)) {
+    // /admin é exceção: Admin-Agência pode não ter clínica; a própria rota
+    // valida via requireSuperAdmin (404 para não-admin).
+    if (isAuthed && !hasTenant && !isAuthRoute(pathname) && !isAdminRoute(pathname)) {
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = ONBOARDING_ROUTE
       redirectUrl.search = ''
