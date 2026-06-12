@@ -67,6 +67,36 @@ async function call(
   return json
 }
 
+export interface BusyInterval {
+  /** ISO 8601 UTC. */
+  start: string
+  end: string
+}
+
+/**
+ * Horários OCUPADOS do calendário no intervalo [timeMin, timeMax) — via FreeBusy.
+ * Retorna só os intervalos busy, SEM título/detalhe (privacidade — "só o bloqueio").
+ */
+export async function getFreeBusy(
+  accessToken: string,
+  calendarId: string,
+  timeMinIso: string,
+  timeMaxIso: string,
+): Promise<BusyInterval[]> {
+  const res = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ timeMin: timeMinIso, timeMax: timeMaxIso, items: [{ id: calendarId }] }),
+    signal: AbortSignal.timeout(10000),
+  })
+  const json = (await res.json().catch(() => ({}))) as {
+    calendars?: Record<string, { busy?: Array<{ start: string; end: string }> }>
+  }
+  if (!res.ok) throw new GoogleCalendarApiError(`freeBusy → ${res.status} ${JSON.stringify(json)}`, res.status)
+  const busy = json.calendars?.[calendarId]?.busy ?? []
+  return busy.filter((b) => b.start && b.end).map((b) => ({ start: b.start, end: b.end }))
+}
+
 /** Cria um evento. Retorna o id do evento no Google. */
 export async function createCalendarEvent(
   accessToken: string,

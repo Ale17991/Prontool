@@ -22,6 +22,7 @@ import {
   listAppointmentsForWeek,
 } from '@/lib/core/appointments/list-week'
 import { listScheduleBlocks } from '@/lib/core/schedule-blocks/list'
+import { syncGoogleBusyForAgenda } from '@/lib/core/integrations/google-calendar/busy-sync'
 import { ModeToggle } from './mode-toggle'
 import { CalendarShell } from './calendar-shell'
 import { FilterBarBlock } from './filter-bar-block'
@@ -118,6 +119,19 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
       // Datas em fuso LOCAL (schedule_blocks.block_date e date sem fuso).
       // toISOString().slice(0,10) pegava a data UTC e em fuso UTC-3 o `to`
       // (endOfWeek = 23:59:59 local = next-day UTC) vinha 1 dia a frente.
+      // Entrada do Google Calendar: espelha os horários ocupados da agenda
+      // pessoal do médico como bloqueio (sob demanda + cache de 10min). Só
+      // roda com service client (precisa de PATIENT_DATA_ENCRYPTION_KEY) e
+      // nunca derruba o render. Roda antes do list para já aparecer na janela.
+      if (service) {
+        await syncGoogleBusyForAgenda(service, {
+          tenantId: session.tenantId,
+          doctorId: filters.doctor ?? undefined,
+          fromYmd: format(range.from, 'yyyy-MM-dd'),
+          toYmd: format(range.to, 'yyyy-MM-dd'),
+        })
+      }
+
       const scheduleBlocks = await listScheduleBlocks(supabase, {
         tenantId: session.tenantId,
         from: format(range.from, 'yyyy-MM-dd'),
