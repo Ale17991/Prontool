@@ -2214,6 +2214,7 @@ export type Database = {
           metric_type: string
           min_plausible: number
           specialty: string
+          tenant_id: string | null
           unit: string
         }
         Insert: {
@@ -2225,6 +2226,7 @@ export type Database = {
           metric_type: string
           min_plausible: number
           specialty: string
+          tenant_id?: string | null
           unit: string
         }
         Update: {
@@ -2236,9 +2238,18 @@ export type Database = {
           metric_type?: string
           min_plausible?: number
           specialty?: string
+          tenant_id?: string | null
           unit?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "patient_metric_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_portal_access_log: {
         Row: {

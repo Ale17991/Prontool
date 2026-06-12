@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import { Copy, ExternalLink, Loader2 } from 'lucide-react'
+import { Copy, ExternalLink, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import type {
   MetricSetting,
   PatientPortalConfig,
 } from '@/lib/core/patient-portal/portal-config'
-import { savePortalConfigAction, setMetricEnabledAction } from './actions'
+import { createMetricAction, savePortalConfigAction, setMetricEnabledAction } from './actions'
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{2,31}$/
 
@@ -29,6 +29,49 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
     null,
   )
   const [pending, startTransition] = useTransition()
+
+  // Cadastro de métrica custom.
+  const emptyNew = { label: '', unit: '', min: '', max: '' }
+  const [newMetric, setNewMetric] = useState(emptyNew)
+
+  const newMetricError = useMemo(() => {
+    const { label, unit, min, max } = newMetric
+    if (!label && !unit && !min && !max) return null // form vazio, sem erro
+    if (label.trim().length < 2) return 'Informe um nome (mín. 2 caracteres).'
+    if (unit.trim().length < 1) return 'Informe a unidade (ex.: mg/dL).'
+    const nMin = Number(min)
+    const nMax = Number(max)
+    if (!Number.isFinite(nMin) || !Number.isFinite(nMax)) return 'Faixa plausível inválida.'
+    if (nMax <= nMin) return 'O máximo deve ser maior que o mínimo.'
+    return null
+  }, [newMetric])
+
+  const canAddMetric =
+    newMetric.label.trim().length >= 2 &&
+    newMetric.unit.trim().length >= 1 &&
+    newMetric.min !== '' &&
+    newMetric.max !== '' &&
+    newMetricError === null
+
+  function addMetric() {
+    if (!canAddMetric) return
+    setFeedback(null)
+    startTransition(async () => {
+      const res = await createMetricAction({
+        label: newMetric.label.trim(),
+        unit: newMetric.unit.trim(),
+        minPlausible: Number(newMetric.min),
+        maxPlausible: Number(newMetric.max),
+      })
+      if (res.ok && res.metric) {
+        setMetrics((prev) => [...prev, res.metric!])
+        setNewMetric(emptyNew)
+        setFeedback({ kind: 'ok', message: `Métrica "${res.metric.label}" cadastrada.` })
+      } else {
+        setFeedback({ kind: 'error', message: res.error ?? 'Erro ao cadastrar métrica.' })
+      }
+    })
+  }
 
   const slugError = useMemo(() => {
     if (slug === null || slug === '') {
@@ -178,7 +221,14 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
               {metrics.map((m) => (
                 <li key={m.metricType} className="flex items-center justify-between py-2.5">
                   <div>
-                    <p className="text-sm font-medium text-slate-800">{m.label}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {m.label}
+                      {m.tenantId ? (
+                        <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                          personalizada
+                        </span>
+                      ) : null}
+                    </p>
                     <p className="text-[11px] text-slate-500">
                       Unidade: {m.unit} · faixa plausível {m.minPlausible}–{m.maxPlausible}
                     </p>
@@ -197,6 +247,81 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
               ))}
             </ul>
           )}
+
+          {/* Cadastrar nova métrica personalizada */}
+          <div className="mt-4 rounded-lg border border-dashed border-slate-200 bg-slate-50/60 p-3">
+            <p className="mb-2 text-xs font-semibold text-slate-600">Cadastrar nova métrica</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
+              <div className="space-y-1">
+                <Label htmlFor="new-metric-label" className="text-[11px]">
+                  Nome
+                </Label>
+                <Input
+                  id="new-metric-label"
+                  value={newMetric.label}
+                  maxLength={80}
+                  placeholder="Ex.: Glicemia pós-prandial"
+                  onChange={(e) => setNewMetric((s) => ({ ...s, label: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-metric-unit" className="text-[11px]">
+                  Unidade
+                </Label>
+                <Input
+                  id="new-metric-unit"
+                  value={newMetric.unit}
+                  maxLength={16}
+                  placeholder="mg/dL"
+                  className="sm:w-24"
+                  onChange={(e) => setNewMetric((s) => ({ ...s, unit: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-metric-min" className="text-[11px]">
+                  Mín. plausível
+                </Label>
+                <Input
+                  id="new-metric-min"
+                  type="number"
+                  value={newMetric.min}
+                  placeholder="20"
+                  className="sm:w-24"
+                  onChange={(e) => setNewMetric((s) => ({ ...s, min: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-metric-max" className="text-[11px]">
+                  Máx. plausível
+                </Label>
+                <Input
+                  id="new-metric-max"
+                  type="number"
+                  value={newMetric.max}
+                  placeholder="1000"
+                  className="sm:w-24"
+                  onChange={(e) => setNewMetric((s) => ({ ...s, max: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <p className="text-[11px] text-slate-500">
+                {newMetricError ? (
+                  <span className="text-destructive">{newMetricError}</span>
+                ) : (
+                  'A faixa plausível barra valores impossíveis (typos) — não é faixa de normalidade.'
+                )}
+              </p>
+              <Button size="sm" onClick={addMetric} disabled={pending || !canAddMetric}>
+                {pending ? (
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                ) : (
+                  <Plus className="mr-1 h-3 w-3" />
+                )}
+                Adicionar
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
