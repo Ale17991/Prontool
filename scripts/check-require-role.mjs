@@ -37,6 +37,7 @@ const AUTH_EXEMPT_PREFIXES = [
   'platform/',          // PLATFORM_OPERATOR_TOKEN (ops globais cross-tenant)
   'health',             // público por design (middleware.ts PUBLIC_PATHS)
   'oauth/ghl/callback', // state HMAC + cookie (feature 008)
+  'oauth/google-calendar/callback', // state HMAC + cookie (Google Agenda)
   'sso/ghl',            // GHL Marketplace context_token JWT (feature 008)
   'auth/signup',        // signup público (feature 010 US2 — FR-009)
   'onboarding',         // pós-signup, sem tenant claim ainda (feature 010 US2 — FR-014)
