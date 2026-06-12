@@ -80,7 +80,7 @@ export async function listMetricSettings(
   args: { specialty?: string } = {},
 ): Promise<MetricSetting[]> {
   const [types, settingsRes] = await Promise.all([
-    listMetricTypes(supabase, args),
+    listMetricTypes(supabase, { ...args, tenantId }),
     supabase
       .from('tenant_patient_metric_settings')
       .select('metric_type, enabled')

@@ -100,6 +100,14 @@ export async function recordMeasurement(
       { status: 422 },
     )
   }
+  // Métrica custom (tenant_id setado) só vale para a clínica dona.
+  if (metricType.tenantId !== null && metricType.tenantId !== input.tenantId) {
+    throw new DomainError(
+      'METRIC_TYPE_UNKNOWN',
+      `Métrica "${input.metricType}" não existe no catálogo (ou está desativada).`,
+      { status: 422 },
+    )
+  }
   if (input.value < metricType.minPlausible || input.value > metricType.maxPlausible) {
     throw new DomainError(
       'MEASUREMENT_OUT_OF_RANGE',
