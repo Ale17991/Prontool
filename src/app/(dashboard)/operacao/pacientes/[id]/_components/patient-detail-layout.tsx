@@ -9,6 +9,8 @@ import { PatientQuickView } from './patient-quick-view'
 import { ClinicalTimeline } from './clinical-timeline'
 import { CadastroTab } from './cadastro-tab'
 import { CareNotesEditor } from '../care-notes-editor'
+import { WorkoutEditor } from '../workout-editor'
+import { DietEditor } from '../diet-editor'
 import { PatientEvolutionTab } from './patient-evolution-tab'
 import { NewEvolutionSheet } from './sheets/new-evolution-sheet'
 import { NewAnamneseSheet } from './sheets/new-anamnese-sheet'
@@ -226,7 +228,11 @@ export function PatientDetailLayout({
                 isAnonymized={isAnonymized}
               />
               {!isAnonymized ? (
-                <CareNotesEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                <>
+                  <CareNotesEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  <WorkoutEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  <DietEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                </>
               ) : null}
             </TabsContent>
             {!isAnonymized ? (
