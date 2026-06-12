@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { Salad, Loader2, Plus, Trash2, ChevronDown } from 'lucide-react'
+import { Salad, Loader2, Plus, Trash2, ChevronDown, GripVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -68,6 +68,22 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
   const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
   const [meals, setMeals] = useState<MealForm[]>([emptyMeal()])
+
+  // Reordenação por arrastar (drag nativo, sem dep). `dragIndex` = card em
+  // movimento; `dragEnabled` = card com `draggable` ligado (só pela alça, pra
+  // não atrapalhar a seleção de texto nos inputs).
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragEnabled, setDragEnabled] = useState<number | null>(null)
+
+  function moveMeal(from: number, to: number) {
+    setMeals((prev) => {
+      if (from === to || from < 0 || to < 0 || from >= prev.length || to >= prev.length) return prev
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved!)
+      return next
+    })
+  }
 
   useEffect(() => {
     let off = false
@@ -194,8 +210,36 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
             </div>
 
             {meals.map((m, mi) => (
-              <div key={mi} className="rounded-lg border border-slate-200 bg-slate-50/50 p-3">
+              <div
+                key={mi}
+                draggable={dragEnabled === mi}
+                onDragStart={() => setDragIndex(mi)}
+                onDragEnter={() => {
+                  if (dragIndex !== null && dragIndex !== mi) {
+                    moveMeal(dragIndex, mi)
+                    setDragIndex(mi)
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnd={() => {
+                  setDragIndex(null)
+                  setDragEnabled(null)
+                }}
+                className={`rounded-lg border border-slate-200 bg-slate-50/50 p-3 transition-shadow ${
+                  dragIndex === mi ? 'opacity-60 shadow-lg ring-2 ring-primary/40' : ''
+                }`}
+              >
                 <div className="mb-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label="Arrastar para reordenar"
+                    title="Arraste para reposicionar"
+                    onMouseDown={() => setDragEnabled(mi)}
+                    onMouseUp={() => setDragEnabled(null)}
+                    className="cursor-grab touch-none text-slate-400 hover:text-slate-600 active:cursor-grabbing"
+                  >
+                    <GripVertical className="h-4 w-4" />
+                  </button>
                   <Input
                     value={m.name}
                     onChange={(e) => patchMeal(mi, { name: e.target.value })}
