@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Clinni — Relatório de Mercado e Precificação</title>
+<style>
+  :root{
+    --navy:#0B3256; --navy-2:#12477a; --teal:#1CB8CE; --teal-d:#0E8FA3;
+    --ink:#1f2937; --muted:#64748b; --line:#e2e8f0; --bg:#f4f7fa;
+    --ok:#16a34a; --soft:#eef4f9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+    color:var(--ink); font-size:11px; line-height:1.55; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .page{
+    width:210mm; min-height:297mm; padding:18mm 16mm; margin:0 auto;
+    page-break-after:always; position:relative; background:#fff;
+  }
+  .page:last-child{page-break-after:auto}
+  h1,h2,h3{color:var(--navy); margin:0 0 8px; line-height:1.2}
+  h2{font-size:19px; padding-bottom:6px; border-bottom:3px solid var(--teal); margin-top:4px}
+  h3{font-size:13px; margin-top:18px; color:var(--navy-2)}
+  p{margin:7px 0}
+  .muted{color:var(--muted)}
+  .small{font-size:9.5px}
+  strong{color:var(--navy)}
+  ul{margin:6px 0 6px 0; padding-left:18px}
+  li{margin:4px 0}
+
+  /* ---- Cover ---- */
+  .cover{
+    background:linear-gradient(150deg,var(--navy) 0%, #0a2640 55%, #08314f 100%);
+    color:#fff; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .cover h1{color:#fff; font-size:40px; letter-spacing:-1px; margin:0}
+  .brand{display:flex; align-items:center; gap:12px; font-size:26px; font-weight:800; letter-spacing:-.5px}
+  .brand .dot{width:16px;height:16px;border-radius:50%;background:var(--teal);display:inline-block;box-shadow:0 0 0 5px rgba(28,184,206,.25)}
+  .cover .sub{font-size:17px; color:#bfe6ee; font-weight:500; margin-top:14px; max-width:140mm}
+  .cover .tagrow{display:flex; gap:8px; flex-wrap:wrap; margin-top:22px}
+  .tag{background:rgba(255,255,255,.10); border:1px solid rgba(28,184,206,.5); color:#e6f6f9; padding:5px 11px; border-radius:30px; font-size:10.5px; font-weight:600}
+  .cover-meta{border-top:1px solid rgba(255,255,255,.2); padding-top:14px; display:flex; justify-content:space-between; color:#9db8cc; font-size:10.5px}
+
+  /* ---- Header strip on content pages ---- */
+  .ph{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--line)}
+  .ph .b{font-weight:800; color:var(--navy); font-size:13px; letter-spacing:-.3px}
+  .ph .b .dot{width:9px;height:9px;border-radius:50%;background:var(--teal);display:inline-block;margin-right:6px}
+  .ph .n{color:var(--muted); font-size:9.5px}
+
+  /* ---- Stat cards ---- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0}
+  .stat{background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:12px}
+  .stat .v{font-size:21px; font-weight:800; color:var(--teal-d); line-height:1.1}
+  .stat .l{font-size:9px; color:var(--muted); margin-top:5px; line-height:1.35}
+
+  /* ---- Callout ---- */
+  .callout{background:var(--soft); border-left:4px solid var(--teal); border-radius:0 8px 8px 0; padding:11px 14px; margin:12px 0}
+  .callout.navy{background:#0b3256; color:#cfe3f0; border-left-color:var(--teal)}
+  .callout.navy strong{color:#fff}
+
+  /* ---- Tables ---- */
+  table{width:100%; border-collapse:collapse; margin:10px 0; font-size:9.5px}
+  th{background:var(--navy); color:#fff; text-align:left; padding:7px 8px; font-weight:600; font-size:9px}
+  td{padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+  tbody tr:nth-child(even){background:#f8fafc}
+  .hl td{background:#eafafc !important}
+  .center{text-align:center}
+  .yes{color:var(--ok); font-weight:700}
+  .no{color:#cbd5e1; font-weight:700}
+
+  /* ---- Plan cards ---- */
+  .plans{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:14px 0}
+  .plan{border:1px solid var(--line); border-radius:12px; overflow:hidden; display:flex; flex-direction:column}
+  .plan .top{padding:12px 13px; background:var(--soft)}
+  .plan.feat{border:2px solid var(--teal); box-shadow:0 6px 18px rgba(28,184,206,.18)}
+  .plan.feat .top{background:var(--navy); color:#fff}
+  .plan .name{font-size:14px; font-weight:800}
+  .plan .price{font-size:25px; font-weight:800; color:var(--teal-d); margin-top:4px}
+  .plan.feat .price{color:#7fe3f0}
+  .plan .per{font-size:9px; color:var(--muted)}
+  .plan.feat .per{color:#bfe6ee}
+  .plan .ribbon{display:inline-block; background:var(--teal); color:#04313a; font-size:8.5px; font-weight:800; padding:2px 8px; border-radius:20px; margin-bottom:6px; letter-spacing:.3px}
+  .plan ul{padding:11px 13px 13px 26px; margin:0; font-size:9px}
+  .plan li{margin:5px 0}
+  .plan .alvo{font-size:9px; color:var(--muted); margin-top:6px}
+  .plan.feat .alvo{color:#bfe6ee}
+
+  .modgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:12px 0}
+  .mod{border:1px solid var(--line); border-radius:9px; padding:10px 12px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px}
+  .mod .mname{font-weight:700; color:var(--navy); font-size:11px}
+  .mod .mdesc{font-size:8.8px; color:var(--muted); margin-top:3px}
+  .mod .mprice{font-weight:800; color:var(--teal-d); font-size:13px; white-space:nowrap; text-align:right}
+
+  .pill{display:inline-block; font-size:8px; font-weight:700; padding:2px 7px; border-radius:20px; background:#e6f6f9; color:var(--teal-d)}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .footnum{position:absolute; bottom:10mm; right:16mm; color:var(--muted); font-size:9px}
+  .footbrand{position:absolute; bottom:10mm; left:16mm; color:var(--muted); font-size:9px}
+  .recbox{border:2px solid var(--navy); border-radius:12px; padding:14px 16px; margin:12px 0; background:#fbfdff}
+  .recbox h3{margin-top:0}
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="page cover">
+  <div>
+    <div class="brand"><span class="dot"></span>Clinni</div>
+  </div>
+  <div>
+    <h1>Mercado, Concorrência<br>e Precificação</h1>
+    <div class="sub">Análise dos principais players de software de gestão para clínicas no Brasil, dimensionamento de mercado e proposta de planos e preços para o Clinni.</div>
+    <div class="tagrow">
+      <span class="tag">Pesquisa de mercado</span>
+      <span class="tag">9 generalistas + 5 verticais</span>
+      <span class="tag">Modelo de planos</span>
+      <span class="tag">Recomendação de preços</span>
+    </div>
+  </div>
+  <div class="cover-meta">
+    <span>Documento de planejamento empresarial &nbsp;·&nbsp; v1.0</span>
+    <span>Junho de 2026 &nbsp;·&nbsp; Confidencial</span>
+  </div>
+</section>
+
+<!-- ============ SUMÁRIO EXECUTIVO ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">Sumário executivo</div></div>
+  <h2>Sumário executivo</h2>
+  <p>O <strong>Clinni</strong> é um sistema de gestão para clínicas e consultórios <strong>profissão-neutro</strong> (médico, odonto, estética, fisio, psi, multiespecialidade) com arquitetura <strong>modular por área</strong>: um núcleo de operação somado a camadas opcionais — financeiro/repasse, faturamento TISS, prescrição digital (Memed), portal do paciente, agendamento público e integrações/CRM.</p>
+
+  <div class="callout">
+    <strong>Tese central.</strong> O mercado brasileiro está consolidado em dois modelos — cobrança <strong>por profissional</strong> (iClinic, Feegow, Amplimed, Shosp, HiDoctor) e <strong>plano único por clínica</strong> (Clínica nas Nuvens) — com bundling em três camadas e <strong>TISS/telemedicina como gatilhos de upsell</strong>. A modularidade do Clinni é a alavanca natural de expansão de receita.
+  </div>
+
+  <h3>Recomendação em uma frase</h3>
+  <p>Adotar um <strong>modelo híbrido por profissional</strong> com três planos (<strong>Essencial / Pro / Clínica</strong>) acrescido de <strong>módulos à la carte</strong> (TISS, Portal do Paciente, Telemedicina, CRM), posicionando o Clinni no <strong>centro-premium</strong> — entrada em R$ 99/prof, topo em R$ 259/prof — abaixo do teto do iClinic Premium (R$ 299) e do flat da Clínica nas Nuvens (R$ 499), com o TISS como módulo de alto valor regulado.</p>
+
+  <h3>Por que funciona</h3>
+  <ul>
+    <li><strong>Land-and-expand:</strong> entrada acessível + expansão por módulos eleva o ARPA sem aumentar o custo de aquisição.</li>
+    <li><strong>TISS como motor:</strong> obrigatório (RN 501/2022), trabalhoso de fazer à mão e com risco de glosa — a maior disposição a pagar do mercado.</li>
+    <li><strong>Profissão-neutro = TAM maior:</strong> atravessa verticais em vez de competir de frente com cada especialista.</li>
+    <li><strong>Vantagem técnica pronta:</strong> feature flags + RBAC + integrações já são o esqueleto para entitlements por plano.</li>
+  </ul>
+
+  <div class="stats">
+    <div class="stat"><div class="v">US$ 21,9 bi</div><div class="l">Mercado de saúde digital no Brasil até 2030 (CAGR 23,2%)</div></div>
+    <div class="stat"><div class="v">28%</div><div class="l">Fatia de "Gestão de Saúde" — a maior do setor de healthtech</div></div>
+    <div class="stat"><div class="v">R$ 99–259</div><div class="l">Faixa de preço proposta por profissional/mês</div></div>
+    <div class="stat"><div class="v">~R$ 875</div><div class="l">Ticket-exemplo: 4 profissionais no Pro + TISS</div></div>
+  </div>
+  <span class="footbrand">Clinni · Relatório de Precificação</span>
+  <span class="footnum">02</span>
+</section>
+
+<!-- ============ MERCADO ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">1. Tamanho e dinâmica do mercado</div></div>
+  <h2>1. Tamanho e dinâmica do mercado</h2>
+  <p>O Brasil é o <strong>maior ecossistema de healthtech da América Latina</strong>, com 1.216 a 1.919 startups mapeadas e concentrando <strong>64,8% de todo o investimento</strong> em saúde digital da região.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="v">US$ 6,34 bi</div><div class="l">Saúde digital no Brasil em 2024</div></div>
+    <div class="stat"><div class="v">23,2%</div><div class="l">CAGR projetado até 2030</div></div>
+    <div class="stat"><div class="v">1.900+</div><div class="l">Healthtechs mapeadas no país</div></div>
+    <div class="stat"><div class="v">68% / 20%</div><div class="l">Concentração Sudeste / Sul</div></div>
+  </div>
+
+  <h3>Leitura estratégica</h3>
+  <ul>
+    <li><strong>Segmento-alvo é o coração do mercado</strong>, não um nicho: "Gestão de Saúde" responde por 28% do setor; somada a prontuário eletrônico, gestão + prontuário concentram ~25% das healthtechs.</li>
+    <li><strong>Mercado grande, crescendo rápido e fragmentado</strong> entre dezenas de players — há espaço para um produto modular e profissão-neutro que atravesse verticais.</li>
+    <li><strong>Fronteira de expansão:</strong> Norte, Nordeste e Centro-Oeste têm menor penetração e maior sensibilidade a preço — relevante para o desenho do plano de entrada.</li>
+  </ul>
+
+  <div class="callout navy">
+    <strong>Implicação para o Clinni.</strong> O posicionamento profissão-neutro + modular permite endereçar o maior segmento do maior mercado de healthtech da região, "ligando" por tenant apenas as áreas que cada vertical usa — sem o custo de manter produtos verticais separados.
+  </div>
+  <span class="footbrand">Clinni · Relatório de Precificação</span>
+  <span class="footnum">03</span>
+</section>
+
+<!-- ============ CONCORRENTES GENERALISTAS ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">2. Concorrência — generalistas</div></div>
+  <h2>2. Concorrência — players generalistas</h2>
+  <p class="muted small">Valores por profissional de saúde/mês, salvo indicação. Recepção e admin geralmente não são cobrados.</p>
+  <table>
+    <thead><tr>
+      <th>Player</th><th>Grupo</th><th>Modelo</th><th>Entrada</th><th>Topo</th><th>TISS</th><th>Observações</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>iClinic</strong></td><td>Afya</td><td>Por prof., 4 tiers</td><td>R$ 99 (Starter)</td><td>R$ 299 (Premium)</td><td>Plus (R$ 129)</td><td>Sem fidelidade/instalação; Pro (R$ 169) traz financeiro/repasse/estoque</td></tr>
+      <tr><td><strong>Feegow</strong></td><td>Docplanner</td><td>Free + por prof.</td><td>Free (100 pac.) → R$ 129</td><td>R$ 149 (Pro)</td><td>sim</td><td>Plano grátis como isca de aquisição</td></tr>
+      <tr class="hl"><td><strong>Amplimed</strong></td><td>Independente</td><td>Por prof. <strong>+ módulos</strong></td><td>R$ 89–99</td><td>add-ons dobram</td><td>add-on</td><td>Modelo "núcleo + módulos" — o mais próximo do Clinni</td></tr>
+      <tr><td><strong>Clínica nas Nuvens</strong></td><td>Independente</td><td><strong>Plano único (flat)</strong></td><td>R$ 499 (até 3 prof.)</td><td>extra/prof.</td><td>incluso</td><td>Contrato 12 meses; tudo incluído</td></tr>
+      <tr><td><strong>Shosp</strong></td><td>Independente</td><td>Free + 2 tiers</td><td>Free (5 users) → R$ 149</td><td>R$ 229</td><td>Fellowship</td><td>Usuários ilimitados; setup fee; 15% no anual</td></tr>
+      <tr><td><strong>Ninsaúde Apolo</strong></td><td>Independente</td><td>Por prof.</td><td>~R$ 79*</td><td>—</td><td>—</td><td>*ref. histórica; 2 meses grátis no anual</td></tr>
+      <tr><td><strong>HiDoctor</strong></td><td>Centralx</td><td>Por prof. (rampa)</td><td>R$ 89,90 (6m)</td><td>R$ 195</td><td>—</td><td>Marca tradicional; preço sobe após 12 meses</td></tr>
+      <tr><td><strong>ProDoctor</strong></td><td>Independente</td><td>Por prof./uso</td><td>sob consulta</td><td>—</td><td>—</td><td><strong>60 mil+ profissionais</strong> — base instalada gigante</td></tr>
+      <tr><td><strong>Doctoralia Pro</strong></td><td>Docplanner</td><td>Marketplace + agenda</td><td>R$ 200–600</td><td>~R$ 599</td><td>n/a</td><td>Captação de pacientes, não gestão — concorrente parcial</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Anatomia das camadas de preço</h3>
+  <div class="two">
+    <div>
+      <ul>
+        <li><strong>Entrada — R$ 79–99:</strong> agenda + prontuário + prescrição (table-stakes).</li>
+        <li><strong>Intermediário — R$ 129–169:</strong> soma WhatsApp, TISS e financeiro/repasse.</li>
+        <li><strong>Topo — R$ 229–299:</strong> soma telemedicina ilimitada, BI, automações, multiunidade.</li>
+        <li><strong>Flat por clínica — R$ 499:</strong> para quem prefere previsibilidade.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="callout"><strong>Padrões validados pelo mercado:</strong> cobrança por profissional (recepção grátis); bundling em 3 camadas por recurso; TISS e telemedicina sempre como upsell; free/trial para aquisição; ~12–15% de desconto anual; "sem fidelidade" como diferencial de marca.</div>
+    </div>
+  </div>
+  <span class="footbrand">Clinni · Relatório de Precificação</span>
+  <span class="footnum">04</span>
+</section>
+
+<!-- ============ CONCORRENTES POR VERTICAL ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">2.1 Concorrência — verticais</div></div>
+  <h2>2.1 Concorrência por vertical / área</h2>
+  <p>Como o Clinni é profissão-neutro, ele compete em cada nicho contra um especialista. Mapear preço e modelo de cobrança de cada vertical é essencial para empacotar e posicionar.</p>
+  <table>
+    <thead><tr>
+      <th>Vertical</th><th>Players de referência</th><th>Faixa de preço</th><th>Cobrança</th><th>Sensib. a preço</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><strong>Médico / multi</strong></td><td>iClinic, Feegow, Amplimed, HiDoctor, ProDoctor</td><td>R$ 89–299/prof</td><td>Por profissional</td><td>Média</td></tr>
+      <tr><td><strong>Odontologia</strong></td><td>Simples Dental (R$ 137–321), Clinicorp (R$ 150+), Dental Office (R$ 40)</td><td>R$ 137–349/clínica</td><td>Por clínica + add-ons</td><td>Média-alta</td></tr>
+      <tr><td><strong>Estética</strong></td><td>Iter (R$ 39+), Estetia (R$ 149–597), Belasis</td><td>R$ 39–597</td><td>Por clínica</td><td><strong>Alta</strong></td></tr>
+      <tr><td><strong>Psicologia</strong></td><td>Clínica Ágil (R$ 199/3 users), ElloTools (R$ 49,90), PsicoManager</td><td>R$ 49–199</td><td>Por bundle de users</td><td><strong>Muito alta</strong></td></tr>
+      <tr><td><strong>Fisioterapia</strong></td><td>ZenFisio (R$ 79/179/439), Clinora (R$ 49,90), Simples Agenda (R$ 39,90)</td><td>R$ 39–439</td><td>Por user/clínica</td><td>Alta</td></tr>
+      <tr><td><strong>Veterinária</strong></td><td>SimplesVet (base + módulos), Vetus (R$ 200–250)</td><td>R$ 200–250 + módulos</td><td>Por clínica + add-ons</td><td>Média</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Conclusões que mudam o desenho dos planos</h3>
+  <ul>
+    <li><strong>O modelo de cobrança muda por vertical.</strong> Médico → por profissional. Odonto, estética, fisio e vet → tendem a <strong>por clínica</strong>. Suportar os dois modos é requisito competitivo (resolvido com o plano flat Solo).</li>
+    <li><strong>A modularização é validada nos nichos mais maduros:</strong> odonto (Simples Dental marca features pagas à parte) e veterinária (SimplesVet vende módulo fiscal por R$ 153 e internação por R$ 136). É exatamente a arquitetura do Clinni.</li>
+    <li><strong>Sensibilidade a preço altíssima em psi, estética e fisio</strong> (piso R$ 39–50): não dá para atacar com o preço médico cheio — o plano Solo e o Essencial enxuto capturam o consultório solo sem destruir a margem do Pro.</li>
+    <li><strong>Cada vertical tem feature-âncora própria:</strong> odonto = orçamento + ortodontia + contratos; estética = fotos antes/depois + pacotes; fisio/psi = evolução de sessão + teleatendimento; vet = estoque + vacinas + internação.</li>
+  </ul>
+  <span class="footbrand">Clinni · Relatório de Precificação</span>
+  <span class="footnum">05</span>
+</section>
+
+<!-- ============ MÓDULOS DO CLINNI ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">3. O produto em módulos por área</div></div>
+  <h2>3. O Clinni mapeado em módulos por área</h2>
+  <p>A base de código já está organizada em áreas funcionais — esta é a matéria-prima do empacotamento comercial.</p>
+  <table>
+    <thead><tr><th>Área</th><th>Capacidades</th><th>Natureza</th><th>Onde monetiza</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Núcleo / Operação</strong></td><td>Agenda, pacientes, prontuário + timeline + anamnese + sinais vitais, tarefas, agendamento público, lembretes</td><td>Table-stakes</td><td>Plano base</td></tr>
+      <tr><td><strong>Prescrição (Memed)</strong></td><td>Integração + conformidade Memed</td><td>Diferencial; grátis ao médico</td><td>Núcleo (custo zero)</td></tr>
+      <tr class="hl"><td><strong>Financeiro &amp; Repasse</strong></td><td>Contas a pagar/receber, fluxo de caixa, despesas, impostos, repasse médico, comissões, relatórios, dashboard</td><td>Alto valor de gestão</td><td>Tier intermediário</td></tr>
+      <tr class="hl"><td><strong>Faturamento TISS</strong></td><td>Config por operadora, guias, lotes, glosas, XML assinado ICP-Brasil</td><td><strong>Regulado, alto valor</strong></td><td>Módulo avulso premium</td></tr>
+      <tr><td><strong>Portal do Paciente</strong></td><td>Login CPF + nascimento, medições, acompanhamento</td><td>Retenção do paciente</td><td>Módulo avulso</td></tr>
+      <tr><td><strong>Integrações / CRM</strong></td><td>Homio Marketplace OAuth, webhooks, captação</td><td>Marketing/captação</td><td>Módulo avulso ou topo</td></tr>
+      <tr><td><strong>Multiunidade</strong></td><td>Multi-clínica, claims, tenant ativo</td><td>Escala</td><td>Tier topo</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <strong>Vantagem técnica.</strong> O Clinni já tem feature flags + RBAC por papel + tabela de integrações por tenant. A infraestrutura de "ligar/desligar módulo por clínica" praticamente existe — o passo de produto é transformar flags binárias em <strong>entitlements por plano + add-on</strong>.
+  </div>
+  <span class="footbrand">Clinni · Relatório de Precificação</span>
+  <span class="footnum">06</span>
+</section>
+
+<!-- ============ PLANOS PROPOSTOS ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">4. Planos propostos</div></div>
+  <h2>4. Planos propostos</h2>
+  <p class="muted small">Cobrança por profissional de saúde/mês · recepção e admin gratuitos · sem taxa de instalação e sem fidelidade no mensal.</p>
+
+  <div class="plans">
+    <div class="plan">
+      <div class="top">
+        <div class="name">Essencial</div>
+        <div class="price">R$ 99<span class="per"> /prof · mês</span></div>
+        <div class="alvo">Consultório solo / início</div>
+      </div>
+      <ul>
+        <li>Agenda + atendimentos</li>
+        <li>Pacientes + Prontuário + Anamnese</li>
+        <li>Prescrição digital (Memed)</li>
+        <li>Agendamento público</li>
+        <li>Lembretes por e-mail</li>
+        <li>Tarefas e notificações</li>
+        <li>Relatórios básicos</li>
+      </ul>
+    </div>
+    <div class="plan feat">
+      <div class="top">
+        <span class="ribbon">★ PLANO-ÂNCORA</span>
+        <div class="name">Pro</div>
+        <div class="price">R$ 169<span class="per"> /prof · mês</span></div>
+        <div class="alvo">Clínica em crescimento</div>
+      </div>
+      <ul>
+        <li>Tudo do Essencial, mais:</li>
+        <li><strong>Financeiro completo</strong> (contas, fluxo de caixa, despesas, impostos)</li>
+        <li><strong>Repasse médico + Comissões</strong></li>
+        <li>Lembrete/confirmação por <strong>WhatsApp</strong></li>
+        <li>Relatórios + Dashboard completos</li>
+        <li>Suporte prioritário</li>
+      </ul>
+    </div>
+    <div class="plan">
+      <div class="top">
+        <div class="name">Clínica</div>
+        <div class="price">R$ 259<span class="per"> /prof · mês</span></div>
+        <div class="alvo">Multiespecialidade / rede</div>
+      </div>
+      <ul>
+        <li>Tudo do Pro, mais:</li>
+        <li><strong>Multiunidade</strong> (multi-clínica)</li>
+        <li>BI avançado</li>
+        <li>Auditoria / logs avançados</li>
+        <li>CRM/Integrações inclusos</li>
+        <li>Suporte dedicado</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="small muted">Plano anual com ~2 meses grátis: Essencial R$ 990 · Pro R$ 1.690 · Clínica R$ 2.590 (por ano/prof). · <strong>Plano Solo flat:</strong> R$ 149/mês (1 profissional, Essencial + WhatsApp) para nichos sensíveis a preço. · <strong>Trial</strong> de 14 dias do Pro, sem cartão.</p>
+
+  <h3>Módulos à la carte <span class="pill">somados a qualquer plano</span></h3>
+  <div class="modgrid">
+    <div class="mod"><div><div class="mname">Faturamento TISS / Convênios</div><div class="mdesc">Regulado (RN 501/2022), XML assinado ICP-Brasil; substitui faturista</div></div><div class="mprice">R$ 89/prof<br><span class="small muted">ou R$ 199/clínica</span></div></div>
+    <div class="mod"><div><div class="mname">Portal do Paciente</div><div class="mdesc">Diferencial de retenção; cobrança por clínica</div></div><div class="mprice">R$ 79<br><span class="small muted">/clínica</span></div></div>
+    <div class="mod"><div><div class="mname">Telemedicina</div><div class="mdesc">Pacote ou por uso (padrão de mercado)</div></div><div class="mprice">R$ 39<br><span class="small muted">/prof</span></div></div>
+    <div class="mod"><div><div class="mname">Integrações / CRM (Homio)</div><div class="mdesc">Captação/marketing; incluso no plano Clínica</div></div><div class="mprice"><span class="small muted">a partir de</span><br>R$ 156<br><span class="small muted">/clínica</span></div></div>
+  </div>
+  <p class="small muted"><strong>Prescrição Memed fica no núcleo (R$ 0):</strong> é gratuita ao prescritor e vira argumento de aquisição — o iClinic só a oferece a partir do Starter.</p>
+  <span class="footbrand">Clinni · Relatório de Precificação</span>
+  <span class="footnum">07</span>
+</section>
+
+<!-- ============ RECOMENDAÇÃO + DECISÕES ============ -->
+<section class="page">
+  <div class="ph"><div class="b"><span class="dot"></span>Clinni</div><div class="n">5. Recomendação e próximos passos</div></div>
+  <h2>5. Como precificar — recomendação final</h2>
+
+  <div class="recbox">
+    <h3>O método</h3>
+    <p><strong>Precificação por valor, ancorada no mercado, com cobrança por profissional + módulos à la carte.</strong> Quatro alavancas combinadas:</p>
+    <ul>
+      <li><strong>Eixo principal:</strong> por profissional de saúde/mês (recepção e admin grátis) — o que o comprador brasileiro espera e o que escala com o cliente.</li>
+      <li><strong>Camada de valor:</strong> bundles "bom-melhor-ótimo" (3 planos), com salto entre tiers por recurso, nunca por limite de uso.</li>
+      <li><strong>Expansão:</strong> módulos avulsos (TISS, Portal, Telemedicina, CRM) — a arquitetura modular virando receita.</li>
+      <li><strong>Escape para nichos sensíveis:</strong> plano Solo flat para psi/estética/fisio solo, sem derrubar a margem do Pro.</li>
+    </ul>
+    <p class="small muted">Evitar custo-mais-margem (ignora a alta disposição a pagar de médico/odonto com convênio) e o flat puro (não escala em clínicas grandes).</p>
+  </div>
+
+  <h3>Por que esses valores</h3>
+  <ul>
+    <li><strong>Âncora no Pro (R$ 169):</strong> faixa central do mercado (Feegow R$ 149, Shosp R$ 149, iClinic Pro R$ 169) e onde está o maior diferencial — financeiro + repasse + TISS. Meta: ≥ 55% da base.</li>
+    <li><strong>Teto R$ 259 &lt; iClinic Premium R$ 299:</strong> premium com folga de posicionamento.</li>
+    <li><strong>Entrada R$ 99 = piso do iClinic Starter:</strong> credível, sem entrar na guerra de R$ 39–79 que destrói margem.</li>
+    <li><strong>TISS é o motor:</strong> maior disposição a pagar; já é paywall em todo concorrente.</li>
+  </ul>
+
+  <div class="stats">
+    <div class="stat"><div class="v">≥ R$ 600</div><div class="l">ARPA-alvo (Pro + 1 módulo)</div></div>
+    <div class="stat"><div class="v">≥ 55%</div><div class="l">Base no plano-âncora Pro</div></div>
+    <div class="stat"><div class="v">≥ 35%</div><div class="l">Contas com ≥ 1 módulo (TISS líder)</div></div>
+    <div class="stat"><div class="v">≥ 3×</div><div class="l">Razão LTV / CAC</div></div>
+  </div>
+
+  <h2 style="margin-top:18px">6. Decisões que dependem de você</h2>
+  <ul>
+    <li><strong>Posicionamento de preço:</strong> confirmar o centro-premium (R$ 99 → R$ 259) ou mirar mais agressivo (~R$ 79) para ganhar volume.</li>
+    <li><strong>TISS:</strong> por profissional + flat por clínica (recomendado manter os dois).</li>
+    <li><strong>Aquisição:</strong> trial de 14 dias (recomendado) ou free permanente limitado (estilo Feegow).</li>
+    <li><strong>Verticais de foco:</strong> concentrar em médico/odonto/multiespecialidade (onde o tronco comum já vende) ou investir em features-âncora para entrar em estética/fisio/psi/vet.</li>
+    <li><strong>Billing:</strong> provedor a integrar (Stripe / Iugu / Asaas) para cobrança por seat + add-ons.</li>
+  </ul>
+  <span class="footbrand">Clinni · Relatório de Precificação · Junho 2026</span>
+  <span class="footnum">08</span>
+</section>
+
+</body>
+</html>
