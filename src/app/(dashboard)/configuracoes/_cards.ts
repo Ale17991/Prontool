@@ -1,6 +1,7 @@
 import {
   BellRing,
   Building2,
+  CalendarClock,
   CalendarPlus,
   ClipboardCheck,
   DollarSign,
@@ -39,6 +40,7 @@ export type HubCardId =
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
+  | 'google-agenda'
   | 'integracoes'
   | 'auditoria'
 
@@ -138,6 +140,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Envia email antes da consulta. Reduz no-show.',
     icon: BellRing,
     show: ({ role }) => can(role, 'reminders.config'),
+  },
+  {
+    id: 'google-agenda',
+    href: '/configuracoes/google-agenda',
+    title: 'Google Agenda',
+    description: 'Conecte sua conta Google: seus atendimentos entram na agenda pessoal.',
+    icon: CalendarClock,
+    show: () => true,
   },
   {
     id: 'integracoes',

@@ -25,6 +25,7 @@ import type { Database } from '@/lib/db/types'
 import { DomainError } from '@/lib/observability/errors'
 import { createPatientManually } from '@/lib/core/patients/create-manual'
 import { createAppointmentManually } from '@/lib/core/appointments/create-manual'
+import { publishDomainEvent } from '@/lib/core/events/publish'
 import { resolveTenantBySlug } from './resolve-tenant'
 import { generateCancelToken } from './tokens'
 import { sendBookingConfirmations } from './send-confirmation'
@@ -215,6 +216,40 @@ export async function createPublicBooking(
           input.userAgent?.slice(0, 80) ?? ''
         }`,
       } as never)
+    } catch {
+      // best-effort
+    }
+
+    // 7b. Publica appointment.created (fan-out integrações + sync Google Agenda
+    //     do profissional). Best-effort — não bloqueia o agendamento público.
+    try {
+      const primary = result.lines[0]!
+      await publishDomainEvent(supabase, tenant.tenantId, {
+        type: 'appointment.created',
+        appointment: {
+          id: result.appointmentId,
+          tenantId: tenant.tenantId,
+          patientId,
+          doctorId: resolvedDoctorId,
+          procedureId: primary.procedureId,
+          procedureTussCode: '',
+          planId: primary.planId,
+          appointmentAt: slotDate.toISOString(),
+          frozenAmountCents: result.frozenAmountCents,
+          source: 'manual',
+        },
+        patient: {
+          id: patientId,
+          tenantId: tenant.tenantId,
+          fullName: input.patient.fullName,
+          cpf: input.patient.cpf ?? '',
+          email: input.patient.email,
+          phone: input.patient.phone,
+          birthDate: input.patient.birthDate,
+          planId: null,
+          ghlContactId: null,
+        },
+      })
     } catch {
       // best-effort
     }
