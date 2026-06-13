@@ -22,8 +22,9 @@ const querySchema = z.object({
 export async function GET(req: Request): Promise<Response> {
   const route = '/api/financeiro/contas-a-receber'
   try {
+    // Painel financeiro — recepção não vê valores agregados.
     const session = await requireRole(
-      ['admin', 'financeiro', 'recepcionista'],
+      ['admin', 'financeiro'],
       { entity: 'payment_installments', route, request: req },
     )
     const parsed = querySchema.safeParse(

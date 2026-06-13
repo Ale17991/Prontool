@@ -85,6 +85,8 @@ export function AppointmentDetailBody({
       : 'ativo'
 
   const canReverse = can(role, 'appointment.reverse') && status === 'ativo'
+  // Ver VALORES (recepção fora — só vê valor no registro do atendimento).
+  const canViewValues = can(role, 'finance.view_values')
   const canManageSchedule =
     role === 'admin' || role === 'recepcionista' || role === 'profissional_saude'
   const canProgressSchedule =
@@ -171,7 +173,7 @@ export function AppointmentDetailBody({
                           ) : null}
                         </span>
                         <span className="font-mono font-semibold">
-                          {formatCurrency(a.frozenAmountCents)}
+                          {canViewValues ? formatCurrency(a.frozenAmountCents) : '—'}
                         </span>
                       </li>
                     ))}
@@ -313,8 +315,8 @@ export function AppointmentDetailBody({
                         )}
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs tabular-nums">
-                        {formatCurrency(line.lineAmountCents)}
-                        {line.amountWasOverridden ? (
+                        {canViewValues ? formatCurrency(line.lineAmountCents) : '—'}
+                        {canViewValues && line.amountWasOverridden ? (
                           <span
                             className="ml-1 text-[10px] text-[hsl(var(--warning-foreground))]"
                             title={`Vigente: ${formatCurrency(line.vigenteAmountCents)}`}
@@ -324,7 +326,7 @@ export function AppointmentDetailBody({
                         ) : null}
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs font-bold tabular-nums">
-                        {formatCurrency(subtotal)}
+                        {canViewValues ? formatCurrency(subtotal) : '—'}
                       </TableCell>
                     </TableRow>
                   )
@@ -453,43 +455,45 @@ export function AppointmentDetailBody({
         </details>
       ) : null}
 
-      {/* ---- Dados financeiros (colapsável) ---- */}
-      <details className="group rounded-lg border border-slate-200 bg-white">
-        <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-700">
-          <span className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-slate-400" />
-            Dados financeiros
-          </span>
-          <span className="text-xs font-medium text-slate-400 group-open:hidden">
-            mostrar
-          </span>
-          <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
-            ocultar
-          </span>
-        </summary>
-        <div className="border-t border-slate-100 p-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <ClinicalRow icon={DollarSign} label="Valor congelado">
-              {formatCurrency(appointment.frozen_amount_cents)}
-            </ClinicalRow>
-            <ClinicalRow icon={Percent} label="Comissão congelada">
-              {formatBps(appointment.frozen_commission_bps)}
-            </ClinicalRow>
-            <ClinicalRow icon={Receipt} label="Valor líquido">
-              <span
-                className={
-                  status === 'estornado' ? 'font-black text-destructive' : 'font-black'
-                }
-              >
-                {formatCurrency(appointment.net_amount_cents)}
-              </span>
-            </ClinicalRow>
-            <ClinicalRow icon={Stethoscope} label="Plano">
-              {appointment.health_plans?.name ?? '—'}
-            </ClinicalRow>
+      {/* ---- Dados financeiros (colapsável) — só com finance.view_values ---- */}
+      {canViewValues ? (
+        <details className="group rounded-lg border border-slate-200 bg-white">
+          <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-700">
+            <span className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-slate-400" />
+              Dados financeiros
+            </span>
+            <span className="text-xs font-medium text-slate-400 group-open:hidden">
+              mostrar
+            </span>
+            <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
+              ocultar
+            </span>
+          </summary>
+          <div className="border-t border-slate-100 p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <ClinicalRow icon={DollarSign} label="Valor congelado">
+                {formatCurrency(appointment.frozen_amount_cents)}
+              </ClinicalRow>
+              <ClinicalRow icon={Percent} label="Comissão congelada">
+                {formatBps(appointment.frozen_commission_bps)}
+              </ClinicalRow>
+              <ClinicalRow icon={Receipt} label="Valor líquido">
+                <span
+                  className={
+                    status === 'estornado' ? 'font-black text-destructive' : 'font-black'
+                  }
+                >
+                  {formatCurrency(appointment.net_amount_cents)}
+                </span>
+              </ClinicalRow>
+              <ClinicalRow icon={Stethoscope} label="Plano">
+                {appointment.health_plans?.name ?? '—'}
+              </ClinicalRow>
+            </div>
           </div>
-        </div>
-      </details>
+        </details>
+      ) : null}
     </div>
   )
 }

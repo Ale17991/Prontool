@@ -55,6 +55,7 @@ interface Props {
   canApplyAnamnesis: boolean
   canDeleteAnamnese: boolean
   canRecordPayment: boolean
+  canViewFinancialValues: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
   canDeleteDiagnosis: boolean
@@ -83,6 +84,7 @@ export function CadastroTab({
   canApplyAnamnesis,
   canDeleteAnamnese,
   canRecordPayment,
+  canViewFinancialValues,
   canWriteVitals,
   canWriteDiagnosis,
   canDeleteDiagnosis,
@@ -186,12 +188,15 @@ export function CadastroTab({
         canWrite={canWriteTreatment}
       />
 
-      <FinanceiroSection
-        patientId={patientId}
-        initialRecords={initialPayments.records}
-        initialSummary={initialPayments.summary}
-        canRecordPayment={canRecordPayment}
-      />
+      {/* Valores monetários só para quem tem finance.view_values (recepção não). */}
+      {canViewFinancialValues ? (
+        <FinanceiroSection
+          patientId={patientId}
+          initialRecords={initialPayments.records}
+          initialSummary={initialPayments.summary}
+          canRecordPayment={canRecordPayment}
+        />
+      ) : null}
     </div>
   )
 }

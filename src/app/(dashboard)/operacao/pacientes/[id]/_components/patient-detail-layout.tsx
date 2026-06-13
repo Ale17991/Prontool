@@ -77,6 +77,7 @@ interface Props {
     canApplyAnamnesis: boolean
     canDeleteAnamnese: boolean
     canRecordPayment: boolean
+    canViewFinancialValues: boolean
     canWriteVitals: boolean
     canWriteDiagnosis: boolean
     canDeleteDiagnosis: boolean
@@ -174,6 +175,7 @@ export function PatientDetailLayout({
         onOpenSheet={handleOpenSheet}
         onSwitchToCadastro={() => updateTab('cadastro')}
         onPrint={handlePrint}
+        canViewFinancialValues={cadastro.canViewFinancialValues}
       />
 
       <div
@@ -190,6 +192,7 @@ export function PatientDetailLayout({
             onOpenSheet={handleOpenSheet}
             onSwitchToCadastro={() => updateTab('cadastro')}
             onPrint={handlePrint}
+            canViewFinancialValues={cadastro.canViewFinancialValues}
           />
         </aside>
 
@@ -226,6 +229,7 @@ export function PatientDetailLayout({
                 events={events}
                 authors={authors}
                 isAnonymized={isAnonymized}
+                canViewValues={cadastro.canViewFinancialValues}
               />
               {!isAnonymized ? (
                 <>
@@ -260,6 +264,7 @@ export function PatientDetailLayout({
                   canApplyAnamnesis={cadastro.canApplyAnamnesis}
                   canDeleteAnamnese={cadastro.canDeleteAnamnese}
                   canRecordPayment={cadastro.canRecordPayment}
+                  canViewFinancialValues={cadastro.canViewFinancialValues}
                   canWriteVitals={cadastro.canWriteVitals}
                   canWriteDiagnosis={cadastro.canWriteDiagnosis}
                   canDeleteDiagnosis={cadastro.canDeleteDiagnosis}

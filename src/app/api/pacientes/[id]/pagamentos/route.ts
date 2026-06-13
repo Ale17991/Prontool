@@ -13,8 +13,9 @@ export async function GET(
 ): Promise<Response> {
   const route = `/api/pacientes/${params.id}/pagamentos`
   try {
+    // Leitura de VALORES — só quem tem finance.view_values (recepção fora).
     const session = await requireRole(
-      ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],
+      ['admin', 'financeiro', 'profissional_saude'],
       { entity: 'payment_records', entityId: params.id, route, request: req },
     )
     const supabase = createSupabaseServiceClient()

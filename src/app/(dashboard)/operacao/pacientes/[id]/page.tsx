@@ -408,6 +408,9 @@ export default async function PacienteDetailPage({
   const canDeleteDiagnosis = session.role === 'admin'
   const canRecordPayment =
     session.role === 'admin' || session.role === 'financeiro'
+  // Ver VALORES na ficha financeira (admin/financeiro/profissional). Recepção
+  // não vê — só digita no registro do atendimento.
+  const canViewFinancialValues = can(session.role, 'finance.view_values')
   const canConfigReminders = can(session.role, 'reminders.config')
 
   const isAnonymized = patient.anonymizedAt !== null
@@ -499,6 +502,7 @@ export default async function PacienteDetailPage({
           canApplyAnamnesis,
           canDeleteAnamnese,
           canRecordPayment,
+          canViewFinancialValues,
           canWriteVitals,
           canWriteDiagnosis,
           canDeleteDiagnosis,

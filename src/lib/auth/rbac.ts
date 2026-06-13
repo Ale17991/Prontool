@@ -41,6 +41,10 @@ type Action =
   | 'public_booking.config'
   | 'patient_portal.config'
   | 'reminders.config'
+  // Ver VALORES monetários em telas de leitura/agregação (ficha financeira do
+  // paciente, somatórios, etc.). Recepção NÃO tem — ela só vê/digita o valor no
+  // ato do registro (form de atendimento/pagamento), nunca em relatórios.
+  | 'finance.view_values'
 
 const MATRIX: Record<TenantRole, readonly Action[]> = {
   admin: [
@@ -63,6 +67,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'public_booking.config',
     'patient_portal.config',
     'reminders.config',
+    'finance.view_values',
   ],
   financeiro: [
     'price.read',
@@ -78,6 +83,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'anamnesis.read',
     'tax.read', 'tax.write',
     'task.read', 'task.write',
+    'finance.view_values',
   ],
   recepcionista: [
     'price.read',
@@ -97,6 +103,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'anamnesis.read',
     'tax.read',
     'task.read', 'task.write',
+    'finance.view_values',
   ],
 }
 

@@ -16,6 +16,8 @@ interface Props {
   events: TimelineEvent[]
   authors: AuthorMap
   isAnonymized?: boolean
+  /** Ver valores monetários (recepção não — esconde pagamentos e valor líquido). */
+  canViewValues: boolean
 }
 
 const FILTERS: Array<{ key: TimelineFilter; label: string }> = [
@@ -47,8 +49,18 @@ function matchesFilter(event: TimelineEvent, filter: TimelineFilter): boolean {
   }
 }
 
-export function ClinicalTimeline({ events, authors }: Props) {
+export function ClinicalTimeline({ events: allEvents, authors, canViewValues }: Props) {
   const [filter, setFilter] = useState<TimelineFilter>('todos')
+
+  // Recepção (sem finance.view_values): some os eventos de pagamento por inteiro.
+  const events = useMemo(
+    () => (canViewValues ? allEvents : allEvents.filter((e) => e.kind !== 'payment')),
+    [allEvents, canViewValues],
+  )
+  const visibleFilters = useMemo(
+    () => (canViewValues ? FILTERS : FILTERS.filter((f) => f.key !== 'pagamentos')),
+    [canViewValues],
+  )
 
   const counts = useMemo(() => {
     const out: Record<TimelineFilter, number> = {
@@ -89,7 +101,7 @@ export function ClinicalTimeline({ events, authors }: Props) {
           </span>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {FILTERS.map((f) => {
+          {visibleFilters.map((f) => {
             const count = counts[f.key]
             const disabled = count === 0 && f.key !== 'todos'
             const active = filter === f.key
@@ -137,6 +149,7 @@ export function ClinicalTimeline({ events, authors }: Props) {
               key={e.id}
               event={e}
               authorDisplay={formatAuthorDisplay(authors, e.authorUserId)}
+              canViewValues={canViewValues}
             />
           ))
         )}
