@@ -73,8 +73,6 @@ export function DayBusyHint({ doctorId, dateLocal }: { doctorId: string; dateLoc
     }
   }, [doctorId, dateLocal])
 
-  if (!doctorId) return null
-
   return (
     <div className="rounded-md border border-slate-200 bg-slate-50/50 p-3">
       <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500">
@@ -82,8 +80,12 @@ export function DayBusyHint({ doctorId, dateLocal }: { doctorId: string; dateLoc
         Horários ocupados neste dia
         {loading ? <Loader2 className="h-3 w-3 animate-spin text-slate-400" /> : null}
       </p>
-      {slots === null ? (
-        <p className="text-xs text-slate-400">Selecione profissional e data.</p>
+      {!doctorId ? (
+        <p className="text-xs text-slate-400">
+          Selecione o profissional acima para ver os horários já ocupados dele neste dia.
+        </p>
+      ) : slots === null ? (
+        <p className="text-xs text-slate-400">Carregando…</p>
       ) : slots.length === 0 ? (
         <p className="text-xs text-success-strong">Nenhum horário ocupado — dia livre.</p>
       ) : (
