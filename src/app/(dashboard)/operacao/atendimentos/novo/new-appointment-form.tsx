@@ -42,6 +42,7 @@ import {
   type AssistantSelection,
   type LiberalDoctorOption,
 } from '../components/assistant-multi-select'
+import { DayBusyHint } from './day-busy-hint'
 
 export interface FormOption {
   id: string
@@ -591,6 +592,10 @@ export function NewAppointmentForm({
             Dia inteiro
           </Label>
         </div>
+      </div>
+
+      <div className="md:col-span-2">
+        <DayBusyHint doctorId={doctorId} dateLocal={appointmentAt.slice(0, 10)} />
       </div>
 
       <ProcedurasEditor
