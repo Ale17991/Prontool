@@ -39,7 +39,11 @@ const createSchema = z.object({
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const session = await requireRole(['admin', 'financeiro'], {
+    // Recepção registra o pagamento no ato do atendimento (o form de novo
+    // atendimento é recepção-acessível). Sem isso, o POST tomava 403 e o
+    // pagamento sumia — atendimento ficava salvo sem o financeiro (bug Padilha).
+    // Ver a restrição de LEITURA de valores no rbac (finance.view_values).
+    const session = await requireRole(['admin', 'financeiro', 'recepcionista'], {
       entity: 'payment_records',
       route: '/api/pagamentos',
       request: req,
