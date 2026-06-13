@@ -15,6 +15,7 @@ interface Props {
   onOpenSheet: (sheet: SheetKind) => void
   onSwitchToCadastro: () => void
   onPrint: () => void
+  canViewFinancialValues: boolean
 }
 
 /**
@@ -28,6 +29,7 @@ export function MobileQuickViewHeader({
   onOpenSheet,
   onSwitchToCadastro,
   onPrint,
+  canViewFinancialValues,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
   const { identity, allergies } = snapshot
@@ -95,6 +97,7 @@ export function MobileQuickViewHeader({
               setExpanded(false)
               onPrint()
             }}
+            canViewFinancialValues={canViewFinancialValues}
           />
         </div>
       ) : null}

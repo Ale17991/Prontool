@@ -28,9 +28,11 @@ import type {
 interface Props {
   event: TimelineEvent
   authorDisplay: string
+  /** Ver valores monetários (recepção não). */
+  canViewValues: boolean
 }
 
-export function TimelineEventItem({ event, authorDisplay }: Props) {
+export function TimelineEventItem({ event, authorDisplay, canViewValues }: Props) {
   const [expanded, setExpanded] = useState(false)
   const meta = META_BY_KIND[event.kind]
 
@@ -74,7 +76,7 @@ export function TimelineEventItem({ event, authorDisplay }: Props) {
       </button>
 
       {expanded ? (
-        <div className="mt-3 pl-11">{renderExpanded(event)}</div>
+        <div className="mt-3 pl-11">{renderExpanded(event, canViewValues)}</div>
       ) : null}
     </article>
   )
@@ -98,7 +100,7 @@ function titleFor(event: TimelineEvent): string {
   }
 }
 
-function renderExpanded(event: TimelineEvent) {
+function renderExpanded(event: TimelineEvent, canViewValues: boolean) {
   switch (event.kind) {
     case 'evolucao':
       return <SoapBlock event={event} />
@@ -111,7 +113,7 @@ function renderExpanded(event: TimelineEvent) {
     case 'vital':
       return <VitalBlock event={event} />
     case 'appointment':
-      return <AppointmentBlock event={event} />
+      return <AppointmentBlock event={event} canViewValues={canViewValues} />
     case 'payment':
       return <PaymentBlock event={event} />
   }
@@ -239,7 +241,7 @@ function VitalBlock({ event }: { event: VitalEvent }) {
   )
 }
 
-function AppointmentBlock({ event }: { event: AppointmentEvent }) {
+function AppointmentBlock({ event, canViewValues }: { event: AppointmentEvent; canViewValues: boolean }) {
   const a = event.source
   return (
     <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-3 text-xs md:grid-cols-3">
@@ -248,7 +250,7 @@ function AppointmentBlock({ event }: { event: AppointmentEvent }) {
       <KV k="Médico" val={a.doctorName ?? '—'} />
       <KV k="Plano" val={a.planName ?? 'Particular'} />
       <KV k="Status" val={a.effectiveStatus ?? '—'} />
-      <KV k="Valor líquido" val={formatCurrency(a.netAmountCents)} />
+      {canViewValues ? <KV k="Valor líquido" val={formatCurrency(a.netAmountCents)} /> : null}
     </div>
   )
 }

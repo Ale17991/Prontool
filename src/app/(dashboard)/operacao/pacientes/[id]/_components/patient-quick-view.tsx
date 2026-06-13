@@ -28,6 +28,8 @@ interface Props {
   onOpenSheet: (sheet: SheetKind) => void
   onSwitchToCadastro: () => void
   onPrint: () => void
+  /** Ver valores monetários (recepção não). */
+  canViewFinancialValues: boolean
 }
 
 function bmiClass(bmi: number | null): {
@@ -57,6 +59,7 @@ export function PatientQuickView({
   onOpenSheet,
   onSwitchToCadastro,
   onPrint,
+  canViewFinancialValues,
 }: Props) {
   const { identity, contact, plan, allergies, diagnoses, lastVital, financial, permissions } =
     snapshot
@@ -261,8 +264,8 @@ export function PatientQuickView({
         </Card>
       ) : null}
 
-      {/* Financeiro */}
-      {(financial.receivedCents > 0 || financial.pendingCents > 0) ? (
+      {/* Financeiro — só com finance.view_values (recepção não vê valores). */}
+      {canViewFinancialValues && (financial.receivedCents > 0 || financial.pendingCents > 0) ? (
         <Card>
           <CardContent className="space-y-1.5 p-3">
             <div className="flex items-center gap-1.5">
