@@ -6,7 +6,13 @@ import { LogIn, Loader2 } from 'lucide-react'
 import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { ALL_MODULES, PLAN_LABEL, type ModuleId, type Plan } from '@/lib/core/entitlements/plans'
+import {
+  ALL_MODULES,
+  COMING_SOON_MODULES,
+  PLAN_LABEL,
+  type ModuleId,
+  type Plan,
+} from '@/lib/core/entitlements/plans'
 import { setTenantPlanAction } from './actions'
 
 export interface AdminTenantRow {
@@ -117,20 +123,35 @@ function TenantRow({ row }: { row: AdminTenantRow }) {
           </label>
 
           <div className="flex items-center gap-2">
-            {ALL_MODULES.map((m) => (
-              <label
-                key={m}
-                className="flex cursor-pointer items-center gap-1 text-[11px] font-medium text-slate-600"
-              >
-                <input
-                  type="checkbox"
-                  checked={modules.has(m)}
-                  onChange={(e) => toggle(m, e.target.checked)}
-                  className="h-3.5 w-3.5 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30"
-                />
-                {MODULE_LABEL[m]}
-              </label>
-            ))}
+            {ALL_MODULES.map((m) => {
+              const comingSoon = COMING_SOON_MODULES.includes(m)
+              return (
+                <label
+                  key={m}
+                  title={comingSoon ? 'Em breve — módulo ainda não disponível' : undefined}
+                  className={cn(
+                    'flex items-center gap-1 text-[11px] font-medium',
+                    comingSoon
+                      ? 'cursor-not-allowed text-slate-400'
+                      : 'cursor-pointer text-slate-600',
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={modules.has(m)}
+                    disabled={comingSoon}
+                    onChange={(e) => toggle(m, e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                  />
+                  {MODULE_LABEL[m]}
+                  {comingSoon ? (
+                    <span className="ml-0.5 rounded bg-slate-100 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                      em breve
+                    </span>
+                  ) : null}
+                </label>
+              )
+            })}
           </div>
 
           <Button size="sm" onClick={save} disabled={pending}>

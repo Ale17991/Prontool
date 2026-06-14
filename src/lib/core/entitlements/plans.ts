@@ -47,6 +47,13 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'dieta',
 ]
 
+/**
+ * Módulos "em breve": aparecem no catálogo/UI mas ainda NÃO são contratáveis
+ * (sem produto por trás). O painel /admin mostra desabilitado e a action não
+ * persiste. Hoje: telemedicina (só flag, sem implementação).
+ */
+export const COMING_SOON_MODULES: readonly ModuleId[] = ['telemedicina']
+
 const ESSENCIAL: Feature[] = [
   'agenda', 'pacientes', 'prontuario', 'anamnese', 'prescricao', 'cadastros',
   'agendamento_publico', 'lembretes_email', 'tarefas',

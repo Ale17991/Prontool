@@ -3,9 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { superAdminUserId } from '@/lib/auth/platform-admin'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { ALL_MODULES, COMING_SOON_MODULES } from '@/lib/core/entitlements/plans'
 
 const PLANS = ['essencial', 'pro', 'clinica', 'legacy']
-const MODULES = ['tiss', 'portal_paciente', 'telemedicina', 'crm']
+// Controláveis no painel = catálogo completo MENOS os "em breve". Inclui
+// treino/dieta (antes eram mostrados mas descartados ao salvar).
+const MODULES: string[] = ALL_MODULES.filter(
+  (m) => !COMING_SOON_MODULES.includes(m),
+)
 
 export interface AdminActionResult {
   ok: boolean
