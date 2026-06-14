@@ -56,6 +56,7 @@ interface Props {
   canDeleteAnamnese: boolean
   canRecordPayment: boolean
   canViewFinancialValues: boolean
+  hasEndocrino: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
   canDeleteDiagnosis: boolean
@@ -85,6 +86,7 @@ export function CadastroTab({
   canDeleteAnamnese,
   canRecordPayment,
   canViewFinancialValues,
+  hasEndocrino,
   canWriteVitals,
   canWriteDiagnosis,
   canDeleteDiagnosis,
@@ -153,12 +155,15 @@ export function CadastroTab({
         canWrite={canWriteVitals}
       />
 
-      <MetabolicMetricsSection
-        patientId={patientId}
-        initialMeasurements={initialMeasurements}
-        metricTypes={metricTypes}
-        canWrite={canWriteVitals}
-      />
+      {/* Métricas metabólicas só quando a clínica tem o módulo Endócrino. */}
+      {hasEndocrino ? (
+        <MetabolicMetricsSection
+          patientId={patientId}
+          initialMeasurements={initialMeasurements}
+          metricTypes={metricTypes}
+          canWrite={canWriteVitals}
+        />
+      ) : null}
 
       <DiagnosticsSection
         patientId={patientId}

@@ -10,6 +10,7 @@ import { listCareNotes, type CareNote } from './care-notes'
 import { listGoals, type PatientGoal } from './goals'
 import { getActiveWorkoutPlan, type WorkoutPlan } from './workout'
 import { getActiveDietPlan, type DietPlan } from './diet'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 
 /**
  * Feature 030 — bundle de leitura do portal do paciente (FR-006..FR-010).
@@ -60,7 +61,7 @@ export async function buildPatientPortalBundle(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required for the patient portal')
 
-  const [firstName, vitals, metrics, metricTypes, appointments, careNotes, goals, workout, diet] =
+  const [firstName, vitals, metricsRaw, metricTypesRaw, appointments, careNotes, goals, workout, diet, ent] =
     await Promise.all([
       resolvePatientFirstName(supabase, args, key),
       listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
@@ -71,7 +72,14 @@ export async function buildPatientPortalBundle(
       listGoals(supabase, args.tenantId, args.patientId),
       getActiveWorkoutPlan(supabase, args.tenantId, args.patientId),
       getActiveDietPlan(supabase, args.tenantId, args.patientId),
+      getTenantEntitlements(supabase, args.tenantId),
     ])
+
+  // Módulo Endócrino off ⇒ esconde as métricas metabólicas (peso/IMC seguem,
+  // pois vêm de vital_signs e não são endócrino-específicos).
+  const showEndocrino = ent.hasModule('endocrino')
+  const metrics = showEndocrino ? metricsRaw : {}
+  const metricTypes = showEndocrino ? metricTypesRaw : []
 
   // Peso/IMC: reusa vital_signs (FR-007), ordem cronológica ascendente,
   // só pontos com peso ou IMC.

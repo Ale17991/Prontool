@@ -78,6 +78,7 @@ interface Props {
     canDeleteAnamnese: boolean
     canRecordPayment: boolean
     canViewFinancialValues: boolean
+    hasEndocrino: boolean
     canWriteVitals: boolean
     canWriteDiagnosis: boolean
     canDeleteDiagnosis: boolean
@@ -265,6 +266,7 @@ export function PatientDetailLayout({
                   canDeleteAnamnese={cadastro.canDeleteAnamnese}
                   canRecordPayment={cadastro.canRecordPayment}
                   canViewFinancialValues={cadastro.canViewFinancialValues}
+                  hasEndocrino={cadastro.hasEndocrino}
                   canWriteVitals={cadastro.canWriteVitals}
                   canWriteDiagnosis={cadastro.canWriteDiagnosis}
                   canDeleteDiagnosis={cadastro.canDeleteDiagnosis}
