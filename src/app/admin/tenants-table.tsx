@@ -32,6 +32,7 @@ const MODULE_LABEL: Record<ModuleId, string> = {
   crm: 'CRM',
   treino: 'Treino',
   dieta: 'Dieta',
+  endocrino: 'Endócrino',
 }
 
 export function AdminTenantsTable({ rows }: { rows: AdminTenantRow[] }) {

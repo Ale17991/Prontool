@@ -9,7 +9,14 @@
 
 export type Plan = 'essencial' | 'pro' | 'clinica' | 'legacy'
 
-export type ModuleId = 'tiss' | 'portal_paciente' | 'telemedicina' | 'crm' | 'treino' | 'dieta'
+export type ModuleId =
+  | 'tiss'
+  | 'portal_paciente'
+  | 'telemedicina'
+  | 'crm'
+  | 'treino'
+  | 'dieta'
+  | 'endocrino'
 
 export type Feature =
   // núcleo (Essencial)
@@ -45,6 +52,7 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'crm',
   'treino',
   'dieta',
+  'endocrino',
 ]
 
 /**

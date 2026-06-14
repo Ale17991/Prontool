@@ -28,6 +28,7 @@ import {
   type AppointmentTimelineRow,
 } from '@/lib/core/patient-timeline'
 import { can } from '@/lib/auth/rbac'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Database } from '@/lib/db/types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
@@ -411,6 +412,9 @@ export default async function PacienteDetailPage({
   // Ver VALORES na ficha financeira (admin/financeiro/profissional). Recepção
   // não vê — só digita no registro do atendimento.
   const canViewFinancialValues = can(session.role, 'finance.view_values')
+  // Módulo Endócrino (métricas metabólicas). Off = esconde a seção no prontuário.
+  const ent = await getTenantEntitlements(typedClient, session.tenantId)
+  const hasEndocrino = ent.hasModule('endocrino')
   const canConfigReminders = can(session.role, 'reminders.config')
 
   const isAnonymized = patient.anonymizedAt !== null
@@ -503,6 +507,7 @@ export default async function PacienteDetailPage({
           canDeleteAnamnese,
           canRecordPayment,
           canViewFinancialValues,
+          hasEndocrino,
           canWriteVitals,
           canWriteDiagnosis,
           canDeleteDiagnosis,
