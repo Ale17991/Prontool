@@ -53,6 +53,8 @@ const patchSchema = z.object({
     .regex(/^\d{11}$/, 'CPF deve conter 11 dígitos')
     .nullable()
     .optional(),
+  council_name: z.string().trim().min(2).max(10).nullable().optional(),
+  council_number: z.string().trim().min(1).max(20).nullable().optional(),
   council_state: z
     .string()
     .regex(/^[A-Z]{2}$/, 'UF do conselho deve ter 2 letras')
@@ -183,6 +185,8 @@ export async function PATCH(
       parsed.data.full_name !== undefined ||
       parsed.data.active !== undefined ||
       parsed.data.cpf !== undefined ||
+      parsed.data.council_name !== undefined ||
+      parsed.data.council_number !== undefined ||
       parsed.data.council_state !== undefined ||
       parsed.data.birth_date !== undefined ||
       parsed.data.specialty !== undefined
@@ -194,6 +198,12 @@ export async function PATCH(
           ...(parsed.data.full_name !== undefined ? { fullName: parsed.data.full_name } : {}),
           ...(parsed.data.active !== undefined ? { active: parsed.data.active } : {}),
           ...(parsed.data.cpf !== undefined ? { cpf: parsed.data.cpf } : {}),
+          ...(parsed.data.council_name !== undefined
+            ? { councilName: parsed.data.council_name }
+            : {}),
+          ...(parsed.data.council_number !== undefined
+            ? { councilNumber: parsed.data.council_number }
+            : {}),
           ...(parsed.data.council_state !== undefined
             ? { councilState: parsed.data.council_state }
             : {}),
@@ -213,6 +223,8 @@ export async function PATCH(
               full_name: basicUpdated.fullName,
               active: basicUpdated.active,
               cpf: basicUpdated.cpf,
+              council_name: basicUpdated.councilName,
+              council_number: basicUpdated.councilNumber,
               council_state: basicUpdated.councilState,
               birth_date: basicUpdated.birthDate,
               specialty: basicUpdated.specialty,

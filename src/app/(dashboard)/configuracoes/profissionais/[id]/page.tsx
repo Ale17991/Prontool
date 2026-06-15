@@ -230,6 +230,8 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
           <CardContent>
             <EditPrescriberFields
               doctorId={doctor.id}
+              currentCouncilName={doctor.council_name}
+              currentCouncilNumber={doctor.council_number}
               currentCpf={doctor.cpf}
               currentCouncilState={doctor.council_state}
               currentBirthDate={doctor.birth_date}
