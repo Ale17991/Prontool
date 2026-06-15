@@ -9,31 +9,42 @@ import { Label } from '@/components/ui/label'
 import { UF_CODES } from '@/lib/core/clinic-profile/types'
 
 /**
- * Edita os campos do prescritor exigidos pela integração de prescrição
- * digital (Memed): CPF, UF do conselho e data de nascimento. Admin-only
- * (a página só renderiza quando `doctor.write`). Permite preencher esses
- * dados em profissionais cadastrados antes da migration 0107.
+ * LUGAR ÚNICO dos dados de conselho + prescritor do médico: tipo do conselho,
+ * número, UF, CPF e nascimento. Fonte de verdade do cabeçalho E da prescrição
+ * digital (Memed) — evita o desencontro entre o `crm` legado e os campos
+ * estruturados. Admin-only (a página só renderiza com `doctor.write`).
  */
+
+const COUNCIL_OPTIONS = ['CRM', 'CRO', 'CRF', 'CRN', 'CREFITO', 'CRP', 'CRBM', 'COREN', 'CRMV', 'CRFa'] as const
+
 export function EditPrescriberFields({
   doctorId,
+  currentCouncilName,
+  currentCouncilNumber,
   currentCpf,
   currentCouncilState,
   currentBirthDate,
 }: {
   doctorId: string
+  currentCouncilName: string | null
+  currentCouncilNumber: string | null
   currentCpf: string | null
   currentCouncilState: string | null
   currentBirthDate: string | null
 }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
+  const [councilName, setCouncilName] = useState(currentCouncilName ?? 'CRM')
+  const [councilNumber, setCouncilNumber] = useState(currentCouncilNumber ?? '')
   const [cpf, setCpf] = useState(currentCpf ?? '')
   const [councilState, setCouncilState] = useState(currentCouncilState ?? '')
   const [birthDate, setBirthDate] = useState(currentBirthDate ?? '')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const complete = Boolean(currentCpf && currentCouncilState && currentBirthDate)
+  const complete = Boolean(
+    currentCpf && currentCouncilName && currentCouncilNumber && currentCouncilState && currentBirthDate,
+  )
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -51,15 +62,15 @@ export function EditPrescriberFields({
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          cpf: cpfDigits || null,
+          council_name: councilName.trim() || null,
+          council_number: councilNumber.trim() || null,
           council_state: councilState || null,
+          cpf: cpfDigits || null,
           birth_date: birthDate || null,
         }),
       })
       if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string }
-        }
+        const payload = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
         throw new Error(payload.error?.message ?? `HTTP ${res.status}`)
       }
       setEditing(false)
@@ -72,17 +83,22 @@ export function EditPrescriberFields({
   }
 
   if (!editing) {
+    const conselho =
+      currentCouncilName && currentCouncilNumber
+        ? `${currentCouncilName}${currentCouncilState ? `/${currentCouncilState}` : ''} ${currentCouncilNumber}`
+        : '—'
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <Field label="Conselho" value={conselho} />
           <Field label="CPF" value={formatCpf(currentCpf)} />
           <Field label="UF do conselho" value={currentCouncilState ?? '—'} />
           <Field label="Nascimento" value={formatBirthDate(currentBirthDate)} />
         </div>
         {!complete ? (
           <p className="text-[11px] text-amber-600">
-            Dados incompletos para prescrição digital (Memed). Preencha CPF, UF do
-            conselho e data de nascimento.
+            Dados incompletos para prescrição digital. Preencha conselho (tipo + número), UF, CPF e
+            data de nascimento.
           </p>
         ) : null}
         <Button
@@ -101,11 +117,47 @@ export function EditPrescriberFields({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <div className="space-y-1.5">
-          <Label htmlFor="presc-cpf" className="text-xs">
-            CPF
-          </Label>
+          <Label htmlFor="presc-council-name" className="text-xs">Conselho</Label>
+          <select
+            id="presc-council-name"
+            value={councilName}
+            onChange={(e) => setCouncilName(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {COUNCIL_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="presc-council-number" className="text-xs">Número do conselho</Label>
+          <Input
+            id="presc-council-number"
+            inputMode="numeric"
+            maxLength={20}
+            value={councilNumber}
+            onChange={(e) => setCouncilNumber(e.target.value)}
+            placeholder="Ex.: 456789"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="presc-uf" className="text-xs">UF do conselho</Label>
+          <select
+            id="presc-uf"
+            value={councilState}
+            onChange={(e) => setCouncilState(e.target.value)}
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">—</option>
+            {UF_CODES.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="presc-cpf" className="text-xs">CPF</Label>
           <Input
             id="presc-cpf"
             inputMode="numeric"
@@ -116,27 +168,7 @@ export function EditPrescriberFields({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="presc-uf" className="text-xs">
-            UF do conselho
-          </Label>
-          <select
-            id="presc-uf"
-            value={councilState}
-            onChange={(e) => setCouncilState(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <option value="">—</option>
-            {UF_CODES.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="presc-birth" className="text-xs">
-            Data de nascimento
-          </Label>
+          <Label htmlFor="presc-birth" className="text-xs">Data de nascimento</Label>
           <Input
             id="presc-birth"
             type="date"
@@ -155,6 +187,8 @@ export function EditPrescriberFields({
           size="sm"
           onClick={() => {
             setEditing(false)
+            setCouncilName(currentCouncilName ?? 'CRM')
+            setCouncilNumber(currentCouncilNumber ?? '')
             setCpf(currentCpf ?? '')
             setCouncilState(currentCouncilState ?? '')
             setBirthDate(currentBirthDate ?? '')
@@ -172,9 +206,7 @@ export function EditPrescriberFields({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-        {label}
-      </p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       <p className="font-medium text-slate-800">{value}</p>
     </div>
   )
