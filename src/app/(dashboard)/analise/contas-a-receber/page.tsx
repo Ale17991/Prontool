@@ -18,11 +18,8 @@ interface PageProps {
 export default async function ContasAReceberPage({ searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
-  if (
-    session.role !== 'admin' &&
-    session.role !== 'financeiro' &&
-    session.role !== 'recepcionista'
-  ) {
+  // Painel financeiro agregado — recepção não vê valores (finance.view_values).
+  if (session.role !== 'admin' && session.role !== 'financeiro') {
     redirect('/operacao/atendimentos')
   }
 

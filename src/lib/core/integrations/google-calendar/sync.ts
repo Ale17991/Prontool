@@ -29,33 +29,38 @@ function loose(supabase: SupabaseClient<Database>): SupabaseClient {
   return supabase as unknown as SupabaseClient
 }
 
-interface ApptContext {
-  userId: string
-  doctorName: string | null
-  durationMinutes: number
-  procedureName: string | null
-  timeZone: string
+
+/** Médico → usuário (conta). Null = médico não vinculado a usuário. 1 query. */
+async function resolveDoctorUser(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  doctorId: string,
+): Promise<{ userId: string; doctorName: string | null } | null> {
+  const { data } = await loose(supabase)
+    .from('doctors')
+    .select('user_id, full_name')
+    .eq('tenant_id', tenantId)
+    .eq('id', doctorId)
+    .maybeSingle()
+  const row = data as { user_id: string | null; full_name: string | null } | null
+  if (!row?.user_id) return null
+  return { userId: row.user_id, doctorName: row.full_name ?? null }
 }
 
-/** Resolve o usuário (conta) do médico + dados do evento. Null = sem médico vinculado. */
-async function loadContext(
+/** Detalhes do evento (duração/procedimento/fuso). Só carregado se houver Google conectado. */
+async function loadEventDetails(
   supabase: SupabaseClient<Database>,
   appt: AppointmentSnapshot,
-): Promise<ApptContext | null> {
+): Promise<{ durationMinutes: number; procedureName: string | null; timeZone: string }> {
   const sb = loose(supabase)
-  const [doctorRes, apptRes, procRes, tz] = await Promise.all([
-    sb.from('doctors').select('user_id, full_name').eq('tenant_id', appt.tenantId).eq('id', appt.doctorId).maybeSingle(),
+  const [apptRes, procRes, tz] = await Promise.all([
     sb.from('appointments').select('duration_minutes').eq('id', appt.id).maybeSingle(),
     appt.procedureId
       ? sb.from('procedures').select('display_name').eq('tenant_id', appt.tenantId).eq('id', appt.procedureId).maybeSingle()
       : Promise.resolve({ data: null }),
     getTenantTimezone(supabase, appt.tenantId),
   ])
-  const userId = (doctorRes.data as { user_id: string | null } | null)?.user_id ?? null
-  if (!userId) return null // médico não vinculado a um usuário → nada a sincronizar
   return {
-    userId,
-    doctorName: (doctorRes.data as { full_name: string | null } | null)?.full_name ?? null,
     durationMinutes: (apptRes.data as { duration_minutes: number | null } | null)?.duration_minutes ?? DEFAULT_DURATION_MIN,
     procedureName: (procRes.data as { display_name: string | null } | null)?.display_name ?? null,
     timeZone: tz,
@@ -122,35 +127,42 @@ async function resolvePatientFirstName(
 }
 
 async function onCreated(supabase: SupabaseClient<Database>, appt: AppointmentSnapshot, patientNameHint: string): Promise<void> {
-  const ctx = await loadContext(supabase, appt)
-  if (!ctx) return
-  const patientName = await resolvePatientFirstName(supabase, appt.tenantId, appt.patientId, patientNameHint)
+  // 1) Médico → usuário (1 query). Sem vínculo → nada a fazer.
+  const doctor = await resolveDoctorUser(supabase, appt.tenantId, appt.doctorId)
+  if (!doctor) return
 
-  const auth = await withGoogleAuth(supabase, ctx.userId, appt.tenantId)
-  if (auth.kind !== 'connected') return // não conectado / precisa reconectar → silencioso
+  // 2) Conexão Google ANTES de carregar o resto (caso comum: sem Google → sai barato).
+  const auth = await withGoogleAuth(supabase, doctor.userId, appt.tenantId)
+  if (auth.kind !== 'connected') return
+
+  // 3) Só agora carrega detalhes + nome do paciente.
+  const [details, patientName] = await Promise.all([
+    loadEventDetails(supabase, appt),
+    resolvePatientFirstName(supabase, appt.tenantId, appt.patientId, patientNameHint),
+  ])
 
   const start = new Date(appt.appointmentAt)
-  const end = new Date(start.getTime() + ctx.durationMinutes * 60_000)
+  const end = new Date(start.getTime() + details.durationMinutes * 60_000)
   const calendarId = auth.connection.config.calendar_id || 'primary'
 
   try {
     const eventId = await createCalendarEvent(auth.accessToken, calendarId, {
       summary: `Consulta — ${patientName || 'Paciente'}`,
       description: [
-        ctx.procedureName ? `Procedimento: ${ctx.procedureName}` : null,
-        ctx.doctorName ? `Profissional: ${ctx.doctorName}` : null,
+        details.procedureName ? `Procedimento: ${details.procedureName}` : null,
+        doctor.doctorName ? `Profissional: ${doctor.doctorName}` : null,
         'Agendado pelo Clinni.',
       ]
         .filter(Boolean)
         .join('\n'),
       startIso: start.toISOString(),
       endIso: end.toISOString(),
-      timeZone: ctx.timeZone,
+      timeZone: details.timeZone,
     })
     await recordSync(supabase, {
       appointmentId: appt.id,
       tenantId: appt.tenantId,
-      userId: ctx.userId,
+      userId: doctor.userId,
       calendarId,
       eventId,
       status: 'synced',
@@ -160,7 +172,7 @@ async function onCreated(supabase: SupabaseClient<Database>, appt: AppointmentSn
     await recordSync(supabase, {
       appointmentId: appt.id,
       tenantId: appt.tenantId,
-      userId: ctx.userId,
+      userId: doctor.userId,
       calendarId,
       eventId: null,
       status: 'failed',
@@ -191,6 +203,23 @@ async function onReversed(supabase: SupabaseClient<Database>, appointmentId: str
       .eq('provider', PROVIDER)
   } catch (err) {
     logger.error({ err: (err as Error).message, appointmentId }, 'google-calendar-delete-failed')
+  }
+}
+
+/**
+ * Remove o evento do Google de um atendimento (cancelamento/estorno). Best-effort,
+ * nunca lança. Chamado pelas rotas de cancelar/estornar — não há evento de domínio
+ * `appointment.reversed` publicado, então o caller aciona direto.
+ */
+export async function removeAppointmentFromGoogle(
+  supabase: SupabaseClient<Database>,
+  appointmentId: string,
+  tenantId: string,
+): Promise<void> {
+  try {
+    await onReversed(supabase, appointmentId, tenantId)
+  } catch (err) {
+    logger.error({ err: (err as Error).message, appointmentId }, 'google-calendar-remove-failed')
   }
 }
 

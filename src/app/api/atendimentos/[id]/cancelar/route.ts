@@ -4,7 +4,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { cancelAppointment } from '@/lib/core/appointments/cancel'
+import { removeAppointmentFromGoogle } from '@/lib/core/integrations/google-calendar/sync'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -65,6 +67,13 @@ export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
       reason: parsed.data.reason,
       notes: parsed.data.notes,
     })
+
+    // Remove o evento da agenda Google do profissional (best-effort, service client).
+    await removeAppointmentFromGoogle(
+      createSupabaseServiceClient() as unknown as SupabaseClient<Database>,
+      ctx.params.id,
+      session.tenantId,
+    )
 
     return NextResponse.json(
       {

@@ -131,8 +131,19 @@ async function syncDoctorGoogleBusy(
   const row = data as UserIntegrationLite | null
   if (!row || !row.enabled || row.status !== 'connected') return
 
-  // TTL — cache do sync sob demanda.
-  if (row.busy_synced_at && Date.now() - Date.parse(row.busy_synced_at) < TTL_MINUTES * 60_000) return
+  // Claim ATÔMICO do TTL: marca busy_synced_at=now() só se estava vazio ou
+  // vencido. Se nenhuma linha casar, outra carga concorrente já reivindicou (ou
+  // o cache está fresco) → sai sem duplicar blocos.
+  const cutoff = new Date(Date.now() - TTL_MINUTES * 60_000).toISOString()
+  const claim = await sb
+    .from('user_integrations')
+    .update({ busy_synced_at: new Date().toISOString() })
+    .eq('user_id', args.userId)
+    .eq('tenant_id', args.tenantId)
+    .eq('provider', PROVIDER)
+    .or(`busy_synced_at.is.null,busy_synced_at.lt.${cutoff}`)
+    .select('user_id')
+  if (claim.error || !claim.data || claim.data.length === 0) return
 
   const auth = await withGoogleAuth(supabase, args.userId, args.tenantId)
   if (auth.kind !== 'connected') return
@@ -170,13 +181,7 @@ async function syncDoctorGoogleBusy(
     const ins = await sb.from('schedule_blocks').insert(rows)
     if (ins.error) throw new Error(`insert google blocks: ${ins.error.message}`)
   }
-
-  await sb
-    .from('user_integrations')
-    .update({ busy_synced_at: new Date().toISOString() })
-    .eq('user_id', args.userId)
-    .eq('tenant_id', args.tenantId)
-    .eq('provider', PROVIDER)
+  // busy_synced_at já foi marcado no claim atômico acima.
 }
 
 /**
