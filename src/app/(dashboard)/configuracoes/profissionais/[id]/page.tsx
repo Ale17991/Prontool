@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, Circle, FileText, History, Percent, Stethoscope, Wallet } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Circle, FileText, History, Link2, Percent, Stethoscope, Wallet } from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-public'
+import { listTeamMembers } from '@/lib/core/team/list'
 import { formatBps, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import type { Database } from '@/lib/db/types'
 import { EditDoctorName } from './edit-doctor-name'
+import { LinkUserPanel, type LinkUserOption } from './link-user-panel'
 import { EditPrescriberFields } from './edit-prescriber-fields'
 import { SpecialtyEditor } from './specialty-editor'
 import { EnablePrescriberPanel } from './enable-prescriber-panel'
@@ -35,6 +38,7 @@ interface DoctorRow {
   birth_date: string | null
   active: boolean
   created_at: string
+  user_id: string | null
   payment_mode: PaymentMode
 }
 
@@ -83,7 +87,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const { data: doctorRaw, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, user_id, payment_mode',
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -123,6 +127,22 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const futureCommissions = commissions.filter((c) => c.valid_from > today)
 
   const canWrite = can(session.role, 'doctor.write')
+
+  // Usuários da clínica para o vínculo profissional ↔ conta de login.
+  let userOptions: LinkUserOption[] = []
+  if (canWrite) {
+    const svc = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
+    const members = await listTeamMembers(svc, {
+      tenantId: session.tenantId,
+      requesterId: session.userId,
+    }).catch(() => [])
+    userOptions = members.map((m) => ({
+      userId: m.userId,
+      label: m.fullName ?? m.email,
+      email: m.email,
+      linkedToOther: m.linkedDoctor && m.linkedDoctor.id !== doctor.id ? m.linkedDoctor.fullName : null,
+    }))
+  }
 
   // Estado da prescrição digital (Memed) — conexão da clínica + status do prescritor.
   const memed = await getMemedConfigPublic(
@@ -215,6 +235,24 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
           </CardHeader>
           <CardContent>
             <SpecialtyEditor doctorId={doctor.id} current={doctor.specialty} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {canWrite ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Link2 className="h-4 w-4 text-primary" />
+              Usuário vinculado
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LinkUserPanel
+              doctorId={doctor.id}
+              currentUserId={doctor.user_id}
+              options={userOptions}
+            />
           </CardContent>
         </Card>
       ) : null}
