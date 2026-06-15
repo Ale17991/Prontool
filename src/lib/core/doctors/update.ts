@@ -21,6 +21,8 @@ export interface UpdateDoctorInput {
     cpf?: string | null
     councilState?: string | null
     birthDate?: string | null
+    /** Especialidade (nome do catálogo Memed). Fonte única do display. */
+    specialty?: string | null
   }
 }
 
@@ -31,6 +33,7 @@ export interface UpdatedDoctor {
   cpf: string | null
   councilState: string | null
   birthDate: string | null
+  specialty: string | null
 }
 
 export async function updateDoctor(
@@ -43,6 +46,7 @@ export async function updateDoctor(
     cpf?: string | null
     council_state?: string | null
     birth_date?: string | null
+    specialty?: string | null
   } = {}
   if (input.patch.fullName !== undefined) updates.full_name = input.patch.fullName.trim()
   if (typeof input.patch.active === 'boolean') updates.active = input.patch.active
@@ -51,6 +55,7 @@ export async function updateDoctor(
     updates.council_state = input.patch.councilState?.trim().toUpperCase() || null
   }
   if (input.patch.birthDate !== undefined) updates.birth_date = input.patch.birthDate || null
+  if (input.patch.specialty !== undefined) updates.specialty = input.patch.specialty?.trim() || null
   if (Object.keys(updates).length === 0) throw new Error('updateDoctor: nothing to update')
 
   const { data, error } = await supabase
@@ -58,7 +63,7 @@ export async function updateDoctor(
     .update(updates)
     .eq('id', input.doctorId)
     .eq('tenant_id', input.tenantId)
-    .select('id, full_name, active, cpf, council_state, birth_date')
+    .select('id, full_name, active, cpf, council_state, birth_date, specialty')
     .maybeSingle()
   if (error) throw new Error(`updateDoctor failed: ${error.message}`)
   if (!data) throw new NotFoundError('doctor', input.doctorId)
@@ -70,5 +75,6 @@ export async function updateDoctor(
     cpf: data.cpf,
     councilState: data.council_state,
     birthDate: data.birth_date,
+    specialty: (data as { specialty: string | null }).specialty,
   }
 }

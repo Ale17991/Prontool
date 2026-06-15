@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SpecialtySelect } from './specialty-select'
 import { UF_CODES } from '@/lib/core/clinic-profile/types'
 
 const ROLE_OPTIONS = [
@@ -223,13 +224,7 @@ export function NewDoctorForm() {
           <Label htmlFor="specialty" className="text-xs">
             Especialidade <span className="text-slate-400">(opcional)</span>
           </Label>
-          <Input
-            id="specialty"
-            maxLength={120}
-            value={specialty}
-            onChange={(e) => setSpecialty(e.target.value)}
-            placeholder="Ex.: Ortopedia, Endodontia"
-          />
+          <SpecialtySelect id="specialty" value={specialty} onChange={setSpecialty} />
         </div>
       </div>
 

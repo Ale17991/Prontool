@@ -12,6 +12,7 @@ import { formatBps, formatCurrency, formatDate, formatDateTime } from '@/lib/uti
 import type { Database } from '@/lib/db/types'
 import { EditDoctorName } from './edit-doctor-name'
 import { EditPrescriberFields } from './edit-prescriber-fields'
+import { SpecialtyEditor } from './specialty-editor'
 import { EnablePrescriberPanel } from './enable-prescriber-panel'
 import { NewCommissionForm } from './new-commission-form'
 import { PaymentModeEditor } from './payment-mode-editor'
@@ -208,6 +209,20 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
+              <Stethoscope className="h-4 w-4 text-primary" />
+              Especialidade
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SpecialtyEditor doctorId={doctor.id} current={doctor.specialty} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {canWrite ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
               <FileText className="h-4 w-4 text-primary" />
               Dados para prescrição digital
             </CardTitle>
@@ -237,7 +252,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
               memedConnected={memedConnected}
               hasRequiredFields={hasPrescriberFields}
               initialStatus={prescriber?.status ?? 'none'}
-              initialSpecialtyId={prescriber?.memed_specialty_id ?? null}
+              currentSpecialty={doctor.specialty}
               lastError={prescriber?.last_error ?? null}
             />
           </CardContent>

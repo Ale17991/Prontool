@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getDoctor, type DoctorDetail } from '@/lib/core/doctors/get'
+import { resolveMemedSpecialtyIdByName } from './list-specialties'
 import { getMemedConnection } from './credentials'
 import { memedFetch, MemedValidationError } from './client'
 import { recordMemedAudit } from './audit'
@@ -139,7 +140,11 @@ export async function enablePrescriber(
   if (!connection || !connection.connected) throw new MemedNotConnectedError()
 
   const doctor = await getDoctor(supabase, { tenantId, doctorId })
-  const payload = buildPrescriberPayload(doctor, input.memedSpecialtyId)
+  // Fonte única: a especialidade do médico (doctors.specialty, do catálogo
+  // Memed) deriva o id. Só usa o id explícito do body se vier (back-compat).
+  const specialtyId =
+    input.memedSpecialtyId ?? (await resolveMemedSpecialtyIdByName(doctor.specialty))
+  const payload = buildPrescriberPayload(doctor, specialtyId)
 
   // Já registrado? Então habilitar é ATUALIZAR (ex.: mudar especialidade) →
   // PATCH /usuarios/{external_id}. Cadastrar de novo com POST faria a Memed
@@ -203,7 +208,7 @@ export async function enablePrescriber(
       lastError: message,
       lastSyncedAt: null,
       actorUserId: input.actorUserId,
-      memedSpecialtyId: input.memedSpecialtyId,
+      memedSpecialtyId: specialtyId,
     })
     await recordMemedAudit(supabase, {
       tenantId,
@@ -229,7 +234,7 @@ export async function enablePrescriber(
     lastError: null,
     lastSyncedAt: new Date().toISOString(),
     actorUserId: input.actorUserId,
-    memedSpecialtyId: input.memedSpecialtyId,
+    memedSpecialtyId: specialtyId,
   })
 
   await recordMemedAudit(supabase, {

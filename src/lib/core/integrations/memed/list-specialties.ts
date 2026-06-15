@@ -18,6 +18,42 @@ interface MemedSpecialtyRaw {
   attributes?: { nome?: string }
 }
 
+/**
+ * Catálogo PÚBLICO da Memed — o endpoint `/especialidades` responde sem auth
+ * (confirmado). Usado como fonte ÚNICA da especialidade do médico, independente
+ * de a clínica estar conectada à Memed. Degrada para `[]` em falha (nunca lança).
+ */
+export async function listMemedSpecialtiesPublic(): Promise<MemedSpecialty[]> {
+  const base = process.env.MEMED_BASE_URL || 'https://api.memed.com.br/v1'
+  try {
+    const res = await fetch(`${base}/especialidades`, {
+      headers: { Accept: 'application/vnd.api+json' },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) return []
+    const json = (await res.json()) as { data?: MemedSpecialtyRaw[] }
+    const items = Array.isArray(json?.data) ? json.data : []
+    return items
+      .map((item) => ({
+        id: item.id !== null && item.id !== undefined ? String(item.id) : '',
+        nome: item.attributes?.nome ?? item.nome ?? '',
+      }))
+      .filter((s) => s.id !== '' && s.nome !== '')
+      .map((s) => memedSpecialtySchema.parse(s))
+  } catch {
+    return []
+  }
+}
+
+/** Resolve o id da especialidade no catálogo Memed a partir do NOME exato. */
+export async function resolveMemedSpecialtyIdByName(name: string | null): Promise<string | null> {
+  const trimmed = (name ?? '').trim()
+  if (!trimmed) return null
+  const catalog = await listMemedSpecialtiesPublic()
+  const hit = catalog.find((s) => s.nome.toLowerCase() === trimmed.toLowerCase())
+  return hit?.id ?? null
+}
+
 export async function listMemedSpecialties(
   supabase: SupabaseClient<Database>,
   tenantId: string,

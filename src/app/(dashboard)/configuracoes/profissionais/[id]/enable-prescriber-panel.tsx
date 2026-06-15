@@ -1,19 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 
 type PrescriberStatus = 'none' | 'pending' | 'registered' | 'error'
-
-interface Specialty {
-  id: string
-  nome: string
-}
 
 interface ApiError {
   error?: { code?: string; message?: string }
@@ -24,46 +18,31 @@ export function EnablePrescriberPanel({
   memedConnected,
   hasRequiredFields,
   initialStatus,
-  initialSpecialtyId,
+  currentSpecialty,
   lastError,
 }: {
   doctorId: string
   memedConnected: boolean
   hasRequiredFields: boolean
   initialStatus: PrescriberStatus
-  initialSpecialtyId: string | null
+  /** Especialidade do médico (doctors.specialty) — fonte única, reaproveitada. */
+  currentSpecialty: string | null
   lastError: string | null
 }): JSX.Element {
   const router = useRouter()
-  const [specialties, setSpecialties] = useState<Specialty[]>([])
-  const [specialtyId, setSpecialtyId] = useState<string>(initialSpecialtyId ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!memedConnected) return
-    let cancelled = false
-    fetch('/api/integracoes/memed/especialidades')
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data: { especialidades?: Specialty[] }) => {
-        if (!cancelled) setSpecialties(data.especialidades ?? [])
-      })
-      .catch(() => {
-        /* catálogo indisponível — segue sem seletor */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [memedConnected])
 
   async function handleEnable() {
     setSubmitting(true)
     setError(null)
     try {
+      // A especialidade vem de doctors.specialty (resolvida no servidor) —
+      // não enviamos id aqui; o backend deriva do catálogo.
       const res = await fetch(`/api/medicos/${doctorId}/memed-prescritor`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ memed_specialty_id: specialtyId || null }),
+        body: JSON.stringify({}),
       })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as ApiError
@@ -110,26 +89,15 @@ export function EnablePrescriberPanel({
         </p>
       ) : null}
 
-      <div className="space-y-1.5">
-        <Label htmlFor="memed-specialty">Especialidade (opcional)</Label>
-        <select
-          id="memed-specialty"
-          value={specialtyId}
-          onChange={(e) => setSpecialtyId(e.target.value)}
-          disabled={specialties.length === 0}
-          className="flex h-9 w-full rounded-md border border-slate-300 bg-white px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">— sem especialidade —</option>
-          {specialties.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nome}
-            </option>
-          ))}
-        </select>
-        {specialties.length === 0 ? (
-          <p className="text-[11px] text-slate-400">Catálogo de especialidades indisponível no momento.</p>
-        ) : null}
-      </div>
+      <p className="text-xs text-slate-500">
+        Especialidade:{' '}
+        <span className="font-semibold text-slate-700">
+          {currentSpecialty || '— não definida —'}
+        </span>{' '}
+        <span className="text-slate-400">
+          (definida no card “Especialidade” acima; usada na prescrição)
+        </span>
+      </p>
 
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
