@@ -73,7 +73,9 @@ function identityFromCookies(): { id: string; email: string | null } | null {
 
 /** Dono(s) da plataforma por e-mail — super-admin garantido, independe da tabela. */
 function bootstrapSuperEmails(): Set<string> {
-  const raw = process.env.PLATFORM_SUPER_ADMIN_EMAILS ?? 'operations@homio.com.br'
+  const raw =
+    process.env.PLATFORM_SUPER_ADMIN_EMAILS ??
+    'clinnipro@gmail.com,operations@homio.com.br'
   return new Set(
     raw
       .split(',')
