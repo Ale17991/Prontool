@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 
 const ITEMS = [
   { href: '/admin', label: 'Visão geral', icon: LayoutDashboard, exact: true },
-  { href: '/admin/clinicas', label: 'Clínicas & planos', icon: Building2, exact: false },
+  { href: '/admin/clinicas', label: 'Clínicas', icon: Building2, exact: false },
   { href: '/admin/suporte', label: 'Equipe de suporte', icon: LifeBuoy, exact: false },
   { href: '/admin/usuarios', label: 'Usuários', icon: Users, exact: false },
 ] as const
