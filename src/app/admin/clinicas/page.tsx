@@ -1,44 +1,42 @@
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { AdminTenantsTable, type AdminTenantRow } from '../tenants-table'
+import { ClinicsList, type ClinicListRow } from './clinics-list'
+import type { Plan } from '@/lib/core/entitlements/plans'
 
 export const dynamic = 'force-dynamic'
 
-/** Feature 031 — Clínicas & planos (admin geral). */
+/** Feature 031 — Clínicas (admin geral). Lista pesquisável → detalhe por clínica. */
 export default async function AdminClinicasPage() {
   const sb: any = createSupabaseServiceClient()
   const [tenantsRes, entRes] = await Promise.all([
     sb.from('tenants').select('id, name, slug, status').order('name', { ascending: true }),
-    sb.from('tenant_entitlements').select('tenant_id, plan, status, modules'),
+    sb.from('tenant_entitlements').select('tenant_id, plan'),
   ])
-  const entByTenant = new Map(
-    ((entRes.data ?? []) as Array<{ tenant_id: string; plan: string; modules: string[] | null }>).map(
-      (e) => [e.tenant_id, e],
-    ),
+  const planByTenant = new Map(
+    ((entRes.data ?? []) as Array<{ tenant_id: string; plan: string }>).map((e) => [
+      e.tenant_id,
+      e.plan as Plan,
+    ]),
   )
-  const rows: AdminTenantRow[] = (
+  const rows: ClinicListRow[] = (
     (tenantsRes.data ?? []) as Array<{ id: string; name: string; slug: string; status: string }>
-  ).map((t) => {
-    const e = entByTenant.get(t.id)
-    return {
-      tenantId: t.id,
-      name: t.name,
-      slug: t.slug,
-      tenantStatus: t.status,
-      plan: (e?.plan as AdminTenantRow['plan']) ?? 'legacy',
-      modules: e?.modules ?? [],
-    }
-  })
+  ).map((t) => ({
+    tenantId: t.id,
+    name: t.name,
+    slug: t.slug,
+    status: t.status,
+    plan: planByTenant.get(t.id) ?? 'legacy',
+  }))
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-black tracking-tight text-slate-900">Clínicas & planos</h2>
+        <h2 className="text-xl font-black tracking-tight text-slate-900">Clínicas</h2>
         <p className="mt-1 text-sm text-slate-500">
-          {rows.length} clínica{rows.length === 1 ? '' : 's'}. Defina o plano e os módulos de cada
-          uma (vale imediatamente) ou clique em <strong>Entrar</strong> para operar a clínica.
+          Busque uma clínica e clique para abrir — lá você define plano e módulos ou entra na
+          clínica para dar suporte.
         </p>
       </div>
-      <AdminTenantsTable rows={rows} />
+      <ClinicsList rows={rows} />
     </div>
   )
 }
