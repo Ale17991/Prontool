@@ -130,6 +130,9 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/api/workers') ||
+    // Logout limpa os cookies de sessão — o refresh do middleware não pode
+    // re-setá-los e atrapalhar o sign-out.
+    pathname.startsWith('/api/auth/logout') ||
     pathname.startsWith('/agendar') ||
     // Feature 030 — portal do paciente: público, com sessão própria (cookie
     // HMAC verificado na página/endpoint, não aqui). O prefixo com '/' em

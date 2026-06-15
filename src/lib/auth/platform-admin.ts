@@ -19,7 +19,7 @@
  *
  * Fail-closed: sem identidade ⇒ notFound().
  */
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
@@ -185,18 +185,33 @@ export async function platformAdminUserId(): Promise<string | null> {
 }
 
 /**
- * Guard para Server Components do painel /admin (qualquer Admin-Agência).
- * Sem identidade ou sem ser admin ⇒ `notFound()` (404 — não revela a rota).
+ * UX (pedido do dono): em vez de uma tela 404 morta, quem não é admin é
+ * DESLOGADO e mandado pro /login — assim dá pra logar com a conta certa. Não
+ * autenticado vai direto pro login (nada a deslogar). `redirect()` lança o
+ * NEXT_REDIRECT que o Next trata.
  */
+function bounceToLogin(loggedIn: boolean): never {
+  redirect(loggedIn ? '/api/auth/logout?next=/login' : '/login')
+}
+
+async function grantOrBounce(
+  check: (userId: string) => Promise<boolean>,
+): Promise<{ userId: string }> {
+  const user = await currentUser()
+  if (!user) bounceToLogin(false)
+  if ((await check(user.id)) || isBootstrapSuper(user.email)) {
+    if (isBootstrapSuper(user.email)) await healSuperAdmin(user.id)
+    return { userId: user.id }
+  }
+  bounceToLogin(true)
+}
+
+/** Guard para Server Components do painel /admin (qualquer Admin-Agência). */
 export async function requirePlatformAdmin(): Promise<{ userId: string }> {
-  const uid = await platformAdminUserId()
-  if (!uid) notFound()
-  return { userId: uid }
+  return grantOrBounce(isPlatformAdmin)
 }
 
 /** Guard do painel /admin (gestão): só admin GERAL (is_super) ou dono bootstrap. */
 export async function requireSuperAdmin(): Promise<{ userId: string }> {
-  const uid = await superAdminUserId()
-  if (!uid) notFound()
-  return { userId: uid }
+  return grantOrBounce(isSuperAdmin)
 }
