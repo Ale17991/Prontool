@@ -21,6 +21,8 @@ export interface DoctorDetail {
   birthDate: string | null
   active: boolean
   createdAt: string
+  /** Conta de login vinculada (doctors.user_id) — null se não vinculado. */
+  userId: string | null
   paymentMode: PaymentMode
   currentPercentageBps: number | null
   currentMonthlyAmountCents: number | null
@@ -43,6 +45,7 @@ interface DoctorRow {
   birth_date: string | null
   active: boolean
   created_at: string
+  user_id: string | null
   payment_mode: PaymentMode
 }
 
@@ -61,7 +64,7 @@ export async function getDoctor(
   const { data: rawDoctor, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, user_id, payment_mode',
     )
     .eq('id', args.doctorId)
     .eq('tenant_id', args.tenantId)
@@ -94,6 +97,7 @@ export async function getDoctor(
     birthDate: doctor.birth_date,
     active: doctor.active,
     createdAt: doctor.created_at,
+    userId: doctor.user_id,
     paymentMode: doctor.payment_mode,
     currentPercentageBps: head?.percentage_bps ?? null,
     currentMonthlyAmountCents: head?.monthly_amount_cents ?? null,

@@ -25,6 +25,7 @@ const BASE: DoctorDetail = {
   birthDate: '1985-04-12',
   active: true,
   createdAt: '2024-01-01T00:00:00Z',
+  userId: null,
   paymentMode: 'comissionado',
   currentPercentageBps: null,
   currentMonthlyAmountCents: null,
