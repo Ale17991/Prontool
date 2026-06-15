@@ -20,9 +20,56 @@
  * Fail-closed: sem identidade ⇒ notFound().
  */
 import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { decodeJwtClaims, type JwtPayload } from '@/lib/auth/jwt-claims'
+
+type AccessClaims = JwtPayload & { sub?: string; email?: string }
+
+/**
+ * Identidade lida DIRETO do cookie de auth do Supabase (sb-<ref>-auth-token,
+ * possivelmente em chunks .0/.1). Decodifica o access_token e extrai sub/email.
+ * É o caminho mais robusto em Server Component: independe de `getUser()` (que
+ * devolve null com token stale) e do refresh do middleware. Só lê o `sub`/
+ * `email` — a autoridade (is_super) é cruzada com o banco depois.
+ */
+function identityFromCookies(): { id: string; email: string | null } | null {
+  try {
+    const jar = cookies()
+    const parts = jar
+      .getAll()
+      .filter((c) => /sb-.*-auth-token(\.\d+)?$/.test(c.name))
+      .sort((a, b) => a.name.localeCompare(b.name))
+    if (parts.length === 0) return null
+    let raw = parts.map((c) => c.value).join('')
+    if (raw.startsWith('base64-')) raw = raw.slice('base64-'.length)
+
+    let session: unknown = null
+    try {
+      session = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'))
+    } catch {
+      try {
+        session = JSON.parse(raw)
+      } catch {
+        return null
+      }
+    }
+    const s = session as { access_token?: unknown } | unknown[]
+    const accessToken =
+      typeof (s as { access_token?: unknown }).access_token === 'string'
+        ? ((s as { access_token: string }).access_token)
+        : Array.isArray(s) && typeof s[0] === 'string'
+          ? (s[0] as string)
+          : null
+    if (!accessToken) return null
+    const claims = decodeJwtClaims(accessToken) as AccessClaims | null
+    if (!claims?.sub) return null
+    return { id: claims.sub, email: claims.email ?? null }
+  } catch {
+    return null
+  }
+}
 
 /** Dono(s) da plataforma por e-mail — super-admin garantido, independe da tabela. */
 function bootstrapSuperEmails(): Set<string> {
@@ -42,17 +89,19 @@ function isBootstrapSuper(email: string | null | undefined): boolean {
 
 /** Usuário atual (id + email), resiliente a token stale. Null = não autenticado. */
 async function currentUser(): Promise<{ id: string; email: string | null } | null> {
+  // 1) Cookie direto — o mais robusto em Server Component (imune a token stale).
+  const fromCookie = identityFromCookies()
+  if (fromCookie) return fromCookie
+
+  // 2) supabase-js — getUser (fresco) e depois getSession.
   try {
     const supabase = createSupabaseServerClient()
-    // 1) getUser (validado no servidor) — quando o token está fresco.
     const { data: u } = await supabase.auth.getUser()
     if (u.user?.id) return { id: u.user.id, email: u.user.email ?? null }
-    // 2) Fallback: sessão local do cookie — decodifica sub/email do access_token.
-    //    Sobrevive ao access token momentaneamente stale no Server Component.
     const { data: s } = await supabase.auth.getSession()
     const token = s.session?.access_token
     if (token) {
-      const claims = decodeJwtClaims(token) as (JwtPayload & { sub?: string; email?: string }) | null
+      const claims = decodeJwtClaims(token) as AccessClaims | null
       const id = claims?.sub ?? s.session?.user?.id
       if (id) return { id, email: claims?.email ?? s.session?.user?.email ?? null }
     }
