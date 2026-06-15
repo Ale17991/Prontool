@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { requireRole } from '@/lib/auth/require-role'
+import { can } from '@/lib/auth/rbac'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
@@ -146,14 +147,26 @@ export async function GET(
       .eq('appointment_id', appointmentIdResolved)
       .order('issued_at', { ascending: false })
 
+    // Recepção (sem finance.view_values) não recebe valores no payload — anula
+    // qualquer campo monetário (*cents / *bps) antes de serializar.
+    const canViewValues = can(session.role, 'finance.view_values')
+    const stripMoney = <T extends Record<string, unknown>>(o: T): T => {
+      if (canViewValues || !o) return o
+      const out = { ...o } as Record<string, unknown>
+      for (const k of Object.keys(out)) {
+        if (/cents$/i.test(k) || /bps$/i.test(k)) out[k] = null
+      }
+      return out as T
+    }
+
     return NextResponse.json(
       {
-        appointment,
+        appointment: stripMoney(appointment),
         patient: { name: patientName, anonymized: patientAnonymized },
-        procedures: proceduresR,
+        procedures: (proceduresR as Array<Record<string, unknown>>).map(stripMoney),
         materials: materialsR,
         allergies: allergiesR,
-        assistants: assistantsR.active,
+        assistants: (assistantsR.active as Array<Record<string, unknown>>).map(stripMoney),
         assistantsRemovedCount: assistantsR.removedCount,
         audit: auditR.data ?? [],
         memed: { prescriberReady },
