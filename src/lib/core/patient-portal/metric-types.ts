@@ -74,6 +74,12 @@ export async function listMetricTypes(
     query = query.eq('specialty', args.specialty)
   }
   if (args.tenantId) {
+    // Guard: tenantId vem da sessão (UUID), mas validamos a forma antes de
+    // interpolar no filtro PostgREST .or() — evita corromper a query se algum
+    // dia um valor não-UUID alcançar este caminho.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(args.tenantId)) {
+      throw new Error('listMetricTypes: tenantId inválido')
+    }
     query = query.or(`tenant_id.is.null,tenant_id.eq.${args.tenantId}`)
   } else {
     query = query.is('tenant_id', null)

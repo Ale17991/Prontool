@@ -339,6 +339,10 @@ export default async function PacienteDetailPage({
     specialty: d.specialty,
   }))
 
+  // Ver VALORES (recepção não). Calculado cedo p/ NÃO serializar montantes no
+  // payload enviado ao cliente — não basta esconder na UI.
+  const canViewFinancialValues = can(session.role, 'finance.view_values')
+
   const appointmentTimelineRows: AppointmentTimelineRow[] = appointments
     .filter(
       (a): a is AppointmentRow & { id: string } =>
@@ -347,8 +351,8 @@ export default async function PacienteDetailPage({
     .map((a) => ({
       id: a.id,
       appointmentAt: a.appointment_at,
-      frozenAmountCents: a.frozen_amount_cents,
-      netAmountCents: a.net_amount_cents,
+      frozenAmountCents: canViewFinancialValues ? a.frozen_amount_cents : null,
+      netAmountCents: canViewFinancialValues ? a.net_amount_cents : null,
       effectiveStatus: a.effective_status,
       procedureName: a.procedures?.display_name ?? null,
       tussCode: a.procedures?.tuss_code ?? null,
@@ -362,7 +366,7 @@ export default async function PacienteDetailPage({
     clinicalRecords: records,
     vitalSigns,
     appointments: appointmentTimelineRows,
-    payments: payments.records,
+    payments: canViewFinancialValues ? payments.records : [],
     isAnonymized: patient.anonymizedAt !== null,
     limit: 200,
   })
@@ -409,9 +413,7 @@ export default async function PacienteDetailPage({
   const canDeleteDiagnosis = session.role === 'admin'
   const canRecordPayment =
     session.role === 'admin' || session.role === 'financeiro'
-  // Ver VALORES na ficha financeira (admin/financeiro/profissional). Recepção
-  // não vê — só digita no registro do atendimento.
-  const canViewFinancialValues = can(session.role, 'finance.view_values')
+  // (canViewFinancialValues já calculado acima, antes da timeline.)
   // Módulo Endócrino (métricas metabólicas). Off = esconde a seção no prontuário.
   const ent = await getTenantEntitlements(typedClient, session.tenantId)
   const hasEndocrino = ent.hasModule('endocrino')
@@ -493,7 +495,7 @@ export default async function PacienteDetailPage({
           metricTypes,
           initialRecords: records,
           initialTreatmentSteps: treatmentSteps,
-          initialPayments: payments,
+          initialPayments: canViewFinancialValues ? payments : paymentsFallback,
           procedures,
           healthPlansList,
           doctorsList,
