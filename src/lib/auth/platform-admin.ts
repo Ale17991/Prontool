@@ -2,17 +2,65 @@
  * Feature 031 — Admin-Agência (usuário de plataforma, cross-tenant).
  *
  * Diferente do RBAC por-tenant (`requireRole`/`can`): aqui é um papel ACIMA
- * dos tenants. Marcado em `platform_admins` (concessão manual via Supabase).
+ * dos tenants. A fonte normal é a tabela `platform_admins` (is_super).
  *
- * IMPORTANTE: um Admin-Agência pode NÃO ter clínica nenhuma — então NÃO
- * usamos `getSession()` (que exige claim `tenant_id` no JWT e retornaria
- * null). Resolvemos o usuário direto via `auth.getUser()`. A checagem em
- * `platform_admins` usa o service client porque a tabela não é legível por
- * `authenticated` (RLS sem policy). Fail-closed: qualquer erro ⇒ não-admin.
+ * SOLUÇÃO DEFINITIVA do 404 recorrente do /admin (duas causas observadas):
+ *
+ *   1. Linha some de `platform_admins` (FK → auth.users ON DELETE CASCADE):
+ *      um re-seed/recriação do usuário apaga o vínculo e o dono perde acesso.
+ *      → BOOTSTRAP por E-MAIL via env `PLATFORM_SUPER_ADMIN_EMAILS` (com
+ *        fallback para o dono). Esses e-mails são super SEMPRE, e a linha é
+ *        AUTO-CURADA (upsert) para o auth hook cross-tenant voltar a funcionar.
+ *
+ *   2. `auth.getUser()` devolve null em Server Component quando o access token
+ *      está momentaneamente stale (o middleware renova no response, o render lê
+ *      o cookie da request). → resolvemos a identidade decodificando o `sub`/
+ *      `email` direto do access_token do cookie (sobrevive a token stale).
+ *
+ * Fail-closed: sem identidade ⇒ notFound().
  */
 import { notFound } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { decodeJwtClaims, type JwtPayload } from '@/lib/auth/jwt-claims'
+
+/** Dono(s) da plataforma por e-mail — super-admin garantido, independe da tabela. */
+function bootstrapSuperEmails(): Set<string> {
+  const raw = process.env.PLATFORM_SUPER_ADMIN_EMAILS ?? 'operations@homio.com.br'
+  return new Set(
+    raw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => e.length > 0),
+  )
+}
+
+function isBootstrapSuper(email: string | null | undefined): boolean {
+  if (!email) return false
+  return bootstrapSuperEmails().has(email.toLowerCase())
+}
+
+/** Usuário atual (id + email), resiliente a token stale. Null = não autenticado. */
+async function currentUser(): Promise<{ id: string; email: string | null } | null> {
+  try {
+    const supabase = createSupabaseServerClient()
+    // 1) getUser (validado no servidor) — quando o token está fresco.
+    const { data: u } = await supabase.auth.getUser()
+    if (u.user?.id) return { id: u.user.id, email: u.user.email ?? null }
+    // 2) Fallback: sessão local do cookie — decodifica sub/email do access_token.
+    //    Sobrevive ao access token momentaneamente stale no Server Component.
+    const { data: s } = await supabase.auth.getSession()
+    const token = s.session?.access_token
+    if (token) {
+      const claims = decodeJwtClaims(token) as (JwtPayload & { sub?: string; email?: string }) | null
+      const id = claims?.sub ?? s.session?.user?.id
+      if (id) return { id, email: claims?.email ?? s.session?.user?.email ?? null }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
 
 export async function isPlatformAdmin(userId: string): Promise<boolean> {
   try {
@@ -29,10 +77,9 @@ export async function isPlatformAdmin(userId: string): Promise<boolean> {
   }
 }
 
-/** Admin GERAL (is_super) — vê/gerencia tudo. Fail-closed. */
+/** Admin GERAL (is_super) pela TABELA. Fail-closed. */
 export async function isSuperAdmin(userId: string): Promise<boolean> {
   try {
-    // `is_super` vem da migration 0119 (tipos regenerados depois) — cast.
     const sb: any = createSupabaseServiceClient()
     const { data, error } = await sb
       .from('platform_admins')
@@ -46,41 +93,49 @@ export async function isSuperAdmin(userId: string): Promise<boolean> {
   }
 }
 
-/** Usuário autenticado (independe de tenant) ou null. */
-async function currentUserId(): Promise<string | null> {
+/**
+ * Auto-cura: garante a linha super em `platform_admins` para o dono bootstrap.
+ * Mantém o auth hook cross-tenant ("Entrar na clínica") funcionando mesmo após
+ * a linha ter sido apagada por cascade. Best-effort — nunca lança.
+ */
+async function healSuperAdmin(userId: string): Promise<void> {
   try {
-    const supabase = createSupabaseServerClient()
-    const { data } = await supabase.auth.getUser()
-    if (data.user?.id) return data.user.id
-    // Fallback: em Server Component o access token pode estar momentaneamente
-    // stale (o middleware renova no response, mas o render lê o cookie da
-    // request) e `getUser` devolve null (401 no /user). `getSession` lê a
-    // sessão do cookie sem 401 — a identidade é cruzada com platform_admins
-    // (is_super) no DB logo em seguida, então é seguro para este guard.
-    const { data: s } = await supabase.auth.getSession()
-    return s.session?.user?.id ?? null
+    const sb: any = createSupabaseServiceClient()
+    await sb
+      .from('platform_admins')
+      .upsert({ user_id: userId, is_super: true }, { onConflict: 'user_id' })
   } catch {
-    return null
+    // best-effort
   }
 }
 
-/** Retorna o userId se for Admin-Agência; senão null. Não exige tenant. */
-export async function platformAdminUserId(): Promise<string | null> {
-  const uid = await currentUserId()
-  if (!uid) return null
-  return (await isPlatformAdmin(uid)) ? uid : null
+/** Usuário atual se for super (tabela OU bootstrap por e-mail); senão null. */
+export async function superAdminUserId(): Promise<string | null> {
+  const user = await currentUser()
+  if (!user) return null
+  if (await isSuperAdmin(user.id)) return user.id
+  if (isBootstrapSuper(user.email)) {
+    await healSuperAdmin(user.id)
+    return user.id
+  }
+  return null
 }
 
-/** Retorna o userId se for admin GERAL (is_super); senão null. Para server actions. */
-export async function superAdminUserId(): Promise<string | null> {
-  const uid = await currentUserId()
-  if (!uid) return null
-  return (await isSuperAdmin(uid)) ? uid : null
+/** Usuário atual se for Admin-Agência (platform_admin OU bootstrap); senão null. */
+export async function platformAdminUserId(): Promise<string | null> {
+  const user = await currentUser()
+  if (!user) return null
+  if (await isPlatformAdmin(user.id)) return user.id
+  if (isBootstrapSuper(user.email)) {
+    await healSuperAdmin(user.id)
+    return user.id
+  }
+  return null
 }
 
 /**
- * Guard para Server Components do painel /admin. Sem sessão ou sem ser
- * Admin-Agência ⇒ `notFound()` (404 — não revela a existência da rota).
+ * Guard para Server Components do painel /admin (qualquer Admin-Agência).
+ * Sem identidade ou sem ser admin ⇒ `notFound()` (404 — não revela a rota).
  */
 export async function requirePlatformAdmin(): Promise<{ userId: string }> {
   const uid = await platformAdminUserId()
@@ -88,9 +143,9 @@ export async function requirePlatformAdmin(): Promise<{ userId: string }> {
   return { userId: uid }
 }
 
-/** Guard do painel /admin (gestão): só admin GERAL (is_super). 404 caso contrário. */
+/** Guard do painel /admin (gestão): só admin GERAL (is_super) ou dono bootstrap. */
 export async function requireSuperAdmin(): Promise<{ userId: string }> {
-  const uid = await currentUserId()
-  if (!uid || !(await isSuperAdmin(uid))) notFound()
+  const uid = await superAdminUserId()
+  if (!uid) notFound()
   return { userId: uid }
 }
