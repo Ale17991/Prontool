@@ -104,8 +104,7 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Contas a Receber',
         icon: Receipt,
         show: ({ role, ent }) =>
-          ent.has('contas_receber') &&
-          (role === 'admin' || role === 'financeiro' || role === 'recepcionista'),
+          ent.has('contas_receber') && (role === 'admin' || role === 'financeiro'),
       },
       {
         href: '/analise/contas-a-pagar',

@@ -93,14 +93,18 @@ export function buildQuickViewSnapshot(
 
   const lastVital = vitalSigns.length > 0 ? vitalSigns[0]! : null
 
+  // Valores só para quem tem finance.view_values — senão nem serializa os
+  // montantes no payload enviado ao cliente (recepção não vê valores).
   let receivedCents = 0
   let pendingCents = 0
   let lastPaidAt: string | null = null
-  for (const p of payments) {
-    receivedCents += p.paidAmountCents
-    pendingCents += p.pendingAmountCents
-    if (p.paidAt && (!lastPaidAt || p.paidAt > lastPaidAt)) {
-      lastPaidAt = p.paidAt
+  if (can(role, 'finance.view_values')) {
+    for (const p of payments) {
+      receivedCents += p.paidAmountCents
+      pendingCents += p.pendingAmountCents
+      if (p.paidAt && (!lastPaidAt || p.paidAt > lastPaidAt)) {
+        lastPaidAt = p.paidAt
+      }
     }
   }
 

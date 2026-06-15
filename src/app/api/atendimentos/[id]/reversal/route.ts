@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { reverseAppointment } from '@/lib/core/appointments/reverse'
+import { removeAppointmentFromGoogle } from '@/lib/core/integrations/google-calendar/sync'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -46,6 +47,9 @@ export async function POST(
       actorUserId: session.userId,
       reason: body.data.reason,
     })
+
+    // Remove o evento da agenda Google do profissional (best-effort).
+    await removeAppointmentFromGoogle(supabase, appointmentId, session.tenantId)
 
     return NextResponse.json(
       {
