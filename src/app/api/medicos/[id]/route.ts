@@ -63,6 +63,8 @@ const patchSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data de nascimento deve estar no formato YYYY-MM-DD')
     .nullable()
     .optional(),
+  // Especialidade (nome do catálogo Memed). Fonte única do display.
+  specialty: z.string().trim().max(120).nullable().optional(),
   payment_mode_change: paymentModeChangeSchema.optional(),
 })
 
@@ -182,7 +184,8 @@ export async function PATCH(
       parsed.data.active !== undefined ||
       parsed.data.cpf !== undefined ||
       parsed.data.council_state !== undefined ||
-      parsed.data.birth_date !== undefined
+      parsed.data.birth_date !== undefined ||
+      parsed.data.specialty !== undefined
     if (wantsBasicUpdate) {
       basicUpdated = await updateDoctor(supabase, {
         tenantId: session.tenantId,
@@ -197,6 +200,7 @@ export async function PATCH(
           ...(parsed.data.birth_date !== undefined
             ? { birthDate: parsed.data.birth_date }
             : {}),
+          ...(parsed.data.specialty !== undefined ? { specialty: parsed.data.specialty } : {}),
         },
       })
     }
@@ -211,6 +215,7 @@ export async function PATCH(
               cpf: basicUpdated.cpf,
               council_state: basicUpdated.councilState,
               birth_date: basicUpdated.birthDate,
+              specialty: basicUpdated.specialty,
             }
           : {}),
         ...(paymentModeUpdated ? { payment_mode: paymentModeUpdated } : {}),
