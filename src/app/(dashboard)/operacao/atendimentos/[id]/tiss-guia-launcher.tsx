@@ -42,6 +42,7 @@ export function TissGuiaLauncher({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<GuiaResult | null>(null)
+  const [guiaType, setGuiaType] = useState<'consulta' | 'sp_sadt'>('consulta')
 
   async function handleGerar() {
     setLoading(true)
@@ -51,7 +52,7 @@ export function TissGuiaLauncher({
       const res = await fetch('/api/tiss/guias', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ appointmentId }),
+        body: JSON.stringify({ appointmentId, guiaType }),
       })
       const body = (await res.json().catch(() => ({}))) as
         | GuiaResult
@@ -105,14 +106,40 @@ export function TissGuiaLauncher({
           </div>
         )
       ) : null}
-      <Button onClick={handleGerar} disabled={loading} className="gap-2">
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
-        {loading ? 'Gerando…' : 'Gerar guia TISS'}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="inline-flex rounded-md border border-slate-200 bg-slate-50 p-0.5 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setGuiaType('consulta')}
+            className={
+              guiaType === 'consulta'
+                ? 'rounded bg-white px-2.5 py-1 text-slate-900 shadow-sm'
+                : 'px-2.5 py-1 text-slate-500 hover:text-slate-800'
+            }
+          >
+            Consulta
+          </button>
+          <button
+            type="button"
+            onClick={() => setGuiaType('sp_sadt')}
+            className={
+              guiaType === 'sp_sadt'
+                ? 'rounded bg-white px-2.5 py-1 text-slate-900 shadow-sm'
+                : 'px-2.5 py-1 text-slate-500 hover:text-slate-800'
+            }
+          >
+            SP/SADT
+          </button>
+        </div>
+        <Button onClick={handleGerar} disabled={loading} className="gap-2">
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
+          {loading ? 'Gerando…' : 'Gerar guia TISS'}
+        </Button>
+      </div>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   )

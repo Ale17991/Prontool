@@ -14,6 +14,11 @@ import { loadCertificateForSigning } from './signing/load-certificate'
 import { signLoteXml } from './signing/sign-lote'
 import { computeTissHashFromXml } from './xml/hash'
 import { renderConsultaLoteXml, type ConsultaGuiaModel } from './xml/render-consulta'
+import {
+  renderSpSadtLoteXml,
+  type SpSadtGuiaModel,
+  type SpSadtProcedimento,
+} from './xml/render-spsadt'
 import { validateTissXml } from './validate'
 
 type Client = SupabaseClient<Database>
@@ -74,6 +79,14 @@ interface ExecutanteSnapshot {
   numeroConselho: string | null
   uf: string | null
   cbo: string | null
+  /** Extras congelados na geração da SP/SADT. */
+  spSadt?: {
+    nomeContratado: string | null
+    caraterAtendimento: string
+    tipoAtendimento: string
+    regimeAtendimento: string
+    indicacaoAcidente: string
+  }
 }
 
 export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult> {
@@ -104,9 +117,18 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
     if (g.lote_id) {
       throw new ConflictError('TISS_GUIA_ALREADY_IN_LOTE', `Guia ${g.guia_number_prestador} já está em um lote.`)
     }
-    if (g.guia_type !== 'consulta') {
-      throw new ValidationError(`Tipo de guia ${g.guia_type} ainda não suportado no lote (apenas consulta no MVP).`)
-    }
+  }
+  // O XSD restringe `guiasTISS` a UM tipo de guia por lote (choice). Exige
+  // que todas as guias selecionadas sejam do mesmo tipo.
+  const loteType = guias[0]!.guia_type
+  if (guias.some((g) => g.guia_type !== loteType)) {
+    throw new ConflictError(
+      'TISS_LOTE_MIXED_TYPE',
+      'Um lote só pode conter guias de um mesmo tipo (consulta OU SP/SADT). Feche lotes separados.',
+    )
+  }
+  if (loteType !== 'consulta' && loteType !== 'sp_sadt') {
+    throw new ValidationError(`Tipo de guia ${loteType} ainda não suportado no lote.`)
   }
 
   // 2. Config da operadora + certificado A1 ativo.
@@ -132,50 +154,103 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
 
   // 3. Reconstrói o modelo de cada guia (dados congelados).
   const cnes = config.contracted_cnes ?? '9999999'
-  const models: ConsultaGuiaModel[] = []
+  const consultaModels: ConsultaGuiaModel[] = []
+  const spSadtModels: SpSadtGuiaModel[] = []
   for (const g of guias) {
     const benef = JSON.parse(await decText(supabase, g.beneficiary_snapshot_enc as unknown as string)) as {
       nome: string | null
       carteira: string | null
     }
     const exec = (g.executante_snapshot ?? {}) as unknown as ExecutanteSnapshot
-    const { data: line } = await supabase
-      .from('tiss_guia_procedures')
-      .select('tuss_table, procedure_code, total_amount_cents')
-      .eq('guia_id', g.id)
-      .order('sequence', { ascending: true })
-      .limit(1)
-      .maybeSingle()
     const { data: appt } = await supabase
       .from('appointments')
       .select('appointment_at')
       .eq('tenant_id', tenantId)
       .eq('id', g.appointment_id)
       .maybeSingle()
-    models.push({
-      registroANS: config.ans_registration,
-      numeroGuiaPrestador: g.guia_number_prestador,
-      beneficiario: { numeroCarteira: benef.carteira ?? '', atendimentoRN: 'N' },
-      contratadoExecutante: { codigoPrestadorNaOperadora: config.contracted_code, cnes },
-      profissionalExecutante: {
-        nome: exec.nome,
-        conselho: exec.conselho ?? '',
-        numeroConselho: exec.numeroConselho ?? '',
-        uf: exec.uf ?? '',
-        cbo: exec.cbo ?? '',
-      },
-      indicacaoAcidente: '9',
-      atendimento: {
-        regimeAtendimento: '01',
-        dataAtendimento: appt?.appointment_at ? toClinicDate(appt.appointment_at) : toClinicDate(new Date().toISOString()),
-        tipoConsulta: '1',
-        procedimento: {
-          codigoTabela: line?.tuss_table ?? '22',
-          codigoProcedimento: line?.procedure_code ?? '',
-          valorCents: line?.total_amount_cents ?? g.frozen_amount_cents,
+    const dataAtendimento = appt?.appointment_at
+      ? toClinicDate(appt.appointment_at)
+      : toClinicDate(new Date().toISOString())
+
+    if (loteType === 'sp_sadt') {
+      const { data: rawLines } = await supabase
+        .from('tiss_guia_procedures')
+        .select('sequence, tuss_table, procedure_code, description, quantity, unit_amount_cents, total_amount_cents')
+        .eq('guia_id', g.id)
+        .order('sequence', { ascending: true })
+      const procLines = (rawLines ?? []) as unknown as Array<{
+        sequence: number
+        tuss_table: string
+        procedure_code: string
+        description: string | null
+        quantity: number | null
+        unit_amount_cents: number
+        total_amount_cents: number
+      }>
+      const sp = exec.spSadt
+      const procedimentos: SpSadtProcedimento[] = procLines.map((l, i) => ({
+        sequencial: l.sequence || i + 1,
+        dataExecucao: dataAtendimento,
+        codigoTabela: l.tuss_table || '22',
+        codigoProcedimento: l.procedure_code,
+        descricao: l.description ?? 'Procedimento',
+        quantidade: l.quantity || 1,
+        valorUnitarioCents: l.unit_amount_cents,
+        valorTotalCents: l.total_amount_cents,
+      }))
+      spSadtModels.push({
+        registroANS: config.ans_registration,
+        numeroGuiaPrestador: g.guia_number_prestador,
+        beneficiario: { numeroCarteira: benef.carteira ?? '', atendimentoRN: 'N' },
+        codigoPrestadorNaOperadora: config.contracted_code,
+        nomeContratado: sp?.nomeContratado ?? 'Contratado',
+        cnes,
+        profissional: {
+          nome: exec.nome,
+          conselho: exec.conselho ?? '',
+          numeroConselho: exec.numeroConselho ?? '',
+          uf: exec.uf ?? '',
+          cbo: exec.cbo ?? '',
         },
-      },
-    })
+        caraterAtendimento: sp?.caraterAtendimento ?? '1',
+        tipoAtendimento: sp?.tipoAtendimento ?? '04',
+        indicacaoAcidente: sp?.indicacaoAcidente ?? '9',
+        regimeAtendimento: sp?.regimeAtendimento ?? '01',
+        procedimentos,
+      })
+    } else {
+      const { data: line } = await supabase
+        .from('tiss_guia_procedures')
+        .select('tuss_table, procedure_code, total_amount_cents')
+        .eq('guia_id', g.id)
+        .order('sequence', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+      consultaModels.push({
+        registroANS: config.ans_registration,
+        numeroGuiaPrestador: g.guia_number_prestador,
+        beneficiario: { numeroCarteira: benef.carteira ?? '', atendimentoRN: 'N' },
+        contratadoExecutante: { codigoPrestadorNaOperadora: config.contracted_code, cnes },
+        profissionalExecutante: {
+          nome: exec.nome,
+          conselho: exec.conselho ?? '',
+          numeroConselho: exec.numeroConselho ?? '',
+          uf: exec.uf ?? '',
+          cbo: exec.cbo ?? '',
+        },
+        indicacaoAcidente: '9',
+        atendimento: {
+          regimeAtendimento: '01',
+          dataAtendimento,
+          tipoConsulta: '1',
+          procedimento: {
+            codigoTabela: line?.tuss_table ?? '22',
+            codigoProcedimento: line?.procedure_code ?? '',
+            valorCents: line?.total_amount_cents ?? g.frozen_amount_cents,
+          },
+        },
+      })
+    }
   }
 
   // 4. Número do lote (sequencial por tenant×operadora).
@@ -195,11 +270,15 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
     origemCnpj: config.contracted_cnpj,
     destinoRegistroANS: config.ans_registration,
     numeroLote: loteNumber,
-    guias: models,
   }
-  const xmlNoHash = renderConsultaLoteXml({ ...baseModel, hash: '' })
+  const renderWithHash = (hash: string): string =>
+    loteType === 'sp_sadt'
+      ? renderSpSadtLoteXml({ ...baseModel, guias: spSadtModels, hash })
+      : renderConsultaLoteXml({ ...baseModel, guias: consultaModels, hash })
+
+  const xmlNoHash = renderWithHash('')
   const hash = computeTissHashFromXml(xmlNoHash)
-  const xmlWithHash = renderConsultaLoteXml({ ...baseModel, hash })
+  const xmlWithHash = renderWithHash(hash)
   const signedXml = signLoteXml(xmlWithHash, signingCert)
 
   const validation = await validateTissXml(signedXml)

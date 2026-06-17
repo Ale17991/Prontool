@@ -57,6 +57,20 @@ const REGIME_VALIDOS = new Set(['01', '02', '03', '04', '05'])
 const TIPO_CONSULTA_VALIDOS = new Set(['1', '2', '3', '4'])
 const INDICACAO_ACIDENTE_VALIDOS = new Set(['0', '1', '2', '9'])
 const TABELA_VALIDOS = new Set(['18', '19', '20', '22', '90', '98', '00'])
+// dm_caraterAtendimento (dom. 23): 1 eletivo, 2 urgência/emergência.
+const CARATER_VALIDOS = new Set(['1', '2'])
+// dm_tipoAtendimento (dom. 50) — subconjunto enumerado no XSD 04.03.00.
+const TIPO_ATENDIMENTO_VALIDOS = new Set([
+  '01',
+  '02',
+  '03',
+  '04',
+  '08',
+  '09',
+  '10',
+  '13',
+  '23',
+])
 
 function presente(v: string | null | undefined): boolean {
   return typeof v === 'string' && v.trim().length > 0
@@ -130,6 +144,116 @@ export function validateConsultaContent(draft: GuiaConsultaDraft): ValidationErr
   }
 
   // Procedimento(s): toda guia de consulta tem ao menos um.
+  if (draft.procedimentos.length === 0) {
+    add('procedimento', 'A guia precisa de ao menos um procedimento.')
+  }
+  draft.procedimentos.forEach((proc, i) => {
+    const at = `procedimento[${i}]`
+    if (!presente(proc.tabela) || !TABELA_VALIDOS.has(proc.tabela!)) {
+      add(`${at}.codigoTabela`, 'Código de tabela inválido (domínio 87).')
+    }
+    if (!presente(proc.codigo)) {
+      add(`${at}.codigoProcedimento`, 'Código do procedimento é obrigatório (nunca texto livre).')
+    }
+    if (proc.valorCents === null || proc.valorCents < 0) {
+      add(`${at}.valorProcedimento`, 'Valor do procedimento inválido.')
+    }
+    if (!proc.tussVigente) {
+      add(`${at}.codigoProcedimento`, 'Código TUSS fora da vigência do catálogo atual.')
+    }
+  })
+
+  return errors
+}
+
+export interface GuiaSpSadtDraft {
+  registroANS: string | null
+  numeroGuiaPrestador: string | null
+  numeroCarteira: string | null
+  atendimentoRN: 'S' | 'N'
+  contractedCode: string | null
+  /** Nome do contratado (st_texto70) — obrigatório no bloco solicitante. */
+  nomeContratado: string | null
+  cnes: string | null
+  contratadoIsPJ: boolean
+  profissional: GuiaConsultaDraft['profissional']
+  indicacaoAcidente: string | null
+  regimeAtendimento: string | null
+  /** dm_caraterAtendimento (dom. 23). */
+  caraterAtendimento: string | null
+  /** dm_tipoAtendimento (dom. 50). */
+  tipoAtendimento: string | null
+  procedimentos: DraftProcedimento[]
+}
+
+/**
+ * Valida o conteúdo de um rascunho de Guia de SP/SADT (execução). Reaproveita
+ * as obrigatoriedades compartilhadas da Consulta e acrescenta as específicas
+ * da SP/SADT (caráter, tipo de atendimento, nome do contratado, N linhas).
+ */
+export function validateSpSadtContent(draft: GuiaSpSadtDraft): ValidationError[] {
+  const errors: ValidationError[] = []
+  const add = (field: string, message: string) => errors.push({ field, message })
+
+  if (!presente(draft.registroANS) || !/^\d{6}$/.test(draft.registroANS!.trim())) {
+    add('registroANS', 'Registro ANS da operadora ausente ou inválido (6 dígitos).')
+  }
+  if (!presente(draft.numeroGuiaPrestador)) {
+    add('numeroGuiaPrestador', 'Número da guia no prestador é obrigatório.')
+  }
+  if (!presente(draft.numeroCarteira)) {
+    add('numeroCarteira', 'Número da carteira do beneficiário é obrigatório (cadastre a carteira da operadora).')
+  }
+  if (!presente(draft.contractedCode)) {
+    add('contratado', 'Código do contratado na operadora é obrigatório (configuração TISS).')
+  }
+  if (!presente(draft.nomeContratado)) {
+    add('nomeContratadoSolicitante', 'Nome do contratado é obrigatório (preencha a razão social da clínica nas configurações).')
+  }
+  if (!presente(draft.cnes)) {
+    add('CNES', "CNES é obrigatório (use '9999999' se não houver).")
+  }
+
+  const p = draft.profissional
+  if (draft.contratadoIsPJ && !presente(p.nome)) {
+    add('profissionalSolicitante.nome', 'Nome do profissional é obrigatório quando o contratado é pessoa jurídica.')
+  }
+  if (!presente(p.conselhoCodigo)) {
+    add(
+      'profissionalSolicitante.conselho',
+      p.conselhoRaw
+        ? `Conselho profissional "${p.conselhoRaw}" não mapeado para o domínio TISS 26.`
+        : 'Conselho profissional é obrigatório.',
+    )
+  }
+  if (!presente(p.numeroConselho)) {
+    add('profissionalSolicitante.numeroConselho', 'Número de inscrição no conselho é obrigatório.')
+  }
+  if (!presente(p.ufCodigo)) {
+    add(
+      'profissionalSolicitante.UF',
+      p.ufRaw ? `UF do conselho "${p.ufRaw}" não reconhecida (domínio TISS 59).` : 'UF do conselho é obrigatória.',
+    )
+  }
+  if (!presente(p.cbo)) {
+    add('profissionalSolicitante.CBOS', 'CBO do profissional é obrigatório (cadastre o CBO do médico).')
+  } else if (!/^\d{6}$/.test(p.cbo!.trim())) {
+    add('profissionalSolicitante.CBOS', 'CBO deve ter 6 dígitos (domínio TISS 24).')
+  }
+
+  if (!presente(draft.caraterAtendimento) || !CARATER_VALIDOS.has(draft.caraterAtendimento!)) {
+    add('caraterAtendimento', 'Caráter do atendimento inválido (domínio 23: 1 eletivo ou 2 urgência).')
+  }
+  if (!presente(draft.tipoAtendimento) || !TIPO_ATENDIMENTO_VALIDOS.has(draft.tipoAtendimento!)) {
+    add('tipoAtendimento', 'Tipo de atendimento inválido (domínio 50).')
+  }
+  if (!presente(draft.indicacaoAcidente) || !INDICACAO_ACIDENTE_VALIDOS.has(draft.indicacaoAcidente!)) {
+    add('indicacaoAcidente', 'Indicação de acidente inválida (domínio 36: 0, 1, 2 ou 9).')
+  }
+  if (!presente(draft.regimeAtendimento) || !REGIME_VALIDOS.has(draft.regimeAtendimento!)) {
+    add('regimeAtendimento', 'Regime de atendimento inválido (domínio 76: 01 a 05).')
+  }
+
   if (draft.procedimentos.length === 0) {
     add('procedimento', 'A guia precisa de ao menos um procedimento.')
   }
