@@ -2,10 +2,21 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, FileCheck2, Loader2, PackageCheck } from 'lucide-react'
+import { Download, FileCheck2, Loader2, PackageCheck, RefreshCw, Scissors } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Table,
   TableBody,
@@ -82,6 +93,29 @@ export function TissPanel({
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [busyPlan, setBusyPlan] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [glosaTarget, setGlosaTarget] = useState<GuiaRow | null>(null)
+  const [reapBusy, setReapBusy] = useState<string | null>(null)
+
+  async function reapresentar(g: GuiaRow) {
+    setError(null)
+    setReapBusy(g.id)
+    try {
+      const res = await fetch('/api/tiss/glosas/reapresentar', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ guiaId: g.id }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
+        throw new Error(body.error?.message ?? 'Falha ao reapresentar a guia.')
+      }
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao reapresentar.')
+    } finally {
+      setReapBusy(null)
+    }
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -288,38 +322,193 @@ export function TissPanel({
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead>Criada</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {guias.map((g) => (
-                  <TableRow key={g.id}>
-                    <TableCell className="font-mono text-xs font-bold">{g.number}</TableCell>
-                    <TableCell className="text-xs">{g.planName}</TableCell>
-                    <TableCell className="text-xs text-slate-600">
-                      {g.type === 'sp_sadt' ? 'SP/SADT' : 'Consulta'}
-                    </TableCell>
-                    <TableCell>
-                      {statusBadge(g.status)}
-                      {g.status === 'rascunho' && g.pendingCount > 0 ? (
-                        <span className="ml-1 text-[10px] text-amber-600">
-                          {g.pendingCount} pendência{g.pendingCount === 1 ? '' : 's'}
-                        </span>
-                      ) : null}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs tabular-nums">
-                      {formatCurrency(g.amountCents)}
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-500">
-                      {formatDateTime(g.createdAt)}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {guias.map((g) => {
+                  const enviada = g.status === 'exportada' || g.status === 'paga'
+                  const glosada = g.status === 'glosada' || g.status === 'parcial'
+                  return (
+                    <TableRow key={g.id}>
+                      <TableCell className="font-mono text-xs font-bold">{g.number}</TableCell>
+                      <TableCell className="text-xs">{g.planName}</TableCell>
+                      <TableCell className="text-xs text-slate-600">
+                        {g.type === 'sp_sadt' ? 'SP/SADT' : 'Consulta'}
+                      </TableCell>
+                      <TableCell>
+                        {statusBadge(g.status)}
+                        {g.status === 'rascunho' && g.pendingCount > 0 ? (
+                          <span className="ml-1 text-[10px] text-amber-600">
+                            {g.pendingCount} pendência{g.pendingCount === 1 ? '' : 's'}
+                          </span>
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">
+                        {formatCurrency(g.amountCents)}
+                      </TableCell>
+                      <TableCell className="text-xs text-slate-500">
+                        {formatDateTime(g.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {enviada || glosada ? (
+                          <div className="inline-flex gap-1.5">
+                            {enviada || glosada ? (
+                              <button
+                                type="button"
+                                onClick={() => setGlosaTarget(g)}
+                                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-50"
+                              >
+                                <Scissors className="h-3 w-3" /> Glosa
+                              </button>
+                            ) : null}
+                            {glosada ? (
+                              <button
+                                type="button"
+                                disabled={reapBusy === g.id}
+                                onClick={() => void reapresentar(g)}
+                                className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-bold text-white hover:bg-slate-800 disabled:opacity-60"
+                              >
+                                {reapBusy === g.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="h-3 w-3" />
+                                )}
+                                Reapresentar
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      {glosaTarget ? (
+        <GlosaModal
+          guia={glosaTarget}
+          onClose={() => setGlosaTarget(null)}
+          onSuccess={() => {
+            setGlosaTarget(null)
+            router.refresh()
+          }}
+        />
+      ) : null}
     </div>
+  )
+}
+
+function GlosaModal({
+  guia,
+  onClose,
+  onSuccess,
+}: {
+  guia: GuiaRow
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const [motivoCode, setMotivoCode] = useState('')
+  const [motivoText, setMotivoText] = useState('')
+  const [valor, setValor] = useState((guia.amountCents / 100).toFixed(2))
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    const cents = Math.round(Number(valor.replace(',', '.')) * 100)
+    if (!Number.isInteger(cents) || cents < 0) {
+      setError('Valor glosado inválido.')
+      return
+    }
+    setPending(true)
+    try {
+      const res = await fetch('/api/tiss/glosas', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          guiaId: guia.id,
+          motivoCode: motivoCode.trim(),
+          motivoText: motivoText.trim(),
+          glosadoAmountCents: cents,
+        }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
+        setError(body.error?.message ?? 'Falha ao registrar a glosa.')
+        return
+      }
+      onSuccess()
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Registrar glosa</DialogTitle>
+          <DialogDescription>
+            Guia {guia.number} — {guia.planName}. Informe o motivo (Tabela 38) e o valor
+            glosado.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="motivo-code">Motivo (código Tabela 38)</Label>
+            <Input
+              id="motivo-code"
+              inputMode="numeric"
+              maxLength={4}
+              value={motivoCode}
+              onChange={(e) => setMotivoCode(e.target.value)}
+              placeholder="Ex.: 1707"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="motivo-text">Descrição do motivo</Label>
+            <Textarea
+              id="motivo-text"
+              value={motivoText}
+              onChange={(e) => setMotivoText(e.target.value)}
+              className="min-h-[60px]"
+              placeholder="Descrição da glosa informada pela operadora"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="glosa-valor">Valor glosado (R$)</Label>
+            <Input
+              id="glosa-valor"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
+          </div>
+          {error ? (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+              {error}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Scissors className="mr-1 h-3 w-3" />}
+              Registrar
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 
