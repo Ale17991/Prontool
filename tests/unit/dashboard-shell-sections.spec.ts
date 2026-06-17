@@ -52,9 +52,19 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
     expect(op.items.map((it) => it.label)).toEqual(['Agenda', 'Pacientes', 'Tarefas'])
   })
 
-  it('Análise has exactly 3 items: Relatórios, Comissões, Despesas', () => {
+  it('Análise lista os itens de relatório + financeiro + Faturamento TISS', () => {
     const an = SECTIONS.find((s) => s.id === 'analise')!
-    expect(an.items.map((it) => it.label)).toEqual(['Relatórios', 'Comissões', 'Despesas'])
+    expect(an.items.map((it) => it.label)).toEqual([
+      'Relatórios',
+      'Comissões',
+      'Dashboard',
+      'Contas a Receber',
+      'Contas a Pagar',
+      'Fluxo de Caixa',
+      'Repasse Médico',
+      'Despesas',
+      'Faturamento TISS',
+    ])
   })
 
   it('Configurações has exactly 1 item: Configurações (single button)', () => {
@@ -86,7 +96,7 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
 })
 
 describe('getVisibleSections — role matrix with all flags ON', () => {
-  it('admin sees exactly 7 items: Agenda, Pacientes, Tarefas, Relatórios, Comissões, Despesas, Configurações', () => {
+  it('admin (legacy, todas as flags) vê todos os itens, incluindo Faturamento TISS', () => {
     const visible = getVisibleSections(ctx('admin'))
     expect(flatLabels(visible)).toEqual([
       'Agenda',
@@ -94,39 +104,47 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Tarefas',
       'Relatórios',
       'Comissões',
+      'Dashboard',
+      'Contas a Receber',
+      'Contas a Pagar',
+      'Fluxo de Caixa',
+      'Repasse Médico',
       'Despesas',
+      'Faturamento TISS',
       'Configurações',
     ])
   })
 
-  it('financeiro sees Operação + Análise (sem Despesas) + Configurações', () => {
+  it('financeiro vê Análise incl. Faturamento TISS (sem Despesas)', () => {
     const visible = getVisibleSections(ctx('financeiro'))
     const labels = flatLabels(visible)
     expect(labels).toContain('Agenda')
-    expect(labels).toContain('Pacientes')
-    expect(labels).toContain('Tarefas')
     expect(labels).toContain('Relatórios')
-    expect(labels).toContain('Comissões')
+    expect(labels).toContain('Faturamento TISS')
     expect(labels).not.toContain('Despesas')
     expect(labels).toContain('Configurações')
   })
 
-  it('recepcionista sees Operação + Configurações (sem Análise relatórios/comissões/despesas)', () => {
+  it('recepcionista não vê Relatórios nem Faturamento TISS', () => {
     const visible = getVisibleSections(ctx('recepcionista'))
     const labels = flatLabels(visible)
     expect(labels).toContain('Agenda')
-    expect(labels).toContain('Pacientes')
-    expect(labels).toContain('Tarefas')
     expect(labels).not.toContain('Relatórios')
-    expect(labels).not.toContain('Comissões')
-    expect(labels).not.toContain('Despesas')
+    expect(labels).not.toContain('Faturamento TISS')
     expect(labels).toContain('Configurações')
   })
 
-  it('profissional_saude sees Agenda, Pacientes, Tarefas e Configurações', () => {
+  it('profissional_saude vê Repasse Médico mas não Faturamento TISS', () => {
     const visible = getVisibleSections(ctx('profissional_saude'))
     const labels = flatLabels(visible)
-    expect(labels).toEqual(['Agenda', 'Pacientes', 'Tarefas', 'Configurações'])
+    expect(labels).toEqual([
+      'Agenda',
+      'Pacientes',
+      'Tarefas',
+      'Repasse Médico',
+      'Configurações',
+    ])
+    expect(labels).not.toContain('Faturamento TISS')
   })
 })
 
@@ -143,9 +161,9 @@ describe('getVisibleSections — flags OFF', () => {
     expect(labels).toContain('Configurações')
   })
 
-  it('sections without visible items are hidden entirely (Análise some when all flags off for admin)', () => {
+  it('com flags OFF a Análise permanece (itens gated só por entitlement: Dashboard, Contas, Repasse, TISS)', () => {
     const visible = getVisibleSections(ctx('admin', ALL_FLAGS_OFF))
-    expect(visible.map((s) => s.id)).toEqual(['operacao', 'configuracoes'])
+    expect(visible.map((s) => s.id)).toEqual(['operacao', 'analise', 'configuracoes'])
   })
 })
 

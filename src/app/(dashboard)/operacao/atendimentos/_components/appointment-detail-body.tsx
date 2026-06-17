@@ -37,6 +37,7 @@ import { MarkRealizedForm } from '../[id]/mark-realized-form'
 import { ConfirmAppointmentButton } from '../[id]/confirm-button'
 import { CancelAppointmentForm } from '../[id]/cancel-form'
 import { PrescreverLauncher } from '../[id]/prescrever-launcher'
+import { TissGuiaLauncher } from '../[id]/tiss-guia-launcher'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -85,6 +86,13 @@ export function AppointmentDetailBody({
       : 'ativo'
 
   const canReverse = can(role, 'appointment.reverse') && status === 'ativo'
+  // Guia TISS: só para atendimentos de convênio (não particular) já realizados,
+  // por admin/financeiro. A elegibilidade fina (operadora habilitada, carteira,
+  // CBO) é validada server-side ao gerar.
+  const canGenerateTiss =
+    (role === 'admin' || role === 'financeiro') &&
+    status === 'ativo' &&
+    appointment.plan_id !== null
   // Ver VALORES (recepção fora — só vê valor no registro do atendimento).
   const canViewValues = can(role, 'finance.view_values')
   const canManageSchedule =
@@ -235,6 +243,23 @@ export function AppointmentDetailBody({
               doctorId={appointment.doctor_id}
               onRecorded={refetch}
             />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {canGenerateTiss && appointment.id ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Receipt className="h-4 w-4 text-primary" />
+              Faturamento TISS
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-slate-500">
+              Gera a Guia de Consulta TISS deste atendimento para faturar ao convênio.
+            </p>
+            <TissGuiaLauncher appointmentId={appointment.id} onRecorded={refetch} />
           </CardContent>
         </Card>
       ) : null}

@@ -36,6 +36,7 @@ interface DoctorRow {
   council_state: string | null
   cpf: string | null
   birth_date: string | null
+  cbo: string | null
   active: boolean
   created_at: string
   user_id: string | null
@@ -87,7 +88,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
   const { data: doctorRaw, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, user_id, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, cbo, active, created_at, user_id, payment_mode',
     )
     .eq('id', params.id)
     .maybeSingle()
@@ -273,6 +274,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
               currentCpf={doctor.cpf}
               currentCouncilState={doctor.council_state}
               currentBirthDate={doctor.birth_date}
+              currentCbo={doctor.cbo}
             />
           </CardContent>
         </Card>
