@@ -39,7 +39,7 @@ export default async function TissPanelPage() {
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
-  const [plansRes, guiasRes, lotesRes] = await Promise.all([
+  const [plansRes, guiasRes, lotesRes, paymentsRes] = await Promise.all([
     supabase.from('health_plans').select('id, name').eq('tenant_id', session.tenantId),
     supabase
       .from('tiss_guias' as never)
@@ -57,6 +57,10 @@ export default async function TissPanelPage() {
       .eq('tenant_id', session.tenantId)
       .order('created_at', { ascending: false })
       .limit(100),
+    supabase
+      .from('tiss_lote_payments' as never)
+      .select('lote_id, amount_cents')
+      .eq('tenant_id', session.tenantId),
   ])
 
   const planName = new Map<string, string>()
@@ -94,8 +98,17 @@ export default async function TissPanelPage() {
   }
 
   const guiaCountByLote = new Map<string, number>()
+  const billedByLote = new Map<string, number>()
   for (const g of guias) {
-    if (g.loteId) guiaCountByLote.set(g.loteId, (guiaCountByLote.get(g.loteId) ?? 0) + 1)
+    if (g.loteId) {
+      guiaCountByLote.set(g.loteId, (guiaCountByLote.get(g.loteId) ?? 0) + 1)
+      billedByLote.set(g.loteId, (billedByLote.get(g.loteId) ?? 0) + g.amountCents)
+    }
+  }
+
+  const receivedByLote = new Map<string, number>()
+  for (const p of (paymentsRes.data ?? []) as Array<{ lote_id: string; amount_cents: number }>) {
+    receivedByLote.set(p.lote_id, (receivedByLote.get(p.lote_id) ?? 0) + Number(p.amount_cents))
   }
 
   const lotes: LoteRow[] = lotesDb.map((l) => ({
@@ -107,6 +120,8 @@ export default async function TissPanelPage() {
     signedAt: l.signed_at,
     guiaCount: guiaCountByLote.get(l.id) ?? 0,
     createdAt: l.created_at,
+    billedCents: billedByLote.get(l.id) ?? 0,
+    receivedCents: receivedByLote.get(l.id) ?? 0,
   }))
 
   return (

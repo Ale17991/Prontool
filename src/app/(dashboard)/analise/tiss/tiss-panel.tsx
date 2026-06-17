@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, FileCheck2, Loader2, PackageCheck, RefreshCw, Scissors } from 'lucide-react'
+import { Banknote, Download, FileCheck2, Loader2, PackageCheck, RefreshCw, Scissors } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -55,6 +55,8 @@ export interface LoteRow {
   signedAt: string | null
   guiaCount: number
   createdAt: string
+  billedCents: number
+  receivedCents: number
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -95,6 +97,7 @@ export function TissPanel({
   const [error, setError] = useState<string | null>(null)
   const [glosaTarget, setGlosaTarget] = useState<GuiaRow | null>(null)
   const [reapBusy, setReapBusy] = useState<string | null>(null)
+  const [pagamentoTarget, setPagamentoTarget] = useState<LoteRow | null>(null)
 
   async function reapresentar(g: GuiaRow) {
     setError(null)
@@ -270,34 +273,58 @@ export function TissPanel({
                   <TableHead>Lote</TableHead>
                   <TableHead>Convênio</TableHead>
                   <TableHead className="text-center">Guias</TableHead>
-                  <TableHead>Assinado</TableHead>
+                  <TableHead className="text-right">Faturado</TableHead>
+                  <TableHead className="text-right">Recebido</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">XML</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lotes.map((l) => (
-                  <TableRow key={l.id}>
-                    <TableCell className="font-mono text-xs font-bold">{l.number}</TableCell>
-                    <TableCell className="text-xs">{l.planName}</TableCell>
-                    <TableCell className="text-center text-xs tabular-nums">
-                      {l.guiaCount}
-                    </TableCell>
-                    <TableCell className="text-xs text-slate-500">
-                      {l.signedAt ? formatDateTime(l.signedAt) : '—'}
-                    </TableCell>
-                    <TableCell>{statusBadge(l.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <a
-                        href={`/api/tiss/lotes/${l.id}/xml`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-50"
-                      >
-                        <Download className="h-3 w-3" />
-                        Baixar
-                      </a>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {lotes.map((l) => {
+                  const pending = Math.max(0, l.billedCents - l.receivedCents)
+                  return (
+                    <TableRow key={l.id}>
+                      <TableCell className="font-mono text-xs font-bold">{l.number}</TableCell>
+                      <TableCell className="text-xs">{l.planName}</TableCell>
+                      <TableCell className="text-center text-xs tabular-nums">
+                        {l.guiaCount}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">
+                        {formatCurrency(l.billedCents)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">
+                        {formatCurrency(l.receivedCents)}
+                        {pending > 0 && l.receivedCents > 0 ? (
+                          <span className="ml-1 text-[10px] text-amber-600">
+                            falta {formatCurrency(pending)}
+                          </span>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>{statusBadge(l.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="inline-flex gap-1.5">
+                          <a
+                            href={`/api/tiss/lotes/${l.id}/xml`}
+                            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-50"
+                          >
+                            <Download className="h-3 w-3" />
+                            XML
+                          </a>
+                          {pending > 0 || l.receivedCents === 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => setPagamentoTarget(l)}
+                              className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-2 py-1 text-[10px] font-bold text-white hover:bg-slate-800"
+                            >
+                              <Banknote className="h-3 w-3" />
+                              Receber
+                            </button>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           )}
@@ -401,7 +428,104 @@ export function TissPanel({
           }}
         />
       ) : null}
+
+      {pagamentoTarget ? (
+        <PagamentoModal
+          lote={pagamentoTarget}
+          onClose={() => setPagamentoTarget(null)}
+          onSuccess={() => {
+            setPagamentoTarget(null)
+            router.refresh()
+          }}
+        />
+      ) : null}
     </div>
+  )
+}
+
+function PagamentoModal({
+  lote,
+  onClose,
+  onSuccess,
+}: {
+  lote: LoteRow
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const pending = Math.max(0, lote.billedCents - lote.receivedCents)
+  const [valor, setValor] = useState((pending / 100).toFixed(2))
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    const cents = Math.round(Number(valor.replace(',', '.')) * 100)
+    if (!Number.isInteger(cents) || cents <= 0) {
+      setError('Valor recebido inválido.')
+      return
+    }
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/tiss/lotes/${lote.id}/pagamentos`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ amountCents: cents, note: note.trim() || null }),
+      })
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
+        setError(body.error?.message ?? 'Falha ao registrar o recebimento.')
+        return
+      }
+      onSuccess()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Registrar recebimento</DialogTitle>
+          <DialogDescription>
+            Lote {lote.number} — {lote.planName}. Faturado {formatCurrency(lote.billedCents)},
+            recebido {formatCurrency(lote.receivedCents)} (falta {formatCurrency(pending)}).
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="pg-valor">Valor recebido (R$)</Label>
+            <Input id="pg-valor" autoFocus value={valor} onChange={(e) => setValor(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="pg-note">Observação (opcional)</Label>
+            <Textarea
+              id="pg-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="min-h-[50px]"
+              placeholder="ex.: demonstrativo 0423, pagamento parcial por glosa"
+            />
+          </div>
+          {error ? (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+              {error}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={busy}>
+              {busy ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Banknote className="mr-1 h-3 w-3" />}
+              Registrar
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 
