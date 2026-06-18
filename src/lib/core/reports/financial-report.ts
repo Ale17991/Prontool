@@ -46,11 +46,20 @@ export interface TaxTotals {
   totalCents: number
 }
 
+export interface DoctorPlanRevenueRow {
+  planId: string
+  planName: string
+  grossRevenueCents: number
+  appointmentCount: number
+}
+
 export interface DoctorRankingRow {
   doctorId: string
   doctorName: string
   grossRevenueCents: number
   appointmentCount: number
+  /** Quebra do faturamento deste médico por convênio (soma = grossRevenue). */
+  byPlan: DoctorPlanRevenueRow[]
 }
 
 export interface ProcedureRankingRow {
@@ -496,17 +505,45 @@ function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RawRevenueByPlanRo
 
 function aggregateTopDoctors(rows: AppointmentRow[], limit: number): DoctorRankingRow[] {
   const map = new Map<string, DoctorRankingRow>()
+  // Acumulador paralelo da quebra por plano, por médico (chave doctorId|planId).
+  const planAcc = new Map<string, DoctorPlanRevenueRow>()
+  const doctorPlanKeys = new Map<string, Set<string>>()
+
   for (const r of rows) {
     const existing = map.get(r.doctor_id) ?? {
       doctorId: r.doctor_id,
       doctorName: r.doctors?.full_name ?? '—',
       grossRevenueCents: 0,
       appointmentCount: 0,
+      byPlan: [],
     }
     existing.grossRevenueCents += r.net_amount_cents ?? 0
     existing.appointmentCount += 1
     map.set(r.doctor_id, existing)
+
+    const planId = r.plan_id || ''
+    const planKey = `${r.doctor_id}|${planId}`
+    const planRow = planAcc.get(planKey) ?? {
+      planId,
+      planName: r.health_plans?.name ?? 'Particular',
+      grossRevenueCents: 0,
+      appointmentCount: 0,
+    }
+    planRow.grossRevenueCents += r.net_amount_cents ?? 0
+    planRow.appointmentCount += 1
+    planAcc.set(planKey, planRow)
+    const set = doctorPlanKeys.get(r.doctor_id) ?? new Set<string>()
+    set.add(planKey)
+    doctorPlanKeys.set(r.doctor_id, set)
   }
+
+  for (const [doctorId, row] of map) {
+    const keys = doctorPlanKeys.get(doctorId) ?? new Set<string>()
+    row.byPlan = Array.from(keys)
+      .map((k) => planAcc.get(k)!)
+      .sort((a, b) => b.grossRevenueCents - a.grossRevenueCents)
+  }
+
   return Array.from(map.values())
     .sort((a, b) => b.grossRevenueCents - a.grossRevenueCents)
     .slice(0, limit)

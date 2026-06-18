@@ -47,6 +47,16 @@ export async function renderByProfessionalExcel(
     value: detail.totals.totalCommissionCents / 100,
   })
   commRow.getCell('value').numFmt = BRL
+  const taxRow = resumo.addRow({
+    metric: 'Imposto do convênio',
+    value: detail.totals.totalTaxFromPlanCents / 100,
+  })
+  taxRow.getCell('value').numFmt = BRL
+  const netRow = resumo.addRow({
+    metric: 'Receita líquida (após imposto)',
+    value: detail.totals.totalNetOfTaxCents / 100,
+  })
+  netRow.getCell('value').numFmt = BRL
   resumo.addRow({})
   resumo.addRow({
     metric: 'Procedimento mais realizado',
@@ -84,6 +94,30 @@ export async function renderByProfessionalExcel(
   }
   procs.getColumn('date').numFmt = 'dd/mm/yyyy hh:mm'
   procs.getColumn('commPct').numFmt = '0.00"%"'
+
+  // ----- Por convênio
+  if (detail.byPlan.length > 0) {
+    const porPlano = wb.addWorksheet('Por convênio')
+    porPlano.columns = [
+      { header: 'Convênio', key: 'plan', width: 28 },
+      { header: 'Procedimentos', key: 'count', width: 16 },
+      { header: 'Faturado (BRL)', key: 'gross', width: 18, style: { numFmt: BRL } },
+      { header: 'Imposto (BRL)', key: 'tax', width: 18, style: { numFmt: BRL } },
+      { header: 'Líquido (BRL)', key: 'net', width: 18, style: { numFmt: BRL } },
+      { header: 'Comissão (BRL)', key: 'commission', width: 18, style: { numFmt: BRL } },
+    ]
+    porPlano.getRow(1).font = { bold: true }
+    for (const p of detail.byPlan) {
+      porPlano.addRow({
+        plan: p.planName,
+        count: p.procedureCount,
+        gross: p.grossCents / 100,
+        tax: p.taxFromPlanCents / 100,
+        net: p.netOfTaxCents / 100,
+        commission: p.commissionCents / 100,
+      })
+    }
+  }
 
   const arr = await wb.xlsx.writeBuffer()
   return Buffer.from(arr)

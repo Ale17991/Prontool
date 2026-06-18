@@ -350,6 +350,18 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                           {row.appointmentCount} atendimento
                           {row.appointmentCount === 1 ? '' : 's'}
                         </p>
+                        {row.byPlan.length > 0 ? (
+                          <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                            {row.byPlan
+                              .slice(0, 3)
+                              .map(
+                                (p) =>
+                                  `${p.planName}: ${formatCurrency(p.grossRevenueCents)}`,
+                              )
+                              .join(' · ')}
+                            {row.byPlan.length > 3 ? ' · …' : ''}
+                          </p>
+                        ) : null}
                       </div>
                       <span className="text-right text-xs font-bold tabular-nums text-slate-900">
                         {formatCurrency(row.grossRevenueCents)}

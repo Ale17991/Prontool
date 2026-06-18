@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { LayoutDashboard, ShieldCheck, Stethoscope } from 'lucide-react'
+import { Grid3x3, LayoutDashboard, ShieldCheck, Stethoscope } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type TabKey = 'dashboard' | 'por-plano' | 'por-profissional'
+type TabKey = 'dashboard' | 'por-plano' | 'por-profissional' | 'medico-plano'
 
 interface Tab {
   key: TabKey
@@ -29,6 +29,12 @@ const TABS: Tab[] = [
     href: '/analise/relatorios/por-profissional',
     label: 'Por profissional',
     icon: Stethoscope,
+  },
+  {
+    key: 'medico-plano',
+    href: '/analise/relatorios/medico-plano',
+    label: 'Médico × plano',
+    icon: Grid3x3,
   },
 ]
 

@@ -101,6 +101,12 @@ export function PayoutsView({
                   Comissão
                 </TableHead>
                 <TableHead className="text-[10px] uppercase tracking-widest">
+                  Fixo
+                </TableHead>
+                <TableHead className="text-[10px] uppercase tracking-widest">
+                  Liberal
+                </TableHead>
+                <TableHead className="text-[10px] uppercase tracking-widest">
                   Ajustes
                 </TableHead>
                 <TableHead className="text-[10px] uppercase tracking-widest">
@@ -115,12 +121,50 @@ export function PayoutsView({
             <TableBody>
               {snapshot.payouts.map((p) => (
                 <TableRow key={p.doctorId}>
-                  <TableCell className="text-xs font-semibold">{p.doctorName}</TableCell>
+                  <TableCell className="text-xs font-semibold">
+                    {p.doctorName}
+                    {p.revenueByPlan.length > 0 ? (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-[10px] font-medium text-slate-400 hover:text-slate-600">
+                          {p.revenueByPlan.length} convênio
+                          {p.revenueByPlan.length === 1 ? '' : 's'}
+                        </summary>
+                        <ul className="mt-1 space-y-0.5">
+                          {p.revenueByPlan.map((rp) => (
+                            <li
+                              key={rp.planId || 'particular'}
+                              className="flex justify-between gap-3 font-mono text-[10px] font-normal text-slate-500"
+                            >
+                              <span className="truncate">{rp.planName}</span>
+                              <span className="whitespace-nowrap tabular-nums">
+                                {formatCurrency(rp.grossRevenueCents)} ·{' '}
+                                {formatCurrency(rp.commissionCents)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : null}
+                  </TableCell>
                   <TableCell className="whitespace-nowrap font-mono text-[11px] text-slate-600">
                     {formatCurrency(p.grossRevenueCents)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-mono text-[11px]">
                     {formatCurrency(p.commissionCents)}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-[11px]">
+                    {p.fixedPaymentCents !== 0 ? (
+                      formatCurrency(p.fixedPaymentCents)
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-[11px]">
+                    {p.liberalPaymentCents !== 0 ? (
+                      formatCurrency(p.liberalPaymentCents)
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-mono text-[11px]">
                     {p.adjustmentsCents !== 0 ? (

@@ -177,6 +177,73 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
         />
       </div>
 
+      {detail.byPlan.length > 0 ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Wallet className="h-4 w-4 text-primary" />
+              Receita por convênio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Convênio</TableHead>
+                  <TableHead className="text-right">Proced.</TableHead>
+                  <TableHead className="text-right">Faturado</TableHead>
+                  <TableHead className="text-right">Imposto</TableHead>
+                  <TableHead className="text-right">Líquido</TableHead>
+                  <TableHead className="text-right">Comissão</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detail.byPlan.map((p) => (
+                  <TableRow key={p.planId || 'particular'}>
+                    <TableCell className="font-semibold text-slate-900">
+                      {p.planName}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-slate-700">
+                      {p.procedureCount}
+                    </TableCell>
+                    <TableCell className="text-right font-bold tabular-nums text-slate-900">
+                      {formatCurrency(p.grossCents)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-slate-500">
+                      {formatCurrency(p.taxFromPlanCents)}
+                    </TableCell>
+                    <TableCell className="text-right font-bold tabular-nums text-slate-900">
+                      {formatCurrency(p.netOfTaxCents)}
+                    </TableCell>
+                    <TableCell className="text-right font-bold tabular-nums text-success-strong">
+                      {formatCurrency(p.commissionCents)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="border-t-2 border-slate-200 bg-slate-50">
+                  <TableCell className="font-black text-slate-900">Total</TableCell>
+                  <TableCell className="text-right font-bold tabular-nums text-slate-700">
+                    {detail.totals.procedureCount}
+                  </TableCell>
+                  <TableCell className="text-right font-black tabular-nums text-slate-900">
+                    {formatCurrency(detail.totals.totalRevenueCents)}
+                  </TableCell>
+                  <TableCell className="text-right font-bold tabular-nums text-slate-500">
+                    {formatCurrency(detail.totals.totalTaxFromPlanCents)}
+                  </TableCell>
+                  <TableCell className="text-right font-black tabular-nums text-slate-900">
+                    {formatCurrency(detail.totals.totalNetOfTaxCents)}
+                  </TableCell>
+                  <TableCell className="text-right font-black tabular-nums text-success-strong">
+                    {formatCurrency(detail.totals.totalCommissionCents)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm">

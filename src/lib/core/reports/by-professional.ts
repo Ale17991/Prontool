@@ -6,6 +6,20 @@ import {
   ymdStartOfDayUtc,
   ymdNextDayStartUtc,
 } from '@/lib/utils/tenant-tz'
+import {
+  fetchActiveAppointments,
+  fetchProcedureLines as fetchLines,
+  fetchAllReportDoctors as fetchAllDoctors,
+  fetchPlanTaxRates,
+  validateReportPeriod as validatePeriod,
+  type ActiveAppointmentRow,
+  type ProcedureLineRow as LineRow,
+  type ReportDoctorRow as DoctorRow,
+} from './_sources'
+import {
+  aggregateDoctorPlanMatrix,
+  type DoctorPlanBreakdown,
+} from './doctor-plan-matrix'
 
 /**
  * Agregadores para o relatorio "Por Profissional":
@@ -28,8 +42,6 @@ import {
  * sao re-calculados.
  */
 
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
-
 export interface ProfessionalSummaryRow {
   doctorId: string
   doctorName: string
@@ -38,6 +50,12 @@ export interface ProfessionalSummaryRow {
   procedureCount: number
   totalRevenueCents: number
   totalCommissionCents: number
+  /** Imposto do convênio (tax_rate_bps) somado sobre a receita do médico. */
+  totalTaxFromPlanCents: number
+  /** Receita líquida do médico após o imposto do convênio. */
+  totalNetOfTaxCents: number
+  /** Quebra da receita/comissão deste médico por convênio. */
+  byPlan: DoctorPlanBreakdown[]
 }
 
 export interface ProfessionalProcedureRow {
@@ -78,45 +96,19 @@ export interface ProfessionalDetail {
     procedureCount: number
     totalRevenueCents: number
     totalCommissionCents: number
+    /** Imposto do convênio somado sobre a receita do médico. */
+    totalTaxFromPlanCents: number
+    /** Receita líquida após o imposto do convênio. */
+    totalNetOfTaxCents: number
   }
+  /** Subtotais por convênio dentro deste profissional. */
+  byPlan: DoctorPlanBreakdown[]
   topProcedure: {
     procedureId: string
     procedureName: string
     tussCode: string
     count: number
   } | null
-}
-
-interface ActiveAppointmentRow {
-  id: string
-  patient_id: string
-  doctor_id: string
-  appointment_at: string
-  effective_status: string | null
-  frozen_commission_bps: number
-}
-
-interface LineRow {
-  appointment_id: string
-  procedure_id: string
-  plan_id: string | null
-  /** UNITARIO em cents. */
-  line_amount_cents: number
-  /** Multiplicador (default 1). Migration 0081. */
-  quantity: number
-  procedures: { id: string; tuss_code: string; display_name: string | null } | null
-  health_plans: { id: string; name: string } | null
-}
-
-interface DoctorRow {
-  id: string
-  full_name: string
-  role: string | null
-  specialty: string | null
-  council_name: string | null
-  council_number: string | null
-  crm: string | null
-  active: boolean
 }
 
 interface DecryptedNameRow {
@@ -136,18 +128,13 @@ export async function summaryByProfessional(
   const fromTs = ymdStartOfDayUtc(input.from, tz)
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
-  const active = await fetchActiveAppointments(
-    supabase,
-    input.tenantId,
-    fromTs,
-    toExclusive,
-  )
+  const [active, allDoctors] = await Promise.all([
+    fetchActiveAppointments(supabase, input.tenantId, fromTs, toExclusive),
+    fetchAllDoctors(supabase, input.tenantId),
+  ])
   if (active.length === 0) {
-    return enrichAllDoctorsWithZero(await fetchAllDoctors(supabase, input.tenantId))
+    return enrichAllDoctorsWithZero(allDoctors)
   }
-
-  const appointmentById = new Map<string, ActiveAppointmentRow>()
-  for (const a of active) appointmentById.set(a.id, a)
 
   const lines = await fetchLines(
     supabase,
@@ -155,48 +142,40 @@ export async function summaryByProfessional(
     active.map((a) => a.id),
   )
 
-  // Agrega por doctor_id usando frozen_commission_bps do atendimento.
-  type RawRow = {
-    doctorId: string
-    procedureCount: number
-    totalRevenueCents: number
-    totalCommissionCents: number
-  }
-  const map = new Map<string, RawRow>()
-  for (const l of lines) {
-    const a = appointmentById.get(l.appointment_id)
-    if (!a) continue
-    const doctorId = a.doctor_id
-    const qty = l.quantity || 1
-    const lineTotal = l.line_amount_cents * qty
-    const existing = map.get(doctorId) ?? {
-      doctorId,
-      procedureCount: 0,
-      totalRevenueCents: 0,
-      totalCommissionCents: 0,
-    }
-    existing.procedureCount += qty
-    existing.totalRevenueCents += lineTotal
-    // Camada 3 T2 — Math.round padronizado (era floor, criava drift de
-    // até 1 cent em valores half-point vs cálculos de imposto/percentual
-    // que usavam round em apply-plan-tax e financial-report).
-    existing.totalCommissionCents += Math.round(
-      (lineTotal * a.frozen_commission_bps) / 10000,
-    )
-    map.set(doctorId, existing)
-  }
+  const planIds = Array.from(
+    new Set(
+      lines
+        .map((l) => l.plan_id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0),
+    ),
+  )
+  const planTaxMap = await fetchPlanTaxRates(supabase, input.tenantId, planIds)
 
-  const allDoctors = await fetchAllDoctors(supabase, input.tenantId)
+  // Reusa a matriz médico×plano: a soma por médico é idêntica ao agregado
+  // anterior (mesmo frozen_commission_bps, mesmo Math.round), mas agora
+  // carrega imposto do convênio, líquido e a quebra por plano.
+  const doctorNameById = new Map(allDoctors.map((d) => [d.id, d.full_name]))
+  const matrix = aggregateDoctorPlanMatrix({
+    appointments: active,
+    lines,
+    doctorNameById,
+    planTaxMap,
+  })
+  const rollupById = new Map(matrix.byDoctor.map((r) => [r.doctorId, r]))
+
   const out: ProfessionalSummaryRow[] = allDoctors.map((d) => {
-    const agg = map.get(d.id)
+    const agg = rollupById.get(d.id)
     return {
       doctorId: d.id,
       doctorName: d.full_name,
       role: d.role,
       specialty: d.specialty,
       procedureCount: agg?.procedureCount ?? 0,
-      totalRevenueCents: agg?.totalRevenueCents ?? 0,
-      totalCommissionCents: agg?.totalCommissionCents ?? 0,
+      totalRevenueCents: agg?.grossCents ?? 0,
+      totalCommissionCents: agg?.commissionCents ?? 0,
+      totalTaxFromPlanCents: agg?.taxFromPlanCents ?? 0,
+      totalNetOfTaxCents: agg?.netOfTaxCents ?? 0,
+      byPlan: agg?.byPlan ?? [],
     }
   })
   // Profissionais com mais faturamento primeiro; empate ordena por nome.
@@ -242,7 +221,10 @@ export async function detailByProfessional(
         procedureCount: 0,
         totalRevenueCents: 0,
         totalCommissionCents: 0,
+        totalTaxFromPlanCents: 0,
+        totalNetOfTaxCents: 0,
       },
+      byPlan: [],
       topProcedure: null,
     }
   }
@@ -321,6 +303,27 @@ export async function detailByProfessional(
   const topProcedure =
     Array.from(procedureCounts.values()).sort((a, b) => b.count - a.count)[0] ?? null
 
+  // Quebra por convênio + imposto do plano, via a mesma matriz médico×plano
+  // (garante que os subtotais somem exatamente o totalCommission acima).
+  const planIds = Array.from(
+    new Set(
+      lines
+        .map((l) => l.plan_id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0),
+    ),
+  )
+  const planTaxMap = await fetchPlanTaxRates(supabase, input.tenantId, planIds)
+  const matrix = aggregateDoctorPlanMatrix({
+    appointments: ownAppointments,
+    lines,
+    doctorNameById: new Map([[doctor.id, doctor.full_name]]),
+    planTaxMap,
+  })
+  const rollup = matrix.byDoctor[0]
+  const byPlan = rollup?.byPlan ?? []
+  const totalTaxFromPlanCents = rollup?.taxFromPlanCents ?? 0
+  const totalNetOfTaxCents = rollup?.netOfTaxCents ?? totalRevenueCents
+
   return {
     doctor: mapDoctor(doctor),
     period: { from: input.from, to: input.to },
@@ -329,7 +332,10 @@ export async function detailByProfessional(
       procedureCount,
       totalRevenueCents,
       totalCommissionCents,
+      totalTaxFromPlanCents,
+      totalNetOfTaxCents,
     },
+    byPlan,
     topProcedure,
   }
 }
@@ -356,85 +362,11 @@ function enrichAllDoctorsWithZero(doctors: DoctorRow[]): ProfessionalSummaryRow[
       procedureCount: 0,
       totalRevenueCents: 0,
       totalCommissionCents: 0,
+      totalTaxFromPlanCents: 0,
+      totalNetOfTaxCents: 0,
+      byPlan: [],
     }))
     .sort((a, b) => a.doctorName.localeCompare(b.doctorName, 'pt-BR'))
-}
-
-async function fetchActiveAppointments(
-  supabase: SupabaseClient<Database>,
-  tenantId: string,
-  fromTs: string,
-  toExclusive: string,
-): Promise<ActiveAppointmentRow[]> {
-  const PAGE_SIZE = 1000
-  const rows: ActiveAppointmentRow[] = []
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const { data, error } = await supabase
-      .from('appointments_effective')
-      .select(
-        'id, patient_id, doctor_id, appointment_at, effective_status, frozen_commission_bps',
-      )
-      .eq('tenant_id', tenantId)
-      .gte('appointment_at', fromTs)
-      .lt('appointment_at', toExclusive)
-      .range(offset, offset + PAGE_SIZE - 1)
-    if (error) throw new Error(`fetchActiveAppointments failed: ${error.message}`)
-    const page = (data ?? []) as unknown as ActiveAppointmentRow[]
-    for (const r of page) {
-      if (r.effective_status === 'ativo') rows.push(r)
-    }
-    if (page.length < PAGE_SIZE) break
-  }
-  return rows
-}
-
-async function fetchLines(
-  supabase: SupabaseClient<Database>,
-  tenantId: string,
-  appointmentIds: string[],
-): Promise<LineRow[]> {
-  if (appointmentIds.length === 0) return []
-  const PAGE_SIZE = 1000
-  const CHUNK = 500
-  const all: LineRow[] = []
-  for (let i = 0; i < appointmentIds.length; i += CHUNK) {
-    const ids = appointmentIds.slice(i, i + CHUNK)
-    for (let offset = 0; ; offset += PAGE_SIZE) {
-      const { data, error } = await supabase
-        .from('appointment_procedures' as never)
-        .select(
-          'appointment_id, procedure_id, plan_id, line_amount_cents, quantity, ' +
-            'procedures:procedure_id(id, tuss_code, display_name), health_plans:plan_id(id, name)',
-        )
-        .eq('tenant_id', tenantId)
-        .in('appointment_id', ids)
-        .range(offset, offset + PAGE_SIZE - 1)
-      if (error) {
-        if (/relation .*appointment_procedures.* does not exist/i.test(error.message)) {
-          return []
-        }
-        throw new Error(`fetchLines failed: ${error.message}`)
-      }
-      const page = (data ?? []) as unknown as LineRow[]
-      all.push(...page)
-      if (page.length < PAGE_SIZE) break
-    }
-  }
-  return all
-}
-
-async function fetchAllDoctors(
-  supabase: SupabaseClient<Database>,
-  tenantId: string,
-): Promise<DoctorRow[]> {
-  const { data, error } = await supabase
-    .from('doctors')
-    .select('id, full_name, role, specialty, council_name, council_number, crm, active')
-    .eq('tenant_id', tenantId)
-    .eq('active', true)
-    .order('full_name', { ascending: true })
-  if (error) throw new Error(`fetchAllDoctors failed: ${error.message}`)
-  return (data ?? []) as unknown as DoctorRow[]
 }
 
 async function fetchDoctorById(
@@ -480,12 +412,4 @@ async function decryptPatientNames(
   return result
 }
 
-function validatePeriod(from: string, to: string): void {
-  if (!DATE_REGEX.test(from) || !DATE_REGEX.test(to)) {
-    throw new ValidationError('Parâmetros from/to devem estar no formato YYYY-MM-DD')
-  }
-  if (from > to) {
-    throw new ValidationError('Parâmetro `from` não pode ser posterior a `to`')
-  }
-}
 

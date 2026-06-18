@@ -1,8 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import { selectMonthlyFixedPayLines } from '@/lib/core/reports/monthly-fixed-pay-lines'
 
 export type MonthlyPayoutStatus = 'aberto' | 'fechado' | 'pago'
+
+export interface PayoutPlanRevenue {
+  planId: string
+  planName: string
+  grossRevenueCents: number
+  commissionCents: number
+  appointmentCount: number
+}
 
 export interface MonthlyPayoutLine {
   id: string | null
@@ -14,6 +23,13 @@ export interface MonthlyPayoutLine {
   liberalPaymentCents: number
   adjustmentsCents: number
   totalDueCents: number
+  /**
+   * Origem da receita/comissão do médico por convênio. Populado no mês ABERTO
+   * (cálculo ao vivo, soma exata). No mês FECHADO fica vazio — o snapshot
+   * congelado não guarda a quebra; use o relatório Médico × convênio para o
+   * histórico.
+   */
+  revenueByPlan: PayoutPlanRevenue[]
   closedAt: string | null
   paidAt: string | null
   paidAmountCents: number | null
@@ -86,6 +102,7 @@ export async function getMonthlyPayoutSnapshot(
       liberalPaymentCents: Number(r.liberal_payment_cents),
       adjustmentsCents: Number(r.adjustments_cents),
       totalDueCents: Number(r.total_due_cents),
+      revenueByPlan: [],
       closedAt: r.closed_at,
       paidAt: r.paid_at,
       paidAmountCents: r.paid_amount_cents !== null ? Number(r.paid_amount_cents) : null,
@@ -142,7 +159,9 @@ async function computeOpenMonthSnapshot(
   // Atendimentos do mês (status ativo)
   const apptRes = await supabase
     .from('appointments_effective' as never)
-    .select('doctor_id, frozen_amount_cents, net_commission_cents, effective_status, appointment_at')
+    .select(
+      'doctor_id, plan_id, frozen_amount_cents, net_commission_cents, effective_status, appointment_at',
+    )
     .eq('tenant_id', args.tenantId)
     .eq('effective_status', 'ativo')
     .gte('appointment_at', fromIso)
@@ -150,8 +169,16 @@ async function computeOpenMonthSnapshot(
   if (apptRes.error) throw new Error(`appointments: ${apptRes.error.message}`)
 
   const apptAgg = new Map<string, { gross: number; commission: number }>()
+  // Quebra por médico×plano (chave doctorId|planId). Cada atendimento tem um
+  // único plano, então a soma das células bate com o agregado por médico.
+  const planAgg = new Map<
+    string,
+    { planId: string; gross: number; commission: number; count: number }
+  >()
+  const doctorPlanKeys = new Map<string, Set<string>>()
   for (const r of apptRes.data as unknown as Array<{
     doctor_id: string
+    plan_id: string | null
     frozen_amount_cents: number
     net_commission_cents: number
   }>) {
@@ -159,6 +186,54 @@ async function computeOpenMonthSnapshot(
     cur.gross += Number(r.frozen_amount_cents ?? 0)
     cur.commission += Number(r.net_commission_cents ?? 0)
     apptAgg.set(r.doctor_id, cur)
+
+    const planId = r.plan_id ?? ''
+    const planKey = `${r.doctor_id}|${planId}`
+    const pcur = planAgg.get(planKey) ?? { planId, gross: 0, commission: 0, count: 0 }
+    pcur.gross += Number(r.frozen_amount_cents ?? 0)
+    pcur.commission += Number(r.net_commission_cents ?? 0)
+    pcur.count += 1
+    planAgg.set(planKey, pcur)
+    const set = doctorPlanKeys.get(r.doctor_id) ?? new Set<string>()
+    set.add(planKey)
+    doctorPlanKeys.set(r.doctor_id, set)
+  }
+
+  // Nomes dos convênios presentes (particular = '' → "Particular").
+  const planIds = Array.from(
+    new Set(
+      Array.from(planAgg.values())
+        .map((p) => p.planId)
+        .filter((id) => id.length > 0),
+    ),
+  )
+  const planNames = new Map<string, string>()
+  if (planIds.length > 0) {
+    const plansRes = await supabase
+      .from('health_plans')
+      .select('id, name')
+      .eq('tenant_id', args.tenantId)
+      .in('id', planIds)
+    if (plansRes.error) throw new Error(`health_plans: ${plansRes.error.message}`)
+    for (const p of (plansRes.data ?? []) as Array<{ id: string; name: string }>) {
+      planNames.set(p.id, p.name)
+    }
+  }
+  const revenueByPlanFor = (doctorId: string): PayoutPlanRevenue[] => {
+    const keys = doctorPlanKeys.get(doctorId)
+    if (!keys) return []
+    return Array.from(keys)
+      .map((k) => {
+        const p = planAgg.get(k)!
+        return {
+          planId: p.planId,
+          planName: p.planId ? planNames.get(p.planId) ?? 'Convênio' : 'Particular',
+          grossRevenueCents: p.gross,
+          commissionCents: p.commission,
+          appointmentCount: p.count,
+        }
+      })
+      .sort((a, b) => b.grossRevenueCents - a.grossRevenueCents)
   }
 
   // Ajustes a aplicar neste mês
@@ -173,19 +248,46 @@ async function computeOpenMonthSnapshot(
     adjAgg.set(r.doctor_id, (adjAgg.get(r.doctor_id) ?? 0) + Number(r.delta_cents))
   }
 
+  // Pagamento liberal (participações de assistente) por médico no mês,
+  // excluindo atendimentos estornados. Atribui ao assistant_doctor_id —
+  // antes o snapshot aberto zerava este campo (close_monthly_payout também
+  // grava 0; ver caveat na migration de fechamento).
+  const liberalAgg = await aggregateLiberalByDoctor(
+    supabase,
+    args.tenantId,
+    fromIso,
+    toIso,
+  )
+
+  // Pagamento fixo por médico (modo 'fixo') via view virtual. Antes o
+  // snapshot aberto zerava — agora bate com o que a migration 0126 grava
+  // no fechamento.
+  const fixedLines = await selectMonthlyFixedPayLines(supabase, {
+    tenantId: args.tenantId,
+    year,
+    month: mon,
+  })
+  const fixedAgg = new Map<string, number>()
+  for (const l of fixedLines) {
+    fixedAgg.set(l.doctorId, (fixedAgg.get(l.doctorId) ?? 0) + l.amountCents)
+  }
+
   const lines: MonthlyPayoutLine[] = doctors.map((d) => {
     const a = apptAgg.get(d.id) ?? { gross: 0, commission: 0 }
     const adj = adjAgg.get(d.id) ?? 0
+    const liberal = liberalAgg.get(d.id) ?? 0
+    const fixed = fixedAgg.get(d.id) ?? 0
     return {
       id: null,
       doctorId: d.id,
       doctorName: d.full_name,
       grossRevenueCents: a.gross,
       commissionCents: a.commission,
-      fixedPaymentCents: 0,
-      liberalPaymentCents: 0,
+      fixedPaymentCents: fixed,
+      liberalPaymentCents: liberal,
       adjustmentsCents: adj,
-      totalDueCents: a.commission + adj,
+      totalDueCents: a.commission + fixed + liberal + adj,
+      revenueByPlan: revenueByPlanFor(d.id),
       closedAt: null,
       paidAt: null,
       paidAmountCents: null,
@@ -204,6 +306,64 @@ async function computeOpenMonthSnapshot(
     canReopen: false,
     canReopenReason: null,
   }
+}
+
+/**
+ * Soma o pagamento liberal (participações de assistente ativas) por médico
+ * dentro do intervalo [fromIso, toIso), excluindo atendimentos estornados.
+ * Chave do mapa = assistant_doctor_id.
+ */
+async function aggregateLiberalByDoctor(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  fromIso: string,
+  toIso: string,
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>()
+  const { data, error } = await supabase
+    .from('appointment_assistants' as never)
+    .select(
+      'assistant_doctor_id, frozen_amount_cents, appointment_id, appointment:appointment_id ( appointment_at )',
+    )
+    .eq('tenant_id', tenantId)
+    .is('removed_at', null)
+  if (error) {
+    // best-effort — se a migration de assistentes não aplicou, considera 0.
+    return out
+  }
+  const rows = (data ?? []) as unknown as Array<{
+    assistant_doctor_id: string
+    frozen_amount_cents: number
+    appointment_id: string
+    appointment: { appointment_at: string | null } | null
+  }>
+  const fromMs = new Date(fromIso).getTime()
+  const toMs = new Date(toIso).getTime()
+  const inMonth = rows.filter((r) => {
+    const at = r.appointment?.appointment_at
+    if (!at) return false
+    const t = new Date(at).getTime()
+    return t >= fromMs && t < toMs
+  })
+  if (inMonth.length === 0) return out
+
+  const apptIds = Array.from(new Set(inMonth.map((r) => r.appointment_id)))
+  const { data: reversalsRaw } = await supabase
+    .from('appointment_reversals')
+    .select('appointment_id')
+    .in('appointment_id', apptIds)
+  const reversedSet = new Set(
+    ((reversalsRaw ?? []) as Array<{ appointment_id: string }>).map((r) => r.appointment_id),
+  )
+
+  for (const r of inMonth) {
+    if (reversedSet.has(r.appointment_id)) continue
+    out.set(
+      r.assistant_doctor_id,
+      (out.get(r.assistant_doctor_id) ?? 0) + Number(r.frozen_amount_cents ?? 0),
+    )
+  }
+  return out
 }
 
 export async function closeMonthlyPayout(
