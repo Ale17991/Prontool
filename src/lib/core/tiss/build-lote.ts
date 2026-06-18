@@ -18,6 +18,7 @@ import {
   renderSpSadtLoteXml,
   type SpSadtGuiaModel,
   type SpSadtProcedimento,
+  type EquipeSadtMembro,
 } from './xml/render-spsadt'
 import { validateTissXml } from './validate'
 
@@ -86,6 +87,8 @@ interface ExecutanteSnapshot {
     tipoAtendimento: string
     regimeAtendimento: string
     indicacaoAcidente: string
+    /** Feature 031 — equipe congelada por sequência de linha. */
+    equipePorSequence?: Record<string, EquipeSadtMembro[]>
   }
 }
 
@@ -188,16 +191,22 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
         total_amount_cents: number
       }>
       const sp = exec.spSadt
-      const procedimentos: SpSadtProcedimento[] = procLines.map((l, i) => ({
-        sequencial: l.sequence || i + 1,
-        dataExecucao: dataAtendimento,
-        codigoTabela: l.tuss_table || '22',
-        codigoProcedimento: l.procedure_code,
-        descricao: l.description ?? 'Procedimento',
-        quantidade: l.quantity || 1,
-        valorUnitarioCents: l.unit_amount_cents,
-        valorTotalCents: l.total_amount_cents,
-      }))
+      const equipePorSeq = sp?.equipePorSequence ?? {}
+      const procedimentos: SpSadtProcedimento[] = procLines.map((l, i) => {
+        const seq = l.sequence || i + 1
+        const equipe = equipePorSeq[String(seq)]
+        return {
+          sequencial: seq,
+          dataExecucao: dataAtendimento,
+          codigoTabela: l.tuss_table || '22',
+          codigoProcedimento: l.procedure_code,
+          descricao: l.description ?? 'Procedimento',
+          quantidade: l.quantity || 1,
+          valorUnitarioCents: l.unit_amount_cents,
+          valorTotalCents: l.total_amount_cents,
+          equipe: equipe && equipe.length > 0 ? equipe : undefined,
+        }
+      })
       spSadtModels.push({
         registroANS: config.ans_registration,
         numeroGuiaPrestador: g.guia_number_prestador,

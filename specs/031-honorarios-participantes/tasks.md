@@ -89,13 +89,13 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 **Independent Test**: gerar SP/SADT de um atendimento com participantes → guia com `equipeSadt` válida; participante incompleto → `rascunho` com pendência.
 
 ### Tests for US3 ⚠️
-- [ ] T022 [P] [US3] Teste-âncora `tests/contract/tiss-render-spsadt-equipe-validates.spec.ts` — `render-spsadt` com `equipeSadt` (1–2 membros) valida no XSD 04.03.00 (xmllint-wasm).
-- [ ] T023 [P] [US3] Integration test `tests/integration/tiss-spsadt-equipe.spec.ts` — atendimento com 2 participantes num procedimento → guia `pronta` com 2 membros na equipe; remover CBO de um → `rascunho` com `validation_errors` apontando o participante.
+- [X] T022 [P] [US3] Teste-âncora `tests/contract/tiss-render-spsadt-equipe-validates.spec.ts` — `render-spsadt` com `equipeSadt` (1–2 membros) valida no XSD 04.03.00 (xmllint-wasm).
+- [X] T023 [P] [US3] Integration test `tests/integration/tiss-spsadt-equipe.spec.ts` — atendimento com 2 participantes num procedimento → guia `pronta` com 2 membros na equipe; remover CBO de um → `rascunho` com `validation_errors` apontando o participante.
 
 ### Implementation for US3
-- [ ] T024 [US3] Estender `src/lib/core/tiss/xml/render-spsadt.ts` — adicionar `equipeSadt` (repetível) por `procedimentoExecutado` na ordem do XSD (`ct_identEquipeSADT`: grauPart, codProfissional/cpfContratado, nomeProf, conselho, numeroConselho, UF, CBOS).
-- [ ] T025 [US3] Estender `src/lib/core/tiss/build-guia.ts` (`generateSpSadtGuia`) — carregar participantes ativos por linha de procedimento e mapear para `equipeSadt` (CPF/conselho/UF/CBO do `doctors` + grau).
-- [ ] T026 [US3] Estender `src/lib/core/tiss/xml/validate-content.ts` — pendência quando participante sem CPF/conselho/UF/CBO completos (guia não fica `pronta`).
+- [X] T024 [US3] Estender `src/lib/core/tiss/xml/render-spsadt.ts` — adicionar `equipeSadt` (repetível) por `procedimentoExecutado` na ordem do XSD (`ct_identEquipeSADT`: grauPart, codProfissional/cpfContratado, nomeProf, conselho, numeroConselho, UF, CBOS).
+- [X] T025 [US3] Estender `src/lib/core/tiss/build-guia.ts` (`generateSpSadtGuia`) — carregar participantes ativos por linha de procedimento e mapear para `equipeSadt` (CPF/conselho/UF/CBO do `doctors` + grau).
+- [X] T026 [US3] Estender `src/lib/core/tiss/xml/validate-content.ts` — pendência quando participante sem CPF/conselho/UF/CBO completos (guia não fica `pronta`).
 
 **Checkpoint**: faturamento TISS de procedimentos com equipe completo.
 

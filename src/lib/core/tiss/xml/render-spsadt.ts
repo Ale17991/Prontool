@@ -36,6 +36,26 @@ export interface SpSadtProcedimento {
   fatorReducaoAcrescimo?: string
   valorUnitarioCents: number
   valorTotalCents: number
+  /** Feature 031 — equipe (participantes) da linha. 0..N membros. */
+  equipe?: EquipeSadtMembro[]
+}
+
+/** `ct_identEquipeSADT` — um membro da equipe de uma linha de procedimento. */
+export interface EquipeSadtMembro {
+  /** `dm_grauPart` (dom. 35), opcional. */
+  grauParticipacao?: string | null
+  /** CPF do contratado (choice — usamos sempre cpfContratado). */
+  cpfContratado: string
+  /** `nomeProf` (st_texto70). */
+  nome: string
+  /** `conselho` (dom. 26). */
+  conselho: string
+  /** `numeroConselhoProfissional` (st_texto15). */
+  numeroConselho: string
+  /** `UF` (dom. 59 — IBGE). */
+  uf: string
+  /** `CBOS` (dom. 24). */
+  cbo: string
 }
 
 export interface SpSadtGuiaModel {
@@ -167,7 +187,24 @@ function buildLinha(p: SpSadtProcedimento): Record<string, unknown> {
   linha.reducaoAcrescimo = fator(p.fatorReducaoAcrescimo)
   linha.valorUnitario = centsToDecimal(p.valorUnitarioCents)
   linha.valorTotal = centsToDecimal(p.valorTotalCents)
+  // `equipeSadt` é o ÚLTIMO elemento da sequência ct_procedimentoExecutadoSadt.
+  if (p.equipe && p.equipe.length > 0) {
+    linha.equipeSadt = p.equipe.map(buildEquipe)
+  }
   return linha
+}
+
+/** Monta um `equipeSadt` na ordem exata de ct_identEquipeSADT. */
+function buildEquipe(m: EquipeSadtMembro): Record<string, unknown> {
+  const e: Record<string, unknown> = {}
+  if (m.grauParticipacao) e.grauPart = m.grauParticipacao
+  e.codProfissional = { cpfContratado: m.cpfContratado }
+  e.nomeProf = m.nome
+  e.conselho = m.conselho
+  e.numeroConselhoProfissional = m.numeroConselho
+  e.UF = m.uf
+  e.CBOS = m.cbo
+  return e
 }
 
 /**
