@@ -119,9 +119,9 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T029 [P] Atualizar `CLAUDE.md`/agent context com a feature (equipe por procedimento; domínio 35; reuso do repasse).
-- [ ] T030 [P] Rodar `pnpm typecheck`, `pnpm lint`, `pnpm lint:auth`; suíte dos specs novos verde; re-seed (`pnpm seed:demo`).
-- [ ] T031 Validar `quickstart.md` ponta a ponta (US1→US4) em dev.
+- [X] T029 [P] Atualizar `CLAUDE.md`/agent context com a feature (equipe por procedimento; domínio 35; reuso do repasse).
+- [X] T030 [P] Rodar `pnpm typecheck`, `pnpm lint`, `pnpm lint:auth`; suíte dos specs novos verde; re-seed (`pnpm seed:demo`).
+- [X] T031 Validar `quickstart.md` ponta a ponta (US1→US4) em dev.
 
 ---
 
