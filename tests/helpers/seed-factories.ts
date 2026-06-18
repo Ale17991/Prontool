@@ -242,6 +242,33 @@ export async function seedTussCode(
     .throwOnError()
 }
 
+/**
+ * Feature 029/031 — entrada de domínio TISS (catálogo global, sem tenant).
+ * `tiss_domain_tables` é preservada por `test_truncate_all_mutable`, mas não é
+ * semeada por ele; tests que dependem de um domínio devem garanti-lo aqui.
+ */
+export async function seedTissDomainEntry(
+  domainNumber: string,
+  code: string,
+  description: string,
+  opts: { validFrom?: string; validTo?: string | null } = {},
+): Promise<void> {
+  const sb = serviceClient()
+  await sb
+    .from('tiss_domain_tables')
+    .upsert(
+      {
+        domain_number: domainNumber,
+        code,
+        description,
+        valid_from: opts.validFrom ?? '2000-01-01',
+        valid_to: opts.validTo ?? null,
+      },
+      { onConflict: 'domain_number,code,valid_from' },
+    )
+    .throwOnError()
+}
+
 export async function seedProcedure(tenantId: string, tussCode: string): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
@@ -362,6 +389,45 @@ export async function seedAppointment(args: {
       source_commission_history_id: args.commissionId,
       appointment_at: args.at ?? new Date().toISOString(),
     })
+    .throwOnError()
+  return id
+}
+
+/**
+ * Feature 031 — linha de `appointment_procedures` (alvo do vínculo de
+ * participantes). Por padrão cria uma linha PARTICULAR (plan_id NULL,
+ * source_price_version_id NULL) para satisfazer o trigger de price-coherence
+ * sem precisar de price_version. Passe `planId` + `priceVersionId` para uma
+ * linha de convênio.
+ */
+export async function seedAppointmentProcedure(args: {
+  tenantId: string
+  appointmentId: string
+  procedureId: string // procedures.id
+  planId?: string | null
+  priceVersionId?: string | null
+  lineAmountCents?: number
+  sequence?: number
+  createdBy?: string
+}): Promise<string> {
+  const sb = serviceClient()
+  const id = randomUUID()
+  const amount = args.lineAmountCents ?? 20000
+  await sb
+    .from('appointment_procedures')
+    .insert({
+      id,
+      tenant_id: args.tenantId,
+      appointment_id: args.appointmentId,
+      procedure_id: args.procedureId,
+      plan_id: args.planId ?? null,
+      source_price_version_id: args.priceVersionId ?? null,
+      line_amount_cents: amount,
+      vigente_amount_cents: amount,
+      amount_was_overridden: false,
+      sequence: args.sequence ?? 1,
+      created_by: args.createdBy ?? '00000000-0000-0000-0000-000000000000',
+    } as never)
     .throwOnError()
   return id
 }

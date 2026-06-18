@@ -47,18 +47,18 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 **Independent Test**: adicionar 2 participantes (modalidades distintas) a um procedimento, recarregar e ver persistido; duplicar o mesmo médico no mesmo procedimento é bloqueado; remover sai da lista ativa mantendo histórico.
 
 ### Tests for US1 ⚠️
-- [ ] T008 [P] [US1] Contract test `tests/contract/procedure-participants-append-only.spec.ts` — UPDATE de `procedure_id`/`participation_degree`/`frozen_amount_cents` bloqueado; DELETE bloqueado; só `removed_at`/`removed_by` mudam.
-- [ ] T009 [P] [US1] Contract test `tests/contract/procedure-participants-tenant-isolation.spec.ts` — participante/procedimento de outro tenant barrado (RLS + trigger de consistência).
-- [ ] T010 [P] [US1] Contract test `tests/contract/procedure-participants-rbac.spec.ts` — POST/DELETE exigem `admin`/`financeiro`; `recepcionista`/`profissional_saude` recebem 403 (negação logada).
-- [ ] T011 [P] [US1] Integration test `tests/integration/procedure-participants-crud.spec.ts` — 2 participantes (fixo + comissionado) num procedimento; duplicado bloqueado; remoção soft-unlink; grau fora do domínio 35 rejeitado; honorário ≤ 0 rejeitado.
+- [X] T008 [P] [US1] Contract test `tests/contract/procedure-participants-append-only.spec.ts` — UPDATE de `procedure_id`/`participation_degree`/`frozen_amount_cents` bloqueado; DELETE bloqueado; só `removed_at`/`removed_by` mudam.
+- [X] T009 [P] [US1] Contract test `tests/contract/procedure-participants-tenant-isolation.spec.ts` — participante/procedimento de outro tenant barrado (RLS + trigger de consistência).
+- [X] T010 [P] [US1] Contract test `tests/contract/procedure-participants-rbac.spec.ts` — POST/DELETE exigem `admin`/`financeiro`; `recepcionista`/`profissional_saude` recebem 403 (negação logada).
+- [X] T011 [P] [US1] Integration test `tests/integration/procedure-participants-crud.spec.ts` — 2 participantes (fixo + comissionado) num procedimento; duplicado bloqueado; remoção soft-unlink; grau fora do domínio 35 rejeitado; honorário ≤ 0 rejeitado.
 
 ### Implementation for US1
-- [ ] T012 [US1] Estender `src/lib/core/appointment-assistants/` (attach/remove) para `procedure_id` + `participation_degree` + validação de grau (domínio 35), duplicidade por (appointment, procedure, doctor) e honorário > 0.
-- [ ] T013 [US1] Estender `src/lib/core/appointment-assistants/list-by-appointment.ts` para retornar participantes agrupados por `procedure_id` com `degreeLabel` (de `tiss_domain_tables` 35).
-- [ ] T014 [US1] Route `src/app/api/atendimentos/[id]/participantes/route.ts` (POST) com `requireRole(['admin','financeiro'])` + Zod (`procedureId`,`doctorId`,`participationDegree`,`amountCents`).
-- [ ] T015 [US1] Route `src/app/api/atendimentos/[id]/participantes/[participantId]/route.ts` (DELETE) — soft-unlink, `requireRole(['admin','financeiro'])`.
-- [ ] T016 [US1] Incluir participantes por procedimento no payload de detalhe do atendimento (RSC/route que alimenta `AppointmentDetailBody`).
-- [ ] T017 [US1] UI: componente de equipe por procedimento em `src/app/(dashboard)/operacao/atendimentos/_components/` (adicionar/remover; seletor de profissional + grau do domínio 35 + honorário), respeitando `finance.view_values`. Integrar no `appointment-detail-body.tsx` por linha de procedimento.
+- [X] T012 [US1] Estender `src/lib/core/appointment-assistants/` (attach/remove) para `procedure_id` + `participation_degree` + validação de grau (domínio 35), duplicidade por (appointment, procedure, doctor) e honorário > 0.
+- [X] T013 [US1] Estender `src/lib/core/appointment-assistants/list-by-appointment.ts` para retornar participantes agrupados por `procedure_id` com `degreeLabel` (de `tiss_domain_tables` 35).
+- [X] T014 [US1] Route `src/app/api/atendimentos/[id]/participantes/route.ts` (POST) com `requireRole(['admin','financeiro'])` + Zod (`procedureId`,`doctorId`,`participationDegree`,`amountCents`).
+- [X] T015 [US1] Route `src/app/api/atendimentos/[id]/participantes/[participantId]/route.ts` (DELETE) — soft-unlink, `requireRole(['admin','financeiro'])`.
+- [X] T016 [US1] Incluir participantes por procedimento no payload de detalhe do atendimento (RSC/route que alimenta `AppointmentDetailBody`).
+- [X] T017 [US1] UI: componente de equipe por procedimento em `src/app/(dashboard)/operacao/atendimentos/_components/` (adicionar/remover; seletor de profissional + grau do domínio 35 + honorário), respeitando `finance.view_values`. Integrar no `appointment-detail-body.tsx` por linha de procedimento.
 
 **Checkpoint**: equipe por procedimento gerenciável ponta a ponta (MVP).
 
