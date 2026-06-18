@@ -142,7 +142,7 @@ async function computeOpenMonthSnapshot(
   // Atendimentos do mês (status ativo)
   const apptRes = await supabase
     .from('appointments_effective' as never)
-    .select('doctor_id, frozen_amount_cents, net_commission_cents, effective_status, appointment_at')
+    .select('id, doctor_id, frozen_amount_cents, net_commission_cents, effective_status, appointment_at')
     .eq('tenant_id', args.tenantId)
     .eq('effective_status', 'ativo')
     .gte('appointment_at', fromIso)
@@ -150,11 +150,14 @@ async function computeOpenMonthSnapshot(
   if (apptRes.error) throw new Error(`appointments: ${apptRes.error.message}`)
 
   const apptAgg = new Map<string, { gross: number; commission: number }>()
+  const activeApptIds: string[] = []
   for (const r of apptRes.data as unknown as Array<{
+    id: string
     doctor_id: string
     frozen_amount_cents: number
     net_commission_cents: number
   }>) {
+    activeApptIds.push(r.id)
     const cur = apptAgg.get(r.doctor_id) ?? { gross: 0, commission: 0 }
     cur.gross += Number(r.frozen_amount_cents ?? 0)
     cur.commission += Number(r.net_commission_cents ?? 0)
@@ -173,9 +176,21 @@ async function computeOpenMonthSnapshot(
     adjAgg.set(r.doctor_id, (adjAgg.get(r.doctor_id) ?? 0) + Number(r.delta_cents))
   }
 
+  // Honorários de participação (feature 031): soma `appointment_assistants`
+  // ativos por médico participante, qualquer modalidade, restrito aos
+  // atendimentos ATIVOS do mês (mesmo conjunto usado para gross/commission →
+  // exclui estornados/cancelados/não-realizados). Espelha o `assist_agg` do RPC
+  // close_monthly_payout (0129) para paridade mês aberto × fechado.
+  const participationAgg = await aggregateParticipationsByDoctor(supabase, {
+    tenantId: args.tenantId,
+    activeAppointmentIds: activeApptIds,
+    restrictDoctorId: args.restrictDoctorId ?? null,
+  })
+
   const lines: MonthlyPayoutLine[] = doctors.map((d) => {
     const a = apptAgg.get(d.id) ?? { gross: 0, commission: 0 }
     const adj = adjAgg.get(d.id) ?? 0
+    const liberal = participationAgg.get(d.id) ?? 0
     return {
       id: null,
       doctorId: d.id,
@@ -183,9 +198,9 @@ async function computeOpenMonthSnapshot(
       grossRevenueCents: a.gross,
       commissionCents: a.commission,
       fixedPaymentCents: 0,
-      liberalPaymentCents: 0,
+      liberalPaymentCents: liberal,
       adjustmentsCents: adj,
-      totalDueCents: a.commission + adj,
+      totalDueCents: a.commission + liberal + adj,
       closedAt: null,
       paidAt: null,
       paidAmountCents: null,
@@ -204,6 +219,41 @@ async function computeOpenMonthSnapshot(
     canReopen: false,
     canReopenReason: null,
   }
+}
+
+/**
+ * Feature 031 — soma os honorários de participação ativos por médico,
+ * restrito ao conjunto de atendimentos ATIVOS do mês (já filtrados por
+ * effective_status='ativo' → exclui estornados/cancelados/não-realizados).
+ * Usado no snapshot do mês ABERTO; o mês fechado usa o `assist_agg` do RPC
+ * (0129), que aplica exatamente a mesma regra via appointments_effective.
+ */
+async function aggregateParticipationsByDoctor(
+  supabase: SupabaseClient<Database>,
+  args: { tenantId: string; activeAppointmentIds: string[]; restrictDoctorId?: string | null },
+): Promise<Map<string, number>> {
+  if (args.activeAppointmentIds.length === 0) return new Map()
+  let q = supabase
+    .from('appointment_assistants' as never)
+    .select('assistant_doctor_id, frozen_amount_cents, appointment_id')
+    .eq('tenant_id', args.tenantId)
+    .is('removed_at', null)
+    .in('appointment_id', args.activeAppointmentIds)
+  if (args.restrictDoctorId) q = q.eq('assistant_doctor_id', args.restrictDoctorId)
+  const { data, error } = await q
+  if (error) throw new Error(`participations: ${error.message}`)
+
+  const agg = new Map<string, number>()
+  for (const r of (data ?? []) as unknown as Array<{
+    assistant_doctor_id: string
+    frozen_amount_cents: number
+  }>) {
+    agg.set(
+      r.assistant_doctor_id,
+      (agg.get(r.assistant_doctor_id) ?? 0) + Number(r.frozen_amount_cents ?? 0),
+    )
+  }
+  return agg
 }
 
 export async function closeMonthlyPayout(

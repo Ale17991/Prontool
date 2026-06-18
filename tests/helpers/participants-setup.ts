@@ -10,6 +10,7 @@ import {
   seedPriceVersion,
   seedPatient,
   seedAppointmentProcedure,
+  seedAppointmentCompletion,
   seedTissDomainEntry,
 } from './seed-factories'
 import { mintJwt } from './jwt-helper'
@@ -35,7 +36,10 @@ export interface ParticipantScenario {
  * médicos de cada modalidade disponíveis como participantes, admin + jwt, e
  * graus do domínio TISS 35 semeados (00/01/06).
  */
-export async function setupParticipantScenario(slug = 'participants'): Promise<ParticipantScenario> {
+export async function setupParticipantScenario(
+  slug = 'participants',
+  opts: { appointmentAt?: string } = {},
+): Promise<ParticipantScenario> {
   const { tenantId } = await seedTenant(slug)
   const admin = await seedUser(tenantId, 'admin')
   const adminJwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
@@ -80,6 +84,7 @@ export async function setupParticipantScenario(slug = 'participants'): Promise<P
     commissionId,
     amountCents: 20000,
     commissionBps: 3000,
+    at: opts.appointmentAt,
   })
 
   const procedureLineId = await seedAppointmentProcedure({
@@ -89,6 +94,10 @@ export async function setupParticipantScenario(slug = 'participants'): Promise<P
     lineAmountCents: 20000,
     sequence: 1,
   })
+
+  // Atendimento REALIZADO (effective_status='ativo') — estado realista para
+  // ter equipe e entrar no repasse.
+  await seedAppointmentCompletion({ tenantId, appointmentId })
 
   return {
     tenantId,

@@ -432,6 +432,28 @@ export async function seedAppointmentProcedure(args: {
   return id
 }
 
+/**
+ * Marca um atendimento como REALIZADO inserindo `appointment_completions`,
+ * o que faz `appointments_effective.effective_status` virar 'ativo' (0096) —
+ * pré-condição para entrar no repasse (gross/commission e participações).
+ */
+export async function seedAppointmentCompletion(args: {
+  tenantId: string
+  appointmentId: string
+  completedBy?: string
+}): Promise<void> {
+  const sb = serviceClient()
+  await sb
+    .from('appointment_completions' as never)
+    .insert({
+      tenant_id: args.tenantId,
+      appointment_id: args.appointmentId,
+      completed_by: args.completedBy ?? '00000000-0000-0000-0000-000000000000',
+      source: 'manual',
+    } as never)
+    .throwOnError()
+}
+
 export async function seedPatient(tenantId: string): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()

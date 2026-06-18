@@ -101,6 +101,9 @@ export function PayoutsView({
                   Comissão
                 </TableHead>
                 <TableHead className="text-[10px] uppercase tracking-widest">
+                  Participações
+                </TableHead>
+                <TableHead className="text-[10px] uppercase tracking-widest">
                   Ajustes
                 </TableHead>
                 <TableHead className="text-[10px] uppercase tracking-widest">
@@ -121,6 +124,13 @@ export function PayoutsView({
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-mono text-[11px]">
                     {formatCurrency(p.commissionCents)}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-[11px]">
+                    {p.liberalPaymentCents !== 0 ? (
+                      formatCurrency(p.liberalPaymentCents)
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-mono text-[11px]">
                     {p.adjustmentsCents !== 0 ? (

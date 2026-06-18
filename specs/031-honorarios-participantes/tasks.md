@@ -71,12 +71,12 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 **Independent Test**: registrar participações no mês para um médico, abrir o repasse e ver a soma na linha dele; estornar o atendimento e ver sair.
 
 ### Tests for US2 ⚠️
-- [ ] T018 [P] [US2] Integration test `tests/integration/participant-feeds-repasse.spec.ts` — participações de fixo e comissionado entram no repasse do mês (mês aberto via `getMonthlyPayoutSnapshot`); atendimento estornado não conta.
-- [ ] T019 [P] [US2] Integration test `tests/integration/participant-repasse-close.spec.ts` — fechamento (`close_monthly_payout`/0126) grava o honorário em `liberal_payment_cents` para qualquer modalidade.
+- [X] T018 [P] [US2] Integration test `tests/integration/participant-feeds-repasse.spec.ts` — participações de fixo e comissionado entram no repasse do mês (mês aberto via `getMonthlyPayoutSnapshot`); atendimento estornado não conta.
+- [X] T019 [P] [US2] Integration test `tests/integration/participant-repasse-close.spec.ts` — fechamento (`close_monthly_payout`/0126) grava o honorário em `liberal_payment_cents` para qualquer modalidade.
 
 ### Implementation for US2
-- [ ] T020 [US2] Verificar/ajustar `src/lib/core/monthly-payouts/index.ts` (`aggregateLiberalByDoctor`) — confirmar que soma qualquer modalidade após o relaxe do trigger (sem filtro de modalidade); ajustar comentários.
-- [ ] T021 [US2] Renomear o **rótulo** de apresentação "Liberal" → "Participações/Honorários" em `src/app/(dashboard)/analise/repasse-medico/[mes]/payouts-view.tsx` (coluna), sem alterar a coluna `liberal_payment_cents` nem o cálculo.
+- [X] T020 [US2] Verificar/ajustar `src/lib/core/monthly-payouts/index.ts` (`aggregateLiberalByDoctor`) — confirmar que soma qualquer modalidade após o relaxe do trigger (sem filtro de modalidade); ajustar comentários.
+- [X] T021 [US2] Renomear o **rótulo** de apresentação "Liberal" → "Participações/Honorários" em `src/app/(dashboard)/analise/repasse-medico/[mes]/payouts-view.tsx` (coluna), sem alterar a coluna `liberal_payment_cents` nem o cálculo.
 
 **Checkpoint**: repasse reflete os honorários de participação, qualquer modalidade.
 
