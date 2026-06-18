@@ -6,6 +6,7 @@ import { AddressEditor } from '../address-editor'
 import { IdentityEditor } from '../identity-editor'
 import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
 import { PatientPlanEditor } from '../patient-plan-editor'
+import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
 import { VitalSignsSection } from '../vital-signs-section'
 import { MetabolicMetricsSection } from '../metabolic-metrics-section'
@@ -139,6 +140,13 @@ export function CadastroTab({
             healthPlans={healthPlansList}
             canEdit={canEditPatient}
           />
+          {patient.healthPlan?.id ? (
+            <PatientCardEditor
+              patientId={patient.id}
+              healthPlanId={patient.healthPlan.id}
+              canEdit={canEditPatient}
+            />
+          ) : null}
         </CardContent>
       </Card>
 

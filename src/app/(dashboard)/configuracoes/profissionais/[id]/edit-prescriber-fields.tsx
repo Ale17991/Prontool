@@ -24,6 +24,7 @@ export function EditPrescriberFields({
   currentCpf,
   currentCouncilState,
   currentBirthDate,
+  currentCbo,
 }: {
   doctorId: string
   currentCouncilName: string | null
@@ -31,6 +32,7 @@ export function EditPrescriberFields({
   currentCpf: string | null
   currentCouncilState: string | null
   currentBirthDate: string | null
+  currentCbo: string | null
 }) {
   const router = useRouter()
   const [editing, setEditing] = useState(false)
@@ -39,6 +41,7 @@ export function EditPrescriberFields({
   const [cpf, setCpf] = useState(currentCpf ?? '')
   const [councilState, setCouncilState] = useState(currentCouncilState ?? '')
   const [birthDate, setBirthDate] = useState(currentBirthDate ?? '')
+  const [cbo, setCbo] = useState(currentCbo ?? '')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -55,6 +58,11 @@ export function EditPrescriberFields({
       setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
       return
     }
+    const cboDigits = cbo.replace(/\D/g, '')
+    if (cboDigits.length > 0 && cboDigits.length !== 6) {
+      setError('CBO deve ter 6 dígitos quando preenchido (ou deixe em branco).')
+      return
+    }
 
     setPending(true)
     try {
@@ -67,6 +75,7 @@ export function EditPrescriberFields({
           council_state: councilState || null,
           cpf: cpfDigits || null,
           birth_date: birthDate || null,
+          cbo: cboDigits || null,
         }),
       })
       if (!res.ok) {
@@ -94,6 +103,7 @@ export function EditPrescriberFields({
           <Field label="CPF" value={formatCpf(currentCpf)} />
           <Field label="UF do conselho" value={currentCouncilState ?? '—'} />
           <Field label="Nascimento" value={formatBirthDate(currentBirthDate)} />
+          <Field label="CBO (TISS)" value={currentCbo ?? '—'} />
         </div>
         {!complete ? (
           <p className="text-[11px] text-amber-600">
@@ -176,6 +186,17 @@ export function EditPrescriberFields({
             onChange={(e) => setBirthDate(e.target.value)}
           />
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="presc-cbo" className="text-xs">CBO (TISS)</Label>
+          <Input
+            id="presc-cbo"
+            inputMode="numeric"
+            maxLength={6}
+            value={cbo}
+            onChange={(e) => setCbo(e.target.value)}
+            placeholder="Ex.: 225125"
+          />
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm" disabled={pending}>
@@ -192,6 +213,7 @@ export function EditPrescriberFields({
             setCpf(currentCpf ?? '')
             setCouncilState(currentCouncilState ?? '')
             setBirthDate(currentBirthDate ?? '')
+            setCbo(currentCbo ?? '')
             setError(null)
           }}
         >

@@ -19,6 +19,8 @@ export interface DoctorDetail {
   councilState: string | null
   cpf: string | null
   birthDate: string | null
+  /** CBO (Classificação Brasileira de Ocupações) — domínio TISS 24, 6 dígitos. */
+  cbo: string | null
   active: boolean
   createdAt: string
   /** Conta de login vinculada (doctors.user_id) — null se não vinculado. */
@@ -43,6 +45,7 @@ interface DoctorRow {
   council_state: string | null
   cpf: string | null
   birth_date: string | null
+  cbo: string | null
   active: boolean
   created_at: string
   user_id: string | null
@@ -64,7 +67,7 @@ export async function getDoctor(
   const { data: rawDoctor, error } = await supabase
     .from('doctors')
     .select(
-      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, active, created_at, user_id, payment_mode',
+      'id, full_name, crm, external_identifier, role, specialty, council_name, council_number, council_state, cpf, birth_date, cbo, active, created_at, user_id, payment_mode',
     )
     .eq('id', args.doctorId)
     .eq('tenant_id', args.tenantId)
@@ -95,6 +98,7 @@ export async function getDoctor(
     councilState: doctor.council_state,
     cpf: doctor.cpf,
     birthDate: doctor.birth_date,
+    cbo: doctor.cbo,
     active: doctor.active,
     createdAt: doctor.created_at,
     userId: doctor.user_id,

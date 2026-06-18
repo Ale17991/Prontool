@@ -13,6 +13,7 @@ import {
   Calculator,
   Calendar,
   ClipboardCheck,
+  FileText,
   LayoutDashboard,
   Receipt,
   ScrollText,
@@ -133,6 +134,13 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Despesas',
         icon: TrendingDown,
         show: ({ role, flags, ent }) => flags.despesas && ent.has('despesas') && role === 'admin',
+      },
+      {
+        href: '/analise/tiss',
+        label: 'Faturamento TISS',
+        icon: FileText,
+        show: ({ role, ent }) =>
+          ent.hasModule('tiss') && (role === 'admin' || role === 'financeiro'),
       },
     ],
   },

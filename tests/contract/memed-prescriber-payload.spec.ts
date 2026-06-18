@@ -23,6 +23,7 @@ const BASE: DoctorDetail = {
   councilState: 'SP',
   cpf: '39053344705',
   birthDate: '1985-04-12',
+  cbo: null,
   active: true,
   createdAt: '2024-01-01T00:00:00Z',
   userId: null,

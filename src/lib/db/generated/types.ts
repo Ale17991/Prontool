@@ -258,6 +258,67 @@ export type Database = {
           },
         ]
       }
+      appointment_calendar_sync: {
+        Row: {
+          appointment_id: string
+          calendar_id: string | null
+          external_event_id: string | null
+          last_error: string | null
+          provider: string
+          status: string
+          synced_at: string
+          tenant_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          appointment_id: string
+          calendar_id?: string | null
+          external_event_id?: string | null
+          last_error?: string | null
+          provider: string
+          status?: string
+          synced_at?: string
+          tenant_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          calendar_id?: string | null
+          external_event_id?: string | null
+          last_error?: string | null
+          provider?: string
+          status?: string
+          synced_at?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_calendar_sync_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_calendar_sync_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_calendar_sync_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_cancellations: {
         Row: {
           appointment_id: string
@@ -1122,6 +1183,153 @@ export type Database = {
           },
         ]
       }
+      diet_meal_items: {
+        Row: {
+          created_at: string
+          food: string
+          id: string
+          meal_id: string
+          notes: string | null
+          position: number
+          quantity: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          food: string
+          id?: string
+          meal_id: string
+          notes?: string | null
+          position?: number
+          quantity?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          food?: string
+          id?: string
+          meal_id?: string
+          notes?: string | null
+          position?: number
+          quantity?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_meal_items_meal_id_fkey"
+            columns: ["meal_id"]
+            isOneToOne: false
+            referencedRelation: "diet_meals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_meal_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diet_meals: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          plan_id: string
+          position: number
+          tenant_id: string
+          time_label: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          plan_id: string
+          position?: number
+          tenant_id: string
+          time_label?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          plan_id?: string
+          position?: number
+          tenant_id?: string
+          time_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_meals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_meals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diet_plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by_user_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_commission_history: {
         Row: {
           created_at: string
@@ -1974,6 +2182,48 @@ export type Database = {
           },
         ]
       }
+      patient_care_notes: {
+        Row: {
+          body: string
+          created_at: string
+          created_by_user_id: string
+          id: string
+          patient_id: string
+          tenant_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          patient_id: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          patient_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_care_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_care_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_diagnoses: {
         Row: {
           additional_notes: string | null
@@ -2197,6 +2447,60 @@ export type Database = {
           },
           {
             foreignKeyName: "patient_measurements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_metric_goals: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by_user_id: string
+          direction: string
+          id: string
+          metric_type: string
+          patient_id: string
+          target_value: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id: string
+          direction: string
+          id?: string
+          metric_type: string
+          patient_id: string
+          target_value: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id?: string
+          direction?: string
+          id?: string
+          metric_type?: string
+          patient_id?: string
+          target_value?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_metric_goals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_metric_goals_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2641,19 +2945,48 @@ export type Database = {
           },
         ]
       }
+      platform_admin_tenants: {
+        Row: {
+          created_at: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_admin_tenants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           created_at: string
+          is_super: boolean
           note: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          is_super?: boolean
           note?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
+          is_super?: boolean
           note?: string | null
           user_id?: string
         }
@@ -3151,6 +3484,7 @@ export type Database = {
           end_time: string | null
           id: string
           reason: string
+          source: string
           start_time: string | null
           tenant_id: string
         }
@@ -3165,6 +3499,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           reason: string
+          source?: string
           start_time?: string | null
           tenant_id: string
         }
@@ -3179,6 +3514,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           reason?: string
+          source?: string
           start_time?: string | null
           tenant_id?: string
         }
@@ -3758,6 +4094,35 @@ export type Database = {
           },
         ]
       }
+      tenant_portal_sections: {
+        Row: {
+          enabled: boolean
+          section_key: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          section_key: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          section_key?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_portal_sections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_tiss_certificates: {
         Row: {
           active: boolean
@@ -4175,6 +4540,54 @@ export type Database = {
           },
         ]
       }
+      tiss_lote_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          created_by_user_id: string
+          id: string
+          lote_id: string
+          note: string | null
+          received_at: string
+          tenant_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          lote_id: string
+          note?: string | null
+          received_at?: string
+          tenant_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          lote_id?: string
+          note?: string | null
+          received_at?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tiss_lote_payments_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "tiss_lotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tiss_lote_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tiss_lotes: {
         Row: {
           certificate_id: string | null
@@ -4468,6 +4881,56 @@ export type Database = {
           },
         ]
       }
+      user_integrations: {
+        Row: {
+          busy_synced_at: string | null
+          config: Json
+          connected_at: string | null
+          created_at: string
+          credentials_enc: string | null
+          enabled: boolean
+          provider: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          busy_synced_at?: string | null
+          config?: Json
+          connected_at?: string | null
+          created_at?: string
+          credentials_enc?: string | null
+          enabled?: boolean
+          provider: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          busy_synced_at?: string | null
+          config?: Json
+          connected_at?: string | null
+          created_at?: string
+          credentials_enc?: string | null
+          enabled?: boolean
+          provider?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_integrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profile: {
         Row: {
           avatar_path: string | null
@@ -4673,6 +5136,159 @@ export type Database = {
           },
           {
             foreignKeyName: "webhook_event_transitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_exercises: {
+        Row: {
+          created_at: string
+          id: string
+          load_kg: number | null
+          name: string
+          notes: string | null
+          position: number
+          reps: string | null
+          rest_seconds: number | null
+          session_id: string
+          sets: number | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          load_kg?: number | null
+          name: string
+          notes?: string | null
+          position?: number
+          reps?: string | null
+          rest_seconds?: number | null
+          session_id: string
+          sets?: number | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          load_kg?: number | null
+          name?: string
+          notes?: string | null
+          position?: number
+          reps?: string | null
+          rest_seconds?: number | null
+          session_id?: string
+          sets?: number | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by_user_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          created_at: string
+          focus: string | null
+          id: string
+          name: string
+          plan_id: string
+          position: number
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          focus?: string | null
+          id?: string
+          name: string
+          plan_id: string
+          position?: number
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          focus?: string | null
+          id?: string
+          name?: string
+          plan_id?: string
+          position?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

@@ -67,6 +67,12 @@ const patchSchema = z.object({
     .optional(),
   // Especialidade (nome do catálogo Memed). Fonte única do display.
   specialty: z.string().trim().max(120).nullable().optional(),
+  // CBO (domínio TISS 24) — 6 dígitos quando preenchido.
+  cbo: z
+    .string()
+    .regex(/^\d{6}$/, 'CBO deve conter 6 dígitos')
+    .nullable()
+    .optional(),
   payment_mode_change: paymentModeChangeSchema.optional(),
 })
 
@@ -102,6 +108,7 @@ export async function GET(
         council_state: doctor.councilState,
         cpf: doctor.cpf,
         birth_date: doctor.birthDate,
+        cbo: doctor.cbo,
         active: doctor.active,
         created_at: doctor.createdAt,
         payment_mode: doctor.paymentMode,
@@ -189,7 +196,8 @@ export async function PATCH(
       parsed.data.council_number !== undefined ||
       parsed.data.council_state !== undefined ||
       parsed.data.birth_date !== undefined ||
-      parsed.data.specialty !== undefined
+      parsed.data.specialty !== undefined ||
+      parsed.data.cbo !== undefined
     if (wantsBasicUpdate) {
       basicUpdated = await updateDoctor(supabase, {
         tenantId: session.tenantId,
@@ -211,6 +219,7 @@ export async function PATCH(
             ? { birthDate: parsed.data.birth_date }
             : {}),
           ...(parsed.data.specialty !== undefined ? { specialty: parsed.data.specialty } : {}),
+          ...(parsed.data.cbo !== undefined ? { cbo: parsed.data.cbo } : {}),
         },
       })
     }
@@ -228,6 +237,7 @@ export async function PATCH(
               council_state: basicUpdated.councilState,
               birth_date: basicUpdated.birthDate,
               specialty: basicUpdated.specialty,
+              cbo: basicUpdated.cbo,
             }
           : {}),
         ...(paymentModeUpdated ? { payment_mode: paymentModeUpdated } : {}),

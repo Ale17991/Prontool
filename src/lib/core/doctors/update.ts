@@ -25,6 +25,8 @@ export interface UpdateDoctorInput {
     birthDate?: string | null
     /** Especialidade (nome do catálogo Memed). Fonte única do display. */
     specialty?: string | null
+    /** CBO — domínio TISS 24, 6 dígitos (ou null). */
+    cbo?: string | null
   }
 }
 
@@ -38,6 +40,7 @@ export interface UpdatedDoctor {
   councilState: string | null
   birthDate: string | null
   specialty: string | null
+  cbo: string | null
 }
 
 export async function updateDoctor(
@@ -54,6 +57,7 @@ export async function updateDoctor(
     council_state?: string | null
     birth_date?: string | null
     specialty?: string | null
+    cbo?: string | null
   } = {}
   if (input.patch.fullName !== undefined) updates.full_name = input.patch.fullName.trim()
   if (typeof input.patch.active === 'boolean') updates.active = input.patch.active
@@ -73,6 +77,7 @@ export async function updateDoctor(
   }
   if (input.patch.birthDate !== undefined) updates.birth_date = input.patch.birthDate || null
   if (input.patch.specialty !== undefined) updates.specialty = input.patch.specialty?.trim() || null
+  if (input.patch.cbo !== undefined) updates.cbo = input.patch.cbo?.replace(/\D/g, '') || null
   if (Object.keys(updates).length === 0) throw new Error('updateDoctor: nothing to update')
 
   const { data, error } = await supabase
@@ -80,7 +85,7 @@ export async function updateDoctor(
     .update(updates)
     .eq('id', input.doctorId)
     .eq('tenant_id', input.tenantId)
-    .select('id, full_name, active, cpf, council_name, council_number, council_state, birth_date, specialty')
+    .select('id, full_name, active, cpf, council_name, council_number, council_state, birth_date, specialty, cbo')
     .maybeSingle()
   if (error) throw new Error(`updateDoctor failed: ${error.message}`)
   if (!data) throw new NotFoundError('doctor', input.doctorId)
@@ -95,6 +100,7 @@ export async function updateDoctor(
     council_state: string | null
     birth_date: string | null
     specialty: string | null
+    cbo: string | null
   }
   return {
     id: d.id,
@@ -106,5 +112,6 @@ export async function updateDoctor(
     councilState: d.council_state,
     birthDate: d.birth_date,
     specialty: d.specialty,
+    cbo: d.cbo,
   }
 }
