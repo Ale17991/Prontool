@@ -19,7 +19,7 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirmar branch `031-honorarios-participantes` e numeração de migration livre (`0128`); conferir que 0126/0127 já estão em master (sem colisão).
+- [X] T001 Confirmar branch `031-honorarios-participantes` e numeração de migration livre (`0128`); conferir que 0126/0127 já estão em master (sem colisão).
 
 **Checkpoint**: ambiente pronto para a fundação.
 
@@ -29,12 +29,12 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 
 **⚠️ CRITICAL**: nenhuma user story começa antes desta fase.
 
-- [ ] T002 Criar migration `supabase/migrations/0128_procedure_participants.sql`: `ALTER appointment_assistants ADD procedure_id UUID NULL REFERENCES appointment_procedures(id)` + `participation_degree TEXT NULL`; índice `appointment_assistants_procedure_idx`.
-- [ ] T003 Na mesma migration: substituir a unique ativa por `UNIQUE (appointment_id, procedure_id, assistant_doctor_id) WHERE removed_at IS NULL` (DROP do índice `appointment_assistants_no_duplicate_active_idx`).
-- [ ] T004 Na mesma migration: relaxar o trigger liberal-only (trigger 3 da 0084) — `CREATE OR REPLACE` para aceitar qualquer `payment_mode` de médico ATIVO do mesmo tenant; estender `enforce_appointment_assistants_mutation` (procedure_id/participation_degree imutáveis pós-INSERT) e `check_assistant_tenant_consistency` (procedure_id pertence ao appointment/tenant). `NOTIFY pgrst`.
-- [ ] T005 Aplicar a migration em dev (`pnpm supabase:reset`), `pnpm supabase:gen-types`, re-seed (`pnpm seed:demo` + `pnpm seed:tiss-domains`); confirmar `pnpm typecheck` verde e domínio 35 presente em `tiss_domain_tables`.
-- [ ] T006 Estender o RPC de vínculo (`attach_assistant_to_appointment` / `remove_appointment_assistant`, migrations 0084/0085) — ou nova RPC SECURITY DEFINER — para aceitar `p_procedure_id` e `p_participation_degree`, sem a restrição de modalidade. Atualizar via migration 0128.
-- [ ] T007 [P] Core `src/lib/core/tiss/domains.ts` já lê domínios — adicionar helper de validação/listagem do domínio `35` (grau de participação) se ainda não exposto, reusando `listDomain`/`isValidDomainCode`.
+- [X] T002 Criar migration `supabase/migrations/0128_procedure_participants.sql`: `ALTER appointment_assistants ADD procedure_id UUID NULL REFERENCES appointment_procedures(id)` + `participation_degree TEXT NULL`; índice `appointment_assistants_procedure_idx`.
+- [X] T003 Na mesma migration: substituir a unique ativa por `UNIQUE (appointment_id, procedure_id, assistant_doctor_id) WHERE removed_at IS NULL` (DROP do índice `appointment_assistants_no_duplicate_active_idx`).
+- [X] T004 Na mesma migration: relaxar o trigger liberal-only (trigger 3 da 0084) — `CREATE OR REPLACE` para aceitar qualquer `payment_mode` de médico ATIVO do mesmo tenant; estender `enforce_appointment_assistants_mutation` (procedure_id/participation_degree imutáveis pós-INSERT) e `check_assistant_tenant_consistency` (procedure_id pertence ao appointment/tenant). `NOTIFY pgrst`.
+- [X] T005 Aplicar a migration em dev (`pnpm supabase:reset`), `pnpm supabase:gen-types`, re-seed (`pnpm seed:demo` + `pnpm seed:tiss-domains`); confirmar `pnpm typecheck` verde e domínio 35 presente em `tiss_domain_tables`.
+- [X] T006 Estender o RPC de vínculo (`attach_assistant_to_appointment` / `remove_appointment_assistant`, migrations 0084/0085) — ou nova RPC SECURITY DEFINER — para aceitar `p_procedure_id` e `p_participation_degree`, sem a restrição de modalidade. Atualizar via migration 0128.
+- [X] T007 [P] Core `src/lib/core/tiss/domains.ts` já lê domínios — adicionar helper de validação/listagem do domínio `35` (grau de participação) se ainda não exposto, reusando `listDomain`/`isValidDomainCode`.
 
 **Checkpoint**: schema estendido, RPC pronta, domínio 35 disponível. User stories podem começar.
 

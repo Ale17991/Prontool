@@ -31,8 +31,12 @@ CREATE INDEX IF NOT EXISTS appointment_assistants_procedure_idx
 -- 2) Unicidade: mesmo médico pode participar de procedimentos diferentes
 -- =========================================================================
 DROP INDEX IF EXISTS public.appointment_assistants_no_duplicate_active_idx;
+-- NULLS NOT DISTINCT (PG15+): preserva a dedup do caminho legado (procedure_id
+-- NULL = nível de atendimento). Sem isso, dois registros (appointment, NULL,
+-- doctor) seriam permitidos pois NULL <> NULL — regredindo a trava da 0084.
 CREATE UNIQUE INDEX IF NOT EXISTS appointment_assistants_no_dup_proc_active_idx
   ON public.appointment_assistants (appointment_id, procedure_id, assistant_doctor_id)
+  NULLS NOT DISTINCT
   WHERE removed_at IS NULL;
 
 -- =========================================================================
@@ -178,6 +182,52 @@ BEGIN
   ) RETURNING id INTO v_new_id;
 
   RETURN v_new_id;
+END $$;
+
+-- A nova assinatura (6 args) precisa de GRANT explícito — o DROP da versão de
+-- 4 args descartou o GRANT antigo. Chamadas de 4 args resolvem nesta via DEFAULT.
+GRANT EXECUTE ON FUNCTION public.attach_assistant_to_appointment(UUID, UUID, BIGINT, UUID, UUID, TEXT)
+  TO authenticated, service_role;
+
+-- =========================================================================
+-- 7) Audit em INSERT passa a registrar procedure_id + participation_degree
+--    (FR-008 / US4). Mantém o comportamento de remoção da 0084.
+-- =========================================================================
+CREATE OR REPLACE FUNCTION public.audit_appointment_assistant_change()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    PERFORM public.log_audit_event(
+      NEW.tenant_id,
+      'appointment_assistants',
+      NEW.id,
+      'added',
+      NULL,
+      json_build_object(
+        'appointment_id',       NEW.appointment_id,
+        'assistant_doctor_id',  NEW.assistant_doctor_id,
+        'frozen_amount_cents',  NEW.frozen_amount_cents,
+        'procedure_id',         NEW.procedure_id,
+        'participation_degree', NEW.participation_degree,
+        'created_by',           NEW.created_by
+      )::text,
+      'feature 031 — participante adicionado ao procedimento'
+    );
+  ELSIF TG_OP = 'UPDATE' AND OLD.removed_at IS NULL AND NEW.removed_at IS NOT NULL THEN
+    PERFORM public.log_audit_event(
+      NEW.tenant_id,
+      'appointment_assistants',
+      NEW.id,
+      'removed',
+      NULL,
+      json_build_object(
+        'removed_at', NEW.removed_at,
+        'removed_by', NEW.removed_by
+      )::text,
+      'feature 031 — participante removido (soft-unlink)'
+    );
+  END IF;
+  RETURN NEW;
 END $$;
 
 COMMENT ON COLUMN public.appointment_assistants.procedure_id IS

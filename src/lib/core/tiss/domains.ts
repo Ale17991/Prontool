@@ -34,6 +34,23 @@ export async function listDomain(
     .map((r) => ({ code: r.code, description: r.description }))
 }
 
+/**
+ * Feature 031 — grau de participação (domínio TISS 35). Helpers nomeados
+ * sobre os genéricos, para o seletor de equipe e a validação de participantes.
+ */
+export async function listParticipationDegrees(
+  supabase: Client,
+): Promise<TissDomainEntry[]> {
+  return listDomain(supabase, '35')
+}
+
+export async function isValidParticipationDegree(
+  supabase: Client,
+  code: string,
+): Promise<boolean> {
+  return isValidDomainCode(supabase, '35', code)
+}
+
 /** Verifica se um código pertence (e está vigente) a um domínio. */
 export async function isValidDomainCode(
   supabase: Client,
