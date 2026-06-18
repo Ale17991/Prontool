@@ -145,7 +145,15 @@ function ProcedureBlock({
     }
   }
 
-  async function remove(participantId: string) {
+  async function remove(participantId: string, doctorName: string) {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        `Remover ${doctorName} da equipe deste procedimento? O histórico é mantido para auditoria.`,
+      )
+    ) {
+      return
+    }
     setBusy(true)
     try {
       const res = await fetch(
@@ -186,7 +194,7 @@ function ProcedureBlock({
                   type="button"
                   size="sm"
                   variant="outline"
-                  onClick={() => remove(p.participantId)}
+                  onClick={() => remove(p.participantId, p.doctorName)}
                   disabled={busy}
                   title="Remover participante"
                   className="h-7 px-2"

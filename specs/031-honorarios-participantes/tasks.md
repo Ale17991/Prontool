@@ -108,10 +108,10 @@ description: "Task list — Honorários e participantes (equipe) por procediment
 **Independent Test**: registrar com valor errado, remover, registrar o correto; financeiro usa o novo e a auditoria mostra as duas operações.
 
 ### Tests for US4 ⚠️
-- [ ] T027 [P] [US4] Integration test `tests/integration/participant-correction-audit.spec.ts` — remoção + novo registro: repasse passa a usar o novo; `audit_log` contém inclusão e remoção (ator/timestamp/valores).
+- [X] T027 [P] [US4] Integration test `tests/integration/participant-correction-audit.spec.ts` — remoção + novo registro: repasse passa a usar o novo; `audit_log` contém inclusão e remoção (ator/timestamp/valores).
 
 ### Implementation for US4
-- [ ] T028 [US4] Garantir auditoria (`log_audit_event`) na inclusão e na remoção (na RPC/core de T006/T012) com ator, valores e motivo; expor a remoção na UI (T017) com confirmação.
+- [X] T028 [US4] Garantir auditoria (`log_audit_event`) na inclusão e na remoção (na RPC/core de T006/T012) com ator, valores e motivo; expor a remoção na UI (T017) com confirmação.
 
 **Checkpoint**: ciclo de correção auditável.
 
