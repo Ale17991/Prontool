@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip, Calculator } from 'lucide-react'
+import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip, Calculator, Download } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
@@ -124,12 +124,26 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
             <span className="font-semibold text-slate-800">{formatCurrency(totalAmount)}</span>
           </p>
         </div>
-        <Link
-          href="/analise/despesas/impostos"
-          className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-        >
-          <Calculator className="h-3.5 w-3.5" /> Impostos cadastrados
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/api/despesas/export/excel${category !== 'all' ? `?category=${category}` : ''}`}
+            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            <Download className="h-3.5 w-3.5" /> Excel
+          </a>
+          <a
+            href={`/api/despesas/export/pdf${category !== 'all' ? `?category=${category}` : ''}`}
+            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            <Download className="h-3.5 w-3.5" /> PDF
+          </a>
+          <Link
+            href="/analise/despesas/impostos"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            <Calculator className="h-3.5 w-3.5" /> Impostos cadastrados
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
