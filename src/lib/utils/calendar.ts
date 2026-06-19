@@ -53,10 +53,10 @@ export function buildCalendarSlots(
 }
 
 function clampInterval(intervalMinutes: number): number {
-  if (!Number.isFinite(intervalMinutes) || intervalMinutes < 5) {
+  if (!Number.isFinite(intervalMinutes) || intervalMinutes < 1) {
     return DEFAULT_SLOT_INTERVAL_MINUTES
   }
-  return Math.min(Math.round(intervalMinutes), 240)
+  return Math.min(Math.round(intervalMinutes), 1440)
 }
 
 /** rem por minuto para um intervalo: cada linha (intervalo) ocupa SLOT_HEIGHT_REM. */

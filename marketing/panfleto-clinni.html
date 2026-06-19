@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clinni — Panfleto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink:        #0E3C5B;   /* azul institucional */
+    --ink-2:      #1C4F71;   /* azul CTA           */
+    --teal:       #1CABB0;   /* verde-água         */
+    --teal-dark:  #05494B;
+    --teal-soft:  #CBE1E1;
+    --blue-mid:   #569AC6;
+    --blue-soft:  #CBE6F8;
+    --slate-50:   #F7FAFC;
+    --slate-100:  #EEF3F8;
+    --slate-500:  #64748B;
+    --slate-900:  #0F172A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--slate-900);
+    -webkit-font-smoothing: antialiased;
+    background: #51606e;
+  }
+
+  /* ---------- Página A4 ---------- */
+  .page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    margin: 12px auto;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 18px 50px rgba(0,0,0,.35);
+  }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    html, body { background: #fff; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+  }
+
+  /* =======================================================
+     FRENTE
+  ======================================================= */
+  .hero {
+    position: relative;
+    height: 165mm;
+    padding: 18mm 16mm 0;
+    color: #fff;
+    background:
+      radial-gradient(120% 90% at 85% -10%, rgba(28,171,176,.55) 0%, rgba(28,171,176,0) 55%),
+      linear-gradient(155deg, #0E3C5B 0%, #134568 45%, #1C4F71 100%);
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -60mm; bottom: -60mm;
+    width: 140mm; height: 140mm;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(86,154,198,.30) 0%, rgba(86,154,198,0) 70%);
+  }
+
+  .brandbar { display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo .mark {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: linear-gradient(140deg, var(--teal) 0%, #15919a 100%);
+    display: grid; place-items: center;
+    box-shadow: 0 6px 18px rgba(28,171,176,.45);
+  }
+  .logo .mark svg { width: 22px; height: 22px; }
+  .logo .word { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+  .logo .word b { color: var(--teal); }
+  .kicker-top {
+    font-size: 11px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--blue-soft);
+    border: 1px solid rgba(255,255,255,.25);
+    padding: 6px 12px; border-radius: 999px;
+  }
+
+  .hero h1 {
+    margin-top: 26mm;
+    font-size: 50px; line-height: 1.02; font-weight: 900; letter-spacing: -1.5px;
+    max-width: 150mm;
+  }
+  .hero h1 .hi { color: var(--teal); }
+  .hero .lede {
+    margin-top: 16px; max-width: 135mm;
+    font-size: 17px; line-height: 1.5; font-weight: 400;
+    color: rgba(255,255,255,.86);
+  }
+  .hero .lede strong { color: #fff; font-weight: 700; }
+
+  .promise {
+    position: absolute; left: 16mm; right: 16mm; bottom: 12mm;
+    display: flex; gap: 10mm; align-items: center;
+  }
+  .promise .pill {
+    flex: 1; background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 14px; padding: 14px 16px;
+    backdrop-filter: blur(2px);
+  }
+  .promise .pill .n { font-size: 24px; font-weight: 800; color: var(--teal); }
+  .promise .pill .t { font-size: 12.5px; color: rgba(255,255,255,.82); margin-top: 2px; line-height: 1.3; }
+
+  /* ----- faixa de destaque ----- */
+  .band {
+    height: 30mm; padding: 0 16mm;
+    background: var(--teal-soft);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .band .icon {
+    width: 44px; height: 44px; border-radius: 12px; flex: none;
+    background: #fff; display: grid; place-items: center;
+    box-shadow: 0 4px 12px rgba(5,73,75,.12);
+  }
+  .band .icon svg { width: 24px; height: 24px; }
+  .band .txt h3 { font-size: 18px; color: var(--teal-dark); font-weight: 800; letter-spacing: -.3px; }
+  .band .txt p { font-size: 13px; color: #16636a; margin-top: 1px; }
+
+  /* ----- rodapé frente: features rápidas ----- */
+  .quickfeatures {
+    height: calc(297mm - 165mm - 30mm);
+    padding: 9mm 16mm;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr; gap: 7mm 9mm;
+  }
+  .qf { display: flex; gap: 11px; align-items: flex-start; }
+  .qf .qfi {
+    width: 36px; height: 36px; border-radius: 10px; flex: none;
+    background: var(--slate-100); display: grid; place-items: center;
+  }
+  .qf .qfi svg { width: 20px; height: 20px; }
+  .qf h4 { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .qf p  { font-size: 11.5px; color: var(--slate-500); line-height: 1.35; margin-top: 2px; }
+
+  /* =======================================================
+     VERSO
+  ======================================================= */
+  .back { display: flex; flex-direction: column; height: 100%; }
+
+  .back-head {
+    padding: 16mm 16mm 9mm;
+    background: var(--slate-50);
+    border-bottom: 1px solid #E3EBF2;
+  }
+  .back-head .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--teal); margin-bottom: 8px;
+  }
+  .back-head h2 { font-size: 30px; font-weight: 900; letter-spacing: -1px; color: var(--ink); line-height: 1.08; }
+  .back-head p  { margin-top: 8px; font-size: 14px; color: var(--slate-500); max-width: 150mm; line-height: 1.5; }
+
+  .feat-grid {
+    padding: 10mm 16mm;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6mm 10mm;
+    flex: 1; align-content: start;
+  }
+  .feat { display: flex; gap: 13px; align-items: flex-start; }
+  .feat .fi {
+    width: 42px; height: 42px; border-radius: 12px; flex: none;
+    background: linear-gradient(140deg, var(--blue-soft), var(--teal-soft));
+    display: grid; place-items: center;
+  }
+  .feat .fi svg { width: 23px; height: 23px; }
+  .feat h4 { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .feat p  { font-size: 12px; color: var(--slate-500); line-height: 1.4; margin-top: 3px; }
+
+  /* ----- como funciona ----- */
+  .steps { padding: 0 16mm 9mm; display: flex; gap: 8mm; }
+  .step { flex: 1; }
+  .step .num {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--ink); color: #fff; font-weight: 800; font-size: 14px;
+    display: grid; place-items: center; margin-bottom: 8px;
+  }
+  .step h5 { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .step p  { font-size: 11.5px; color: var(--slate-500); line-height: 1.35; margin-top: 2px; }
+
+  /* ----- CTA ----- */
+  .cta {
+    margin: 0 0 0; padding: 11mm 16mm;
+    color: #fff;
+    background:
+      radial-gradient(100% 120% at 100% 0%, rgba(28,171,176,.5) 0%, rgba(28,171,176,0) 60%),
+      linear-gradient(120deg, #0E3C5B 0%, #1C4F71 100%);
+    display: flex; align-items: center; justify-content: space-between; gap: 12mm;
+  }
+  .cta .ctxt h3 { font-size: 24px; font-weight: 900; letter-spacing: -.5px; line-height: 1.1; }
+  .cta .ctxt p  { font-size: 13.5px; color: rgba(255,255,255,.85); margin-top: 6px; max-width: 95mm; line-height: 1.45; }
+  .cta .contact { text-align: right; flex: none; }
+  .cta .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    background: var(--teal); color: #042f31; font-weight: 800; font-size: 15px;
+    padding: 13px 22px; border-radius: 999px;
+    box-shadow: 0 8px 22px rgba(28,171,176,.4);
+  }
+  .cta .btn svg { width: 19px; height: 19px; }
+  .cta .lines { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,.92); line-height: 1.7; }
+  .cta .lines b { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ===================== FRENTE ===================== -->
+<section class="page">
+  <div class="hero">
+    <div class="brandbar">
+      <div class="logo">
+        <span class="mark">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 13h3l2-7 3 14 2.5-9 1.8 4H21" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="word">Clin<b>ni</b></span>
+      </div>
+      <span class="kicker-top">Gestão completa de clínicas</span>
+    </div>
+
+    <h1>Sua clínica inteira<br>num só lugar — e uma<br>equipe que <span class="hi">resolve por você.</span></h1>
+    <p class="lede">A Clinni não é só mais um sistema. Somos a empresa que <strong>chega e organiza tudo</strong> que sua clínica precisa: agenda, prontuário, finanças, convênios e pacientes. Cada clínica com uma conta <strong>quase 100% sua</strong>.</p>
+
+    <div class="promise">
+      <div class="pill"><div class="n">1</div><div class="t">plataforma única — fim de planilhas e sistemas soltos</div></div>
+      <div class="pill"><div class="n">100%</div><div class="t">implantação assistida e conta sob medida pra sua clínica</div></div>
+      <div class="pill"><div class="n">0</div><div class="t">dor de cabeça — a gente migra, configura e dá suporte</div></div>
+    </div>
+  </div>
+
+  <!-- faixa destaque -->
+  <div class="band">
+    <span class="icon">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10Z" fill="#1CABB0"/></svg>
+    </span>
+    <div class="txt">
+      <h3>Mais do que software: o seu parceiro de operação</h3>
+      <p>Você cuida dos pacientes. A gente cuida pra que a clínica rode sozinha.</p>
+    </div>
+  </div>
+
+  <!-- quick features -->
+  <div class="quickfeatures">
+    <div class="qf">
+      <span class="qfi"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4.5" width="18" height="16" rx="2.5" stroke="#1C4F71" stroke-width="1.8"/><path d="M3 9h18M8 3v3M16 3v3" stroke="#1C4F71" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><h4>Agenda inteligente</h4><p>Agendamento online, encaixes e bloqueios sem conflito.</p></div>
+    </div>
+    <div class="qf">
+      <span class="qfi"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7z" stroke="#1C4F71" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke="#1C4F71" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><h4>Prontuário eletrônico</h4><p>Histórico, evolução e timeline do paciente num clique.</p></div>
+    </div>
+    <div class="qf">
+      <span class="qfi"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2z" stroke="#1C4F71" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9h6M9 12h4" stroke="#1C4F71" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><h4>Financeiro & repasse</h4><p>Fluxo de caixa e repasse médico calculado automático.</p></div>
+    </div>
+    <div class="qf">
+      <span class="qfi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9-2.6.9-5.5-4-3.9 5.5-.8z" stroke="#1C4F71" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+      <div><h4>Faturamento TISS</h4><p>Guias e lotes de convênio no padrão ANS, sem retrabalho.</p></div>
+    </div>
+    <div class="qf">
+      <span class="qfi"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h11v9H9l-4 3z" stroke="#1C4F71" stroke-width="1.8" stroke-linejoin="round"/><path d="M19 9v9l-3-2h-5" stroke="#1C4F71" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+      <div><h4>Lembretes automáticos</h4><p>WhatsApp pré-consulta que reduz faltas de verdade.</p></div>
+    </div>
+    <div class="qf">
+      <span class="qfi"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="#1C4F71" stroke-width="1.8"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="#1C4F71" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><h4>Portal do paciente</h4><p>Seu paciente acompanha exames e evolução de casa.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== VERSO ===================== -->
+<section class="page">
+  <div class="back">
+    <div class="back-head">
+      <div class="eyebrow">Tudo que sua clínica precisa</div>
+      <h2>Uma plataforma. Todas as áreas. Zero remendo.</h2>
+      <p>Da recepção ao consultório, do convênio ao caixa — a Clinni conecta cada etapa para você ganhar tempo, reduzir erros e atender melhor. E o que faltar, a gente desenvolve junto com a sua clínica.</p>
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat">
+        <span class="fi"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4.5" width="18" height="16" rx="2.5" stroke="#0E3C5B" stroke-width="1.8"/><path d="M3 9h18M8 3v3M16 3v3" stroke="#0E3C5B" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <div><h4>Agenda & agendamento online</h4><p>Pacientes marcam sozinhos por um link; você controla horários, salas e profissionais sem choque de horário.</p></div>
+      </div>
+      <div class="feat">
+        <span class="fi"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7z" stroke="#0E3C5B" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke="#0E3C5B" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <div><h4>Prontuário & prescrição digital</h4><p>Registro clínico completo e receita digital assinada (Memed) enviada direto ao paciente.</p></div>
+      </div>
+      <div class="feat">
+        <span class="fi"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-7" stroke="#0E3C5B" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <div><h4>Financeiro & repasse médico</h4><p>Caixa, despesas, impostos e fechamento mensal de repasse calculado automaticamente por profissional.</p></div>
+      </div>
+      <div class="feat">
+        <span class="fi"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9-2.6.9-5.5-4-3.9 5.5-.8z" stroke="#0E3C5B" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+        <div><h4>Convênios & faturamento TISS</h4><p>Geração de guias e lotes no padrão ANS, controle de glosas e conferência sem planilha paralela.</p></div>
+      </div>
+      <div class="feat">
+        <span class="fi"><svg viewBox="0 0 24 24" fill="none"><path d="M5 5h11v9H9l-4 3z" stroke="#0E3C5B" stroke-width="1.8" stroke-linejoin="round"/><path d="M19 9v9l-3-2h-5" stroke="#0E3C5B" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+        <div><h4>Pacientes & lembretes</h4><p>Cadastro centralizado, portal do paciente e lembretes automáticos por WhatsApp que reduzem faltas.</p></div>
+      </div>
+      <div class="feat">
+        <span class="fi"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 8 8H4z" stroke="#0E3C5B" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 11.5l2 2 4-4" stroke="#0E3C5B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div><h4>Integrações & sob medida</h4><p>Google Agenda, WhatsApp e fluxos exclusivos da sua clínica — a conta é praticamente só sua.</p></div>
+      </div>
+    </div>
+
+    <!-- como funciona -->
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h5>A gente conversa</h5><p>Entendemos a rotina e os gargalos da sua clínica.</p></div>
+      <div class="step"><div class="num">2</div><h5>Implantamos tudo</h5><p>Migramos seus dados e configuramos a conta no seu jeito.</p></div>
+      <div class="step"><div class="num">3</div><h5>Você opera tranquilo</h5><p>Treinamento e suporte humano sempre que precisar.</p></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta">
+      <div class="ctxt">
+        <h3>Vamos resolver a sua clínica?</h3>
+        <p>Agende uma demonstração gratuita e veja a Clinni rodando com os dados da sua clínica.</p>
+      </div>
+      <div class="contact">
+        <span class="btn">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 5l9 7 9-7" stroke="#042f31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="5" width="18" height="14" rx="2" stroke="#042f31" stroke-width="2"/></svg>
+          Falar com a Clinni
+        </span>
+        <div class="lines">
+          <b>WhatsApp:</b> (00) 00000-0000<br>
+          <b>Site:</b> clinnipro.com.br<br>
+          <b>E-mail:</b> contato@clinnipro.com.br
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

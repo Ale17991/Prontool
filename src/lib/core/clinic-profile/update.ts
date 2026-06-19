@@ -83,8 +83,8 @@ export const clinicProfilePatchSchema = z.object({
    * amigáveis + checagem cross-tenant). '' / null → desativa o portal.
    */
   publicBookingSlug: z.string().nullable().optional(),
-  /** Período (minutos) que cada linha da agenda representa (5–240). */
-  calendarSlotIntervalMinutes: z.number().int().min(5).max(240).optional(),
+  /** Período (minutos) que cada linha da agenda representa (1–1440). */
+  calendarSlotIntervalMinutes: z.number().int().min(1).max(1440).optional(),
 })
 
 export type ClinicProfilePatch = z.infer<typeof clinicProfilePatchSchema>

@@ -38,7 +38,8 @@ interface FormState {
   techCouncil: string
   techRegistration: string
   publicBookingSlug: string
-  calendarSlotIntervalMinutes: number
+  intervalAmount: number
+  intervalUnit: 'min' | 'hora'
 }
 
 function profileToForm(p: ClinicProfile): FormState {
@@ -60,8 +61,16 @@ function profileToForm(p: ClinicProfile): FormState {
     techCouncil: p.techResponsible.council ?? '',
     techRegistration: p.techResponsible.registration ?? '',
     publicBookingSlug: p.publicBookingSlug ?? '',
-    calendarSlotIntervalMinutes: p.calendarSlotIntervalMinutes ?? 60,
+    ...deriveInterval(p.calendarSlotIntervalMinutes ?? 60),
   }
+}
+
+/** Minutos persistidos → {amount, unit} para a UI (horas quando múltiplo de 60). */
+function deriveInterval(mins: number): { intervalAmount: number; intervalUnit: 'min' | 'hora' } {
+  if (mins >= 60 && mins % 60 === 0) {
+    return { intervalAmount: mins / 60, intervalUnit: 'hora' }
+  }
+  return { intervalAmount: mins, intervalUnit: 'min' }
 }
 
 function formToPatch(s: FormState) {
@@ -86,8 +95,14 @@ function formToPatch(s: FormState) {
       registration: s.techRegistration.trim() || null,
     },
     publicBookingSlug: s.publicBookingSlug.trim() || null,
-    calendarSlotIntervalMinutes: s.calendarSlotIntervalMinutes,
+    calendarSlotIntervalMinutes: intervalToMinutes(s.intervalAmount, s.intervalUnit),
   }
+}
+
+/** {amount, unit} da UI → minutos inteiros (1–1440) para persistir. */
+function intervalToMinutes(amount: number, unit: 'min' | 'hora'): number {
+  const raw = Math.round((unit === 'hora' ? amount * 60 : amount) || 0)
+  return Math.min(1440, Math.max(1, raw))
 }
 
 /** Base URL pública (inlined em build via NEXT_PUBLIC_). Fallback p/ dev. */
@@ -481,23 +496,33 @@ export function ClinicProfileForm({ initial }: Props) {
             </p>
           </div>
           <div className="max-w-xs">
-            <Label htmlFor="calendarSlotIntervalMinutes">Intervalo (minutos)</Label>
-            <Input
-              id="calendarSlotIntervalMinutes"
-              type="number"
-              min={5}
-              max={240}
-              step={5}
-              value={form.calendarSlotIntervalMinutes}
-              onChange={(e) => {
-                const n = Math.round(Number(e.target.value))
-                if (!Number.isFinite(n)) return
-                update('calendarSlotIntervalMinutes', Math.min(240, Math.max(5, n)))
-              }}
-            />
+            <Label htmlFor="intervalAmount">Intervalo</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="intervalAmount"
+                type="number"
+                min={1}
+                step={1}
+                value={form.intervalAmount}
+                onChange={(e) => {
+                  const n = Number(e.target.value)
+                  update('intervalAmount', Number.isFinite(n) ? n : 0)
+                }}
+                className="w-28"
+              />
+              <select
+                aria-label="Unidade do intervalo"
+                value={form.intervalUnit}
+                onChange={(e) => update('intervalUnit', e.target.value as 'min' | 'hora')}
+                className="h-9 rounded-md border border-input bg-background px-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="min">minutos</option>
+                <option value="hora">horas</option>
+              </select>
+            </div>
             <p className="mt-1 text-[11px] text-slate-500">
-              Ex.: 60 = uma hora por linha · 30 = meia hora · 15 = quinze minutos.
-              Entre 5 e 240.
+              Período que cada linha representa. Ex.: 30 minutos, 1 hora, 2 horas.
+              Equivale a {intervalToMinutes(form.intervalAmount, form.intervalUnit)} min por linha.
             </p>
           </div>
         </CardContent>
