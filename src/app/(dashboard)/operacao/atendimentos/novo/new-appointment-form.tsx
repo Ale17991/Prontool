@@ -38,6 +38,10 @@ import {
   type ProcedureLineDraft,
 } from '@/components/atendimentos/procedimentos-editor'
 import { DayBusyHint } from './day-busy-hint'
+import {
+  CreateParticipantsEditor,
+  type CreateParticipant,
+} from './create-participants-editor'
 
 export interface FormOption {
   id: string
@@ -48,6 +52,10 @@ export interface NewAppointmentFormProps {
   doctors: FormOption[]
   procedures: LocalProcedureOption[]
   plans: FormOption[]
+  /** Profissionais ativos elegíveis como participantes (qualquer modalidade). */
+  participantDoctors: { id: string; fullName: string }[]
+  /** Graus de participação (domínio TISS 35). */
+  participationDegrees: { code: string; label: string }[]
   initialAppointmentAt?: string
 }
 
@@ -74,6 +82,8 @@ export function NewAppointmentForm({
   doctors,
   procedures,
   plans,
+  participantDoctors,
+  participationDegrees,
   initialAppointmentAt,
 }: NewAppointmentFormProps) {
   const router = useRouter()
@@ -84,6 +94,7 @@ export function NewAppointmentForm({
   // Lista inicia vazia — usuário adiciona procedimentos via busca no editor.
   const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>([])
   const [materiais, setMateriais] = useState<MaterialDraft[]>([])
+  const [participants, setParticipants] = useState<CreateParticipant[]>([])
   const [appointmentAt, setAppointmentAt] = useState(
     () => normalizeInitialAt(initialAppointmentAt) ?? localIsoNow(),
   )
@@ -206,6 +217,19 @@ export function NewAppointmentForm({
     }
   }, [doctorId, appointmentAt, endTime])
 
+  // Poda participantes cuja linha de procedimento foi removida ou teve o
+  // procedimento limpo — mantém o índice consistente com o que será enviado.
+  useEffect(() => {
+    setParticipants((prev) => {
+      const next = prev.filter(
+        (p) =>
+          p.procedureIndex < procedureLines.length &&
+          !!procedureLines[p.procedureIndex]?.procedureId,
+      )
+      return next.length === prev.length ? prev : next
+    })
+  }, [procedureLines])
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
@@ -300,6 +324,23 @@ export function NewAppointmentForm({
         tuss_code: m.tussCode,
         tuss_description: m.tussDescription,
         quantity: m.quantity,
+      }))
+    }
+
+    if (participants.length > 0) {
+      if (
+        participants.some(
+          (p) => p.amountCents <= 0 || !p.participationDegree || !p.doctorId,
+        )
+      ) {
+        setError('Cada participante precisa de profissional, grau e honorário maior que zero.')
+        return
+      }
+      payload.participants = participants.map((p) => ({
+        procedure_index: p.procedureIndex,
+        doctor_id: p.doctorId,
+        participation_degree: p.participationDegree,
+        amount_cents: p.amountCents,
       }))
     }
 
@@ -588,6 +629,26 @@ export function NewAppointmentForm({
 
       <div className="md:col-span-2">
         <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
+      </div>
+
+      <div className="md:col-span-2">
+        <CreateParticipantsEditor
+          procedures={procedureLines
+            .map((line, index) => ({ line, index }))
+            .filter(({ line }) => !!line.procedureId)
+            .map(({ line, index }) => {
+              const opt = procedures.find((p) => p.id === line.procedureId)
+              const label =
+                `${opt?.tussCode ?? ''} ${opt?.displayName ?? ''}`.trim() ||
+                `Procedimento ${index + 1}`
+              return { index, label }
+            })}
+          doctors={participantDoctors}
+          degrees={participationDegrees}
+          value={participants}
+          onChange={setParticipants}
+          disabled={pending}
+        />
       </div>
 
       <div className="space-y-1.5 md:col-span-2">

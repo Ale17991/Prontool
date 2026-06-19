@@ -45,6 +45,14 @@ const assistantItemSchema = z.object({
   amount_cents: z.number().int().positive().max(100_000_00),
 })
 
+const participantItemSchema = z.object({
+  /** Índice (0-based) da linha de procedimento em `procedures`. */
+  procedure_index: z.number().int().min(0),
+  doctor_id: z.string().uuid(),
+  participation_degree: z.string().min(1).max(8),
+  amount_cents: z.number().int().positive().max(100_000_00),
+})
+
 const bodySchema = z.object({
   patient_id: z.string().uuid(),
   doctor_id: z.string().uuid(),
@@ -56,8 +64,10 @@ const bodySchema = z.object({
   materiais: z.array(materialItemSchema).max(50).optional(),
   /** Quando true (default), garante uma etapa de tratamento vinculada. */
   add_to_treatment_plan: z.boolean().optional(),
-  /** Profissionais assistentes (modalidade Liberal). Feature 013 US2. */
+  /** Profissionais assistentes (modalidade Liberal). Feature 013 US2 (legado). */
   assistants: z.array(assistantItemSchema).max(10).optional(),
+  /** Participantes (equipe) por linha de procedimento. Feature 031. */
+  participants: z.array(participantItemSchema).max(40).optional(),
 })
 
 export async function POST(req: Request): Promise<Response> {
@@ -98,6 +108,15 @@ export async function POST(req: Request): Promise<Response> {
         }))
       : undefined
 
+    const participantsInput = parsed.data.participants
+      ? parsed.data.participants.map((p) => ({
+          procedureIndex: p.procedure_index,
+          doctorId: p.doctor_id,
+          participationDegree: p.participation_degree,
+          amountCents: p.amount_cents,
+        }))
+      : undefined
+
     const result = await createAppointmentManually(supabase, {
       tenantId: session.tenantId,
       actorUserId: session.userId,
@@ -116,6 +135,7 @@ export async function POST(req: Request): Promise<Response> {
       materials: materialsInput,
       addToTreatmentPlan: parsed.data.add_to_treatment_plan,
       assistants: assistantsInput,
+      participants: participantsInput,
     })
 
     // Snapshot da linha primaria para event bus (single-procedure adapters).

@@ -47,6 +47,29 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
       .order('tuss_code', { ascending: true }),
   ])
 
+  // Participantes (equipe): qualquer profissional ativo + graus do domínio 35.
+  const [participantDoctorsRes, degreesRes] = await Promise.all([
+    supabase
+      .from('doctors')
+      .select('id, full_name')
+      .eq('active', true)
+      .order('full_name', { ascending: true }),
+    supabase
+      .from('tiss_domain_tables')
+      .select('code, description, valid_to')
+      .eq('domain_number', '35')
+      .order('code', { ascending: true }),
+  ])
+  const participantDoctors = (
+    (participantDoctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
+  ).map((d) => ({ id: d.id, fullName: d.full_name }))
+  const todayYmd = new Date().toISOString().slice(0, 10)
+  const degreeOptions = (
+    (degreesRes.data ?? []) as Array<{ code: string; description: string; valid_to: string | null }>
+  )
+    .filter((r) => r.valid_to === null || r.valid_to >= todayYmd)
+    .map((r) => ({ code: r.code, label: r.description }))
+
   const plans: FormOption[] = ((plansRes.data ?? []) as Array<{ id: string; name: string }>).map(
     (p) => ({ id: p.id, label: p.name }),
   )
@@ -108,6 +131,8 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
             doctors={doctors}
             procedures={procedures}
             plans={plans}
+            participantDoctors={participantDoctors}
+            participationDegrees={degreeOptions}
             initialAppointmentAt={searchParams.at}
           />
         </CardContent>

@@ -9,6 +9,7 @@ import {
 import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'
 import { addAssistant } from '@/lib/core/appointment-assistants/add'
+import { addParticipant } from '@/lib/core/appointment-assistants/add-participant'
 import { getTenantTimezone, dateToTenantYmd } from '@/lib/utils/tenant-tz'
 
 /**
@@ -66,8 +67,19 @@ export interface CreateManualAppointmentInput {
   observacoes?: string
   /** Materiais opcionais (TUSS tabela 19). Feature 007. */
   materials?: Array<{ tussCode: string; tussDescription: string; quantity: number }>
-  /** Profissionais assistentes (modalidade Liberal). Feature 013 US2. */
+  /** Profissionais assistentes (modalidade Liberal). Feature 013 US2 (legado). */
   assistants?: Array<{ assistantDoctorId: string; amountCents: number }>
+  /**
+   * Participantes (equipe) por LINHA DE PROCEDIMENTO. Feature 031.
+   * `procedureIndex` referencia a posição em `procedures` (0-based); resolvido
+   * para o `appointment_procedures.id` recém-criado (via `sequence`) após a RPC.
+   */
+  participants?: Array<{
+    procedureIndex: number
+    doctorId: string
+    participationDegree: string
+    amountCents: number
+  }>
   /**
    * Quando true (default), garante que existira uma treatment_plan_step
    * vinculada ao atendimento:
@@ -94,6 +106,7 @@ export interface CreateManualAppointmentResult {
   materialsCount?: number
   assistantsCount?: number
   assistants?: Array<{ id: string; assistantDoctorId: string; frozenAmountCents: number }>
+  participantsCount?: number
 }
 
 export async function createAppointmentManually(
@@ -545,6 +558,46 @@ export async function createAppointmentManually(
     }
   }
 
+  // Feature 031 — participantes por linha de procedimento. As linhas foram
+  // criadas pela RPC; resolve o id de cada uma via `sequence` (1-based) e anexa
+  // cada participante via addParticipant (RPC SECURITY DEFINER, valida grau +
+  // tenant). Falha aborta com erro — appointment já existe (caller pode tratar).
+  let participantsAttached = 0
+  if (input.participants && input.participants.length > 0) {
+    const procRows = await supabase
+      .from('appointment_procedures')
+      .select('id, sequence')
+      .eq('appointment_id', data.appointment_id)
+      .eq('tenant_id', input.tenantId)
+    if (procRows.error) {
+      throw new Error(`load procedure lines for participants: ${procRows.error.message}`)
+    }
+    const idBySequence = new Map<number, string>()
+    for (const r of (procRows.data ?? []) as Array<{ id: string; sequence: number }>) {
+      idBySequence.set(r.sequence, r.id)
+    }
+    for (const p of input.participants) {
+      const procedureId = idBySequence.get(p.procedureIndex + 1)
+      if (!procedureId) {
+        throw new DomainError(
+          'PARTICIPANT_PROCEDURE_NOT_FOUND',
+          'Linha de procedimento do participante não encontrada.',
+          { status: 400 },
+        )
+      }
+      await addParticipant(supabase, {
+        tenantId: input.tenantId,
+        appointmentId: data.appointment_id,
+        procedureId,
+        doctorId: p.doctorId,
+        participationDegree: p.participationDegree,
+        amountCents: p.amountCents,
+        actorUserId: input.actorUserId,
+      })
+      participantsAttached++
+    }
+  }
+
   return {
     appointmentId: data.appointment_id,
     frozenAmountCents: totalCents,
@@ -556,6 +609,7 @@ export async function createAppointmentManually(
     materialsCount: data.materials_count,
     assistantsCount: attachedAssistants.length,
     assistants: attachedAssistants,
+    participantsCount: participantsAttached,
   }
 }
 
