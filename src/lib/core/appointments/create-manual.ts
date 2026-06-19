@@ -92,6 +92,8 @@ export interface CreateManualAppointmentInput {
    * Quando false, mantem apenas o passo 1 (comportamento legado).
    */
   addToTreatmentPlan?: boolean
+  /** Backlog 1/6 — marca o atendimento como retorno (consulta de acompanhamento). */
+  isReturn?: boolean
 }
 
 export interface CreateManualAppointmentResult {
@@ -479,6 +481,17 @@ export async function createAppointmentManually(
   } | null
   if (!data?.appointment_id) {
     throw new Error('createAppointmentWithProceduresAndMaterials: empty response')
+  }
+
+  // Backlog 1/6 — marca como retorno (flag pós-insert; appointments não tem
+  // trigger de UPDATE e o service-role pode gravar).
+  if (input.isReturn) {
+    const { error: retErr } = await supabase
+      .from('appointments')
+      .update({ is_return: true } as never)
+      .eq('id', data.appointment_id)
+      .eq('tenant_id', input.tenantId)
+    if (retErr) throw new Error(`mark is_return failed: ${retErr.message}`)
   }
 
   // Auto-link FIFO: para cada procedureId distinto, vincular a etapa

@@ -833,6 +833,7 @@ export type Database = {
           frozen_amount_cents: number
           frozen_commission_bps: number
           id: string
+          is_return: boolean
           observacoes: string | null
           patient_id: string
           plan_id: string | null
@@ -851,6 +852,7 @@ export type Database = {
           frozen_amount_cents: number
           frozen_commission_bps: number
           id?: string
+          is_return?: boolean
           observacoes?: string | null
           patient_id: string
           plan_id?: string | null
@@ -869,6 +871,7 @@ export type Database = {
           frozen_amount_cents?: number
           frozen_commission_bps?: number
           id?: string
+          is_return?: boolean
           observacoes?: string | null
           patient_id?: string
           plan_id?: string | null

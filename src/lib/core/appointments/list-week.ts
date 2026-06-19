@@ -33,6 +33,8 @@ export interface AppointmentWeekRow {
   planId: string | null
   /** Quantidade de profissionais assistentes ativos. Feature 013 US2. */
   assistantsCount: number
+  /** Backlog 1/6 — atendimento de retorno. */
+  isReturn: boolean
 }
 
 interface RawRow {
@@ -44,17 +46,18 @@ interface RawRow {
   appointment_at: string | null
   duration_minutes: number | null
   effective_status: string | null
+  is_return: boolean | null
   doctors: { full_name: string | null } | null
   procedures: { tuss_code: string | null; display_name: string | null } | null
 }
 
 const SELECT_WITH_DURATION =
-  'id, patient_id, doctor_id, procedure_id, plan_id, appointment_at, duration_minutes, effective_status, ' +
+  'id, patient_id, doctor_id, procedure_id, plan_id, appointment_at, duration_minutes, effective_status, is_return, ' +
   'doctors:doctor_id(full_name), ' +
   'procedures:procedure_id(tuss_code, display_name)'
 
 const SELECT_WITHOUT_DURATION =
-  'id, patient_id, doctor_id, procedure_id, plan_id, appointment_at, effective_status, ' +
+  'id, patient_id, doctor_id, procedure_id, plan_id, appointment_at, effective_status, is_return, ' +
   'doctors:doctor_id(full_name), ' +
   'procedures:procedure_id(tuss_code, display_name)'
 
@@ -183,6 +186,7 @@ export async function listAppointmentsForWeek(
         effectiveStatus: status,
         planId: r.plan_id,
         assistantsCount: assistantsByAppointment.get(r.id as string) ?? 0,
+        isReturn: r.is_return === true,
       }
     })
 }

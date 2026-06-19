@@ -64,6 +64,8 @@ const bodySchema = z.object({
   materiais: z.array(materialItemSchema).max(50).optional(),
   /** Quando true (default), garante uma etapa de tratamento vinculada. */
   add_to_treatment_plan: z.boolean().optional(),
+  /** Backlog 1/6 — atendimento de retorno. */
+  is_return: z.boolean().optional(),
   /** Profissionais assistentes (modalidade Liberal). Feature 013 US2 (legado). */
   assistants: z.array(assistantItemSchema).max(10).optional(),
   /** Participantes (equipe) por linha de procedimento. Feature 031. */
@@ -136,6 +138,7 @@ export async function POST(req: Request): Promise<Response> {
       addToTreatmentPlan: parsed.data.add_to_treatment_plan,
       assistants: assistantsInput,
       participants: participantsInput,
+      isReturn: parsed.data.is_return,
     })
 
     // Snapshot da linha primaria para event bus (single-procedure adapters).

@@ -107,6 +107,7 @@ export function NewAppointmentForm({
   })
   const [observacoes, setObservacoes] = useState('')
   const [addToTreatmentPlan, setAddToTreatmentPlan] = useState(true)
+  const [isReturn, setIsReturn] = useState(false)
   const [allDay, setAllDay] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -328,6 +329,7 @@ export function NewAppointmentForm({
       appointment_at: whenIso,
       duration_minutes: durationToSend,
       add_to_treatment_plan: addToTreatmentPlan,
+      is_return: isReturn,
     }
     if (observacoes.trim()) payload.observacoes = observacoes.trim().slice(0, 500)
 
@@ -707,6 +709,27 @@ export function NewAppointmentForm({
             Cria uma etapa no plano de tratamento do paciente vinculada a este
             atendimento. Se já existir uma etapa pendente para o mesmo
             procedimento, ela será aproveitada automaticamente.
+          </p>
+        </div>
+      </div>
+
+      <div className="md:col-span-2 flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/40 p-3">
+        <input
+          id="is_return"
+          type="checkbox"
+          checked={isReturn}
+          onChange={(e) => setIsReturn(e.target.checked)}
+          className="mt-0.5 h-4 w-4 cursor-pointer accent-primary"
+        />
+        <div className="flex-1">
+          <Label
+            htmlFor="is_return"
+            className="cursor-pointer text-sm font-semibold text-slate-800"
+          >
+            Retorno?
+          </Label>
+          <p className="text-[11px] text-slate-500">
+            Marque se este atendimento é uma consulta de retorno (acompanhamento).
           </p>
         </div>
       </div>
