@@ -5,6 +5,7 @@ import { Stethoscope } from 'lucide-react'
 import { AddressEditor } from '../address-editor'
 import { IdentityEditor } from '../identity-editor'
 import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
+import { PatientStatusEditor } from './patient-status-editor'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
@@ -123,6 +124,13 @@ export function CadastroTab({
         patientId={patientId}
         initialOptIn={remindersOptIn}
         canEdit={canConfigReminders}
+      />
+
+      <PatientStatusEditor
+        patientId={patientId}
+        status={patient.status}
+        alertNote={patient.alertNote}
+        canEdit={canEditPatient}
       />
 
       <Card>

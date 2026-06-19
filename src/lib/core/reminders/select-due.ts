@@ -54,7 +54,7 @@ export async function selectDueAppointments(
       id, tenant_id, appointment_at, doctor_id, procedure_id, patient_id,
       doctors!inner(id, full_name, active),
       procedures!inner(id, display_name, tuss_code),
-      patients!inner(id, email_enc, reminders_opt_in)
+      patients!inner(id, email_enc, reminders_opt_in, status)
     `,
     )
     .eq('tenant_id', input.tenantId)
@@ -115,7 +115,12 @@ export async function selectDueAppointments(
     patient_id: string
     doctors: { id: string; full_name: string; active: boolean } | null
     procedures: { id: string; display_name: string | null; tuss_code: string | null } | null
-    patients: { id: string; email_enc: string | null; reminders_opt_in: boolean | null } | null
+    patients: {
+      id: string
+      email_enc: string | null
+      reminders_opt_in: boolean | null
+      status: string | null
+    } | null
   }>
 
   const eligible: EligibleAppointment[] = []
@@ -124,6 +129,8 @@ export async function selectDueAppointments(
     if (alreadySentIds.has(row.id)) continue
 
     const patient = row.patients
+    // Backlog 1/5 — não envia mensagem para paciente inativo/óbito.
+    if (patient?.status && patient.status !== 'ativo') continue
     const doctor = row.doctors
     const proc = row.procedures
 

@@ -19,6 +19,7 @@ import { NewVitalSheet } from './sheets/new-vital-sheet'
 import { NewDiagnosisSheet } from './sheets/new-diagnosis-sheet'
 import { MobileQuickViewHeader } from './mobile-quick-view-header'
 import { MobileActionBar } from './mobile-action-bar'
+import { PatientAlertModal } from './patient-alert-modal'
 import { cn } from '@/lib/utils'
 import type {
   AppointmentTimelineRow,
@@ -174,6 +175,19 @@ export function PatientDetailLayout({
           <ArrowLeft className="h-3 w-3" /> Voltar para pacientes
         </Link>
       </div>
+
+      {/* Backlog 1/5 — banner de paciente inativo/óbito (bloqueia agenda/mensagens). */}
+      {patient.status !== 'ativo' ? (
+        <div
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive"
+        >
+          {patient.status === 'obito'
+            ? 'Paciente marcado como ÓBITO'
+            : 'Paciente INATIVO'}{' '}
+          — novos agendamentos e mensagens automáticas estão bloqueados.
+        </div>
+      ) : null}
 
       {/* Header compacto colapsável — só mobile */}
       <MobileQuickViewHeader
@@ -339,6 +353,9 @@ export function PatientDetailLayout({
         onOpenSheet={handleOpenSheet}
         onPrint={handlePrint}
       />
+
+      {/* Backlog 1/11 — pop-up bloqueante de aviso por paciente (ao abrir). */}
+      <PatientAlertModal alertNote={patient.alertNote} />
     </div>
   )
 }
