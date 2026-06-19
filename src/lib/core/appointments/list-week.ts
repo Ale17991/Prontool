@@ -28,7 +28,7 @@ export interface AppointmentWeekRow {
   procedureLabel: string
   appointmentAt: string
   durationMinutes: number
-  effectiveStatus: 'agendado' | 'ativo' | 'estornado'
+  effectiveStatus: 'agendado' | 'ativo' | 'cancelado' | 'estornado'
   /** Null = atendimento particular. */
   planId: string | null
   /** Quantidade de profissionais assistentes ativos. Feature 013 US2. */
@@ -158,13 +158,17 @@ export async function listAppointmentsForWeek(
       // 0054 (view com clausula 'agendado') retornam apenas ativo|estornado.
       // Calculamos 'agendado' aqui pelo timestamp para que a UI funcione em
       // qualquer estado da migration.
-      const rawStatus = r.effective_status === 'estornado' ? 'estornado' : 'ativo'
-      const status =
-        rawStatus === 'estornado'
+      // Preserva os status terminais da view (estornado/cancelado) em vez de
+      // colapsar tudo que não é estornado em 'ativo' — senão um atendimento
+      // CANCELADO aparecia como "Realizado" no calendário (divergindo do detalhe).
+      const status: AppointmentWeekRow['effectiveStatus'] =
+        r.effective_status === 'estornado'
           ? 'estornado'
-          : r.effective_status === 'agendado' || new Date(at).getTime() > Date.now()
-            ? 'agendado'
-            : 'ativo'
+          : r.effective_status === 'cancelado'
+            ? 'cancelado'
+            : r.effective_status === 'agendado' || new Date(at).getTime() > Date.now()
+              ? 'agendado'
+              : 'ativo'
       return {
         id: r.id as string,
         patientId: r.patient_id as string,

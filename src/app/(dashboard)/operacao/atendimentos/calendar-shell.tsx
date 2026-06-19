@@ -32,12 +32,13 @@ interface Props {
   intervalMinutes?: number
 }
 
-// UI status → effectiveStatus do AppointmentWeekRow (list-week consolida
-// agendado/ativo/estornado a partir do timestamp + effective_status do DB).
-const UI_TO_EFFECTIVE_STATUS: Record<string, AppointmentWeekRow['effectiveStatus']> = {
-  agendado: 'agendado',
-  realizado: 'ativo',
-  cancelado: 'estornado',
+// UI status → predicado sobre o effectiveStatus do AppointmentWeekRow.
+// "cancelado" abrange tanto cancelado (desmarcado) quanto estornado (financeiro).
+function matchesUiStatus(effective: AppointmentWeekRow['effectiveStatus'], ui: string): boolean {
+  if (ui === 'realizado') return effective === 'ativo'
+  if (ui === 'agendado') return effective === 'agendado'
+  if (ui === 'cancelado') return effective === 'cancelado' || effective === 'estornado'
+  return true
 }
 
 export function CalendarShell({
@@ -56,9 +57,10 @@ export function CalendarShell({
       // que um atendimento estornado pareça conflitar com um novo agendado
       // no mesmo horário (o slot já foi liberado no banco).
       if (filters.status) {
-        const effective = UI_TO_EFFECTIVE_STATUS[filters.status]
-        if (a.effectiveStatus !== effective) return false
-      } else if (a.effectiveStatus === 'estornado') {
+        if (!matchesUiStatus(a.effectiveStatus, filters.status)) return false
+      } else if (a.effectiveStatus === 'estornado' || a.effectiveStatus === 'cancelado') {
+        // Sem filtro explícito, esconde os terminais (vaga liberada) para não
+        // parecer que ainda ocupam o horário.
         return false
       }
       if (filters.procedure) {
