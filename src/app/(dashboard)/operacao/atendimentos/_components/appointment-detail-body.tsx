@@ -38,6 +38,7 @@ import { ConfirmAppointmentButton } from '../[id]/confirm-button'
 import { CancelAppointmentForm } from '../[id]/cancel-form'
 import { PrescreverLauncher } from '../[id]/prescrever-launcher'
 import { TissGuiaLauncher } from '../[id]/tiss-guia-launcher'
+import { ProcedureParticipants } from './procedure-participants'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -358,6 +359,21 @@ export function AppointmentDetailBody({
                 })}
               </TableBody>
             </Table>
+
+            {appointment.id ? (
+              <div className="mt-4 border-t border-slate-200 pt-4">
+                <ProcedureParticipants
+                  appointmentId={appointment.id}
+                  procedures={procedures.map((line) => ({
+                    id: line.id,
+                    label: line.procedureDisplayName
+                      ? `${line.procedureTussCode ?? ''} · ${line.procedureDisplayName}`.trim()
+                      : (line.procedureTussCode ?? `Procedimento ${line.sequence}`),
+                  }))}
+                  canManage={role === 'admin' || role === 'financeiro'}
+                />
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}

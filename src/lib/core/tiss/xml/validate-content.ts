@@ -17,12 +17,32 @@ export interface ValidationError {
   message: string
 }
 
+/**
+ * Feature 031 — membro da equipe (participante) de uma linha de procedimento,
+ * já com domínios resolvidos (conselho 26, UF 59). Para a guia ficar `pronta`,
+ * todos os campos exigidos pelo XSD ct_identEquipeSADT precisam estar completos.
+ */
+export interface DraftEquipeMembro {
+  /** dm_grauPart (dom. 35) — opcional no XSD. */
+  grauParticipacao: string | null
+  cpf: string | null
+  nome: string | null
+  conselhoCodigo: string | null
+  conselhoRaw: string | null
+  numeroConselho: string | null
+  ufCodigo: string | null
+  ufRaw: string | null
+  cbo: string | null
+}
+
 export interface DraftProcedimento {
   tabela: string | null
   codigo: string | null
   valorCents: number | null
   /** false quando o código TUSS está fora de vigência (sinalizado por build-guia). */
   tussVigente: boolean
+  /** Feature 031 — participantes da linha (0..N). */
+  equipe?: DraftEquipeMembro[]
 }
 
 export interface GuiaConsultaDraft {
@@ -161,9 +181,54 @@ export function validateConsultaContent(draft: GuiaConsultaDraft): ValidationErr
     if (!proc.tussVigente) {
       add(`${at}.codigoProcedimento`, 'Código TUSS fora da vigência do catálogo atual.')
     }
+    validateEquipe(proc.equipe, at, add)
   })
 
   return errors
+}
+
+/**
+ * Feature 031 — valida a equipe de uma linha de procedimento. Cada membro
+ * precisa de CPF, nome, conselho (mapeado), número, UF (mapeada) e CBO para a
+ * guia ficar `pronta` (espelha as obrigatoriedades de ct_identEquipeSADT).
+ */
+function validateEquipe(
+  equipe: DraftEquipeMembro[] | undefined,
+  at: string,
+  add: (field: string, message: string) => void,
+): void {
+  if (!equipe || equipe.length === 0) return
+  equipe.forEach((m, j) => {
+    const mat = `${at}.equipe[${j}]`
+    if (!presente(m.cpf) || !/^\d{11}$/.test(m.cpf!.trim())) {
+      add(`${mat}.cpfContratado`, `Participante ${m.nome ?? j + 1}: CPF ausente ou inválido (11 dígitos).`)
+    }
+    if (!presente(m.nome)) {
+      add(`${mat}.nomeProf`, 'Nome do participante é obrigatório.')
+    }
+    if (!presente(m.conselhoCodigo)) {
+      add(
+        `${mat}.conselho`,
+        m.conselhoRaw
+          ? `Conselho "${m.conselhoRaw}" do participante não mapeado (domínio TISS 26).`
+          : 'Conselho do participante é obrigatório.',
+      )
+    }
+    if (!presente(m.numeroConselho)) {
+      add(`${mat}.numeroConselhoProfissional`, 'Número de inscrição no conselho do participante é obrigatório.')
+    }
+    if (!presente(m.ufCodigo)) {
+      add(
+        `${mat}.UF`,
+        m.ufRaw ? `UF "${m.ufRaw}" do participante não reconhecida (domínio TISS 59).` : 'UF do participante é obrigatória.',
+      )
+    }
+    if (!presente(m.cbo)) {
+      add(`${mat}.CBOS`, 'CBO do participante é obrigatório (domínio TISS 24).')
+    } else if (!/^\d{6}$/.test(m.cbo!.trim())) {
+      add(`${mat}.CBOS`, 'CBO do participante deve ter 6 dígitos (domínio TISS 24).')
+    }
+  })
 }
 
 export interface GuiaSpSadtDraft {
@@ -271,6 +336,7 @@ export function validateSpSadtContent(draft: GuiaSpSadtDraft): ValidationError[]
     if (!proc.tussVigente) {
       add(`${at}.codigoProcedimento`, 'Código TUSS fora da vigência do catálogo atual.')
     }
+    validateEquipe(proc.equipe, at, add)
   })
 
   return errors

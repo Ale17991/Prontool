@@ -25,9 +25,11 @@ import {
   type GuiaConsultaDraft,
   type GuiaSpSadtDraft,
   type DraftProcedimento,
+  type DraftEquipeMembro,
   type ValidationError as ContentError,
 } from './xml/validate-content'
 import type { ConsultaGuiaModel } from './xml/render-consulta'
+import type { EquipeSadtMembro } from './xml/render-spsadt'
 
 type Client = SupabaseClient<Database>
 
@@ -395,12 +397,13 @@ export async function generateSpSadtGuia(
   // TODAS as linhas de procedimento do atendimento.
   const { data: rawLines, error: linesErr } = await supabase
     .from('appointment_procedures')
-    .select('sequence, line_amount_cents, quantity, procedures!inner(tuss_code, display_name)')
+    .select('id, sequence, line_amount_cents, quantity, procedures!inner(tuss_code, display_name)')
     .eq('tenant_id', tenantId)
     .eq('appointment_id', appointmentId)
     .order('sequence', { ascending: true })
   if (linesErr) throw new Error(`generateSpSadtGuia procedures read: ${linesErr.message}`)
   const lines = (rawLines ?? []) as unknown as Array<{
+    id: string
     sequence: number
     line_amount_cents: number
     quantity: number | null
@@ -409,6 +412,13 @@ export async function generateSpSadtGuia(
   if (lines.length === 0) {
     throw new ValidationError('Atendimento sem procedimento — nada a faturar.')
   }
+
+  // Feature 031 — participantes (equipe) ativos por linha de procedimento.
+  const equipeByLineId = await loadEquipeByLine(supabase, {
+    tenantId,
+    appointmentId,
+    lineIds: lines.map((l) => l.id),
+  })
 
   // Resolve catálogo TUSS de todos os códigos em uma consulta.
   const codes = Array.from(
@@ -443,6 +453,7 @@ export async function generateSpSadtGuia(
   }
 
   interface BuiltLine {
+    lineId: string
     sequence: number
     tussTable: string
     code: string
@@ -458,6 +469,7 @@ export async function generateSpSadtGuia(
     const tuss = code ? tussByCode.get(code) : undefined
     const qty = l.quantity || 1
     return {
+      lineId: l.id,
       sequence: l.sequence || idx + 1,
       tussTable: tuss?.table ?? '22',
       code,
@@ -481,6 +493,7 @@ export async function generateSpSadtGuia(
     codigo: b.code || null,
     valorCents: b.totalCents,
     tussVigente: b.vigente,
+    equipe: equipeByLineId.get(b.lineId)?.draft,
   }))
   const draft: GuiaSpSadtDraft = {
     registroANS: config.ans_registration,
@@ -532,6 +545,12 @@ export async function generateSpSadtGuia(
       tipoAtendimento: SPSADT_DEFAULTS.tipoAtendimento,
       regimeAtendimento: SPSADT_DEFAULTS.regimeAtendimento,
       indicacaoAcidente: SPSADT_DEFAULTS.indicacaoAcidente,
+      // Feature 031 — equipe congelada por sequência de linha, reproduzida no lote.
+      equipePorSequence: Object.fromEntries(
+        built
+          .map((b) => [b.sequence, equipeByLineId.get(b.lineId)?.snapshot ?? []] as const)
+          .filter(([, members]) => members.length > 0),
+      ),
     },
   }
 
@@ -584,6 +603,92 @@ export async function generateSpSadtGuia(
   })
 
   return { guiaId: guiaRow.id, guiaNumber, status, validationErrors }
+}
+
+/** Só dígitos (CPF sem máscara para st_CPF). */
+function digits(v: string | null | undefined): string | null {
+  if (!v) return null
+  const d = v.replace(/\D/g, '')
+  return d.length > 0 ? d : null
+}
+
+interface LineEquipe {
+  draft: DraftEquipeMembro[]
+  snapshot: EquipeSadtMembro[]
+}
+
+/**
+ * Feature 031 — carrega os participantes ativos por linha de procedimento e
+ * monta, por `procedure_id` (= id da linha de appointment_procedures), tanto o
+ * rascunho de validação (domínios resolvidos) quanto o snapshot de render
+ * (`equipeSadt`). Retorna mapa vazio quando não há participantes.
+ */
+async function loadEquipeByLine(
+  supabase: Client,
+  args: { tenantId: string; appointmentId: string; lineIds: string[] },
+): Promise<Map<string, LineEquipe>> {
+  const out = new Map<string, LineEquipe>()
+  if (args.lineIds.length === 0) return out
+  const { data, error } = await supabase
+    .from('appointment_assistants')
+    .select(
+      'procedure_id, participation_degree, doctor:assistant_doctor_id ( full_name, cpf, council_name, council_number, council_state, cbo )',
+    )
+    .eq('tenant_id', args.tenantId)
+    .eq('appointment_id', args.appointmentId)
+    .is('removed_at', null)
+    .not('procedure_id', 'is', null)
+    .in('procedure_id', args.lineIds)
+  if (error) throw new Error(`loadEquipeByLine: ${error.message}`)
+
+  const rows = (data ?? []) as unknown as Array<{
+    procedure_id: string
+    participation_degree: string | null
+    doctor: {
+      full_name: string | null
+      cpf: string | null
+      council_name: string | null
+      council_number: string | null
+      council_state: string | null
+      cbo: string | null
+    } | null
+  }>
+
+  for (const r of rows) {
+    const cpf = digits(r.doctor?.cpf)
+    const conselhoCodigo = conselhoToCode(r.doctor?.council_name ?? null)
+    const ufCodigo = ufToIbgeCode(r.doctor?.council_state ?? null)
+    const cbo = r.doctor?.cbo ?? null
+    const numeroConselho = r.doctor?.council_number ?? null
+    const nome = r.doctor?.full_name ?? null
+
+    const draftMember: DraftEquipeMembro = {
+      grauParticipacao: r.participation_degree,
+      cpf,
+      nome,
+      conselhoCodigo,
+      conselhoRaw: r.doctor?.council_name ?? null,
+      numeroConselho,
+      ufCodigo,
+      ufRaw: r.doctor?.council_state ?? null,
+      cbo,
+    }
+    const entry = out.get(r.procedure_id) ?? { draft: [], snapshot: [] }
+    entry.draft.push(draftMember)
+    // Snapshot de render só com os campos completos (a guia só vira `pronta`
+    // quando a validação não acusa pendência — então o snapshot é coerente).
+    entry.snapshot.push({
+      grauParticipacao: r.participation_degree,
+      cpfContratado: cpf ?? '',
+      nome: nome ?? '',
+      conselho: conselhoCodigo ?? '',
+      numeroConselho: numeroConselho ?? '',
+      uf: ufCodigo ?? '',
+      cbo: cbo ?? '',
+    })
+    out.set(r.procedure_id, entry)
+  }
+  return out
 }
 
 function encKey(): string {

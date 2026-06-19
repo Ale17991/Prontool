@@ -46,6 +46,7 @@ import { MarkRealizedForm } from './mark-realized-form'
 import { ConfirmAppointmentButton } from './confirm-button'
 import { CancelAppointmentForm } from './cancel-form'
 import { PrescreverLauncher } from './prescrever-launcher'
+import { ProcedureParticipants } from '../_components/procedure-participants'
 
 export const dynamic = 'force-dynamic'
 
@@ -489,6 +490,21 @@ export default async function AtendimentoDetailPage({
                 })}
               </TableBody>
             </Table>
+
+            {appointment.id ? (
+              <div className="mt-4 border-t border-slate-200 pt-4">
+                <ProcedureParticipants
+                  appointmentId={appointment.id}
+                  procedures={procedureLines.map((line) => ({
+                    id: line.id,
+                    label: line.procedureDisplayName
+                      ? `${line.procedureTussCode ?? ''} · ${line.procedureDisplayName}`.trim()
+                      : (line.procedureTussCode ?? `Procedimento ${line.sequence}`),
+                  }))}
+                  canManage={session.role === 'admin' || session.role === 'financeiro'}
+                />
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}

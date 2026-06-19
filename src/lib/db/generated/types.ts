@@ -194,6 +194,8 @@ export type Database = {
           created_by: string
           frozen_amount_cents: number
           id: string
+          participation_degree: string | null
+          procedure_id: string | null
           removed_at: string | null
           removed_by: string | null
           tenant_id: string
@@ -205,6 +207,8 @@ export type Database = {
           created_by: string
           frozen_amount_cents: number
           id?: string
+          participation_degree?: string | null
+          procedure_id?: string | null
           removed_at?: string | null
           removed_by?: string | null
           tenant_id: string
@@ -216,6 +220,8 @@ export type Database = {
           created_by?: string
           frozen_amount_cents?: number
           id?: string
+          participation_degree?: string | null
+          procedure_id?: string | null
           removed_at?: string | null
           removed_by?: string | null
           tenant_id?: string
@@ -248,6 +254,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "monthly_fixed_pay_lines"
             referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "appointment_assistants_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_procedures"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "appointment_assistants_tenant_id_fkey"
@@ -5605,6 +5618,8 @@ export type Database = {
           p_amount_cents: number
           p_appointment_id: string
           p_assistant_doctor_id: string
+          p_participation_degree?: string
+          p_procedure_id?: string
         }
         Returns: string
       }
