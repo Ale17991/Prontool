@@ -183,14 +183,18 @@ export async function buildFinancialReport(
   // multi-procedimento). Quando todos os atendimentos sao single-line, o
   // resultado e identico ao agregado anterior; quando ha multi-procedimento,
   // cada linha contribui sob seu proprio plano.
-  const activeIds = current.filter((r) => r.effective_status === 'ativo').map((r) => r.id)
+  // Só atendimentos REALIZADOS ('ativo') contam como receita/produção. Um
+  // 'cancelado' (sem estorno) traria net_amount_cents cheio; 'agendado'/
+  // 'confirmado' ainda não aconteceram. Mesmo critério de by-plan/by-professional.
+  const active = current.filter((r) => r.effective_status === 'ativo')
+  const activeIds = active.map((r) => r.id)
   const lines = await fetchProcedureLines(supabase, input.tenantId, activeIds)
 
   const revenueByPlanRaw = aggregateByPlanFromLines(lines)
-  const topDoctors = aggregateTopDoctors(current, 5)
+  const topDoctors = aggregateTopDoctors(active, 5)
   const topProcedures = aggregateTopProceduresFromLines(lines, 10)
   const expensesByCategory = aggregateExpensesByCategory(expenses)
-  const dailyRevenue = aggregateDailyRevenue(current, input.from, input.to, tz)
+  const dailyRevenue = aggregateDailyRevenue(active, input.from, input.to, tz)
 
   // Feature 011 — US4: aplica tax_rate_bps de cada plano para deduzir
   // "Imposto do convênio" das linhas de receita.
@@ -213,7 +217,7 @@ export async function buildFinancialReport(
     totalCents: taxFromPlansCents + taxFromExpensesCents,
   }
 
-  const grossRevenueCents = current.reduce((acc, r) => acc + (r.net_amount_cents ?? 0), 0)
+  const grossRevenueCents = active.reduce((acc, r) => acc + (r.net_amount_cents ?? 0), 0)
 
   // Comissões "pagas" no card de KPIs deve refletir apenas medicos que
   // ATUALMENTE tem comissao > 0% (fiel ao cadastro corrente). Sem este
@@ -222,7 +226,7 @@ export async function buildFinancialReport(
   // O dado bruto continua intacto em appointments_effective (Principio I);
   // este e um filtro de APRESENTACAO no relatorio do periodo.
   const doctorIdsInPeriod = Array.from(
-    new Set(current.map((r) => r.doctor_id).filter((id): id is string => !!id)),
+    new Set(active.map((r) => r.doctor_id).filter((id): id is string => !!id)),
   )
   const commissionedDoctorIds = await fetchCurrentlyCommissionedDoctorIds(
     supabase,
@@ -230,7 +234,7 @@ export async function buildFinancialReport(
     doctorIdsInPeriod,
     tz,
   )
-  const commissionsCents = current.reduce(
+  const commissionsCents = active.reduce(
     (acc, r) =>
       commissionedDoctorIds.has(r.doctor_id)
         ? acc + (r.net_commission_cents ?? 0)
@@ -275,7 +279,7 @@ export async function buildFinancialReport(
       totalExpensesCents,
       operatingProfitCents,
       operatingMarginPct,
-      appointmentCount: current.length,
+      appointmentCount: active.length,
     },
     previous: {
       grossRevenueCents: previousAppointments.grossRevenueCents,
@@ -410,11 +414,15 @@ async function fetchAppointmentsTotals(
   const rows = await fetchAppointments(supabase, tenantId, from, to, tz)
   let gross = 0
   let comm = 0
+  let count = 0
   for (const r of rows) {
+    // Só realizados — paridade com o período corrente (exclui cancelado/estornado).
+    if (r.effective_status !== 'ativo') continue
     gross += r.net_amount_cents ?? 0
     comm += r.net_commission_cents ?? 0
+    count += 1
   }
-  return { grossRevenueCents: gross, commissionsCents: comm, appointmentCount: rows.length }
+  return { grossRevenueCents: gross, commissionsCents: comm, appointmentCount: count }
 }
 
 /**

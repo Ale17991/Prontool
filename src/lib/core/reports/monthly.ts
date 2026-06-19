@@ -120,11 +120,18 @@ export async function buildMonthlyReport(
   let reversalCount = 0
 
   for (const r of rows) {
+    // Só atendimentos REALIZADOS ('ativo') entram na receita/produção. Cancelado
+    // e estornado não são receita — a view zera o net só do estornado, então um
+    // 'cancelado' sem estorno traria o valor cheio se não filtrássemos aqui.
+    // (Mesmo critério de by-plan/by-professional/operating-result/repasse.)
+    if (r.effective_status !== 'ativo') {
+      if (r.effective_status === 'estornado') reversalCount += 1
+      continue
+    }
     const net = r.net_amount_cents ?? 0
     const netComm = r.net_commission_cents ?? 0
     netRevenue += net
     netCommission += netComm
-    if (r.effective_status === 'estornado') reversalCount += 1
 
     const plan = byPlan.get(r.plan_id) ?? {
       planId: r.plan_id,
