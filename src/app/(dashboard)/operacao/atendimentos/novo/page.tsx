@@ -70,6 +70,18 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
     .filter((r) => r.valid_to === null || r.valid_to >= todayYmd)
     .map((r) => ({ code: r.code, label: r.description }))
 
+  // Intervalo da agenda (config da clínica) — preenche o fim automaticamente.
+  let slotIntervalMinutes = 30
+  {
+    const { data: profileRow } = await supabase
+      .from('tenant_clinic_profile')
+      .select('calendar_slot_interval_minutes')
+      .maybeSingle()
+    const v = (profileRow as { calendar_slot_interval_minutes?: number | null } | null)
+      ?.calendar_slot_interval_minutes
+    if (typeof v === 'number' && v >= 1) slotIntervalMinutes = v
+  }
+
   const plans: FormOption[] = ((plansRes.data ?? []) as Array<{ id: string; name: string }>).map(
     (p) => ({ id: p.id, label: p.name }),
   )
@@ -133,6 +145,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
             plans={plans}
             participantDoctors={participantDoctors}
             participationDegrees={degreeOptions}
+            slotIntervalMinutes={slotIntervalMinutes}
             initialAppointmentAt={searchParams.at}
           />
         </CardContent>

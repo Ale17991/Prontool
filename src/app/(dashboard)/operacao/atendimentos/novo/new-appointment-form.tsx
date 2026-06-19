@@ -56,6 +56,8 @@ export interface NewAppointmentFormProps {
   participantDoctors: { id: string; fullName: string }[]
   /** Graus de participação (domínio TISS 35). */
   participationDegrees: { code: string; label: string }[]
+  /** Intervalo (minutos) da agenda — preenche o fim automaticamente. */
+  slotIntervalMinutes?: number
   initialAppointmentAt?: string
 }
 
@@ -84,6 +86,7 @@ export function NewAppointmentForm({
   plans,
   participantDoctors,
   participationDegrees,
+  slotIntervalMinutes = 30,
   initialAppointmentAt,
 }: NewAppointmentFormProps) {
   const router = useRouter()
@@ -100,7 +103,7 @@ export function NewAppointmentForm({
   )
   const [endTime, setEndTime] = useState<string>(() => {
     const start = normalizeInitialAt(initialAppointmentAt) ?? localIsoNow()
-    return addMinutesToHHMM(start.slice(11), 30)
+    return addMinutesToHHMM(start.slice(11), slotIntervalMinutes)
   })
   const [observacoes, setObservacoes] = useState('')
   const [addToTreatmentPlan, setAddToTreatmentPlan] = useState(true)
@@ -118,6 +121,20 @@ export function NewAppointmentForm({
   const formRef = useRef<HTMLFormElement>(null)
 
   const durationMinutes = computeDurationMinutes(appointmentAt, endTime)
+
+  // Início agora são 2 campos (data + hora). appointmentAt segue como o valor
+  // canônico "YYYY-MM-DDTHH:MM"; cada campo edita uma parte.
+  function updateDatePart(dateStr: string) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return
+    setAppointmentAt((prev) => `${dateStr}T${prev.slice(11) || '00:00'}`)
+  }
+  function updateStartTimePart(timeStr: string) {
+    setAppointmentAt((prev) => `${prev.slice(0, 10)}T${timeStr}`)
+    // Fim automático = início + intervalo da clínica (o usuário edita depois).
+    if (/^\d{2}:\d{2}$/.test(timeStr)) {
+      setEndTime(addMinutesToHHMM(timeStr, slotIntervalMinutes))
+    }
+  }
 
   // Pagamento
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix')
@@ -560,43 +577,14 @@ export function NewAppointmentForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="appointment_at">
-          {allDay ? 'Data' : 'Data e hora de início'}
-        </Label>
+        <Label htmlFor="appointment_date">Data</Label>
         <Input
-          id="appointment_at"
-          type={allDay ? 'date' : 'datetime-local'}
+          id="appointment_date"
+          type="date"
           required
-          value={allDay ? appointmentAt.slice(0, 10) : appointmentAt}
-          onChange={(e) => {
-            const v = e.target.value
-            // Em modo allDay o input e' type=date (YYYY-MM-DD); guardamos
-            // como ISO local "YYYY-MM-DDT00:00" para o formato unificado.
-            setAppointmentAt(allDay && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00` : v)
-          }}
+          value={appointmentAt.slice(0, 10)}
+          onChange={(e) => updateDatePart(e.target.value)}
         />
-      </div>
-
-      <div className="space-y-1.5">
-        {!allDay ? (
-          <>
-            <Label htmlFor="end_time">Hora de fim</Label>
-            <Input
-              id="end_time"
-              type="time"
-              required
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
-            <p className="text-[11px] text-slate-500">
-              Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span>
-            </p>
-          </>
-        ) : (
-          <div className="flex h-full items-center text-xs text-slate-500">
-            Ocupa o dia inteiro (00:00 às 23:59).
-          </div>
-        )}
         <div className="mt-2 flex items-center gap-2">
           <input
             id="all_day_appt"
@@ -612,6 +600,43 @@ export function NewAppointmentForm({
             Dia inteiro
           </Label>
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        {!allDay ? (
+          <>
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor="start_time">Hora de início</Label>
+                <Input
+                  id="start_time"
+                  type="time"
+                  required
+                  value={appointmentAt.slice(11, 16)}
+                  onChange={(e) => updateStartTimePart(e.target.value)}
+                />
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor="end_time">Hora de fim</Label>
+                <Input
+                  id="end_time"
+                  type="time"
+                  required
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span> ·
+              fim preenchido automaticamente ({slotIntervalMinutes} min); edite se precisar.
+            </p>
+          </>
+        ) : (
+          <div className="flex h-full items-center text-xs text-slate-500">
+            Ocupa o dia inteiro (00:00 às 23:59).
+          </div>
+        )}
       </div>
 
       <div className="md:col-span-2">
