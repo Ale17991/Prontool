@@ -19,6 +19,7 @@ import { listReceivables } from '@/lib/core/accounts-receivable'
 import { listPayablesWithProjections } from '@/lib/core/accounts-payable'
 import { assembleCashFlow } from '@/lib/core/cash-flow'
 import { getMonthlyPayoutSnapshot } from '@/lib/core/monthly-payouts'
+import { summarizePlanReceivablesByPlan } from '@/lib/core/plan-receivables/summary'
 import type { Database } from '@/lib/db/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn, formatCurrency } from '@/lib/utils'
@@ -48,7 +49,8 @@ export default async function DashboardFinanceiroPage() {
 
   // Buscas paralelas — agrega sem fazer cálculos novos (cada modulo
   // expoe ja a logica e os totais).
-  const [receivables, payables, cashFlow, payoutThisMonth] = await Promise.all([
+  const monthFrom = `${monthNow}-01`
+  const [receivables, payables, cashFlow, payoutThisMonth, planReceivables] = await Promise.all([
     listReceivables(supabase, { tenantId: session.tenantId, limit: 500 }),
     listPayablesWithProjections(supabase, {
       tenantId: session.tenantId,
@@ -66,6 +68,11 @@ export default async function DashboardFinanceiroPage() {
       tenantId: session.tenantId,
       month: monthNow,
     }),
+    summarizePlanReceivablesByPlan(supabase, {
+      tenantId: session.tenantId,
+      from: monthFrom,
+      to: todayIso,
+    }).catch(() => null),
   ])
 
   const projectedBalance =
@@ -248,6 +255,65 @@ export default async function DashboardFinanceiroPage() {
           </CardContent>
         </Card>
       </div>
+
+      {planReceivables ? (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Wallet className="h-4 w-4 text-primary" />
+              Recebíveis do convênio (mês atual)
+            </CardTitle>
+            <Link
+              href="/analise/recebiveis-convenio"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-link hover:underline"
+            >
+              Ver tudo <ArrowRight className="h-3 w-3" />
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <MiniStat label="Recebido" value={formatCurrency(planReceivables.totals.recebido)} cls="text-success-text" />
+              <MiniStat label="Pendente" value={formatCurrency(planReceivables.totals.pendente)} cls="text-[hsl(var(--warning-foreground))]" />
+              <MiniStat
+                label="Glosado / não receb."
+                value={formatCurrency(planReceivables.totals.glosado + planReceivables.totals.naoRecebido)}
+                cls="text-destructive"
+              />
+            </div>
+            {planReceivables.byPlan.length === 0 ? (
+              <p className="py-2 text-center text-xs text-slate-500">
+                Nenhum procedimento de convênio no mês.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {planReceivables.byPlan.slice(0, 5).map((p) => {
+                  const aReceber = p.pendente + p.glosado + p.naoRecebido
+                  return (
+                    <li key={p.planId} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="truncate font-medium text-slate-700">{p.planName}</span>
+                      <span className="whitespace-nowrap text-[11px] text-slate-500">
+                        recebido {formatCurrency(p.recebido)}
+                      </span>
+                      <span className="whitespace-nowrap font-bold text-[hsl(var(--warning-foreground))]">
+                        a receber {formatCurrency(aReceber)}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
+    </div>
+  )
+}
+
+function MiniStat({ label, value, cls }: { label: string; value: string; cls: string }) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50/50 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+      <p className={cn('text-base font-black tabular-nums', cls)}>{value}</p>
     </div>
   )
 }

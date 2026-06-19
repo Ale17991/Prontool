@@ -12,6 +12,7 @@ import { CareNotesEditor } from '../care-notes-editor'
 import { WorkoutEditor } from '../workout-editor'
 import { DietEditor } from '../diet-editor'
 import { PatientEvolutionTab } from './patient-evolution-tab'
+import { OdontogramTab } from './odontogram/odontogram-tab'
 import { NewEvolutionSheet } from './sheets/new-evolution-sheet'
 import { NewAnamneseSheet } from './sheets/new-anamnese-sheet'
 import { NewVitalSheet } from './sheets/new-vital-sheet'
@@ -52,7 +53,7 @@ interface Props {
   events: TimelineEvent[]
   appointments: AppointmentTimelineRow[]
   authors: AuthorMap
-  initialTab: 'evolucao' | 'clinico' | 'cadastro'
+  initialTab: 'evolucao' | 'clinico' | 'cadastro' | 'odontograma'
   cadastro: {
     initialHistory: PatientHistoryDTO[]
     initialDiagnoses: PatientDiagnosisDTO[]
@@ -87,8 +88,13 @@ interface Props {
 
 function isValidTab(
   value: string | null,
-): value is 'evolucao' | 'clinico' | 'cadastro' {
-  return value === 'evolucao' || value === 'clinico' || value === 'cadastro'
+): value is 'evolucao' | 'clinico' | 'cadastro' | 'odontograma' {
+  return (
+    value === 'evolucao' ||
+    value === 'clinico' ||
+    value === 'cadastro' ||
+    value === 'odontograma'
+  )
 }
 
 export function PatientDetailLayout({
@@ -104,7 +110,7 @@ export function PatientDetailLayout({
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab')
-  const [tab, setTab] = useState<'evolucao' | 'clinico' | 'cadastro'>(
+  const [tab, setTab] = useState<'evolucao' | 'clinico' | 'cadastro' | 'odontograma'>(
     isValidTab(tabFromUrl) ? tabFromUrl : initialTab,
   )
   const [activeSheet, setActiveSheet] = useState<SheetKind | null>(null)
@@ -116,7 +122,7 @@ export function PatientDetailLayout({
   }, [tabFromUrl, tab])
 
   const updateTab = useCallback(
-    (next: 'evolucao' | 'clinico' | 'cadastro') => {
+    (next: 'evolucao' | 'clinico' | 'cadastro' | 'odontograma') => {
       setTab(next)
       const params = new URLSearchParams(searchParams.toString())
       if (next === 'evolucao') {
@@ -202,7 +208,7 @@ export function PatientDetailLayout({
           <Tabs
             value={tab}
             onValueChange={(v) =>
-              updateTab(v as 'evolucao' | 'clinico' | 'cadastro')
+              updateTab(v as 'evolucao' | 'clinico' | 'cadastro' | 'odontograma')
             }
           >
             <TabsList>
@@ -212,6 +218,9 @@ export function PatientDetailLayout({
               <TabsTrigger value="clinico">Clínico</TabsTrigger>
               {!isAnonymized ? (
                 <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
+              ) : null}
+              {!isAnonymized ? (
+                <TabsTrigger value="odontograma">Odontograma</TabsTrigger>
               ) : null}
             </TabsList>
             {!isAnonymized ? (
@@ -270,6 +279,14 @@ export function PatientDetailLayout({
                   canWriteVitals={cadastro.canWriteVitals}
                   canWriteDiagnosis={cadastro.canWriteDiagnosis}
                   canDeleteDiagnosis={cadastro.canDeleteDiagnosis}
+                />
+              </TabsContent>
+            ) : null}
+            {!isAnonymized ? (
+              <TabsContent value="odontograma" className="space-y-4">
+                <OdontogramTab
+                  patientId={patientId}
+                  canWrite={cadastro.canWriteClinical}
                 />
               </TabsContent>
             ) : null}

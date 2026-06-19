@@ -1196,6 +1196,143 @@ export type Database = {
           },
         ]
       }
+      dental_chart_entries: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          patient_id: string
+          recorded_at: string
+          status_id: string
+          surface: string | null
+          tenant_id: string
+          tooth_fdi: number
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          patient_id: string
+          recorded_at?: string
+          status_id: string
+          surface?: string | null
+          tenant_id: string
+          tooth_fdi: number
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          patient_id?: string
+          recorded_at?: string
+          status_id?: string
+          surface?: string | null
+          tenant_id?: string
+          tooth_fdi?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_chart_entries_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_chart_entries_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_chart_entries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_chart_entries_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "dental_status_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_chart_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_status_catalog: {
+        Row: {
+          code: string
+          color: string
+          created_at: string
+          created_by: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          label: string
+          scope: string
+          sort_order: number
+          tuss_code_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code: string
+          color: string
+          created_at?: string
+          created_by?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label: string
+          scope: string
+          sort_order?: number
+          tuss_code_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: string
+          color?: string
+          created_at?: string
+          created_by?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label?: string
+          scope?: string
+          sort_order?: number
+          tuss_code_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_status_catalog_tuss_code_id_fkey"
+            columns: ["tuss_code_id"]
+            isOneToOne: false
+            referencedRelation: "tuss_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diet_meal_items: {
         Row: {
           created_at: string
@@ -5748,6 +5885,19 @@ export type Database = {
           anonymized_at: string
           full_name: string
           id: string
+        }[]
+      }
+      dental_chart_current: {
+        Args: { p_patient_id: string; p_tenant_id: string }
+        Returns: {
+          appointment_id: string
+          created_by: string
+          id: string
+          note: string
+          recorded_at: string
+          status_id: string
+          surface: string
+          tooth_fdi: number
         }[]
       }
       enc_text: { Args: { plain: string }; Returns: string }
