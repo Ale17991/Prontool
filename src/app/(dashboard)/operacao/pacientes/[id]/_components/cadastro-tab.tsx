@@ -7,6 +7,7 @@ import { IdentityEditor } from '../identity-editor'
 import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
 import { PatientStatusEditor } from './patient-status-editor'
 import { PatientPhotoEditor } from './patient-photo-editor'
+import { PatientDocumentsSection } from '../patient-documents-section'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
@@ -204,6 +205,8 @@ export function CadastroTab({
         canApplyAnamnesis={canApplyAnamnesis}
         canDeleteAnamnese={canDeleteAnamnese}
       />
+
+      <PatientDocumentsSection patientId={patientId} canWrite={canWriteClinical} />
 
       <TreatmentStepsSection
         patientId={patientId}
