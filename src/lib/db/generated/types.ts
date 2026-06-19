@@ -2846,6 +2846,8 @@ export type Database = {
           address_number_enc: string | null
           address_state_enc: string | null
           address_street_enc: string | null
+          alert_note: string | null
+          status: string
           anonymized_at: string | null
           birth_date_enc: string | null
           cpf_enc: string | null
@@ -2878,6 +2880,8 @@ export type Database = {
           address_number_enc?: string | null
           address_state_enc?: string | null
           address_street_enc?: string | null
+          alert_note?: string | null
+          status?: string
           anonymized_at?: string | null
           birth_date_enc?: string | null
           cpf_enc?: string | null
@@ -2910,6 +2914,8 @@ export type Database = {
           address_number_enc?: string | null
           address_state_enc?: string | null
           address_street_enc?: string | null
+          alert_note?: string | null
+          status?: string
           anonymized_at?: string | null
           birth_date_enc?: string | null
           cpf_enc?: string | null
@@ -3091,6 +3097,87 @@ export type Database = {
             columns: ["treatment_step_id"]
             isOneToOne: false
             referencedRelation: "treatment_plan_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_procedure_receipts: {
+        Row: {
+          appointment_id: string
+          appointment_procedure_id: string
+          created_at: string
+          id: string
+          note: string | null
+          plan_id: string
+          received_amount_cents: number | null
+          received_at: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          appointment_id: string
+          appointment_procedure_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          plan_id: string
+          received_amount_cents?: number | null
+          received_at?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          appointment_id?: string
+          appointment_procedure_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          plan_id?: string
+          received_amount_cents?: number | null
+          received_at?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_procedure_receipts_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_procedure_receipts_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_procedure_receipts_appointment_procedure_id_fkey"
+            columns: ["appointment_procedure_id"]
+            isOneToOne: true
+            referencedRelation: "appointment_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_procedure_receipts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "health_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_procedure_receipts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -4820,9 +4907,70 @@ export type Database = {
           },
         ]
       }
+      treatment_budgets: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string | null
+          frozen_total_cents: number | null
+          id: string
+          patient_id: string
+          presented_at: string | null
+          refused_at: string | null
+          status: string
+          tenant_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          frozen_total_cents?: number | null
+          id?: string
+          patient_id: string
+          presented_at?: string | null
+          refused_at?: string | null
+          status?: string
+          tenant_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          frozen_total_cents?: number | null
+          id?: string
+          patient_id?: string
+          presented_at?: string | null
+          refused_at?: string | null
+          status?: string
+          tenant_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_budgets_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_budgets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       treatment_plan_steps: {
         Row: {
           appointment_id: string | null
+          budget_id: string | null
           completed_at: string | null
           completed_by: string | null
           created_at: string
@@ -4836,11 +4984,14 @@ export type Database = {
           procedure_id: string
           scheduled_date: string | null
           status: string
+          surface: string | null
           tenant_id: string
           title: string
+          tooth_fdi: number | null
         }
         Insert: {
           appointment_id?: string | null
+          budget_id?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
@@ -4854,11 +5005,14 @@ export type Database = {
           procedure_id: string
           scheduled_date?: string | null
           status?: string
+          surface?: string | null
           tenant_id: string
           title: string
+          tooth_fdi?: number | null
         }
         Update: {
           appointment_id?: string | null
+          budget_id?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
@@ -4872,8 +5026,10 @@ export type Database = {
           procedure_id?: string
           scheduled_date?: string | null
           status?: string
+          surface?: string | null
           tenant_id?: string
           title?: string
+          tooth_fdi?: number | null
         }
         Relationships: [
           {
@@ -4888,6 +5044,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments_effective"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_plan_steps_budget_fk"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_budgets"
             referencedColumns: ["id"]
           },
           {

@@ -50,11 +50,17 @@ const patchSchema = z
     plan_id: z.string().uuid().nullable().optional(),
     address: addressPatchSchema.optional(),
     identity: identityPatchSchema.optional(),
+    status: z.enum(['ativo', 'inativo', 'obito']).optional(),
+    alert_note: z.string().trim().max(1000).nullable().optional(),
   })
   .refine(
     (v) =>
-      v.plan_id !== undefined || v.address !== undefined || v.identity !== undefined,
-    { message: 'Informe plan_id, address ou identity para atualizar.' },
+      v.plan_id !== undefined ||
+      v.address !== undefined ||
+      v.identity !== undefined ||
+      v.status !== undefined ||
+      v.alert_note !== undefined,
+    { message: 'Informe plan_id, address, identity, status ou alert_note para atualizar.' },
   )
 
 export async function GET(
@@ -141,6 +147,37 @@ export async function PATCH(
         patientId: params.id,
         address: parsed.data.address,
       })
+    }
+
+    if (parsed.data.status !== undefined || parsed.data.alert_note !== undefined) {
+      const upd: Record<string, unknown> = {}
+      if (parsed.data.status !== undefined) upd.status = parsed.data.status
+      if (parsed.data.alert_note !== undefined) {
+        upd.alert_note = parsed.data.alert_note?.trim() || null
+      }
+      const r = await supabase
+        .from('patients')
+        .update(upd as never)
+        .eq('tenant_id', session.tenantId)
+        .eq('id', params.id)
+        .select('id')
+        .maybeSingle()
+      if (r.error) throw new Error(`patient status/alert patch: ${r.error.message}`)
+      if (!r.data) throw new NotFoundError('patient', params.id)
+      if (parsed.data.status !== undefined) {
+        await supabase.from('audit_log').insert({
+          tenant_id: session.tenantId,
+          actor_id: session.userId,
+          actor_label: null,
+          entity: 'patients',
+          entity_id: params.id,
+          field: 'status',
+          old_value: null,
+          new_value: parsed.data.status,
+          reason: 'alteração de status do paciente via /api/pacientes PATCH',
+          result: 'success',
+        } as never)
+      }
     }
 
     if (parsed.data.identity !== undefined) {

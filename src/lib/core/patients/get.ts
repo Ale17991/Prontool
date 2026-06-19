@@ -40,6 +40,10 @@ export interface PatientDetail {
   guardianRelationship: string | null
   address: PatientAddress
   anonymizedAt: string | null
+  /** Backlog 1/5 — ativo | inativo | obito. */
+  status: 'ativo' | 'inativo' | 'obito'
+  /** Backlog 1/11 — aviso por paciente (pop-up). */
+  alertNote: string | null
   createdAt: string
   updatedAt: string
   healthPlan: { id: string; name: string } | null
@@ -117,12 +121,15 @@ export async function getPatient(
   // com embed do health_plans pra pegar o nome numa única ida ao banco.
   const planResult = await supabase
     .from('patients')
-    .select('plan_id, health_plans:plan_id ( id, name )')
+    .select('plan_id, status, alert_note, health_plans:plan_id ( id, name )')
     .eq('tenant_id', args.tenantId)
     .eq('id', args.patientId)
     .maybeSingle()
   const hp = (planResult.data?.health_plans ?? null) as
     | { id: string; name: string }
+    | null
+  const opsRow = planResult.data as
+    | { status?: string | null; alert_note?: string | null }
     | null
 
   const patient: PatientDetail = {
@@ -153,6 +160,8 @@ export async function getPatient(
       state: row.address_state,
     },
     anonymizedAt: row.anonymized_at,
+    status: (opsRow?.status as 'ativo' | 'inativo' | 'obito' | undefined) ?? 'ativo',
+    alertNote: opsRow?.alert_note ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     healthPlan: hp,

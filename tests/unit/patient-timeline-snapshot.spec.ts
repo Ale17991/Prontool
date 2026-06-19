@@ -34,6 +34,8 @@ const PATIENT_BASE: PatientDetail = {
     neighborhood: null, city: null, state: null,
   },
   anonymizedAt: null,
+  status: 'ativo',
+  alertNote: null,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
   healthPlan: { id: 'plan-1', name: 'Unimed' },

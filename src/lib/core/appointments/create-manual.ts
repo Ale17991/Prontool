@@ -10,6 +10,7 @@ import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'
 import { addAssistant } from '@/lib/core/appointment-assistants/add'
 import { addParticipant } from '@/lib/core/appointment-assistants/add-participant'
+import { ensurePatientActive } from '@/lib/core/patients/ensure-active'
 import { getTenantTimezone, dateToTenantYmd } from '@/lib/utils/tenant-tz'
 
 /**
@@ -146,6 +147,10 @@ export async function createAppointmentManually(
     ),
   ]
   await Promise.all(fkChecks)
+
+  // Backlog 1/5 — não permite agendar/atender paciente óbito ou inativo.
+  // Cobre também o booking público (que chama esta função).
+  await ensurePatientActive(supabase, input.patientId, input.tenantId)
 
   // Feature 013 — Decisão 5: Liberal NÃO pode ser principal.
   const { data: doctorMode } = await supabase
