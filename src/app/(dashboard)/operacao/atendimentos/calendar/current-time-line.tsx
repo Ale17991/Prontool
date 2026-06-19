@@ -1,13 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CALENDAR_HOUR_END, CALENDAR_HOUR_START, CALENDAR_SLOT_HEIGHT_REM } from '@/lib/utils/calendar'
+import {
+  CALENDAR_HOUR_END,
+  CALENDAR_HOUR_START,
+  DEFAULT_SLOT_INTERVAL_MINUTES,
+  remPerMinute,
+} from '@/lib/utils/calendar'
 
 interface Props {
   /** Index do dia atual na grid (0..6 para semana, 0 para dia). */
   currentDayIndex: number | null
   /** Total de colunas no grid. */
   columnCount: number
+  /** Intervalo (minutos) que cada linha representa. */
+  intervalMinutes?: number
 }
 
 /**
@@ -15,7 +22,11 @@ interface Props {
  * se o dia atual estiver visivel no grid e a hora estiver dentro de
  * [07:00, 22:00). Atualiza a cada 60s.
  */
-export function CurrentTimeLine({ currentDayIndex, columnCount }: Props) {
+export function CurrentTimeLine({
+  currentDayIndex,
+  columnCount,
+  intervalMinutes = DEFAULT_SLOT_INTERVAL_MINUTES,
+}: Props) {
   const [now, setNow] = useState<Date>(() => new Date())
 
   useEffect(() => {
@@ -30,7 +41,7 @@ export function CurrentTimeLine({ currentDayIndex, columnCount }: Props) {
   if (hour < CALENDAR_HOUR_START || hour >= CALENDAR_HOUR_END) return null
 
   const minutesFromStart = (hour - CALENDAR_HOUR_START) * 60 + minute
-  const topRem = (minutesFromStart / 60) * CALENDAR_SLOT_HEIGHT_REM
+  const topRem = minutesFromStart * remPerMinute(intervalMinutes)
   const colWidthPercent = 100 / columnCount
   const leftPercent = currentDayIndex * colWidthPercent
 

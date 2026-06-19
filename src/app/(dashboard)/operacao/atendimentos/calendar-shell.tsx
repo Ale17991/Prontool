@@ -28,6 +28,8 @@ interface Props {
   doctors: DoctorFilterOption[]
   scheduleBlocks?: ScheduleBlockRow[]
   canManageBlocks?: boolean
+  /** Período (minutos) que cada linha da agenda representa. */
+  intervalMinutes?: number
 }
 
 // UI status → effectiveStatus do AppointmentWeekRow (list-week consolida
@@ -43,6 +45,7 @@ export function CalendarShell({
   doctors,
   scheduleBlocks = [],
   canManageBlocks = false,
+  intervalMinutes,
 }: Props) {
   const { filters, range, setFilter, setFilters, clear } = useCalendarFilters()
 
@@ -109,6 +112,7 @@ export function CalendarShell({
           appointments={filtered}
           scheduleBlocks={scheduleBlocks}
           canManageBlocks={canManageBlocks}
+          intervalMinutes={intervalMinutes}
         />
       )}
     </div>

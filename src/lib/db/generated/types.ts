@@ -3767,6 +3767,7 @@ export type Database = {
           address_number: string | null
           address_street: string | null
           address_uf: string | null
+          calendar_slot_interval_minutes: number
           cnpj: string | null
           corporate_name: string | null
           created_at: string
@@ -3803,6 +3804,7 @@ export type Database = {
           address_number?: string | null
           address_street?: string | null
           address_uf?: string | null
+          calendar_slot_interval_minutes?: number
           cnpj?: string | null
           corporate_name?: string | null
           created_at?: string
@@ -3839,6 +3841,7 @@ export type Database = {
           address_number?: string | null
           address_street?: string | null
           address_uf?: string | null
+          calendar_slot_interval_minutes?: number
           cnpj?: string | null
           corporate_name?: string | null
           created_at?: string

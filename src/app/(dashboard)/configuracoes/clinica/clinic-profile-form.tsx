@@ -38,6 +38,7 @@ interface FormState {
   techCouncil: string
   techRegistration: string
   publicBookingSlug: string
+  calendarSlotIntervalMinutes: number
 }
 
 function profileToForm(p: ClinicProfile): FormState {
@@ -59,6 +60,7 @@ function profileToForm(p: ClinicProfile): FormState {
     techCouncil: p.techResponsible.council ?? '',
     techRegistration: p.techResponsible.registration ?? '',
     publicBookingSlug: p.publicBookingSlug ?? '',
+    calendarSlotIntervalMinutes: p.calendarSlotIntervalMinutes ?? 60,
   }
 }
 
@@ -84,6 +86,7 @@ function formToPatch(s: FormState) {
       registration: s.techRegistration.trim() || null,
     },
     publicBookingSlug: s.publicBookingSlug.trim() || null,
+    calendarSlotIntervalMinutes: s.calendarSlotIntervalMinutes,
   }
 }
 
@@ -464,6 +467,39 @@ export function ClinicProfileForm({ initial }: Props) {
               </Button>
             </div>
           ) : null}
+        </CardContent>
+      </Card>
+
+      {/* Agenda — intervalo das linhas do calendário */}
+      <Card>
+        <CardContent className="space-y-4 p-6">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">Agenda</h2>
+            <p className="text-xs text-slate-500">
+              Período que cada linha do calendário representa. A linha mantém o mesmo
+              tamanho; muda o intervalo de tempo que ela cobre.
+            </p>
+          </div>
+          <div className="max-w-xs">
+            <Label htmlFor="calendarSlotIntervalMinutes">Intervalo (minutos)</Label>
+            <Input
+              id="calendarSlotIntervalMinutes"
+              type="number"
+              min={5}
+              max={240}
+              step={5}
+              value={form.calendarSlotIntervalMinutes}
+              onChange={(e) => {
+                const n = Math.round(Number(e.target.value))
+                if (!Number.isFinite(n)) return
+                update('calendarSlotIntervalMinutes', Math.min(240, Math.max(5, n)))
+              }}
+            />
+            <p className="mt-1 text-[11px] text-slate-500">
+              Ex.: 60 = uma hora por linha · 30 = meia hora · 15 = quinze minutos.
+              Entre 5 e 240.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

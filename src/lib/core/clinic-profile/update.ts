@@ -83,6 +83,8 @@ export const clinicProfilePatchSchema = z.object({
    * amigáveis + checagem cross-tenant). '' / null → desativa o portal.
    */
   publicBookingSlug: z.string().nullable().optional(),
+  /** Período (minutos) que cada linha da agenda representa (5–240). */
+  calendarSlotIntervalMinutes: z.number().int().min(5).max(240).optional(),
 })
 
 export type ClinicProfilePatch = z.infer<typeof clinicProfilePatchSchema>
@@ -154,6 +156,11 @@ export async function updateClinicProfile(
 
   const current = await getClinicProfile(supabase, tenantId, 0)
 
+  // Side-effect writes fora do flatten string-based (tenants.name, slug,
+  // intervalo). Se algum ocorrer e o flatten ficar vazio, re-lemos no fim para
+  // a resposta refletir a mudança (em vez de devolver o snapshot pré-update).
+  let sideEffectWrite = false
+
   // Feature 010 (US3 / R13) — displayName escreve em tenants.name. Tratado
   // separadamente do flatten do tenant_clinic_profile.
   if ('displayName' in patch) {
@@ -181,6 +188,7 @@ export async function updateClinicProfile(
         user_agent: context.userAgent ?? null,
         result: 'success',
       })
+      sideEffectWrite = true
     }
   }
   // Feature 017 — slug do portal público. Tratado à parte do flatten porque
@@ -225,6 +233,39 @@ export async function updateClinicProfile(
         user_agent: context.userAgent ?? null,
         result: 'success',
       })
+      sideEffectWrite = true
+    }
+  }
+
+  // Intervalo de slot da agenda (numérico) — fora do flatten string-based.
+  if ('calendarSlotIntervalMinutes' in patch && patch.calendarSlotIntervalMinutes !== undefined) {
+    const newInterval = patch.calendarSlotIntervalMinutes
+    const oldInterval = current.calendarSlotIntervalMinutes
+    if (newInterval !== oldInterval) {
+      type ProfileUpdate = Database['public']['Tables']['tenant_clinic_profile']['Update']
+      const intervalUpdate: ProfileUpdate = { calendar_slot_interval_minutes: newInterval }
+      const { error: intervalErr } = await supabase
+        .from('tenant_clinic_profile')
+        .update(intervalUpdate)
+        .eq('tenant_id', tenantId)
+      if (intervalErr) {
+        throw new Error(`updateClinicProfile interval update failed: ${intervalErr.message}`)
+      }
+      await supabase.from('audit_log').insert({
+        tenant_id: tenantId,
+        actor_id: actorId,
+        actor_label: null,
+        entity: 'tenant_clinic_profile',
+        entity_id: tenantId,
+        field: 'calendar_slot_interval_minutes',
+        old_value: String(oldInterval),
+        new_value: String(newInterval),
+        reason: context.reason ?? 'updated via /api/configuracoes/clinica PUT',
+        ip: context.ip ?? null,
+        user_agent: context.userAgent ?? null,
+        result: 'success',
+      })
+      sideEffectWrite = true
     }
   }
 
@@ -244,7 +285,7 @@ export async function updateClinicProfile(
   }
 
   if (Object.keys(updates).length === 0) {
-    return current
+    return sideEffectWrite ? getClinicProfile(supabase, tenantId) : current
   }
 
   const { error: updateError } = await supabase

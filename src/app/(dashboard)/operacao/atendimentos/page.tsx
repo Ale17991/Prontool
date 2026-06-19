@@ -96,6 +96,20 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
 
   const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
 
+  // Intervalo de slot da agenda (config da clínica). Antes da migration 0131 /
+  // antes da row existir, cai no default 60 (grade horária clássica).
+  let slotIntervalMinutes = 60
+  {
+    const { data: profileRow } = await supabase
+      .from('tenant_clinic_profile')
+      .select('calendar_slot_interval_minutes')
+      .eq('tenant_id', session.tenantId)
+      .maybeSingle()
+    const v = (profileRow as { calendar_slot_interval_minutes?: number | null } | null)
+      ?.calendar_slot_interval_minutes
+    if (typeof v === 'number' && v >= 5) slotIntervalMinutes = v
+  }
+
   if (mode === 'cal') {
     // Defense in depth: se a query do calendário ou o render falhar
     // (RLS, view desatualizada, hook quebrado, etc.), cai pra Lista
@@ -180,6 +194,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
               doctors={doctorOptions}
               scheduleBlocks={scheduleBlocks}
               canManageBlocks={true}
+              intervalMinutes={slotIntervalMinutes}
             />
           </div>
         </AppointmentDetailHost>

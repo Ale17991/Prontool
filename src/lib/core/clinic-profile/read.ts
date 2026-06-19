@@ -48,6 +48,8 @@ function syntheticEmptyRow(tenantId: string): Row {
     reminder_template_subject: null,
     reminder_template_body: null,
     reminder_last_run_at: null,
+    // Default consistente com a migration 0131 (NOT NULL DEFAULT 60).
+    calendar_slot_interval_minutes: 60,
     created_at: now,
     updated_at: now,
   }
@@ -88,6 +90,7 @@ function rowToProfile(
     },
     publicBookingSlug: row.public_booking_slug,
     publicBookingEnabled: row.public_booking_enabled,
+    calendarSlotIntervalMinutes: row.calendar_slot_interval_minutes ?? 60,
     updatedAt: row.updated_at,
   }
 }

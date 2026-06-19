@@ -16,6 +16,53 @@ export const CALENDAR_DAY_START = 0 // domingo
 export const MOBILE_BREAKPOINT_PX = 640
 export const MAX_LANES = 4
 export const DEFAULT_DURATION_MINUTES = 30
+/** Intervalo (minutos) que cada linha representa quando a clínica não configurou. */
+export const DEFAULT_SLOT_INTERVAL_MINUTES = 60
+
+/** Total de minutos visíveis na grade [START, END). */
+const CALENDAR_SPAN_MINUTES = (CALENDAR_HOUR_END - CALENDAR_HOUR_START) * 60
+
+export interface CalendarSlotRow {
+  /** Minutos desde CALENDAR_HOUR_START (0, interval, 2*interval, …). */
+  offsetMinutes: number
+  /** Rótulo HH:MM do início da linha. */
+  label: string
+}
+
+/**
+ * Linhas da grade para um dado intervalo. Cada linha cobre `intervalMinutes`
+ * e mantém a mesma altura visual (CALENDAR_SLOT_HEIGHT_REM); o que muda é o
+ * período representado. Default 60 reproduz a grade horária clássica.
+ */
+export function buildCalendarSlots(
+  intervalMinutes: number = DEFAULT_SLOT_INTERVAL_MINUTES,
+): CalendarSlotRow[] {
+  const step = clampInterval(intervalMinutes)
+  const count = Math.ceil(CALENDAR_SPAN_MINUTES / step)
+  const rows: CalendarSlotRow[] = []
+  for (let i = 0; i < count; i++) {
+    const offsetMinutes = i * step
+    const h = CALENDAR_HOUR_START + Math.floor(offsetMinutes / 60)
+    const m = offsetMinutes % 60
+    rows.push({
+      offsetMinutes,
+      label: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+    })
+  }
+  return rows
+}
+
+function clampInterval(intervalMinutes: number): number {
+  if (!Number.isFinite(intervalMinutes) || intervalMinutes < 5) {
+    return DEFAULT_SLOT_INTERVAL_MINUTES
+  }
+  return Math.min(Math.round(intervalMinutes), 240)
+}
+
+/** rem por minuto para um intervalo: cada linha (intervalo) ocupa SLOT_HEIGHT_REM. */
+export function remPerMinute(intervalMinutes: number = DEFAULT_SLOT_INTERVAL_MINUTES): number {
+  return CALENDAR_SLOT_HEIGHT_REM / clampInterval(intervalMinutes)
+}
 
 export interface WeekRange {
   start: Date // domingo 00:00
@@ -68,16 +115,21 @@ export interface SlotPosition {
   outOfBounds: boolean
 }
 
-export function slotForAppointment(at: Date, durationMinutes: number): SlotPosition {
+export function slotForAppointment(
+  at: Date,
+  durationMinutes: number,
+  intervalMinutes: number = DEFAULT_SLOT_INTERVAL_MINUTES,
+): SlotPosition {
   const h = at.getHours()
   const m = at.getMinutes()
   const startsBefore = h < CALENDAR_HOUR_START
   const startsAfter = h >= CALENDAR_HOUR_END
   const outOfBounds = startsBefore || startsAfter
   const offsetMinutes = (h - CALENDAR_HOUR_START) * 60 + m
-  const topRem = (offsetMinutes / 60) * CALENDAR_SLOT_HEIGHT_REM
+  const perMin = remPerMinute(intervalMinutes)
+  const topRem = offsetMinutes * perMin
   const minHeightMin = 15 // bloco minimo de 15 min para legibilidade
-  const heightRem = (Math.max(durationMinutes, minHeightMin) / 60) * CALENDAR_SLOT_HEIGHT_REM
+  const heightRem = Math.max(durationMinutes, minHeightMin) * perMin
   return {
     topRem,
     heightRem,

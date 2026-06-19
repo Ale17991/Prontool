@@ -39,6 +39,8 @@ export interface ClinicProfile {
   publicBookingSlug: string | null
   /** Feature 017 — portal habilitado de fato (gate da página pública). */
   publicBookingEnabled: boolean
+  /** Período (minutos) que cada linha da agenda representa. Default 60. */
+  calendarSlotIntervalMinutes: number
   updatedAt: string
 }
 

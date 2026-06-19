@@ -6,10 +6,11 @@ import { addMinutes, isSameDay } from 'date-fns'
 import { Lock, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  CALENDAR_HOUR_END,
   CALENDAR_HOUR_START,
   CALENDAR_SLOT_HEIGHT_REM,
+  DEFAULT_SLOT_INTERVAL_MINUTES,
   assignLanes,
+  buildCalendarSlots,
   detectVisualConflicts,
   slotForAppointment,
   toDateTimeLocalValue,
@@ -26,20 +27,22 @@ interface Props {
   appointments: AppointmentWeekRow[]
   scheduleBlocks?: ScheduleBlockRow[]
   canManageBlocks?: boolean
+  /** Período (minutos) que cada linha representa. Default 60 = grade horária. */
+  intervalMinutes?: number
 }
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-const HOURS = Array.from(
-  { length: CALENDAR_HOUR_END - CALENDAR_HOUR_START },
-  (_, i) => CALENDAR_HOUR_START + i,
-)
 
 export function CalendarView({
   range,
   appointments,
   scheduleBlocks = [],
   canManageBlocks = false,
+  intervalMinutes = DEFAULT_SLOT_INTERVAL_MINUTES,
 }: Props) {
+  // Linhas da grade para o intervalo configurado. Cada linha mantém a altura
+  // (CALENDAR_SLOT_HEIGHT_REM) e cobre `intervalMinutes`.
+  const slots = useMemo(() => buildCalendarSlots(intervalMinutes), [intervalMinutes])
   const router = useRouter()
   const today = useMemo(() => new Date(), [])
   const [cancellingId, startCancelTransition] = useTransition()
@@ -101,11 +104,12 @@ export function CalendarView({
     return map
   }, [appointments])
 
-  const totalHeightRem = HOURS.length * CALENDAR_SLOT_HEIGHT_REM
+  const totalHeightRem = slots.length * CALENDAR_SLOT_HEIGHT_REM
 
-  function onSlotClick(day: Date, hour: number) {
+  function onSlotClick(day: Date, offsetMinutes: number) {
     const dt = new Date(day)
-    dt.setHours(hour, 0, 0, 0)
+    dt.setHours(CALENDAR_HOUR_START, 0, 0, 0)
+    dt.setMinutes(dt.getMinutes() + offsetMinutes)
     const at = toDateTimeLocalValue(dt)
     router.push(`/operacao/atendimentos/novo?at=${encodeURIComponent(at)}`)
   }
@@ -158,13 +162,13 @@ export function CalendarView({
 
         {/* Hour gutter + day columns */}
         <div className="relative border-r border-slate-200 bg-slate-50">
-          {HOURS.map((h) => (
+          {slots.map((slot) => (
             <div
-              key={`hr-${h}`}
+              key={`hr-${slot.offsetMinutes}`}
               className="flex items-start justify-end border-b border-slate-100 pr-2 pt-0.5 text-[10px] font-medium text-slate-500"
               style={{ height: `${CALENDAR_SLOT_HEIGHT_REM}rem` }}
             >
-              {String(h).padStart(2, '0')}:00
+              {slot.label}
             </div>
           ))}
         </div>
@@ -248,12 +252,12 @@ export function CalendarView({
                   </div>
                 ) : null}
 
-                {HOURS.map((h) => (
+                {slots.map((slot) => (
                   <button
-                    key={`slot-${dayIdx}-${h}`}
+                    key={`slot-${dayIdx}-${slot.offsetMinutes}`}
                     type="button"
-                    aria-label={`Criar atendimento em ${formatShort(d)} ${h}:00`}
-                    onClick={() => onSlotClick(d, h)}
+                    aria-label={`Criar atendimento em ${formatShort(d)} ${slot.label}`}
+                    onClick={() => onSlotClick(d, slot.offsetMinutes)}
                     className="block w-full border-b border-slate-100 transition-colors hover:bg-blue-100/40"
                     style={{ height: `${CALENDAR_SLOT_HEIGHT_REM}rem` }}
                   />
@@ -274,7 +278,7 @@ export function CalendarView({
                     5,
                     Math.round((blockEnd.getTime() - blockStart.getTime()) / 60_000),
                   )
-                  const pos = slotForAppointment(blockStart, durMin)
+                  const pos = slotForAppointment(blockStart, durMin, intervalMinutes)
                   if (pos.outOfBounds) return null
                   return (
                     <button
@@ -314,6 +318,7 @@ export function CalendarView({
                     key={assignment.block.id}
                     assignment={assignment}
                     overlapsBlock={overlappingApptIds.has(assignment.block.id)}
+                    intervalMinutes={intervalMinutes}
                   />
                 ))}
                 {lanes.overflow.length > 0 ? (
@@ -327,6 +332,7 @@ export function CalendarView({
           <CurrentTimeLine
             currentDayIndex={currentDayIndex}
             columnCount={range.days.length}
+            intervalMinutes={intervalMinutes}
           />
         </div>
       </div>
