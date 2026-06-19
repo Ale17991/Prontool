@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip, Calculator, Download } from 'lucide-react'
+import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip, Calculator, Download, Wallet } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
@@ -143,6 +143,12 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
             className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           >
             <Calculator className="h-3.5 w-3.5" /> Impostos cadastrados
+          </Link>
+          <Link
+            href="/analise/recebiveis-convenio"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            <Wallet className="h-3.5 w-3.5" /> Recebíveis convênio
           </Link>
         </div>
       </div>
