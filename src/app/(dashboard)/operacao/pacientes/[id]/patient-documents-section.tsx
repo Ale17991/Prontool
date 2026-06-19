@@ -53,6 +53,9 @@ export function PatientDocumentsSection({
   const [withCid, setWithCid] = useState(false)
   const [cidCode, setCidCode] = useState('')
   const [cidDescription, setCidDescription] = useState('')
+  const [paperSize, setPaperSize] = useState<'A4' | 'A5' | 'LETTER'>('A4')
+  const [fontSize, setFontSize] = useState(11)
+  const [templates, setTemplates] = useState<Array<{ id: string; name: string }>>([])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -72,6 +75,46 @@ export function PatientDocumentsSection({
     void load()
   }, [load])
 
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/document-templates', { cache: 'no-store' })
+        if (res.ok) {
+          const b = (await res.json()) as { rows: Array<{ id: string; name: string }> }
+          setTemplates(b.rows)
+        }
+      } catch {
+        /* modelos são opcionais */
+      }
+    })()
+  }, [])
+
+  async function applyTemplate(id: string) {
+    if (!id) return
+    setError(null)
+    try {
+      const res = await fetch(`/api/pacientes/${patientId}/documentos/modelo/${id}`, { cache: 'no-store' })
+      if (!res.ok) {
+        setError('Falha ao aplicar o modelo.')
+        return
+      }
+      const a = (await res.json()) as {
+        title: string
+        docType: DocType
+        body: string
+        paperSize: 'A4' | 'A5' | 'LETTER'
+        fontSize: number
+      }
+      setDocType(a.docType)
+      setTitle(a.title)
+      setBody(a.body)
+      setPaperSize(a.paperSize)
+      setFontSize(a.fontSize)
+    } catch {
+      setError('Falha ao aplicar o modelo.')
+    }
+  }
+
   async function emit() {
     setError(null)
     if (title.trim().length < 1 || body.trim().length < 1) {
@@ -89,6 +132,8 @@ export function PatientDocumentsSection({
           body: body.trim(),
           cid_code: withCid ? cidCode.trim() || null : null,
           cid_description: withCid ? cidDescription.trim() || null : null,
+          paper_size: paperSize,
+          font_size: fontSize,
         }),
       })
       if (!res.ok) {
@@ -115,14 +160,41 @@ export function PatientDocumentsSection({
           Documentos
         </CardTitle>
         {canWrite ? (
-          <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-3.5 w-3.5" /> Emitir
-          </Button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/configuracoes/modelos-documento"
+              className="text-[11px] font-semibold text-link hover:underline"
+            >
+              Modelos
+            </a>
+            <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
+              <Plus className="h-3.5 w-3.5" /> Emitir
+            </Button>
+          </div>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-3">
         {open && canWrite ? (
           <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50/50 p-3">
+            {templates.length > 0 ? (
+              <div>
+                <Label className="text-[11px] font-bold uppercase text-slate-500">
+                  Usar modelo (opcional)
+                </Label>
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    if (e.target.value) void applyTemplate(e.target.value)
+                  }}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Selecione um modelo…</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[160px_1fr]">
               <div>
                 <Label className="text-[11px] font-bold uppercase text-slate-500">Tipo</Label>
@@ -160,6 +232,33 @@ export function PatientDocumentsSection({
                 <Input placeholder="Descrição do CID (opcional)" value={cidDescription} onChange={(e) => setCidDescription(e.target.value)} />
               </div>
             ) : null}
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <Label className="text-[11px] font-bold uppercase text-slate-500">Papel</Label>
+                <Select value={paperSize} onValueChange={(v) => setPaperSize(v as 'A4' | 'A5' | 'LETTER')}>
+                  <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A4">A4</SelectItem>
+                    <SelectItem value="A5">A5</SelectItem>
+                    <SelectItem value="LETTER">Carta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px] font-bold uppercase text-slate-500">Fonte</Label>
+                <Input
+                  type="number"
+                  min={8}
+                  max={18}
+                  value={fontSize}
+                  onChange={(e) => {
+                    const n = Math.round(Number(e.target.value))
+                    if (Number.isFinite(n)) setFontSize(Math.min(18, Math.max(8, n)))
+                  }}
+                  className="w-20"
+                />
+              </div>
+            </div>
             {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
             <Button type="button" size="sm" onClick={emit} disabled={pending} className="gap-2">
               {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}

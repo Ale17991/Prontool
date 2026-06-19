@@ -50,7 +50,7 @@ export async function renderPatientDocumentPdf(
 
   const element = (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size={doc.paperSize} style={[styles.page, { fontSize: doc.fontSize }]}>
         <ClinicHeader
           profile={meta.clinicProfile ?? null}
           signedLogoUrl={meta.signedLogoUrl ?? null}
@@ -58,7 +58,7 @@ export async function renderPatientDocumentPdf(
         />
         <Text style={styles.title}>{doc.title}</Text>
         <Text style={styles.patient}>Paciente: {meta.patientName}</Text>
-        <Text style={styles.body}>{doc.body}</Text>
+        <Text style={[styles.body, { fontSize: doc.fontSize }]}>{doc.body}</Text>
         {doc.cidCode || doc.cidDescription ? (
           <Text style={styles.cid}>
             CID: {[doc.cidCode, doc.cidDescription].filter(Boolean).join(' — ')}

@@ -14,6 +14,9 @@ export interface CreatePatientDocumentInput {
   /** Backlog 1/10 — CID opcional. */
   cidCode?: string | null
   cidDescription?: string | null
+  /** Backlog 3 — parâmetros de impressão (default A4 / 11). */
+  paperSize?: 'A4' | 'A5' | 'LETTER'
+  fontSize?: number
 }
 
 export async function createPatientDocument(
@@ -35,6 +38,8 @@ export async function createPatientDocument(
       body,
       cid_code: input.cidCode?.trim() || null,
       cid_description: input.cidDescription?.trim() || null,
+      paper_size: input.paperSize ?? 'A4',
+      font_size: input.fontSize ?? 11,
       created_by: input.actorUserId,
     } as never)
     .select('id')

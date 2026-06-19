@@ -11,6 +11,8 @@ export interface PatientDocumentRow {
   cidDescription: string | null
   issuedAt: string | null
   createdAt: string
+  paperSize: 'A4' | 'A5' | 'LETTER'
+  fontSize: number
 }
 
 export async function listPatientDocuments(
@@ -19,7 +21,7 @@ export async function listPatientDocuments(
 ): Promise<PatientDocumentRow[]> {
   const { data, error } = await supabase
     .from('patient_documents' as never)
-    .select('id, doc_type, title, body, cid_code, cid_description, issued_at, created_at')
+    .select('id, doc_type, title, body, cid_code, cid_description, issued_at, created_at, paper_size, font_size')
     .eq('tenant_id', args.tenantId)
     .eq('patient_id', args.patientId)
     .is('deleted_at', null)
@@ -35,6 +37,8 @@ export async function listPatientDocuments(
     cid_description: string | null
     issued_at: string | null
     created_at: string
+    paper_size: 'A4' | 'A5' | 'LETTER'
+    font_size: number
   }>).map((r) => ({
     id: r.id,
     docType: r.doc_type,
@@ -44,6 +48,8 @@ export async function listPatientDocuments(
     cidDescription: r.cid_description,
     issuedAt: r.issued_at,
     createdAt: r.created_at,
+    paperSize: r.paper_size,
+    fontSize: r.font_size,
   }))
 }
 
@@ -53,7 +59,7 @@ export async function getPatientDocument(
 ): Promise<PatientDocumentRow | null> {
   const { data, error } = await supabase
     .from('patient_documents' as never)
-    .select('id, doc_type, title, body, cid_code, cid_description, issued_at, created_at')
+    .select('id, doc_type, title, body, cid_code, cid_description, issued_at, created_at, paper_size, font_size')
     .eq('tenant_id', args.tenantId)
     .eq('id', args.documentId)
     .is('deleted_at', null)
@@ -69,6 +75,8 @@ export async function getPatientDocument(
     cid_description: string | null
     issued_at: string | null
     created_at: string
+    paper_size: 'A4' | 'A5' | 'LETTER'
+    font_size: number
   }
   return {
     id: r.id,
@@ -79,5 +87,7 @@ export async function getPatientDocument(
     cidDescription: r.cid_description,
     issuedAt: r.issued_at,
     createdAt: r.created_at,
+    paperSize: r.paper_size,
+    fontSize: r.font_size,
   }
 }

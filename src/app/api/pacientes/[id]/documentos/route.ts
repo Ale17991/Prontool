@@ -15,6 +15,8 @@ const postSchema = z.object({
   body: z.string().trim().min(1).max(8000),
   cid_code: z.string().trim().max(16).nullable().optional(),
   cid_description: z.string().trim().max(300).nullable().optional(),
+  paper_size: z.enum(['A4', 'A5', 'LETTER']).optional(),
+  font_size: z.number().int().min(8).max(18).optional(),
 })
 
 export async function GET(
@@ -67,6 +69,8 @@ export async function POST(
       body: parsed.data.body,
       cidCode: parsed.data.cid_code ?? null,
       cidDescription: parsed.data.cid_description ?? null,
+      paperSize: parsed.data.paper_size,
+      fontSize: parsed.data.font_size,
     })
     return NextResponse.json({ id: result.id }, { status: 201 })
   } catch (err) {
