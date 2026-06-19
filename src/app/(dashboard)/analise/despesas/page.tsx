@@ -30,6 +30,7 @@ import {
 import { NewExpenseForm } from './new-expense-form'
 import { ReceiptList, type ReceiptItem } from './receipt-list'
 import { SoftDeleteExpenseButton } from './soft-delete-button'
+import { EditExpenseDialog } from './edit-expense-dialog'
 
 export const dynamic = 'force-dynamic'
 
@@ -297,7 +298,24 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                           </details>
                         </TableCell>
                         <TableCell className="text-right">
-                          {canDelete ? <SoftDeleteExpenseButton id={e.id} /> : null}
+                          <div className="flex items-center justify-end gap-1">
+                            {canWrite ? (
+                              <EditExpenseDialog
+                                expense={{
+                                  id: e.id,
+                                  category: e.category,
+                                  description: e.description,
+                                  supplier: e.supplier ?? null,
+                                  amount_cents: Number(e.amount_cents),
+                                  competence_date: e.competence_date,
+                                  recurring: e.recurring,
+                                  frequency: e.frequency ?? null,
+                                  isTaxLinked: !!(e as { tax_name?: string | null }).tax_name,
+                                }}
+                              />
+                            ) : null}
+                            {canDelete ? <SoftDeleteExpenseButton id={e.id} /> : null}
+                          </div>
                         </TableCell>
                       </TableRow>
                     )
