@@ -6,6 +6,7 @@ import { AddressEditor } from '../address-editor'
 import { IdentityEditor } from '../identity-editor'
 import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
 import { PatientStatusEditor } from './patient-status-editor'
+import { PatientPhotoEditor } from './patient-photo-editor'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
@@ -95,6 +96,12 @@ export function CadastroTab({
 }: Props) {
   return (
     <div className="space-y-6">
+      <PatientPhotoEditor
+        patientId={patientId}
+        photoUrl={patient.photoSignedUrl}
+        canEdit={canEditPatient}
+      />
+
       <IdentityEditor
         patientId={patientId}
         identity={{

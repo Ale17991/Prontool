@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
+import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
+import {
+  PATIENT_PHOTO_BUCKET,
+  PATIENT_PHOTO_SIGNED_URL_TTL_SECONDS,
+} from './photo'
 
 /**
  * Detalhe do paciente com PII descriptografada via RPC
@@ -44,6 +49,8 @@ export interface PatientDetail {
   status: 'ativo' | 'inativo' | 'obito'
   /** Backlog 1/11 — aviso por paciente (pop-up). */
   alertNote: string | null
+  /** Backlog 1/1 — URL assinada da foto (null se sem foto). */
+  photoSignedUrl: string | null
   createdAt: string
   updatedAt: string
   healthPlan: { id: string; name: string } | null
@@ -121,7 +128,7 @@ export async function getPatient(
   // com embed do health_plans pra pegar o nome numa única ida ao banco.
   const planResult = await supabase
     .from('patients')
-    .select('plan_id, status, alert_note, health_plans:plan_id ( id, name )')
+    .select('plan_id, status, alert_note, photo_path, health_plans:plan_id ( id, name )')
     .eq('tenant_id', args.tenantId)
     .eq('id', args.patientId)
     .maybeSingle()
@@ -129,8 +136,14 @@ export async function getPatient(
     | { id: string; name: string }
     | null
   const opsRow = planResult.data as
-    | { status?: string | null; alert_note?: string | null }
+    | { status?: string | null; alert_note?: string | null; photo_path?: string | null }
     | null
+  const photoSignedUrl = await createSignedUrlOrNull(
+    supabase,
+    PATIENT_PHOTO_BUCKET,
+    opsRow?.photo_path ?? null,
+    PATIENT_PHOTO_SIGNED_URL_TTL_SECONDS,
+  )
 
   const patient: PatientDetail = {
     id: row.id,
@@ -162,6 +175,7 @@ export async function getPatient(
     anonymizedAt: row.anonymized_at,
     status: (opsRow?.status as 'ativo' | 'inativo' | 'obito' | undefined) ?? 'ativo',
     alertNote: opsRow?.alert_note ?? null,
+    photoSignedUrl,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     healthPlan: hp,

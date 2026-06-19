@@ -2848,6 +2848,8 @@ export type Database = {
           address_street_enc: string | null
           alert_note: string | null
           status: string
+          photo_path: string | null
+          photo_uploaded_at: string | null
           anonymized_at: string | null
           birth_date_enc: string | null
           cpf_enc: string | null
@@ -2882,6 +2884,8 @@ export type Database = {
           address_street_enc?: string | null
           alert_note?: string | null
           status?: string
+          photo_path?: string | null
+          photo_uploaded_at?: string | null
           anonymized_at?: string | null
           birth_date_enc?: string | null
           cpf_enc?: string | null
@@ -2916,6 +2920,8 @@ export type Database = {
           address_street_enc?: string | null
           alert_note?: string | null
           status?: string
+          photo_path?: string | null
+          photo_uploaded_at?: string | null
           anonymized_at?: string | null
           birth_date_enc?: string | null
           cpf_enc?: string | null

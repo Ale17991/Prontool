@@ -30,6 +30,8 @@ interface Props {
   onPrint: () => void
   /** Ver valores monetários (recepção não). */
   canViewFinancialValues: boolean
+  /** Backlog 1/1 — URL assinada da foto do paciente. */
+  photoUrl?: string | null
 }
 
 function bmiClass(bmi: number | null): {
@@ -60,6 +62,7 @@ export function PatientQuickView({
   onSwitchToCadastro,
   onPrint,
   canViewFinancialValues,
+  photoUrl,
 }: Props) {
   const { identity, contact, plan, allergies, diagnoses, lastVital, financial, permissions } =
     snapshot
@@ -92,9 +95,18 @@ export function PatientQuickView({
       <Card>
         <CardContent className="space-y-3 p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-black text-white">
-              {initial}
-            </div>
+            {photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={photoUrl}
+                alt="Foto do paciente"
+                className="h-12 w-12 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-black text-white">
+                {initial}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-black text-slate-900">
                 {identity.fullName || '—'}

@@ -16,6 +16,7 @@ interface Props {
   onSwitchToCadastro: () => void
   onPrint: () => void
   canViewFinancialValues: boolean
+  photoUrl?: string | null
 }
 
 /**
@@ -30,6 +31,7 @@ export function MobileQuickViewHeader({
   onSwitchToCadastro,
   onPrint,
   canViewFinancialValues,
+  photoUrl,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
   const { identity, allergies } = snapshot
@@ -48,9 +50,18 @@ export function MobileQuickViewHeader({
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         )}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-base font-black text-white">
-          {identity.isAnonymized ? <User className="h-4 w-4" /> : initial}
-        </div>
+        {photoUrl && !identity.isAnonymized ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photoUrl}
+            alt="Foto do paciente"
+            className="h-10 w-10 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-base font-black text-white">
+            {identity.isAnonymized ? <User className="h-4 w-4" /> : initial}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-slate-900">
             {identity.isAnonymized ? '[anonimizado]' : identity.fullName || '—'}
@@ -98,6 +109,7 @@ export function MobileQuickViewHeader({
               onPrint()
             }}
             canViewFinancialValues={canViewFinancialValues}
+            photoUrl={photoUrl}
           />
         </div>
       ) : null}
