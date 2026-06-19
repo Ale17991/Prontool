@@ -41,6 +41,10 @@ export interface ClinicProfile {
   publicBookingEnabled: boolean
   /** Período (minutos) que cada linha da agenda representa. Default 60. */
   calendarSlotIntervalMinutes: number
+  /** Horário de funcionamento — abertura, 'HH:MM'. Default '07:00'. */
+  calendarOpenTime: string
+  /** Horário de funcionamento — fechamento (exclusivo), 'HH:MM'. Default '22:00'. */
+  calendarCloseTime: string
   updatedAt: string
 }
 

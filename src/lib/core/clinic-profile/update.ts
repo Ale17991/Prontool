@@ -85,6 +85,15 @@ export const clinicProfilePatchSchema = z.object({
   publicBookingSlug: z.string().nullable().optional(),
   /** Período (minutos) que cada linha da agenda representa (1–1440). */
   calendarSlotIntervalMinutes: z.number().int().min(1).max(1440).optional(),
+  /** Horário de funcionamento — abertura/fechamento, 'HH:MM'. */
+  calendarOpenTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido (HH:MM)')
+    .optional(),
+  calendarCloseTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido (HH:MM)')
+    .optional(),
 })
 
 export type ClinicProfilePatch = z.infer<typeof clinicProfilePatchSchema>
@@ -265,6 +274,56 @@ export async function updateClinicProfile(
         user_agent: context.userAgent ?? null,
         result: 'success',
       })
+      sideEffectWrite = true
+    }
+  }
+
+  // Horário de funcionamento (janela do calendário). Tratado junto porque a
+  // CHECK do banco exige abertura < fechamento — validamos com o valor atual
+  // do campo que não veio no patch.
+  if ('calendarOpenTime' in patch || 'calendarCloseTime' in patch) {
+    const newOpen = patch.calendarOpenTime ?? current.calendarOpenTime
+    const newClose = patch.calendarCloseTime ?? current.calendarCloseTime
+    if (newOpen >= newClose) {
+      throw new ValidationError('Horário de abertura deve ser antes do fechamento.', {
+        field: 'calendarOpenTime',
+      })
+    }
+    type ProfileUpdate = Database['public']['Tables']['tenant_clinic_profile']['Update']
+    const winUpdate: ProfileUpdate = {}
+    const winAudit: Array<{ field: string; oldValue: string; newValue: string }> = []
+    if (newOpen !== current.calendarOpenTime) {
+      winUpdate.calendar_open_time = newOpen
+      winAudit.push({ field: 'calendar_open_time', oldValue: current.calendarOpenTime, newValue: newOpen })
+    }
+    if (newClose !== current.calendarCloseTime) {
+      winUpdate.calendar_close_time = newClose
+      winAudit.push({ field: 'calendar_close_time', oldValue: current.calendarCloseTime, newValue: newClose })
+    }
+    if (winAudit.length > 0) {
+      const { error: winErr } = await supabase
+        .from('tenant_clinic_profile')
+        .update(winUpdate)
+        .eq('tenant_id', tenantId)
+      if (winErr) {
+        throw new Error(`updateClinicProfile calendar window update failed: ${winErr.message}`)
+      }
+      for (const a of winAudit) {
+        await supabase.from('audit_log').insert({
+          tenant_id: tenantId,
+          actor_id: actorId,
+          actor_label: null,
+          entity: 'tenant_clinic_profile',
+          entity_id: tenantId,
+          field: a.field,
+          old_value: a.oldValue,
+          new_value: a.newValue,
+          reason: context.reason ?? 'updated via /api/configuracoes/clinica PUT',
+          ip: context.ip ?? null,
+          user_agent: context.userAgent ?? null,
+          result: 'success',
+        })
+      }
       sideEffectWrite = true
     }
   }

@@ -50,9 +50,18 @@ function syntheticEmptyRow(tenantId: string): Row {
     reminder_last_run_at: null,
     // Default consistente com a migration 0131 (NOT NULL DEFAULT 60).
     calendar_slot_interval_minutes: 60,
+    // Defaults consistentes com a migration 0133 (07:00–22:00).
+    calendar_open_time: '07:00:00',
+    calendar_close_time: '22:00:00',
     created_at: now,
     updated_at: now,
   }
+}
+
+/** TIME do banco ('HH:MM:SS') → 'HH:MM' para a UI/domínio. */
+function timeToHhmm(t: string | null | undefined, fallback: string): string {
+  if (!t || t.length < 5) return fallback
+  return t.slice(0, 5)
 }
 
 function rowToProfile(
@@ -91,6 +100,8 @@ function rowToProfile(
     publicBookingSlug: row.public_booking_slug,
     publicBookingEnabled: row.public_booking_enabled,
     calendarSlotIntervalMinutes: row.calendar_slot_interval_minutes ?? 60,
+    calendarOpenTime: timeToHhmm(row.calendar_open_time, '07:00'),
+    calendarCloseTime: timeToHhmm(row.calendar_close_time, '22:00'),
     updatedAt: row.updated_at,
   }
 }

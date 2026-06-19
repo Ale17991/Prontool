@@ -23,6 +23,11 @@ import {
 } from '@/lib/core/appointments/list-week'
 import { listScheduleBlocks } from '@/lib/core/schedule-blocks/list'
 import { syncGoogleBusyForAgenda } from '@/lib/core/integrations/google-calendar/busy-sync'
+import {
+  DEFAULT_DAY_END_MINUTE,
+  DEFAULT_DAY_START_MINUTE,
+  hhmmToMinutes,
+} from '@/lib/utils/calendar'
 import { ModeToggle } from './mode-toggle'
 import { CalendarShell } from './calendar-shell'
 import { FilterBarBlock } from './filter-bar-block'
@@ -96,18 +101,28 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
 
   const encryptionKey = process.env.PATIENT_DATA_ENCRYPTION_KEY
 
-  // Intervalo de slot da agenda (config da clínica). Antes da migration 0131 /
-  // antes da row existir, cai no default 60 (grade horária clássica).
+  // Config da agenda (clínica): intervalo de slot + janela de funcionamento.
+  // Defaults (60 min, 07:00–22:00) preservam o comportamento clássico antes
+  // das migrations 0131/0133 ou enquanto a row não existe.
   let slotIntervalMinutes = 60
+  let dayStartMinute = DEFAULT_DAY_START_MINUTE
+  let dayEndMinute = DEFAULT_DAY_END_MINUTE
   {
     const { data: profileRow } = await supabase
       .from('tenant_clinic_profile')
-      .select('calendar_slot_interval_minutes')
+      .select('calendar_slot_interval_minutes, calendar_open_time, calendar_close_time')
       .eq('tenant_id', session.tenantId)
       .maybeSingle()
-    const v = (profileRow as { calendar_slot_interval_minutes?: number | null } | null)
-      ?.calendar_slot_interval_minutes
-    if (typeof v === 'number' && v >= 5) slotIntervalMinutes = v
+    const row = profileRow as {
+      calendar_slot_interval_minutes?: number | null
+      calendar_open_time?: string | null
+      calendar_close_time?: string | null
+    } | null
+    if (typeof row?.calendar_slot_interval_minutes === 'number' && row.calendar_slot_interval_minutes >= 1) {
+      slotIntervalMinutes = row.calendar_slot_interval_minutes
+    }
+    dayStartMinute = hhmmToMinutes(row?.calendar_open_time, DEFAULT_DAY_START_MINUTE)
+    dayEndMinute = hhmmToMinutes(row?.calendar_close_time, DEFAULT_DAY_END_MINUTE)
   }
 
   if (mode === 'cal') {
@@ -195,6 +210,8 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
               scheduleBlocks={scheduleBlocks}
               canManageBlocks={true}
               intervalMinutes={slotIntervalMinutes}
+              dayStartMinute={dayStartMinute}
+              dayEndMinute={dayEndMinute}
             />
           </div>
         </AppointmentDetailHost>

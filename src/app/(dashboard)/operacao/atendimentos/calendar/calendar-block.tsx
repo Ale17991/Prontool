@@ -23,6 +23,9 @@ interface Props {
   overlapsBlock?: boolean
   /** Intervalo (minutos) que cada linha representa — escala a posição/altura. */
   intervalMinutes?: number
+  /** Janela do dia (minutos desde a meia-noite). */
+  dayStartMinute?: number
+  dayEndMinute?: number
 }
 
 /**
@@ -34,9 +37,21 @@ interface Props {
  * expande para a largura total da coluna para acomodar varios atendimentos
  * empilhados no mesmo horario (cluster com lanes estreitas).
  */
-export function CalendarBlock({ assignment, overlapsBlock = false, intervalMinutes }: Props) {
+export function CalendarBlock({
+  assignment,
+  overlapsBlock = false,
+  intervalMinutes,
+  dayStartMinute,
+  dayEndMinute,
+}: Props) {
   const a = assignment.block.appointment
-  const pos = slotForAppointment(assignment.block.start, a.durationMinutes, intervalMinutes)
+  const pos = slotForAppointment(
+    assignment.block.start,
+    a.durationMinutes,
+    intervalMinutes,
+    dayStartMinute,
+    dayEndMinute,
+  )
   if (pos.outOfBounds) return null
 
   const widthPercent = 100 / assignment.totalLanes

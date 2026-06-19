@@ -18,32 +18,46 @@ export const MAX_LANES = 4
 export const DEFAULT_DURATION_MINUTES = 30
 /** Intervalo (minutos) que cada linha representa quando a clínica não configurou. */
 export const DEFAULT_SLOT_INTERVAL_MINUTES = 60
+/** Janela padrão do dia (minutos desde a meia-noite) — 07:00 às 22:00. */
+export const DEFAULT_DAY_START_MINUTE = CALENDAR_HOUR_START * 60
+export const DEFAULT_DAY_END_MINUTE = CALENDAR_HOUR_END * 60
 
-/** Total de minutos visíveis na grade [START, END). */
-const CALENDAR_SPAN_MINUTES = (CALENDAR_HOUR_END - CALENDAR_HOUR_START) * 60
+/** 'HH:MM' → minutos desde a meia-noite; usa `fallback` se inválido. */
+export function hhmmToMinutes(hhmm: string | null | undefined, fallback: number): number {
+  if (!hhmm) return fallback
+  const m = /^(\d{1,2}):(\d{2})/.exec(hhmm)
+  if (!m) return fallback
+  const mins = Number(m[1]) * 60 + Number(m[2])
+  return Number.isFinite(mins) ? mins : fallback
+}
 
 export interface CalendarSlotRow {
-  /** Minutos desde CALENDAR_HOUR_START (0, interval, 2*interval, …). */
+  /** Minutos desde o início da janela (0, interval, 2*interval, …). */
   offsetMinutes: number
-  /** Rótulo HH:MM do início da linha. */
+  /** Rótulo HH:MM do início da linha (horário absoluto). */
   label: string
 }
 
 /**
- * Linhas da grade para um dado intervalo. Cada linha cobre `intervalMinutes`
- * e mantém a mesma altura visual (CALENDAR_SLOT_HEIGHT_REM); o que muda é o
- * período representado. Default 60 reproduz a grade horária clássica.
+ * Linhas da grade para um intervalo e uma janela [startMinute, endMinute).
+ * Cada linha cobre `intervalMinutes` e mantém a mesma altura visual
+ * (CALENDAR_SLOT_HEIGHT_REM); o que muda é o período representado. Defaults
+ * (60 min, 07:00–22:00) reproduzem a grade horária clássica.
  */
 export function buildCalendarSlots(
   intervalMinutes: number = DEFAULT_SLOT_INTERVAL_MINUTES,
+  startMinute: number = DEFAULT_DAY_START_MINUTE,
+  endMinute: number = DEFAULT_DAY_END_MINUTE,
 ): CalendarSlotRow[] {
   const step = clampInterval(intervalMinutes)
-  const count = Math.ceil(CALENDAR_SPAN_MINUTES / step)
+  const span = Math.max(0, endMinute - startMinute)
+  const count = Math.ceil(span / step)
   const rows: CalendarSlotRow[] = []
   for (let i = 0; i < count; i++) {
     const offsetMinutes = i * step
-    const h = CALENDAR_HOUR_START + Math.floor(offsetMinutes / 60)
-    const m = offsetMinutes % 60
+    const abs = startMinute + offsetMinutes
+    const h = Math.floor(abs / 60)
+    const m = abs % 60
     rows.push({
       offsetMinutes,
       label: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
@@ -119,13 +133,14 @@ export function slotForAppointment(
   at: Date,
   durationMinutes: number,
   intervalMinutes: number = DEFAULT_SLOT_INTERVAL_MINUTES,
+  startMinute: number = DEFAULT_DAY_START_MINUTE,
+  endMinute: number = DEFAULT_DAY_END_MINUTE,
 ): SlotPosition {
   const h = at.getHours()
   const m = at.getMinutes()
-  const startsBefore = h < CALENDAR_HOUR_START
-  const startsAfter = h >= CALENDAR_HOUR_END
-  const outOfBounds = startsBefore || startsAfter
-  const offsetMinutes = (h - CALENDAR_HOUR_START) * 60 + m
+  const totalMin = h * 60 + m
+  const outOfBounds = totalMin < startMinute || totalMin >= endMinute
+  const offsetMinutes = totalMin - startMinute
   const perMin = remPerMinute(intervalMinutes)
   const topRem = offsetMinutes * perMin
   const minHeightMin = 15 // bloco minimo de 15 min para legibilidade

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import {
-  CALENDAR_HOUR_END,
-  CALENDAR_HOUR_START,
+  DEFAULT_DAY_END_MINUTE,
+  DEFAULT_DAY_START_MINUTE,
   DEFAULT_SLOT_INTERVAL_MINUTES,
   remPerMinute,
 } from '@/lib/utils/calendar'
@@ -15,6 +15,9 @@ interface Props {
   columnCount: number
   /** Intervalo (minutos) que cada linha representa. */
   intervalMinutes?: number
+  /** Janela do dia (minutos desde a meia-noite). */
+  dayStartMinute?: number
+  dayEndMinute?: number
 }
 
 /**
@@ -26,6 +29,8 @@ export function CurrentTimeLine({
   currentDayIndex,
   columnCount,
   intervalMinutes = DEFAULT_SLOT_INTERVAL_MINUTES,
+  dayStartMinute = DEFAULT_DAY_START_MINUTE,
+  dayEndMinute = DEFAULT_DAY_END_MINUTE,
 }: Props) {
   const [now, setNow] = useState<Date>(() => new Date())
 
@@ -36,11 +41,10 @@ export function CurrentTimeLine({
 
   if (currentDayIndex === null || currentDayIndex < 0) return null
 
-  const hour = now.getHours()
-  const minute = now.getMinutes()
-  if (hour < CALENDAR_HOUR_START || hour >= CALENDAR_HOUR_END) return null
+  const totalMin = now.getHours() * 60 + now.getMinutes()
+  if (totalMin < dayStartMinute || totalMin >= dayEndMinute) return null
 
-  const minutesFromStart = (hour - CALENDAR_HOUR_START) * 60 + minute
+  const minutesFromStart = totalMin - dayStartMinute
   const topRem = minutesFromStart * remPerMinute(intervalMinutes)
   const colWidthPercent = 100 / columnCount
   const leftPercent = currentDayIndex * colWidthPercent

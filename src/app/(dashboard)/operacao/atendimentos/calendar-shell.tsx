@@ -30,6 +30,9 @@ interface Props {
   canManageBlocks?: boolean
   /** Período (minutos) que cada linha da agenda representa. */
   intervalMinutes?: number
+  /** Janela de funcionamento (minutos desde a meia-noite). */
+  dayStartMinute?: number
+  dayEndMinute?: number
 }
 
 // UI status → predicado sobre o effectiveStatus do AppointmentWeekRow.
@@ -47,6 +50,8 @@ export function CalendarShell({
   scheduleBlocks = [],
   canManageBlocks = false,
   intervalMinutes,
+  dayStartMinute,
+  dayEndMinute,
 }: Props) {
   const { filters, range, setFilter, setFilters, clear } = useCalendarFilters()
 
@@ -115,6 +120,8 @@ export function CalendarShell({
           scheduleBlocks={scheduleBlocks}
           canManageBlocks={canManageBlocks}
           intervalMinutes={intervalMinutes}
+          dayStartMinute={dayStartMinute}
+          dayEndMinute={dayEndMinute}
         />
       )}
     </div>

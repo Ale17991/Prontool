@@ -40,6 +40,8 @@ interface FormState {
   publicBookingSlug: string
   intervalAmount: number
   intervalUnit: 'min' | 'hora'
+  calendarOpenTime: string
+  calendarCloseTime: string
 }
 
 function profileToForm(p: ClinicProfile): FormState {
@@ -62,6 +64,8 @@ function profileToForm(p: ClinicProfile): FormState {
     techRegistration: p.techResponsible.registration ?? '',
     publicBookingSlug: p.publicBookingSlug ?? '',
     ...deriveInterval(p.calendarSlotIntervalMinutes ?? 60),
+    calendarOpenTime: p.calendarOpenTime ?? '07:00',
+    calendarCloseTime: p.calendarCloseTime ?? '22:00',
   }
 }
 
@@ -96,6 +100,8 @@ function formToPatch(s: FormState) {
     },
     publicBookingSlug: s.publicBookingSlug.trim() || null,
     calendarSlotIntervalMinutes: intervalToMinutes(s.intervalAmount, s.intervalUnit),
+    calendarOpenTime: s.calendarOpenTime,
+    calendarCloseTime: s.calendarCloseTime,
   }
 }
 
@@ -523,6 +529,41 @@ export function ClinicProfileForm({ initial }: Props) {
             <p className="mt-1 text-[11px] text-slate-500">
               Período que cada linha representa. Ex.: 30 minutos, 1 hora, 2 horas.
               Equivale a {intervalToMinutes(form.intervalAmount, form.intervalUnit)} min por linha.
+            </p>
+          </div>
+
+          <div>
+            <Label>Horário de funcionamento</Label>
+            <div className="flex items-center gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="calendarOpenTime" className="text-[11px] text-slate-500">
+                  Abertura
+                </Label>
+                <Input
+                  id="calendarOpenTime"
+                  type="time"
+                  value={form.calendarOpenTime}
+                  onChange={(e) => update('calendarOpenTime', e.target.value)}
+                  className="w-32"
+                />
+              </div>
+              <span className="mt-5 text-slate-400">até</span>
+              <div className="space-y-1">
+                <Label htmlFor="calendarCloseTime" className="text-[11px] text-slate-500">
+                  Fechamento
+                </Label>
+                <Input
+                  id="calendarCloseTime"
+                  type="time"
+                  value={form.calendarCloseTime}
+                  onChange={(e) => update('calendarCloseTime', e.target.value)}
+                  className="w-32"
+                />
+              </div>
+            </div>
+            <p className="mt-1 text-[11px] text-slate-500">
+              Define a faixa de horas exibida no calendário (dia/semana). A abertura
+              deve ser antes do fechamento.
             </p>
           </div>
         </CardContent>

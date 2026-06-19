@@ -6,8 +6,9 @@ import { addMinutes, isSameDay } from 'date-fns'
 import { Lock, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  CALENDAR_HOUR_START,
   CALENDAR_SLOT_HEIGHT_REM,
+  DEFAULT_DAY_END_MINUTE,
+  DEFAULT_DAY_START_MINUTE,
   DEFAULT_SLOT_INTERVAL_MINUTES,
   assignLanes,
   buildCalendarSlots,
@@ -29,6 +30,9 @@ interface Props {
   canManageBlocks?: boolean
   /** Período (minutos) que cada linha representa. Default 60 = grade horária. */
   intervalMinutes?: number
+  /** Janela de funcionamento (minutos desde a meia-noite). Default 07:00–22:00. */
+  dayStartMinute?: number
+  dayEndMinute?: number
 }
 
 const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -39,10 +43,15 @@ export function CalendarView({
   scheduleBlocks = [],
   canManageBlocks = false,
   intervalMinutes = DEFAULT_SLOT_INTERVAL_MINUTES,
+  dayStartMinute = DEFAULT_DAY_START_MINUTE,
+  dayEndMinute = DEFAULT_DAY_END_MINUTE,
 }: Props) {
-  // Linhas da grade para o intervalo configurado. Cada linha mantém a altura
-  // (CALENDAR_SLOT_HEIGHT_REM) e cobre `intervalMinutes`.
-  const slots = useMemo(() => buildCalendarSlots(intervalMinutes), [intervalMinutes])
+  // Linhas da grade para o intervalo + janela configurados. Cada linha mantém a
+  // altura (CALENDAR_SLOT_HEIGHT_REM) e cobre `intervalMinutes`.
+  const slots = useMemo(
+    () => buildCalendarSlots(intervalMinutes, dayStartMinute, dayEndMinute),
+    [intervalMinutes, dayStartMinute, dayEndMinute],
+  )
   const router = useRouter()
   const today = useMemo(() => new Date(), [])
   const [cancellingId, startCancelTransition] = useTransition()
@@ -108,8 +117,8 @@ export function CalendarView({
 
   function onSlotClick(day: Date, offsetMinutes: number) {
     const dt = new Date(day)
-    dt.setHours(CALENDAR_HOUR_START, 0, 0, 0)
-    dt.setMinutes(dt.getMinutes() + offsetMinutes)
+    dt.setHours(0, 0, 0, 0)
+    dt.setMinutes(dayStartMinute + offsetMinutes)
     const at = toDateTimeLocalValue(dt)
     router.push(`/operacao/atendimentos/novo?at=${encodeURIComponent(at)}`)
   }
@@ -278,7 +287,13 @@ export function CalendarView({
                     5,
                     Math.round((blockEnd.getTime() - blockStart.getTime()) / 60_000),
                   )
-                  const pos = slotForAppointment(blockStart, durMin, intervalMinutes)
+                  const pos = slotForAppointment(
+                    blockStart,
+                    durMin,
+                    intervalMinutes,
+                    dayStartMinute,
+                    dayEndMinute,
+                  )
                   if (pos.outOfBounds) return null
                   return (
                     <button
@@ -319,6 +334,8 @@ export function CalendarView({
                     assignment={assignment}
                     overlapsBlock={overlappingApptIds.has(assignment.block.id)}
                     intervalMinutes={intervalMinutes}
+                    dayStartMinute={dayStartMinute}
+                    dayEndMinute={dayEndMinute}
                   />
                 ))}
                 {lanes.overflow.length > 0 ? (
@@ -333,6 +350,8 @@ export function CalendarView({
             currentDayIndex={currentDayIndex}
             columnCount={range.days.length}
             intervalMinutes={intervalMinutes}
+            dayStartMinute={dayStartMinute}
+            dayEndMinute={dayEndMinute}
           />
         </div>
       </div>
