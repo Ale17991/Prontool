@@ -42,6 +42,7 @@ import {
   CreateParticipantsEditor,
   type CreateParticipant,
 } from './create-participants-editor'
+import { QuickCreatePatientDialog } from './quick-create-patient-dialog'
 
 export interface FormOption {
   id: string
@@ -553,10 +554,14 @@ export function NewAppointmentForm({
       className="grid grid-cols-1 gap-4 md:grid-cols-2"
     >
       <div className="space-y-1.5 md:col-span-2">
-        <Label htmlFor="patient_id">Paciente</Label>
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="patient_id">Paciente</Label>
+          <QuickCreatePatientDialog plans={plans} onCreated={setPatient} disabled={pending} />
+        </div>
         <PatientTypeahead
           id="patient_id"
           value={patient?.id ?? null}
+          initial={patient}
           onChange={setPatient}
           disabled={pending}
         />
