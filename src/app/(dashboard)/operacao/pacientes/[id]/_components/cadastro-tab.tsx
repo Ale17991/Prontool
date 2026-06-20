@@ -9,6 +9,7 @@ import { PatientStatusEditor } from './patient-status-editor'
 import { PatientPhotoEditor } from './patient-photo-editor'
 import { PatientDocumentsSection } from '../patient-documents-section'
 import { EyeglassRxSection } from '../eyeglass-rx-section'
+import { OphthalExamSection } from '../ophthal-exam-section'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
@@ -208,6 +209,8 @@ export function CadastroTab({
       />
 
       <PatientDocumentsSection patientId={patientId} canWrite={canWriteClinical} />
+
+      <OphthalExamSection patientId={patientId} canWrite={canWriteClinical} />
 
       <EyeglassRxSection patientId={patientId} canWrite={canWriteClinical} />
 
