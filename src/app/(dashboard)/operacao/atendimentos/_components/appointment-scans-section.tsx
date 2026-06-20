@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Barcode, Camera, Keyboard, Loader2, ScanLine } from 'lucide-react'
+import { AlertTriangle, Barcode, Camera, Keyboard, Loader2, Printer, ScanLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -155,11 +155,23 @@ export function AppointmentScansSection({
         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">
           <ScanLine className="h-3.5 w-3.5" /> Materiais escaneados
         </span>
-        {canManage ? (
-          <Button type="button" size="sm" variant="outline" className="h-7 gap-1.5 px-2 text-xs" onClick={() => { setOpen(true); setMode('barcode'); setMsg(null); setError(null) }}>
-            <Barcode className="h-3.5 w-3.5" /> Escanear material
-          </Button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {rows.length > 0 ? (
+            <a
+              href={`/api/atendimentos/${appointmentId}/etiqueta/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-7 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <Printer className="h-3.5 w-3.5" /> Etiqueta
+            </a>
+          ) : null}
+          {canManage ? (
+            <Button type="button" size="sm" variant="outline" className="h-7 gap-1.5 px-2 text-xs" onClick={() => { setOpen(true); setMode('barcode'); setMsg(null); setError(null) }}>
+              <Barcode className="h-3.5 w-3.5" /> Escanear material
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {scanRequired && rows.filter((r) => r.status === 'confirmed').length === 0 ? (

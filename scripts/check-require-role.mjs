@@ -45,6 +45,7 @@ const AUTH_EXEMPT_PREFIXES = [
   'public/',            // booking público (feature 017 — slug + IP-hash + Turnstile)
   'cron/',              // Vercel Cron (feature 018 — Bearer ${CRON_SECRET})
   'paciente/',          // portal do paciente (feature 030 — cookie HMAC + rate-limit; o '/' NÃO isenta 'pacientes/')
+  'verificar/',         // verificação pública de documento por QR (backlog 1/4/3 — token opaco, sem PII)
 ]
 
 const HTTP_VERB_RE = /export\s+(?:async\s+)?function\s+(GET|POST|PATCH|PUT|DELETE|HEAD|OPTIONS)\s*\(/g
