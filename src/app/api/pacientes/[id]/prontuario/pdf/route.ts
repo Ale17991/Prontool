@@ -18,6 +18,8 @@ const querySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use ISO AAAA-MM-DD')
     .optional(),
+  /** Backlog 1/7 — quando presente, abre inline (pré-visualização) em vez de baixar. */
+  inline: z.string().optional(),
 })
 
 export async function GET(
@@ -58,11 +60,12 @@ export async function GET(
     const stamp = new Date().toISOString().slice(0, 10)
     const filename = `prontuario-${slug}-${stamp}.pdf`
 
+    const disposition = parsed.data.inline ? 'inline' : 'attachment'
     return new Response(new Uint8Array(buf), {
       status: 200,
       headers: {
         'content-type': 'application/pdf',
-        'content-disposition': `attachment; filename="${filename}"`,
+        'content-disposition': `${disposition}; filename="${filename}"`,
         'cache-control': 'no-store',
       },
     })

@@ -160,7 +160,9 @@ export function PatientDetailLayout({
   )
 
   const handlePrint = useCallback(() => {
-    window.open(`/api/pacientes/${patientId}/prontuario/pdf`, '_blank')
+    // Backlog 1/7 — abre em nova aba como pré-visualização (o visualizador do
+    // navegador permite baixar/imprimir a partir daí).
+    window.open(`/api/pacientes/${patientId}/prontuario/pdf?inline=1`, '_blank')
   }, [patientId])
 
   const isAnonymized = snapshot.identity.isAnonymized
