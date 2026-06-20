@@ -10,6 +10,7 @@ import { PatientPhotoEditor } from './patient-photo-editor'
 import { PatientDocumentsSection } from '../patient-documents-section'
 import { EyeglassRxSection } from '../eyeglass-rx-section'
 import { OphthalExamSection } from '../ophthal-exam-section'
+import { PatientIntakeLink } from '../patient-intake-link'
 import { PatientPlanEditor } from '../patient-plan-editor'
 import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
@@ -142,6 +143,8 @@ export function CadastroTab({
         alertNote={patient.alertNote}
         canEdit={canEditPatient}
       />
+
+      <PatientIntakeLink patientId={patientId} canEdit={canEditPatient} />
 
       <Card>
         <CardHeader>
