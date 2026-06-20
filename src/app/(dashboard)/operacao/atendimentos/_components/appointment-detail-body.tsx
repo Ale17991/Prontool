@@ -39,6 +39,7 @@ import { CancelAppointmentForm } from '../[id]/cancel-form'
 import { PrescreverLauncher } from '../[id]/prescrever-launcher'
 import { TissGuiaLauncher } from '../[id]/tiss-guia-launcher'
 import { ProcedureParticipants } from './procedure-participants'
+import { AppointmentAttachmentsSection } from './appointment-attachments-section'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -374,6 +375,19 @@ export function AppointmentDetailBody({
                 />
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {appointment.id ? (
+        <Card>
+          <CardContent className="pt-6">
+            <AppointmentAttachmentsSection
+              appointmentId={appointment.id}
+              canManage={
+                role === 'admin' || role === 'recepcionista' || role === 'profissional_saude'
+              }
+            />
           </CardContent>
         </Card>
       ) : null}
