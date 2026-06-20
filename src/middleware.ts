@@ -137,6 +137,9 @@ export async function middleware(req: NextRequest) {
     // Backlog 1/3 — auto-cadastro do paciente: página + API públicas (token).
     pathname.startsWith('/completar-cadastro') ||
     pathname.startsWith('/api/public/') ||
+    // Backlog 1/4/3 — verificação pública de documento (QR).
+    pathname.startsWith('/verificar') ||
+    pathname.startsWith('/api/verificar') ||
     // Feature 030 — portal do paciente: público, com sessão própria (cookie
     // HMAC verificado na página/endpoint, não aqui). O prefixo com '/' em
     // /api/paciente/ evita capturar /api/pacientes (staff, requireRole).
