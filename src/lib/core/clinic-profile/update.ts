@@ -94,6 +94,8 @@ export const clinicProfilePatchSchema = z.object({
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido (HH:MM)')
     .optional(),
+  /** Backlog 1/4/3 — exige escanear material cirúrgico. */
+  surgicalScanRequired: z.boolean().optional(),
 })
 
 export type ClinicProfilePatch = z.infer<typeof clinicProfilePatchSchema>
@@ -324,6 +326,37 @@ export async function updateClinicProfile(
           result: 'success',
         })
       }
+      sideEffectWrite = true
+    }
+  }
+
+  // Backlog 1/4/3 — flag boolean de escaneamento obrigatório (fora do flatten
+  // string-based; coluna ausente nos tipos gerados, daí o cast).
+  if ('surgicalScanRequired' in patch && patch.surgicalScanRequired !== undefined) {
+    const newVal = patch.surgicalScanRequired
+    const oldVal = current.surgicalScanRequired
+    if (newVal !== oldVal) {
+      const { error: scanErr } = await supabase
+        .from('tenant_clinic_profile')
+        .update({ surgical_scan_required: newVal } as never)
+        .eq('tenant_id', tenantId)
+      if (scanErr) {
+        throw new Error(`updateClinicProfile surgical_scan_required update failed: ${scanErr.message}`)
+      }
+      await supabase.from('audit_log').insert({
+        tenant_id: tenantId,
+        actor_id: actorId,
+        actor_label: null,
+        entity: 'tenant_clinic_profile',
+        entity_id: tenantId,
+        field: 'surgical_scan_required',
+        old_value: String(oldVal),
+        new_value: String(newVal),
+        reason: context.reason ?? 'updated via /api/configuracoes/clinica PUT',
+        ip: context.ip ?? null,
+        user_agent: context.userAgent ?? null,
+        result: 'success',
+      })
       sideEffectWrite = true
     }
   }

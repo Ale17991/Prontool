@@ -45,6 +45,8 @@ export interface ClinicProfile {
   calendarOpenTime: string
   /** Horário de funcionamento — fechamento (exclusivo), 'HH:MM'. Default '22:00'. */
   calendarCloseTime: string
+  /** Backlog 1/4/3 — exige escanear material cirúrgico para finalizar. Default false. */
+  surgicalScanRequired: boolean
   updatedAt: string
 }
 

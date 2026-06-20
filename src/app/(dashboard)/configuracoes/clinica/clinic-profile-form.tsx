@@ -42,6 +42,7 @@ interface FormState {
   intervalUnit: 'min' | 'hora'
   calendarOpenTime: string
   calendarCloseTime: string
+  surgicalScanRequired: boolean
 }
 
 function profileToForm(p: ClinicProfile): FormState {
@@ -66,6 +67,7 @@ function profileToForm(p: ClinicProfile): FormState {
     ...deriveInterval(p.calendarSlotIntervalMinutes ?? 60),
     calendarOpenTime: p.calendarOpenTime ?? '07:00',
     calendarCloseTime: p.calendarCloseTime ?? '22:00',
+    surgicalScanRequired: p.surgicalScanRequired ?? false,
   }
 }
 
@@ -102,6 +104,7 @@ function formToPatch(s: FormState) {
     calendarSlotIntervalMinutes: intervalToMinutes(s.intervalAmount, s.intervalUnit),
     calendarOpenTime: s.calendarOpenTime,
     calendarCloseTime: s.calendarCloseTime,
+    surgicalScanRequired: s.surgicalScanRequired,
   }
 }
 
@@ -565,6 +568,23 @@ export function ClinicProfileForm({ initial }: Props) {
               Define a faixa de horas exibida no calendário (dia/semana). A abertura
               deve ser antes do fechamento.
             </p>
+
+            <label className="mt-5 flex cursor-pointer items-start gap-2 border-t border-slate-100 pt-4">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-slate-300"
+                checked={form.surgicalScanRequired}
+                onChange={(e) => update('surgicalScanRequired', e.target.checked)}
+              />
+              <span className="text-sm">
+                <span className="font-medium text-slate-700">
+                  Escaneamento de material cirúrgico obrigatório
+                </span>
+                <span className="block text-[11px] text-slate-500">
+                  Exige registrar ao menos um material (código de barras) nos atendimentos.
+                </span>
+              </span>
+            </label>
           </div>
         </CardContent>
       </Card>

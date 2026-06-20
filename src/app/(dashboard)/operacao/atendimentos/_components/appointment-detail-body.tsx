@@ -40,6 +40,7 @@ import { PrescreverLauncher } from '../[id]/prescrever-launcher'
 import { TissGuiaLauncher } from '../[id]/tiss-guia-launcher'
 import { ProcedureParticipants } from './procedure-participants'
 import { AppointmentAttachmentsSection } from './appointment-attachments-section'
+import { AppointmentScansSection } from './appointment-scans-section'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -387,6 +388,17 @@ export function AppointmentDetailBody({
               canManage={
                 role === 'admin' || role === 'recepcionista' || role === 'profissional_saude'
               }
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {appointment.id ? (
+        <Card>
+          <CardContent className="pt-6">
+            <AppointmentScansSection
+              appointmentId={appointment.id}
+              canManage={role === 'admin' || role === 'profissional_saude'}
             />
           </CardContent>
         </Card>

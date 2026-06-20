@@ -34,7 +34,13 @@ export async function GET(
     })
     const supabase = createSupabaseServiceClient()
     const rows = await listScans(supabase, session.tenantId, params.id)
-    return NextResponse.json({ rows }, { status: 200 })
+    const { data: profile } = await supabase
+      .from('tenant_clinic_profile' as never)
+      .select('surgical_scan_required')
+      .eq('tenant_id', session.tenantId)
+      .maybeSingle()
+    const scanRequired = Boolean((profile as { surgical_scan_required?: boolean } | null)?.surgical_scan_required)
+    return NextResponse.json({ rows, scanRequired }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route })
   }

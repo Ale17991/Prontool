@@ -102,6 +102,7 @@ function rowToProfile(
     calendarSlotIntervalMinutes: row.calendar_slot_interval_minutes ?? 60,
     calendarOpenTime: timeToHhmm(row.calendar_open_time, '07:00'),
     calendarCloseTime: timeToHhmm(row.calendar_close_time, '22:00'),
+    surgicalScanRequired: Boolean((row as Record<string, unknown>).surgical_scan_required),
     updatedAt: row.updated_at,
   }
 }
