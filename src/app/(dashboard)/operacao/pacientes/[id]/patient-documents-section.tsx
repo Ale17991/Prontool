@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-type DocType = 'atestado' | 'declaracao' | 'outro'
+type DocType = 'atestado' | 'declaracao' | 'receita' | 'laudo' | 'outro'
 
 interface DocRow {
   id: string
@@ -30,6 +30,8 @@ interface DocRow {
 const TYPE_LABEL: Record<DocType, string> = {
   atestado: 'Atestado',
   declaracao: 'Declaração',
+  receita: 'Receita',
+  laudo: 'Laudo',
   outro: 'Documento',
 }
 
@@ -203,6 +205,8 @@ export function PatientDocumentsSection({
                   <SelectContent>
                     <SelectItem value="atestado">Atestado</SelectItem>
                     <SelectItem value="declaracao">Declaração</SelectItem>
+                    <SelectItem value="receita">Receita</SelectItem>
+                    <SelectItem value="laudo">Laudo</SelectItem>
                     <SelectItem value="outro">Outro</SelectItem>
                   </SelectContent>
                 </Select>

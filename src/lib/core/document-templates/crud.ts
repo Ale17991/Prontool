@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError, ValidationError } from '@/lib/observability/errors'
 
-export type TemplateDocType = 'atestado' | 'declaracao' | 'receita' | 'outro'
+export type TemplateDocType = 'atestado' | 'declaracao' | 'receita' | 'laudo' | 'outro'
 export type PaperSize = 'A4' | 'A5' | 'LETTER'
 
 export interface DocumentTemplate {

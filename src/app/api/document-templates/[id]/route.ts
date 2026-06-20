@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 const upsertSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  doc_type: z.enum(['atestado', 'declaracao', 'receita', 'outro']),
+  doc_type: z.enum(['atestado', 'declaracao', 'receita', 'laudo', 'outro']),
   body: z.string().trim().min(1).max(8000),
   paper_size: z.enum(['A4', 'A5', 'LETTER']),
   font_size: z.number().int().min(8).max(18),

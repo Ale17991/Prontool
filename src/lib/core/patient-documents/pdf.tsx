@@ -13,6 +13,8 @@ import type { PatientDocumentRow } from './list'
 const TYPE_LABEL: Record<string, string> = {
   atestado: 'Atestado',
   declaracao: 'Declaração',
+  receita: 'Receita',
+  laudo: 'Laudo',
   outro: 'Documento',
 }
 

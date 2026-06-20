@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { AVAILABLE_PLACEHOLDERS } from '@/lib/core/document-templates/placeholders'
 
-type DocType = 'atestado' | 'declaracao' | 'receita' | 'outro'
+type DocType = 'atestado' | 'declaracao' | 'receita' | 'laudo' | 'outro'
 type PaperSize = 'A4' | 'A5' | 'LETTER'
 
 export interface TemplateDTO {
@@ -33,6 +33,7 @@ const TYPE_LABEL: Record<DocType, string> = {
   atestado: 'Atestado',
   declaracao: 'Declaração',
   receita: 'Receita',
+  laudo: 'Laudo',
   outro: 'Outro',
 }
 
@@ -137,6 +138,7 @@ export function TemplatesManager({ initial }: { initial: TemplateDTO[] }) {
                       <SelectItem value="atestado">Atestado</SelectItem>
                       <SelectItem value="declaracao">Declaração</SelectItem>
                       <SelectItem value="receita">Receita</SelectItem>
+                      <SelectItem value="laudo">Laudo</SelectItem>
                       <SelectItem value="outro">Outro</SelectItem>
                     </SelectContent>
                   </Select>

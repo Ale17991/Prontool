@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const postSchema = z.object({
-  doc_type: z.enum(['atestado', 'declaracao', 'outro']).default('atestado'),
+  doc_type: z.enum(['atestado', 'declaracao', 'receita', 'laudo', 'outro']).default('atestado'),
   title: z.string().trim().min(1).max(200),
   body: z.string().trim().min(1).max(8000),
   cid_code: z.string().trim().max(16).nullable().optional(),

@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 
-export type PatientDocType = 'atestado' | 'declaracao' | 'outro'
+export type PatientDocType = 'atestado' | 'declaracao' | 'receita' | 'laudo' | 'outro'
 
 export interface CreatePatientDocumentInput {
   tenantId: string
