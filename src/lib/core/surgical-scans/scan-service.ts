@@ -197,3 +197,49 @@ async function auditScan(
     result: 'success',
   } as never)
 }
+
+/**
+ * Backlog 1/4/3 — guard de finalização. Quando o tenant exige escaneamento
+ * (`surgical_scan_required`) E o atendimento tem material previsto
+ * (`appointment_materials`), exige ao menos um scan confirmado antes de
+ * finalizar. Atendimentos sem material previsto (ex.: consulta) não são
+ * afetados — a obrigatoriedade vale para procedimentos que usam material.
+ *
+ * Lança ValidationError (HTTP 422) quando a regra é violada; no-op caso
+ * contrário. Defensivo: qualquer falha de leitura NÃO bloqueia a finalização.
+ */
+export async function assertScanRequirementMet(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  appointmentId: string,
+): Promise<void> {
+  const { data: profile } = await supabase
+    .from('tenant_clinic_profile' as never)
+    .select('surgical_scan_required')
+    .eq('tenant_id', tenantId)
+    .maybeSingle()
+  const required = Boolean(
+    (profile as { surgical_scan_required?: boolean } | null)?.surgical_scan_required,
+  )
+  if (!required) return
+
+  const { count: materialCount } = await supabase
+    .from('appointment_materials' as never)
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .eq('appointment_id', appointmentId)
+  if (!materialCount || materialCount === 0) return
+
+  const { count: scanCount } = await supabase
+    .from('surgical_material_scans' as never)
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+    .eq('appointment_id', appointmentId)
+    .eq('status', 'confirmed')
+  if (scanCount && scanCount > 0) return
+
+  throw new ValidationError(
+    'Escaneamento de material obrigatório: registre ao menos um material antes de finalizar este atendimento.',
+    { field: 'surgical_scan_required' },
+  )
+}

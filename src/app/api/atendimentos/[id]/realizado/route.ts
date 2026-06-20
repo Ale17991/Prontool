@@ -5,6 +5,7 @@ import type { Database } from '@/lib/db/types'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { markAppointmentRealized } from '@/lib/core/appointments/mark-realized'
+import { assertScanRequirementMet } from '@/lib/core/surgical-scans/scan-service'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -49,6 +50,11 @@ export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
     }
 
     const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+
+    // Backlog 1/4/3 — bloqueio hard: se o escaneamento de material é
+    // obrigatório e há material previsto sem scan, impede a finalização.
+    await assertScanRequirementMet(supabase, session.tenantId, ctx.params.id)
+
     const { completionId } = await markAppointmentRealized(supabase, {
       appointmentId: ctx.params.id,
       actorUserId: session.userId,
