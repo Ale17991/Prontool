@@ -87,9 +87,17 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
           Exame oftalmológico
         </CardTitle>
         {canWrite ? (
-          <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
-            <Plus className="h-3.5 w-3.5" /> Novo exame
-          </Button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/configuracoes/modelos-laudo"
+              className="text-[11px] font-semibold text-link hover:underline"
+            >
+              Modelos de laudo
+            </a>
+            <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
+              <Plus className="h-3.5 w-3.5" /> Novo exame
+            </Button>
+          </div>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-3">

@@ -14,6 +14,8 @@ const styles = StyleSheet.create({
   page: { padding: 44, fontSize: 10, fontFamily: 'Helvetica', color: '#0f172a' },
   title: { fontSize: 15, fontFamily: 'Helvetica-Bold', textAlign: 'center', marginTop: 6, marginBottom: 4 },
   patient: { fontSize: 10, marginBottom: 12, color: '#334155' },
+  tplBlock: { fontSize: 10, color: '#334155', marginBottom: 10, lineHeight: 1.5, textAlign: 'justify' },
+  tplFooter: { fontSize: 9, color: '#475569', marginTop: 14, lineHeight: 1.4 },
   section: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginTop: 12, marginBottom: 4 },
   trH: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#cbd5e1' },
   tr: { flexDirection: 'row', borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#cbd5e1' },
@@ -31,8 +33,20 @@ const d = (v: string | null): string => (v && v.trim() ? v : '—')
 
 export async function renderOphthalExamPdf(
   ex: OphthalExam,
-  meta: { patientName: string; clinicProfile?: ClinicProfile | null; signedLogoUrl?: string | null },
+  meta: {
+    patientName: string
+    clinicProfile?: ClinicProfile | null
+    signedLogoUrl?: string | null
+    /** Backlog 2/2 — modelo de laudo resolvido (cabeçalho/conclusão/rodapé). */
+    template?: {
+      title?: string | null
+      headerText?: string | null
+      conclusionText?: string | null
+      footerText?: string | null
+    } | null
+  },
 ): Promise<Buffer> {
+  const tpl = meta.template ?? null
   const tech = meta.clinicProfile?.techResponsible
   const signName = tech?.name ?? meta.clinicProfile?.displayName ?? ''
   const signReg = [tech?.council, tech?.registration].filter(Boolean).join(' ')
@@ -45,8 +59,10 @@ export async function renderOphthalExamPdf(
     <Document>
       <Page size="A4" style={styles.page}>
         <ClinicHeader profile={meta.clinicProfile ?? null} signedLogoUrl={meta.signedLogoUrl ?? null} subtitle="Exame oftalmológico" />
-        <Text style={styles.title}>Exame oftalmológico</Text>
+        <Text style={styles.title}>{tpl?.title?.trim() || 'Exame oftalmológico'}</Text>
         <Text style={styles.patient}>Paciente: {meta.patientName}   ·   Data: {dateBr}</Text>
+
+        {tpl?.headerText ? <Text style={styles.tplBlock}>{tpl.headerText}</Text> : null}
 
         <Text style={styles.section}>Acuidade visual</Text>
         <View style={styles.trH}>
@@ -92,10 +108,15 @@ export async function renderOphthalExamPdf(
         {ex.fundoscopy ? (<><Text style={styles.section}>Fundoscopia / mapeamento de retina</Text><Text style={styles.textBlock}>{ex.fundoscopy}</Text></>) : null}
         {ex.notes ? (<><Text style={styles.section}>Conduta / observações</Text><Text style={styles.textBlock}>{ex.notes}</Text></>) : null}
 
+        {tpl?.conclusionText ? (
+          <><Text style={styles.section}>Conclusão</Text><Text style={styles.tplBlock}>{tpl.conclusionText}</Text></>
+        ) : null}
+
         <Text style={styles.date}>{dateBr}</Text>
         <View style={styles.sign}>
           <Text style={styles.signLine}>{signName}{signReg ? `\n${signReg}` : ''}</Text>
         </View>
+        {tpl?.footerText ? <Text style={styles.tplFooter}>{tpl.footerText}</Text> : null}
       </Page>
     </Document>
   )

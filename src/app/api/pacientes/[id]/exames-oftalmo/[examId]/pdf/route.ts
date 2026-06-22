@@ -2,6 +2,8 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getOphthalExam } from '@/lib/core/ophthalmology-exams/crud'
 import { renderOphthalExamPdf } from '@/lib/core/ophthalmology-exams/pdf'
+import { getDefaultExamReportTemplate } from '@/lib/core/exam-report-templates/crud'
+import { resolveOphthalReportTemplate } from '@/lib/core/exam-report-templates/apply'
 import { getPatient } from '@/lib/core/patients/get'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS } from '@/lib/core/clinic-profile/types'
@@ -27,15 +29,37 @@ export async function GET(
     const ex = await getOphthalExam(supabase, { tenantId: session.tenantId, id: params.examId })
     if (!ex) throw new NotFoundError('ophthalmology_exam', params.examId)
 
-    const [{ patient }, clinicProfile] = await Promise.all([
+    const [{ patient }, clinicProfile, defaultTemplate] = await Promise.all([
       getPatient(supabase, { tenantId: session.tenantId, patientId: params.id }),
       getClinicProfile(supabase, session.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(() => null),
+      getDefaultExamReportTemplate(supabase, {
+        tenantId: session.tenantId,
+        examType: 'oftalmologico',
+      }).catch(() => null),
     ])
+
+    // Backlog 2/2 — aplica o modelo de laudo padrão, se houver.
+    const template = defaultTemplate
+      ? (() => {
+          const r = resolveOphthalReportTemplate(defaultTemplate, {
+            exam: ex,
+            patientName: patient.fullName || '—',
+            birthDate: patient.birthDate,
+            clinicName: clinicProfile?.displayName ?? '',
+          })
+          return {
+            headerText: r.headerText,
+            conclusionText: r.conclusionText,
+            footerText: r.footerText,
+          }
+        })()
+      : null
 
     const buf = await renderOphthalExamPdf(ex, {
       patientName: patient.fullName || '—',
       clinicProfile,
       signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
+      template,
     })
 
     if (!ex.issuedAt) {
