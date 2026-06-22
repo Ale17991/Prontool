@@ -10,6 +10,7 @@ export const runtime = 'nodejs'
 
 const patchSchema = z.object({
   full_name: z.string().trim().min(1).max(200),
+  phone: z.string().trim().max(20).nullable().optional(),
 })
 
 export async function PATCH(

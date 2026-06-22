@@ -36,10 +36,10 @@ export async function listTeamMembers(
   const userIds = rows.map((r) => r.user_id)
   const { data: profiles } = await supabaseService
     .from('user_profile')
-    .select('user_id, full_name, avatar_path')
+    .select('user_id, full_name, avatar_path, phone')
     .in('user_id', userIds)
   const profileByUser = new Map(
-    (profiles ?? []).map((p) => [p.user_id as string, p as { user_id: string; full_name: string | null; avatar_path: string | null }]),
+    (profiles ?? []).map((p) => [p.user_id as string, p as { user_id: string; full_name: string | null; avatar_path: string | null; phone: string | null }]),
   )
 
   // 3. auth.users metadata (email, last_sign_in_at, email_confirmed_at)
@@ -95,6 +95,7 @@ export async function listTeamMembers(
         userId: r.user_id,
         email: meta.email,
         fullName: profile?.full_name ?? null,
+        phone: profile?.phone ?? null,
         avatar: avatarPath ? { path: avatarPath, signedUrl } : null,
         role: r.role,
         status,

@@ -5268,6 +5268,7 @@ export type Database = {
           avatar_uploaded_at: string | null
           created_at: string
           full_name: string | null
+          phone: string | null
           timezone: string
           updated_at: string
           user_id: string
@@ -5277,6 +5278,7 @@ export type Database = {
           avatar_uploaded_at?: string | null
           created_at?: string
           full_name?: string | null
+          phone?: string | null
           timezone?: string
           updated_at?: string
           user_id: string
@@ -5286,6 +5288,7 @@ export type Database = {
           avatar_uploaded_at?: string | null
           created_at?: string
           full_name?: string | null
+          phone?: string | null
           timezone?: string
           updated_at?: string
           user_id?: string

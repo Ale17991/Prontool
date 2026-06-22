@@ -16,6 +16,7 @@ function syntheticEmpty(userId: string): Row {
     full_name: null,
     avatar_path: null,
     avatar_uploaded_at: null,
+    phone: null,
     timezone: 'America/Sao_Paulo',
     created_at: now,
     updated_at: now,

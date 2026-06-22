@@ -11,6 +11,7 @@ export interface TeamMember {
   userId: string
   email: string
   fullName: string | null
+  phone: string | null
   avatar: TeamMemberAvatar | null
   role: TenantRole
   status: TeamMemberStatus

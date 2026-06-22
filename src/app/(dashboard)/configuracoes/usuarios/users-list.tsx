@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, KeyRound, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, UserCog, UserPlus } from 'lucide-react'
+import { AlertCircle, KeyRound, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, Trash2, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -12,7 +12,6 @@ import {
 } from '@/lib/core/team/types'
 import { InviteUserDialog } from './invite-user-dialog'
 import { ManualUserDialog } from './manual-user-dialog'
-import { ChangeRoleDialog } from './change-role-dialog'
 import { ChangeStatusDialog } from './change-status-dialog'
 import { EditUserDialog } from './edit-user-dialog'
 import { RowActionsMenu, type RowAction } from './row-actions-menu'
@@ -32,7 +31,6 @@ export function UsersList({ initial }: Props) {
   const [users, setUsers] = useState(initial)
   const [inviteOpen, setInviteOpen] = useState(false)
   const [manualOpen, setManualOpen] = useState(false)
-  const [roleTarget, setRoleTarget] = useState<TeamMember | null>(null)
   const [statusTarget, setStatusTarget] = useState<TeamMember | null>(null)
   const [editTarget, setEditTarget] = useState<TeamMember | null>(null)
   const [resending, setResending] = useState<string | null>(null)
@@ -83,17 +81,34 @@ export function UsersList({ initial }: Props) {
     }
   }
 
+  const onDelete = async (user: TeamMember) => {
+    setGlobalError(null)
+    setNotice(null)
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(`Remover ${user.fullName ?? user.email} desta clínica? O acesso será revogado.`)
+    ) {
+      return
+    }
+    try {
+      const res = await fetch(`/api/configuracoes/usuarios/${user.userId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const b = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
+        throw new Error(b.error?.message ?? `HTTP ${res.status}`)
+      }
+      setNotice(`${user.fullName ?? user.email} foi removido da clínica.`)
+      await refresh()
+    } catch (err) {
+      setGlobalError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
   const buildActions = (u: TeamMember): RowAction[] => {
     const actions: RowAction[] = [
       {
         label: 'Editar dados',
         icon: <Pencil className="h-3.5 w-3.5" />,
         onClick: () => setEditTarget(u),
-      },
-      {
-        label: 'Alterar função',
-        icon: <UserCog className="h-3.5 w-3.5" />,
-        onClick: () => setRoleTarget(u),
       },
       {
         label: u.status === 'disabled' ? 'Reativar acesso' : 'Desativar acesso',
@@ -119,6 +134,15 @@ export function UsersList({ initial }: Props) {
         label: resending === u.userId ? 'Reenviando…' : 'Reenviar convite',
         icon: <Send className="h-3.5 w-3.5" />,
         onClick: () => void onResend(u),
+      })
+    }
+    // Excluir: admin só remove quem tem função inferior à dele (não admin, não self).
+    if (!u.isSelf && u.role !== 'admin') {
+      actions.push({
+        label: 'Excluir usuário',
+        icon: <Trash2 className="h-3.5 w-3.5" />,
+        onClick: () => void onDelete(u),
+        danger: true,
       })
     }
     return actions
@@ -251,17 +275,6 @@ export function UsersList({ initial }: Props) {
           onOpenChange={(open) => !open && setEditTarget(null)}
           onSuccess={() => {
             setEditTarget(null)
-            void refresh()
-          }}
-        />
-      ) : null}
-
-      {roleTarget ? (
-        <ChangeRoleDialog
-          target={roleTarget}
-          onOpenChange={(open) => !open && setRoleTarget(null)}
-          onSuccess={() => {
-            setRoleTarget(null)
             void refresh()
           }}
         />

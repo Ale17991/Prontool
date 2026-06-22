@@ -3,6 +3,7 @@ import { requireRole } from '@/lib/auth/require-role'
 import { toHttpResponse } from '@/lib/observability/http'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { setTeamMemberRole } from '@/lib/core/team/set-role'
+import { removeTeamMember } from '@/lib/core/team/remove-member'
 import { listTeamMembers } from '@/lib/core/team/list'
 
 export const dynamic = 'force-dynamic'
@@ -42,5 +43,29 @@ export async function PATCH(
     return NextResponse.json({ user: updated ?? null })
   } catch (err) {
     return toHttpResponse(err, { route, method: 'PATCH' })
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { userId: string } },
+): Promise<Response> {
+  const route = `/api/configuracoes/usuarios/${params.userId}`
+  try {
+    const session = await requireRole(['admin'], {
+      entity: 'user_tenants',
+      entityId: params.userId,
+      route,
+      request: req,
+    })
+    const supabase = createSupabaseServiceClient()
+    await removeTeamMember(supabase, {
+      tenantId: session.tenantId,
+      actorId: session.userId,
+      targetUserId: params.userId,
+    })
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    return toHttpResponse(err, { route, method: 'DELETE' })
   }
 }

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { TeamMember } from '@/lib/core/team/types'
+import { TENANT_ROLES_ORDERED, labelForRole, type TeamMember } from '@/lib/core/team/types'
+import type { TenantRole } from '@/lib/db/types'
 
 interface Props {
   target: TeamMember
@@ -16,6 +17,8 @@ interface Props {
 
 export function EditUserDialog({ target, onOpenChange, onSuccess }: Props) {
   const [fullName, setFullName] = useState(target.fullName ?? '')
+  const [phone, setPhone] = useState(target.phone ?? '')
+  const [role, setRole] = useState<TenantRole>(target.role)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -29,10 +32,28 @@ export function EditUserDialog({ target, onOpenChange, onSuccess }: Props) {
     setError(null)
     setBusy(true)
     try {
+      // 1. Função (se mudou) — usa o endpoint dedicado (guarda da última admin).
+      if (role !== target.role) {
+        const r = await fetch(`/api/configuracoes/usuarios/${target.userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role }),
+        })
+        if (!r.ok) {
+          const b = (await r.json().catch(() => ({}))) as { error?: { code?: string; message?: string } }
+          setError(
+            b.error?.code === 'LAST_ADMIN'
+              ? 'Não é possível rebaixar a única admin ativa.'
+              : (b.error?.message ?? `HTTP ${r.status}`),
+          )
+          return
+        }
+      }
+      // 2. Nome + telefone.
       const res = await fetch(`/api/configuracoes/usuarios/${target.userId}/perfil`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: name }),
+        body: JSON.stringify({ full_name: name, phone: phone.trim() || null }),
       })
       if (res.ok) {
         onSuccess()
@@ -66,6 +87,33 @@ export function EditUserDialog({ target, onOpenChange, onSuccess }: Props) {
               maxLength={200}
               autoFocus
             />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Telefone</Label>
+              <Input
+                id="edit-phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                maxLength={20}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Função</Label>
+              <select
+                id="edit-role"
+                value={role}
+                onChange={(e) => setRole(e.target.value as TenantRole)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+              >
+                {TENANT_ROLES_ORDERED.map((r) => (
+                  <option key={r} value={r}>
+                    {labelForRole(r)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <div className="flex items-center justify-end gap-2">
