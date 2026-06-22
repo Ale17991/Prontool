@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, UserCog, UserPlus } from 'lucide-react'
+import { AlertCircle, KeyRound, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, UserCog, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -37,6 +37,7 @@ export function UsersList({ initial }: Props) {
   const [editTarget, setEditTarget] = useState<TeamMember | null>(null)
   const [resending, setResending] = useState<string | null>(null)
   const [globalError, setGlobalError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const refresh = async () => {
     const res = await fetch('/api/configuracoes/usuarios')
@@ -64,6 +65,24 @@ export function UsersList({ initial }: Props) {
     }
   }
 
+  const onSendReset = async (user: TeamMember) => {
+    setGlobalError(null)
+    setNotice(null)
+    try {
+      const res = await fetch(`/api/configuracoes/usuarios/${user.userId}/redefinir-senha`, {
+        method: 'POST',
+      })
+      const body = (await res.json().catch(() => ({}))) as {
+        email?: string
+        error?: { message?: string }
+      }
+      if (!res.ok) throw new Error(body.error?.message ?? `HTTP ${res.status}`)
+      setNotice(`E-mail de redefinição de senha enviado para ${body.email ?? user.email}.`)
+    } catch (err) {
+      setGlobalError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
   const buildActions = (u: TeamMember): RowAction[] => {
     const actions: RowAction[] = [
       {
@@ -88,6 +107,13 @@ export function UsersList({ initial }: Props) {
         danger: u.status !== 'disabled',
       },
     ]
+    if (u.status === 'active') {
+      actions.push({
+        label: 'Enviar redefinição de senha',
+        icon: <KeyRound className="h-3.5 w-3.5" />,
+        onClick: () => void onSendReset(u),
+      })
+    }
     if (u.status === 'pending') {
       actions.push({
         label: resending === u.userId ? 'Reenviando…' : 'Reenviar convite',
@@ -118,6 +144,12 @@ export function UsersList({ initial }: Props) {
         {globalError ? (
           <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-xs text-destructive">
             {globalError}
+          </div>
+        ) : null}
+
+        {notice ? (
+          <div className="border-b border-success/30 bg-success-bg px-4 py-2 text-xs text-success-text">
+            {notice}
           </div>
         ) : null}
 
