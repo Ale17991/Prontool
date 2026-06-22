@@ -10,10 +10,15 @@ export interface PatientDocumentRow {
   cidCode: string | null
   cidDescription: string | null
   issuedAt: string | null
+  /** Backlog 1/4/2 — marcação manual de entrega ao paciente. */
+  deliveredAt: string | null
   createdAt: string
   paperSize: 'A4' | 'A5' | 'LETTER'
   fontSize: number
 }
+
+const SELECT =
+  'id, doc_type, title, body, cid_code, cid_description, issued_at, delivered_at, created_at, paper_size, font_size'
 
 export async function listPatientDocuments(
   supabase: SupabaseClient<Database>,
@@ -21,7 +26,7 @@ export async function listPatientDocuments(
 ): Promise<PatientDocumentRow[]> {
   const { data, error } = await supabase
     .from('patient_documents' as never)
-    .select('id, doc_type, title, body, cid_code, cid_description, issued_at, created_at, paper_size, font_size')
+    .select(SELECT)
     .eq('tenant_id', args.tenantId)
     .eq('patient_id', args.patientId)
     .is('deleted_at', null)
@@ -36,6 +41,7 @@ export async function listPatientDocuments(
     cid_code: string | null
     cid_description: string | null
     issued_at: string | null
+    delivered_at: string | null
     created_at: string
     paper_size: 'A4' | 'A5' | 'LETTER'
     font_size: number
@@ -47,6 +53,7 @@ export async function listPatientDocuments(
     cidCode: r.cid_code,
     cidDescription: r.cid_description,
     issuedAt: r.issued_at,
+    deliveredAt: r.delivered_at,
     createdAt: r.created_at,
     paperSize: r.paper_size,
     fontSize: r.font_size,
@@ -59,7 +66,7 @@ export async function getPatientDocument(
 ): Promise<PatientDocumentRow | null> {
   const { data, error } = await supabase
     .from('patient_documents' as never)
-    .select('id, doc_type, title, body, cid_code, cid_description, issued_at, created_at, paper_size, font_size')
+    .select(SELECT)
     .eq('tenant_id', args.tenantId)
     .eq('id', args.documentId)
     .is('deleted_at', null)
@@ -74,6 +81,7 @@ export async function getPatientDocument(
     cid_code: string | null
     cid_description: string | null
     issued_at: string | null
+    delivered_at: string | null
     created_at: string
     paper_size: 'A4' | 'A5' | 'LETTER'
     font_size: number
@@ -86,6 +94,7 @@ export async function getPatientDocument(
     cidCode: r.cid_code,
     cidDescription: r.cid_description,
     issuedAt: r.issued_at,
+    deliveredAt: r.delivered_at,
     createdAt: r.created_at,
     paperSize: r.paper_size,
     fontSize: r.font_size,

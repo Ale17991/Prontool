@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Download, FileText, Loader2, Plus } from 'lucide-react'
+import { Check, Download, FileText, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,6 +24,7 @@ interface DocRow {
   cidCode: string | null
   cidDescription: string | null
   issuedAt: string | null
+  deliveredAt: string | null
   createdAt: string
 }
 
@@ -151,6 +152,23 @@ export function PatientDocumentsSection({
       await load()
     } finally {
       setPending(false)
+    }
+  }
+
+  async function toggleDelivered(id: string, current: boolean) {
+    // Backlog 1/4/2 — alterna entrega ao paciente (otimista).
+    setDocs((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, deliveredAt: current ? null : new Date().toISOString() } : d)),
+    )
+    try {
+      const res = await fetch(`/api/pacientes/${patientId}/documentos/${id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ delivered: !current }),
+      })
+      if (!res.ok) await load()
+    } catch {
+      await load()
     }
   }
 
@@ -292,7 +310,25 @@ export function PatientDocumentsSection({
                   </span>
                 ) : null}
                 {d.issuedAt ? (
-                  <span className="text-[10px] font-semibold text-success-text">emitido</span>
+                  <span className="text-[10px] font-semibold text-slate-400">baixado</span>
+                ) : null}
+                {canWrite ? (
+                  <button
+                    type="button"
+                    onClick={() => void toggleDelivered(d.id, d.deliveredAt !== null)}
+                    title={d.deliveredAt ? 'Entregue ao paciente — clique para desfazer' : 'Marcar como entregue ao paciente'}
+                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                      d.deliveredAt
+                        ? 'bg-success-bg text-success-text'
+                        : 'border border-slate-200 text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    <Check className="h-3 w-3" /> {d.deliveredAt ? 'Entregue' : 'Entregar'}
+                  </button>
+                ) : d.deliveredAt ? (
+                  <span className="inline-flex items-center gap-1 rounded bg-success-bg px-1.5 py-0.5 text-[10px] font-bold text-success-text">
+                    <Check className="h-3 w-3" /> Entregue
+                  </span>
                 ) : null}
                 <span className="whitespace-nowrap text-slate-400">{formatDate(d.createdAt)}</span>
                 <a
