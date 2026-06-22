@@ -156,7 +156,9 @@ export async function aggregateLiberalByPeriod(
         paidCents: paidById.get(id) ?? 0,
       }
     })
-    .filter((r) => r.totalCents > 0 || r.paidCents > 0)
+    // Todo liberal aparece (mesmo R$ 0 — pode receber valor manual);
+    // não-liberais só se tiveram participação/pagamento no período.
+    .filter((r) => liberalIds.has(r.doctorId) || r.totalCents > 0 || r.paidCents > 0)
     .sort((a, b) => a.doctorName.localeCompare(b.doctorName))
 }
 

@@ -85,7 +85,8 @@ export function LiberalSettlementsCard() {
 
   function startPay(d: DoctorTotal) {
     setPayingId(d.doctorId)
-    setPayAmount(((d.totalCents - d.paidCents) / 100).toFixed(2).replace('.', ','))
+    const remaining = Math.max(0, d.totalCents - d.paidCents)
+    setPayAmount((remaining / 100).toFixed(2).replace('.', ','))
     setPayNote('')
     setError(null)
   }
@@ -189,18 +190,21 @@ export function LiberalSettlementsCard() {
                           {d.paidCents > 0 ? formatCurrency(d.paidCents) : '—'}
                         </td>
                         <td className="px-3 py-2 text-right">
-                          {remaining > 0 ? (
+                          <div className="inline-flex items-center gap-2">
+                            {d.paidCents > 0 && remaining <= 0 ? (
+                              <span className="text-[11px] font-semibold text-success-text">
+                                quitado
+                              </span>
+                            ) : null}
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
                               onClick={() => startPay(d)}
                             >
-                              Marcar pago
+                              {d.paidCents > 0 ? 'Pagar mais' : 'Marcar pago'}
                             </Button>
-                          ) : (
-                            <span className="text-[11px] font-semibold text-success-text">quitado</span>
-                          )}
+                          </div>
                         </td>
                       </tr>
                       {payingId === d.doctorId ? (
