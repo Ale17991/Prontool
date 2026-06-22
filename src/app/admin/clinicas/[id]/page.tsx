@@ -2,18 +2,36 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { ClinicDetail, type ClinicDetailRow } from './clinic-detail'
+import { listTeamMembers } from '@/lib/core/team/list'
+import { ClinicDetail, type ClinicDetailRow, type ClinicUserRow } from './clinic-detail'
 import type { Plan } from '@/lib/core/entitlements/plans'
 
 export const dynamic = 'force-dynamic'
 
-/** Feature 031 — detalhe de uma clínica: entrar + editar plano/módulos. */
+/** Feature 031 — hub da clínica: visão geral, plano/módulos, usuários, ações. */
 export default async function AdminClinicaDetailPage({ params }: { params: { id: string } }) {
   const sb: any = createSupabaseServiceClient()
-  const [tenantRes, entRes] = await Promise.all([
-    sb.from('tenants').select('id, name, slug, status').eq('id', params.id).maybeSingle(),
-    sb.from('tenant_entitlements').select('plan, modules').eq('tenant_id', params.id).maybeSingle(),
-  ])
+  const id = params.id
+
+  const [tenantRes, entRes, userCountRes, apptCountRes, lastActivityRes, integrationsRes, members] =
+    await Promise.all([
+      sb.from('tenants').select('id, name, slug, status').eq('id', id).maybeSingle(),
+      sb.from('tenant_entitlements').select('plan, modules').eq('tenant_id', id).maybeSingle(),
+      sb.from('user_tenants').select('user_id', { count: 'exact', head: true }).eq('tenant_id', id),
+      sb.from('appointments').select('id', { count: 'exact', head: true }).eq('tenant_id', id),
+      sb
+        .from('audit_log')
+        .select('created_at')
+        .eq('tenant_id', id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      sb.from('tenant_integrations').select('provider, status').eq('tenant_id', id),
+      listTeamMembers(createSupabaseServiceClient(), { tenantId: id, requesterId: '' }).catch(
+        () => [],
+      ),
+    ])
+
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
   if (!tenant) notFound()
 
@@ -21,9 +39,29 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
   const row: ClinicDetailRow = {
     tenantId: tenant.id,
     name: tenant.name,
+    slug: tenant.slug,
+    status: tenant.status === 'suspended' ? 'suspended' : 'active',
     plan: (ent?.plan as Plan) ?? 'legacy',
     modules: ent?.modules ?? [],
   }
+
+  const integrations = ((integrationsRes.data ?? []) as Array<{ provider: string; status: string | null }>)
+    .map((i) => i.provider)
+
+  const metrics = {
+    userCount: (userCountRes.count as number | null) ?? 0,
+    appointmentCount: (apptCountRes.count as number | null) ?? 0,
+    lastActivity: (lastActivityRes.data as { created_at?: string } | null)?.created_at ?? null,
+    integrations,
+  }
+
+  const users: ClinicUserRow[] = (members as Awaited<ReturnType<typeof listTeamMembers>>).map((m) => ({
+    userId: m.userId,
+    name: m.fullName || m.email,
+    email: m.email,
+    role: m.role,
+    status: m.status,
+  }))
 
   return (
     <div className="space-y-5">
@@ -35,18 +73,9 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
           <ArrowLeft className="h-3.5 w-3.5" />
           Voltar para clínicas
         </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-black tracking-tight text-slate-900">{tenant.name}</h2>
-          {tenant.status !== 'active' ? (
-            <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-              {tenant.status}
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-0.5 text-[11px] text-slate-400">{tenant.slug}</p>
       </div>
 
-      <ClinicDetail row={row} />
+      <ClinicDetail row={row} metrics={metrics} users={users} />
     </div>
   )
 }

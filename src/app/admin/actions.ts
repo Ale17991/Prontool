@@ -47,6 +47,32 @@ export async function setTenantPlanAction(input: {
 }
 
 /**
+ * Pausa (suspended) ou reativa (active) uma clínica inteira. Suspensa, a clínica
+ * some das clínicas disponíveis do usuário (available-tenants filtra status
+ * active) → ninguém consegue operá-la. Só admin GERAL.
+ */
+export async function setTenantStatusAction(input: {
+  tenantId: string
+  status: 'active' | 'suspended'
+}): Promise<AdminActionResult> {
+  if (!(await superAdminUserId())) {
+    return { ok: false, error: 'Não autorizado.' }
+  }
+  if (!input.tenantId || !['active', 'suspended'].includes(input.status)) {
+    return { ok: false, error: 'Parâmetros inválidos.' }
+  }
+  const sb = createSupabaseServiceClient()
+  const { error } = await sb
+    .from('tenants')
+    .update({ status: input.status, updated_at: new Date().toISOString() } as never)
+    .eq('id', input.tenantId)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/admin')
+  return { ok: true }
+}
+
+/**
  * Feature 031 — atribui (on=true) ou remove (on=false) uma clínica de um
  * usuário de SUPORTE (platform_admins.is_super=false). Só admin GERAL.
  */

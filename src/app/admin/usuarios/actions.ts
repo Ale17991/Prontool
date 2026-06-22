@@ -111,6 +111,22 @@ export async function adminResetPasswordAction(
   return { ok: true, link: data?.properties?.action_link ?? undefined }
 }
 
+/** Admin GERAL: ENVIA o e-mail de redefinição (Supabase dispara), não só gera link. */
+export async function adminSendResetEmailAction(
+  targetUserId: string,
+): Promise<AdminUserActionResult> {
+  const ctx = await superCtx()
+  if (!ctx) return { ok: false, error: 'Não autorizado.' }
+  const sb: any = svc()
+  const { data: u } = await sb.auth.admin.getUserById(targetUserId)
+  const email = u?.user?.email
+  if (!email) return { ok: false, error: 'Usuário sem e-mail.' }
+  const redirectTo = `${originFromHeaders(headers())}/redefinir-senha`
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo })
+  if (error) return { ok: false, error: error.message }
+  return { ok: true }
+}
+
 export async function adminCreateUserAction(
   tenantId: string,
   input: { fullName: string; email: string; password: string; role: string },
