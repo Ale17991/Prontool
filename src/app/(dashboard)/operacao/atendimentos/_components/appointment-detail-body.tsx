@@ -41,6 +41,7 @@ import { TissGuiaLauncher } from '../[id]/tiss-guia-launcher'
 import { ProcedureParticipants } from './procedure-participants'
 import { AppointmentAttachmentsSection } from './appointment-attachments-section'
 import { AppointmentScansSection } from './appointment-scans-section'
+import { AppointmentFlowControl } from './appointment-flow-control'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -138,6 +139,11 @@ export function AppointmentDetailBody({
           ) : null}
         </div>
       </div>
+
+      {/* ---- Fluxo operacional (recepção): status manual + chegada/permanência ---- */}
+      {appointment.id ? (
+        <AppointmentFlowControl appointmentId={appointment.id} canManage={canManageSchedule} />
+      ) : null}
 
       {/* ---- Dados clínicos ---- */}
       <Card>

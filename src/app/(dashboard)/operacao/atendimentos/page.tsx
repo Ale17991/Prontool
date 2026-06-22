@@ -32,6 +32,8 @@ import { ModeToggle } from './mode-toggle'
 import { CalendarShell } from './calendar-shell'
 import { FilterBarBlock } from './filter-bar-block'
 import { AppointmentDetailHost } from './_components/appointment-detail-host'
+import { FlowStatusCell } from './_components/appointment-flow-control'
+import { listAppointmentFlows, type AppointmentFlow } from '@/lib/core/appointment-flow/crud'
 import {
   deriveRange,
   parseFiltersFromRecord,
@@ -310,6 +312,28 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   const reversedCount = filteredRows.filter((r) => r.effective_status === 'estornado').length
   const listTruncated = rows.length >= LIST_MODE_LIMIT
 
+  // Fluxo operacional (recepção) por atendimento — pílula/status na coluna Status.
+  const flowMap =
+    filteredRows.length > 0
+      ? await listAppointmentFlows(supabase, {
+          tenantId: session.tenantId,
+          appointmentIds: filteredRows
+            .map((r) => r.id)
+            .filter((id): id is string => Boolean(id)),
+        }).catch(() => new Map<string, AppointmentFlow>())
+      : new Map<string, AppointmentFlow>()
+  const DEFAULT_FLOW: AppointmentFlow = {
+    status: 'agendado',
+    arrivedAt: null,
+    consultStartedAt: null,
+    endedAt: null,
+    updatedAt: null,
+  }
+  const canManageFlow =
+    session.role === 'admin' ||
+    session.role === 'recepcionista' ||
+    session.role === 'profissional_saude'
+
   return (
     <AppointmentDetailHost role={session.role}>
     <div className="space-y-6">
@@ -435,6 +459,13 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col items-start gap-1">
+                          {r.id ? (
+                            <FlowStatusCell
+                              appointmentId={r.id}
+                              initial={flowMap.get(r.id) ?? DEFAULT_FLOW}
+                              canManage={canManageFlow}
+                            />
+                          ) : null}
                           <AppointmentStatusBadge
                             variant={effectiveStatusToVariant(
                               r.effective_status === 'agendado' ||
