@@ -1,10 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import { summaryByProfessional } from '@/lib/core/reports/by-professional'
 
 export interface LiberalDoctorTotal {
   doctorId: string
   doctorName: string
+  /** Comissão dos atendimentos onde é o executante, no período. */
+  commissionCents: number
+  /** Honorários de participação (appointment_assistants) no período. */
+  participationCents: number
+  /** commissionCents + participationCents. */
   totalCents: number
   /** Já quitado neste período exato (de/até) — soma das quitações registradas. */
   paidCents: number
@@ -29,11 +35,59 @@ function dayRange(from: string, to: string): { fromMs: number; toExclusiveMs: nu
   return { fromMs, toExclusiveMs: toStart + 24 * 60 * 60 * 1000 }
 }
 
+/** Soma os honorários de participação por médico no período. */
+async function aggregateParticipations(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  from: string,
+  to: string,
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>()
+  const { data, error } = await supabase
+    .from('appointment_assistants' as never)
+    .select(
+      'assistant_doctor_id, frozen_amount_cents, appointment_id, appointment:appointment_id ( appointment_at )',
+    )
+    .eq('tenant_id', tenantId)
+    .is('removed_at', null)
+  if (error) return out
+  const rows = (data ?? []) as unknown as Array<{
+    assistant_doctor_id: string
+    frozen_amount_cents: number
+    appointment_id: string
+    appointment: { appointment_at: string | null } | null
+  }>
+  const { fromMs, toExclusiveMs } = dayRange(from, to)
+  const inRange = rows.filter((r) => {
+    const at = r.appointment?.appointment_at
+    if (!at) return false
+    const t = new Date(at).getTime()
+    return t >= fromMs && t < toExclusiveMs
+  })
+  if (inRange.length === 0) return out
+  const apptIds = Array.from(new Set(inRange.map((r) => r.appointment_id)))
+  const { data: reversalsRaw } = await supabase
+    .from('appointment_reversals')
+    .select('appointment_id')
+    .in('appointment_id', apptIds)
+  const reversed = new Set(
+    ((reversalsRaw ?? []) as Array<{ appointment_id: string }>).map((r) => r.appointment_id),
+  )
+  for (const r of inRange) {
+    if (reversed.has(r.appointment_id)) continue
+    out.set(
+      r.assistant_doctor_id,
+      (out.get(r.assistant_doctor_id) ?? 0) + Number(r.frozen_amount_cents ?? 0),
+    )
+  }
+  return out
+}
+
 /**
- * Soma os honorários de participação (appointment_assistants) por profissional
- * dentro do período [from, to] (inclusivo), excluindo participações removidas e
- * atendimentos estornados. Junta o nome do médico e o que já foi quitado nesse
- * mesmo período.
+ * Totais a pagar de profissionais LIBERAIS no período [from, to]: comissão dos
+ * atendimentos onde é o executante + honorários de participação. Junta o que já
+ * foi quitado exatamente nesse período. Só profissionais com payment_mode
+ * 'liberal' (mais quem teve participação no período).
  */
 export async function aggregateLiberalByPeriod(
   supabase: SupabaseClient<Database>,
@@ -44,60 +98,32 @@ export async function aggregateLiberalByPeriod(
   }
   if (args.from > args.to) throw new ValidationError('Data inicial maior que a final.')
 
-  const { data, error } = await supabase
-    .from('appointment_assistants' as never)
-    .select(
-      'assistant_doctor_id, frozen_amount_cents, appointment_id, appointment:appointment_id ( appointment_at )',
-    )
-    .eq('tenant_id', args.tenantId)
-    .is('removed_at', null)
-  if (error) return []
-
-  const rows = (data ?? []) as unknown as Array<{
-    assistant_doctor_id: string
-    frozen_amount_cents: number
-    appointment_id: string
-    appointment: { appointment_at: string | null } | null
-  }>
-  const { fromMs, toExclusiveMs } = dayRange(args.from, args.to)
-  const inRange = rows.filter((r) => {
-    const at = r.appointment?.appointment_at
-    if (!at) return false
-    const t = new Date(at).getTime()
-    return t >= fromMs && t < toExclusiveMs
-  })
-  if (inRange.length === 0) return []
-
-  const apptIds = Array.from(new Set(inRange.map((r) => r.appointment_id)))
-  const { data: reversalsRaw } = await supabase
-    .from('appointment_reversals')
-    .select('appointment_id')
-    .in('appointment_id', apptIds)
-  const reversed = new Set(
-    ((reversalsRaw ?? []) as Array<{ appointment_id: string }>).map((r) => r.appointment_id),
-  )
-
-  const totals = new Map<string, number>()
-  for (const r of inRange) {
-    if (reversed.has(r.appointment_id)) continue
-    totals.set(
-      r.assistant_doctor_id,
-      (totals.get(r.assistant_doctor_id) ?? 0) + Number(r.frozen_amount_cents ?? 0),
-    )
-  }
-  if (totals.size === 0) return []
-
-  const doctorIds = Array.from(totals.keys())
+  // Profissionais liberais ativos.
   const { data: docsRaw } = await supabase
     .from('doctors')
-    .select('id, full_name')
-    .in('id', doctorIds)
-  const nameById = new Map(
-    ((docsRaw ?? []) as Array<{ id: string; full_name: string | null }>).map((d) => [
-      d.id,
-      d.full_name ?? '—',
-    ]),
+    .select('id, full_name, payment_mode, active')
+    .eq('tenant_id', args.tenantId)
+  const docs = (docsRaw ?? []) as Array<{
+    id: string
+    full_name: string | null
+    payment_mode: string | null
+    active: boolean | null
+  }>
+  const nameById = new Map(docs.map((d) => [d.id, d.full_name ?? '—']))
+  const liberalIds = new Set(
+    docs.filter((d) => d.payment_mode === 'liberal' && d.active !== false).map((d) => d.id),
   )
+
+  // Comissão por médico no período (executante) + participações.
+  const [summary, participations] = await Promise.all([
+    summaryByProfessional(supabase, {
+      tenantId: args.tenantId,
+      from: args.from,
+      to: args.to,
+    }).catch(() => []),
+    aggregateParticipations(supabase, args.tenantId, args.from, args.to),
+  ])
+  const commissionById = new Map(summary.map((s) => [s.doctorId, s.totalCommissionCents]))
 
   // Quitações já registradas para EXATAMENTE este período.
   const { data: paidRaw } = await supabase
@@ -111,13 +137,26 @@ export async function aggregateLiberalByPeriod(
     paidById.set(p.doctor_id, (paidById.get(p.doctor_id) ?? 0) + Number(p.amount_cents ?? 0))
   }
 
-  return doctorIds
-    .map((id) => ({
-      doctorId: id,
-      doctorName: nameById.get(id) ?? '—',
-      totalCents: totals.get(id) ?? 0,
-      paidCents: paidById.get(id) ?? 0,
-    }))
+  // Inclui liberais + quem teve participação no período.
+  const ids = new Set<string>([...liberalIds, ...participations.keys()])
+
+  return Array.from(ids)
+    .map((id) => {
+      const isLiberal = liberalIds.has(id)
+      // Comissão do executante só conta para liberais (comissionado/fixo é pago
+      // no repasse mensal). Participação conta para todos.
+      const commission = isLiberal ? commissionById.get(id) ?? 0 : 0
+      const participation = participations.get(id) ?? 0
+      return {
+        doctorId: id,
+        doctorName: nameById.get(id) ?? '—',
+        commissionCents: commission,
+        participationCents: participation,
+        totalCents: commission + participation,
+        paidCents: paidById.get(id) ?? 0,
+      }
+    })
+    .filter((r) => r.totalCents > 0 || r.paidCents > 0)
     .sort((a, b) => a.doctorName.localeCompare(b.doctorName))
 }
 

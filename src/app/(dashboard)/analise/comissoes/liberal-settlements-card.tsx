@@ -11,6 +11,8 @@ import { formatCurrency } from '@/lib/utils'
 interface DoctorTotal {
   doctorId: string
   doctorName: string
+  commissionCents: number
+  participationCents: number
   totalCents: number
   paidCents: number
 }
@@ -171,7 +173,15 @@ export function LiberalSettlementsCard() {
                   return (
                     <Fragment key={d.doctorId}>
                       <tr className="border-b border-slate-100">
-                        <td className="px-3 py-2 font-medium text-slate-900">{d.doctorName}</td>
+                        <td className="px-3 py-2 font-medium text-slate-900">
+                          {d.doctorName}
+                          {d.participationCents > 0 ? (
+                            <span className="block text-[10px] font-normal text-slate-400">
+                              comissão {formatCurrency(d.commissionCents)} · participação{' '}
+                              {formatCurrency(d.participationCents)}
+                            </span>
+                          ) : null}
+                        </td>
                         <td className="px-3 py-2 text-right font-mono tabular-nums">
                           {formatCurrency(d.totalCents)}
                         </td>
