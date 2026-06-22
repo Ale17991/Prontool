@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   FileText,
   LayoutDashboard,
+  MessageCircle,
   Receipt,
   ScrollText,
   Settings,
@@ -72,6 +73,13 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Tarefas',
         icon: ClipboardCheck,
         show: ({ role }) => can(role, 'task.read'),
+      },
+      {
+        // Chat interno da clínica — disponível a todos os usuários do tenant.
+        href: '/operacao/chat',
+        label: 'Chat',
+        icon: MessageCircle,
+        show: () => true,
       },
     ],
   },

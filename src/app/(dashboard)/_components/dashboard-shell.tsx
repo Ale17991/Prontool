@@ -23,11 +23,14 @@ import {
 } from './sidebar-integrations-badge'
 import { NotificationBell } from './notification-bell'
 import { SupportTicketDialog } from './support-ticket-dialog'
+import { ChatProvider, useChat } from './chat-provider'
 import {
   getVisibleSections,
   type NavContext,
   type VisibleSection,
 } from './sidebar-sections'
+
+const CHAT_HREF = '/operacao/chat'
 
 /**
  * Feature 014 — sidebar enxugada para 3 + 3 + 1 itens (Operação,
@@ -41,6 +44,9 @@ import {
 interface DashboardShellProps {
   role: TenantRole
   email: string | null
+  /** Sessão — usados pelo chat interno (realtime por tenant). */
+  userId: string
+  tenantId: string
   integrations?: SidebarIntegrationBadgeItem[]
   /** Feature 009 — URL assinada da logo da clínica (24 h). null = fallback. */
   clinicLogoUrl?: string | null
@@ -63,6 +69,8 @@ interface DashboardShellProps {
 export function DashboardShell({
   role,
   email,
+  userId,
+  tenantId,
   integrations = [],
   clinicLogoUrl = null,
   clinicName = null,
@@ -149,6 +157,7 @@ export function DashboardShell({
   )
 
   return (
+    <ChatProvider userId={userId} tenantId={tenantId}>
     <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans">
       {/* Sidebar fixa (≥md) — 016: bg #0E3C5B (azul institucional do designer) */}
       <aside className="z-20 hidden w-64 shrink-0 flex-col bg-sidebar p-6 shadow-xl md:flex">
@@ -211,6 +220,7 @@ export function DashboardShell({
         <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
       </main>
     </div>
+    </ChatProvider>
   )
 }
 
@@ -295,6 +305,7 @@ function SidebarInner({
                   icon={it.icon}
                   active={isUnder(pathname, it.href)}
                   onNavigate={onNavigate}
+                  badge={it.href === CHAT_HREF ? <ChatNavBadge /> : null}
                 />
               ))}
             </div>
@@ -331,12 +342,14 @@ function SidebarLink({
   icon: Icon,
   active,
   onNavigate,
+  badge = null,
 }: {
   href: string
   label: string
   icon: LucideIcon
   active: boolean
   onNavigate?: () => void
+  badge?: ReactNode
 }) {
   return (
     <Link
@@ -356,7 +369,19 @@ function SidebarLink({
         )}
       />
       <span className="truncate">{label}</span>
+      {badge}
     </Link>
+  )
+}
+
+/** Badge de mensagens não lidas no item "Chat" da sidebar. */
+function ChatNavBadge() {
+  const { unread } = useChat()
+  if (!unread) return null
+  return (
+    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-white">
+      {unread > 9 ? '9+' : unread}
+    </span>
   )
 }
 

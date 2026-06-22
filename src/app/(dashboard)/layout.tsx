@@ -106,6 +106,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <DashboardShell
       role={session.role}
       email={session.email ?? null}
+      userId={session.userId}
+      tenantId={session.tenantId}
       integrations={integrations}
       clinicLogoUrl={clinicProfile?.logo?.signedUrl ?? null}
       clinicName={tenantDisplayName}

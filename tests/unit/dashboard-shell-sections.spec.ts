@@ -47,9 +47,9 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
     expect(SECTIONS.map((s) => s.id)).toEqual(['operacao', 'analise', 'configuracoes'])
   })
 
-  it('Operação has exactly 3 items: Agenda, Pacientes, Tarefas', () => {
+  it('Operação has exactly 4 items: Agenda, Pacientes, Tarefas, Chat', () => {
     const op = SECTIONS.find((s) => s.id === 'operacao')!
-    expect(op.items.map((it) => it.label)).toEqual(['Agenda', 'Pacientes', 'Tarefas'])
+    expect(op.items.map((it) => it.label)).toEqual(['Agenda', 'Pacientes', 'Tarefas', 'Chat'])
   })
 
   it('Análise lista os itens de relatório + financeiro + Faturamento TISS', () => {
@@ -102,6 +102,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Agenda',
       'Pacientes',
       'Tarefas',
+      'Chat',
       'Relatórios',
       'Comissões',
       'Dashboard',
@@ -141,6 +142,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Agenda',
       'Pacientes',
       'Tarefas',
+      'Chat',
       'Repasse Médico',
       'Configurações',
     ])
