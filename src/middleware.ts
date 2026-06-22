@@ -134,6 +134,10 @@ export async function middleware(req: NextRequest) {
     // re-setá-los e atrapalhar o sign-out.
     pathname.startsWith('/api/auth/logout') ||
     pathname.startsWith('/agendar') ||
+    // Recuperação de senha: chega com a sessão de recovery no hash (client-side);
+    // precisa ser pública senão o middleware redireciona pro /login antes do
+    // browser client processar o token.
+    pathname.startsWith('/redefinir-senha') ||
     // Backlog 1/3 — auto-cadastro do paciente: página + API públicas (token).
     pathname.startsWith('/completar-cadastro') ||
     pathname.startsWith('/api/public/') ||
