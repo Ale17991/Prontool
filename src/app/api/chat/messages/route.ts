@@ -14,6 +14,8 @@ const ROLES = ['admin', 'financeiro', 'recepcionista', 'profissional_saude'] as 
 const postSchema = z.object({
   kind: z.enum(['text', 'nudge']).default('text'),
   content: z.string().max(4000).optional(),
+  /** Destinatário da DM; ausente/null = canal geral. */
+  to_user_id: z.string().uuid().nullable().optional(),
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -21,7 +23,16 @@ export async function GET(req: Request): Promise<Response> {
   try {
     const session = await requireRole([...ROLES], { entity: 'chat_messages', route, request: req })
     const supabase = createSupabaseServiceClient()
-    const messages = await listChatMessages(supabase, { tenantId: session.tenantId })
+    // ?with=geral (default) ou ?with=<userId> para a DM 1:1.
+    const withParam = new URL(req.url).searchParams.get('with')
+    const conversation =
+      withParam && withParam !== 'geral'
+        ? ({ kind: 'dm', meUserId: session.userId, otherUserId: withParam } as const)
+        : ({ kind: 'channel' } as const)
+    const messages = await listChatMessages(supabase, {
+      tenantId: session.tenantId,
+      conversation,
+    })
     return NextResponse.json({ messages, me: session.userId }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route })
@@ -51,6 +62,7 @@ export async function POST(req: Request): Promise<Response> {
       fromName,
       kind: parsed.data.kind,
       content: parsed.data.content,
+      toUserId: parsed.data.to_user_id ?? null,
     })
     return NextResponse.json({ message }, { status: 201 })
   } catch (err) {

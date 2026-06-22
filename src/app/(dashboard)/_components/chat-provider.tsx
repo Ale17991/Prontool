@@ -83,6 +83,8 @@ interface Popup {
   fromName: string
   content: string
   nudge: boolean
+  /** Se for DM, id do remetente para abrir a conversa direto. */
+  dmFrom: string | null
 }
 
 export function ChatProvider({
@@ -151,10 +153,14 @@ export function ChatProvider({
               id: r.id as string,
               userId: r.user_id as string,
               fromName: (r.from_name as string) ?? '',
+              toUserId: (r.to_user_id as string | null) ?? null,
               kind: (r.kind as 'text' | 'nudge') ?? 'text',
               content: (r.content as string) ?? '',
               createdAt: r.created_at as string,
             }
+            // DM que não me envolve não interessa (a RLS já filtraria; guard extra).
+            if (msg.toUserId !== null && msg.toUserId !== userId && msg.userId !== userId) return
+
             // Entrega a quem estiver ouvindo (ex.: a sala de chat aberta).
             listeners.current.forEach((cb) => cb(msg))
 
@@ -170,12 +176,19 @@ export function ChatProvider({
             }
 
             if (!onChatPageRef.current) {
+              const isDm = msg.toUserId !== null
+              const prefix = msg.kind === 'nudge'
+                ? `${msg.fromName} chamou sua atenção!`
+                : isDm
+                  ? `${msg.fromName} (privado): ${msg.content}`
+                  : msg.content
               setUnread((n) => n + 1)
               setPopup({
                 id: msg.id,
                 fromName: msg.fromName,
-                content: msg.kind === 'nudge' ? `${msg.fromName} chamou sua atenção!` : msg.content,
+                content: prefix,
                 nudge: msg.kind === 'nudge',
+                dmFrom: isDm ? msg.userId : null,
               })
               if (popupTimer.current) clearTimeout(popupTimer.current)
               popupTimer.current = setTimeout(() => setPopup(null), 9000)
@@ -192,9 +205,9 @@ export function ChatProvider({
     }
   }, [tenantId, userId])
 
-  function openChat() {
+  function openChat(dmFrom?: string | null) {
     setPopup(null)
-    router.push(CHAT_PATH)
+    router.push(dmFrom ? `${CHAT_PATH}?c=${dmFrom}` : CHAT_PATH)
   }
 
   return (
@@ -227,7 +240,7 @@ export function ChatProvider({
             </div>
             <button
               type="button"
-              onClick={openChat}
+              onClick={() => openChat(popup.dmFrom)}
               className="block w-full px-3 pb-3 text-left text-sm text-slate-700 hover:text-slate-900"
             >
               <span className="line-clamp-2">{popup.content}</span>
