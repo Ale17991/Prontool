@@ -8,6 +8,7 @@ import { RemindersOptInToggle } from '../reminders-opt-in-toggle'
 import { PatientStatusEditor } from './patient-status-editor'
 import { PatientPhotoEditor } from './patient-photo-editor'
 import { PatientDocumentsSection } from '../patient-documents-section'
+import { ExamRequestsSection } from '../exam-requests-section'
 import { EyeglassRxSection } from '../eyeglass-rx-section'
 import { OphthalExamSection } from '../ophthal-exam-section'
 import { PatientIntakeLink } from '../patient-intake-link'
@@ -212,6 +213,8 @@ export function CadastroTab({
       />
 
       <PatientDocumentsSection patientId={patientId} canWrite={canWriteClinical} />
+
+      <ExamRequestsSection patientId={patientId} canWrite={canWriteClinical} />
 
       <OphthalExamSection patientId={patientId} canWrite={canWriteClinical} />
 
