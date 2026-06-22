@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { sendTeamMemberPasswordReset } from '@/lib/core/team/send-password-reset'
+import { originFromHeaders } from '@/lib/core/app-url'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,7 @@ export async function POST(
       tenantId: session.tenantId,
       actorId: session.userId,
       targetUserId: params.userId,
+      baseUrl: originFromHeaders(req.headers),
     })
     return NextResponse.json({ ok: true, email: result.email }, { status: 200 })
   } catch (err) {

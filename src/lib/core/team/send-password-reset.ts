@@ -1,17 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError, ValidationError } from '@/lib/observability/errors'
-import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 
 /**
  * Admin dispara o e-mail de redefinição de senha para um membro da equipe.
  * Usa `resetPasswordForEmail` (o Supabase ENVIA o e-mail, igual ao convite),
- * com redirectTo de produção → `/redefinir-senha`. Requer Site URL + Redirect
- * URLs configurados no Supabase (ver project-auth-url-config).
+ * com `redirectTo` -> `/redefinir-senha` (a rota deriva do host real). Requer a
+ * URL na allowlist de Redirect URLs do Supabase (ver project-auth-url-config).
  */
 export async function sendTeamMemberPasswordReset(
   supabaseService: SupabaseClient<Database>,
-  args: { tenantId: string; actorId: string; targetUserId: string },
+  args: { tenantId: string; actorId: string; targetUserId: string; baseUrl: string },
 ): Promise<{ email: string }> {
   // Garante que o alvo é membro deste tenant (não envia para outra clínica).
   const { data: link, error: linkErr } = await supabaseService
@@ -30,7 +29,7 @@ export async function sendTeamMemberPasswordReset(
   const email = userRes.user?.email
   if (!email) throw new ValidationError('Usuário sem e-mail cadastrado.')
 
-  const redirectTo = `${resolvePublicBaseUrl()}/redefinir-senha`
+  const redirectTo = `${args.baseUrl.replace(/\/+$/, '')}/redefinir-senha`
   const { error: resetErr } = await supabaseService.auth.resetPasswordForEmail(email, {
     redirectTo,
   })

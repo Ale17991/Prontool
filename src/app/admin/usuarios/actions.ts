@@ -9,7 +9,8 @@ import { setTeamMemberRole } from '@/lib/core/team/set-role'
 import { setTeamMemberStatus } from '@/lib/core/team/set-status'
 import { createManualUser } from '@/lib/core/team/create-manual'
 import { inviteTeamMember } from '@/lib/core/team/invite'
-import { resolvePublicBaseUrl } from '@/lib/core/app-url'
+import { headers } from 'next/headers'
+import { originFromHeaders } from '@/lib/core/app-url'
 import type { Database } from '@/lib/db/types'
 
 export interface AdminUserActionResult {
@@ -100,7 +101,7 @@ export async function adminResetPasswordAction(
   // o Site URL do projeto (que pode estar em localhost). Precisa estar na
   // allowlist de Redirect URLs do Supabase. /redefinir-senha capta a sessão de
   // recovery (no hash) e deixa o usuário definir a nova senha.
-  const redirectTo = `${resolvePublicBaseUrl()}/redefinir-senha`
+  const redirectTo = `${originFromHeaders(headers())}/redefinir-senha`
   const { data, error } = await sb.auth.admin.generateLink({
     type: 'recovery',
     email,
