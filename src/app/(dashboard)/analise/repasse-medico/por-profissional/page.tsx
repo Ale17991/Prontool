@@ -164,6 +164,7 @@ function ProfessionalCard({
     procedureCount: number
     totalRevenueCents: number
     totalCommissionCents: number
+    totalParticipationCents: number
   }
   from: string
   to: string
@@ -190,11 +191,18 @@ function ProfessionalCard({
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Comissão
+              {row.totalParticipationCents > 0 && row.totalCommissionCents === 0
+                ? 'Participação'
+                : 'Comissão'}
             </p>
             <p className="text-xl font-black text-success-strong tabular-nums">
-              {formatCurrency(row.totalCommissionCents)}
+              {formatCurrency(row.totalCommissionCents + row.totalParticipationCents)}
             </p>
+            {row.totalParticipationCents > 0 && row.totalCommissionCents > 0 ? (
+              <p className="text-[10px] text-slate-400">
+                inclui {formatCurrency(row.totalParticipationCents)} de participação
+              </p>
+            ) : null}
           </div>
         </div>
         <Link

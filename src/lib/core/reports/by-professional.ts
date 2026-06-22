@@ -50,12 +50,23 @@ export interface ProfessionalSummaryRow {
   procedureCount: number
   totalRevenueCents: number
   totalCommissionCents: number
+  /** Honorários de participação (equipe/instrumentação) no período. */
+  totalParticipationCents: number
   /** Imposto do convênio (tax_rate_bps) somado sobre a receita do médico. */
   totalTaxFromPlanCents: number
   /** Receita líquida do médico após o imposto do convênio. */
   totalNetOfTaxCents: number
   /** Quebra da receita/comissão deste médico por convênio. */
   byPlan: DoctorPlanBreakdown[]
+}
+
+export interface ProfessionalParticipationRow {
+  appointmentId: string
+  appointmentAt: string
+  procedureName: string
+  tussCode: string
+  participationDegree: string | null
+  amountCents: number
 }
 
 export interface ProfessionalProcedureRow {
@@ -96,6 +107,8 @@ export interface ProfessionalDetail {
     procedureCount: number
     totalRevenueCents: number
     totalCommissionCents: number
+    /** Honorários de participação no período. */
+    totalParticipationCents: number
     /** Imposto do convênio somado sobre a receita do médico. */
     totalTaxFromPlanCents: number
     /** Receita líquida após o imposto do convênio. */
@@ -103,6 +116,8 @@ export interface ProfessionalDetail {
   }
   /** Subtotais por convênio dentro deste profissional. */
   byPlan: DoctorPlanBreakdown[]
+  /** Honorários de participação (equipe/instrumentação) do profissional. */
+  participations: ProfessionalParticipationRow[]
   topProcedure: {
     procedureId: string
     procedureName: string
@@ -117,6 +132,77 @@ interface DecryptedNameRow {
   anonymized_at: string | null
 }
 
+interface RawParticipation {
+  doctorId: string
+  appointmentId: string
+  appointmentAt: string
+  procedureName: string
+  tussCode: string
+  participationDegree: string | null
+  amountCents: number
+}
+
+/**
+ * Honorários de participação (appointment_assistants) no período [from, to],
+ * excluindo participações removidas e atendimentos estornados. Inclui nome do
+ * procedimento e grau de participação. Best-effort (retorna [] se a tabela não
+ * existir no ambiente).
+ */
+async function fetchParticipations(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  from: string,
+  to: string,
+): Promise<RawParticipation[]> {
+  const { data, error } = await supabase
+    .from('appointment_assistants' as never)
+    .select(
+      'assistant_doctor_id, frozen_amount_cents, participation_degree, appointment_id, ' +
+        'appointment:appointment_id ( appointment_at ), procedures:procedure_id ( tuss_code, display_name )',
+    )
+    .eq('tenant_id', tenantId)
+    .is('removed_at', null)
+  if (error) return []
+  const rows = (data ?? []) as unknown as Array<{
+    assistant_doctor_id: string
+    frozen_amount_cents: number
+    participation_degree: string | null
+    appointment_id: string
+    appointment: { appointment_at: string | null } | null
+    procedures: { tuss_code: string | null; display_name: string | null } | null
+  }>
+  const fromMs = new Date(`${from}T00:00:00`).getTime()
+  const toExclusiveMs = new Date(`${to}T00:00:00`).getTime() + 24 * 60 * 60 * 1000
+  const inRange = rows.filter((r) => {
+    const at = r.appointment?.appointment_at
+    if (!at) return false
+    const t = new Date(at).getTime()
+    return t >= fromMs && t < toExclusiveMs
+  })
+  if (inRange.length === 0) return []
+
+  const apptIds = Array.from(new Set(inRange.map((r) => r.appointment_id)))
+  const { data: reversalsRaw } = await supabase
+    .from('appointment_reversals')
+    .select('appointment_id')
+    .in('appointment_id', apptIds)
+  const reversed = new Set(
+    ((reversalsRaw ?? []) as Array<{ appointment_id: string }>).map((r) => r.appointment_id),
+  )
+
+  return inRange
+    .filter((r) => !reversed.has(r.appointment_id))
+    .map((r) => ({
+      doctorId: r.assistant_doctor_id,
+      appointmentId: r.appointment_id,
+      appointmentAt: r.appointment?.appointment_at ?? '',
+      procedureName: r.procedures?.display_name ?? r.procedures?.tuss_code ?? 'Procedimento',
+      tussCode: r.procedures?.tuss_code ?? '',
+      participationDegree: r.participation_degree,
+      amountCents: Number(r.frozen_amount_cents ?? 0),
+    }))
+}
+
 export async function summaryByProfessional(
   supabase: SupabaseClient<Database>,
   input: { tenantId: string; from: string; to: string },
@@ -128,12 +214,17 @@ export async function summaryByProfessional(
   const fromTs = ymdStartOfDayUtc(input.from, tz)
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
-  const [active, allDoctors] = await Promise.all([
+  const [active, allDoctors, participations] = await Promise.all([
     fetchActiveAppointments(supabase, input.tenantId, fromTs, toExclusive),
     fetchAllDoctors(supabase, input.tenantId),
+    fetchParticipations(supabase, input.tenantId, input.from, input.to),
   ])
+  const partByDoctor = new Map<string, number>()
+  for (const p of participations) {
+    partByDoctor.set(p.doctorId, (partByDoctor.get(p.doctorId) ?? 0) + p.amountCents)
+  }
   if (active.length === 0) {
-    return enrichAllDoctorsWithZero(allDoctors)
+    return enrichAllDoctorsWithZero(allDoctors, partByDoctor)
   }
 
   const lines = await fetchLines(
@@ -173,6 +264,7 @@ export async function summaryByProfessional(
       procedureCount: agg?.procedureCount ?? 0,
       totalRevenueCents: agg?.grossCents ?? 0,
       totalCommissionCents: agg?.commissionCents ?? 0,
+      totalParticipationCents: partByDoctor.get(d.id) ?? 0,
       totalTaxFromPlanCents: agg?.taxFromPlanCents ?? 0,
       totalNetOfTaxCents: agg?.netOfTaxCents ?? 0,
       byPlan: agg?.byPlan ?? [],
@@ -205,6 +297,26 @@ export async function detailByProfessional(
 
   const doctor = await fetchDoctorById(supabase, input.tenantId, input.doctorId)
 
+  // Honorários de participação deste profissional (independe de ser executante).
+  const allParticipations = await fetchParticipations(
+    supabase,
+    input.tenantId,
+    input.from,
+    input.to,
+  )
+  const participations: ProfessionalParticipationRow[] = allParticipations
+    .filter((p) => p.doctorId === input.doctorId)
+    .map((p) => ({
+      appointmentId: p.appointmentId,
+      appointmentAt: p.appointmentAt,
+      procedureName: p.procedureName,
+      tussCode: p.tussCode,
+      participationDegree: p.participationDegree,
+      amountCents: p.amountCents,
+    }))
+    .sort((a, b) => a.appointmentAt.localeCompare(b.appointmentAt))
+  const totalParticipationCents = participations.reduce((s, p) => s + p.amountCents, 0)
+
   const active = await fetchActiveAppointments(
     supabase,
     input.tenantId,
@@ -221,10 +333,12 @@ export async function detailByProfessional(
         procedureCount: 0,
         totalRevenueCents: 0,
         totalCommissionCents: 0,
+        totalParticipationCents,
         totalTaxFromPlanCents: 0,
         totalNetOfTaxCents: 0,
       },
       byPlan: [],
+      participations,
       topProcedure: null,
     }
   }
@@ -332,10 +446,12 @@ export async function detailByProfessional(
       procedureCount,
       totalRevenueCents,
       totalCommissionCents,
+      totalParticipationCents,
       totalTaxFromPlanCents,
       totalNetOfTaxCents,
     },
     byPlan,
+    participations,
     topProcedure,
   }
 }
@@ -352,7 +468,10 @@ function mapDoctor(d: DoctorRow): ProfessionalDetail['doctor'] {
   }
 }
 
-function enrichAllDoctorsWithZero(doctors: DoctorRow[]): ProfessionalSummaryRow[] {
+function enrichAllDoctorsWithZero(
+  doctors: DoctorRow[],
+  partByDoctor?: Map<string, number>,
+): ProfessionalSummaryRow[] {
   return doctors
     .map((d) => ({
       doctorId: d.id,
@@ -362,6 +481,7 @@ function enrichAllDoctorsWithZero(doctors: DoctorRow[]): ProfessionalSummaryRow[
       procedureCount: 0,
       totalRevenueCents: 0,
       totalCommissionCents: 0,
+      totalParticipationCents: partByDoctor?.get(d.id) ?? 0,
       totalTaxFromPlanCents: 0,
       totalNetOfTaxCents: 0,
       byPlan: [],

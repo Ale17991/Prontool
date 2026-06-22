@@ -187,6 +187,14 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
           value={formatCurrency(detail.totals.totalCommissionCents)}
           highlight
         />
+        {detail.totals.totalParticipationCents > 0 ? (
+          <SummaryCard
+            icon={Wallet}
+            label="Honorários de participação"
+            value={formatCurrency(detail.totals.totalParticipationCents)}
+            highlight
+          />
+        ) : null}
         <SummaryCard
           icon={Award}
           label="Procedimento mais realizado"
@@ -256,6 +264,48 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
           )}
         </CardContent>
       </Card>
+
+      {detail.participations.length > 0 ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Wallet className="h-4 w-4 text-primary" />
+              Honorários de participação (equipe/instrumentação)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Procedimento</TableHead>
+                  <TableHead>Grau</TableHead>
+                  <TableHead className="text-right">Honorário</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detail.participations.map((p, idx) => (
+                  <TableRow key={`${p.appointmentId}-${idx}`}>
+                    <TableCell className="text-xs text-slate-700">
+                      {formatDateTime(p.appointmentAt)}
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-medium text-slate-900">{p.procedureName}</p>
+                      <p className="font-mono text-[10px] text-slate-500">{p.tussCode}</p>
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-600">
+                      {p.participationDegree ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-success-strong tabular-nums">
+                      {formatCurrency(p.amountCents)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   )
 }
