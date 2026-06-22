@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatBps, formatDate, formatDateTime } from '@/lib/utils'
+import { LiberalSettlementsCard } from './liberal-settlements-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -216,6 +217,10 @@ export default async function ComissoesPage() {
           )}
         </CardContent>
       </Card>
+
+      {session.role === 'admin' || session.role === 'financeiro' ? (
+        <LiberalSettlementsCard />
+      ) : null}
     </div>
   )
 }
