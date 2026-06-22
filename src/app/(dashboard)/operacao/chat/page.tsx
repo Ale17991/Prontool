@@ -28,7 +28,11 @@ export default async function ChatPage({
   ])
   const users: ChatUser[] = members
     .filter((m) => m.status === 'active' && !m.isSelf)
-    .map((m) => ({ id: m.userId, name: m.fullName || m.email }))
+    .map((m) => ({
+      id: m.userId,
+      name: m.fullName || m.email,
+      avatarUrl: m.avatar?.signedUrl ?? null,
+    }))
 
   const cParam = typeof searchParams.c === 'string' ? searchParams.c : null
 

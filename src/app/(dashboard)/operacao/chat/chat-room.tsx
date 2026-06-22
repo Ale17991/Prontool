@@ -9,6 +9,32 @@ import type { ChatMessage } from '@/lib/core/chat/crud'
 export interface ChatUser {
   id: string
   name: string
+  avatarUrl: string | null
+}
+
+/** Miniatura do avatar — meramente decorativa (sem clique/abrir). */
+function ChatAvatar({
+  url,
+  name,
+  className = 'h-7 w-7 text-[10px]',
+}: {
+  url: string | null
+  name: string
+  className?: string
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-slate-200 font-bold uppercase text-slate-500 ${className}`}
+    >
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt="" className="pointer-events-none h-full w-full object-cover" />
+      ) : (
+        (name || '?').slice(0, 1)
+      )}
+    </span>
+  )
 }
 
 /** 'geral' (canal) ou o id do outro usuário (DM). */
@@ -49,6 +75,12 @@ export function ChatRoom({
   const userName = useMemo(() => {
     const m = new Map<string, string>()
     for (const u of users) m.set(u.id, u.name)
+    return m
+  }, [users])
+
+  const userAvatar = useMemo(() => {
+    const m = new Map<string, string | null>()
+    for (const u of users) m.set(u.id, u.avatarUrl)
     return m
   }, [users])
 
@@ -172,7 +204,7 @@ export function ChatRoom({
                 active={active === u.id}
                 unread={unreadConvs.has(u.id)}
                 onClick={() => setActive(u.id)}
-                icon={<User className="h-4 w-4" />}
+                icon={<ChatAvatar url={u.avatarUrl} name={u.name} className="h-6 w-6 text-[9px]" />}
                 label={u.name}
               />
             ))
@@ -222,7 +254,13 @@ export function ChatRoom({
                   </span>
                 </div>
               ) : (
-                <div key={m.id} className={`flex ${m.userId === me ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  key={m.id}
+                  className={`flex items-end gap-2 ${m.userId === me ? 'justify-end' : 'justify-start'}`}
+                >
+                  {m.userId !== me ? (
+                    <ChatAvatar url={userAvatar.get(m.userId) ?? null} name={m.fromName} />
+                  ) : null}
                   <div
                     className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
                       m.userId === me
