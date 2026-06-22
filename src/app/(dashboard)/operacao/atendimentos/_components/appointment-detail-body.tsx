@@ -42,6 +42,7 @@ import { ProcedureParticipants } from './procedure-participants'
 import { AppointmentAttachmentsSection } from './appointment-attachments-section'
 import { AppointmentScansSection } from './appointment-scans-section'
 import { AppointmentFlowControl } from './appointment-flow-control'
+import { AddProcedureSection } from './add-procedure-section'
 import type { AppointmentDetailDTO } from './types'
 
 /**
@@ -109,6 +110,7 @@ export function AppointmentDetailBody({
       status === 'ativo' ||
       status === 'estornado') &&
     canManageSchedule
+  const canAddProcedure = canManageSchedule || role === 'financeiro'
 
   const endIso = appointment.appointment_at
     ? new Date(
@@ -307,6 +309,15 @@ export function AppointmentDetailBody({
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {canAddProcedure && appointment.id ? (
+              <div className="mb-4">
+                <AddProcedureSection
+                  appointmentId={appointment.id}
+                  planId={appointment.plan_id ?? null}
+                  onAdded={refetch}
+                />
+              </div>
+            ) : null}
             <Table>
               <TableHeader>
                 <TableRow>
