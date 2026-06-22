@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, Loader2, MailPlus, Send, ShieldCheck, ShieldOff, UserCog, UserPlus } from 'lucide-react'
+import { AlertCircle, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, UserCog, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -14,6 +14,8 @@ import { InviteUserDialog } from './invite-user-dialog'
 import { ManualUserDialog } from './manual-user-dialog'
 import { ChangeRoleDialog } from './change-role-dialog'
 import { ChangeStatusDialog } from './change-status-dialog'
+import { EditUserDialog } from './edit-user-dialog'
+import { RowActionsMenu, type RowAction } from './row-actions-menu'
 
 interface Props {
   initial: TeamMember[]
@@ -32,6 +34,7 @@ export function UsersList({ initial }: Props) {
   const [manualOpen, setManualOpen] = useState(false)
   const [roleTarget, setRoleTarget] = useState<TeamMember | null>(null)
   const [statusTarget, setStatusTarget] = useState<TeamMember | null>(null)
+  const [editTarget, setEditTarget] = useState<TeamMember | null>(null)
   const [resending, setResending] = useState<string | null>(null)
   const [globalError, setGlobalError] = useState<string | null>(null)
 
@@ -59,6 +62,40 @@ export function UsersList({ initial }: Props) {
     } finally {
       setResending(null)
     }
+  }
+
+  const buildActions = (u: TeamMember): RowAction[] => {
+    const actions: RowAction[] = [
+      {
+        label: 'Editar dados',
+        icon: <Pencil className="h-3.5 w-3.5" />,
+        onClick: () => setEditTarget(u),
+      },
+      {
+        label: 'Alterar função',
+        icon: <UserCog className="h-3.5 w-3.5" />,
+        onClick: () => setRoleTarget(u),
+      },
+      {
+        label: u.status === 'disabled' ? 'Reativar acesso' : 'Desativar acesso',
+        icon:
+          u.status === 'disabled' ? (
+            <ShieldCheck className="h-3.5 w-3.5 text-success-strong" />
+          ) : (
+            <ShieldOff className="h-3.5 w-3.5" />
+          ),
+        onClick: () => setStatusTarget(u),
+        danger: u.status !== 'disabled',
+      },
+    ]
+    if (u.status === 'pending') {
+      actions.push({
+        label: resending === u.userId ? 'Reenviando…' : 'Reenviar convite',
+        icon: <Send className="h-3.5 w-3.5" />,
+        onClick: () => void onResend(u),
+      })
+    }
+    return actions
   }
 
   return (
@@ -147,45 +184,8 @@ export function UsersList({ initial }: Props) {
                     {u.lastSignInAt ? new Date(u.lastSignInAt).toLocaleString('pt-BR') : '—'}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      {u.status === 'pending' ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={resending === u.userId}
-                          onClick={() => onResend(u)}
-                          title="Reenviar convite"
-                        >
-                          {resending === u.userId ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Send className="h-3 w-3" />
-                          )}
-                        </Button>
-                      ) : null}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setRoleTarget(u)}
-                        title="Alterar função"
-                      >
-                        <UserCog className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setStatusTarget(u)}
-                        title={u.status === 'disabled' ? 'Reativar' : 'Desativar'}
-                      >
-                        {u.status === 'disabled' ? (
-                          <ShieldCheck className="h-3 w-3 text-success-strong" />
-                        ) : (
-                          <ShieldOff className="h-3 w-3 text-destructive" />
-                        )}
-                      </Button>
+                    <div className="flex items-center justify-end">
+                      <RowActionsMenu actions={buildActions(u)} />
                     </div>
                   </td>
                 </tr>
@@ -212,6 +212,17 @@ export function UsersList({ initial }: Props) {
           void refresh()
         }}
       />
+
+      {editTarget ? (
+        <EditUserDialog
+          target={editTarget}
+          onOpenChange={(open) => !open && setEditTarget(null)}
+          onSuccess={() => {
+            setEditTarget(null)
+            void refresh()
+          }}
+        />
+      ) : null}
 
       {roleTarget ? (
         <ChangeRoleDialog
