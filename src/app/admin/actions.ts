@@ -42,7 +42,9 @@ export async function setTenantPlanAction(input: {
   } as never)
   if (error) return { ok: false, error: error.message }
 
-  revalidatePath('/admin')
+  // 'layout' revalida tudo sob /admin (lista + detalhe da clínica), senão o
+  // detalhe servia checkboxes em cache e parecia que o módulo não reativou.
+  revalidatePath('/admin', 'layout')
   return { ok: true }
 }
 
@@ -68,7 +70,9 @@ export async function setTenantStatusAction(input: {
     .eq('id', input.tenantId)
   if (error) return { ok: false, error: error.message }
 
-  revalidatePath('/admin')
+  // 'layout' revalida tudo sob /admin (lista + detalhe da clínica), senão o
+  // detalhe servia checkboxes em cache e parecia que o módulo não reativou.
+  revalidatePath('/admin', 'layout')
   return { ok: true }
 }
 
@@ -116,6 +120,8 @@ export async function setSupportTenantAccessAction(input: {
     if (error) return { ok: false, error: error.message }
   }
 
-  revalidatePath('/admin')
+  // 'layout' revalida tudo sob /admin (lista + detalhe da clínica), senão o
+  // detalhe servia checkboxes em cache e parecia que o módulo não reativou.
+  revalidatePath('/admin', 'layout')
   return { ok: true }
 }

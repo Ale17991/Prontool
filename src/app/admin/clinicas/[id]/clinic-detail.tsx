@@ -102,6 +102,7 @@ export function ClinicDetail({
       setFeedback(
         res.ok ? { kind: 'ok', msg: 'Salvo.' } : { kind: 'error', msg: res.error ?? 'Erro ao salvar.' },
       )
+      if (res.ok) router.refresh()
     })
   }
 
