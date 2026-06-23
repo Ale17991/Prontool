@@ -16,6 +16,9 @@ export const SURFACES = [
   'occlusal_incisal',
   'vestibular',
   'lingual_palatal',
+  // Migration 0159 — regiões fora da coroa:
+  'cervical', // colo do dente (restaurações cervicais)
+  'raiz', // raiz/canal (endodontia)
 ] as const
 
 export type Surface = (typeof SURFACES)[number]
@@ -92,5 +95,15 @@ export function surfaceLabel(surface: Surface, toothFdi: number): string {
       return 'Lingual/Palatina'
     case 'occlusal_incisal':
       return isAnterior(toothFdi) ? 'Incisal' : 'Oclusal'
+    case 'cervical':
+      return 'Cervical'
+    case 'raiz':
+      return 'Raiz / Canal'
   }
+}
+
+/** Dente superior? (quadrantes 1, 2, 5, 6). Define a orientação da raiz. */
+export function isUpperTooth(toothFdi: number): boolean {
+  const quadrant = Math.floor(toothFdi / 10)
+  return quadrant === 1 || quadrant === 2 || quadrant === 5 || quadrant === 6
 }
