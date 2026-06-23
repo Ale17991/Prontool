@@ -159,6 +159,29 @@ export async function setTenantBillingAction(input: {
 }
 
 /**
+ * Pausa/reativa VÁRIAS clínicas de uma vez (ação em massa). Só admin GERAL.
+ */
+export async function adminBulkSetTenantStatusAction(input: {
+  tenantIds: string[]
+  status: 'active' | 'suspended'
+}): Promise<AdminActionResult> {
+  if (!(await superAdminUserId())) return { ok: false, error: 'Não autorizado.' }
+  const ids = (input.tenantIds ?? []).filter((id) => typeof id === 'string' && id.length > 0)
+  if (ids.length === 0) return { ok: false, error: 'Nenhuma clínica selecionada.' }
+  if (!['active', 'suspended'].includes(input.status)) {
+    return { ok: false, error: 'Status inválido.' }
+  }
+  const sb = createSupabaseServiceClient()
+  const { error } = await sb
+    .from('tenants')
+    .update({ status: input.status, updated_at: new Date().toISOString() } as never)
+    .in('id', ids)
+  if (error) return { ok: false, error: error.message }
+  revalidatePath('/admin', 'layout')
+  return { ok: true }
+}
+
+/**
  * Registra no audit_log que o admin geral ENTROU na clínica (impersonação para
  * suporte). Best-effort — não bloqueia a entrada se o log falhar.
  */
