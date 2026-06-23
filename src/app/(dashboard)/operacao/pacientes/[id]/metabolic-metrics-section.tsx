@@ -67,8 +67,11 @@ export function MetabolicMetricsSection({
     [metricTypes],
   )
 
+  // Mostra o card do gráfico já a partir de 1 medição (o próprio gráfico exibe
+  // o valor + aviso de que a linha aparece na 2ª). Antes exigia 2 e a métrica
+  // simplesmente sumia, dando a impressão de que o gráfico "não tinha função".
   const chartsWithData = metricTypes.filter(
-    (t) => (measurements[t.metricType] ?? []).length >= 2,
+    (t) => (measurements[t.metricType] ?? []).length >= 1,
   )
 
   return (
