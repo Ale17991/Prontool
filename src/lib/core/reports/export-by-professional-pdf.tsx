@@ -193,6 +193,14 @@ export function ByProfessionalReportDocument({
               {formatBRL(detail.totals.totalCommissionCents)}
             </Text>
           </View>
+          {detail.totals.totalParticipationCents > 0 ? (
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>Honorários de participação</Text>
+              <Text style={styles.summaryValue}>
+                {formatBRL(detail.totals.totalParticipationCents)}
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Procedimento mais realizado</Text>
             <Text style={styles.summaryValue}>
@@ -237,6 +245,30 @@ export function ByProfessionalReportDocument({
           )}
         </View>
 
+        {detail.participations.length > 0 ? (
+          <>
+            <Text style={styles.sectionTitle}>Honorários de participação (equipe/instrumentação)</Text>
+            <View style={styles.table}>
+              <View style={styles.trHeader}>
+                <Text style={[styles.th, styles.cellDate]}>Data</Text>
+                <Text style={[styles.th, styles.cellTuss]}>TUSS</Text>
+                <Text style={[styles.th, { width: '45%' }]}>Procedimento</Text>
+                <Text style={[styles.th, styles.cellPlan]}>Grau</Text>
+                <Text style={[styles.th, styles.cellComm]}>Honorário</Text>
+              </View>
+              {detail.participations.map((p, idx) => (
+                <View key={`${p.appointmentId}-${idx}`} style={styles.tr}>
+                  <Text style={[styles.td, styles.cellDate]}>{formatDateTime(p.appointmentAt)}</Text>
+                  <Text style={[styles.td, styles.cellTuss]}>{p.tussCode}</Text>
+                  <Text style={[styles.td, { width: '45%' }]}>{p.procedureName}</Text>
+                  <Text style={[styles.td, styles.cellPlan]}>{p.participationDegree ?? '—'}</Text>
+                  <Text style={[styles.td, styles.cellComm]}>{formatBRL(p.amountCents)}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        ) : null}
+
         <View style={styles.totals}>
           <Text style={styles.totalsLabel}>FATURAMENTO · COMISSÃO</Text>
           <Text style={styles.totalsBig}>
@@ -244,6 +276,14 @@ export function ByProfessionalReportDocument({
             {formatBRL(detail.totals.totalCommissionCents)}
           </Text>
           <View style={{ height: 8 }} />
+          {detail.totals.totalParticipationCents > 0 ? (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>A receber (comissão + participação)</Text>
+              <Text style={styles.totalsValue}>
+                {formatBRL(detail.totals.totalCommissionCents + detail.totals.totalParticipationCents)}
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.totalsRow}>
             <Text style={styles.totalsLabel}>Procedimentos</Text>
             <Text style={styles.totalsValue}>{detail.totals.procedureCount}</Text>
