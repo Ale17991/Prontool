@@ -26,7 +26,12 @@ import {
 } from '@/lib/core/entitlements/plans'
 import { labelForRole } from '@/lib/core/team/types'
 import type { TenantRole } from '@/lib/db/types'
-import { setTenantPlanAction, setTenantStatusAction, setTenantBillingAction } from '../../actions'
+import {
+  setTenantPlanAction,
+  setTenantStatusAction,
+  setTenantBillingAction,
+  adminLogEnterClinicAction,
+} from '../../actions'
 import { adminSendResetEmailAction } from '../../usuarios/actions'
 
 const BILLING_OPTIONS: { value: BillingStatus; label: string }[] = [
@@ -137,6 +142,28 @@ export function ClinicDetail({
 
   function save() {
     setFeedback(null)
+    // Preview do que muda + confirmação (evita desligar módulo por engano).
+    const before = new Set(
+      row.modules.filter((m): m is ModuleId => (ALL_MODULES as readonly string[]).includes(m)),
+    )
+    const added = [...modules].filter((m) => !before.has(m))
+    const removed = [...before].filter((m) => !modules.has(m))
+    const planChanged = plan !== row.plan
+    if (!planChanged && added.length === 0 && removed.length === 0) {
+      setFeedback({ kind: 'ok', msg: 'Nada para salvar.' })
+      return
+    }
+    const lbl = (m: ModuleId) => MODULE_LABEL[m]
+    const summary = [
+      planChanged ? `Plano: ${PLAN_LABEL[row.plan]} → ${PLAN_LABEL[plan]}` : null,
+      added.length ? `Ativar: ${added.map(lbl).join(', ')}` : null,
+      removed.length ? `Desativar: ${removed.map(lbl).join(', ')}` : null,
+    ]
+      .filter(Boolean)
+      .join('\n')
+    if (typeof window !== 'undefined' && !window.confirm(`Confirmar mudanças na clínica?\n\n${summary}`)) {
+      return
+    }
     startTransition(async () => {
       const res = await setTenantPlanAction({ tenantId: row.tenantId, plan, modules: [...modules] })
       setFeedback(
@@ -181,6 +208,7 @@ export function ClinicDetail({
     setEntering(true)
     void (async () => {
       try {
+        void adminLogEnterClinicAction(row.tenantId)
         const res = await fetch('/api/auth/switch-tenant', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },

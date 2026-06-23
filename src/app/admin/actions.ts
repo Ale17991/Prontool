@@ -159,6 +159,34 @@ export async function setTenantBillingAction(input: {
 }
 
 /**
+ * Registra no audit_log que o admin geral ENTROU na clínica (impersonação para
+ * suporte). Best-effort — não bloqueia a entrada se o log falhar.
+ */
+export async function adminLogEnterClinicAction(tenantId: string): Promise<void> {
+  const actorId = await superAdminUserId()
+  if (!actorId || !tenantId) return
+  const sb = createSupabaseServiceClient()
+  await sb
+    .from('audit_log')
+    .insert({
+      tenant_id: tenantId,
+      actor_id: actorId,
+      actor_label: 'admin-agência',
+      entity: 'tenants',
+      entity_id: tenantId,
+      field: 'enter_clinic',
+      old_value: null,
+      new_value: null,
+      reason: 'admin geral entrou na clínica (suporte)',
+      result: 'success',
+    } as never)
+    .then(
+      () => undefined,
+      () => undefined,
+    )
+}
+
+/**
  * Pausa (suspended) ou reativa (active) uma clínica inteira. Suspensa, a clínica
  * some das clínicas disponíveis do usuário (available-tenants filtra status
  * active) → ninguém consegue operá-la. Só admin GERAL.
