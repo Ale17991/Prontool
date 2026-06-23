@@ -1,5 +1,6 @@
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { ClinicsList, type ClinicListRow } from './clinics-list'
+import { CreateClinicDialog } from './create-clinic-dialog'
 import { ALL_MODULES, buildEntitlements, type ModuleId, type Plan } from '@/lib/core/entitlements/plans'
 
 export const dynamic = 'force-dynamic'
@@ -64,12 +65,15 @@ export default async function AdminClinicasPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-black tracking-tight text-slate-900">Clínicas</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Todas as clínicas da plataforma. Filtre, ordene e clique para abrir o painel da clínica
-          (plano, módulos, usuários, pausar).
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-black tracking-tight text-slate-900">Clínicas</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Todas as clínicas da plataforma. Filtre, ordene e clique para abrir o painel da clínica
+            (plano, módulos, usuários, pausar).
+          </p>
+        </div>
+        <CreateClinicDialog />
       </div>
       <ClinicsList rows={rows} />
     </div>

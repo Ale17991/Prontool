@@ -68,6 +68,16 @@ export interface ClinicUserRow {
   status: 'active' | 'pending' | 'disabled'
 }
 
+export interface AuditEntry {
+  actorName: string
+  entity: string
+  field: string | null
+  oldValue: string | null
+  newValue: string | null
+  reason: string | null
+  createdAt: string
+}
+
 interface Metrics {
   userCount: number
   appointmentCount: number
@@ -79,10 +89,12 @@ export function ClinicDetail({
   row,
   metrics,
   users,
+  audit,
 }: {
   row: ClinicDetailRow
   metrics: Metrics
   users: ClinicUserRow[]
+  audit: AuditEntry[]
 }) {
   const router = useRouter()
   const [plan, setPlan] = useState<Plan>(row.plan)
@@ -423,8 +435,48 @@ export function ClinicDetail({
           </table>
         </div>
       </div>
+
+      {/* Auditoria recente */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h3 className="text-sm font-bold text-slate-900">Atividade recente</h3>
+        <p className="mt-0.5 text-[11px] text-slate-400">
+          Últimas alterações registradas nesta clínica (auditoria).
+        </p>
+        {audit.length === 0 ? (
+          <p className="mt-3 text-xs text-slate-400">Nenhum registro de auditoria.</p>
+        ) : (
+          <ul className="mt-3 space-y-1.5">
+            {audit.map((a, i) => (
+              <li
+                key={i}
+                className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b border-slate-100 pb-1.5 text-xs last:border-0"
+              >
+                <span className="whitespace-nowrap text-slate-400">{fmtWhen(a.createdAt)}</span>
+                <span className="font-semibold text-slate-700">{a.actorName}</span>
+                <span className="text-slate-500">
+                  {describeAudit(a)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
+}
+
+function fmtWhen(iso: string): string {
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+function describeAudit(a: AuditEntry): string {
+  const ent = a.entity.replace(/_/g, ' ')
+  const change =
+    a.oldValue !== null || a.newValue !== null
+      ? ` ${a.oldValue ?? '∅'} → ${a.newValue ?? '∅'}`
+      : ''
+  return `${a.field ?? 'alterou'} em ${ent}${change}`
 }
 
 function MetricCard({

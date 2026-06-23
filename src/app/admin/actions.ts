@@ -3,7 +3,79 @@
 import { revalidatePath } from 'next/cache'
 import { superAdminUserId } from '@/lib/auth/platform-admin'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { createManualUser } from '@/lib/core/team/create-manual'
 import { ALL_MODULES, COMING_SOON_MODULES } from '@/lib/core/entitlements/plans'
+
+function slugify(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 50)
+}
+
+/**
+ * Cria uma clínica nova (tenant + entitlement no plano escolhido + usuário
+ * admin inicial). Só admin GERAL. Via service client.
+ */
+export async function adminCreateClinicAction(input: {
+  name: string
+  slug: string
+  plan: string
+  adminName: string
+  adminEmail: string
+  adminPassword: string
+}): Promise<AdminActionResult> {
+  const actorId = await superAdminUserId()
+  if (!actorId) return { ok: false, error: 'Não autorizado.' }
+
+  const name = input.name.trim()
+  const slug = slugify(input.slug || input.name)
+  if (name.length < 2) return { ok: false, error: 'Nome da clínica inválido.' }
+  if (!/^[a-z0-9-]{2,}$/.test(slug)) return { ok: false, error: 'Slug inválido (use letras/números).' }
+  if (!PLANS.includes(input.plan)) return { ok: false, error: 'Plano inválido.' }
+  if (!input.adminEmail.includes('@')) return { ok: false, error: 'E-mail do admin inválido.' }
+  if ((input.adminPassword ?? '').length < 8) {
+    return { ok: false, error: 'Senha do admin: mínimo 8 caracteres.' }
+  }
+
+  const sb: any = createSupabaseServiceClient()
+  const { data: t, error: tErr } = await sb
+    .from('tenants')
+    .insert({ name, slug, status: 'active' })
+    .select('id')
+    .single()
+  if (tErr) {
+    return {
+      ok: false,
+      error: /duplicate|unique/i.test(tErr.message) ? 'Já existe uma clínica com esse slug.' : tErr.message,
+    }
+  }
+  const tenantId = (t as { id: string }).id
+
+  await sb.rpc('set_tenant_entitlement', {
+    p_tenant_id: tenantId,
+    p_plan: input.plan,
+    p_modules: [],
+    p_status: 'active',
+  })
+
+  try {
+    await createManualUser(sb, tenantId, actorId, null, {
+      full_name: input.adminName.trim() || input.adminEmail.trim(),
+      email: input.adminEmail.trim(),
+      password: input.adminPassword,
+      role: 'admin',
+    })
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Clínica criada, mas falhou ao criar o admin.' }
+  }
+
+  revalidatePath('/admin', 'layout')
+  return { ok: true }
+}
 
 const PLANS = ['essencial', 'pro', 'clinica', 'legacy']
 // Controláveis no painel = catálogo completo MENOS os "em breve". Inclui

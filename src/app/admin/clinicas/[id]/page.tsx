@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTeamMembers } from '@/lib/core/team/list'
 import {
   ClinicDetail,
+  type AuditEntry,
   type BillingStatus,
   type ClinicDetailRow,
   type ClinicUserRow,
@@ -18,8 +19,16 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
   const sb: any = createSupabaseServiceClient()
   const id = params.id
 
-  const [tenantRes, entRes, userCountRes, apptCountRes, lastActivityRes, integrationsRes, members] =
-    await Promise.all([
+  const [
+    tenantRes,
+    entRes,
+    userCountRes,
+    apptCountRes,
+    lastActivityRes,
+    integrationsRes,
+    members,
+    auditRes,
+  ] = await Promise.all([
       sb.from('tenants').select('id, name, slug, status').eq('id', id).maybeSingle(),
       sb.from('tenant_entitlements').select('plan, modules, status, trial_ends_at').eq('tenant_id', id).maybeSingle(),
       sb.from('user_tenants').select('user_id', { count: 'exact', head: true }).eq('tenant_id', id),
@@ -35,6 +44,12 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
       listTeamMembers(createSupabaseServiceClient(), { tenantId: id, requesterId: '' }).catch(
         () => [],
       ),
+      sb
+        .from('audit_log')
+        .select('actor_id, entity, field, old_value, new_value, reason, created_at')
+        .eq('tenant_id', id)
+        .order('created_at', { ascending: false })
+        .limit(25),
     ])
 
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
@@ -69,12 +84,35 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     integrations,
   }
 
-  const users: ClinicUserRow[] = (members as Awaited<ReturnType<typeof listTeamMembers>>).map((m) => ({
+  const memberList = members as Awaited<ReturnType<typeof listTeamMembers>>
+  const users: ClinicUserRow[] = memberList.map((m) => ({
     userId: m.userId,
     name: m.fullName || m.email,
     email: m.email,
     role: m.role,
     status: m.status,
+  }))
+
+  // Feed de auditoria — resolve nome do ator pelos membros já carregados.
+  const nameByUser = new Map(memberList.map((m) => [m.userId, m.fullName || m.email]))
+  const audit: AuditEntry[] = (
+    (auditRes.data ?? []) as Array<{
+      actor_id: string | null
+      entity: string
+      field: string | null
+      old_value: string | null
+      new_value: string | null
+      reason: string | null
+      created_at: string
+    }>
+  ).map((a) => ({
+    actorName: a.actor_id ? nameByUser.get(a.actor_id) ?? 'Sistema/Agência' : 'Sistema',
+    entity: a.entity,
+    field: a.field,
+    oldValue: a.old_value,
+    newValue: a.new_value,
+    reason: a.reason,
+    createdAt: a.created_at,
   }))
 
   return (
@@ -89,7 +127,7 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
         </Link>
       </div>
 
-      <ClinicDetail row={row} metrics={metrics} users={users} />
+      <ClinicDetail row={row} metrics={metrics} users={users} audit={audit} />
     </div>
   )
 }
