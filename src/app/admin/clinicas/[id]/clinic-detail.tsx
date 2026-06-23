@@ -26,8 +26,15 @@ import {
 } from '@/lib/core/entitlements/plans'
 import { labelForRole } from '@/lib/core/team/types'
 import type { TenantRole } from '@/lib/db/types'
-import { setTenantPlanAction, setTenantStatusAction } from '../../actions'
+import { setTenantPlanAction, setTenantStatusAction, setTenantBillingAction } from '../../actions'
 import { adminSendResetEmailAction } from '../../usuarios/actions'
+
+const BILLING_OPTIONS: { value: BillingStatus; label: string }[] = [
+  { value: 'active', label: 'Ativo (pagante)' },
+  { value: 'trial', label: 'Trial' },
+  { value: 'past_due', label: 'Inadimplente' },
+  { value: 'canceled', label: 'Cancelado' },
+]
 
 const PLANS: Plan[] = ['essencial', 'pro', 'clinica', 'legacy']
 const MODULE_LABEL: Record<ModuleId, string> = {
@@ -40,6 +47,8 @@ const MODULE_LABEL: Record<ModuleId, string> = {
   endocrino: 'Endócrino',
 }
 
+export type BillingStatus = 'trial' | 'active' | 'past_due' | 'canceled'
+
 export interface ClinicDetailRow {
   tenantId: string
   name: string
@@ -47,6 +56,8 @@ export interface ClinicDetailRow {
   status: 'active' | 'suspended'
   plan: Plan
   modules: string[]
+  billingStatus: BillingStatus
+  trialEndsAt: string | null
 }
 
 export interface ClinicUserRow {
@@ -85,6 +96,23 @@ export function ClinicDetail({
   const [statusPending, startStatusTransition] = useTransition()
   const [resetSending, setResetSending] = useState<string | null>(null)
   const [userNotice, setUserNotice] = useState<string | null>(null)
+  const [billing, setBilling] = useState<BillingStatus>(row.billingStatus)
+  const [trialEnds, setTrialEnds] = useState<string>(row.trialEndsAt ? row.trialEndsAt.slice(0, 10) : '')
+  const [billingPending, startBillingTransition] = useTransition()
+  const [billingFeedback, setBillingFeedback] = useState<string | null>(null)
+
+  function saveBilling() {
+    setBillingFeedback(null)
+    startBillingTransition(async () => {
+      const res = await setTenantBillingAction({
+        tenantId: row.tenantId,
+        status: billing,
+        trialEndsAt: billing === 'trial' ? trialEnds || null : null,
+      })
+      setBillingFeedback(res.ok ? 'Cobrança salva.' : res.error ?? 'Erro ao salvar.')
+      if (res.ok) router.refresh()
+    })
+  }
 
   function toggle(m: ModuleId, on: boolean) {
     setModules((prev) => {
@@ -289,6 +317,48 @@ export function ClinicDetail({
               </span>
             ) : null}
           </div>
+        </div>
+      </div>
+
+      {/* Cobrança */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h3 className="text-sm font-bold text-slate-900">Cobrança</h3>
+        <p className="mt-0.5 text-[11px] text-slate-400">
+          Situação financeira da clínica (separado de pausar/reativar o acesso).
+        </p>
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <label className="text-xs font-medium text-slate-600">
+            <span className="mb-1 block">Status</span>
+            <select
+              value={billing}
+              onChange={(e) => setBilling(e.target.value as BillingStatus)}
+              className="h-9 rounded-md border border-slate-200 px-2 text-sm"
+            >
+              {BILLING_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {billing === 'trial' ? (
+            <label className="text-xs font-medium text-slate-600">
+              <span className="mb-1 block">Trial termina em</span>
+              <input
+                type="date"
+                value={trialEnds}
+                onChange={(e) => setTrialEnds(e.target.value)}
+                className="h-9 rounded-md border border-slate-200 px-2 text-sm"
+              />
+            </label>
+          ) : null}
+          <Button size="sm" onClick={saveBilling} disabled={billingPending}>
+            {billingPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+            Salvar cobrança
+          </Button>
+          {billingFeedback ? (
+            <span className="text-xs font-medium text-slate-500">{billingFeedback}</span>
+          ) : null}
         </div>
       </div>
 

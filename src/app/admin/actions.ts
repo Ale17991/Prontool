@@ -34,16 +34,54 @@ export async function setTenantPlanAction(input: {
   const modules = (input.modules ?? []).filter((m) => MODULES.includes(m))
 
   const sb = createSupabaseServiceClient()
+  // Preserva o status de cobrança atual (trial/past_due/canceled) — salvar
+  // plano/módulos não pode reverter tudo para 'active'.
+  const cur = await sb
+    .from('tenant_entitlements')
+    .select('status')
+    .eq('tenant_id', input.tenantId)
+    .maybeSingle()
+  const currentStatus = (cur.data as { status?: string } | null)?.status ?? 'active'
   const { error } = await sb.rpc('set_tenant_entitlement' as never, {
     p_tenant_id: input.tenantId,
     p_plan: input.plan,
     p_modules: modules,
-    p_status: 'active',
+    p_status: currentStatus,
   } as never)
   if (error) return { ok: false, error: error.message }
 
   // 'layout' revalida tudo sob /admin (lista + detalhe da clínica), senão o
   // detalhe servia checkboxes em cache e parecia que o módulo não reativou.
+  revalidatePath('/admin', 'layout')
+  return { ok: true }
+}
+
+/**
+ * Define o status de COBRANÇA + fim do trial de uma clínica (não confundir com
+ * tenants.status, que é o pausar/reativar). Só admin GERAL. Via service client
+ * (service_role tem grant de escrita em tenant_entitlements).
+ */
+export async function setTenantBillingAction(input: {
+  tenantId: string
+  status: 'trial' | 'active' | 'past_due' | 'canceled'
+  trialEndsAt: string | null
+}): Promise<AdminActionResult> {
+  if (!(await superAdminUserId())) {
+    return { ok: false, error: 'Não autorizado.' }
+  }
+  if (!['trial', 'active', 'past_due', 'canceled'].includes(input.status)) {
+    return { ok: false, error: 'Status inválido.' }
+  }
+  const trialEndsAt =
+    input.status === 'trial' && input.trialEndsAt && /^\d{4}-\d{2}-\d{2}$/.test(input.trialEndsAt)
+      ? input.trialEndsAt
+      : null
+  const sb = createSupabaseServiceClient()
+  const { error } = await sb
+    .from('tenant_entitlements')
+    .update({ status: input.status, trial_ends_at: trialEndsAt, updated_at: new Date().toISOString() } as never)
+    .eq('tenant_id', input.tenantId)
+  if (error) return { ok: false, error: error.message }
   revalidatePath('/admin', 'layout')
   return { ok: true }
 }

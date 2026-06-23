@@ -3,7 +3,12 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTeamMembers } from '@/lib/core/team/list'
-import { ClinicDetail, type ClinicDetailRow, type ClinicUserRow } from './clinic-detail'
+import {
+  ClinicDetail,
+  type BillingStatus,
+  type ClinicDetailRow,
+  type ClinicUserRow,
+} from './clinic-detail'
 import type { Plan } from '@/lib/core/entitlements/plans'
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +21,7 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
   const [tenantRes, entRes, userCountRes, apptCountRes, lastActivityRes, integrationsRes, members] =
     await Promise.all([
       sb.from('tenants').select('id, name, slug, status').eq('id', id).maybeSingle(),
-      sb.from('tenant_entitlements').select('plan, modules').eq('tenant_id', id).maybeSingle(),
+      sb.from('tenant_entitlements').select('plan, modules, status, trial_ends_at').eq('tenant_id', id).maybeSingle(),
       sb.from('user_tenants').select('user_id', { count: 'exact', head: true }).eq('tenant_id', id),
       sb.from('appointments').select('id', { count: 'exact', head: true }).eq('tenant_id', id),
       sb
@@ -35,7 +40,12 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
   if (!tenant) notFound()
 
-  const ent = entRes.data as { plan: string; modules: string[] | null } | null
+  const ent = entRes.data as {
+    plan: string
+    modules: string[] | null
+    status: string | null
+    trial_ends_at: string | null
+  } | null
   const row: ClinicDetailRow = {
     tenantId: tenant.id,
     name: tenant.name,
@@ -43,6 +53,10 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     status: tenant.status === 'suspended' ? 'suspended' : 'active',
     plan: (ent?.plan as Plan) ?? 'legacy',
     modules: ent?.modules ?? [],
+    billingStatus: (['trial', 'active', 'past_due', 'canceled'].includes(ent?.status ?? '')
+      ? ent!.status
+      : 'active') as BillingStatus,
+    trialEndsAt: ent?.trial_ends_at ?? null,
   }
 
   const integrations = ((integrationsRes.data ?? []) as Array<{ provider: string; status: string | null }>)
