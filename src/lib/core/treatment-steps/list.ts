@@ -14,6 +14,11 @@ export interface TreatmentStep {
   scheduledDate: string | null
   completedAt: string | null
   createdAt: string
+  /** Posição odontológica (feature 040). Null em etapas não-odonto. */
+  toothFdi: number | null
+  surface: string | null
+  /** Orçamento vinculado (feature 040). Null se não orçado. */
+  budgetId: string | null
   /** Atendimento vinculado (feature 005). Null para etapas legadas. */
   appointmentId: string | null
   /** Materiais anexados ao atendimento da etapa (feature 007). Vazio se sem atendimento. */
@@ -67,6 +72,7 @@ export async function listTreatmentSteps(
     .from('treatment_plan_steps')
     .select(
       'id, title, notes, status, scheduled_date, completed_at, created_at, appointment_id, ' +
+        'tooth_fdi, surface, budget_id, ' +
         'procedures:procedure_id ( id, tuss_code, display_name, covered_by_plan, default_amount_cents ), ' +
         'doctors:doctor_id ( id, full_name, role, specialty ), ' +
         'health_plans:plan_id ( id, name )',
@@ -87,6 +93,9 @@ export async function listTreatmentSteps(
     completed_at: string | null
     created_at: string
     appointment_id: string | null
+    tooth_fdi: number | null
+    surface: string | null
+    budget_id: string | null
     procedures: {
       id: string
       tuss_code: string
@@ -164,6 +173,9 @@ export async function listTreatmentSteps(
     completedAt: s.completed_at,
     createdAt: s.created_at,
     appointmentId: s.appointment_id,
+    toothFdi: s.tooth_fdi,
+    surface: s.surface,
+    budgetId: s.budget_id,
     materials: s.appointment_id ? (materialsByAppt[s.appointment_id] ?? []) : [],
     procedure: s.procedures
       ? {

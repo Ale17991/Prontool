@@ -12,7 +12,7 @@ import { CareNotesEditor } from '../care-notes-editor'
 import { WorkoutEditor } from '../workout-editor'
 import { DietEditor } from '../diet-editor'
 import { PatientEvolutionTab } from './patient-evolution-tab'
-import { OdontogramTab } from './odontogram/odontogram-tab'
+import { OdontoSpace } from './odontogram/odonto-space'
 import { NewEvolutionSheet } from './sheets/new-evolution-sheet'
 import { NewAnamneseSheet } from './sheets/new-anamnese-sheet'
 import { NewVitalSheet } from './sheets/new-vital-sheet'
@@ -236,7 +236,7 @@ export function PatientDetailLayout({
                 <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
               ) : null}
               {!isAnonymized ? (
-                <TabsTrigger value="odontograma">Odontograma</TabsTrigger>
+                <TabsTrigger value="odontograma">Odonto-Space</TabsTrigger>
               ) : null}
             </TabsList>
             {!isAnonymized ? (
@@ -300,9 +300,10 @@ export function PatientDetailLayout({
             ) : null}
             {!isAnonymized ? (
               <TabsContent value="odontograma" className="space-y-4">
-                <OdontogramTab
+                <OdontoSpace
                   patientId={patientId}
-                  canWrite={cadastro.canWriteClinical}
+                  canWriteClinical={cadastro.canWriteClinical}
+                  canWriteTreatment={cadastro.canWriteTreatment}
                 />
               </TabsContent>
             ) : null}

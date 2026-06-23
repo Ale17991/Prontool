@@ -11,6 +11,9 @@ export interface CreateTreatmentStepInput {
   title: string
   notes?: string | null
   scheduledDate?: string | null // YYYY-MM-DD
+  /** Posição odontológica (feature 040). Null para etapas não-odonto. */
+  toothFdi?: number | null
+  surface?: string | null
   actorUserId: string
 }
 
@@ -76,6 +79,8 @@ export async function createTreatmentStep(
       title: input.title.trim(),
       notes: input.notes?.trim() || null,
       scheduled_date: input.scheduledDate ?? null,
+      tooth_fdi: input.toothFdi ?? null,
+      surface: input.surface ?? null,
       created_by: input.actorUserId,
     })
     .select('id')
