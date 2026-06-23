@@ -106,8 +106,10 @@ export function buildEntitlements(plan: Plan, modules: ModuleId[]): Entitlements
   const features = PLAN_FEATURES[plan] ?? PLAN_FEATURES.essencial
   const mods = new Set<ModuleId>(modules)
   if (plan === 'clinica') mods.add('crm')
-  // Legado = todos os módulos (inclui add-ons como treino/dieta).
-  if (plan === 'legacy') for (const m of ALL_MODULES) mods.add(m)
+  // NB: 'legacy' NÃO força mais todos os módulos — a lista `modules` é
+  // autoritativa (senão o admin não consegue desativar módulo numa clínica
+  // legada). O backfill 0157 deixou cada clínica legada com sua lista cheia,
+  // então ninguém perde acesso; a partir daí o toggle do /admin vale.
   const featureSet = new Set<Feature>(features)
   return {
     plan,
