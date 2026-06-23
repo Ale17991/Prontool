@@ -136,17 +136,18 @@ interface RawParticipation {
   doctorId: string
   appointmentId: string
   appointmentAt: string
-  procedureName: string
-  tussCode: string
+  /** Linha de appointment_procedures (NULL = participação a nível de atendimento). */
+  procedureLineId: string | null
   participationDegree: string | null
   amountCents: number
 }
 
 /**
  * Honorários de participação (appointment_assistants) no período [from, to],
- * excluindo participações removidas e atendimentos estornados. Inclui nome do
- * procedimento e grau de participação. Best-effort (retorna [] se a tabela não
- * existir no ambiente).
+ * excluindo participações removidas e atendimentos estornados. Best-effort
+ * (retorna [] se a tabela não existir no ambiente). NB: `procedure_id` referencia
+ * appointment_procedures (a linha), não procedures — por isso NÃO embedamos
+ * procedures aqui (o nome é resolvido à parte no detalhe).
  */
 async function fetchParticipations(
   supabase: SupabaseClient<Database>,
@@ -157,8 +158,8 @@ async function fetchParticipations(
   const { data, error } = await supabase
     .from('appointment_assistants' as never)
     .select(
-      'assistant_doctor_id, frozen_amount_cents, participation_degree, appointment_id, ' +
-        'appointment:appointment_id ( appointment_at ), procedures:procedure_id ( tuss_code, display_name )',
+      'assistant_doctor_id, frozen_amount_cents, participation_degree, appointment_id, procedure_id, ' +
+        'appointment:appointment_id ( appointment_at )',
     )
     .eq('tenant_id', tenantId)
     .is('removed_at', null)
@@ -168,8 +169,8 @@ async function fetchParticipations(
     frozen_amount_cents: number
     participation_degree: string | null
     appointment_id: string
+    procedure_id: string | null
     appointment: { appointment_at: string | null } | null
-    procedures: { tuss_code: string | null; display_name: string | null } | null
   }>
   const fromMs = new Date(`${from}T00:00:00`).getTime()
   const toExclusiveMs = new Date(`${to}T00:00:00`).getTime() + 24 * 60 * 60 * 1000
@@ -196,11 +197,33 @@ async function fetchParticipations(
       doctorId: r.assistant_doctor_id,
       appointmentId: r.appointment_id,
       appointmentAt: r.appointment?.appointment_at ?? '',
-      procedureName: r.procedures?.display_name ?? r.procedures?.tuss_code ?? 'Procedimento',
-      tussCode: r.procedures?.tuss_code ?? '',
+      procedureLineId: r.procedure_id,
       participationDegree: r.participation_degree,
       amountCents: Number(r.frozen_amount_cents ?? 0),
     }))
+}
+
+/** Resolve nome/TUSS do procedimento por linha de appointment_procedures. */
+async function resolveProcedureNames(
+  supabase: SupabaseClient<Database>,
+  lineIds: string[],
+): Promise<Map<string, { name: string; tuss: string }>> {
+  const out = new Map<string, { name: string; tuss: string }>()
+  if (lineIds.length === 0) return out
+  const { data } = await supabase
+    .from('appointment_procedures' as never)
+    .select('id, procedures:procedure_id ( tuss_code, display_name )')
+    .in('id', lineIds)
+  for (const r of (data ?? []) as unknown as Array<{
+    id: string
+    procedures: { tuss_code: string | null; display_name: string | null } | null
+  }>) {
+    out.set(r.id, {
+      name: r.procedures?.display_name ?? r.procedures?.tuss_code ?? 'Procedimento',
+      tuss: r.procedures?.tuss_code ?? '',
+    })
+  }
+  return out
 }
 
 export async function summaryByProfessional(
@@ -304,16 +327,23 @@ export async function detailByProfessional(
     input.from,
     input.to,
   )
-  const participations: ProfessionalParticipationRow[] = allParticipations
-    .filter((p) => p.doctorId === input.doctorId)
-    .map((p) => ({
-      appointmentId: p.appointmentId,
-      appointmentAt: p.appointmentAt,
-      procedureName: p.procedureName,
-      tussCode: p.tussCode,
-      participationDegree: p.participationDegree,
-      amountCents: p.amountCents,
-    }))
+  const mine = allParticipations.filter((p) => p.doctorId === input.doctorId)
+  const procNames = await resolveProcedureNames(
+    supabase,
+    Array.from(new Set(mine.map((p) => p.procedureLineId).filter((id): id is string => !!id))),
+  )
+  const participations: ProfessionalParticipationRow[] = mine
+    .map((p) => {
+      const pn = p.procedureLineId ? procNames.get(p.procedureLineId) : undefined
+      return {
+        appointmentId: p.appointmentId,
+        appointmentAt: p.appointmentAt,
+        procedureName: pn?.name ?? 'Participação no atendimento',
+        tussCode: pn?.tuss ?? '',
+        participationDegree: p.participationDegree,
+        amountCents: p.amountCents,
+      }
+    })
     .sort((a, b) => a.appointmentAt.localeCompare(b.appointmentAt))
   const totalParticipationCents = participations.reduce((s, p) => s + p.amountCents, 0)
 
