@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { OdontogramTab } from './odontogram-tab'
 import { PlanTab } from '../treatment-plan/plan-tab'
+import { PerioTab } from '../perio/perio-tab'
 
-type OdontoSection = 'odontograma' | 'plano'
+type OdontoSection = 'odontograma' | 'plano' | 'periograma'
 
 interface Props {
   patientId: string
@@ -18,6 +19,7 @@ interface Props {
 const SECTIONS: ReadonlyArray<{ key: OdontoSection; label: string }> = [
   { key: 'odontograma', label: 'Odontograma' },
   { key: 'plano', label: 'Plano de tratamento' },
+  { key: 'periograma', label: 'Periograma' },
 ]
 
 /**
@@ -51,8 +53,10 @@ export function OdontoSpace({ patientId, canWriteClinical, canWriteTreatment }: 
 
       {section === 'odontograma' ? (
         <OdontogramTab patientId={patientId} canWrite={canWriteClinical} />
-      ) : (
+      ) : section === 'plano' ? (
         <PlanTab patientId={patientId} canWrite={canWriteTreatment} />
+      ) : (
+        <PerioTab patientId={patientId} canWrite={canWriteClinical} />
       )}
     </div>
   )
