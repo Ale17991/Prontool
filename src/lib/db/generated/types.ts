@@ -4916,6 +4916,169 @@ export type Database = {
           },
         ]
       }
+      perio_exams: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          created_by: string | null
+          dentition: string
+          exam_date: string
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          dentition?: string
+          exam_date?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          dentition?: string
+          exam_date?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perio_exams_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perio_exams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perio_site_measurements: {
+        Row: {
+          bleeding: boolean
+          created_at: string
+          exam_id: string
+          id: string
+          plaque: boolean
+          probing_depth_mm: number | null
+          recession_mm: number | null
+          site: string
+          suppuration: boolean
+          tenant_id: string
+          tooth_fdi: number
+          updated_at: string
+        }
+        Insert: {
+          bleeding?: boolean
+          created_at?: string
+          exam_id: string
+          id?: string
+          plaque?: boolean
+          probing_depth_mm?: number | null
+          recession_mm?: number | null
+          site: string
+          suppuration?: boolean
+          tenant_id: string
+          tooth_fdi: number
+          updated_at?: string
+        }
+        Update: {
+          bleeding?: boolean
+          created_at?: string
+          exam_id?: string
+          id?: string
+          plaque?: boolean
+          probing_depth_mm?: number | null
+          recession_mm?: number | null
+          site?: string
+          suppuration?: boolean
+          tenant_id?: string
+          tooth_fdi?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perio_site_measurements_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "perio_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perio_tooth_findings: {
+        Row: {
+          created_at: string
+          exam_id: string
+          furcation: number | null
+          id: string
+          is_implant: boolean
+          is_missing: boolean
+          mobility: number | null
+          tenant_id: string
+          tooth_fdi: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exam_id: string
+          furcation?: number | null
+          id?: string
+          is_implant?: boolean
+          is_missing?: boolean
+          mobility?: number | null
+          tenant_id: string
+          tooth_fdi: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exam_id?: string
+          furcation?: number | null
+          id?: string
+          is_implant?: boolean
+          is_missing?: boolean
+          mobility?: number | null
+          tenant_id?: string
+          tooth_fdi?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perio_tooth_findings_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "perio_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       treatment_budgets: {
         Row: {
           accepted_at: string | null
@@ -6073,6 +6236,17 @@ export type Database = {
           status_id: string
           surface: string
           tooth_fdi: number
+        }[]
+      }
+      perio_exam_indicators: {
+        Args: { p_exam_id: string; p_tenant_id: string }
+        Returns: {
+          sites_measured: number
+          sites_bleeding: number
+          bop_pct: number
+          pockets_ge4: number
+          pockets_ge4_pct: number
+          cal_avg_mm: number
         }[]
       }
       enc_text: { Args: { plain: string }; Returns: string }
