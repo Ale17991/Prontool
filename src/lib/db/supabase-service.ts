@@ -50,9 +50,15 @@ const ALLOWED_CALLER_FRAGMENTS = [
 ]
 
 function assertCallerAllowed(): void {
-  // In tests we short-circuit via NODE_ENV=test — test harness sets up its
-  // own isolation. In production we verify via call stack.
-  if (process.env.NODE_ENV === 'test') return
+  // Enforce SOMENTE em desenvolvimento. Em produção o Next empacota Server
+  // Actions e este módulo em chunks compartilhados (.next/server/chunks/*)
+  // cujo stack NÃO contém /app/ — o match por fragmento de path gera
+  // falso-positivo e derruba a action com 5xx (era a causa do erro ao criar
+  // clínica no /admin). A proteção real em produção é requireRole/RLS no
+  // handler/action (a service-role key sequer existe no bundle do client, pois
+  // não é NEXT_PUBLIC). Em dev os paths do stack são confiáveis (/src/...),
+  // então mantemos o guard como sinal de import acidental.
+  if (process.env.NODE_ENV !== 'development') return
 
   // Normalize backslashes so the path-fragment allowlist works identically
   // on Windows (backslashes in stack traces) and POSIX.

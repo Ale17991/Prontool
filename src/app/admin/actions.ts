@@ -41,40 +41,47 @@ export async function adminCreateClinicAction(input: {
     return { ok: false, error: 'Senha do admin: mínimo 8 caracteres.' }
   }
 
-  const sb: any = createSupabaseServiceClient()
-  const { data: t, error: tErr } = await sb
-    .from('tenants')
-    .insert({ name, slug, status: 'active' })
-    .select('id')
-    .single()
-  if (tErr) {
-    return {
-      ok: false,
-      error: /duplicate|unique/i.test(tErr.message) ? 'Já existe uma clínica com esse slug.' : tErr.message,
-    }
-  }
-  const tenantId = (t as { id: string }).id
-
-  await sb.rpc('set_tenant_entitlement', {
-    p_tenant_id: tenantId,
-    p_plan: input.plan,
-    p_modules: [],
-    p_status: 'active',
-  })
-
+  // Toda a sequência (service client + inserts + RPC + criação do admin) fica
+  // dentro de um try único: qualquer exceção não prevista (ex.: guard do
+  // service client, RPC inexistente, falha de auth) vira mensagem no diálogo
+  // em vez de estourar a Server Action e jogar a página no error boundary.
   try {
+    const sb: any = createSupabaseServiceClient()
+    const { data: t, error: tErr } = await sb
+      .from('tenants')
+      .insert({ name, slug, status: 'active' })
+      .select('id')
+      .single()
+    if (tErr) {
+      return {
+        ok: false,
+        error: /duplicate|unique/i.test(tErr.message) ? 'Já existe uma clínica com esse slug.' : tErr.message,
+      }
+    }
+    const tenantId = (t as { id: string }).id
+
+    const { error: entErr } = await sb.rpc('set_tenant_entitlement', {
+      p_tenant_id: tenantId,
+      p_plan: input.plan,
+      p_modules: [],
+      p_status: 'active',
+    })
+    if (entErr) {
+      return { ok: false, error: `Clínica criada, mas falhou ao definir o plano: ${entErr.message}` }
+    }
+
     await createManualUser(sb, tenantId, actorId, null, {
       full_name: input.adminName.trim() || input.adminEmail.trim(),
       email: input.adminEmail.trim(),
       password: input.adminPassword,
       role: 'admin',
     })
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Clínica criada, mas falhou ao criar o admin.' }
-  }
 
-  revalidatePath('/admin', 'layout')
-  return { ok: true }
+    revalidatePath('/admin', 'layout')
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Erro inesperado ao criar a clínica.' }
+  }
 }
 
 const PLANS = ['essencial', 'pro', 'clinica', 'legacy']
