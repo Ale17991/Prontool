@@ -64,6 +64,7 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
       'Repasse Médico',
       'Despesas',
       'Faturamento TISS',
+      'Recebíveis Convênio',
     ])
   })
 
@@ -112,6 +113,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Repasse Médico',
       'Despesas',
       'Faturamento TISS',
+      'Recebíveis Convênio',
       'Configurações',
     ])
   })

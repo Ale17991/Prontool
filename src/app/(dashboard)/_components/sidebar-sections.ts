@@ -10,6 +10,7 @@
  *    (hub com cards filtrados por RBAC dentro da página).
  */
 import {
+  BadgeCheck,
   Calculator,
   Calendar,
   ClipboardCheck,
@@ -149,6 +150,12 @@ export const SECTIONS: readonly NavSection[] = [
         icon: FileText,
         show: ({ role, ent }) =>
           ent.hasModule('tiss') && (role === 'admin' || role === 'financeiro'),
+      },
+      {
+        href: '/analise/recebiveis-convenio',
+        label: 'Recebíveis Convênio',
+        icon: BadgeCheck,
+        show: ({ role }) => role === 'admin' || role === 'financeiro',
       },
     ],
   },
