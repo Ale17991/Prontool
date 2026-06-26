@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTeamMembers } from '@/lib/core/team/list'
+import { getClinicProfile } from '@/lib/core/clinic-profile/read'
+import { ClinicDataForm } from './clinic-data-form'
 import {
   ClinicDetail,
   type AuditEntry,
@@ -54,6 +56,8 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
 
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
   if (!tenant) notFound()
+
+  const profile = await getClinicProfile(sb, id)
 
   const ent = entRes.data as {
     plan: string
@@ -128,6 +132,29 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
       </div>
 
       <ClinicDetail row={row} metrics={metrics} users={users} audit={audit} />
+
+      <ClinicDataForm
+        tenantId={tenant.id}
+        initial={{
+          displayName: profile.displayName ?? tenant.name,
+          cnpj: profile.cnpj,
+          phone: profile.phone,
+          email: profile.email,
+        }}
+      />
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <h3 className="mb-1 text-sm font-bold text-slate-900">Usuários da clínica</h3>
+        <p className="mb-3 text-xs text-slate-500">
+          Criar, convidar, trocar papel, ativar/desativar e resetar senha dos usuários desta clínica.
+        </p>
+        <Link
+          href={{ pathname: '/admin/usuarios', query: { tenant: tenant.id } }}
+          className="inline-flex h-8 items-center rounded-md bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800"
+        >
+          Gerenciar usuários
+        </Link>
+      </div>
     </div>
   )
 }

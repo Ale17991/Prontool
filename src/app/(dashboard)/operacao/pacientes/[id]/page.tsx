@@ -28,6 +28,7 @@ import {
   type AppointmentTimelineRow,
 } from '@/lib/core/patient-timeline'
 import { can } from '@/lib/auth/rbac'
+import { userCan } from '@/lib/auth/require-action'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Database } from '@/lib/db/types'
@@ -341,7 +342,8 @@ export default async function PacienteDetailPage({
 
   // Ver VALORES (recepção não). Calculado cedo p/ NÃO serializar montantes no
   // payload enviado ao cliente — não basta esconder na UI.
-  const canViewFinancialValues = can(session.role, 'finance.view_values')
+  // Override-aware: papel + overrides do usuário (Feature 043).
+  const canViewFinancialValues = await userCan('finance.view_values')
 
   const appointmentTimelineRows: AppointmentTimelineRow[] = appointments
     .filter(

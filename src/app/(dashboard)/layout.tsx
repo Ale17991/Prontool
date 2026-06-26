@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
@@ -13,6 +14,8 @@ import { getUserProfile } from '@/lib/core/user-profile/read'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { ALL_MODULES, buildEntitlements } from '@/lib/core/entitlements/plans'
 import { getAvailableTenants } from '@/lib/auth/available-tenants'
+import { IMPERSONATION_COOKIE } from '@/lib/core/auth/impersonation'
+import { ImpersonationBanner } from './_components/impersonation-banner'
 import { logger } from '@/lib/observability/logger'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -116,6 +119,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       userFullName={userProfile?.fullName ?? null}
       entitlements={{ plan: entitlements.plan, modules: entitlements.modules }}
     >
+      {cookies().get(IMPERSONATION_COOKIE)?.value ? (
+        <ImpersonationBanner clinicName={tenantDisplayName} />
+      ) : null}
       {children}
     </DashboardShell>
   )

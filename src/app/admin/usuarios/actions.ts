@@ -9,6 +9,7 @@ import { setTeamMemberRole } from '@/lib/core/team/set-role'
 import { setTeamMemberStatus } from '@/lib/core/team/set-status'
 import { createManualUser } from '@/lib/core/team/create-manual'
 import { inviteTeamMember } from '@/lib/core/team/invite'
+import { updateClinicProfile } from '@/lib/core/clinic-profile/update'
 import { headers } from 'next/headers'
 import { originFromHeaders } from '@/lib/core/app-url'
 import type { Database } from '@/lib/db/types'
@@ -159,6 +160,28 @@ export async function adminInviteUserAction(
       role: input.role,
     })
     revalidatePath(PATH)
+    return { ok: true }
+  } catch (e) {
+    return fail(e)
+  }
+}
+
+/**
+ * Feature 043 (US4) — super-admin edita dados cadastrais da clínica
+ * (nome/CNPJ/contato). Reusa `updateClinicProfile` (valida CNPJ, audita por
+ * campo, escreve tenants.name + tenant_clinic_profile). Escopo do tenant alvo.
+ */
+export async function adminUpdateClinicProfileAction(
+  tenantId: string,
+  patch: { displayName?: string; cnpj?: string | null; phone?: string | null; email?: string | null },
+): Promise<AdminUserActionResult> {
+  const ctx = await superCtx()
+  if (!ctx) return { ok: false, error: 'Não autorizado.' }
+  try {
+    await updateClinicProfile(svc(), tenantId, ctx.actorId, patch, {
+      reason: 'editado pelo /admin (super-admin)',
+    })
+    revalidatePath('/admin', 'layout')
     return { ok: true }
   } catch (e) {
     return fail(e)

@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { IMPERSONATION_COOKIE, MUTATING_METHODS } from '@/lib/core/auth/impersonation'
 
 /**
  * Feature 010 (R9) — tabela de redirecionamentos de auth-vs-tenant.
@@ -124,6 +125,24 @@ export async function middleware(req: NextRequest) {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     })
+  }
+
+  // Feature 043 (US5) — impersonação READ-ONLY: enquanto o super-admin estiver
+  // impersonando uma clínica (cookie presente), TODA escrita é bloqueada no
+  // servidor (rotas /api/* e Server Actions, ambas POST). Exceto o controle da
+  // própria impersonação e o logout. Leitura (GET/HEAD) passa normalmente.
+  if (
+    req.cookies.get(IMPERSONATION_COOKIE)?.value &&
+    MUTATING_METHODS.has(req.method) &&
+    !pathname.startsWith('/api/admin/impersonation/') &&
+    !pathname.startsWith('/api/auth/logout')
+  ) {
+    return new NextResponse(
+      JSON.stringify({
+        error: { code: 'IMPERSONATION_READ_ONLY', message: 'Sessão de suporte é somente-leitura.' },
+      }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } },
+    )
   }
 
   if (

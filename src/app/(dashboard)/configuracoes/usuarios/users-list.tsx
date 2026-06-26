@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, KeyRound, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, Trash2, UserPlus } from 'lucide-react'
+import { AlertCircle, KeyRound, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, SlidersHorizontal, Trash2, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -14,6 +14,7 @@ import { InviteUserDialog } from './invite-user-dialog'
 import { ManualUserDialog } from './manual-user-dialog'
 import { ChangeStatusDialog } from './change-status-dialog'
 import { EditUserDialog } from './edit-user-dialog'
+import { PermissionsDialog } from './permissions-dialog'
 import { RowActionsMenu, type RowAction } from './row-actions-menu'
 
 interface Props {
@@ -33,6 +34,7 @@ export function UsersList({ initial }: Props) {
   const [manualOpen, setManualOpen] = useState(false)
   const [statusTarget, setStatusTarget] = useState<TeamMember | null>(null)
   const [editTarget, setEditTarget] = useState<TeamMember | null>(null)
+  const [permTarget, setPermTarget] = useState<TeamMember | null>(null)
   const [resending, setResending] = useState<string | null>(null)
   const [globalError, setGlobalError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -109,6 +111,11 @@ export function UsersList({ initial }: Props) {
         label: 'Editar dados',
         icon: <Pencil className="h-3.5 w-3.5" />,
         onClick: () => setEditTarget(u),
+      },
+      {
+        label: 'Permissões',
+        icon: <SlidersHorizontal className="h-3.5 w-3.5" />,
+        onClick: () => setPermTarget(u),
       },
       {
         label: u.status === 'disabled' ? 'Reativar acesso' : 'Desativar acesso',
@@ -287,6 +294,17 @@ export function UsersList({ initial }: Props) {
           onSuccess={() => {
             setStatusTarget(null)
             void refresh()
+          }}
+        />
+      ) : null}
+
+      {permTarget ? (
+        <PermissionsDialog
+          target={permTarget}
+          onOpenChange={(open) => !open && setPermTarget(null)}
+          onSuccess={() => {
+            setPermTarget(null)
+            setNotice('Permissões atualizadas.')
           }}
         />
       ) : null}

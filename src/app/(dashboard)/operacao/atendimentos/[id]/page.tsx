@@ -21,6 +21,7 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listAssistantsByAppointment } from '@/lib/core/appointment-assistants/list-by-appointment'
 import { can } from '@/lib/auth/rbac'
+import { userCan } from '@/lib/auth/require-action'
 import { Badge } from '@/components/ui/badge'
 import {
   AppointmentStatusBadge,
@@ -182,7 +183,8 @@ export default async function AtendimentoDetailPage({
       : 'ativo'
   const canReverse = can(session.role, 'appointment.reverse') && status === 'ativo'
   // Ver VALORES (recepção fora — só vê valor no registro do atendimento).
-  const canViewValues = can(session.role, 'finance.view_values')
+  // Override-aware: papel + overrides do usuário (Feature 043).
+  const canViewValues = await userCan('finance.view_values')
   const canManageSchedule =
     session.role === 'admin' ||
     session.role === 'recepcionista' ||

@@ -211,7 +211,9 @@ export function ClinicDetail({
     void (async () => {
       try {
         void adminLogEnterClinicAction(row.tenantId)
-        const res = await fetch('/api/auth/switch-tenant', {
+        // Feature 043 (US5) — entra em modo IMPERSONAÇÃO READ-ONLY (escrita
+        // bloqueada no servidor pelo middleware enquanto durar a sessão).
+        const res = await fetch('/api/admin/impersonation/start', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ tenantId: row.tenantId }),
