@@ -134,7 +134,10 @@ export async function middleware(req: NextRequest) {
   if (
     req.cookies.get(IMPERSONATION_COOKIE)?.value &&
     MUTATING_METHODS.has(req.method) &&
-    !pathname.startsWith('/api/admin/impersonation/') &&
+    // O painel da plataforma (/admin e suas Server Actions/APIs) é do
+    // super-admin — NUNCA é impersonado, então nunca é bloqueado.
+    !pathname.startsWith('/admin') &&
+    !pathname.startsWith('/api/admin/') &&
     !pathname.startsWith('/api/auth/logout')
   ) {
     return new NextResponse(
