@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, LayoutDashboard, LifeBuoy, Stethoscope, Users } from 'lucide-react'
+import { Building2, DollarSign, LayoutDashboard, LifeBuoy, Stethoscope, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const ITEMS = [
   { href: '/admin', label: 'Visão geral', icon: LayoutDashboard, exact: true },
+  { href: '/admin/financeiro', label: 'Financeiro', icon: DollarSign, exact: false },
   { href: '/admin/clinicas', label: 'Clínicas', icon: Building2, exact: false },
   { href: '/admin/suporte', label: 'Equipe de suporte', icon: LifeBuoy, exact: false },
   { href: '/admin/usuarios', label: 'Usuários', icon: Users, exact: false },
