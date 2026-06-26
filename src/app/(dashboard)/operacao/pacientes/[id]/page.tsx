@@ -417,6 +417,9 @@ export default async function PacienteDetailPage({
   // Módulo Endócrino (métricas metabólicas). Off = esconde a seção no prontuário.
   const ent = await getTenantEntitlements(typedClient, session.tenantId)
   const hasEndocrino = ent.hasModule('endocrino')
+  const hasConvenio = ent.hasModule('convenio')
+  const hasOdonto = ent.hasModule('odonto')
+  const hasOftalmo = ent.hasModule('oftalmo')
   const canConfigReminders = can(session.role, 'reminders.config')
 
   const isAnonymized = patient.anonymizedAt !== null
@@ -487,6 +490,7 @@ export default async function PacienteDetailPage({
         appointments={appointmentTimelineRows}
         authors={authors}
         initialTab={initialTab}
+        hasOdonto={hasOdonto}
         cadastro={{
           initialHistory: medicalHistory,
           initialDiagnoses: diagnoses,
@@ -510,6 +514,8 @@ export default async function PacienteDetailPage({
           canRecordPayment,
           canViewFinancialValues,
           hasEndocrino,
+          hasConvenio,
+          hasOftalmo,
           canWriteVitals,
           canWriteDiagnosis,
           canDeleteDiagnosis,

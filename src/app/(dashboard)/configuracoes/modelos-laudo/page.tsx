@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { FileBarChart } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { listExamReportTemplates } from '@/lib/core/exam-report-templates/crud'
 import { LaudoTemplatesManager, type LaudoTemplateDTO } from './laudo-templates-manager'
 
@@ -15,6 +16,12 @@ export default async function ModelosLaudoPage() {
   }
 
   const supabase = createSupabaseServiceClient()
+
+  // Modelos de laudo são oftalmológicos (exam_type='oftalmologico') — parte do
+  // módulo Oftalmologia. Sem ele, a área não existe.
+  const ent = await getTenantEntitlements(supabase, session.tenantId)
+  if (!ent.hasModule('oftalmo')) redirect('/configuracoes')
+
   const templates = (await listExamReportTemplates(supabase, {
     tenantId: session.tenantId,
   })) as LaudoTemplateDTO[]

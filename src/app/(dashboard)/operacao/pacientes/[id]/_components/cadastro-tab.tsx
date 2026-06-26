@@ -65,6 +65,10 @@ interface Props {
   canRecordPayment: boolean
   canViewFinancialValues: boolean
   hasEndocrino: boolean
+  /** Módulo Convênio ativo. Off ⇒ esconde o plano de saúde do paciente. */
+  hasConvenio: boolean
+  /** Módulo Oftalmologia ativo. Off ⇒ esconde exames oftalmológicos e receita de óculos. */
+  hasOftalmo: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
   canDeleteDiagnosis: boolean
@@ -95,6 +99,8 @@ export function CadastroTab({
   canRecordPayment,
   canViewFinancialValues,
   hasEndocrino,
+  hasConvenio,
+  hasOftalmo,
   canWriteVitals,
   canWriteDiagnosis,
   canDeleteDiagnosis,
@@ -147,30 +153,33 @@ export function CadastroTab({
 
       <PatientIntakeLink patientId={patientId} canEdit={canEditPatient} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Stethoscope className="h-4 w-4 text-primary" />
-            Plano de saúde
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PatientPlanEditor
-            patientId={patient.id}
-            currentPlanId={patient.healthPlan?.id ?? null}
-            currentPlanName={patient.healthPlan?.name ?? null}
-            healthPlans={healthPlansList}
-            canEdit={canEditPatient}
-          />
-          {patient.healthPlan?.id ? (
-            <PatientCardEditor
+      {/* Plano de saúde do paciente só quando a clínica tem o módulo Convênio. */}
+      {hasConvenio ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Stethoscope className="h-4 w-4 text-primary" />
+              Plano de saúde
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PatientPlanEditor
               patientId={patient.id}
-              healthPlanId={patient.healthPlan.id}
+              currentPlanId={patient.healthPlan?.id ?? null}
+              currentPlanName={patient.healthPlan?.name ?? null}
+              healthPlans={healthPlansList}
               canEdit={canEditPatient}
             />
-          ) : null}
-        </CardContent>
-      </Card>
+            {patient.healthPlan?.id ? (
+              <PatientCardEditor
+                patientId={patient.id}
+                healthPlanId={patient.healthPlan.id}
+                canEdit={canEditPatient}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <MedicalHistorySection
         patientId={patientId}
@@ -216,9 +225,14 @@ export function CadastroTab({
 
       <ExamRequestsSection patientId={patientId} canWrite={canWriteClinical} />
 
-      <OphthalExamSection patientId={patientId} canWrite={canWriteClinical} />
+      {/* Exames oftalmológicos e receita de óculos só com o módulo Oftalmologia. */}
+      {hasOftalmo ? (
+        <>
+          <OphthalExamSection patientId={patientId} canWrite={canWriteClinical} />
 
-      <EyeglassRxSection patientId={patientId} canWrite={canWriteClinical} />
+          <EyeglassRxSection patientId={patientId} canWrite={canWriteClinical} />
+        </>
+      ) : null}
 
       <TreatmentStepsSection
         patientId={patientId}

@@ -5,6 +5,9 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import type { Database } from '@/lib/db/types'
 import { NewAppointmentForm, type FormOption } from './new-appointment-form'
 
 export const dynamic = 'force-dynamic'
@@ -82,9 +85,19 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
     if (typeof v === 'number' && v >= 1) slotIntervalMinutes = v
   }
 
-  const plans: FormOption[] = ((plansRes.data ?? []) as Array<{ id: string; name: string }>).map(
-    (p) => ({ id: p.id, label: p.name }),
+  // Módulo Convênio: off ⇒ atendimento é só particular (sem planos de convênio).
+  const ent = await getTenantEntitlements(
+    supabase as unknown as SupabaseClient<Database>,
+    session.tenantId,
   )
+  const hasConvenio = ent.hasModule('convenio')
+
+  const plans: FormOption[] = hasConvenio
+    ? ((plansRes.data ?? []) as Array<{ id: string; name: string }>).map((p) => ({
+        id: p.id,
+        label: p.name,
+      }))
+    : []
   const doctors: FormOption[] = (
     (doctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
   ).map((d) => ({ id: d.id, label: d.full_name }))
@@ -143,6 +156,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
             doctors={doctors}
             procedures={procedures}
             plans={plans}
+            hasConvenio={hasConvenio}
             participantDoctors={participantDoctors}
             participationDegrees={degreeOptions}
             slotIntervalMinutes={slotIntervalMinutes}

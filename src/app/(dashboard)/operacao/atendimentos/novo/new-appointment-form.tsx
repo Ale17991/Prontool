@@ -53,6 +53,8 @@ export interface NewAppointmentFormProps {
   doctors: FormOption[]
   procedures: LocalProcedureOption[]
   plans: FormOption[]
+  /** Módulo Convênio ativo. Off ⇒ só particular (sem método/planos de convênio). */
+  hasConvenio?: boolean
   /** Profissionais ativos elegíveis como participantes (qualquer modalidade). */
   participantDoctors: { id: string; fullName: string }[]
   /** Graus de participação (domínio TISS 35). */
@@ -85,6 +87,7 @@ export function NewAppointmentForm({
   doctors,
   procedures,
   plans,
+  hasConvenio = true,
   participantDoctors,
   participationDegrees,
   slotIntervalMinutes = 30,
@@ -94,7 +97,12 @@ export function NewAppointmentForm({
   const [patient, setPatient] = useState<PatientTypeaheadValue | null>(null)
   const patientId = patient?.id ?? ''
   const [doctorId, setDoctorId] = useState('')
-  const defaultPlanId = patient?.planId ?? null
+  // Sem módulo Convênio, ignora qualquer plano herdado do paciente (só particular).
+  const defaultPlanId = hasConvenio ? patient?.planId ?? null : null
+  // Método "Convênio" só quando o módulo está ativo.
+  const methodOptions = hasConvenio
+    ? METHOD_OPTIONS
+    : METHOD_OPTIONS.filter((m) => m.value !== 'convenio')
   // Lista inicia vazia — usuário adiciona procedimentos via busca no editor.
   const [procedureLines, setProcedureLines] = useState<ProcedureLineDraft[]>([])
   const [materiais, setMateriais] = useState<MaterialDraft[]>([])
@@ -761,7 +769,7 @@ export function NewAppointmentForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {METHOD_OPTIONS.map((m) => (
+                {methodOptions.map((m) => (
                   <SelectItem key={m.value} value={m.value}>
                     {m.label}
                   </SelectItem>
@@ -849,7 +857,7 @@ export function NewAppointmentForm({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {METHOD_OPTIONS.map((m) => (
+                        {methodOptions.map((m) => (
                           <SelectItem key={m.value} value={m.value}>
                             {m.label}
                           </SelectItem>

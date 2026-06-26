@@ -149,13 +149,14 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Faturamento TISS',
         icon: FileText,
         show: ({ role, ent }) =>
-          ent.hasModule('tiss') && (role === 'admin' || role === 'financeiro'),
+          ent.hasModule('convenio') && (role === 'admin' || role === 'financeiro'),
       },
       {
         href: '/analise/recebiveis-convenio',
         label: 'Recebíveis Convênio',
         icon: BadgeCheck,
-        show: ({ role }) => role === 'admin' || role === 'financeiro',
+        show: ({ role, ent }) =>
+          ent.hasModule('convenio') && (role === 'admin' || role === 'financeiro'),
       },
     ],
   },

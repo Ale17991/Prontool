@@ -99,7 +99,7 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     title: 'Convênios',
     description: 'Convênios atendidos e tabelas de preço.',
     icon: DollarSign,
-    show: ({ role }) => can(role, 'plan.read'),
+    show: ({ role, ent }) => ent.hasModule('convenio') && can(role, 'plan.read'),
   },
   {
     id: 'profissionais',

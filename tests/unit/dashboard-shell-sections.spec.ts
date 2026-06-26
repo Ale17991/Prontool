@@ -171,6 +171,30 @@ describe('getVisibleSections — flags OFF', () => {
   })
 })
 
+describe('Módulo convenio gateia Faturamento TISS + Recebíveis Convênio (Feature 042)', () => {
+  it('admin SEM módulo convenio não vê Faturamento TISS nem Recebíveis Convênio', () => {
+    const ctxNoConvenio: NavContext = {
+      role: 'admin',
+      flags: ALL_FLAGS_ON,
+      ent: buildEntitlements('pro', []),
+    }
+    const labels = flatLabels(getVisibleSections(ctxNoConvenio))
+    expect(labels).not.toContain('Faturamento TISS')
+    expect(labels).not.toContain('Recebíveis Convênio')
+  })
+
+  it('admin COM módulo convenio vê Faturamento TISS e Recebíveis Convênio', () => {
+    const ctxConvenio: NavContext = {
+      role: 'admin',
+      flags: ALL_FLAGS_ON,
+      ent: buildEntitlements('pro', ['convenio']),
+    }
+    const labels = flatLabels(getVisibleSections(ctxConvenio))
+    expect(labels).toContain('Faturamento TISS')
+    expect(labels).toContain('Recebíveis Convênio')
+  })
+})
+
 describe('Configurações item is always visible', () => {
   const roles: TenantRole[] = ['admin', 'financeiro', 'recepcionista', 'profissional_saude']
   for (const role of roles) {

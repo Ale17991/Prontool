@@ -43,7 +43,9 @@ const BILLING_OPTIONS: { value: BillingStatus; label: string }[] = [
 
 const PLANS: Plan[] = ['essencial', 'pro', 'clinica', 'legacy']
 const MODULE_LABEL: Record<ModuleId, string> = {
-  tiss: 'TISS',
+  convenio: 'Convênio',
+  odonto: 'Odontologia',
+  oftalmo: 'Oftalmologia',
   portal_paciente: 'Portal',
   telemedicina: 'Telemedicina',
   crm: 'CRM',

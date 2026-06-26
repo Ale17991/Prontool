@@ -22,6 +22,8 @@ export default async function TissIntegrationPage(): Promise<JSX.Element> {
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
 
+  // O gate de módulo (Convênio) é aplicado no layout.tsx desta pasta (requireModule).
+
   const [{ data: plans }, { data: configs }, { data: cert }] = await Promise.all([
     supabase.from('health_plans').select('id, name').eq('active', true).order('name'),
     supabase

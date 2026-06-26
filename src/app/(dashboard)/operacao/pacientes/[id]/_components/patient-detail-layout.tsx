@@ -55,6 +55,8 @@ interface Props {
   appointments: AppointmentTimelineRow[]
   authors: AuthorMap
   initialTab: 'evolucao' | 'clinico' | 'cadastro' | 'odontograma'
+  /** Módulo Odontologia ativo. Off ⇒ esconde a aba Odonto-Space. */
+  hasOdonto: boolean
   cadastro: {
     initialHistory: PatientHistoryDTO[]
     initialDiagnoses: PatientDiagnosisDTO[]
@@ -81,6 +83,8 @@ interface Props {
     canRecordPayment: boolean
     canViewFinancialValues: boolean
     hasEndocrino: boolean
+    hasConvenio: boolean
+    hasOftalmo: boolean
     canWriteVitals: boolean
     canWriteDiagnosis: boolean
     canDeleteDiagnosis: boolean
@@ -106,21 +110,32 @@ export function PatientDetailLayout({
   appointments,
   authors,
   initialTab,
+  hasOdonto,
   cadastro,
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get('tab')
+  // 'odontograma' só é uma aba válida quando o módulo Odontologia está ativo —
+  // acesso direto por URL com o módulo off degrada para a aba padrão.
+  const tabAllowed = (
+    v: string | null,
+  ): v is 'evolucao' | 'clinico' | 'cadastro' | 'odontograma' =>
+    isValidTab(v) && (v !== 'odontograma' || hasOdonto)
   const [tab, setTab] = useState<'evolucao' | 'clinico' | 'cadastro' | 'odontograma'>(
-    isValidTab(tabFromUrl) ? tabFromUrl : initialTab,
+    tabAllowed(tabFromUrl) ? tabFromUrl : initialTab,
   )
   const [activeSheet, setActiveSheet] = useState<SheetKind | null>(null)
 
   useEffect(() => {
-    if (isValidTab(tabFromUrl) && tabFromUrl !== tab) {
+    if (
+      isValidTab(tabFromUrl) &&
+      (tabFromUrl !== 'odontograma' || hasOdonto) &&
+      tabFromUrl !== tab
+    ) {
       setTab(tabFromUrl)
     }
-  }, [tabFromUrl, tab])
+  }, [tabFromUrl, tab, hasOdonto])
 
   const updateTab = useCallback(
     (next: 'evolucao' | 'clinico' | 'cadastro' | 'odontograma') => {
@@ -235,7 +250,7 @@ export function PatientDetailLayout({
               {!isAnonymized ? (
                 <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
               ) : null}
-              {!isAnonymized ? (
+              {!isAnonymized && hasOdonto ? (
                 <TabsTrigger value="odontograma">Odonto-Space</TabsTrigger>
               ) : null}
             </TabsList>
@@ -292,13 +307,15 @@ export function PatientDetailLayout({
                   canRecordPayment={cadastro.canRecordPayment}
                   canViewFinancialValues={cadastro.canViewFinancialValues}
                   hasEndocrino={cadastro.hasEndocrino}
+                  hasConvenio={cadastro.hasConvenio}
+                  hasOftalmo={cadastro.hasOftalmo}
                   canWriteVitals={cadastro.canWriteVitals}
                   canWriteDiagnosis={cadastro.canWriteDiagnosis}
                   canDeleteDiagnosis={cadastro.canDeleteDiagnosis}
                 />
               </TabsContent>
             ) : null}
-            {!isAnonymized ? (
+            {!isAnonymized && hasOdonto ? (
               <TabsContent value="odontograma" className="space-y-4">
                 <OdontoSpace
                   patientId={patientId}
