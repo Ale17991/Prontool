@@ -422,6 +422,8 @@ export default async function PacienteDetailPage({
   const hasConvenio = ent.hasModule('convenio')
   const hasOdonto = ent.hasModule('odonto')
   const hasOftalmo = ent.hasModule('oftalmo')
+  const hasTreino = ent.hasModule('treino')
+  const hasDieta = ent.hasModule('dieta')
   const canConfigReminders = can(session.role, 'reminders.config')
 
   const isAnonymized = patient.anonymizedAt !== null
@@ -493,6 +495,8 @@ export default async function PacienteDetailPage({
         authors={authors}
         initialTab={initialTab}
         hasOdonto={hasOdonto}
+        hasTreino={hasTreino}
+        hasDieta={hasDieta}
         cadastro={{
           initialHistory: medicalHistory,
           initialDiagnoses: diagnoses,

@@ -110,12 +110,14 @@ export function buildEntitlements(plan: Plan, modules: ModuleId[]): Entitlements
   const features = PLAN_FEATURES[plan] ?? PLAN_FEATURES.essencial
   const mods = new Set<ModuleId>(modules)
   if (plan === 'clinica') mods.add('crm')
-  // 'legacy' = todos os módulos (grandfather). Reativado após incidente: tornar
-  // a lista autoritativa no legacy fez clínicas antigas perderem treino/dieta/
-  // endócrino quando o backfill 0157 não estava aplicado. Para DESATIVAR módulo
-  // numa clínica, mude o plano dela de Legado para Clínica (mesmas features) —
-  // aí a lista de módulos passa a valer.
-  if (plan === 'legacy') for (const m of ALL_MODULES) mods.add(m)
+  // 'legacy' = grandfather, mas a lista é AUTORITATIVA quando preenchida: o
+  // /admin liga/desliga módulos por clínica e o desativado some de fato.
+  // Defensivo: lista VAZIA (clínica nunca backfillada) ⇒ acesso total, para
+  // nenhuma clínica antiga perder acesso por falta de backfill (migração 0164
+  // popula as legadas com o conjunto completo; daí o admin desativa o que quiser).
+  if (plan === 'legacy' && modules.length === 0) {
+    for (const m of ALL_MODULES) mods.add(m)
+  }
   const featureSet = new Set<Feature>(features)
   return {
     plan,

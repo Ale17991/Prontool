@@ -57,6 +57,9 @@ interface Props {
   initialTab: 'evolucao' | 'clinico' | 'cadastro' | 'odontograma'
   /** Módulo Odontologia ativo. Off ⇒ esconde a aba Odonto-Space. */
   hasOdonto: boolean
+  /** Módulos Treino/Dieta ativos. Off ⇒ escondem as seções no prontuário. */
+  hasTreino: boolean
+  hasDieta: boolean
   cadastro: {
     initialHistory: PatientHistoryDTO[]
     initialDiagnoses: PatientDiagnosisDTO[]
@@ -111,6 +114,8 @@ export function PatientDetailLayout({
   authors,
   initialTab,
   hasOdonto,
+  hasTreino,
+  hasDieta,
   cadastro,
 }: Props) {
   const router = useRouter()
@@ -275,8 +280,12 @@ export function PatientDetailLayout({
               {!isAnonymized ? (
                 <>
                   <CareNotesEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
-                  <WorkoutEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
-                  <DietEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  {hasTreino ? (
+                    <WorkoutEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  ) : null}
+                  {hasDieta ? (
+                    <DietEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  ) : null}
                 </>
               ) : null}
             </TabsContent>
