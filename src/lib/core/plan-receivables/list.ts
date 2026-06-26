@@ -23,12 +23,25 @@ export interface ListPlanReceivablesInput {
   from: string // YYYY-MM-DD
   to: string // YYYY-MM-DD
   planId?: string | null
+  /** Filtra por profissional (doctor_id) do atendimento. */
+  doctorId?: string | null
   status?: ReceiptStatus | 'all'
+  /** Busca textual (paciente / procedimento / profissional / convênio). */
+  search?: string | null
   /** Para decifrar o nome do paciente (RPC). Sem chave → '—'. */
   encryptionKey?: string
 }
 
 const MAX_APPTS = 3000
+
+/** Normaliza para busca: minúsculas, sem acento, sem espaços nas pontas. */
+function normalizeForSearch(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+}
 
 /**
  * Lista as linhas de procedimento de convênio (plan_id não nulo) de
@@ -61,8 +74,12 @@ export async function listPlanReceivables(
   }>
   if (appts.length === 0) return []
 
-  const apptById = new Map(appts.map((a) => [a.id, a]))
-  const apptIds = appts.map((a) => a.id)
+  // Filtro por profissional já aqui (reduz as buscas seguintes).
+  const scopedAppts = input.doctorId ? appts.filter((a) => a.doctor_id === input.doctorId) : appts
+  if (scopedAppts.length === 0) return []
+
+  const apptById = new Map(scopedAppts.map((a) => [a.id, a]))
+  const apptIds = scopedAppts.map((a) => a.id)
 
   // 2) Linhas de procedimento de convênio desses atendimentos.
   const lineRows: Array<{
@@ -119,7 +136,7 @@ export async function listPlanReceivables(
   }
 
   // 4) Médicos.
-  const doctorIds = Array.from(new Set(appts.map((a) => a.doctor_id)))
+  const doctorIds = Array.from(new Set(scopedAppts.map((a) => a.doctor_id)))
   const doctorNames = new Map<string, string>()
   if (doctorIds.length > 0) {
     const r = await supabase
@@ -135,7 +152,7 @@ export async function listPlanReceivables(
   // 5) Pacientes (decifra nomes).
   const patientNames = new Map<string, string>()
   if (input.encryptionKey) {
-    const patientIds = Array.from(new Set(appts.map((a) => a.patient_id)))
+    const patientIds = Array.from(new Set(scopedAppts.map((a) => a.patient_id)))
     if (patientIds.length > 0) {
       const r = await supabase.rpc('decrypt_patient_names_for_ids' as never, {
         p_tenant_id: input.tenantId,
@@ -152,7 +169,8 @@ export async function listPlanReceivables(
     }
   }
 
-  // 6) Monta linhas + aplica filtro de status.
+  // 6) Monta linhas + aplica filtros de status e busca textual.
+  const query = input.search ? normalizeForSearch(input.search) : null
   const out: PlanReceivableRow[] = []
   for (const l of lineRows) {
     const appt = apptById.get(l.appointment_id)
@@ -160,16 +178,28 @@ export async function listPlanReceivables(
     const st = statusByLine.get(l.id)
     const status: ReceiptStatus = st?.status ?? 'pendente'
     if (input.status && input.status !== 'all' && status !== input.status) continue
+
+    const planName = l.health_plans?.name ?? 'Convênio'
+    const procedureLabel = l.procedures?.display_name?.trim() || l.procedures?.tuss_code || '—'
+    const doctorName = doctorNames.get(appt.doctor_id) ?? '—'
+    const patientName = patientNames.get(appt.patient_id) ?? '—'
+
+    if (query) {
+      const haystack = normalizeForSearch(
+        `${patientName} ${procedureLabel} ${doctorName} ${planName}`,
+      )
+      if (!haystack.includes(query)) continue
+    }
+
     out.push({
       procedureLineId: l.id,
       appointmentId: l.appointment_id,
       appointmentAt: appt.appointment_at,
       planId: l.plan_id as string,
-      planName: l.health_plans?.name ?? 'Convênio',
-      procedureLabel:
-        l.procedures?.display_name?.trim() || l.procedures?.tuss_code || '—',
-      doctorName: doctorNames.get(appt.doctor_id) ?? '—',
-      patientName: patientNames.get(appt.patient_id) ?? '—',
+      planName,
+      procedureLabel,
+      doctorName,
+      patientName,
       amountCents: Number(l.line_amount_cents) * Number(l.quantity ?? 1),
       status,
       receivedAt: st?.received_at ?? null,

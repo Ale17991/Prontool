@@ -21,7 +21,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/
 const STATUSES = new Set(['pendente', 'recebido', 'glosado', 'nao_recebido'])
 
 interface PageProps {
-  searchParams: { from?: string; to?: string; plan?: string; status?: string }
+  searchParams: { from?: string; to?: string; plan?: string; status?: string; doctor?: string; q?: string }
 }
 
 export default async function RecebiveisConvenioPage({ searchParams }: PageProps) {
@@ -37,6 +37,8 @@ export default async function RecebiveisConvenioPage({ searchParams }: PageProps
   const from = searchParams.from && DATE.test(searchParams.from) ? searchParams.from : firstDay
   const to = searchParams.to && DATE.test(searchParams.to) ? searchParams.to : todayStr
   const planFilter = searchParams.plan && searchParams.plan !== 'all' ? searchParams.plan : null
+  const doctorFilter = searchParams.doctor && searchParams.doctor !== 'all' ? searchParams.doctor : null
+  const search = searchParams.q?.trim() || null
   const statusFilter =
     searchParams.status && STATUSES.has(searchParams.status)
       ? (searchParams.status as ReceiptStatus)
@@ -44,20 +46,31 @@ export default async function RecebiveisConvenioPage({ searchParams }: PageProps
 
   const supabase = createSupabaseServiceClient()
 
-  const plansRes = await supabase
-    .from('health_plans')
-    .select('id, name')
-    .eq('tenant_id', session.tenantId)
-    .eq('active', true)
-    .order('name', { ascending: true })
+  const [plansRes, doctorsRes] = await Promise.all([
+    supabase
+      .from('health_plans')
+      .select('id, name')
+      .eq('tenant_id', session.tenantId)
+      .eq('active', true)
+      .order('name', { ascending: true }),
+    supabase
+      .from('doctors')
+      .select('id, full_name')
+      .eq('tenant_id', session.tenantId)
+      .eq('active', true)
+      .order('full_name', { ascending: true }),
+  ])
   const plans = (plansRes.data ?? []) as Array<{ id: string; name: string }>
+  const doctors = (doctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
 
   const rows = await listPlanReceivables(supabase, {
     tenantId: session.tenantId,
     from,
     to,
     planId: planFilter,
+    doctorId: doctorFilter,
     status: statusFilter,
+    search,
     encryptionKey: process.env.PATIENT_DATA_ENCRYPTION_KEY,
   })
 
@@ -93,6 +106,16 @@ export default async function RecebiveisConvenioPage({ searchParams }: PageProps
           <CardTitle className="text-sm">{rows.length} procedimento{rows.length === 1 ? '' : 's'}</CardTitle>
           <form method="GET" className="flex flex-wrap items-end gap-2">
             <div>
+              <label className="block text-[10px] font-bold uppercase text-slate-500">Buscar</label>
+              <Input
+                type="search"
+                name="q"
+                defaultValue={search ?? ''}
+                placeholder="Paciente, procedimento, profissional…"
+                className="h-8 w-56 text-xs"
+              />
+            </div>
+            <div>
               <label className="block text-[10px] font-bold uppercase text-slate-500">De</label>
               <Input type="date" name="from" defaultValue={from} className="h-8 w-36 text-xs" />
             </div>
@@ -100,6 +123,19 @@ export default async function RecebiveisConvenioPage({ searchParams }: PageProps
               <label className="block text-[10px] font-bold uppercase text-slate-500">Até</label>
               <Input type="date" name="to" defaultValue={to} className="h-8 w-36 text-xs" />
             </div>
+            <Select name="doctor" defaultValue={doctorFilter ?? 'all'}>
+              <SelectTrigger className="h-8 w-44 text-xs">
+                <SelectValue placeholder="Profissional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os profissionais</SelectItem>
+                {doctors.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select name="plan" defaultValue={planFilter ?? 'all'}>
               <SelectTrigger className="h-8 w-40 text-xs">
                 <SelectValue placeholder="Convênio" />
