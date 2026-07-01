@@ -23,7 +23,7 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { decodeJwtClaims, type JwtPayload } from '@/lib/auth/jwt-claims'
+import { verifyAccessToken, type JwtPayload } from '@/lib/auth/jwt-claims'
 
 type AccessClaims = JwtPayload & { sub?: string; email?: string }
 
@@ -33,6 +33,10 @@ type AccessClaims = JwtPayload & { sub?: string; email?: string }
  * É o caminho mais robusto em Server Component: independe de `getUser()` (que
  * devolve null com token stale) e do refresh do middleware. Só lê o `sub`/
  * `email` — a autoridade (is_super) é cruzada com o banco depois.
+ *
+ * SEGURANÇA: o access_token é VERIFICADO (`verifyAccessToken`, assinatura HS256
+ * contra `SUPABASE_JWT_SECRET`) antes de confiar em qualquer claim. Sem isso um
+ * usuário poderia forjar o `email` no cookie e virar super-admin (bootstrap).
  */
 function identityFromCookies(): { id: string; email: string | null } | null {
   try {
@@ -63,7 +67,7 @@ function identityFromCookies(): { id: string; email: string | null } | null {
           ? (s[0] as string)
           : null
     if (!accessToken) return null
-    const claims = decodeJwtClaims(accessToken) as AccessClaims | null
+    const claims = verifyAccessToken(accessToken) as AccessClaims | null
     if (!claims?.sub) return null
     return { id: claims.sub, email: claims.email ?? null }
   } catch {
@@ -103,7 +107,9 @@ async function currentUser(): Promise<{ id: string; email: string | null } | nul
     const { data: s } = await supabase.auth.getSession()
     const token = s.session?.access_token
     if (token) {
-      const claims = decodeJwtClaims(token) as AccessClaims | null
+      // getSession() reads storage without server-side signature validation
+      // (getUser above already failed), so verify before trusting claims.
+      const claims = verifyAccessToken(token) as AccessClaims | null
       const id = claims?.sub ?? s.session?.user?.id
       if (id) return { id, email: claims?.email ?? s.session?.user?.email ?? null }
     }
