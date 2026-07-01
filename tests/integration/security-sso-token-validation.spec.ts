@@ -176,7 +176,9 @@ describe('security: verify-sso-token', () => {
       locationId: 'loc_test',
       userId: 'usr_test',
     })
-    await expect(verifySsoToken(jwt)).rejects.toMatchObject({ reason: 'iss not allowed' })
+    await expect(verifySsoToken(jwt)).rejects.toMatchObject({
+      reason: 'iss missing or not allowed',
+    })
   })
 
   it('H3: iss com path suffix legítimo (/oauth) → aceita', async () => {
@@ -191,5 +193,21 @@ describe('security: verify-sso-token', () => {
     })
     const claims = await verifySsoToken(jwt)
     expect(claims.iss).toBe('https://services.leadconnectorhq.com/oauth')
+  })
+
+  // Hardening (revisão 2026-07): iss é OBRIGATÓRIO. Antes, um token que
+  // simplesmente omitia `iss` pulava a checagem do allow-list.
+  it('iss ausente → rejeita', async () => {
+    const nowSec = Math.floor(Date.now() / 1000)
+    const jwt = mintRs256Jwt(keys.privatePem, keys.publicJwk.kid, {
+      aud: SSO_AUDIENCE,
+      iat: nowSec,
+      exp: nowSec + 600,
+      locationId: 'loc_test',
+      userId: 'usr_test',
+    })
+    await expect(verifySsoToken(jwt)).rejects.toMatchObject({
+      reason: 'iss missing or not allowed',
+    })
   })
 })
