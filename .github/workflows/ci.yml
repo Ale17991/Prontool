@@ -54,21 +54,10 @@ jobs:
 
   test-integration:
     runs-on: ubuntu-latest
-    services:
-      # Integration tests run against a real Supabase local stack
-      # (Postgres + Auth + RLS). Constitution forbids DB mocks.
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports: ['54322:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # Testes de integração rodam contra o stack Supabase local completo
+    # (Postgres + Auth + RLS) via `supabase start` — que já sobe o Postgres
+    # na 54322. NÃO declarar um `services: postgres` aqui: ele bindava a mesma
+    # 54322 e colidia com o `supabase start` ("port is already allocated").
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
