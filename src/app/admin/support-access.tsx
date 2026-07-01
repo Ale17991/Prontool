@@ -79,7 +79,8 @@ function SupportRow({ support, tenants }: { support: SupportUser; tenants: Tenan
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <p className="text-sm font-bold text-slate-900">{support.email}</p>
       <p className="mb-3 text-[11px] text-slate-400">
-        {assigned.size} clínica{assigned.size === 1 ? '' : 's'} atribuída{assigned.size === 1 ? '' : 's'}
+        {assigned.size} clínica{assigned.size === 1 ? '' : 's'} atribuída
+        {assigned.size === 1 ? '' : 's'}
       </p>
       <div className="flex flex-wrap gap-2">
         {tenants.map((t) => {

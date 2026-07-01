@@ -9,10 +9,7 @@ import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-event
 import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
 import { recordSyncFailure, recordSyncSuccess } from '@/lib/core/integrations/ghl/sync-log'
 import { commitRefreshedTokens } from '@/lib/integrations/ghl/oauth/refresh-lock'
-import {
-  RefreshError,
-  refreshTokens,
-} from '@/lib/integrations/ghl/oauth/client'
+import { RefreshError, refreshTokens } from '@/lib/integrations/ghl/oauth/client'
 import { markTokenExpired } from '@/lib/integrations/ghl/oauth/token-store'
 import { ghlOAuthCredentialsSchema } from '@/lib/integrations/ghl/oauth/types'
 

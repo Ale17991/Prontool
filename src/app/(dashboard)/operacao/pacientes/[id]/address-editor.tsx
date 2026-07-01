@@ -16,9 +16,33 @@ import {
 import type { PatientAddress } from '@/lib/core/patients/get'
 
 const UFS = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
-  'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
-  'SP', 'SE', 'TO',
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ]
 
 function formatCep(raw: string): string {
@@ -46,9 +70,7 @@ export function AddressEditor({
   const [state, setState] = useState(address.state ?? '')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [cepLookup, setCepLookup] = useState<'idle' | 'loading' | 'not-found' | 'error'>(
-    'idle',
-  )
+  const [cepLookup, setCepLookup] = useState<'idle' | 'loading' | 'not-found' | 'error'>('idle')
 
   const hasAny = [
     address.cep,
@@ -169,9 +191,7 @@ export function AddressEditor({
               {address.complement ? ` — ${address.complement}` : ''}
             </p>
             <p className="text-xs text-slate-600">
-              {[address.neighborhood, address.city, address.state]
-                .filter(Boolean)
-                .join(' · ')}
+              {[address.neighborhood, address.city, address.state].filter(Boolean).join(' · ')}
               {address.cep ? ` · CEP ${formatCep(address.cep)}` : ''}
             </p>
           </div>
@@ -222,24 +242,18 @@ export function AddressEditor({
           ) : cepLookup === 'not-found' ? (
             <p className="text-[11px] text-[hsl(var(--warning-foreground))]">CEP não encontrado.</p>
           ) : cepLookup === 'error' ? (
-            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">Falha ao consultar — preencha manual.</p>
+            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">
+              Falha ao consultar — preencha manual.
+            </p>
           ) : null}
         </div>
         <div className="space-y-1.5 md:col-span-3">
           <Label htmlFor="addr_street">Rua / logradouro</Label>
-          <Input
-            id="addr_street"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-          />
+          <Input id="addr_street" value={street} onChange={(e) => setStreet(e.target.value)} />
         </div>
         <div className="space-y-1.5 md:col-span-1">
           <Label htmlFor="addr_number">Número</Label>
-          <Input
-            id="addr_number"
-            value={number}
-            onChange={(e) => setNumber(e.target.value)}
-          />
+          <Input id="addr_number" value={number} onChange={(e) => setNumber(e.target.value)} />
         </div>
         <div className="space-y-1.5 md:col-span-3">
           <Label htmlFor="addr_complement">Complemento</Label>

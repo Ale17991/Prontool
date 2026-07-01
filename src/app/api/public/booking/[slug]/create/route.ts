@@ -17,11 +17,7 @@ import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { createPublicBooking } from '@/lib/core/public-booking/create-booking'
 import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
-import {
-  checkRateLimit,
-  bumpRateLimit,
-  RATE_LIMITS,
-} from '@/lib/core/public-booking/rate-limit'
+import { checkRateLimit, bumpRateLimit, RATE_LIMITS } from '@/lib/core/public-booking/rate-limit'
 import { verifyTurnstile } from '@/lib/core/public-booking/turnstile-verify'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 
@@ -62,16 +58,10 @@ function extractIp(request: NextRequest): string {
   return 'unknown'
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: { slug: string } },
-) {
+export async function POST(request: NextRequest, context: { params: { slug: string } }) {
   const slugCheck = SlugSchema.safeParse(context.params.slug)
   if (!slugCheck.success) {
-    return NextResponse.json(
-      { error: 'TENANT_NOT_FOUND_OR_DISABLED' },
-      { status: 404 },
-    )
+    return NextResponse.json({ error: 'TENANT_NOT_FOUND_OR_DISABLED' }, { status: 404 })
   }
 
   let body: unknown
@@ -107,10 +97,7 @@ export async function POST(
   // Pre-resolve tenant para rate-limit por tenant.
   const tenant = await resolveTenantBySlug(supabase, slugCheck.data)
   if (!tenant) {
-    return NextResponse.json(
-      { error: 'TENANT_NOT_FOUND_OR_DISABLED' },
-      { status: 404 },
-    )
+    return NextResponse.json({ error: 'TENANT_NOT_FOUND_OR_DISABLED' }, { status: 404 })
   }
 
   // Rate limit submit (3/h por IP+tenant).
@@ -134,10 +121,7 @@ export async function POST(
   }
 
   // Turnstile siteverify (bypass automático em dev sem secret).
-  const turnstile = await verifyTurnstile(
-    parsed.data.turnstile_token ?? '',
-    ip,
-  )
+  const turnstile = await verifyTurnstile(parsed.data.turnstile_token ?? '', ip)
   if (!turnstile.ok) {
     return NextResponse.json({ error: 'CAPTCHA_FAILED' }, { status: 403 })
   }
@@ -189,10 +173,7 @@ export async function POST(
           { status: 409 },
         )
       default:
-        return NextResponse.json(
-          { error: 'INTERNAL_ERROR' },
-          { status: 500 },
-        )
+        return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 })
     }
   }
 

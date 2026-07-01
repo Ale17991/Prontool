@@ -27,11 +27,7 @@ export async function softDeleteReceipt(
   if (lookup.error) throw new Error(`receipt lookup: ${lookup.error.message}`)
   if (!lookup.data) throw new NotFoundError('expense_receipt', input.receiptId)
   if (lookup.data.deleted_at) {
-    throw new DomainError(
-      'RECEIPT_ALREADY_DELETED',
-      'Comprovante ja removido',
-      { status: 409 },
-    )
+    throw new DomainError('RECEIPT_ALREADY_DELETED', 'Comprovante ja removido', { status: 409 })
   }
 
   const updated = await supabase

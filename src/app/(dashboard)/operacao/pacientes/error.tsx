@@ -24,15 +24,12 @@ export default function PacientesError({
       error.message,
     )
   const isMissingTable =
-    /relation .* does not exist|table .* does not exist|PGRST204|PGRST205/i.test(
-      error.message,
-    )
-  const isMissingColumn =
-    /column .* does not exist|42703/i.test(error.message)
-  const isDecryptFailure =
-    /pgp_sym_decrypt|Wrong key or corrupt data|decryption failed/i.test(error.message)
-  const isAuthIssue =
-    /jwt_tenant_id|tenant_id is null|JWT|claim/i.test(error.message)
+    /relation .* does not exist|table .* does not exist|PGRST204|PGRST205/i.test(error.message)
+  const isMissingColumn = /column .* does not exist|42703/i.test(error.message)
+  const isDecryptFailure = /pgp_sym_decrypt|Wrong key or corrupt data|decryption failed/i.test(
+    error.message,
+  )
+  const isAuthIssue = /jwt_tenant_id|tenant_id is null|JWT|claim/i.test(error.message)
 
   return (
     <div className="space-y-6">
@@ -50,52 +47,83 @@ export default function PacientesError({
             </p>
             {isMissingKey ? (
               <p className="text-xs text-slate-600">
-                A variável <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">PATIENT_DATA_ENCRYPTION_KEY</code>{' '}
-                não está configurada no ambiente. Peça ao administrador para defini-la nas variáveis de ambiente da Vercel.
+                A variável{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  PATIENT_DATA_ENCRYPTION_KEY
+                </code>{' '}
+                não está configurada no ambiente. Peça ao administrador para defini-la nas variáveis
+                de ambiente da Vercel.
               </p>
             ) : isMissingFunction ? (
               <p className="text-xs text-slate-600">
-                A função <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">list_patients_for_tenant</code>{' '}
-                não foi encontrada no banco. Aplique as migrations mais recentes em produção (em especial{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">0044_ensure_patient_rpcs</code>) com{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+                A função{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  list_patients_for_tenant
+                </code>{' '}
+                não foi encontrada no banco. Aplique as migrations mais recentes em produção (em
+                especial{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  0044_ensure_patient_rpcs
+                </code>
+                ) com{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  supabase db push
+                </code>
+                .
               </p>
             ) : isMissingTable ? (
               <p className="text-xs text-slate-600">
                 Uma tabela referenciada por essa página ainda não existe em produção. Aplique as
                 migrations pendentes com{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  supabase db push
+                </code>
+                .
               </p>
             ) : isMissingColumn ? (
               <p className="text-xs text-slate-600">
                 Uma coluna referenciada por essa página ainda não existe em produção. Aplique as
                 migrations pendentes com{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">supabase db push</code>.
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  supabase db push
+                </code>
+                .
               </p>
             ) : isAuthIssue ? (
               <p className="text-xs text-slate-600">
-                Token JWT sem <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">tenant_id</code>{' '}
-                custom claim. Verifique se o auth hook está habilitado em Supabase &gt; Authentication
-                &gt; Hooks.
+                Token JWT sem{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">tenant_id</code>{' '}
+                custom claim. Verifique se o auth hook está habilitado em Supabase &gt;
+                Authentication &gt; Hooks.
               </p>
             ) : isPermission ? (
               <p className="text-xs text-slate-600">
-                Permissões do banco insuficientes para descriptografar pacientes. Aplique as migrations mais recentes
-                (incluindo <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">0044_ensure_patient_rpcs</code>).
+                Permissões do banco insuficientes para descriptografar pacientes. Aplique as
+                migrations mais recentes (incluindo{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  0044_ensure_patient_rpcs
+                </code>
+                ).
               </p>
             ) : isDecryptFailure ? (
               <p className="text-xs text-slate-600">
                 Falha ao descriptografar PII. A chave{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">PATIENT_DATA_ENCRYPTION_KEY</code>{' '}
-                configurada na Vercel não bate com a que cifrou os dados em prod. Use o mesmo valor do GUC{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">app.patient_encryption_key</code>.
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  PATIENT_DATA_ENCRYPTION_KEY
+                </code>{' '}
+                configurada na Vercel não bate com a que cifrou os dados em prod. Use o mesmo valor
+                do GUC{' '}
+                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono">
+                  app.patient_encryption_key
+                </code>
+                .
               </p>
             ) : (
               <div className="space-y-2 text-xs text-slate-600">
                 <p>Algo deu errado. Tente novamente em alguns segundos.</p>
                 <p>
-                  Se o problema persistir, peça ao administrador para verificar os logs do
-                  servidor. Causas comuns:
+                  Se o problema persistir, peça ao administrador para verificar os logs do servidor.
+                  Causas comuns:
                 </p>
                 <ul className="ml-4 list-disc space-y-1 text-left">
                   <li>

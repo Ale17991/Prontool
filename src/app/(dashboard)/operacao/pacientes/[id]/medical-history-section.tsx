@@ -2,13 +2,7 @@
 
 import { useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  ClipboardList,
-  Loader2,
-  Plus,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { ClipboardList, Loader2, Plus, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,10 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatDate } from '@/lib/utils'
-import type {
-  HistoryCategory,
-  PatientHistoryDTO,
-} from '@/lib/core/patient-medical/history'
+import type { HistoryCategory, PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
 import { VitalHistoryCompactCard } from './_components/vital-history-compact'
 
@@ -187,10 +178,9 @@ function HistoryItem({
     setError(null)
     setPending(true)
     try {
-      const res = await fetch(
-        `/api/pacientes/${patientId}/antecedentes/${item.id}`,
-        { method: 'DELETE' },
-      )
+      const res = await fetch(`/api/pacientes/${patientId}/antecedentes/${item.id}`, {
+        method: 'DELETE',
+      })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
           error?: { message?: string }
@@ -208,9 +198,7 @@ function HistoryItem({
     <li className="flex items-start justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2">
       <div className="min-w-0">
         <p className="text-sm font-semibold text-slate-900">{item.description}</p>
-        {item.notes ? (
-          <p className="mt-0.5 text-[11px] text-slate-600">{item.notes}</p>
-        ) : null}
+        {item.notes ? <p className="mt-0.5 text-[11px] text-slate-600">{item.notes}</p> : null}
         <p className="mt-0.5 text-[10px] text-slate-400">
           {item.dateReported
             ? `Em ${formatDate(item.dateReported)}`
@@ -226,11 +214,7 @@ function HistoryItem({
           disabled={pending}
           className="h-7 gap-1 px-2 text-[11px] text-destructive hover:bg-destructive/10"
         >
-          {pending ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <Trash2 className="h-3 w-3" />
-          )}
+          {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
           Remover
         </Button>
       ) : null}
@@ -295,10 +279,7 @@ function NewHistoryForm({
     >
       <div className="space-y-1.5">
         <Label>Categoria</Label>
-        <Select
-          value={category}
-          onValueChange={(v) => setCategory(v as HistoryCategory)}
-        >
+        <Select value={category} onValueChange={(v) => setCategory(v as HistoryCategory)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>

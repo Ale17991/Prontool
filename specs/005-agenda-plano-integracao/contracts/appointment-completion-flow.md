@@ -5,6 +5,7 @@
 ## Schema
 
 Ver detalhes completos em [`../data-model.md`](../data-model.md#appointment_completions-new). Resumo:
+
 - `id, tenant_id, appointment_id (UNIQUE), completed_at, completed_by, source ('plan_step'|'manual'), reason`.
 - Append-only via trigger `appointment_completions_immutable`.
 - Audit via trigger `audit_appointment_completion_change`.
@@ -16,6 +17,7 @@ Ver detalhes completos em [`../data-model.md`](../data-model.md#appointment_comp
 Ver detalhes em [`../data-model.md`](../data-model.md#funções).
 
 Comportamento:
+
 - Falha com `appointment % not found` se inexistente.
 - Falha com `cannot mark reversed appointment as realized` se já estornado.
 - Falha com unique violation se já marcado realizado.
@@ -47,11 +49,13 @@ Wrapper sobre `supabase.rpc('mark_appointment_realized', { ... })`. Mapeia erros
 **Auth**: `requireRole(['admin', 'profissional_saude'])` — mesmos papéis que executam estorno.
 
 **Body** (Zod):
+
 ```ts
 z.object({ reason: z.string().trim().max(500).optional() })
 ```
 
 **Resposta 201**:
+
 ```json
 {
   "completion_id": "uuid",
@@ -61,6 +65,7 @@ z.object({ reason: z.string().trim().max(500).optional() })
 ```
 
 **Erros**:
+
 - 404: appointment não existe.
 - 409: já marcado realizado OU já estornado (mensagem específica em cada caso).
 - 403: papel insuficiente.
@@ -70,6 +75,7 @@ z.object({ reason: z.string().trim().max(500).optional() })
 A trigger `appointment_completion_sync_to_step` cuida automaticamente: ao inserir em completions, se a tabela appointments tiver step com `appointment_id` igual, esse step é marcado como concluído.
 
 Ordem de eventos:
+
 1. `POST /api/atendimentos/[id]/realizado` chega.
 2. Endpoint chama `markAppointmentRealized`.
 3. RPC insere em `appointment_completions`.

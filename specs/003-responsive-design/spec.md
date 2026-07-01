@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Tornar o Prontool totalmente responsivo para tablets e celulares. O sistema precisa funcionar perfeitamente em telas de 360px (celular) até 1920px (desktop). Problemas: sidebar fixa de 256px sempre visível (crítico), tab bar de navegação sem overflow (alto), modais sem max-h+overflow (médio), padding p-8 fixo (médio), tabelas sem indicador de scroll (baixo), action bar da ficha do paciente sem flex-col (baixo)."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Recepcionista cadastra paciente pelo celular durante atendimento na recepção (Priority: P1)
 
@@ -66,7 +66,7 @@ Usuário desktop (≥1280px) que já usa o sistema diariamente continua tendo a 
 - Usuário rotaciona o dispositivo durante o uso: layout precisa reflowar sem perder estado (ex.: modal aberto continua aberto; drawer fechado continua fechado).
 - Tabela com muitas colunas em mobile (ex.: financeiro com 7 colunas): scroll horizontal funciona mas dá impressão de "preso" — indicador de fade nas bordas da tabela mostra que tem mais conteúdo.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -121,7 +121,7 @@ Usuário desktop (≥1280px) que já usa o sistema diariamente continua tendo a 
 
 (Esta feature é puramente de UI/UX — não introduz novas entidades de dados, tabelas, ou colunas.)
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

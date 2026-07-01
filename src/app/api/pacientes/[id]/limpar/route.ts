@@ -37,8 +37,7 @@ export async function POST(
         {
           error: {
             code: 'INVALID_BODY',
-            message:
-              'Esperado { remove_anamneses?, remove_records?, remove_steps? }',
+            message: 'Esperado { remove_anamneses?, remove_records?, remove_steps? }',
           },
         },
         { status: 400 },

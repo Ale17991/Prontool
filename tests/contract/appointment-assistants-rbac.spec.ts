@@ -118,13 +118,10 @@ describe('Feature 013 — RBAC assistants endpoints', () => {
 
     const { PATCH } = await import('@/app/api/atendimentos/[id]/assistants/[assistantId]/route')
     const remRes = await PATCH(
-      new Request(
-        `http://localhost/api/atendimentos/${appointmentId}/assistants/${body.id}`,
-        {
-          method: 'PATCH',
-          headers: { authorization: `Bearer ${recJwt}` },
-        },
-      ),
+      new Request(`http://localhost/api/atendimentos/${appointmentId}/assistants/${body.id}`, {
+        method: 'PATCH',
+        headers: { authorization: `Bearer ${recJwt}` },
+      }),
       { params: { id: appointmentId, assistantId: body.id } },
     )
     expect(remRes.status).toBe(200)

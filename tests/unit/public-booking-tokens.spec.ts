@@ -8,11 +8,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import {
-  generateCancelToken,
-  hashToken,
-  safeCompareHash,
-} from '@/lib/core/public-booking/tokens'
+import { generateCancelToken, hashToken, safeCompareHash } from '@/lib/core/public-booking/tokens'
 
 describe('public-booking tokens', () => {
   it('gera token raw + hash distintos a cada call', () => {

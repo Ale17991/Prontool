@@ -1,30 +1,62 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { EyeglassRx, EyeData } from './crud'
 
 const styles = StyleSheet.create({
   page: { padding: 44, fontSize: 10, fontFamily: 'Helvetica', color: '#0f172a' },
-  title: { fontSize: 15, fontFamily: 'Helvetica-Bold', textAlign: 'center', marginTop: 6, marginBottom: 4 },
+  title: {
+    fontSize: 15,
+    fontFamily: 'Helvetica-Bold',
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 4,
+  },
   patient: { fontSize: 10, marginBottom: 12, color: '#334155' },
-  trHeader: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#cbd5e1' },
-  tr: { flexDirection: 'row', borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: '#cbd5e1' },
-  th: { padding: 5, fontFamily: 'Helvetica-Bold', fontSize: 8, color: '#334155', textAlign: 'center', borderRightWidth: 0.5, borderColor: '#cbd5e1' },
-  td: { padding: 5, fontSize: 9, textAlign: 'center', borderRightWidth: 0.5, borderColor: '#cbd5e1' },
+  trHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  tr: {
+    flexDirection: 'row',
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  th: {
+    padding: 5,
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+    color: '#334155',
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderColor: '#cbd5e1',
+  },
+  td: {
+    padding: 5,
+    fontSize: 9,
+    textAlign: 'center',
+    borderRightWidth: 0.5,
+    borderColor: '#cbd5e1',
+  },
   cEye: { width: 88, textAlign: 'left' },
   cVal: { flex: 1 },
   meta: { marginTop: 14, fontSize: 10 },
   notes: { marginTop: 8, fontSize: 9, color: '#475569' },
   date: { marginTop: 22, fontSize: 10, textAlign: 'right' },
   sign: { marginTop: 50, alignItems: 'center' },
-  signLine: { borderTopWidth: 1, borderTopColor: '#334155', width: 240, paddingTop: 4, textAlign: 'center', fontSize: 9, color: '#334155' },
+  signLine: {
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    width: 240,
+    paddingTop: 4,
+    textAlign: 'center',
+    fontSize: 9,
+    color: '#334155',
+  },
 })
 
 const COLS: Array<{ label: string; key: keyof EyeData }> = [
@@ -46,7 +78,9 @@ function EyeRow({ label, eye }: { label: string; eye: EyeData }) {
     <View style={styles.tr}>
       <Text style={[styles.td, styles.cEye]}>{label}</Text>
       {COLS.map((c) => (
-        <Text key={c.key} style={[styles.td, styles.cVal]}>{dash(eye[c.key])}</Text>
+        <Text key={c.key} style={[styles.td, styles.cVal]}>
+          {dash(eye[c.key])}
+        </Text>
       ))}
     </View>
   )
@@ -54,7 +88,11 @@ function EyeRow({ label, eye }: { label: string; eye: EyeData }) {
 
 export async function renderEyeglassRxPdf(
   rx: EyeglassRx,
-  meta: { patientName: string; clinicProfile?: ClinicProfile | null; signedLogoUrl?: string | null },
+  meta: {
+    patientName: string
+    clinicProfile?: ClinicProfile | null
+    signedLogoUrl?: string | null
+  },
 ): Promise<Buffer> {
   const tech = meta.clinicProfile?.techResponsible
   const signName = tech?.name ?? meta.clinicProfile?.displayName ?? ''
@@ -78,7 +116,9 @@ export async function renderEyeglassRxPdf(
         <View style={styles.trHeader}>
           <Text style={[styles.th, styles.cEye]}>Olho</Text>
           {COLS.map((c) => (
-            <Text key={c.key} style={[styles.th, styles.cVal]}>{c.label}</Text>
+            <Text key={c.key} style={[styles.th, styles.cVal]}>
+              {c.label}
+            </Text>
           ))}
         </View>
         <EyeRow label="OD (direito)" eye={rx.od} />

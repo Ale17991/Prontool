@@ -85,7 +85,9 @@ export async function generateConsultaGuia(
   // 1. Atendimento (com status efetivo e valor líquido).
   const { data: appt, error: apptErr } = await supabase
     .from('appointments_effective')
-    .select('id, patient_id, doctor_id, plan_id, appointment_at, net_amount_cents, effective_status')
+    .select(
+      'id, patient_id, doctor_id, plan_id, appointment_at, net_amount_cents, effective_status',
+    )
     .eq('tenant_id', tenantId)
     .eq('id', appointmentId)
     .maybeSingle()
@@ -139,7 +141,8 @@ export async function generateConsultaGuia(
   if (!primary) {
     throw new ValidationError('Atendimento sem procedimento — nada a faturar.')
   }
-  const tussCodeStr = (primary.procedures as unknown as { tuss_code: string | null } | null)?.tuss_code ?? null
+  const tussCodeStr =
+    (primary.procedures as unknown as { tuss_code: string | null } | null)?.tuss_code ?? null
 
   let tussTable = '22'
   let tussCodeId: string | null = null
@@ -190,7 +193,9 @@ export async function generateConsultaGuia(
     regimeAtendimento: '01',
     dataAtendimento,
     tipoConsulta: '1',
-    procedimentos: [{ tabela: tussTable, codigo: tussCodeStr, valorCents: lineAmount, tussVigente }],
+    procedimentos: [
+      { tabela: tussTable, codigo: tussCodeStr, valorCents: lineAmount, tussVigente },
+    ],
   }
   const validationErrors = validateConsultaContent(draft)
   const status: 'rascunho' | 'pronta' = validationErrors.length === 0 ? 'pronta' : 'rascunho'
@@ -482,8 +487,7 @@ export async function generateSpSadtGuia(
     }
   })
   const totalCents = built.reduce((s, b) => s + b.totalCents, 0)
-  const tussVersionId =
-    codes.map((c) => tussByCode.get(c)?.versionId).find((v) => v) ?? null
+  const tussVersionId = codes.map((c) => tussByCode.get(c)?.versionId).find((v) => v) ?? null
 
   const conselhoCode = conselhoToCode(doctor.council_name)
   const ufCode = ufToIbgeCode(doctor.council_state)
@@ -596,7 +600,13 @@ export async function generateSpSadtGuia(
     entity: 'tiss_guias',
     entityId: guiaRow.id,
     field: 'tiss.guia.generate',
-    detail: { appointment_id: appointmentId, status, guia_number: guiaNumber, type: 'sp_sadt', lines: built.length },
+    detail: {
+      appointment_id: appointmentId,
+      status,
+      guia_number: guiaNumber,
+      type: 'sp_sadt',
+      lines: built.length,
+    },
     reason: `geração de guia SP/SADT (${status})`,
     ip: args.ip,
     userAgent: args.userAgent,

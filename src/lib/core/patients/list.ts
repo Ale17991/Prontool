@@ -36,9 +36,9 @@ export interface PatientListItem {
 
 export interface ListPatientsInput {
   tenantId: string
-  search?: string                      // substring case-insensitive em nome OU cpf
-  page?: number                        // 1-based
-  pageSize?: number                    // default 25, max 100
+  search?: string // substring case-insensitive em nome OU cpf
+  page?: number // 1-based
+  pageSize?: number // default 25, max 100
 }
 
 export interface ListPatientsResult {

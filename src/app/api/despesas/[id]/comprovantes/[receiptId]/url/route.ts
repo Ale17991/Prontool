@@ -42,9 +42,7 @@ export async function GET(
       throw new NotFoundError('expense_receipt', params.receiptId)
     }
 
-    const signed = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrl(lookup.data.storage_path, 60)
+    const signed = await supabase.storage.from(BUCKET).createSignedUrl(lookup.data.storage_path, 60)
     if (signed.error || !signed.data?.signedUrl) {
       throw new Error(`signed URL failed: ${signed.error?.message}`)
     }

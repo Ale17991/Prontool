@@ -21,7 +21,11 @@ export function PatientLogoutButton({ slug }: { slug: string }) {
 
   return (
     <Button variant="outline" size="sm" onClick={onLogout} disabled={pending} className="gap-1.5">
-      {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogOut className="h-3.5 w-3.5" />}
+      {pending ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : (
+        <LogOut className="h-3.5 w-3.5" />
+      )}
       Sair
     </Button>
   )

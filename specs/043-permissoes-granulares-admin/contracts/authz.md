@@ -13,6 +13,7 @@ canUser(role: TenantRole, overrides: Override[], action: Action): boolean
 ```
 
 Invariantes:
+
 - `canUser(role, [], a) === can(role, a)` (sem overrides = comportamento atual).
 - `deny` de `a` ⇒ `canUser(...) === false`, mesmo que o papel conceda `a`.
 - A checagem autoritativa (route handlers `/api/*`, server actions) usa `canUser` com overrides carregados do ator via `getUserOverrides(supabase, tenantId, userId)`.
@@ -20,6 +21,7 @@ Invariantes:
 ## 2. Overrides do usuário (admin da clínica)
 
 `POST /api/configuracoes/usuarios/[userId]/permissions` — admin do tenant (ou super-admin).
+
 - Body: `{ changes: Array<{ action: Action; effect: 'grant'|'deny'|'inherit' }>, reason?: string }` (`inherit` remove o override).
 - Regras: ator deve ser admin do mesmo tenant; ação protegida (Princípio V) é rejeitada; concessão de ação sensível exige confirmação (a UI já avisou). Audita cada mudança (antes/depois).
 - `GET` correlato: lista overrides + efetivo do usuário.
@@ -28,13 +30,13 @@ Invariantes:
 
 Todas exigem `superAdminUserId()`, recebem `tenantId` alvo explícito, validam escopo e auditam com o `tenant_id` alvo:
 
-| Ação | Efeito |
-|------|--------|
-| `adminCreateClinicUser(tenantId, ...)` | cria usuário no tenant alvo (reusa createManualUser) |
-| `adminSetClinicUserRole(tenantId, userId, role)` | troca papel (respeita enforce_last_admin) |
-| `adminSetClinicUserStatus(tenantId, userId, status)` | ativa/desativa (respeita último admin) |
-| `adminResetClinicUserPassword(tenantId, userId)` | dispara reset (e-mail/link), sem expor senha |
-| `adminUpdateClinicProfile(tenantId, {name,cnpj,phone,...})` | edita tenant_clinic_profile (valida CNPJ) |
+| Ação                                                            | Efeito                                                        |
+| --------------------------------------------------------------- | ------------------------------------------------------------- |
+| `adminCreateClinicUser(tenantId, ...)`                          | cria usuário no tenant alvo (reusa createManualUser)          |
+| `adminSetClinicUserRole(tenantId, userId, role)`                | troca papel (respeita enforce_last_admin)                     |
+| `adminSetClinicUserStatus(tenantId, userId, status)`            | ativa/desativa (respeita último admin)                        |
+| `adminResetClinicUserPassword(tenantId, userId)`                | dispara reset (e-mail/link), sem expor senha                  |
+| `adminUpdateClinicProfile(tenantId, {name,cnpj,phone,...})`     | edita tenant_clinic_profile (valida CNPJ)                     |
 | `adminStartImpersonation(tenantId)` / `adminEndImpersonation()` | sessão read-only; bloqueia escrita; banner; audita início/fim |
 
 ## 4. Invariantes de segurança (constituição)

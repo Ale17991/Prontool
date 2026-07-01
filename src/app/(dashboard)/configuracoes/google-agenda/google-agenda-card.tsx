@@ -44,8 +44,8 @@ export function GoogleAgendaCard({
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <p>
             A integração com o Google Agenda ainda não foi configurada no ambiente (variáveis
-            <code className="mx-1 rounded bg-slate-100 px-1">GOOGLE_*</code>). Fale com o administrador
-            do sistema.
+            <code className="mx-1 rounded bg-slate-100 px-1">GOOGLE_*</code>). Fale com o
+            administrador do sistema.
           </p>
         </CardContent>
       </Card>
@@ -63,7 +63,14 @@ export function GoogleAgendaCard({
             <div className="flex items-center gap-2 text-sm text-success-strong">
               <CheckCircle2 className="h-5 w-5" />
               <span>
-                Conectado{email ? <> como <strong>{email}</strong></> : null}.
+                Conectado
+                {email ? (
+                  <>
+                    {' '}
+                    como <strong>{email}</strong>
+                  </>
+                ) : null}
+                .
               </span>
             </div>
             <p className="text-xs text-slate-500">

@@ -8,11 +8,7 @@ import type { Config } from 'tailwindcss'
  */
 const config: Config = {
   // 016 — dark mode removido (FR-015). Light mode é definitivo.
-  content: [
-    './src/app/**/*.{ts,tsx}',
-    './src/components/**/*.{ts,tsx}',
-    './src/lib/**/*.{ts,tsx}',
-  ],
+  content: ['./src/app/**/*.{ts,tsx}', './src/components/**/*.{ts,tsx}', './src/lib/**/*.{ts,tsx}'],
   theme: {
     container: {
       center: true,

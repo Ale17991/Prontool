@@ -201,8 +201,8 @@ export function ScheduleBlockForm({ doctors, defaultDate, defaultDoctorId }: Pro
               : `${conflicts.length} atendimentos existentes neste horário.`}
           </p>
           <p className="mt-1 text-xs">
-            O bloqueio foi criado mesmo assim e ja aparece na agenda como
-            indicativo (fundo amarelo nos atendimentos).
+            O bloqueio foi criado mesmo assim e ja aparece na agenda como indicativo (fundo amarelo
+            nos atendimentos).
           </p>
         </div>
       ) : null}

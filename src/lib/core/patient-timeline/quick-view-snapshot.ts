@@ -1,11 +1,5 @@
-import type {
-  QuickViewPermissions,
-  QuickViewSnapshot,
-} from './types'
-import type {
-  PatientDetail,
-  PatientFinancialSummary,
-} from '@/lib/core/patients/get'
+import type { QuickViewPermissions, QuickViewSnapshot } from './types'
+import type { PatientDetail, PatientFinancialSummary } from '@/lib/core/patients/get'
 import type { PatientAllergyDTO, AllergySeverity } from '@/lib/core/patient-medical/allergies'
 import type { PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
@@ -31,33 +25,23 @@ export interface BuildSnapshotInput {
   role: TenantRole | null
 }
 
-export function buildQuickViewSnapshot(
-  input: BuildSnapshotInput,
-): QuickViewSnapshot {
+export function buildQuickViewSnapshot(input: BuildSnapshotInput): QuickViewSnapshot {
   const { patient, allergies, diagnoses, vitalSigns, payments, role } = input
   const isAnonymized = patient.anonymizedAt !== null
 
   const permissions: QuickViewPermissions = {
     canCreateEvolution: can(role, 'anamnesis.write'),
     canCreateAnamnesis: role === 'admin',
-    canCreateVital:
-      role === 'admin' || role === 'profissional_saude',
+    canCreateVital: role === 'admin' || role === 'profissional_saude',
     canCreateAllergy: can(role, 'anamnesis.write'),
     canCreateHistory: can(role, 'anamnesis.write'),
-    canCreateDiagnosis:
-      role === 'admin' || role === 'profissional_saude',
+    canCreateDiagnosis: role === 'admin' || role === 'profissional_saude',
     canCreateText: can(role, 'anamnesis.write'),
     canUploadFile: can(role, 'anamnesis.write'),
     canEditPatient: role === 'admin' || role === 'recepcionista',
-    canPrint:
-      role === 'admin' ||
-      role === 'financeiro' ||
-      role === 'profissional_saude',
+    canPrint: role === 'admin' || role === 'financeiro' || role === 'profissional_saude',
     canDeleteAnamnese: role === 'admin',
-    canImportToPlan:
-      role === 'admin' ||
-      role === 'financeiro' ||
-      role === 'profissional_saude',
+    canImportToPlan: role === 'admin' || role === 'financeiro' || role === 'profissional_saude',
   }
 
   if (isAnonymized) {

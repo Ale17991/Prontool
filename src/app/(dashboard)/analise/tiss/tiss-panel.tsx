@@ -2,7 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Banknote, Download, FileCheck2, Loader2, PackageCheck, RefreshCw, Scissors } from 'lucide-react'
+import {
+  Banknote,
+  Download,
+  FileCheck2,
+  Loader2,
+  PackageCheck,
+  RefreshCw,
+  Scissors,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -190,10 +198,7 @@ export function TissPanel({
             prontaByPlan.map((group) => {
               const count = selectedCountFor(group)
               return (
-                <div
-                  key={group.planId}
-                  className="rounded-lg border border-slate-200 bg-white"
-                >
+                <div key={group.planId} className="rounded-lg border border-slate-200 bg-white">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5">
                     <span className="text-sm font-bold text-slate-900">
                       {group.planName}{' '}
@@ -485,7 +490,12 @@ function PagamentoModal({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose()
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar recebimento</DialogTitle>
@@ -497,7 +507,12 @@ function PagamentoModal({
         <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="pg-valor">Valor recebido (R$)</Label>
-            <Input id="pg-valor" autoFocus value={valor} onChange={(e) => setValor(e.target.value)} />
+            <Input
+              id="pg-valor"
+              autoFocus
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="pg-note">Observação (opcional)</Label>
@@ -519,7 +534,11 @@ function PagamentoModal({
               Cancelar
             </Button>
             <Button type="submit" disabled={busy}>
-              {busy ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Banknote className="mr-1 h-3 w-3" />}
+              {busy ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              ) : (
+                <Banknote className="mr-1 h-3 w-3" />
+              )}
               Registrar
             </Button>
           </DialogFooter>
@@ -576,13 +595,17 @@ function GlosaModal({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose()
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar glosa</DialogTitle>
           <DialogDescription>
-            Guia {guia.number} — {guia.planName}. Informe o motivo (Tabela 38) e o valor
-            glosado.
+            Guia {guia.number} — {guia.planName}. Informe o motivo (Tabela 38) e o valor glosado.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
@@ -610,11 +633,7 @@ function GlosaModal({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="glosa-valor">Valor glosado (R$)</Label>
-            <Input
-              id="glosa-valor"
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
-            />
+            <Input id="glosa-valor" value={valor} onChange={(e) => setValor(e.target.value)} />
           </div>
           {error ? (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
@@ -626,7 +645,11 @@ function GlosaModal({
               Cancelar
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Scissors className="mr-1 h-3 w-3" />}
+              {pending ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              ) : (
+                <Scissors className="mr-1 h-3 w-3" />
+              )}
               Registrar
             </Button>
           </DialogFooter>

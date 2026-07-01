@@ -178,7 +178,8 @@ export function ChatRoom({
     }
   }
 
-  const activeTitle = active === GERAL ? 'Geral — toda a clínica' : (userName.get(active) ?? 'Conversa')
+  const activeTitle =
+    active === GERAL ? 'Geral — toda a clínica' : (userName.get(active) ?? 'Conversa')
 
   return (
     <div className="flex h-[calc(100vh-9rem)] overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -215,7 +216,11 @@ export function ChatRoom({
       {/* Conversa ativa */}
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700">
-          {active === GERAL ? <Hash className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
+          {active === GERAL ? (
+            <Hash className="h-4 w-4 text-primary" />
+          ) : (
+            <User className="h-4 w-4 text-primary" />
+          )}
           {activeTitle}
         </div>
 
@@ -250,7 +255,8 @@ export function ChatRoom({
               m.kind === 'nudge' ? (
                 <div key={m.id} className="flex justify-center py-1">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-bold text-amber-700">
-                    <Zap className="h-3 w-3" /> {m.userId === me ? 'Você' : m.fromName} chamou a atenção
+                    <Zap className="h-3 w-3" /> {m.userId === me ? 'Você' : m.fromName} chamou a
+                    atenção
                   </span>
                 </div>
               ) : (
@@ -314,7 +320,9 @@ export function ChatRoom({
             }}
             rows={1}
             maxLength={4000}
-            placeholder={active === GERAL ? 'Mensagem para a equipe…' : `Mensagem para ${activeTitle}…`}
+            placeholder={
+              active === GERAL ? 'Mensagem para a equipe…' : `Mensagem para ${activeTitle}…`
+            }
             className="max-h-32 flex-1 resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
           />
           <Button

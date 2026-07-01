@@ -25,7 +25,10 @@ function captureLogger() {
 describe('Feature 027 — pino redact dos segredos Memed', () => {
   it('mascara api_key e secret_key aninhados em config', () => {
     const { log, output } = captureLogger()
-    log.info({ config: { api_key: 'mk_super_secret_123456', secret_key: 'sk_super_secret_654321' } }, 'memed call')
+    log.info(
+      { config: { api_key: 'mk_super_secret_123456', secret_key: 'sk_super_secret_654321' } },
+      'memed call',
+    )
     const out = output()
     expect(out).not.toContain('mk_super_secret_123456')
     expect(out).not.toContain('sk_super_secret_654321')

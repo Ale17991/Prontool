@@ -1,7 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, TenantRole } from '@/lib/db/types'
 import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
-import { USER_AVATAR_BUCKET, USER_AVATAR_SIGNED_URL_TTL_SECONDS } from '@/lib/core/user-profile/types'
+import {
+  USER_AVATAR_BUCKET,
+  USER_AVATAR_SIGNED_URL_TTL_SECONDS,
+} from '@/lib/core/user-profile/types'
 import type { TeamMember, TeamMemberStatus } from './types'
 
 interface ListInput {
@@ -29,7 +32,11 @@ export async function listTeamMembers(
     .select('user_id, role, status')
     .eq('tenant_id', input.tenantId)
   if (linksError) throw new Error(`listTeamMembers links failed: ${linksError.message}`)
-  const rows = (links ?? []) as Array<{ user_id: string; role: TenantRole; status: 'active' | 'disabled' }>
+  const rows = (links ?? []) as Array<{
+    user_id: string
+    role: TenantRole
+    status: 'active' | 'disabled'
+  }>
   if (rows.length === 0) return []
 
   // 2. user_profile dos mesmos
@@ -39,7 +46,15 @@ export async function listTeamMembers(
     .select('user_id, full_name, avatar_path, phone')
     .in('user_id', userIds)
   const profileByUser = new Map(
-    (profiles ?? []).map((p) => [p.user_id as string, p as { user_id: string; full_name: string | null; avatar_path: string | null; phone: string | null }]),
+    (profiles ?? []).map((p) => [
+      p.user_id as string,
+      p as {
+        user_id: string
+        full_name: string | null
+        avatar_path: string | null
+        phone: string | null
+      },
+    ]),
   )
 
   // 3. auth.users metadata (email, last_sign_in_at, email_confirmed_at)
@@ -69,20 +84,24 @@ export async function listTeamMembers(
     .in('user_id', userIds)
     .eq('active', true)
   const doctorByUser = new Map<string, { id: string; full_name: string }>()
-  for (const d of (doctorsLinked ?? []) as Array<{ id: string; full_name: string; user_id: string | null }>) {
+  for (const d of (doctorsLinked ?? []) as Array<{
+    id: string
+    full_name: string
+    user_id: string | null
+  }>) {
     if (d.user_id) doctorByUser.set(d.user_id, { id: d.id, full_name: d.full_name })
   }
 
   const out: TeamMember[] = await Promise.all(
     rows.map(async (r) => {
-      const meta = authMeta.get(r.user_id) ?? { email: '', last_sign_in_at: null, email_confirmed_at: null }
+      const meta = authMeta.get(r.user_id) ?? {
+        email: '',
+        last_sign_in_at: null,
+        email_confirmed_at: null,
+      }
       const profile = profileByUser.get(r.user_id) ?? null
       const status: TeamMemberStatus =
-        r.status === 'disabled'
-          ? 'disabled'
-          : meta.email_confirmed_at
-            ? 'active'
-            : 'pending'
+        r.status === 'disabled' ? 'disabled' : meta.email_confirmed_at ? 'active' : 'pending'
       const avatarPath = profile?.avatar_path ?? null
       const signedUrl = await createSignedUrlOrNull(
         supabaseService,

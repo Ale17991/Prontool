@@ -38,9 +38,7 @@ export default async function ContasAPagarPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Contas a Pagar
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Contas a Pagar</h1>
         <p className="mt-1 text-sm text-slate-500">
           Despesas a vencer + projeções recorrentes 90 dias.
         </p>
@@ -111,9 +109,7 @@ function KpiCard({
           {label}
         </p>
         <p className={`text-xl font-black tracking-tight ${colorClass}`}>{value}</p>
-        {subtitle ? (
-          <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
-        ) : null}
+        {subtitle ? <p className="mt-1 text-xs text-slate-500">{subtitle}</p> : null}
       </CardContent>
     </Card>
   )

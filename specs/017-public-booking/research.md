@@ -15,6 +15,7 @@ A spec (FR-013) assume "blocos com ação 'disponível'" — essa estrutura **n�
 **Schema decidido** (parte da migration 0093_public_booking.sql):
 
 Adicionar em `public.public_booking_doctors`:
+
 - `available_weekdays SMALLINT[] NOT NULL` — array de 0-6 (dom-sáb) que o médico aceita agendamento público
 - `available_from TIME NOT NULL DEFAULT '08:00'` — hora local da clínica que começa a aceitar
 - `available_until TIME NOT NULL DEFAULT '18:00'` — hora local da clínica que termina
@@ -22,6 +23,7 @@ Adicionar em `public.public_booking_doctors`:
 - `lunch_break_until TIME NULL` — pausa almoço opcional fim
 
 **Cálculo do slot**: para um dia D dentro da janela `[now + min_hours_advance, now + max_days_advance]`:
+
 1. Se `EXTRACT(DOW FROM D)` não está em `available_weekdays` → dia inteiro indisponível.
 2. Janela bruta = `available_from..available_until` (com pausa almoço subtraída se configurada).
 3. Subtrair `schedule_blocks` cobrindo o dia (`block_date = D` ou range).
@@ -31,6 +33,7 @@ Adicionar em `public.public_booking_doctors`:
 **Rationale**: minimiza superfície de mudança (não adiciona tabela genérica), preserva flexibilidade (cada médico publica horário próprio), reusa `schedule_blocks` existente para bloqueios.
 
 **Alternativas consideradas**:
+
 - **Tabela `doctor_availability` genérica**: mais correta semanticamente, mas afeta agenda interna e features futuras. Postponed para feature dedicada quando agenda interna precisar.
 - **Open-by-default 8h-18h hardcoded**: descartado — clínicas dermatológicas/odonto trabalham horários muito diferentes.
 - **Inferência via histórico de appointments**: descartado — pouco confiável; clínica nova não tem histórico.
@@ -44,11 +47,13 @@ Adicionar em `public.public_booking_doctors`:
 **Achado**: já existe `tenants.slug TEXT NOT NULL UNIQUE` (migration 0002), mas **sem padrão de resolução por slug em rota pública**. O acesso interno usa JWT `auth_hook_custom_claims`.
 
 **Decisão**: NÃO reusar `tenants.slug` — criar `tenant_clinic_profile.public_booking_slug` separado. Razões:
+
 1. `tenants.slug` é identidade administrativa interna (já usado em URLs autenticadas como `/selecionar-clinica`). Mudá-lo quebraria referências internas.
 2. `public_booking_slug` é "endereço público" — pode ser mais amigável (`dra-marta-cardiologia` vs `tenant-uuid-12345`).
 3. Admin pode editar `public_booking_slug` sem impacto operacional.
 
 **Pattern de resolução**:
+
 ```sql
 CREATE FUNCTION public.public_booking_resolve_slug(p_slug TEXT)
 RETURNS TABLE (
@@ -128,6 +133,7 @@ GRANT EXECUTE ON FUNCTION public.public_booking_slots TO anon, authenticated;
 **Rationale**: `SECURITY DEFINER` necessário porque `appointment_slot_locks` tem RLS que `anon` não passaria. A função roda como dono da função (postgres) com `set search_path = public`, valida tenant via slug+enabled (não JWT), retorna apenas slots agregados (sem PII).
 
 **Hardening**:
+
 - `REVOKE ALL FROM PUBLIC` antes do GRANT (não estava no padrão atual, mas spec FR-034 exige minimização).
 - `SET search_path = public, pg_temp` na declaração para impedir search-path attacks.
 
@@ -138,6 +144,7 @@ GRANT EXECUTE ON FUNCTION public.public_booking_slots TO anon, authenticated;
 **Achado**: criação de paciente existente em `src/lib/core/patients/create-manual.ts` exige sessão autenticada e usa env `PATIENT_DATA_ENCRYPTION_KEY` para encriptar PII em SQL via `extensions.pgp_sym_encrypt`.
 
 **Decisão**: criar função server-side `lib/core/public-booking/create-booking.ts` que:
+
 1. Recebe payload validado por Zod (sem trust no client).
 2. Resolve tenant via slug (FR-001..004).
 3. Re-valida Turnstile no servidor (FR-016).
@@ -160,6 +167,7 @@ GRANT EXECUTE ON FUNCTION public.public_booking_slots TO anon, authenticated;
 **Tudo dentro de transação** Postgres (`BEGIN ... COMMIT`) — qualquer falha rollback total.
 
 **Pegadinha do `source`**: `appointments` provavelmente **não tem coluna source** hoje. Alternativas:
+
 - A. ALTER appointments ADD COLUMN source TEXT DEFAULT 'internal' (afeta todos os call-sites — mudança ampla)
 - B. Criar `appointment_metadata` table 1:N (mais limpo, sem migration agressiva em tabela financeira)
 - C. Usar campo existente livre (procurar se há `notes` ou similar)
@@ -174,12 +182,14 @@ GRANT EXECUTE ON FUNCTION public.public_booking_slots TO anon, authenticated;
 **Decisão**: Turnstile conforme clarification.
 
 **Integração**:
+
 - **Client**: `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>` + widget invisible (`data-action="public-booking"` + `data-sitekey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}`).
 - **Server-side verify**: POST para `https://challenges.cloudflare.com/turnstile/v0/siteverify` com `secret` (env `TURNSTILE_SECRET_KEY`) + `response` (token do client).
 - **Resposta**: `{ success: boolean, "error-codes"?: string[] }`.
 - **Falha**: bloqueia submit com erro genérico (FR-016).
 
 **Env vars novas**:
+
 ```
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=<sitekey-de-cloudflare>
 TURNSTILE_SECRET_KEY=<secret-de-cloudflare>
@@ -204,6 +214,7 @@ pnpm add ics
 **Timezone**: gerar com `dtstart/dtend` em UTC + comment textual "horário de Brasília (UTC-3)" no description, conforme FR-024. Reusa `getTenantTz()` existente em `src/lib/utils/tenant-tz.ts`.
 
 **Alternativas rejeitadas**:
+
 - `ical-generator`: mais features mas API menos limpa.
 - DIY `.ics` string template: caso simples cabe em 30 linhas, mas perde validação RFC. Para MVP, package vale a pena.
 
@@ -221,14 +232,14 @@ export interface BookingEmailInput {
   clinicName: string
   subject: string
   patientName: string
-  appointmentDateTime: string  // formatado em TZ tenant
+  appointmentDateTime: string // formatado em TZ tenant
   doctorName: string
   procedureName: string
   clinicAddress?: string
   clinicPhone?: string
-  tenantTimezone: string  // "America/Sao_Paulo"
+  tenantTimezone: string // "America/Sao_Paulo"
   cancelLink: string
-  icsContent: string  // string .ics gerada
+  icsContent: string // string .ics gerada
 }
 
 export async function sendBookingConfirmationEmail(input: BookingEmailInput) {
@@ -262,6 +273,7 @@ export async function sendBookingConfirmationEmail(input: BookingEmailInput) {
 **Achado**: `public.notifications.type` é CHECK CONSTRAINT em 4 valores (`atendimento`, `tarefa`, `tarefa_atrasada`, `aniversarios_mes`). Para esta feature, precisamos adicionar `public_booking`.
 
 **Decisão**: na migration 0084, expandir o CHECK constraint:
+
 ```sql
 ALTER TABLE public.notifications DROP CONSTRAINT notifications_type_check;
 ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check
@@ -291,6 +303,7 @@ Sem mudança no `notification-item.tsx` componente atual — adicionar mapping `
 **Decisão**: usar Postgres em vez de Redis (sem nova dep). Tabela `public_booking_rate_limits` (id, tenant_id, ip_hash, action, created_at).
 
 **Verificação**:
+
 ```sql
 SELECT count(*) FROM public_booking_rate_limits
   WHERE ip_hash = $1
@@ -301,6 +314,7 @@ SELECT count(*) FROM public_booking_rate_limits
 ```
 
 **Limpeza**: cron job (Supabase scheduled function ou pg_cron) roda a cada hora:
+
 ```sql
 DELETE FROM public_booking_rate_limits WHERE created_at < now() - INTERVAL '7 days';
 ```
@@ -330,6 +344,7 @@ IP original **nunca** é logado (FR-018). Hash sai como hex de 64 chars.
 **Achado crítico do audit**: `appointment_slot_locks` (migration 0055) **persiste mesmo se appointment é estornado**. Isso significa que se Ana cancelar via link, o slot **continua bloqueado** — outra pessoa não consegue agendar no mesmo horário.
 
 **Decisão**: ao cancelar booking público:
+
 1. Atualizar appointment `status='cancelado'` (ou 'estornado' conforme política existente).
 2. **DELETE FROM appointment_slot_locks WHERE appointment_id = $1** — libera o slot.
 3. Marca `public_booking_tokens.used_at = now()`.
@@ -347,6 +362,7 @@ IP original **nunca** é logado (FR-018). Hash sai como hex de 64 chars.
 **Decisão**: template padrão LGPD-compliance fornecido pelo Prontool, hardcoded em `src/app/agendar/[slug]/privacidade/page.tsx`. Personalização (texto livre por tenant) fica para fase 2.
 
 **Conteúdo mínimo do template** (LGPD Art. 9):
+
 1. Identidade da clínica (nome + CNPJ).
 2. Dados coletados (nome, CPF, email, telefone, DOB).
 3. Finalidade (agendar consulta).
@@ -362,6 +378,7 @@ IP original **nunca** é logado (FR-018). Hash sai como hex de 64 chars.
 **Decisão**: tudo em **pt-BR** no MVP. Timezone via `tenant_clinic_profile.timezone` existente (verificar — senão default 'America/Sao_Paulo').
 
 `date-fns` + `date-fns-tz` existentes (já no projeto). Formatação consistente:
+
 - Tela: `dd 'de' MMMM 'às' HH:mm` (ex.: "23 de junho às 14:30")
 - Email: idem + "(horário de Brasília)" ou TZ específico do tenant
 - `.ics`: UTC + VTIMEZONE block
@@ -370,10 +387,10 @@ IP original **nunca** é logado (FR-018). Hash sai como hex de 64 chars.
 
 ## 16. Resumo das deps externas a adicionar
 
-| Dep | Versão | Tipo | Motivo |
-|---|---|---|---|
-| `ics` | latest | npm | Geração `.ics` |
-| Turnstile sitekey + secret | n/a | env vars | Captcha (no novo package — usa fetch nativo) |
+| Dep                        | Versão | Tipo     | Motivo                                       |
+| -------------------------- | ------ | -------- | -------------------------------------------- |
+| `ics`                      | latest | npm      | Geração `.ics`                               |
+| Turnstile sitekey + secret | n/a    | env vars | Captcha (no novo package — usa fetch nativo) |
 
 **Total**: 1 npm dep nova + 2 env vars. Custo recorrente novo: R$ 0.
 
@@ -401,6 +418,7 @@ IP original **nunca** é logado (FR-018). Hash sai como hex de 64 chars.
 ## 18. Resumo: o que **não** precisa de research adicional
 
 Itens já decididos via spec + clarifications + audit:
+
 - ✅ Provedor de captcha (Turnstile)
 - ✅ Email provider (Resend, já configurado)
 - ✅ Notificação dual (email + sino)
@@ -410,6 +428,7 @@ Itens já decididos via spec + clarifications + audit:
 - ✅ Constitution compliance pattern (RPC SECURITY DEFINER + audit_log)
 
 Itens deferidos para `/speckit-tasks`:
+
 - Decomposição em commits por user story
 - Ordem detalhada de implementação
 - Testes manuais vs automatizados por feature

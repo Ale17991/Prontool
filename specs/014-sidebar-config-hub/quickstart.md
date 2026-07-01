@@ -131,6 +131,7 @@ pnpm lint:auth                                   # adapters sem env direto + req
 ## 7. Smoke test final (manual, dashboard completo)
 
 Como admin:
+
 - Login → ver sidebar enxuta → clicar em Agenda, Pacientes, Tarefas, Relatórios, Comissões, Despesas, Configurações.
 - No hub, clicar em cada um dos 9 cards e confirmar carga sem erro.
 - Voltar via "Trocar clínica" se for multi-tenant.

@@ -176,9 +176,7 @@ describe('Visibilidade preserva ordem do HUB_CARDS', () => {
   for (const role of roles) {
     it(`role ${role} — visible cards aparecem na ordem original do HUB_CARDS`, () => {
       const visible = getVisibleHubCards(ctx(role))
-      const visibleIndices = visible.map((c) =>
-        HUB_CARDS.findIndex((d) => d.id === c.id),
-      )
+      const visibleIndices = visible.map((c) => HUB_CARDS.findIndex((d) => d.id === c.id))
       // strictly ascending
       for (let i = 1; i < visibleIndices.length; i++) {
         expect(visibleIndices[i]).toBeGreaterThan(visibleIndices[i - 1]!)

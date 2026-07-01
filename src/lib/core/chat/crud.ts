@@ -57,9 +57,7 @@ export async function listChatMessages(
     )
   }
 
-  const { data, error } = await query
-    .order('created_at', { ascending: false })
-    .limit(limit)
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(limit)
   if (error) throw new Error(`listChatMessages failed: ${error.message}`)
   return ((data ?? []) as unknown as Array<Record<string, unknown>>).map(toDto).reverse()
 }
@@ -81,9 +79,7 @@ export async function postChatMessage(
 ): Promise<ChatMessage> {
   const kind: ChatKind = input.kind === 'nudge' ? 'nudge' : 'text'
   const content =
-    kind === 'nudge'
-      ? (input.content?.trim() || 'chamou a atenção 👋')
-      : (input.content ?? '').trim()
+    kind === 'nudge' ? input.content?.trim() || 'chamou a atenção 👋' : (input.content ?? '').trim()
   if (kind === 'text' && content.length < 1) throw new ValidationError('Mensagem vazia.')
   if (content.length > 4000) throw new ValidationError('Mensagem muito longa.')
 

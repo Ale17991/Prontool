@@ -20,13 +20,16 @@ interface AppMeta {
 
 async function runHook(userId: string, activeTenant: string): Promise<AppMeta> {
   const sb = serviceClient()
-  const { data, error } = await sb.rpc('auth_hook_custom_claims' as never, {
-    event: {
-      user_id: userId,
-      user_metadata: { active_tenant_id: activeTenant },
-      claims: {},
-    },
-  } as never)
+  const { data, error } = await sb.rpc(
+    'auth_hook_custom_claims' as never,
+    {
+      event: {
+        user_id: userId,
+        user_metadata: { active_tenant_id: activeTenant },
+        claims: {},
+      },
+    } as never,
+  )
   if (error) throw new Error(`auth_hook_custom_claims failed: ${error.message}`)
   const result = data as { claims?: { app_metadata?: AppMeta } }
   return result.claims?.app_metadata ?? {}

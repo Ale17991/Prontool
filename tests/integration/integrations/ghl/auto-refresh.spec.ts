@@ -13,10 +13,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
-import {
-  ghlOauthTokenSpy,
-  makeGhlTokenResponse,
-} from '@/tests/helpers/msw-spies'
+import { ghlOauthTokenSpy, makeGhlTokenResponse } from '@/tests/helpers/msw-spies'
 import { connectGhlTenant } from '@/lib/core/integrations/ghl/connect-tenant'
 import { withGhlAuth } from '@/lib/integrations/ghl/oauth/with-auth'
 
@@ -62,7 +59,10 @@ async function setExpiresAt(tenantId: string, expiresAtIso: string): Promise<voi
 
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY!
   const dec = await sb.rpc('dec_text_with_key', { cipher: row.credentials_enc, key })
-  const creds = JSON.parse(dec.data as unknown as string) as { expires_at: string; [k: string]: unknown }
+  const creds = JSON.parse(dec.data as unknown as string) as {
+    expires_at: string
+    [k: string]: unknown
+  }
   creds.expires_at = expiresAtIso
   const enc = await sb.rpc('enc_text_with_key', { plain: JSON.stringify(creds), key })
   await sb
@@ -94,7 +94,11 @@ describe('US1 — auto-refresh via withGhlAuth', () => {
     await setExpiresAt(tenantId, new Date(Date.now() - 60_000).toISOString())
 
     ghlOauthTokenSpy.queueResponse(
-      makeGhlTokenResponse({ locationId: 'loc_initial', userId: 'usr_initial', companyId: 'comp_initial' }),
+      makeGhlTokenResponse({
+        locationId: 'loc_initial',
+        userId: 'usr_initial',
+        companyId: 'comp_initial',
+      }),
     )
 
     const sb = serviceClient()
@@ -200,10 +204,18 @@ describe('US1 — auto-refresh via withGhlAuth', () => {
     // Cada call consome 1 entry da queue. As duas devem responder OK
     // (CAS no banco filtra qual ganha).
     ghlOauthTokenSpy.queueResponse(
-      makeGhlTokenResponse({ locationId: 'loc_initial', userId: 'usr_initial', companyId: 'comp_initial' }),
+      makeGhlTokenResponse({
+        locationId: 'loc_initial',
+        userId: 'usr_initial',
+        companyId: 'comp_initial',
+      }),
     )
     ghlOauthTokenSpy.queueResponse(
-      makeGhlTokenResponse({ locationId: 'loc_initial', userId: 'usr_initial', companyId: 'comp_initial' }),
+      makeGhlTokenResponse({
+        locationId: 'loc_initial',
+        userId: 'usr_initial',
+        companyId: 'comp_initial',
+      }),
     )
 
     const sb = serviceClient()

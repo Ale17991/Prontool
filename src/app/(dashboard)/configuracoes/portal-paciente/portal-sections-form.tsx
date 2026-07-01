@@ -45,8 +45,8 @@ export function PortalSectionsForm({ initialSections }: Props) {
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-slate-500">
-          Escolha o que o paciente vê no portal. Seções sensíveis vêm desligadas por padrão —
-          ligue só o que for adequado divulgar. Algumas seções dependem de um módulo do seu plano.
+          Escolha o que o paciente vê no portal. Seções sensíveis vêm desligadas por padrão — ligue
+          só o que for adequado divulgar. Algumas seções dependem de um módulo do seu plano.
         </p>
         <ul className="divide-y divide-slate-100">
           {sections.map((s) => {
@@ -59,7 +59,12 @@ export function PortalSectionsForm({ initialSections }: Props) {
                   <p className="flex items-center gap-2 text-sm font-medium text-slate-800">
                     {s.label}
                     {sens ? (
-                      <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', sens.cls)}>
+                      <span
+                        className={cn(
+                          'rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                          sens.cls,
+                        )}
+                      >
                         {sens.text}
                       </span>
                     ) : null}

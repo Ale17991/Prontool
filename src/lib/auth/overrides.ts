@@ -1,11 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  canUser,
-  type Action,
-  type PermissionOverride,
-  type OverrideEffect,
-} from './rbac'
+import { canUser, type Action, type PermissionOverride, type OverrideEffect } from './rbac'
 import type { TenantRole } from '@/lib/db/types'
 
 /**

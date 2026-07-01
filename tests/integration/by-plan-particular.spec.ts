@@ -21,11 +21,7 @@ import {
   seedPatient,
   seedAppointment,
 } from '@/tests/helpers/seed-factories'
-import {
-  PARTICULAR_KEY,
-  summaryByPlan,
-  detailByPlan,
-} from '@/lib/core/reports/by-plan'
+import { PARTICULAR_KEY, summaryByPlan, detailByPlan } from '@/lib/core/reports/by-plan'
 import { seedAppointmentLineAndComplete } from './_helpers/seed-appointment-procedure'
 
 const TUSS = '10101095'

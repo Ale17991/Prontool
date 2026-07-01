@@ -93,17 +93,20 @@ function splitInterval(interval: BusyInterval, tz: string): BlockRow[] {
   const out: BlockRow[] = []
 
   if (start.ymd === end.ymd) {
-    if (end.hm > start.hm) out.push({ blockDate: start.ymd, allDay: false, startTime: start.hm, endTime: end.hm })
+    if (end.hm > start.hm)
+      out.push({ blockDate: start.ymd, allDay: false, startTime: start.hm, endTime: end.hm })
     return out
   }
   // Primeiro dia: do início até o fim do dia (TIME não aceita 24:00 → 23:59).
-  if (start.hm < '23:59') out.push({ blockDate: start.ymd, allDay: false, startTime: start.hm, endTime: '23:59' })
+  if (start.hm < '23:59')
+    out.push({ blockDate: start.ymd, allDay: false, startTime: start.hm, endTime: '23:59' })
   // Dias do meio: dia inteiro.
   for (let d = addDaysYmd(start.ymd, 1); d < end.ymd; d = addDaysYmd(d, 1)) {
     out.push({ blockDate: d, allDay: true, startTime: null, endTime: null })
   }
   // Último dia: da meia-noite até o fim (pula se terminar exatamente 00:00).
-  if (end.hm > '00:00') out.push({ blockDate: end.ymd, allDay: false, startTime: '00:00', endTime: end.hm })
+  if (end.hm > '00:00')
+    out.push({ blockDate: end.ymd, allDay: false, startTime: '00:00', endTime: end.hm })
   return out
 }
 
@@ -118,7 +121,14 @@ interface UserIntegrationLite {
 
 async function syncDoctorGoogleBusy(
   supabase: SupabaseClient<Database>,
-  args: { tenantId: string; doctorId: string; userId: string; fromYmd: string; toYmd: string; tz: string },
+  args: {
+    tenantId: string
+    doctorId: string
+    userId: string
+    fromYmd: string
+    toYmd: string
+    tz: string
+  },
 ): Promise<void> {
   const sb = loose(supabase)
   const { data } = await sb
@@ -197,7 +207,11 @@ export async function syncGoogleBusyForAgenda(
   try {
     const tz = args.tz ?? (await getTenantTimezone(supabase, args.tenantId))
     const sb = loose(supabase)
-    let q = sb.from('doctors').select('id, user_id').eq('tenant_id', args.tenantId).not('user_id', 'is', null)
+    let q = sb
+      .from('doctors')
+      .select('id, user_id')
+      .eq('tenant_id', args.tenantId)
+      .not('user_id', 'is', null)
     if (args.doctorId) q = q.eq('id', args.doctorId)
     const { data } = await q
     const doctors = (data ?? []) as Array<{ id: string; user_id: string | null }>
@@ -214,11 +228,17 @@ export async function syncGoogleBusyForAgenda(
             toYmd: args.toYmd,
             tz,
           }).catch((err) =>
-            logger.error({ err: (err as Error).message, doctorId: d.id }, 'google-busy-sync-doctor-failed'),
+            logger.error(
+              { err: (err as Error).message, doctorId: d.id },
+              'google-busy-sync-doctor-failed',
+            ),
           ),
         ),
     )
   } catch (err) {
-    logger.error({ err: (err as Error).message, tenantId: args.tenantId }, 'google-busy-sync-failed')
+    logger.error(
+      { err: (err as Error).message, tenantId: args.tenantId },
+      'google-busy-sync-failed',
+    )
   }
 }

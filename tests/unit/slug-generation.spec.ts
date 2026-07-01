@@ -62,8 +62,8 @@ describe('isValidSlug', () => {
   it('rejeita formatos inválidos', () => {
     expect(isValidSlug('')).toBe(false)
     expect(isValidSlug('-clinica')).toBe(false) // começa com hífen
-    expect(isValidSlug('Clinica')).toBe(false)  // maiúscula
-    expect(isValidSlug('clínica')).toBe(false)  // acento
+    expect(isValidSlug('Clinica')).toBe(false) // maiúscula
+    expect(isValidSlug('clínica')).toBe(false) // acento
     expect(isValidSlug('clinica_sorriso')).toBe(false) // underscore
     expect(isValidSlug('a'.repeat(61))).toBe(false) // > 60 chars
   })

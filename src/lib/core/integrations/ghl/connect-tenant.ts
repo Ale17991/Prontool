@@ -123,20 +123,17 @@ export async function connectGhlTenant(
     sub_account_name: input.location.name,
     timezone: input.location.timezone,
     // OAuth-managed; preserva mapeamentos atuais se já existirem.
-    custom_field_ids:
-      ((existingConfig.custom_field_ids as Record<string, unknown>) ?? {}),
-    webhook_ids:
-      ((existingConfig.webhook_ids as Record<string, unknown>) ?? {}),
+    custom_field_ids: (existingConfig.custom_field_ids as Record<string, unknown>) ?? {},
+    webhook_ids: (existingConfig.webhook_ids as Record<string, unknown>) ?? {},
     menu_id: (existingConfig.menu_id as string | null) ?? null,
     menu_status:
-      ((existingConfig.menu_status as
+      (existingConfig.menu_status as
         | 'registered'
         | 'unsupported'
         | 'failed'
         | 'not_attempted'
-        | undefined) ?? 'not_attempted'),
-    sso_auto_provisioning:
-      (existingConfig.sso_auto_provisioning as boolean | undefined) ?? false,
+        | undefined) ?? 'not_attempted',
+    sso_auto_provisioning: (existingConfig.sso_auto_provisioning as boolean | undefined) ?? false,
   })
 
   const credsEnc = await encryptCredentials(supabase, input.credentials)
@@ -201,10 +198,7 @@ export async function connectGhlTenant(
       userAgent: input.userAgent,
     })
   } catch (err) {
-    logger.error(
-      { err, tenant_id: input.tenantId },
-      'connect-tenant-audit-failed',
-    )
+    logger.error({ err, tenant_id: input.tenantId }, 'connect-tenant-audit-failed')
   }
 
   // Sync log: sucesso de connect
@@ -222,10 +216,7 @@ export async function connectGhlTenant(
     input.tenantId,
     input.credentials.access_token,
   ).catch((err: unknown) => {
-    logger.error(
-      { err, tenant_id: input.tenantId },
-      'post-connect-setup-fire-and-forget-failed',
-    )
+    logger.error({ err, tenant_id: input.tenantId }, 'post-connect-setup-fire-and-forget-failed')
     void recordSyncFailure(supabase, input.tenantId, {
       kind: 'connect',
       errorCode: 'POST_CONNECT_FAILED',
@@ -271,11 +262,7 @@ async function tenantRowExists(
   supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<boolean> {
-  const { data } = await supabase
-    .from('tenants')
-    .select('id')
-    .eq('id', tenantId)
-    .maybeSingle()
+  const { data } = await supabase.from('tenants').select('id').eq('id', tenantId).maybeSingle()
   return data !== null
 }
 

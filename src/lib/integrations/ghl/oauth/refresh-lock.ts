@@ -34,9 +34,7 @@ export interface CommitRefreshedTokensInput {
   newCredentials: GhlOAuthCredentials
 }
 
-export type CommitResult =
-  | { kind: 'committed' }
-  | { kind: 'lost_race' }
+export type CommitResult = { kind: 'committed' } | { kind: 'lost_race' }
 
 /**
  * UPDATE compare-and-swap. Devolve `lost_race` se outro worker já

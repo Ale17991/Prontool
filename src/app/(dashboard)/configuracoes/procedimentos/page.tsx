@@ -5,7 +5,14 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { NewProcedureForm } from './new-procedure-form'
 import { ProcedureRowActions } from './procedure-row-actions'
@@ -64,8 +71,11 @@ export default async function ProcedimentosPage() {
       <div>
         <h1 className="text-2xl font-black tracking-tight text-slate-900">Procedimentos</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {rows.length} procedimento{rows.length === 1 ? '' : 's'} cadastrado{rows.length === 1 ? '' : 's'} ·{' '}
-          <span className="font-semibold text-slate-700">{activeCount} ativo{activeCount === 1 ? '' : 's'}</span>
+          {rows.length} procedimento{rows.length === 1 ? '' : 's'} cadastrado
+          {rows.length === 1 ? '' : 's'} ·{' '}
+          <span className="font-semibold text-slate-700">
+            {activeCount} ativo{activeCount === 1 ? '' : 's'}
+          </span>
         </p>
       </div>
 
@@ -172,9 +182,7 @@ export default async function ProcedimentosPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-[11px]">
-                          <Badge
-                            variant={r.covered_by_plan ? 'secondary' : 'warning'}
-                          >
+                          <Badge variant={r.covered_by_plan ? 'secondary' : 'warning'}>
                             {r.covered_by_plan ? 'Coberto por planos' : 'Particular'}
                           </Badge>
                           <span className="text-slate-500">
@@ -205,8 +213,8 @@ export default async function ProcedimentosPage() {
                             coveredByPlan={r.covered_by_plan}
                             codeLabel={
                               r.is_unlisted
-                                ? r.custom_procedure_codes?.code ?? 'não listado'
-                                : r.tuss_code ?? '—'
+                                ? (r.custom_procedure_codes?.code ?? 'não listado')
+                                : (r.tuss_code ?? '—')
                             }
                           />
                         </TableCell>

@@ -15,11 +15,7 @@
  *   3. O label montado para `tuss_code=null` (unlisted) tem valor não-nulo?
  */
 import { describe, it, expect, beforeAll } from 'vitest'
-import {
-  resetDatabase,
-  rlsClient,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedTussCode, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 import { createProcedure } from '@/lib/core/procedures/create'
@@ -208,35 +204,27 @@ describe('Bug repro — procedures sumindo na pagina do convenio', () => {
     expect(addable.map((p) => p.id)).toContain(listedNoDisplayNameProcId)
     expect(addable.map((p) => p.id)).toContain(unlistedProcId)
 
-    function matches(search: string, p: typeof procedures[number]) {
+    function matches(search: string, p: (typeof procedures)[number]) {
       const q = search.toLowerCase()
-      const codeMatch =
-        typeof p.tussCode === 'string' && p.tussCode.toLowerCase().includes(q)
+      const codeMatch = typeof p.tussCode === 'string' && p.tussCode.toLowerCase().includes(q)
       const nameMatch = (p.displayName ?? '').toLowerCase().includes(q)
-      const catalogMatch =
-        (p.catalogDescription ?? '').toLowerCase().includes(q)
+      const catalogMatch = (p.catalogDescription ?? '').toLowerCase().includes(q)
       return codeMatch || nameMatch || catalogMatch
     }
 
     // Busca por "facect" — casa via display_name customizado.
-    expect(addable.filter((p) => matches('facect', p)).map((p) => p.id)).toContain(
-      listedProcId,
-    )
+    expect(addable.filter((p) => matches('facect', p)).map((p) => p.id)).toContain(listedProcId)
 
     // Busca por "consulta" — casa o TUSS 40901408 mesmo sem display_name
     // customizado, via descrição do catálogo TUSS (regressão do bug).
-    expect(
-      addable.filter((p) => matches('consulta', p)).map((p) => p.id),
-    ).toContain(listedNoDisplayNameProcId)
+    expect(addable.filter((p) => matches('consulta', p)).map((p) => p.id)).toContain(
+      listedNoDisplayNameProcId,
+    )
 
     // Busca por "PCT" — casa o procedimento não listado pelo display_name.
-    expect(addable.filter((p) => matches('PCT', p)).map((p) => p.id)).toContain(
-      unlistedProcId,
-    )
+    expect(addable.filter((p) => matches('PCT', p)).map((p) => p.id)).toContain(unlistedProcId)
 
     // Busca por código TUSS literal continua casando.
-    expect(addable.filter((p) => matches('30306027', p)).map((p) => p.id)).toContain(
-      listedProcId,
-    )
+    expect(addable.filter((p) => matches('30306027', p)).map((p) => p.id)).toContain(listedProcId)
   })
 })

@@ -46,10 +46,7 @@ export function AppointmentDetailPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full overflow-y-auto p-0 sm:max-w-[600px]"
-      >
+      <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-[600px]">
         <SheetTitle className="sr-only">Atendimento</SheetTitle>
         <div ref={titleRef} className="p-6">
           {loading && !data ? (

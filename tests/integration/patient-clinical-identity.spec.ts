@@ -13,10 +13,7 @@
  * ou no contrato das rotas — qualquer um deles quebra o cadastro clínico.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 import { piiRegistry } from '@/tests/helpers/msw-spies'
@@ -139,10 +136,7 @@ describe('Migration 0105 — identificação clínica do paciente', () => {
       .eq('tenant_id', tenantId)
       .single()
     expect(error).toBeNull()
-    const raw = row as unknown as Record<
-      (typeof NEW_ENC_COLUMNS)[number],
-      string
-    > & { sex: string }
+    const raw = row as unknown as Record<(typeof NEW_ENC_COLUMNS)[number], string> & { sex: string }
 
     // sex é texto em claro.
     expect(raw.sex).toBe('feminino')
@@ -222,9 +216,7 @@ describe('Migration 0105 — identificação clínica do paciente', () => {
   it('rejeita sexo fora do domínio (400)', async () => {
     const { jwt } = await createAdminSession('id-badsex')
     const { POST } = await import('@/app/api/pacientes/route')
-    const res = await POST(
-      postReq(jwt, { full_name: 'Paciente X', sex: 'outro' }),
-    )
+    const res = await POST(postReq(jwt, { full_name: 'Paciente X', sex: 'outro' }))
     expect(res.status).toBe(400)
   })
 })

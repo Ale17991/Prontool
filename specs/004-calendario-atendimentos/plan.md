@@ -28,15 +28,15 @@ A entrega é monolítica (uma stack Next.js), então não há decisão "frontend
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Toca? | Análise |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | Indireto | Nenhum valor financeiro é alterado. `duration_minutes` é metadado operacional não-financeiro. Atendimentos antigos sem o campo permanecem como estão (NULL → renderização usa default na apresentação, sem UPDATE). PASS. |
-| **II. Auditabilidade Total de Preços** | Não | Sem mudança em tabelas de preço/comissão. Calendário é apenas leitura. Mudança de `duration_minutes` futura (US fora deste escopo) precisará de auditoria — a coluna já fica preparada para isso. PASS. |
-| **III. Isolamento Multi-Tenant** | Sim | Toda query do calendário e do typeahead "Ver em lista" precisa filtrar por `tenant_id` (RLS já aplicado a `appointments_effective`). Adapter de fetch reutiliza o cliente server SSR (`createSupabaseServerClient`) que já injeta o tenant via cookie de sessão. Filtro de profissional usa `doctors` da mesma clínica (já scoped). PASS — nenhum endpoint novo recebe `tenant_id` do cliente. |
-| **IV. Conformidade TUSS/ANS** | Sim | US4 reconcilia o catálogo contra a publicação oficial ANS 202501; investigação prévia provou que **0 códigos odonto faltam** vs. a fonte oficial e que prefixo 88 não existe. A migration nesta entrega serve para registrar a versão de catálogo fonte (`tuss_catalog_versions` row) sem acrescentar códigos — preserva auditabilidade. Códigos não-odonto faltantes (241 medical) são fora de escopo deste plano. PASS. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | Sim | Calendário é leitura para os mesmos papéis que já enxergam a Lista (`requireRole` herdado da rota); criar atendimento via slot vazio reutiliza o mesmo gate de `/operacao/atendimentos/novo` (admin/recepcionista). Botão "Voltar" não exige autorização adicional. Drawer "Ver em lista" usa endpoint `/api/tuss-codes` existente, que já é leitura autenticada. PASS. |
+| Princípio                                    | Toca?    | Análise                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável**       | Indireto | Nenhum valor financeiro é alterado. `duration_minutes` é metadado operacional não-financeiro. Atendimentos antigos sem o campo permanecem como estão (NULL → renderização usa default na apresentação, sem UPDATE). PASS.                                                                                                                                                                                                 |
+| **II. Auditabilidade Total de Preços**       | Não      | Sem mudança em tabelas de preço/comissão. Calendário é apenas leitura. Mudança de `duration_minutes` futura (US fora deste escopo) precisará de auditoria — a coluna já fica preparada para isso. PASS.                                                                                                                                                                                                                   |
+| **III. Isolamento Multi-Tenant**             | Sim      | Toda query do calendário e do typeahead "Ver em lista" precisa filtrar por `tenant_id` (RLS já aplicado a `appointments_effective`). Adapter de fetch reutiliza o cliente server SSR (`createSupabaseServerClient`) que já injeta o tenant via cookie de sessão. Filtro de profissional usa `doctors` da mesma clínica (já scoped). PASS — nenhum endpoint novo recebe `tenant_id` do cliente.                            |
+| **IV. Conformidade TUSS/ANS**                | Sim      | US4 reconcilia o catálogo contra a publicação oficial ANS 202501; investigação prévia provou que **0 códigos odonto faltam** vs. a fonte oficial e que prefixo 88 não existe. A migration nesta entrega serve para registrar a versão de catálogo fonte (`tuss_catalog_versions` row) sem acrescentar códigos — preserva auditabilidade. Códigos não-odonto faltantes (241 medical) são fora de escopo deste plano. PASS. |
+| **V. Segurança por Perfil de Acesso (RBAC)** | Sim      | Calendário é leitura para os mesmos papéis que já enxergam a Lista (`requireRole` herdado da rota); criar atendimento via slot vazio reutiliza o mesmo gate de `/operacao/atendimentos/novo` (admin/recepcionista). Botão "Voltar" não exige autorização adicional. Drawer "Ver em lista" usa endpoint `/api/tuss-codes` existente, que já é leitura autenticada. PASS.                                                   |
 
 **Gates**: Todos passam. Sem violações para registrar em "Complexity Tracking".
 
@@ -132,11 +132,11 @@ Outputs em [`data-model.md`](./data-model.md), [`quickstart.md`](./quickstart.md
 
 ### Data model summary
 
-| Entidade | Mudança | Detalhes |
-|---|---|---|
-| `appointments` | ADD COLUMN `duration_minutes INTEGER NULL CHECK (duration_minutes BETWEEN 5 AND 480)` | Default 30 aplicado em leitura via COALESCE. NULL permitido para preservar registros antigos. |
-| `tuss_catalog_versions` | INSERT row | `source_ref='ans_official_202501'`, documentando a fonte oficial de reconciliação. Não toca `tuss_codes`. |
-| `appointments_effective` | RECREATE VIEW | Inclui `duration_minutes` na seleção (`a.*` já inclui via `*`, mas explicitar para evitar surpresas em migrations futuras). |
+| Entidade                 | Mudança                                                                               | Detalhes                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `appointments`           | ADD COLUMN `duration_minutes INTEGER NULL CHECK (duration_minutes BETWEEN 5 AND 480)` | Default 30 aplicado em leitura via COALESCE. NULL permitido para preservar registros antigos.                               |
+| `tuss_catalog_versions`  | INSERT row                                                                            | `source_ref='ans_official_202501'`, documentando a fonte oficial de reconciliação. Não toca `tuss_codes`.                   |
+| `appointments_effective` | RECREATE VIEW                                                                         | Inclui `duration_minutes` na seleção (`a.*` já inclui via `*`, mas explicitar para evitar surpresas em migrations futuras). |
 
 Sem novas tabelas. Sem alteração de RLS — `appointments` já tem policy por `tenant_id`.
 
@@ -149,6 +149,7 @@ Sem novas tabelas. Sem alteração de RLS — `appointments` já tem policy por 
 ### Quickstart
 
 `quickstart.md` cobre:
+
 1. `git checkout 004-calendario-atendimentos`
 2. `pnpm install` (sem deps novas)
 3. `supabase start` + `pnpm supabase:reset` (aplica 0053)
@@ -177,5 +178,5 @@ Sem violações pós-design. Plano aprovado para Phase 2 (`/speckit.tasks`).
 > Sem violações de constituição — tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| _(none)_ | _(none)_ | _(none)_ |
+| --------- | ---------- | ------------------------------------ |
+| _(none)_  | _(none)_   | _(none)_                             |

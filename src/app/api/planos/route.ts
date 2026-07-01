@@ -67,7 +67,12 @@ export async function POST(req: Request): Promise<Response> {
         name: parsed.data.name,
       })
       return NextResponse.json(
-        { id: created.id, name: created.name, active: created.active, created_at: created.createdAt },
+        {
+          id: created.id,
+          name: created.name,
+          active: created.active,
+          created_at: created.createdAt,
+        },
         { status: 201 },
       )
     } catch (err) {

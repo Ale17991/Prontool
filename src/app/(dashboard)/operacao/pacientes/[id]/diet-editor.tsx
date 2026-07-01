@@ -50,7 +50,11 @@ function planToForm(p: DietPlan): { title: string; notes: string; meals: MealFor
       name: m.name,
       timeLabel: m.timeLabel ?? '',
       notes: m.notes ?? '',
-      items: m.items.map((it) => ({ food: it.food, quantity: it.quantity ?? '', notes: it.notes ?? '' })),
+      items: m.items.map((it) => ({
+        food: it.food,
+        quantity: it.quantity ?? '',
+        notes: it.notes ?? '',
+      })),
     })),
   }
 }
@@ -125,7 +129,9 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
   function patchItem(mi: number, ii: number, patch: Partial<ItemForm>) {
     setMeals((prev) =>
       prev.map((m, i) =>
-        i === mi ? { ...m, items: m.items.map((it, j) => (j === ii ? { ...it, ...patch } : it)) } : m,
+        i === mi
+          ? { ...m, items: m.items.map((it, j) => (j === ii ? { ...it, ...patch } : it)) }
+          : m,
       ),
     )
   }
@@ -138,7 +144,11 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
         notes: strOrNull(m.notes),
         items: m.items
           .filter((it) => it.food.trim() !== '')
-          .map((it) => ({ food: it.food.trim(), quantity: strOrNull(it.quantity), notes: strOrNull(it.notes) })),
+          .map((it) => ({
+            food: it.food.trim(),
+            quantity: strOrNull(it.quantity),
+            notes: strOrNull(it.notes),
+          })),
       }))
       .filter((m) => m.name !== '')
 
@@ -181,16 +191,26 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-xs text-slate-500">
-          Exibido ao paciente no portal (seção “Dieta”). Salvar cria uma nova versão e arquiva a anterior.
+          Exibido ao paciente no portal (seção “Dieta”). Salvar cria uma nova versão e arquiva a
+          anterior.
         </p>
 
         {loading ? (
           <p className="text-sm text-slate-400">Carregando…</p>
         ) : !editing ? (
           <>
-            {active ? <DietReadView plan={active} /> : <p className="text-sm text-slate-500">Nenhum plano alimentar ativo.</p>}
+            {active ? (
+              <DietReadView plan={active} />
+            ) : (
+              <p className="text-sm text-slate-500">Nenhum plano alimentar ativo.</p>
+            )}
             {canWrite ? (
-              <Button size="sm" variant={active ? 'outline' : 'default'} onClick={() => openForm(Boolean(active))} className="gap-1.5">
+              <Button
+                size="sm"
+                variant={active ? 'outline' : 'default'}
+                onClick={() => openForm(Boolean(active))}
+                className="gap-1.5"
+              >
                 <Plus className="h-3.5 w-3.5" />
                 {active ? 'Novo plano (a partir do atual)' : 'Criar plano alimentar'}
               </Button>
@@ -200,12 +220,26 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
-                <Label htmlFor="d_title" className="text-[11px]">Título do plano</Label>
-                <Input id="d_title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Low carb moderado (~1600 kcal)" />
+                <Label htmlFor="d_title" className="text-[11px]">
+                  Título do plano
+                </Label>
+                <Input
+                  id="d_title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex.: Low carb moderado (~1600 kcal)"
+                />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="d_notes" className="text-[11px]">Observações gerais</Label>
-                <Input id="d_notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: beber 2L de água/dia" />
+                <Label htmlFor="d_notes" className="text-[11px]">
+                  Observações gerais
+                </Label>
+                <Input
+                  id="d_notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex.: beber 2L de água/dia"
+                />
               </div>
             </div>
 
@@ -253,7 +287,11 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
                     className="h-8 w-28"
                   />
                   {meals.length > 1 ? (
-                    <button type="button" onClick={() => setMeals((p) => p.filter((_, i) => i !== mi))} className="text-slate-400 hover:text-destructive">
+                    <button
+                      type="button"
+                      onClick={() => setMeals((p) => p.filter((_, i) => i !== mi))}
+                      className="text-slate-400 hover:text-destructive"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   ) : null}
@@ -262,10 +300,29 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
                 <div className="space-y-2">
                   {m.items.map((it, ii) => (
                     <div key={ii} className="grid grid-cols-12 items-center gap-1.5">
-                      <Input className="col-span-5 h-8" value={it.food} onChange={(ev) => patchItem(mi, ii, { food: ev.target.value })} placeholder="Alimento" />
-                      <Input className="col-span-3 h-8" value={it.quantity} onChange={(ev) => patchItem(mi, ii, { quantity: ev.target.value })} placeholder="Quantidade" />
-                      <Input className="col-span-3 h-8" value={it.notes} onChange={(ev) => patchItem(mi, ii, { notes: ev.target.value })} placeholder="obs" />
-                      <button type="button" onClick={() => patchMeal(mi, { items: m.items.filter((_, j) => j !== ii) })} className="col-span-1 flex justify-center text-slate-400 hover:text-destructive">
+                      <Input
+                        className="col-span-5 h-8"
+                        value={it.food}
+                        onChange={(ev) => patchItem(mi, ii, { food: ev.target.value })}
+                        placeholder="Alimento"
+                      />
+                      <Input
+                        className="col-span-3 h-8"
+                        value={it.quantity}
+                        onChange={(ev) => patchItem(mi, ii, { quantity: ev.target.value })}
+                        placeholder="Quantidade"
+                      />
+                      <Input
+                        className="col-span-3 h-8"
+                        value={it.notes}
+                        onChange={(ev) => patchItem(mi, ii, { notes: ev.target.value })}
+                        placeholder="obs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => patchMeal(mi, { items: m.items.filter((_, j) => j !== ii) })}
+                        className="col-span-1 flex justify-center text-slate-400 hover:text-destructive"
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -292,7 +349,14 @@ export function DietEditor({ patientId, canWrite }: { patientId: string; canWrit
             <div className="flex items-center justify-between border-t border-slate-100 pt-3">
               {error ? <span className="text-xs text-destructive">{error}</span> : <span />}
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={pending}>Cancelar</Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditing(false)}
+                  disabled={pending}
+                >
+                  Cancelar
+                </Button>
                 <Button size="sm" onClick={save} disabled={pending}>
                   {pending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
                   Salvar plano
@@ -310,9 +374,15 @@ function DietReadView({ plan }: { plan: DietPlan }) {
   const [open, setOpen] = useState(true)
   return (
     <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
-      <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between"
+      >
         <span className="text-sm font-semibold text-slate-800">{plan.title}</span>
-        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
       {plan.notes ? <p className="mt-1 text-xs text-slate-500">{plan.notes}</p> : null}
       {open ? (
@@ -321,7 +391,11 @@ function DietReadView({ plan }: { plan: DietPlan }) {
             <div key={i}>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 {m.name}
-                {m.timeLabel ? <span className="ml-1 font-normal normal-case text-slate-400">· {m.timeLabel}</span> : null}
+                {m.timeLabel ? (
+                  <span className="ml-1 font-normal normal-case text-slate-400">
+                    · {m.timeLabel}
+                  </span>
+                ) : null}
               </p>
               <ul className="mt-1 space-y-0.5">
                 {m.items.map((it, j) => (

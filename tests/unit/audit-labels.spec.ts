@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  GENERIC_ERROR_MESSAGE,
-  entityToLabel,
-  eventTypeToLabel,
-} from '@/lib/utils/audit-labels'
+import { GENERIC_ERROR_MESSAGE, entityToLabel, eventTypeToLabel } from '@/lib/utils/audit-labels'
 
 describe('eventTypeToLabel', () => {
   it('translates known appointment events', () => {
@@ -25,9 +21,7 @@ describe('eventTypeToLabel', () => {
 
   it('translates integration events', () => {
     expect(eventTypeToLabel('integration.connect')).toBe('Integração conectada')
-    expect(eventTypeToLabel('integration_sync_failed')).toBe(
-      'Falha de sincronização de integração',
-    )
+    expect(eventTypeToLabel('integration_sync_failed')).toBe('Falha de sincronização de integração')
   })
 
   it('falls back to literal for unknown events', () => {

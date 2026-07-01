@@ -8,7 +8,12 @@
   },
   "overrides": [
     {
-      "files": ["src/lib/observability/logger.ts", "tests/**/*.ts", "scripts/**/*.ts", "supabase/seed/**/*.ts"],
+      "files": [
+        "src/lib/observability/logger.ts",
+        "tests/**/*.ts",
+        "scripts/**/*.ts",
+        "supabase/seed/**/*.ts"
+      ],
       "rules": {
         "no-console": "off"
       }

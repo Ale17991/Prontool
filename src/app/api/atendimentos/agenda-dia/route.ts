@@ -52,7 +52,10 @@ export async function GET(req: Request): Promise<Response> {
       date: url.searchParams.get('date'),
     })
     if (!parsed.success) {
-      return NextResponse.json({ error: { code: 'INVALID_QUERY', message: 'parâmetros inválidos' } }, { status: 400 })
+      return NextResponse.json(
+        { error: { code: 'INVALID_QUERY', message: 'parâmetros inválidos' } },
+        { status: 400 },
+      )
     }
 
     const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
@@ -77,8 +80,12 @@ export async function GET(req: Request): Promise<Response> {
 
     const slots: DaySlot[] = []
 
-    type ApptRow = { appointment_at: string; duration_minutes: number | null; effective_status: string | null }
-    for (const r of ((apptRes.data ?? []) as unknown as ApptRow[])) {
+    type ApptRow = {
+      appointment_at: string
+      duration_minutes: number | null
+      effective_status: string | null
+    }
+    for (const r of (apptRes.data ?? []) as unknown as ApptRow[]) {
       if (r.effective_status === 'cancelado' || r.effective_status === 'estornado') continue
       const start = new Date(r.appointment_at)
       const end = new Date(start.getTime() + (r.duration_minutes ?? 30) * 60_000)

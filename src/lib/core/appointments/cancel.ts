@@ -35,12 +35,15 @@ export async function cancelAppointment(
 ): Promise<CancelAppointmentResult> {
   // 'cancel_appointment' criada na migration 0096 — generated types ainda
   // nao foram regenerados, por isso `as never`.
-  const { data, error } = await supabase.rpc('cancel_appointment' as never, {
-    p_appointment_id: input.appointmentId,
-    p_by: input.actorUserId,
-    p_reason: input.reason,
-    p_notes: input.notes ?? undefined,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'cancel_appointment' as never,
+    {
+      p_appointment_id: input.appointmentId,
+      p_by: input.actorUserId,
+      p_reason: input.reason,
+      p_notes: input.notes ?? undefined,
+    } as never,
+  )
 
   if (error) {
     const msg = error.message ?? ''
@@ -62,9 +65,7 @@ export async function cancelAppointment(
       })
     }
     // RPC ausente (migration 0096 nao aplicada) — sinaliza claramente.
-    if (
-      /could not find the function|function .* does not exist|schema cache/i.test(msg)
-    ) {
+    if (/could not find the function|function .* does not exist|schema cache/i.test(msg)) {
       throw new DomainError(
         'CANCEL_RPC_NOT_DEPLOYED',
         'A funcao de cancelamento ainda nao esta disponivel no banco. Aplique as migrations 0096 e 0097 em producao.',
@@ -72,11 +73,9 @@ export async function cancelAppointment(
       )
     }
     // Demais erros: surface a mensagem original para facilitar debug em prod.
-    throw new DomainError(
-      'CANCEL_APPOINTMENT_FAILED',
-      `Falha ao cancelar atendimento: ${msg}`,
-      { status: 500 },
-    )
+    throw new DomainError('CANCEL_APPOINTMENT_FAILED', `Falha ao cancelar atendimento: ${msg}`, {
+      status: 500,
+    })
   }
 
   if (!data) {

@@ -14,7 +14,7 @@
 - Q: No email de lembrete, quando o agendamento veio pela via interna (não pela rota pública), o que aparece em "como cancelar"? → A: Link clicável para a landing pública da clínica (`/agendar/[slug]`) quando a clínica tem essa página habilitada — paciente vê telefone/endereço e contato. Sem token de cancelamento direto. Se a clínica não tiver a landing pública habilitada, o email exibe apenas o telefone da clínica como instrução textual.
 - Q: Se o profissional ou procedimento foi alterado/removido entre o agendamento e o envio do lembrete, qual dado aparece no email? → A: Dados atuais no momento do envio (JOIN com estado vigente). Reflete a realidade da clínica que o paciente encontrará; divergências em relação ao agendamento original são raras e devem ser gerenciadas manualmente pela clínica nesses casos extremos.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Clínica configura motor de lembretes em poucos minutos (Priority: P1)
 
@@ -100,7 +100,7 @@ A clínica registra, no perfil de cada paciente, se ele autoriza ou não receber
 - **Lembrete fora da janela permitida (ex.: 03h)**: pulado e tentado novamente no próximo ciclo dentro da janela; se passar do horário do agendamento sem nunca abrir janela, fica como "pulado" (não dispara depois do horário do agendamento).
 - **Reenvio manual**: cria registro independente do histórico de envios automáticos; sempre ignora opt-out parcial (admin decide assumir responsabilidade). Sempre auditado.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -142,14 +142,14 @@ A clínica registra, no perfil de cada paciente, se ele autoriza ou não receber
 - **FR-022**: O email de lembrete MUST conter nome do paciente, data e hora do agendamento (com fuso explícito), nome do profissional, nome do procedimento, nome da clínica, e telefone/endereço quando disponíveis. Os dados de profissional, procedimento e clínica refletem o estado vigente no momento do envio, não o estado no momento do agendamento.
 - **FR-023**: O email de lembrete MUST oferecer caminho claro para o paciente cancelar ou entrar em contato, com a seguinte hierarquia: (a) quando o agendamento foi criado pela rota pública, exibir link com token de cancelamento direto; (b) quando o agendamento foi criado pela via interna E a clínica tem landing pública habilitada, exibir link para a landing pública da clínica (sem token; serve para o paciente ver dados de contato); (c) quando nenhum dos dois aplica, exibir o telefone da clínica como instrução textual.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Tenant Reminder Settings**: configuração por clínica sobre quando, onde e como enviar lembretes (habilitado, offsets, janela de horário, fim de semana, template). Existe lazy — quando admin abre a tela pela primeira vez, valores default aparecem; quando salva, a configuração é persistida.
 - **Patient Reminder Preference**: flag por paciente indicando se autoriza receber lembretes automáticos. Default opt-in.
 - **Appointment Reminder Record**: registro append-only de cada tentativa de envio, com referência ao agendamento e ao offset, status (queued/sent/failed/skipped_opt_out/skipped_reversed), motivo de falha quando aplicável, momento do envio e identificador externo do provedor (quando há). Idempotência via unicidade de `(appointment, offset, channel)`.
 - **Audit Trail**: cada envio (sucesso ou falha) gera registro de auditoria padrão da plataforma, preservando rastreabilidade exigida pela constituição (Princípio II).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

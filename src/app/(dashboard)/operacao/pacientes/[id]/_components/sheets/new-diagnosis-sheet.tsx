@@ -29,15 +29,11 @@ export function NewDiagnosisSheet({
 }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full overflow-y-auto sm:max-w-xl"
-      >
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
         <SheetHeader>
           <SheetTitle>Novo diagnóstico</SheetTitle>
           <SheetDescription>
-            Vincule um código CID-10. Diagnósticos ativos e em
-            acompanhamento aparecem na sidebar.
+            Vincule um código CID-10. Diagnósticos ativos e em acompanhamento aparecem na sidebar.
           </SheetDescription>
         </SheetHeader>
         <div className="mt-4">

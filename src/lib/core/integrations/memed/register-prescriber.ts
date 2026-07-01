@@ -76,8 +76,10 @@ export function buildPrescriberPayload(
   if (cpfDigits.length !== 11) missing.push('CPF')
   if (!doctor.councilName) missing.push('conselho')
   if (!doctor.councilNumber) missing.push('número do conselho')
-  if (!doctor.councilState || !/^[A-Za-z]{2}$/.test(doctor.councilState)) missing.push('UF do conselho')
-  if (!doctor.birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(doctor.birthDate)) missing.push('data de nascimento')
+  if (!doctor.councilState || !/^[A-Za-z]{2}$/.test(doctor.councilState))
+    missing.push('UF do conselho')
+  if (!doctor.birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(doctor.birthDate))
+    missing.push('data de nascimento')
   if (missing.length > 0) throw new MemedPrescriberFieldsMissingError(missing)
 
   const { nome, sobrenome } = splitName(doctor.fullName)
@@ -190,7 +192,10 @@ export async function enablePrescriber(
       } catch (err) {
         // A Memed pode já ter esse external_id (re-sync após erro, ou sandbox
         // compartilhado) → atualiza via PATCH em vez de falhar.
-        if (err instanceof MemedValidationError && /cadastrad|already|externo|external/i.test(err.message)) {
+        if (
+          err instanceof MemedValidationError &&
+          /cadastrad|already|externo|external/i.test(err.message)
+        ) {
           await sendToMemed('PATCH')
         } else {
           throw err

@@ -29,9 +29,7 @@ export default async function globalSetup() {
     .maybeSingle()
 
   const admins = await sb.auth.admin.listUsers()
-  const adminExists = admins.data?.users.some(
-    (u) => u.email === 'admin@clinica-demo.test',
-  )
+  const adminExists = admins.data?.users.some((u) => u.email === 'admin@clinica-demo.test')
 
   if (tenant && adminExists) {
     console.info('[e2e] demo seed already present — skipping')

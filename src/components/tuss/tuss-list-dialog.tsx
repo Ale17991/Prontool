@@ -5,8 +5,18 @@ import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TussTableBadge, type TussTable } from '@/app/(dashboard)/configuracoes/procedimentos/tuss-table-badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  TussTableBadge,
+  type TussTable,
+} from '@/app/(dashboard)/configuracoes/procedimentos/tuss-table-badge'
 
 export interface TussListItem {
   code: string
@@ -140,9 +150,7 @@ export function TussListDialog({
             <p className="px-4 py-12 text-center text-xs text-destructive">Erro: {error}</p>
           ) : visible.length === 0 ? (
             <p className="px-4 py-12 text-center text-xs text-slate-500">
-              {query.trim().length === 0
-                ? 'Digite para buscar no catálogo.'
-                : 'Nenhum resultado.'}
+              {query.trim().length === 0 ? 'Digite para buscar no catálogo.' : 'Nenhum resultado.'}
             </p>
           ) : (
             <Table>

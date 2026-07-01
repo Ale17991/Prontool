@@ -9,11 +9,15 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const querySchema = z.object({
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  status: z
-    .enum(['pendente', 'atrasado', 'parcial', 'inadimplencia', 'all'])
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  status: z.enum(['pendente', 'atrasado', 'parcial', 'inadimplencia', 'all']).optional(),
   plan_id: z.string().uuid().optional(),
   patient_id: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(500).optional(),
@@ -23,13 +27,12 @@ export async function GET(req: Request): Promise<Response> {
   const route = '/api/financeiro/contas-a-receber'
   try {
     // Painel financeiro — recepção não vê valores agregados.
-    const session = await requireRole(
-      ['admin', 'financeiro'],
-      { entity: 'payment_installments', route, request: req },
-    )
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const session = await requireRole(['admin', 'financeiro'], {
+      entity: 'payment_installments',
+      route,
+      request: req,
+    })
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         { error: { code: 'INVALID_QUERY', message: 'Filtros inválidos' } },

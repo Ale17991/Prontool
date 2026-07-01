@@ -3,6 +3,7 @@
 Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-27
 
 ## Active Technologies
+
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
 - N/A — feature de UI pura, não persiste nada (003-responsive-design)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel). + Next.js 14.2 (App Router), React 18.3, `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind CSS 3.4, shadcn/ui (Radix primitives), `date-fns` 4.1, `framer-motion` 12, `lucide-react`. (004-calendario-atendimentos)
@@ -109,11 +110,10 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+
 - 044-admin-painel-plataforma: Added TypeScript 5.4 / Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui, `recharts` (já em uso, p/ gráficos opcionais), `date-fns`. **Sem novas deps.**
 - 043-permissoes-granulares-admin: Added TypeScript 5.4 / Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui. **Sem novas deps.**
 - 042-modulos-especialidade: Added TypeScript 5.4 / Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions), React 18.3, `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Tailwind 3.4, shadcn/ui. **Sem novas deps.**
-
-
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

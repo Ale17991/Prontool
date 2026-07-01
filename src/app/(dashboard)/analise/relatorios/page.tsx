@@ -18,16 +18,20 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
-import {
-  buildFinancialReport,
-  type FinancialReport,
-} from '@/lib/core/reports/financial-report'
+import { buildFinancialReport, type FinancialReport } from '@/lib/core/reports/financial-report'
 import type { Database } from '@/lib/db/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { FinancialRevenueChart } from './financial-revenue-chart'
 import { ReportsSubNav } from './reports-sub-nav'
@@ -63,8 +67,7 @@ export default async function RelatoriosPage({ searchParams }: PageProps) {
   const canExport = can(session.role, 'report.export')
   const exportQs = `from=${period.from}&to=${period.to}`
 
-  const isEmpty =
-    report.totals.appointmentCount === 0 && report.totals.totalExpensesCents === 0
+  const isEmpty = report.totals.appointmentCount === 0 && report.totals.totalExpensesCents === 0
 
   return (
     <div className="space-y-8">
@@ -75,12 +78,10 @@ export default async function RelatoriosPage({ searchParams }: PageProps) {
       {isEmpty ? (
         <Card>
           <CardContent className="px-6 py-10 text-center text-sm text-slate-600">
-            <p className="font-bold text-slate-900">
-              Nenhum atendimento ou despesa neste período.
-            </p>
+            <p className="font-bold text-slate-900">Nenhum atendimento ou despesa neste período.</p>
             <p className="mt-1 text-xs text-slate-500">
-              Período {formatDate(period.from)} até {formatDate(period.to)}. Tente um
-              intervalo mais amplo (12 meses ou YTD) usando os botões acima.
+              Período {formatDate(period.from)} até {formatDate(period.to)}. Tente um intervalo mais
+              amplo (12 meses ou YTD) usando os botões acima.
             </p>
           </CardContent>
         </Card>
@@ -111,9 +112,7 @@ function PeriodHeader({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Relatório financeiro
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Relatório financeiro</h1>
         <p className="mt-1 text-sm text-slate-500">
           Exibindo dados de <span className="font-semibold">{formatDate(period.from)}</span> a{' '}
           <span className="font-semibold">{formatDate(period.to)}</span>
@@ -131,13 +130,7 @@ function PeriodHeader({
                 <Label htmlFor="from" className="text-xs">
                   Data início
                 </Label>
-                <Input
-                  id="from"
-                  name="from"
-                  type="date"
-                  defaultValue={period.from}
-                  required
-                />
+                <Input id="from" name="from" type="date" defaultValue={period.from} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="to" className="text-xs">
@@ -273,9 +266,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                 <TableBody>
                   {report.revenueByPlan.map((row) => (
                     <TableRow key={row.planId}>
-                      <TableCell className="font-semibold text-slate-900">
-                        {row.planName}
-                      </TableCell>
+                      <TableCell className="font-semibold text-slate-900">{row.planName}</TableCell>
                       <TableCell className="text-right text-slate-700">
                         {row.appointmentCount}
                       </TableCell>
@@ -325,9 +316,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                 <Users className="h-4 w-4 text-primary" />
                 Top profissionais
               </CardTitle>
-              <p className="text-[11px] text-slate-500">
-                5 profissionais com mais faturamento
-              </p>
+              <p className="text-[11px] text-slate-500">5 profissionais com mais faturamento</p>
             </CardHeader>
             <CardContent className="p-0">
               {report.topDoctors.length === 0 ? (
@@ -335,10 +324,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {report.topDoctors.map((row, i) => (
-                    <li
-                      key={row.doctorId}
-                      className="flex items-center gap-3 px-6 py-3"
-                    >
+                    <li key={row.doctorId} className="flex items-center gap-3 px-6 py-3">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-black text-slate-700">
                         {i + 1}
                       </span>
@@ -354,10 +340,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                           <p className="mt-0.5 truncate text-[10px] text-slate-400">
                             {row.byPlan
                               .slice(0, 3)
-                              .map(
-                                (p) =>
-                                  `${p.planName}: ${formatCurrency(p.grossRevenueCents)}`,
-                              )
+                              .map((p) => `${p.planName}: ${formatCurrency(p.grossRevenueCents)}`)
                               .join(' · ')}
                             {row.byPlan.length > 3 ? ' · …' : ''}
                           </p>
@@ -379,9 +362,7 @@ function RevenueSection({ report }: { report: FinancialReport }) {
                 <Stethoscope className="h-4 w-4 text-blue-300" />
                 Ranking procedimentos
               </CardTitle>
-              <p className="text-[11px] text-slate-300">
-                10 procedimentos mais realizados
-              </p>
+              <p className="text-[11px] text-slate-300">10 procedimentos mais realizados</p>
             </CardHeader>
             <CardContent className="p-0">
               {report.topProcedures.length === 0 ? (
@@ -389,17 +370,12 @@ function RevenueSection({ report }: { report: FinancialReport }) {
               ) : (
                 <ol className="divide-y divide-white/10">
                   {report.topProcedures.map((row, i) => (
-                    <li
-                      key={row.procedureId}
-                      className="flex items-center gap-3 px-6 py-2.5"
-                    >
+                    <li key={row.procedureId} className="flex items-center gap-3 px-6 py-2.5">
                       <span className="w-5 text-[11px] font-black text-slate-400">
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-bold text-white">
-                          {row.procedureName}
-                        </p>
+                        <p className="truncate text-xs font-bold text-white">{row.procedureName}</p>
                         <p className="font-mono text-[10px] text-slate-400">
                           {row.tussCode || '—'} · {row.count}x
                         </p>
@@ -484,10 +460,7 @@ function ExpensesSection({ report }: { report: FinancialReport }) {
   const expensesGood = expensesPct !== null && expensesPct < 0
   return (
     <section className="space-y-4">
-      <SectionHeader
-        title="Fluxo de Despesas"
-        subtitle="Detalhamento dos custos operacionais"
-      />
+      <SectionHeader title="Fluxo de Despesas" subtitle="Detalhamento dos custos operacionais" />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
         <Card>
@@ -561,9 +534,7 @@ function ExpensesSection({ report }: { report: FinancialReport }) {
                       <TableCell className="font-semibold text-slate-900">
                         {CATEGORY_LABEL[row.category] ?? row.category}
                       </TableCell>
-                      <TableCell className="text-right text-slate-700">
-                        {row.count}
-                      </TableCell>
+                      <TableCell className="text-right text-slate-700">{row.count}</TableCell>
                       <TableCell className="text-right font-bold text-slate-900">
                         {formatCurrency(row.totalCents)}
                       </TableCell>
@@ -645,9 +616,7 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
               >
                 {report.totals.operatingMarginPct.toFixed(1)}%
               </p>
-              <p className="mt-2 text-xs text-slate-400">
-                Lucro / faturamento bruto
-              </p>
+              <p className="mt-2 text-xs text-slate-400">Lucro / faturamento bruto</p>
             </div>
           </div>
         </CardContent>
@@ -670,13 +639,13 @@ function ResultMiniCard({
     <Card>
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            {label}
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
           <div
             className={cn(
               'rounded-lg p-1.5',
-              tone === 'positive' ? 'bg-success-bg text-success-strong' : 'bg-destructive/10 text-destructive',
+              tone === 'positive'
+                ? 'bg-success-bg text-success-strong'
+                : 'bg-destructive/10 text-destructive',
             )}
           >
             <Icon className="h-3.5 w-3.5" />
@@ -777,9 +746,7 @@ function ComparisonBadge({
     <Card>
       <CardContent className="flex items-center justify-between p-5">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            {label}
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
           <p
             className={cn(
               'mt-2 inline-flex items-center gap-1 text-2xl font-black tracking-tight',

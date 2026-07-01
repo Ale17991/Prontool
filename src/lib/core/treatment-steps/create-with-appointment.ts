@@ -63,9 +63,21 @@ export async function createStepWithAppointment(
 
   // Validacoes de FK no tenant (evitam vazamento entre tenants).
   await Promise.all([
-    ensureBelongsToTenant(supabase, 'patients', input.patientId, input.tenantId, 'PATIENT_NOT_FOUND'),
+    ensureBelongsToTenant(
+      supabase,
+      'patients',
+      input.patientId,
+      input.tenantId,
+      'PATIENT_NOT_FOUND',
+    ),
     ensureBelongsToTenant(supabase, 'doctors', input.doctorId, input.tenantId, 'DOCTOR_NOT_FOUND'),
-    ensureBelongsToTenant(supabase, 'procedures', input.procedureId, input.tenantId, 'PROCEDURE_NOT_FOUND'),
+    ensureBelongsToTenant(
+      supabase,
+      'procedures',
+      input.procedureId,
+      input.tenantId,
+      'PROCEDURE_NOT_FOUND',
+    ),
   ])
 
   // Resolve preco. healthPlanId === null = particular (usa default_amount_cents
@@ -106,7 +118,7 @@ export async function createStepWithAppointment(
       )
     }
   }
-  void isParticular  // placeholder semantico; usado pela UI via plan_id null
+  void isParticular // placeholder semantico; usado pela UI via plan_id null
 
   const { data, error } = await supabase.rpc('create_step_with_appointment', {
     p_tenant_id: input.tenantId,

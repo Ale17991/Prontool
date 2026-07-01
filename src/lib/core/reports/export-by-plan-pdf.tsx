@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import type { PlanDetail } from './by-plan'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
@@ -171,9 +164,7 @@ export function ByPlanReportDocument({
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Valor total faturado</Text>
-            <Text style={styles.summaryValue}>
-              {formatBRL(detail.totals.totalRevenueCents)}
-            </Text>
+            <Text style={styles.summaryValue}>{formatBRL(detail.totals.totalRevenueCents)}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Profissional com mais procedimentos</Text>
@@ -215,9 +206,7 @@ export function ByPlanReportDocument({
                 <Text style={[styles.td, styles.cellTuss]}>{row.tussCode}</Text>
                 <Text style={[styles.td, styles.cellProc]}>{row.procedureName}</Text>
                 <Text style={[styles.td, styles.cellDoctor]}>{row.doctorName}</Text>
-                <Text style={[styles.td, styles.cellAmount]}>
-                  {formatBRL(row.amountCents)}
-                </Text>
+                <Text style={[styles.td, styles.cellAmount]}>{formatBRL(row.amountCents)}</Text>
               </View>
             ))
           )}
@@ -225,9 +214,7 @@ export function ByPlanReportDocument({
 
         <View style={styles.totals}>
           <Text style={styles.totalsLabel}>VALOR TOTAL FATURADO</Text>
-          <Text style={styles.totalsBig}>
-            {formatBRL(detail.totals.totalRevenueCents)}
-          </Text>
+          <Text style={styles.totalsBig}>{formatBRL(detail.totals.totalRevenueCents)}</Text>
           <View style={{ height: 8 }} />
           <View style={styles.totalsRow}>
             <Text style={styles.totalsLabel}>Procedimentos</Text>
@@ -236,8 +223,7 @@ export function ByPlanReportDocument({
         </View>
 
         <Text style={styles.footer}>
-          Gerado em{' '}
-          {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Apenas
+          Gerado em {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Apenas
           atendimentos ativos (estornos excluídos).
         </Text>
       </Page>

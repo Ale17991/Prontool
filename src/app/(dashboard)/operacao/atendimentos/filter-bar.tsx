@@ -28,7 +28,13 @@ const STATUS_OPTIONS: Array<{ value: CalendarStatus; label: string }> = [
   { value: 'cancelado', label: 'Cancelados' },
 ]
 
-export function FilterBar({ filters, doctors, onChangeFilter, onChangeFilters, onClear }: FilterBarProps) {
+export function FilterBar({
+  filters,
+  doctors,
+  onChangeFilter,
+  onChangeFilters,
+  onClear,
+}: FilterBarProps) {
   // Debounce nos campos de texto livre — evita disparar router.replace por keystroke.
   const [procedure, setProcedure] = useState(filters.procedure ?? '')
   const [patient, setPatient] = useState(filters.patient ?? '')
@@ -188,10 +194,7 @@ export function FilterBar({ filters, doctors, onChangeFilter, onChangeFilters, o
             id="filter-status"
             value={filters.status ?? ''}
             onChange={(e) =>
-              onChangeFilter(
-                'status',
-                (e.target.value as CalendarStatus | '') || null,
-              )
+              onChangeFilter('status', (e.target.value as CalendarStatus | '') || null)
             }
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs"
           >

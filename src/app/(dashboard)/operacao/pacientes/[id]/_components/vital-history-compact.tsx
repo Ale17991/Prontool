@@ -22,10 +22,8 @@ interface Props {
 
 function bmiBadge(bmi: number | null): { label: string; className: string } | null {
   if (bmi === null) return null
-  if (bmi < 18.5)
-    return { label: 'Abaixo', className: 'bg-info-bg text-info-text' }
-  if (bmi < 25)
-    return { label: 'Normal', className: 'bg-success-bg text-success-text' }
+  if (bmi < 18.5) return { label: 'Abaixo', className: 'bg-info-bg text-info-text' }
+  if (bmi < 25) return { label: 'Normal', className: 'bg-success-bg text-success-text' }
   if (bmi < 30)
     return {
       label: 'Sobrepeso',
@@ -68,30 +66,18 @@ export function VitalHistoryCompactCard({ measurements }: Props) {
       </CardHeader>
       <CardContent>
         {total === 0 ? (
-          <p className="text-xs text-slate-500">
-            Nenhum sinal vital registrado ainda.
-          </p>
+          <p className="text-xs text-slate-500">Nenhum sinal vital registrado ainda.</p>
         ) : (
           <>
             <div className="overflow-x-auto rounded-md border border-slate-200">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-[10px] uppercase tracking-widest">
-                      Data
-                    </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-widest">
-                      PA
-                    </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-widest">
-                      FC
-                    </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-widest">
-                      Peso
-                    </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-widest">
-                      IMC
-                    </TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-widest">Data</TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-widest">PA</TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-widest">FC</TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-widest">Peso</TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-widest">IMC</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -103,17 +89,13 @@ export function VitalHistoryCompactCard({ measurements }: Props) {
                           {formatDateTime(v.measuredAt)}
                         </TableCell>
                         <TableCell className="text-xs text-slate-700">
-                          {v.systolicBp && v.diastolicBp
-                            ? `${v.systolicBp}/${v.diastolicBp}`
-                            : '—'}
+                          {v.systolicBp && v.diastolicBp ? `${v.systolicBp}/${v.diastolicBp}` : '—'}
                         </TableCell>
                         <TableCell className="text-xs text-slate-700">
                           {v.heartRate ?? '—'}
                         </TableCell>
                         <TableCell className="text-xs text-slate-700">
-                          {v.weightGrams !== null
-                            ? `${(v.weightGrams / 1000).toFixed(1)} kg`
-                            : '—'}
+                          {v.weightGrams !== null ? `${(v.weightGrams / 1000).toFixed(1)} kg` : '—'}
                         </TableCell>
                         <TableCell className="text-xs">
                           <span className="font-bold text-slate-700">

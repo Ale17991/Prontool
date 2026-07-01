@@ -94,10 +94,7 @@ export async function createManualUser(
       .eq('tenant_id', tenantId)
       .maybeSingle()
     if (existingLink && (existingLink as { status: string }).status === 'active') {
-      throw new ConflictError(
-        'USER_ALREADY_ACTIVE',
-        'Esse e-mail já está vinculado à clínica.',
-      )
+      throw new ConflictError('USER_ALREADY_ACTIVE', 'Esse e-mail já está vinculado à clínica.')
     }
   }
   if (!userId) throw new Error('createManualUser: userId não resolvido')
@@ -129,16 +126,14 @@ export async function createManualUser(
 
   // 4. Upsert user_profile (full_name, phone) — best-effort.
   try {
-    await supabaseService
-      .from('user_profile')
-      .upsert(
-        {
-          user_id: userId,
-          full_name,
-          phone: phone ?? null,
-        } as never,
-        { onConflict: 'user_id' },
-      )
+    await supabaseService.from('user_profile').upsert(
+      {
+        user_id: userId,
+        full_name,
+        phone: phone ?? null,
+      } as never,
+      { onConflict: 'user_id' },
+    )
   } catch {
     // ignora falha não-crítica.
   }
@@ -185,8 +180,6 @@ export async function createManualUser(
     userId,
     email,
     role,
-    linkedDoctor: linkedDoctor
-      ? { id: linkedDoctor.id, fullName: linkedDoctor.full_name }
-      : null,
+    linkedDoctor: linkedDoctor ? { id: linkedDoctor.id, fullName: linkedDoctor.full_name } : null,
   }
 }

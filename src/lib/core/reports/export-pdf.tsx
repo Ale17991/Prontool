@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import type { MonthlyReport } from './monthly'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
@@ -160,9 +153,7 @@ export function MonthlyReportDocument({
             revenueByPlan.map((row) => (
               <View key={row.planId} style={styles.tr}>
                 <Text style={[styles.td, styles.cellName]}>{row.planName}</Text>
-                <Text style={[styles.td, styles.cellMetric]}>
-                  {formatBRL(row.netRevenueCents)}
-                </Text>
+                <Text style={[styles.td, styles.cellMetric]}>{formatBRL(row.netRevenueCents)}</Text>
                 <Text style={[styles.td, styles.cellCount, styles.mutedCell]}>
                   {row.appointmentCount}
                 </Text>

@@ -41,17 +41,18 @@ notifications  (existente, CHECK constraint expandido)
 
 Adicionar 5 colunas para suportar a feature pública. Tabela existente; demais campos preservados.
 
-| Coluna | Tipo | Constraint | Default |
-|---|---|---|---|
-| `public_booking_slug` | TEXT | UNIQUE NULL; validado por regex `^[a-z0-9][a-z0-9-]{2,31}$` (3-32 chars, começa com letra/dígito, kebab-case) | NULL |
-| `public_booking_enabled` | BOOLEAN | NOT NULL | FALSE |
-| `public_booking_min_hours_advance` | INT | NOT NULL CHECK ≥ 0 AND ≤ 168 (uma semana) | 24 |
-| `public_booking_max_days_advance` | INT | NOT NULL CHECK ≥ 1 AND ≤ 180 (6 meses) | 30 |
-| `public_booking_cancel_min_hours` | INT | NOT NULL CHECK ≥ 0 AND ≤ 168 | 6 |
+| Coluna                             | Tipo    | Constraint                                                                                                    | Default |
+| ---------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- | ------- |
+| `public_booking_slug`              | TEXT    | UNIQUE NULL; validado por regex `^[a-z0-9][a-z0-9-]{2,31}$` (3-32 chars, começa com letra/dígito, kebab-case) | NULL    |
+| `public_booking_enabled`           | BOOLEAN | NOT NULL                                                                                                      | FALSE   |
+| `public_booking_min_hours_advance` | INT     | NOT NULL CHECK ≥ 0 AND ≤ 168 (uma semana)                                                                     | 24      |
+| `public_booking_max_days_advance`  | INT     | NOT NULL CHECK ≥ 1 AND ≤ 180 (6 meses)                                                                        | 30      |
+| `public_booking_cancel_min_hours`  | INT     | NOT NULL CHECK ≥ 0 AND ≤ 168                                                                                  | 6       |
 
 **Constraint adicional**: `public_booking_enabled = TRUE` requer `public_booking_slug IS NOT NULL` (CHECK).
 
 **RLS adicional** (para o slug ser legível por `anon`):
+
 ```sql
 CREATE POLICY public_slug_read ON public.tenant_clinic_profile
   FOR SELECT TO anon
@@ -66,19 +67,19 @@ Esta policy expõe **apenas** os campos lidos pela RPC `public_booking_resolve_s
 
 Médicos que aparecem no link público de cada tenant. **1:N** com `tenant_clinic_profile`; vincula a `doctors` existente.
 
-| Coluna | Tipo | Constraint | Notas |
-|---|---|---|---|
-| `tenant_id` | UUID | NOT NULL | FK → tenants(id) |
-| `doctor_id` | UUID | NOT NULL | FK → doctors(id) com (tenant_id, doctor_id) |
-| `display_order` | INT | NOT NULL | DEFAULT 0; ORDER BY this ASC, then doctor name |
-| `bio` | TEXT | NULL | CHECK length ≤ 500. Texto curto público (ex.: "Ortopedista, 15 anos de experiência") |
-| `available_weekdays` | SMALLINT[] | NOT NULL | DEFAULT '{1,2,3,4,5}' (seg-sex); valores 0-6 (dom-sáb); CHECK 1 ≤ array_length ≤ 7 |
-| `available_from` | TIME | NOT NULL | DEFAULT '08:00' |
-| `available_until` | TIME | NOT NULL | DEFAULT '18:00'; CHECK > available_from |
-| `lunch_break_from` | TIME | NULL | Se NOT NULL, lunch_break_until também não pode ser NULL |
-| `lunch_break_until` | TIME | NULL | CHECK > lunch_break_from quando NOT NULL |
-| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
-| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | trigger atualiza |
+| Coluna               | Tipo        | Constraint             | Notas                                                                                |
+| -------------------- | ----------- | ---------------------- | ------------------------------------------------------------------------------------ |
+| `tenant_id`          | UUID        | NOT NULL               | FK → tenants(id)                                                                     |
+| `doctor_id`          | UUID        | NOT NULL               | FK → doctors(id) com (tenant_id, doctor_id)                                          |
+| `display_order`      | INT         | NOT NULL               | DEFAULT 0; ORDER BY this ASC, then doctor name                                       |
+| `bio`                | TEXT        | NULL                   | CHECK length ≤ 500. Texto curto público (ex.: "Ortopedista, 15 anos de experiência") |
+| `available_weekdays` | SMALLINT[]  | NOT NULL               | DEFAULT '{1,2,3,4,5}' (seg-sex); valores 0-6 (dom-sáb); CHECK 1 ≤ array_length ≤ 7   |
+| `available_from`     | TIME        | NOT NULL               | DEFAULT '08:00'                                                                      |
+| `available_until`    | TIME        | NOT NULL               | DEFAULT '18:00'; CHECK > available_from                                              |
+| `lunch_break_from`   | TIME        | NULL                   | Se NOT NULL, lunch_break_until também não pode ser NULL                              |
+| `lunch_break_until`  | TIME        | NULL                   | CHECK > lunch_break_from quando NOT NULL                                             |
+| `created_at`         | TIMESTAMPTZ | NOT NULL DEFAULT now() |                                                                                      |
+| `updated_at`         | TIMESTAMPTZ | NOT NULL DEFAULT now() | trigger atualiza                                                                     |
 
 **PK**: `(tenant_id, doctor_id)`.
 
@@ -94,15 +95,15 @@ Médicos que aparecem no link público de cada tenant. **1:N** com `tenant_clini
 
 Procedimentos publicados **por médico** (relação 1:N — clarification Q1). Cada `(tenant_id, doctor_id, procedure_id)` é registro único; o mesmo procedimento pode existir publicado para vários médicos com `display_name` e `duration_minutes` distintos.
 
-| Coluna | Tipo | Constraint | Notas |
-|---|---|---|---|
-| `tenant_id` | UUID | NOT NULL | FK |
-| `doctor_id` | UUID | NOT NULL | FK |
-| `procedure_id` | UUID | NOT NULL | FK → procedures(id) |
-| `display_name` | TEXT | NOT NULL | CHECK length 3-100; nome amigável ao paciente (ex.: "Consulta clínica" em vez do nome TUSS) |
-| `duration_minutes` | INT | NOT NULL | CHECK ≥ 5 AND ≤ 480 (entre 5min e 8h) |
-| `display_order` | INT | NOT NULL DEFAULT 0 | |
-| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| Coluna             | Tipo        | Constraint             | Notas                                                                                       |
+| ------------------ | ----------- | ---------------------- | ------------------------------------------------------------------------------------------- |
+| `tenant_id`        | UUID        | NOT NULL               | FK                                                                                          |
+| `doctor_id`        | UUID        | NOT NULL               | FK                                                                                          |
+| `procedure_id`     | UUID        | NOT NULL               | FK → procedures(id)                                                                         |
+| `display_name`     | TEXT        | NOT NULL               | CHECK length 3-100; nome amigável ao paciente (ex.: "Consulta clínica" em vez do nome TUSS) |
+| `duration_minutes` | INT         | NOT NULL               | CHECK ≥ 5 AND ≤ 480 (entre 5min e 8h)                                                       |
+| `display_order`    | INT         | NOT NULL DEFAULT 0     |                                                                                             |
+| `created_at`       | TIMESTAMPTZ | NOT NULL DEFAULT now() |                                                                                             |
 
 **PK**: `(tenant_id, doctor_id, procedure_id)`.
 
@@ -118,18 +119,19 @@ Procedimentos publicados **por médico** (relação 1:N — clarification Q1). C
 
 Tokens únicos para cancelamento via link (sem login).
 
-| Coluna | Tipo | Constraint | Notas |
-|---|---|---|---|
-| `id` | UUID | PK DEFAULT gen_random_uuid() | |
-| `tenant_id` | UUID | NOT NULL | FK |
-| `appointment_id` | UUID | NOT NULL | FK → appointments(id), UNIQUE constraint por action |
-| `token_hash` | TEXT | NOT NULL UNIQUE | SHA-256 hex do token raw |
-| `action` | TEXT | NOT NULL | CHECK IN ('cancel', 'reschedule'). MVP usa apenas 'cancel'; 'reschedule' reservado para fase 2 |
-| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
-| `expires_at` | TIMESTAMPTZ | NOT NULL | DEFAULT now() + interval '30 days' |
-| `used_at` | TIMESTAMPTZ | NULL | Marca quando o token foi efetivamente usado |
+| Coluna           | Tipo        | Constraint                   | Notas                                                                                          |
+| ---------------- | ----------- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `id`             | UUID        | PK DEFAULT gen_random_uuid() |                                                                                                |
+| `tenant_id`      | UUID        | NOT NULL                     | FK                                                                                             |
+| `appointment_id` | UUID        | NOT NULL                     | FK → appointments(id), UNIQUE constraint por action                                            |
+| `token_hash`     | TEXT        | NOT NULL UNIQUE              | SHA-256 hex do token raw                                                                       |
+| `action`         | TEXT        | NOT NULL                     | CHECK IN ('cancel', 'reschedule'). MVP usa apenas 'cancel'; 'reschedule' reservado para fase 2 |
+| `created_at`     | TIMESTAMPTZ | NOT NULL DEFAULT now()       |                                                                                                |
+| `expires_at`     | TIMESTAMPTZ | NOT NULL                     | DEFAULT now() + interval '30 days'                                                             |
+| `used_at`        | TIMESTAMPTZ | NULL                         | Marca quando o token foi efetivamente usado                                                    |
 
 **Índices**:
+
 - `idx_pb_tokens_hash` UNIQUE em `(token_hash)`
 - `idx_pb_tokens_appointment` em `(appointment_id, action)` — UNIQUE em `(appointment_id, action)` evita 2 tokens cancel ativos para mesmo appointment
 - `idx_pb_tokens_expires` em `(expires_at)` — para limpeza periódica
@@ -144,13 +146,13 @@ Tokens únicos para cancelamento via link (sem login).
 
 Append-only com TTL para rate limit por IP-hash.
 
-| Coluna | Tipo | Constraint | Notas |
-|---|---|---|---|
-| `id` | UUID | PK DEFAULT gen_random_uuid() | |
-| `tenant_id` | UUID | NOT NULL | FK |
-| `ip_hash` | TEXT | NOT NULL | SHA-256 hex de `${ip}:${tenant_id}` |
-| `action` | TEXT | NOT NULL | CHECK IN ('view_slots', 'submit') |
-| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| Coluna       | Tipo        | Constraint                   | Notas                               |
+| ------------ | ----------- | ---------------------------- | ----------------------------------- |
+| `id`         | UUID        | PK DEFAULT gen_random_uuid() |                                     |
+| `tenant_id`  | UUID        | NOT NULL                     | FK                                  |
+| `ip_hash`    | TEXT        | NOT NULL                     | SHA-256 hex de `${ip}:${tenant_id}` |
+| `action`     | TEXT        | NOT NULL                     | CHECK IN ('view_slots', 'submit')   |
+| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now()       |                                     |
 
 **Índice**: `idx_pb_rate_lookup` em `(ip_hash, tenant_id, action, created_at)` — query principal é `WHERE ip_hash=$1 AND tenant_id=$2 AND action=$3 AND created_at > now() - interval`.
 
@@ -177,9 +179,10 @@ ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check
 ```
 
 **Componente `notification-item.tsx`** receberá mapping novo (não é mudança de schema — UI):
+
 ```typescript
 COLOR_BY_TYPE['public_booking'] = 'text-info-text bg-info-bg'
-ICON_BY_TYPE['public_booking'] = CalendarPlus  // de lucide-react
+ICON_BY_TYPE['public_booking'] = CalendarPlus // de lucide-react
 ```
 
 **`reference_id` / `reference_type`**: aponta para `appointment.id` com `reference_type='appointment'`. `reference_key` = `appointment_id` (deduplicação — mesmo appointment não gera 2 notifications para mesmo user).
@@ -369,6 +372,7 @@ GRANT EXECUTE ON FUNCTION public.public_booking_slots(TEXT, UUID, UUID, DATE, DA
 ```
 
 **Pegadinhas**:
+
 - `EXTRACT(DOW)`: 0=domingo, 6=sábado. Conferir match com `available_weekdays`.
 - `AT TIME ZONE`: aplica conversão correta de horário local da clínica para `TIMESTAMPTZ`.
 - `generate_series` com interval — performance OK para 30 dias × ~20 slots/dia = 600 candidatos.
@@ -446,6 +450,7 @@ Sem novos estados específicos para a feature pública — reusa enum existente.
 ## 11. Resumo de migrations
 
 **Migration única `0084_public_booking.sql`** contém:
+
 1. ALTER `tenant_clinic_profile` (+5 colunas + CHECK + RLS policy)
 2. CREATE `public_booking_doctors`
 3. CREATE `public_booking_doctor_procedures`
@@ -464,16 +469,16 @@ Sem novos estados específicos para a feature pública — reusa enum existente.
 
 ## 12. Entidades em resumo
 
-| Entidade | Tipo | Quantidade |
-|---|---|---|
-| `tenant_clinic_profile` | ALTER (+5 colunas) | 1 |
-| `public_booking_doctors` | NOVA tabela | 1 |
-| `public_booking_doctor_procedures` | NOVA tabela | 1 |
-| `public_booking_tokens` | NOVA tabela | 1 |
-| `public_booking_rate_limits` | NOVA tabela | 1 |
-| `notifications` | ALTER CHECK | 1 |
-| `public_booking_resolve_slug` | NOVA função | 1 |
-| `public_booking_slots` | NOVA função | 1 |
-| `public_booking_find_patient_by_cpf` | NOVA função | 1 |
+| Entidade                             | Tipo               | Quantidade |
+| ------------------------------------ | ------------------ | ---------- |
+| `tenant_clinic_profile`              | ALTER (+5 colunas) | 1          |
+| `public_booking_doctors`             | NOVA tabela        | 1          |
+| `public_booking_doctor_procedures`   | NOVA tabela        | 1          |
+| `public_booking_tokens`              | NOVA tabela        | 1          |
+| `public_booking_rate_limits`         | NOVA tabela        | 1          |
+| `notifications`                      | ALTER CHECK        | 1          |
+| `public_booking_resolve_slug`        | NOVA função        | 1          |
+| `public_booking_slots`               | NOVA função        | 1          |
+| `public_booking_find_patient_by_cpf` | NOVA função        | 1          |
 
 Total: 9 mudanças DB na migration 0084.

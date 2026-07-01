@@ -8,10 +8,7 @@
  * Red-first: handler import fails until T084; worker until T085.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import {
   seedTenant,
   seedGhlConfig,
@@ -70,7 +67,10 @@ describe('T064 — webhook idempotency', () => {
     )
 
     const sb = serviceClient()
-    const { data: appointments } = await sb.from('appointments').select('id').eq('tenant_id', tenantId)
+    const { data: appointments } = await sb
+      .from('appointments')
+      .select('id')
+      .eq('tenant_id', tenantId)
     expect(appointments).toHaveLength(1)
     const { data: rawEvents } = await sb
       .from('raw_webhook_events')

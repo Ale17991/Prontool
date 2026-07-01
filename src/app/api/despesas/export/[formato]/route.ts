@@ -14,7 +14,14 @@ export const runtime = 'nodejs'
 
 const formatSchema = z.enum(['pdf', 'excel'])
 const VALID_CATEGORIES = new Set([
-  'aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'impostos', 'manutencao', 'outros',
+  'aluguel',
+  'equipamentos',
+  'materiais',
+  'pessoal',
+  'servicos',
+  'impostos',
+  'manutencao',
+  'outros',
 ])
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -39,8 +46,7 @@ export async function GET(
 
     const sp = new URL(req.url).searchParams
     const categoryRaw = sp.get('category')
-    const category =
-      categoryRaw && VALID_CATEGORIES.has(categoryRaw) ? categoryRaw : 'all'
+    const category = categoryRaw && VALID_CATEGORIES.has(categoryRaw) ? categoryRaw : 'all'
     const from = sp.get('from')
     const to = sp.get('to')
     if ((from && !DATE.test(from)) || (to && !DATE.test(to))) {
@@ -86,8 +92,7 @@ export async function GET(
     return new Response(new Uint8Array(xlsx), {
       status: 200,
       headers: {
-        'content-type':
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'content-disposition': `attachment; filename="${stem}.xlsx"`,
         'cache-control': 'no-store',
       },

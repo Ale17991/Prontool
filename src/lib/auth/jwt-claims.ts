@@ -81,7 +81,9 @@ export function verifyAccessToken(token: string): VerifiedAccessClaims | null {
   if (!timingSafeEqual(expected, provided)) return null
 
   try {
-    return JSON.parse(Buffer.from(b64urlToB64(payloadB64), 'base64').toString('utf8')) as VerifiedAccessClaims
+    return JSON.parse(
+      Buffer.from(b64urlToB64(payloadB64), 'base64').toString('utf8'),
+    ) as VerifiedAccessClaims
   } catch {
     return null
   }

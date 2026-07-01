@@ -9,6 +9,7 @@ Implementado em `tools/scripts/scan-bundle-for-memed-keys.ts`.
 Diretório `.next/static/` gerado por `next build` (padrão Next.js 14 App Router).
 
 Opcional: env vars
+
 - `SCAN_EXTRA_PATTERNS` — patterns regex adicionais separados por `|` (default: vazio)
 - `SCAN_PATH` — sobrescreve `.next/static/` (default usado)
 
@@ -49,6 +50,7 @@ Opcional: env vars
 ```
 
 Script package.json:
+
 ```json
 {
   "scripts": {

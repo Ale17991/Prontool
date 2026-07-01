@@ -21,7 +21,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { ReportsSubNav } from '../../reports-sub-nav'
 
@@ -32,8 +39,7 @@ interface PageProps {
   searchParams: { from?: string; to?: string }
 }
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export default async function PorProfissionalDetailPage({ params, searchParams }: PageProps) {
   const session = await getSession()
@@ -79,9 +85,7 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
               {detail.doctor.specialty}
             </span>
           ) : null}
-          {registro ? (
-            <span className="font-mono text-xs text-slate-500">{registro}</span>
-          ) : null}
+          {registro ? <span className="font-mono text-xs text-slate-500">{registro}</span> : null}
         </div>
       </div>
 
@@ -96,21 +100,12 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <form
-              method="get"
-              className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]"
-            >
+            <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
               <div className="space-y-1.5">
                 <Label htmlFor="from" className="text-xs">
                   Data início
                 </Label>
-                <Input
-                  id="from"
-                  name="from"
-                  type="date"
-                  defaultValue={period.from}
-                  required
-                />
+                <Input id="from" name="from" type="date" defaultValue={period.from} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="to" className="text-xs">
@@ -200,9 +195,7 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
               <TableBody>
                 {detail.byPlan.map((p) => (
                   <TableRow key={p.planId || 'particular'}>
-                    <TableCell className="font-semibold text-slate-900">
-                      {p.planName}
-                    </TableCell>
+                    <TableCell className="font-semibold text-slate-900">{p.planName}</TableCell>
                     <TableCell className="text-right tabular-nums text-slate-700">
                       {p.procedureCount}
                     </TableCell>
@@ -280,9 +273,7 @@ export default async function PorProfissionalDetailPage({ params, searchParams }
                     </TableCell>
                     <TableCell>
                       <p className="font-medium text-slate-900">{row.procedureName}</p>
-                      <p className="font-mono text-[10px] text-slate-500">
-                        {row.tussCode}
-                      </p>
+                      <p className="font-mono text-[10px] text-slate-500">{row.tussCode}</p>
                     </TableCell>
                     <TableCell className="text-slate-700">{row.planName}</TableCell>
                     <TableCell className="text-right font-bold text-slate-900 tabular-nums">
@@ -324,9 +315,7 @@ function SummaryCard({
         <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
           <Icon className="h-4 w-4" />
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <p
           className={
             highlight

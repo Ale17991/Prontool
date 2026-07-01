@@ -9,11 +9,7 @@ export const runtime = 'nodejs'
  * dashboard, sem auth, sem QUALQUER dado de paciente. Apenas confirma que o
  * documento foi emitido pela clínica e quando.
  */
-export default async function VerificarPage({
-  params,
-}: {
-  params: { token: string }
-}) {
+export default async function VerificarPage({ params }: { params: { token: string } }) {
   const supabase = createSupabaseServiceClient()
   const result = await verifyToken(supabase, params.token).catch(() => ({ valid: false }))
   if ('valid' in result && result.valid) {
@@ -66,8 +62,8 @@ export default async function VerificarPage({
           </dl>
         ) : (
           <p className="text-sm text-slate-600">
-            O código informado não corresponde a nenhum documento emitido. Verifique se o QR foi lido
-            corretamente.
+            O código informado não corresponde a nenhum documento emitido. Verifique se o QR foi
+            lido corretamente.
           </p>
         )}
       </div>

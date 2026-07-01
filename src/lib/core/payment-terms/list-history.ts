@@ -33,20 +33,22 @@ export async function listPaymentTermsHistory(
     throw new Error(`listPaymentTermsHistory failed: ${error.message}`)
   }
 
-  const history: PaymentTermsRow[] = ((data ?? []) as Array<{
-    id: string
-    tenant_id: string
-    doctor_id: string
-    payment_mode: 'comissionado' | 'fixo' | 'liberal'
-    percentage_bps: number | null
-    monthly_amount_cents: number | null
-    billing_day: number | null
-    liberal_default_cents: number | null
-    valid_from: string
-    reason: string
-    created_by: string
-    created_at: string
-  }>).map((r) => ({
+  const history: PaymentTermsRow[] = (
+    (data ?? []) as Array<{
+      id: string
+      tenant_id: string
+      doctor_id: string
+      payment_mode: 'comissionado' | 'fixo' | 'liberal'
+      percentage_bps: number | null
+      monthly_amount_cents: number | null
+      billing_day: number | null
+      liberal_default_cents: number | null
+      valid_from: string
+      reason: string
+      created_by: string
+      created_at: string
+    }>
+  ).map((r) => ({
     id: r.id,
     tenantId: r.tenant_id,
     doctorId: r.doctor_id,

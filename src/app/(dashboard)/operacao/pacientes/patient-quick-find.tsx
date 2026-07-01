@@ -177,9 +177,7 @@ export function PatientQuickFind() {
           ) : error ? (
             <p className="py-6 text-center text-xs text-destructive">{error}</p>
           ) : items.length === 0 ? (
-            <p className="py-6 text-center text-xs text-slate-500">
-              Nenhum paciente encontrado.
-            </p>
+            <p className="py-6 text-center text-xs text-slate-500">Nenhum paciente encontrado.</p>
           ) : (
             <ul role="listbox">
               {items.map((p, idx) => (
@@ -206,9 +204,7 @@ export function PatientQuickFind() {
                       <span className="flex items-center gap-2 text-[11px] text-slate-500">
                         <span className="font-mono">{maskCpf(p.cpf)}</span>
                         <span aria-hidden>·</span>
-                        <span className="truncate">
-                          {p.planName ?? 'Particular'}
-                        </span>
+                        <span className="truncate">{p.planName ?? 'Particular'}</span>
                       </span>
                     </div>
                   </button>
@@ -217,9 +213,7 @@ export function PatientQuickFind() {
             </ul>
           )}
           <div className="border-t border-slate-100 px-3 py-1.5 text-[10px] text-slate-400">
-            <kbd className="rounded border border-slate-300 bg-slate-50 px-1 text-[9px]">
-              Enter
-            </kbd>{' '}
+            <kbd className="rounded border border-slate-300 bg-slate-50 px-1 text-[9px]">Enter</kbd>{' '}
             abre o primeiro resultado
           </div>
         </div>

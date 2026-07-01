@@ -41,9 +41,7 @@ export function PatientTagsCard({ patientId }: PatientTagsCardProps) {
   return (
     <Card>
       <CardContent className="space-y-2 p-3 text-xs">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          Tags
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tags</p>
         {loading ? (
           <div className="flex items-center gap-2 text-slate-400">
             <Loader2 className="h-3 w-3 animate-spin" />

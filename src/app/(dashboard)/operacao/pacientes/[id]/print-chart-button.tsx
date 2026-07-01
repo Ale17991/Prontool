@@ -85,9 +85,9 @@ export function PrintChartButton({ patientId }: { patientId: string }) {
               Imprimir prontuário completo
             </DialogTitle>
             <DialogDescription>
-              Gera PDF com dados do paciente, alergias, antecedentes, sinais vitais,
-              diagnósticos, evoluções, anamneses, plano de tratamento e atendimentos.
-              Filtro de período aplica-se às seções temporais.
+              Gera PDF com dados do paciente, alergias, antecedentes, sinais vitais, diagnósticos,
+              evoluções, anamneses, plano de tratamento e atendimentos. Filtro de período aplica-se
+              às seções temporais.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
@@ -102,12 +102,7 @@ export function PrintChartButton({ patientId }: { patientId: string }) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="pdf_to">Até (opcional)</Label>
-              <Input
-                id="pdf_to"
-                type="date"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-              />
+              <Input id="pdf_to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
             </div>
           </div>
           <p className="text-[11px] text-slate-500">

@@ -58,10 +58,7 @@ export const ghlAdapter: IntegrationAdapter<GhlConfigV2, GhlOAuthCredentials> = 
   credentialsSchema: ghlOAuthCredentialsSchema as unknown as z.ZodType<GhlOAuthCredentials>,
   redactCredentials: redact,
 
-  async handleInboundWebhook(
-    supabase: SupabaseClient<Database>,
-    req: Request,
-  ): Promise<Response> {
+  async handleInboundWebhook(supabase: SupabaseClient<Database>, req: Request): Promise<Response> {
     return handleGhlWebhook(supabase, req)
   },
 
@@ -127,10 +124,7 @@ export const ghlAdapter: IntegrationAdapter<GhlConfigV2, GhlOAuthCredentials> = 
       case 'appointment.created': {
         if (!event.patient.ghlContactId) {
           // Patient pre-dates the connection or sync failed; skip.
-          ctx.logger.info(
-            { patient_id: event.patient.id },
-            'ghl-adapter-skip-note-no-contact',
-          )
+          ctx.logger.info({ patient_id: event.patient.id }, 'ghl-adapter-skip-note-no-contact')
           return
         }
         try {
@@ -160,10 +154,7 @@ export const ghlAdapter: IntegrationAdapter<GhlConfigV2, GhlOAuthCredentials> = 
 
       case 'appointment.reversed': {
         // Out of v1 scope — log only.
-        ctx.logger.debug(
-          { appointment_id: event.original.id },
-          'ghl-adapter-skip-reversal-note',
-        )
+        ctx.logger.debug({ appointment_id: event.original.id }, 'ghl-adapter-skip-reversal-note')
         return
       }
     }

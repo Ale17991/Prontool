@@ -187,7 +187,9 @@ export async function POST(req: Request): Promise<Response> {
         procedures_count: result.proceduresCount,
         integrations_dispatched: integrationsDispatched,
         ...(result.materialsCount !== undefined ? { materials_count: result.materialsCount } : {}),
-        ...(result.assistantsCount !== undefined ? { assistants_count: result.assistantsCount } : {}),
+        ...(result.assistantsCount !== undefined
+          ? { assistants_count: result.assistantsCount }
+          : {}),
         ...(result.assistants ? { assistants: result.assistants } : {}),
       },
       { status: 201 },

@@ -29,12 +29,20 @@ export async function GET(req: Request): Promise<Response> {
     })
     if (!isGoogleOAuthConfigured()) {
       return NextResponse.json(
-        { error: { code: 'OAUTH_CONFIG_MISSING', message: 'Google Calendar não configurado. Defina as variáveis GOOGLE_* no ambiente.' } },
+        {
+          error: {
+            code: 'OAUTH_CONFIG_MISSING',
+            message: 'Google Calendar não configurado. Defina as variáveis GOOGLE_* no ambiente.',
+          },
+        },
         { status: 500 },
       )
     }
 
-    const { cookieValue, nonce } = createStateCookie({ userId: session.userId, tenantId: session.tenantId })
+    const { cookieValue, nonce } = createStateCookie({
+      userId: session.userId,
+      tenantId: session.tenantId,
+    })
     const cookieHeader = [
       `${STATE_COOKIE_NAME}=${encodeURIComponent(cookieValue)}`,
       'HttpOnly',

@@ -1,5 +1,14 @@
 import { redirect } from 'next/navigation'
-import { Calculator, DollarSign, Download, FileText, LayoutDashboard, Receipt, Stethoscope, TrendingDown } from 'lucide-react'
+import {
+  Calculator,
+  DollarSign,
+  Download,
+  FileText,
+  LayoutDashboard,
+  Receipt,
+  Stethoscope,
+  TrendingDown,
+} from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
@@ -10,7 +19,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -49,9 +65,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            Relatório mensal
-          </h1>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Relatório mensal</h1>
           <p className="mt-1 text-sm text-slate-500">
             Receita por plano, produção por profissional e comissão líquida para o período. Os
             totais já consideram estornos (appointments_effective).
@@ -158,15 +172,12 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
                 {report.revenueByPlan.map((row) => {
                   const pct =
                     report.totals.netRevenueCents > 0
-                      ? Math.round(
-                          (row.netRevenueCents / report.totals.netRevenueCents) * 1000,
-                        ) / 10
+                      ? Math.round((row.netRevenueCents / report.totals.netRevenueCents) * 1000) /
+                        10
                       : 0
                   return (
                     <TableRow key={row.planId}>
-                      <TableCell className="font-semibold text-slate-900">
-                        {row.planName}
-                      </TableCell>
+                      <TableCell className="font-semibold text-slate-900">{row.planName}</TableCell>
                       <TableCell className="text-right font-bold text-slate-900">
                         {formatCurrency(row.netRevenueCents)}
                       </TableCell>
@@ -181,9 +192,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
                               style={{ width: `${Math.min(pct, 100)}%` }}
                             />
                           </div>
-                          <span className="w-10 text-xs text-slate-600">
-                            {pct.toFixed(1)}%
-                          </span>
+                          <span className="w-10 text-xs text-slate-600">{pct.toFixed(1)}%</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -220,9 +229,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
               <TableBody>
                 {report.productionByDoctor.map((row) => (
                   <TableRow key={row.doctorId}>
-                    <TableCell className="font-semibold text-slate-900">
-                      {row.doctorName}
-                    </TableCell>
+                    <TableCell className="font-semibold text-slate-900">{row.doctorName}</TableCell>
                     <TableCell className="text-right font-bold text-slate-900">
                       {formatCurrency(row.netProductionCents)}
                     </TableCell>

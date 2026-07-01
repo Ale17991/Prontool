@@ -28,9 +28,7 @@ const VIEWPORTS = [
   { name: 'tablet-768', width: 768, height: 1024 },
 ] as const
 
-const PUBLIC_PAGES = [
-  { path: '/login', label: 'login' },
-] as const
+const PUBLIC_PAGES = [{ path: '/login', label: 'login' }] as const
 
 const AUTH_PAGES = [
   { path: '/operacao/pacientes', label: 'pacientes-list' },
@@ -59,14 +57,11 @@ for (const viewport of VIEWPORTS) {
         await page.waitForLoadState('networkidle')
         // Aguarda fontes carregarem para evitar flicker em screenshot
         await page.evaluate(() => document.fonts.ready)
-        await expect(page).toHaveScreenshot(
-          `${route.label}-${viewport.name}.png`,
-          {
-            fullPage: true,
-            // Tolerância relaxada cobre antialiasing entre runs.
-            maxDiffPixelRatio: 0.02,
-          },
-        )
+        await expect(page).toHaveScreenshot(`${route.label}-${viewport.name}.png`, {
+          fullPage: true,
+          // Tolerância relaxada cobre antialiasing entre runs.
+          maxDiffPixelRatio: 0.02,
+        })
       })
     }
 
@@ -78,13 +73,10 @@ for (const viewport of VIEWPORTS) {
         await page.evaluate(() => document.fonts.ready)
         // Aguarda 500ms pra estabilizar animações de fade-in / framer-motion
         await page.waitForTimeout(500)
-        await expect(page).toHaveScreenshot(
-          `${route.label}-${viewport.name}.png`,
-          {
-            fullPage: true,
-            maxDiffPixelRatio: 0.02,
-          },
-        )
+        await expect(page).toHaveScreenshot(`${route.label}-${viewport.name}.png`, {
+          fullPage: true,
+          maxDiffPixelRatio: 0.02,
+        })
       })
     }
   })
@@ -118,7 +110,10 @@ test.describe('Drawer mobile — interação @ 375px', () => {
     })
 
     // Clicar em "Cadastros" deve navegar e fechar drawer
-    await page.getByRole('link', { name: /cadastros/i }).first().click()
+    await page
+      .getByRole('link', { name: /cadastros/i })
+      .first()
+      .click()
     await page.waitForURL(/\/cadastros/, { timeout: 10_000 })
     await expect(navTitle).not.toBeVisible()
   })

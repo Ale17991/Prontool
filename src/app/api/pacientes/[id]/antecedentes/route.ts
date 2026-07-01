@@ -30,10 +30,7 @@ const createSchema = z.object({
   notes: z.string().trim().max(2000).optional().nullable(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/antecedentes`
   try {
     const session = await requireRole(

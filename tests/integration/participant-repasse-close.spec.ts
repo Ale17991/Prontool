@@ -5,7 +5,10 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
-import { setupParticipantScenario, type ParticipantScenario } from '@/tests/helpers/participants-setup'
+import {
+  setupParticipantScenario,
+  type ParticipantScenario,
+} from '@/tests/helpers/participants-setup'
 import { addParticipant } from '@/lib/core/appointment-assistants/add-participant'
 import { closeMonthlyPayout, getMonthlyPayoutSnapshot } from '@/lib/core/monthly-payouts'
 

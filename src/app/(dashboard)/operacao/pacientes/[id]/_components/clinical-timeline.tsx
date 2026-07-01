@@ -5,11 +5,7 @@ import { Stethoscope } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { TimelineEventItem } from './timeline-event-item'
-import type {
-  AuthorMap,
-  TimelineEvent,
-  TimelineFilter,
-} from '@/lib/core/patient-timeline'
+import type { AuthorMap, TimelineEvent, TimelineFilter } from '@/lib/core/patient-timeline'
 import { formatAuthorDisplay } from '@/lib/core/patient-timeline'
 
 interface Props {
@@ -83,10 +79,7 @@ export function ClinicalTimeline({ events: allEvents, authors, canViewValues }: 
     return out
   }, [events])
 
-  const filtered = useMemo(
-    () => events.filter((e) => matchesFilter(e, filter)),
-    [events, filter],
-  )
+  const filtered = useMemo(() => events.filter((e) => matchesFilter(e, filter)), [events, filter])
 
   return (
     <Card>
@@ -119,7 +112,8 @@ export function ClinicalTimeline({ events: allEvents, authors, canViewValues }: 
                   disabled && 'cursor-not-allowed opacity-40 hover:bg-slate-100',
                 )}
               >
-                {f.label}{count > 0 ? ` (${count})` : ''}
+                {f.label}
+                {count > 0 ? ` (${count})` : ''}
               </button>
             )
           })}
@@ -129,9 +123,7 @@ export function ClinicalTimeline({ events: allEvents, authors, canViewValues }: 
         {filtered.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-200 py-10 text-center">
             <p className="text-sm text-slate-500">
-              {events.length === 0
-                ? 'Sem eventos clínicos ainda.'
-                : 'Nenhum evento neste filtro.'}
+              {events.length === 0 ? 'Sem eventos clínicos ainda.' : 'Nenhum evento neste filtro.'}
             </p>
             {filter !== 'todos' ? (
               <button

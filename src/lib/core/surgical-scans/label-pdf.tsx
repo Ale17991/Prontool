@@ -10,7 +10,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontFamily: 'Helvetica-Bold', marginTop: 6, marginBottom: 4 },
   meta: { fontSize: 10, color: '#475569', marginBottom: 2 },
   sectionTitle: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginTop: 16, marginBottom: 6 },
-  row: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#e2e8f0', paddingVertical: 4 },
+  row: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#e2e8f0',
+    paddingVertical: 4,
+  },
   cellHead: { fontFamily: 'Helvetica-Bold', fontSize: 9, color: '#334155' },
   c1: { width: '34%', fontSize: 9 },
   c2: { width: '22%', fontSize: 9 },

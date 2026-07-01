@@ -36,7 +36,12 @@ export interface DisconnectGhlTenantInput {
 }
 
 export interface DisconnectGhlTenantResult {
-  cleanupRemaining: Array<{ kind: 'webhook' | 'custom_menu'; id: string; status: number | null; reason: string }>
+  cleanupRemaining: Array<{
+    kind: 'webhook' | 'custom_menu'
+    id: string
+    status: number | null
+    reason: string
+  }>
 }
 
 const PROVIDER = 'ghl' as const

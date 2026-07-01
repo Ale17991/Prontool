@@ -9,11 +9,11 @@ Define o contrato das abas em `/operacao/notificacoes` (FR-005, FR-006, FR-007).
 
 ## Abas
 
-| id | Label | Default? | Visibilidade |
-|----|-------|----------|--------------|
-| notificacoes | Notificações | **SIM** (default quando `?tab` ausente/inválido) | qualquer autenticado |
-| alertas | Alertas do sistema | não | `can(role, 'alert.read')` |
-| dlq | Pendências | não | `can(role, 'dlq.read')` |
+| id           | Label              | Default?                                         | Visibilidade              |
+| ------------ | ------------------ | ------------------------------------------------ | ------------------------- |
+| notificacoes | Notificações       | **SIM** (default quando `?tab` ausente/inválido) | qualquer autenticado      |
+| alertas      | Alertas do sistema | não                                              | `can(role, 'alert.read')` |
+| dlq          | Pendências         | não                                              | `can(role, 'dlq.read')`   |
 
 A tab "notificacoes" é **sempre visível** (mínimo garantido para qualquer autenticado). As demais aparecem na barra de abas apenas se o usuário tem a permissão correspondente.
 
@@ -62,11 +62,11 @@ Algoritmo no Server Component (`/operacao/notificacoes/page.tsx`):
 
 Cada aba renderiza **o mesmo conteúdo** que sua página standalone tinha antes:
 
-| Aba | Conteúdo | Origem (código a reutilizar) |
-|-----|----------|------------------------------|
+| Aba          | Conteúdo                                                                   | Origem (código a reutilizar)                      |
+| ------------ | -------------------------------------------------------------------------- | ------------------------------------------------- |
 | notificacoes | Lista de notificações do usuário, com `MarkAllButton` e `NotificationItem` | Já existente em `/operacao/notificacoes/page.tsx` |
-| alertas | Lista de alertas do sistema, com `ResolveButton` | Mover/extrair de `/operacao/alertas/page.tsx` |
-| dlq | Lista de itens DLQ, com `ReprocessButton` | Mover/extrair de `/operacao/dlq/page.tsx` |
+| alertas      | Lista de alertas do sistema, com `ResolveButton`                           | Mover/extrair de `/operacao/alertas/page.tsx`     |
+| dlq          | Lista de itens DLQ, com `ReprocessButton`                                  | Mover/extrair de `/operacao/dlq/page.tsx`         |
 
 > Recomenda-se extrair cada aba como **componente Server-rendered separado** dentro de `_components/` da página, ex.: `tab-notificacoes.tsx`, `tab-alertas.tsx`, `tab-dlq.tsx`. A page principal apenas resolve a aba ativa e chama o componente correspondente.
 

@@ -27,7 +27,11 @@ function ddmmyyyy(iso: string | null): string {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : ''
 }
 
-function refr(eye: { sphere: string | null; cylinder: string | null; axis: string | null }): string {
+function refr(eye: {
+  sphere: string | null
+  cylinder: string | null
+  axis: string | null
+}): string {
   const parts = [eye.sphere, eye.cylinder, eye.axis].map((v) => (v && v.trim() ? v.trim() : '—'))
   return parts.join(' / ')
 }

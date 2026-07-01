@@ -68,7 +68,7 @@ type SheetKind =
 ```ts
 interface ClinicalTimelineProps {
   patientId: string
-  events: TimelineEvent[]            // já ordenados desc
+  events: TimelineEvent[] // já ordenados desc
   authors: AuthorMap
   isAnonymized: boolean
   /** Para abrir o sheet correspondente quando o usuário clica em "Adicionar ao plano" etc. */
@@ -108,7 +108,7 @@ interface TimelineEventItemProps {
   event: TimelineEvent
   expanded: boolean
   onToggleExpanded: () => void
-  authorDisplay: string  // já resolvido (fallback para ID truncado se ausente)
+  authorDisplay: string // já resolvido (fallback para ID truncado se ausente)
   /** Ações inline disponíveis para este tipo. */
   actions?: {
     onImportToPlan?: () => void
@@ -121,15 +121,15 @@ interface TimelineEventItemProps {
 
 ### Invariantes por `kind`
 
-| `kind` | Conteúdo expandido | Ações inline |
-|---|---|---|
-| `anamnese` | Reusa `<AnamneseView />` (já existe em `clinical-records-section.tsx`) | Imprimir + Deletar (se `permissions.canDeleteAnamnese`) |
-| `evolucao` | Reusa `<SoapView />` (já existe) | Imprimir |
-| `texto` | Render do `record.content` em `<p>` com whitespace-pre-wrap | — |
-| `arquivo` | Link de download via signed URL + nome + tamanho | — |
-| `vital` | Tabela compacta de PA/FC/Peso/IMC + nota | — |
-| `appointment` | Procedimento, médico, plano, valor; se órfão (sem `stepId`), botão "Adicionar ao plano" | Import-to-plan se órfão |
-| `payment` | Valor, status, método; data de pagamento | — |
+| `kind`        | Conteúdo expandido                                                                      | Ações inline                                            |
+| ------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `anamnese`    | Reusa `<AnamneseView />` (já existe em `clinical-records-section.tsx`)                  | Imprimir + Deletar (se `permissions.canDeleteAnamnese`) |
+| `evolucao`    | Reusa `<SoapView />` (já existe)                                                        | Imprimir                                                |
+| `texto`       | Render do `record.content` em `<p>` com whitespace-pre-wrap                             | —                                                       |
+| `arquivo`     | Link de download via signed URL + nome + tamanho                                        | —                                                       |
+| `vital`       | Tabela compacta de PA/FC/Peso/IMC + nota                                                | —                                                       |
+| `appointment` | Procedimento, médico, plano, valor; se órfão (sem `stepId`), botão "Adicionar ao plano" | Import-to-plan se órfão                                 |
+| `payment`     | Valor, status, método; data de pagamento                                                | —                                                       |
 
 ### Acessibilidade
 
@@ -162,6 +162,7 @@ interface CadastroTabProps {
 ### Composição
 
 Renderiza em ordem vertical (mesma do layout atual):
+
 1. `<AddressEditor />`
 2. `<RemindersOptInToggle />`
 3. **Bloco "Plano de saúde"** com `<PatientPlanEditor />` em destaque
@@ -186,7 +187,7 @@ Todos os Sheets seguem a mesma estrutura. Documento aqui o contrato comum + vari
 ```ts
 interface BaseSheetProps {
   open: boolean
-  onOpenChange: (open: boolean) => void  // Radix pattern; chamado por Esc/overlay/X
+  onOpenChange: (open: boolean) => void // Radix pattern; chamado por Esc/overlay/X
   patientId: string
   /** Disparado após salvamento bem-sucedido. O pai chama router.refresh() e fecha o sheet. */
   onSuccess: () => void
@@ -195,16 +196,16 @@ interface BaseSheetProps {
 
 ### Variações
 
-| Sheet | Componente interno reutilizado | Props extras |
-|---|---|---|
-| `<NewEvolutionSheet>` | `<NewEvolutionForm />` (extraído) | — |
-| `<NewAnamneseSheet>` | `<NewAnamneseForm />` (extraído) | `patientPrefill: AnamnesePatientPrefill` |
-| `<NewTextSheet>` | `<NewTextForm />` (extraído) | — |
-| `<UploadFileSheet>` | `<UploadFileForm />` (extraído) | — |
-| `<NewVitalSheet>` | `<NewVitalForm />` (já existe via `<VitalSignsSection>`; extrair) | — |
-| `<NewAllergySheet>` | form interno de `<MedicalHistorySection>` (extrair) | — |
-| `<NewHistorySheet>` | form interno de `<MedicalHistorySection>` (extrair) | — |
-| `<NewDiagnosisSheet>` | form interno de `<DiagnosticsSection>` (extrair) | — |
+| Sheet                 | Componente interno reutilizado                                    | Props extras                             |
+| --------------------- | ----------------------------------------------------------------- | ---------------------------------------- |
+| `<NewEvolutionSheet>` | `<NewEvolutionForm />` (extraído)                                 | —                                        |
+| `<NewAnamneseSheet>`  | `<NewAnamneseForm />` (extraído)                                  | `patientPrefill: AnamnesePatientPrefill` |
+| `<NewTextSheet>`      | `<NewTextForm />` (extraído)                                      | —                                        |
+| `<UploadFileSheet>`   | `<UploadFileForm />` (extraído)                                   | —                                        |
+| `<NewVitalSheet>`     | `<NewVitalForm />` (já existe via `<VitalSignsSection>`; extrair) | —                                        |
+| `<NewAllergySheet>`   | form interno de `<MedicalHistorySection>` (extrair)               | —                                        |
+| `<NewHistorySheet>`   | form interno de `<MedicalHistorySection>` (extrair)               | —                                        |
+| `<NewDiagnosisSheet>` | form interno de `<DiagnosticsSection>` (extrair)                  | —                                        |
 
 ### Invariantes comuns
 
@@ -231,7 +232,7 @@ interface BaseSheetProps {
 ```ts
 interface MobileQuickViewHeaderProps {
   snapshot: QuickViewSnapshot
-  defaultExpanded?: boolean  // default: false
+  defaultExpanded?: boolean // default: false
 }
 ```
 
@@ -278,14 +279,14 @@ interface MobileActionBarProps {
 interface TimelineFiltersProps {
   activeFilter: TimelineFilter
   onChange: (filter: TimelineFilter) => void
-  counts: Record<TimelineFilter, number>  // contagens pré-computadas pelo pai
+  counts: Record<TimelineFilter, number> // contagens pré-computadas pelo pai
 }
 
 type TimelineFilter =
   | 'todos'
   | 'evolucoes'
   | 'anamneses'
-  | 'exames'      // arquivos
+  | 'exames' // arquivos
   | 'vitais'
   | 'atendimentos'
   | 'pagamentos'
@@ -314,15 +315,15 @@ type TimelineFilter =
 
 ## Resumo do "contrato"
 
-| Item | Garantia |
-|---|---|
-| Sem fetch novo (exceto `resolveAuthors`) | ✅ |
-| Componentes existentes não reescritos | ✅ (apenas extraídos para sheets) |
-| RBAC respeitado em UI + Server | ✅ |
-| LGPD: anonimização preserva renderização restrita | ✅ |
+| Item                                                  | Garantia                              |
+| ----------------------------------------------------- | ------------------------------------- |
+| Sem fetch novo (exceto `resolveAuthors`)              | ✅                                    |
+| Componentes existentes não reescritos                 | ✅ (apenas extraídos para sheets)     |
+| RBAC respeitado em UI + Server                        | ✅                                    |
+| LGPD: anonimização preserva renderização restrita     | ✅                                    |
 | A11y: trap de foco, Esc, retorno de foco, aria-labels | ✅ via Radix + manual onde necessário |
-| Deep-link `?tab=cadastro` | ✅ |
-| Mobile responsivo (<768px) | ✅ |
-| Failures card de admin preservado | ✅ |
+| Deep-link `?tab=cadastro`                             | ✅                                    |
+| Mobile responsivo (<768px)                            | ✅                                    |
+| Failures card de admin preservado                     | ✅                                    |
 
 Phase 1 design satisfaz 100% das FRs e os critérios de sucesso da spec.

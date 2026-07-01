@@ -57,9 +57,7 @@ export async function computeOperatingResult(
   // tenant, usados para o filtro de `appointment_at` (TIMESTAMPTZ).
   const fromYmd = `${args.month}-01`
   const toYmd =
-    month === 12
-      ? `${year + 1}-01-01`
-      : `${year}-${String(month + 1).padStart(2, '0')}-01`
+    month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`
   const tz = await getTenantTimezone(supabase, args.tenantId)
   const fromIso = ymdStartOfDayUtc(fromYmd, tz)
   const toIso = ymdStartOfDayUtc(toYmd, tz)
@@ -105,9 +103,7 @@ export async function computeOperatingResult(
   //    pelo conjunto de appointment_ids estornados.
   const { data: assistRaw, error: assistErr } = await supabase
     .from('appointment_assistants' as never)
-    .select(
-      'frozen_amount_cents, appointment_id, appointment:appointment_id ( appointment_at )',
-    )
+    .select('frozen_amount_cents, appointment_id, appointment:appointment_id ( appointment_at )')
     .eq('tenant_id', args.tenantId)
     .is('removed_at', null)
   if (assistErr) {

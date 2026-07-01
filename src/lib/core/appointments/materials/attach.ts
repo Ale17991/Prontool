@@ -67,11 +67,14 @@ export async function attachMaterialsToAppointment(
     quantity: m.quantity,
   }))
 
-  const { data, error } = await supabase.rpc('attach_materials_to_appointment' as never, {
-    p_appointment_id: input.appointmentId,
-    p_materials: payload,
-    p_actor: input.actorUserId,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'attach_materials_to_appointment' as never,
+    {
+      p_appointment_id: input.appointmentId,
+      p_materials: payload,
+      p_actor: input.actorUserId,
+    } as never,
+  )
 
   if (error) {
     const msg = error.message ?? ''
@@ -106,7 +109,10 @@ export async function attachMaterialsToAppointment(
     throw new Error(`attachMaterialsToAppointment failed: ${msg}`)
   }
 
-  const result = data as { appointment_id: string; materials: Array<Record<string, unknown>> } | null
+  const result = data as {
+    appointment_id: string
+    materials: Array<Record<string, unknown>>
+  } | null
   const items = (result?.materials ?? []).map((r) => ({
     id: r.id as string,
     tussCode: r.tuss_code as string,

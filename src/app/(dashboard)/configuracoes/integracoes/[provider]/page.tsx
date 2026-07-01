@@ -19,10 +19,7 @@ interface PageProps {
   searchParams?: { status?: string; warnings?: string | string[]; code?: string }
 }
 
-export default async function ProviderDetailPage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function ProviderDetailPage({ params, searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
@@ -77,9 +74,7 @@ export default async function ProviderDetailPage({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black tracking-tight text-slate-900">
-                {adapter.label}
-              </h1>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900">{adapter.label}</h1>
               {connected ? (
                 <Badge variant="success">Conectado</Badge>
               ) : (
@@ -110,8 +105,11 @@ export default async function ProviderDetailPage({
 
       {connected ? (
         <p className="text-xs text-slate-500">
-          Conectado desde {row?.created_at ? new Date(row.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—'}. Valores
-          secretos nunca são retornados em claro; digite novamente para rotacionar.
+          Conectado desde{' '}
+          {row?.created_at
+            ? new Date(row.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+            : '—'}
+          . Valores secretos nunca são retornados em claro; digite novamente para rotacionar.
         </p>
       ) : null}
     </div>

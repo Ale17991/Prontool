@@ -2,10 +2,7 @@
  * Lista de pacientes com busca por nome/CPF descriptografados.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
@@ -32,12 +29,7 @@ describe('GET /api/pacientes — lista + busca', () => {
       fullName: 'João Pedro Souza',
       cpf: '99988877766',
     })
-    piiRegistry.register(
-      'Maria Aparecida Silva',
-      '11122233344',
-      'João Pedro Souza',
-      '99988877766',
-    )
+    piiRegistry.register('Maria Aparecida Silva', '11122233344', 'João Pedro Souza', '99988877766')
 
     const admin = await seedUser(tenantId, 'admin')
     const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })

@@ -81,7 +81,10 @@ describe('Feature 029 — append-only das tabelas de faturamento TISS', () => {
 
   it('tiss_guias: DELETE é bloqueado', async () => {
     const sb = serviceClient()
-    const res = await sb.from('tiss_guias' as never).delete().eq('id', guiaId)
+    const res = await sb
+      .from('tiss_guias' as never)
+      .delete()
+      .eq('id', guiaId)
     expect(res.error).toBeTruthy()
     expect(res.error?.message).toMatch(/DELETE not allowed|append-only/i)
   })
@@ -123,7 +126,10 @@ describe('Feature 029 — append-only das tabelas de faturamento TISS', () => {
         total_amount_cents: 15000,
       } as never)
       .throwOnError()
-    const res = await sb.from('tiss_guia_procedures' as never).delete().eq('id', lineId)
+    const res = await sb
+      .from('tiss_guia_procedures' as never)
+      .delete()
+      .eq('id', lineId)
     expect(res.error).toBeTruthy()
     expect(res.error?.message).toMatch(/DELETE not allowed|append-only/i)
   })
@@ -148,7 +154,10 @@ describe('Feature 029 — append-only das tabelas de faturamento TISS', () => {
       .eq('id', loteId)
     expect(upd.error).toBeNull()
 
-    const del = await sb.from('tiss_lotes' as never).delete().eq('id', loteId)
+    const del = await sb
+      .from('tiss_lotes' as never)
+      .delete()
+      .eq('id', loteId)
     expect(del.error).toBeTruthy()
     expect(del.error?.message).toMatch(/DELETE not allowed|append-only/i)
   })
@@ -168,7 +177,10 @@ describe('Feature 029 — append-only das tabelas de faturamento TISS', () => {
         created_by_user_id: userId,
       } as never)
       .throwOnError()
-    const res = await sb.from('tiss_glosas' as never).delete().eq('id', glosaId)
+    const res = await sb
+      .from('tiss_glosas' as never)
+      .delete()
+      .eq('id', glosaId)
     expect(res.error).toBeTruthy()
     expect(res.error?.message).toMatch(/DELETE not allowed|append-only/i)
   })

@@ -30,9 +30,7 @@ export async function GET(req: Request): Promise<Response> {
       route: '/api/cid10',
       request: req,
     })
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         { error: { code: 'INVALID_QUERY', message: 'q é obrigatório' } },

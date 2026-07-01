@@ -155,12 +155,12 @@ describe('T134 — export parity JSON ↔ Excel ↔ PDF', () => {
         totalsMap.set(String(metric), value)
       }
     })
-    expect(
-      Math.round(Number(totalsMap.get('Receita líquida total') ?? 0) * 100),
-    ).toBe(wire.totals.net_revenue_cents)
-    expect(
-      Math.round(Number(totalsMap.get('Comissão líquida total') ?? 0) * 100),
-    ).toBe(wire.totals.net_commission_cents)
+    expect(Math.round(Number(totalsMap.get('Receita líquida total') ?? 0) * 100)).toBe(
+      wire.totals.net_revenue_cents,
+    )
+    expect(Math.round(Number(totalsMap.get('Comissão líquida total') ?? 0) * 100)).toBe(
+      wire.totals.net_commission_cents,
+    )
     expect(Number(totalsMap.get('Atendimentos'))).toBe(wire.totals.appointment_count)
     expect(Number(totalsMap.get('Cancelamentos'))).toBe(wire.totals.reversal_count)
 

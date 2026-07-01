@@ -31,13 +31,16 @@ CREATE INDEX appointment_completions_tenant_idx
 ```
 
 **Imutabilidade**:
+
 - Trigger `appointment_completions_immutable` BEFORE UPDATE/DELETE → `RAISE EXCEPTION` (exceto para roles `postgres`/`supabase_admin`/`service_role`, padrão do repo).
 
 **RLS**:
+
 - SELECT: `tenant_id = current_tenant_id()` (helper já existente).
 - INSERT: `tenant_id = current_tenant_id()` AND `appointments.tenant_id = NEW.tenant_id`.
 
 **Audit**:
+
 - Trigger `audit_appointment_completion_change` AFTER INSERT → INSERT em `audit_log` com `entity='appointments'`, `entity_id=appointment_id`, `field='effective_status'`, `old_value='agendado'`, `new_value='ativo'`, `actor=completed_by`, `reason=source||':'||reason`.
 
 ---
@@ -68,6 +71,7 @@ CREATE INDEX appointment_slot_locks_tenant_doctor_idx
 ```
 
 **RLS**:
+
 - SELECT: `tenant_id = current_tenant_id()`.
 - INSERT/DELETE: apenas via triggers (security definer) — RLS efetivamente fechada para clients.
 
@@ -88,6 +92,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS treatment_plan_steps_appointment_idx
 ```
 
 Atualização do `enforce_treatment_plan_step_mutability`:
+
 ```sql
 -- Pseudocódigo:
 IF NEW.appointment_id IS DISTINCT FROM OLD.appointment_id THEN
@@ -135,15 +140,15 @@ LEFT JOIN public.appointment_completions c ON c.appointment_id = a.id;
 
 ## Triggers (resumo)
 
-| Trigger | Tabela | Quando | Ação |
-|---|---|---|---|
-| `appointments_create_slot_lock` | `appointments` | AFTER INSERT | INSERT em `appointment_slot_locks` (tenant, doctor, appointment_id, range derivado). EXCLUDE pode rejeitar — propaga 23P01 → API mapeia para HTTP 409. |
-| `appointment_reversals_release_slot_lock` | `appointment_reversals` | AFTER INSERT | DELETE de `appointment_slot_locks WHERE appointment_id = NEW.appointment_id`. |
-| `appointment_completions_immutable` | `appointment_completions` | BEFORE UPDATE/DELETE | RAISE (exceto roles privilegiadas). |
-| `audit_appointment_completion_change` | `appointment_completions` | AFTER INSERT | INSERT em `audit_log`. |
-| `step_status_sync_to_appointment` | `treatment_plan_steps` | AFTER UPDATE | Se `pg_trigger_depth() = 1` AND `appointment_id IS NOT NULL`: status `concluido` → INSERT em `appointment_completions` com `source='plan_step'`; status `cancelado` → INSERT em `appointment_reversals` com `reversal_amount_cents = -frozen_amount_cents`. |
-| `appointment_completion_sync_to_step` | `appointment_completions` | AFTER INSERT | Se `pg_trigger_depth() = 1`: UPDATE `treatment_plan_steps SET status='concluido', completed_at=NEW.completed_at, completed_by=NEW.completed_by WHERE appointment_id = NEW.appointment_id`. |
-| `appointment_reversal_sync_to_step` | `appointment_reversals` | AFTER INSERT | Se `pg_trigger_depth() = 1`: UPDATE `treatment_plan_steps SET status='cancelado' WHERE appointment_id = NEW.appointment_id`. |
+| Trigger                                   | Tabela                    | Quando               | Ação                                                                                                                                                                                                                                                        |
+| ----------------------------------------- | ------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appointments_create_slot_lock`           | `appointments`            | AFTER INSERT         | INSERT em `appointment_slot_locks` (tenant, doctor, appointment_id, range derivado). EXCLUDE pode rejeitar — propaga 23P01 → API mapeia para HTTP 409.                                                                                                      |
+| `appointment_reversals_release_slot_lock` | `appointment_reversals`   | AFTER INSERT         | DELETE de `appointment_slot_locks WHERE appointment_id = NEW.appointment_id`.                                                                                                                                                                               |
+| `appointment_completions_immutable`       | `appointment_completions` | BEFORE UPDATE/DELETE | RAISE (exceto roles privilegiadas).                                                                                                                                                                                                                         |
+| `audit_appointment_completion_change`     | `appointment_completions` | AFTER INSERT         | INSERT em `audit_log`.                                                                                                                                                                                                                                      |
+| `step_status_sync_to_appointment`         | `treatment_plan_steps`    | AFTER UPDATE         | Se `pg_trigger_depth() = 1` AND `appointment_id IS NOT NULL`: status `concluido` → INSERT em `appointment_completions` com `source='plan_step'`; status `cancelado` → INSERT em `appointment_reversals` com `reversal_amount_cents = -frozen_amount_cents`. |
+| `appointment_completion_sync_to_step`     | `appointment_completions` | AFTER INSERT         | Se `pg_trigger_depth() = 1`: UPDATE `treatment_plan_steps SET status='concluido', completed_at=NEW.completed_at, completed_by=NEW.completed_by WHERE appointment_id = NEW.appointment_id`.                                                                  |
+| `appointment_reversal_sync_to_step`       | `appointment_reversals`   | AFTER INSERT         | Se `pg_trigger_depth() = 1`: UPDATE `treatment_plan_steps SET status='cancelado' WHERE appointment_id = NEW.appointment_id`.                                                                                                                                |
 
 ---
 

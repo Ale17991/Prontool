@@ -10,11 +10,12 @@
 Primeira **superfície voltada ao paciente** do sistema (hoje tudo é só para a equipe da clínica). O paciente passa a **consultar** (somente leitura) o próprio histórico e a evolução das suas métricas, com foco em **endocrinologia** (peso/IMC + métricas metabólicas). Estrategicamente, os dados de evolução são modelados por um **motor de medições genérico** reutilizável por outras especialidades no futuro — endocrinologia é a primeira configuração.
 
 **Decisões do dono (já tomadas):**
+
 - **Acesso sem conta:** o paciente entra com **CPF** (login) + **data de nascimento, só números** (senha), num link **por clínica** (ex.: `/paciente/[clínica]`). Não há criação de conta nem senha própria.
 - **Métricas do MVP:** peso/IMC (reaproveitados) **+ metabólicas novas** (glicemia de jejum, HbA1c, circunferência abdominal, perfil lipídico).
 - **Segurança é requisito, não opção** (dado de saúde / LGPD): por ser autenticação fraca, o MVP **obriga** anti-força-bruta, sessão curta só-leitura, auditoria e consentimento (ver Requisitos de Segurança).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Paciente entra e vê sua evolução (Priority: P1)
 
@@ -75,11 +76,12 @@ A paciente vê a **lista dos seus atendimentos** (data, profissional, e um resum
 - **Sem medições ainda:** a página mostra estado vazio amigável ("ainda não há medições registradas"), não erro.
 - **Métrica sem evolução suficiente (1 ponto):** mostrar o valor mesmo sem linha de tendência.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 **Acesso do paciente (US1)**
+
 - **FR-001**: O sistema MUST permitir que o paciente acesse um portal **por clínica** informando **CPF** e **data de nascimento (somente números)**, sem criar conta.
 - **FR-002**: O sistema MUST conceder acesso somente quando CPF **e** data de nascimento conferirem com um cadastro de paciente **daquela clínica**.
 - **FR-003**: O sistema MUST exibir, ao paciente autenticado, **somente os dados do próprio paciente**, escopados àquela clínica — nunca de terceiros nem de outra clínica.
@@ -87,6 +89,7 @@ A paciente vê a **lista dos seus atendimentos** (data, profissional, e um resum
 - **FR-005**: O sistema MUST exibir um **aviso/consentimento de privacidade (LGPD)** antes de liberar o conteúdo.
 
 **Conteúdo do portal (US1/US3)**
+
 - **FR-006**: O sistema MUST apresentar uma **página única** ("centralizada") com: histórico de atendimentos, evolução de peso/IMC e evolução das métricas metabólicas.
 - **FR-007**: O sistema MUST apresentar a **evolução de peso e IMC** ao longo do tempo (gráfico) com a classificação de faixa de IMC, reaproveitando os sinais vitais já registrados.
 - **FR-008**: O sistema MUST apresentar a **evolução das métricas metabólicas** (glicemia de jejum, HbA1c, circunferência abdominal, perfil lipídico: colesterol total, LDL, HDL, triglicérides), cada uma com gráfico no tempo.
@@ -94,16 +97,19 @@ A paciente vê a **lista dos seus atendimentos** (data, profissional, e um resum
 - **FR-010**: O sistema MUST exibir **estados vazios amigáveis** quando não houver medições/atendimentos.
 
 **Registro pela equipe (US2)**
+
 - **FR-011**: O sistema MUST permitir que **profissional de saúde** (e admin) registre métricas metabólicas no prontuário do paciente, informando tipo, valor, unidade e **data da medição**.
 - **FR-012**: O sistema MUST tratar cada medição como **append-only** (correção = nova medição; não há edição/exclusão física).
 - **FR-013**: O sistema MUST **validar faixas plausíveis** por tipo de métrica e bloquear valores impossíveis, com mensagem clara.
 - **FR-014**: O sistema MUST impedir que papéis sem permissão clínica (ex.: recepcionista/financeiro) registrem medições.
 
 **Motor de medições (transversal/estratégico)**
+
 - **FR-015**: O sistema MUST armazenar as métricas num **modelo genérico de medições longitudinais** (tipo de métrica + valor + unidade + data + autor), reutilizável por outras especialidades no futuro.
 - **FR-016**: O sistema MUST permitir definir **quais métricas compõem o módulo de endocrinologia** sem exigir novo modelo de dados para cada especialidade.
 
 **Segurança, privacidade e isolamento (transversal — requisito, não opção)**
+
 - **FR-017**: O sistema MUST aplicar **proteção anti-força-bruta**: limitar tentativas e **bloquear temporariamente** por CPF/IP após um número de falhas.
 - **FR-018**: O sistema MUST usar **sessão de paciente curta** e separada do login da equipe; a sessão do paciente **não concede nenhum acesso** ao painel da clínica.
 - **FR-019**: Mensagens de falha de login MUST ser **genéricas** (não revelar se o CPF existe).
@@ -111,7 +117,7 @@ A paciente vê a **lista dos seus atendimentos** (data, profissional, e um resum
 - **FR-021**: O sistema MUST tratar PII conforme o **padrão de cifragem** já adotado e respeitar **multi-tenant por clínica** em todas as leituras.
 - **FR-022**: O sistema MUST negar acesso a pacientes **anonimizados/inativos**.
 
-### Key Entities *(include if data involved)*
+### Key Entities _(include if data involved)_
 
 - **Medição do Paciente (motor de evolução)**: representa um valor de uma métrica num momento — paciente, clínica, **tipo de métrica** (ex.: glicemia, HbA1c, circunferência, colesterol total/LDL/HDL/triglicérides), **valor**, **unidade**, **data da medição**, quem registrou. Append-only. Base reutilizável por outras especialidades.
 - **Tipo de Métrica / Configuração de Especialidade**: catálogo de quais métricas existem e como se apresentam (unidade, faixas plausíveis, rótulo), e quais compõem o módulo de endocrinologia.
@@ -120,7 +126,7 @@ A paciente vê a **lista dos seus atendimentos** (data, profissional, e um resum
 - **Sinal Vital (reuso)**: peso/altura/IMC/PA já existentes — fonte da evolução de peso/IMC.
 - **Atendimento (reuso)**: fonte do histórico de atendimentos exibido ao paciente.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -132,7 +138,7 @@ A paciente vê a **lista dos seus atendimentos** (data, profissional, e um resum
 - **SC-006**: Mensagens de falha de login **não revelam** se um CPF existe (verificado por teste).
 - **SC-007**: O modelo de medições suporta adicionar **uma nova métrica/especialidade** sem alteração de esquema (verificável conceitualmente no design).
 
-## Out of Scope (MVP) *(follow-up)*
+## Out of Scope (MVP) _(follow-up)_
 
 - App mobile **nativo** (o portal é web responsivo).
 - **Conta de paciente** com senha própria, recuperação de senha ou login social.

@@ -55,9 +55,9 @@ export default async function ImpostosPage() {
         <p className="mt-1 text-sm text-slate-500">
           {taxes.length} cadastrado{taxes.length === 1 ? '' : 's'} · {activeCount} ativo
           {activeCount === 1 ? '' : 's'} · {inactiveCount} inativo
-          {inactiveCount === 1 ? '' : 's'}. Cadastre os impostos a que a clínica está
-          sujeita (ISS, IRPJ, CSLL, etc.). Use para classificar despesas e consolidar
-          carga tributária em relatórios.
+          {inactiveCount === 1 ? '' : 's'}. Cadastre os impostos a que a clínica está sujeita (ISS,
+          IRPJ, CSLL, etc.). Use para classificar despesas e consolidar carga tributária em
+          relatórios.
         </p>
       </div>
 
@@ -73,9 +73,8 @@ export default async function ImpostosPage() {
             <CardContent>
               <NewTaxForm />
               <p className="mt-3 text-[11px] text-slate-500">
-                Nome e categoria são imutáveis após o cadastro (preserva integridade
-                da trilha de auditoria). Alíquota pode ser editada; desativação é
-                reversível.
+                Nome e categoria são imutáveis após o cadastro (preserva integridade da trilha de
+                auditoria). Alíquota pode ser editada; desativação é reversível.
               </p>
             </CardContent>
           </Card>

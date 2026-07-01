@@ -29,9 +29,7 @@ export async function GET(req: Request): Promise<Response> {
       { entity: 'price_versions', route, request: req },
     )
 
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         {

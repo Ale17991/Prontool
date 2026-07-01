@@ -1,13 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import {
-  Copy,
-  ExternalLink,
-  Loader2,
-  Plus,
-  Trash2,
-} from 'lucide-react'
+import { Copy, ExternalLink, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -57,25 +51,16 @@ const WEEKDAY_LABELS: ReadonlyArray<{ value: number; label: string }> = [
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{2,31}$/
 
-export function PublicBookingForm({
-  initial,
-  allDoctors,
-  allProcedures,
-  baseUrl,
-}: Props) {
+export function PublicBookingForm({ initial, allDoctors, allProcedures, baseUrl }: Props) {
   const [config, setConfig] = useState(initial.config)
   const [doctors, setDoctors] = useState(initial.doctors)
   const [procedures, setProcedures] = useState(initial.procedures)
-  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(
-    null,
-  )
+  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null)
   const [pending, startTransition] = useTransition()
 
   const slugError = useMemo(() => {
     if (config.publicBookingSlug === null || config.publicBookingSlug === '') {
-      return config.publicBookingEnabled
-        ? 'Defina um slug para habilitar.'
-        : null
+      return config.publicBookingEnabled ? 'Defina um slug para habilitar.' : null
     }
     return SLUG_REGEX.test(config.publicBookingSlug)
       ? null
@@ -86,9 +71,7 @@ export function PublicBookingForm({
     ? `${baseUrl}/agendar/${config.publicBookingSlug}`
     : null
 
-  const availableDoctors = allDoctors.filter(
-    (d) => !doctors.some((pd) => pd.doctorId === d.id),
-  )
+  const availableDoctors = allDoctors.filter((d) => !doctors.some((pd) => pd.doctorId === d.id))
 
   function saveConfig() {
     setFeedback(null)
@@ -121,9 +104,7 @@ export function PublicBookingForm({
             <input
               type="checkbox"
               checked={config.publicBookingEnabled}
-              onChange={(e) =>
-                setConfig({ ...config, publicBookingEnabled: e.target.checked })
-              }
+              onChange={(e) => setConfig({ ...config, publicBookingEnabled: e.target.checked })}
               className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30"
             />
             <span>Habilitar link público de agendamento</span>
@@ -149,9 +130,7 @@ export function PublicBookingForm({
                 maxLength={32}
               />
             </div>
-            {slugError ? (
-              <p className="text-xs text-destructive">{slugError}</p>
-            ) : null}
+            {slugError ? <p className="text-xs text-destructive">{slugError}</p> : null}
             {publicUrl ? (
               <div className="mt-2 flex items-center gap-2">
                 <button
@@ -318,9 +297,7 @@ export function PublicBookingForm({
               <DoctorBlock
                 key={d.doctorId}
                 doctor={d}
-                proceduresOfThisDoctor={procedures.filter(
-                  (p) => p.doctorId === d.doctorId,
-                )}
+                proceduresOfThisDoctor={procedures.filter((p) => p.doctorId === d.doctorId)}
                 allProcedures={allProcedures}
                 onSave={(payload) =>
                   startTransition(async () => {
@@ -344,9 +321,7 @@ export function PublicBookingForm({
                     const res = await removeDoctorAction(d.doctorId)
                     if (res.ok) {
                       setDoctors((prev) => prev.filter((x) => x.doctorId !== d.doctorId))
-                      setProcedures((prev) =>
-                        prev.filter((p) => p.doctorId !== d.doctorId),
-                      )
+                      setProcedures((prev) => prev.filter((p) => p.doctorId !== d.doctorId))
                       setFeedback({ kind: 'ok', message: 'Profissional removido.' })
                     } else {
                       setFeedback({ kind: 'error', message: res.error ?? 'Erro.' })
@@ -390,8 +365,7 @@ export function PublicBookingForm({
                     if (res.ok) {
                       setProcedures((prev) =>
                         prev.filter(
-                          (p) =>
-                            !(p.doctorId === d.doctorId && p.procedureId === procedureId),
+                          (p) => !(p.doctorId === d.doctorId && p.procedureId === procedureId),
                         ),
                       )
                       setFeedback({ kind: 'ok', message: 'Procedimento removido.' })
@@ -495,9 +469,7 @@ function DoctorBlock({
   )
 
   function toggleWeekday(day: number) {
-    setWeekdays((cur) =>
-      cur.includes(day) ? cur.filter((d) => d !== day) : [...cur, day],
-    )
+    setWeekdays((cur) => (cur.includes(day) ? cur.filter((d) => d !== day) : [...cur, day]))
   }
 
   function save() {
@@ -581,19 +553,11 @@ function DoctorBlock({
           </div>
           <div className="space-y-1">
             <Label className="text-[11px]">Almoço início (opcional)</Label>
-            <Input
-              type="time"
-              value={lunchFrom}
-              onChange={(e) => setLunchFrom(e.target.value)}
-            />
+            <Input type="time" value={lunchFrom} onChange={(e) => setLunchFrom(e.target.value)} />
           </div>
           <div className="space-y-1">
             <Label className="text-[11px]">Almoço fim (opcional)</Label>
-            <Input
-              type="time"
-              value={lunchUntil}
-              onChange={(e) => setLunchUntil(e.target.value)}
-            />
+            <Input type="time" value={lunchUntil} onChange={(e) => setLunchUntil(e.target.value)} />
           </div>
         </div>
 
@@ -700,17 +664,12 @@ function ProcedureRow({
   onRemove,
 }: {
   procedure: PublicBookingConfigFull['procedures'][number]
-  onSave: (payload: {
-    displayName: string
-    durationMinutes: number
-    displayOrder: number
-  }) => void
+  onSave: (payload: { displayName: string; durationMinutes: number; displayOrder: number }) => void
   onRemove: () => void
 }) {
   const [displayName, setDisplayName] = useState(procedure.displayName)
   const [duration, setDuration] = useState(procedure.durationMinutes)
-  const dirty =
-    displayName !== procedure.displayName || duration !== procedure.durationMinutes
+  const dirty = displayName !== procedure.displayName || duration !== procedure.durationMinutes
 
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-white p-2 text-[11px]">

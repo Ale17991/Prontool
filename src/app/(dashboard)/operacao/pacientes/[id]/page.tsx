@@ -9,10 +9,7 @@ import { listClinicalRecords } from '@/lib/core/clinical-records/list'
 import { listTreatmentSteps } from '@/lib/core/treatment-steps/list'
 import { listPaymentsForPatient } from '@/lib/core/payments/list'
 import { listAllergies, type PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
-import {
-  listDiagnoses,
-  type PatientDiagnosisDTO,
-} from '@/lib/core/patient-medical/diagnoses'
+import { listDiagnoses, type PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 import { listHistory, type PatientHistoryDTO } from '@/lib/core/patient-medical/history'
 import { listVitalSigns, type VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
 import { listMeasurements, type MeasurementDTO } from '@/lib/core/patient-portal/measurements'
@@ -34,10 +31,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import type { Database } from '@/lib/db/types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
-import type {
-  PaymentRecordDTO,
-  PatientFinancialSummary,
-} from '@/lib/core/payments/list'
+import type { PaymentRecordDTO, PatientFinancialSummary } from '@/lib/core/payments/list'
 import {
   type DoctorOption,
   type HealthPlanOption,
@@ -54,11 +48,7 @@ interface PageProps {
   searchParams: { tab?: string }
 }
 
-function FailuresOnlyView({
-  failures,
-}: {
-  failures: Array<{ section: string; message: string }>
-}) {
+function FailuresOnlyView({ failures }: { failures: Array<{ section: string; message: string }> }) {
   return (
     <div className="space-y-6">
       <Link
@@ -75,9 +65,7 @@ function FailuresOnlyView({
           <ul className="space-y-2">
             {failures.map((f, idx) => (
               <li key={`${f.section}-${idx}`} className="space-y-1">
-                <p className="font-mono text-[11px] font-bold text-rose-800">
-                  {f.section}
-                </p>
+                <p className="font-mono text-[11px] font-bold text-rose-800">{f.section}</p>
                 <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-white px-2 py-1 font-mono text-[11px] text-slate-700">
                   {f.message}
                 </pre>
@@ -106,10 +94,7 @@ interface AppointmentObservationRow {
   observacoes: string | null
 }
 
-export default async function PacienteDetailPage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function PacienteDetailPage({ params, searchParams }: PageProps) {
   const session = await getSession()
   if (!session) redirect('/login')
 
@@ -175,28 +160,23 @@ export default async function PacienteDetailPage({
     if (effectiveRes.error) throw new Error(effectiveRes.error.message)
     const obsRows = (observacoesRes.data ?? []) as AppointmentObservationRow[]
     const obsMap = new Map(obsRows.map((r) => [r.id, r.observacoes]))
-    const rows = (effectiveRes.data ?? []) as unknown as Array<
-      Omit<AppointmentRow, 'observacoes'>
-    >
+    const rows = (effectiveRes.data ?? []) as unknown as Array<Omit<AppointmentRow, 'observacoes'>>
     return rows.map((r) => ({
       ...r,
       observacoes: r.id ? (obsMap.get(r.id) ?? null) : null,
     }))
   })().catch(safeFail<AppointmentRow[]>('appointments', []))
 
-  const recordsPromise: Promise<ClinicalRecordRow[]> = listClinicalRecords(
-    typedClient,
-    { tenantId: session.tenantId, patientId: params.id },
-  ).catch(safeFail<ClinicalRecordRow[]>('clinical-records', []))
+  const recordsPromise: Promise<ClinicalRecordRow[]> = listClinicalRecords(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  }).catch(safeFail<ClinicalRecordRow[]>('clinical-records', []))
 
-  const treatmentStepsPromise: Promise<TreatmentStep[]> = listTreatmentSteps(
-    typedClient,
-    {
-      tenantId: session.tenantId,
-      patientId: params.id,
-      patientPlanId: patient.healthPlan?.id ?? null,
-    },
-  ).catch(safeFail<TreatmentStep[]>('treatment-steps', []))
+  const treatmentStepsPromise: Promise<TreatmentStep[]> = listTreatmentSteps(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+    patientPlanId: patient.healthPlan?.id ?? null,
+  }).catch(safeFail<TreatmentStep[]>('treatment-steps', []))
 
   const paymentsFallback: Awaited<ReturnType<typeof listPaymentsForPatient>> = {
     records: [] as PaymentRecordDTO[],
@@ -222,33 +202,35 @@ export default async function PacienteDetailPage({
     }
   })()
 
-  const allergiesPromise: Promise<PatientAllergyDTO[]> = listAllergies(
-    typedClient,
-    { tenantId: session.tenantId, patientId: params.id },
-  ).catch(safeFail<PatientAllergyDTO[]>('allergies', []))
+  const allergiesPromise: Promise<PatientAllergyDTO[]> = listAllergies(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  }).catch(safeFail<PatientAllergyDTO[]>('allergies', []))
   const historyPromise: Promise<PatientHistoryDTO[]> = listHistory(typedClient, {
     tenantId: session.tenantId,
     patientId: params.id,
   }).catch(safeFail<PatientHistoryDTO[]>('history', []))
-  const vitalSignsPromise: Promise<VitalSignsDTO[]> = listVitalSigns(
-    typedClient,
-    { tenantId: session.tenantId, patientId: params.id },
-  ).catch(safeFail<VitalSignsDTO[]>('vital-signs', []))
+  const vitalSignsPromise: Promise<VitalSignsDTO[]> = listVitalSigns(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  }).catch(safeFail<VitalSignsDTO[]>('vital-signs', []))
   // Feature 030 — métricas metabólicas (motor de medições) + catálogo.
-  const measurementsPromise: Promise<Record<string, MeasurementDTO[]>> =
-    listMeasurements(typedClient, {
+  const measurementsPromise: Promise<Record<string, MeasurementDTO[]>> = listMeasurements(
+    typedClient,
+    {
       tenantId: session.tenantId,
       patientId: params.id,
-    }).catch(safeFail<Record<string, MeasurementDTO[]>>('measurements', {}))
+    },
+  ).catch(safeFail<Record<string, MeasurementDTO[]>>('measurements', {}))
   const metricTypesPromise: Promise<PatientMetricType[]> = listEnabledMetricTypesForTenant(
     typedClient,
     session.tenantId,
     { specialty: 'endocrino' },
   ).catch(safeFail<PatientMetricType[]>('metric-types', []))
-  const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(
-    typedClient,
-    { tenantId: session.tenantId, patientId: params.id },
-  ).catch(safeFail<PatientDiagnosisDTO[]>('diagnoses', []))
+  const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(typedClient, {
+    tenantId: session.tenantId,
+    patientId: params.id,
+  }).catch(safeFail<PatientDiagnosisDTO[]>('diagnoses', []))
 
   const [
     appointments,
@@ -347,8 +329,7 @@ export default async function PacienteDetailPage({
 
   const appointmentTimelineRows: AppointmentTimelineRow[] = appointments
     .filter(
-      (a): a is AppointmentRow & { id: string } =>
-        typeof a.id === 'string' && a.id.length > 0,
+      (a): a is AppointmentRow & { id: string } => typeof a.id === 'string' && a.id.length > 0,
     )
     .map((a) => ({
       id: a.id,
@@ -396,8 +377,7 @@ export default async function PacienteDetailPage({
     role: session.role,
   })
 
-  const canEditPatient =
-    session.role === 'admin' || session.role === 'recepcionista'
+  const canEditPatient = session.role === 'admin' || session.role === 'recepcionista'
   const canWriteClinical =
     session.role === 'admin' ||
     session.role === 'financeiro' ||
@@ -408,13 +388,10 @@ export default async function PacienteDetailPage({
     session.role === 'profissional_saude'
   const canApplyAnamnesis = session.role === 'admin'
   const canDeleteAnamnese = session.role === 'admin'
-  const canWriteVitals =
-    session.role === 'admin' || session.role === 'profissional_saude'
-  const canWriteDiagnosis =
-    session.role === 'admin' || session.role === 'profissional_saude'
+  const canWriteVitals = session.role === 'admin' || session.role === 'profissional_saude'
+  const canWriteDiagnosis = session.role === 'admin' || session.role === 'profissional_saude'
   const canDeleteDiagnosis = session.role === 'admin'
-  const canRecordPayment =
-    session.role === 'admin' || session.role === 'financeiro'
+  const canRecordPayment = session.role === 'admin' || session.role === 'financeiro'
   // (canViewFinancialValues já calculado acima, antes da timeline.)
   // Módulo Endócrino (métricas metabólicas). Off = esconde a seção no prontuário.
   const ent = await getTenantEntitlements(typedClient, session.tenantId)
@@ -467,9 +444,7 @@ export default async function PacienteDetailPage({
             <ul className="space-y-2">
               {failures.map((f) => (
                 <li key={f.section} className="space-y-1">
-                  <p className="font-mono text-[11px] font-bold text-rose-800">
-                    {f.section}
-                  </p>
+                  <p className="font-mono text-[11px] font-bold text-rose-800">{f.section}</p>
                   <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-white px-2 py-1 font-mono text-[11px] text-slate-700">
                     {f.message}
                   </pre>

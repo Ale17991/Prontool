@@ -24,24 +24,25 @@ Stack já estabelecida: Next.js 14 (App Router), Supabase PostgreSQL com RLS mul
 **Project Type**: web — App Router monolítico, sem split front/back.
 **Performance Goals**: SC-004 — dashboard consolidado (card "Impostos") em ≤ 3 s para 12 meses de histórico. Listagem de impostos da clínica em ≤ 500 ms para N ≤ 50 (escopo realista por tenant).
 **Constraints**:
+
 - Append-only (Constitution I): triggers bloqueiam UPDATE/DELETE em `taxes`; só `is_active`/`deleted_at` mutáveis.
 - Auditabilidade total (Constitution II): toda criação/alteração de imposto e mudança de `tax_rate_bps` gera linha em `audit_log` via `log_audit_event`.
 - Isolamento multi-tenant (Constitution III): coluna `tenant_id` obrigatória + policies RLS + filtros explícitos quando service client é usado.
 - Moeda em centavos / alíquota em basis points (Constitution domain): zero `float`. Conversão pt-BR (vírgula decimal) só na UI.
 - RBAC server-side (Constitution V): `requireRole(['admin','financeiro'])` em todas as escritas; reads liberadas para todos os papéis autenticados (limitadas pelo RLS).
-**Scale/Scope**: ~50 impostos cadastrados por tenant (limite alto), 100–500 convênios por tenant, 5000+ despesas/ano por tenant. Tudo já no envelope dos relatórios atuais.
+  **Scale/Scope**: ~50 impostos cadastrados por tenant (limite alto), 100–500 convênios por tenant, 5000+ despesas/ano por tenant. Tudo já no envelope dos relatórios atuais.
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Status | Como esta feature cumpre |
-|---|---|---|
+| Princípio                                               | Status    | Como esta feature cumpre                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **I. Integridade Financeira Imutável (NON-NEGOTIABLE)** | ✅ Cumpre | `public.taxes`: trigger `enforce_taxes_mutation` impede alteração de `id`, `tenant_id`, `name`, `category`, `created_at`. Apenas `rate_bps`, `description`, `is_active`, `deleted_at` mutáveis (com auditoria). DELETE físico bloqueado por `enforce_append_only`. `health_plans.tax_rate_bps`: alteração permitida (já que `health_plans` é dimensão configurável, não fato financeiro), mas auditada. `expenses.tax_id`: imutável após criação (já incluído na trigger existente). |
-| **II. Auditabilidade Total de Preços (NON-NEGOTIABLE)** | ✅ Cumpre | Triggers `audit_taxes_change` (AFTER INSERT/UPDATE) e `audit_health_plan_tax_rate_change` (AFTER UPDATE OF tax_rate_bps) chamam `log_audit_event` com tenant, ator, valor antigo/novo. `expenses.tax_id` é coberto pela auditoria de despesas (insert event já existente). |
-| **III. Isolamento Multi-Tenant** | ✅ Cumpre | `taxes.tenant_id NOT NULL REFERENCES tenants(id)`. RLS habilitado: `SELECT` filtra por `jwt_tenant_id()`; `INSERT/UPDATE` adicionam `jwt_role() IN ('admin','financeiro')`. Coluna `tax_rate_bps` herda RLS de `health_plans` (já existente). Teste de cross-tenant leak em `tests/contract/taxes-rls.test.ts`. |
-| **IV. Conformidade TUSS/ANS** | ➖ N/A | Feature não toca catálogo TUSS, códigos de procedimento, nem transmissão TISS. Imposto é dado interno da clínica. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | ✅ Cumpre | `requireRole(['admin','financeiro'])` nas rotas `POST /api/impostos`, `PATCH /api/impostos/[id]`, `PATCH /api/planos/[id]` (para `tax_rate_bps`). GET liberado a `admin/financeiro/recepcionista/profissional_saude` (leitura). Nova action `tax.write` adicionada ao `rbac.ts` matrix; `tax.read` herda de quem já tem `expense.read`. Testes de RBAC por endpoint em `tests/contract/api-taxes-rbac.test.ts`. |
+| **II. Auditabilidade Total de Preços (NON-NEGOTIABLE)** | ✅ Cumpre | Triggers `audit_taxes_change` (AFTER INSERT/UPDATE) e `audit_health_plan_tax_rate_change` (AFTER UPDATE OF tax_rate_bps) chamam `log_audit_event` com tenant, ator, valor antigo/novo. `expenses.tax_id` é coberto pela auditoria de despesas (insert event já existente).                                                                                                                                                                                                           |
+| **III. Isolamento Multi-Tenant**                        | ✅ Cumpre | `taxes.tenant_id NOT NULL REFERENCES tenants(id)`. RLS habilitado: `SELECT` filtra por `jwt_tenant_id()`; `INSERT/UPDATE` adicionam `jwt_role() IN ('admin','financeiro')`. Coluna `tax_rate_bps` herda RLS de `health_plans` (já existente). Teste de cross-tenant leak em `tests/contract/taxes-rls.test.ts`.                                                                                                                                                                      |
+| **IV. Conformidade TUSS/ANS**                           | ➖ N/A    | Feature não toca catálogo TUSS, códigos de procedimento, nem transmissão TISS. Imposto é dado interno da clínica.                                                                                                                                                                                                                                                                                                                                                                    |
+| **V. Segurança por Perfil de Acesso (RBAC)**            | ✅ Cumpre | `requireRole(['admin','financeiro'])` nas rotas `POST /api/impostos`, `PATCH /api/impostos/[id]`, `PATCH /api/planos/[id]` (para `tax_rate_bps`). GET liberado a `admin/financeiro/recepcionista/profissional_saude` (leitura). Nova action `tax.write` adicionada ao `rbac.ts` matrix; `tax.read` herda de quem já tem `expense.read`. Testes de RBAC por endpoint em `tests/contract/api-taxes-rbac.test.ts`.                                                                      |
 
 **Gate de complexity tracking**: nenhum desvio justificável necessário — a feature usa exatamente os padrões já estabelecidos (RLS + append-only triggers + audit + `requireRole`).
 
@@ -146,6 +147,6 @@ tests/
 
 > Esta seção fica vazia: a feature **não** introduz nenhuma violação de constituição que mereça justificativa. Toda decisão segue padrões já vigentes (RLS multi-tenant, triggers append-only, `log_audit_event`, `requireRole`, `enforce_append_only`, `enforce_*_mutation`, `ConflictError`, locale pt-BR em UI). Caso surja desvio durante a implementação, será adicionado aqui antes do merge.
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|--------------------------------------|
-| _(nenhum)_ | — | — |
+| Violation  | Why Needed | Simpler Alternative Rejected Because |
+| ---------- | ---------- | ------------------------------------ |
+| _(nenhum)_ | —          | —                                    |

@@ -31,7 +31,11 @@ export function ClinicDataForm({ tenantId, initial }: Props) {
         phone: phone.trim() || null,
         email: email.trim() || null,
       })
-      setMsg(res.ok ? { kind: 'ok', text: 'Dados salvos.' } : { kind: 'err', text: res.error ?? 'Falha ao salvar.' })
+      setMsg(
+        res.ok
+          ? { kind: 'ok', text: 'Dados salvos.' }
+          : { kind: 'err', text: res.error ?? 'Falha ao salvar.' },
+      )
     })
   }
 
@@ -47,7 +51,12 @@ export function ClinicDataForm({ tenantId, initial }: Props) {
         </div>
         <div>
           <Label className="text-[11px] font-bold uppercase text-slate-500">CNPJ</Label>
-          <Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="só números" className="h-8 text-xs" />
+          <Input
+            value={cnpj}
+            onChange={(e) => setCnpj(e.target.value)}
+            placeholder="só números"
+            className="h-8 text-xs"
+          />
         </div>
         <div>
           <Label className="text-[11px] font-bold uppercase text-slate-500">Telefone</Label>
@@ -55,7 +64,12 @@ export function ClinicDataForm({ tenantId, initial }: Props) {
         </div>
         <div className="sm:col-span-2">
           <Label className="text-[11px] font-bold uppercase text-slate-500">E-mail</Label>
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-8 text-xs" />
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-8 text-xs"
+          />
         </div>
         <div className="flex items-center gap-3 sm:col-span-2">
           <Button type="submit" size="sm" disabled={pending} className="gap-2">
@@ -63,7 +77,9 @@ export function ClinicDataForm({ tenantId, initial }: Props) {
             Salvar
           </Button>
           {msg ? (
-            <span className={`text-xs font-semibold ${msg.kind === 'ok' ? 'text-success-text' : 'text-destructive'}`}>
+            <span
+              className={`text-xs font-semibold ${msg.kind === 'ok' ? 'text-success-text' : 'text-destructive'}`}
+            >
               {msg.text}
             </span>
           ) : null}

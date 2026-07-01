@@ -29,7 +29,14 @@ import {
 } from '@/components/ui/appointment-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatBps, formatCurrency, formatDateTime } from '@/lib/utils'
 import { listAllergies, type PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
 import {
@@ -71,11 +78,7 @@ interface AppointmentDetail {
   health_plans: { name: string | null } | null
 }
 
-export default async function AtendimentoDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function AtendimentoDetailPage({ params }: { params: { id: string } }) {
   const session = await getSession()
   if (!session) redirect('/login')
 
@@ -95,7 +98,7 @@ export default async function AtendimentoDetailPage({
     })
     type DecryptRow = { id: string; full_name: string | null; anonymized_at: string | null }
     const dec = ((data ?? []) as DecryptRow[])[0]
-    if (dec) patientName = dec.anonymized_at ? '[anonimizado]' : dec.full_name ?? '—'
+    if (dec) patientName = dec.anonymized_at ? '[anonimizado]' : (dec.full_name ?? '—')
   }
 
   // Alergias do paciente (Card de destaque).
@@ -174,9 +177,9 @@ export default async function AtendimentoDetailPage({
   const isFuture =
     appointment.appointment_at !== null &&
     new Date(appointment.appointment_at).getTime() > Date.now()
-  const status: (typeof KNOWN_STATUSES)[number] = (
-    KNOWN_STATUSES as readonly string[]
-  ).includes(rawStatus)
+  const status: (typeof KNOWN_STATUSES)[number] = (KNOWN_STATUSES as readonly string[]).includes(
+    rawStatus,
+  )
     ? (rawStatus as (typeof KNOWN_STATUSES)[number])
     : isFuture
       ? 'agendado'
@@ -270,9 +273,7 @@ export default async function AtendimentoDetailPage({
               Voltar
             </Link>
           </Button>
-          <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
-            Atendimento
-          </h1>
+          <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Atendimento</h1>
           <p className="mt-1 font-mono text-xs text-slate-400">{appointment.id}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
@@ -390,10 +391,7 @@ export default async function AtendimentoDetailPage({
             <p className="mb-3 text-sm text-slate-500">
               Abre a prescrição digital da Memed com o paciente já carregado.
             </p>
-            <PrescreverLauncher
-              appointmentId={appointment.id}
-              doctorId={appointment.doctor_id}
-            />
+            <PrescreverLauncher appointmentId={appointment.id} doctorId={appointment.doctor_id} />
           </CardContent>
         </Card>
       ) : null}
@@ -427,9 +425,7 @@ export default async function AtendimentoDetailPage({
       {procedureLines.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              Procedimentos ({procedureLines.length})
-            </CardTitle>
+            <CardTitle className="text-base">Procedimentos ({procedureLines.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -463,7 +459,7 @@ export default async function AtendimentoDetailPage({
                             Particular
                           </span>
                         ) : (
-                          line.planName ?? '—'
+                          (line.planName ?? '—')
                         )}
                       </TableCell>
                       <TableCell className="text-center font-mono text-xs tabular-nums">
@@ -548,18 +544,17 @@ export default async function AtendimentoDetailPage({
             {status === 'agendado' ? (
               <>
                 <p className="mb-4 text-sm text-slate-500">
-                  Marca que o paciente avisou que vai comparecer (confirmação
-                  prévia). Não significa que o atendimento já foi realizado.
+                  Marca que o paciente avisou que vai comparecer (confirmação prévia). Não significa
+                  que o atendimento já foi realizado.
                 </p>
                 <ConfirmAppointmentButton appointmentId={appointment.id} />
               </>
             ) : (
               <>
                 <p className="mb-4 text-sm text-slate-500">
-                  Registra que o paciente compareceu e o atendimento foi
-                  realizado. A etapa vinculada do plano de tratamento (se
-                  houver) é marcada como concluída automaticamente e o
-                  atendimento passa a entrar nos faturamentos.
+                  Registra que o paciente compareceu e o atendimento foi realizado. A etapa
+                  vinculada do plano de tratamento (se houver) é marcada como concluída
+                  automaticamente e o atendimento passa a entrar nos faturamentos.
                 </p>
                 <MarkRealizedForm appointmentId={appointment.id} />
               </>
@@ -592,19 +587,16 @@ export default async function AtendimentoDetailPage({
         <details className="group rounded-lg border border-slate-200 bg-white">
           <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-700">
             <span>Estornar atendimento (sem cancelar agenda)</span>
-            <span className="text-xs font-medium text-slate-400 group-open:hidden">
-              mostrar
-            </span>
+            <span className="text-xs font-medium text-slate-400 group-open:hidden">mostrar</span>
             <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
               ocultar
             </span>
           </summary>
           <div className="border-t border-slate-100 p-4">
             <p className="mb-4 text-sm text-slate-500">
-              Use apenas para correções puramente financeiras (cobrança duplicada,
-              erro de valor) onde o atendimento aconteceu de fato. Para no-show
-              ou desmarcação use &quot;Cancelar atendimento&quot; acima — ele já
-              cuida do estorno automaticamente.
+              Use apenas para correções puramente financeiras (cobrança duplicada, erro de valor)
+              onde o atendimento aconteceu de fato. Para no-show ou desmarcação use &quot;Cancelar
+              atendimento&quot; acima — ele já cuida do estorno automaticamente.
             </p>
             <ReversalForm appointmentId={appointment.id} />
           </div>
@@ -619,9 +611,7 @@ export default async function AtendimentoDetailPage({
               <DollarSign className="h-4 w-4 text-slate-400" />
               Dados financeiros
             </span>
-            <span className="text-xs font-medium text-slate-400 group-open:hidden">
-              mostrar
-            </span>
+            <span className="text-xs font-medium text-slate-400 group-open:hidden">mostrar</span>
             <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
               ocultar
             </span>
@@ -636,9 +626,7 @@ export default async function AtendimentoDetailPage({
               </ClinicalRow>
               <ClinicalRow icon={Receipt} label="Valor líquido">
                 <span
-                  className={
-                    status === 'estornado' ? 'font-black text-destructive' : 'font-black'
-                  }
+                  className={status === 'estornado' ? 'font-black text-destructive' : 'font-black'}
                 >
                   {formatCurrency(appointment.net_amount_cents)}
                 </span>
@@ -650,7 +638,6 @@ export default async function AtendimentoDetailPage({
           </div>
         </details>
       ) : null}
-
     </div>
   )
 }
@@ -760,9 +747,7 @@ function ClinicalRow({
     <div className="flex gap-3">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <div className="mt-0.5 text-sm text-slate-700">{children}</div>
       </div>
     </div>
@@ -811,11 +796,7 @@ function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
           }
         >
           <AlertTriangle
-            className={
-              accent === 'rose'
-                ? 'h-4 w-4 text-destructive'
-                : 'h-4 w-4 text-warning'
-            }
+            className={accent === 'rose' ? 'h-4 w-4 text-destructive' : 'h-4 w-4 text-warning'}
           />
           Alergias do paciente — {allergies.length} registrada
           {allergies.length === 1 ? '' : 's'}

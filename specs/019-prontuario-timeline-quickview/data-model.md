@@ -16,12 +16,12 @@ Representa um item da timeline. Cada variante é polimórfica pelo `kind` e carr
 
 export type TimelineEventKind =
   | 'anamnese'
-  | 'evolucao'        // SOAP
-  | 'texto'           // texto livre
-  | 'arquivo'         // upload em clinical_records
+  | 'evolucao' // SOAP
+  | 'texto' // texto livre
+  | 'arquivo' // upload em clinical_records
   | 'vital'
-  | 'appointment'     // realizado, cancelado, em-aberto
-  | 'payment'         // recebimento ou registro financeiro
+  | 'appointment' // realizado, cancelado, em-aberto
+  | 'payment' // recebimento ou registro financeiro
 
 export interface TimelineEventBase {
   /** ID único do evento (composto se necessário: `${kind}:${rowId}`). */
@@ -37,22 +37,22 @@ export interface TimelineEventBase {
 
 export interface AnamneseEvent extends TimelineEventBase {
   kind: 'anamnese'
-  source: ClinicalRecordRow  // type='anamnese', com anamnesisData não-null
+  source: ClinicalRecordRow // type='anamnese', com anamnesisData não-null
 }
 
 export interface EvolucaoEvent extends TimelineEventBase {
   kind: 'evolucao'
-  source: ClinicalRecordRow  // type='evolucao', com soapData não-null
+  source: ClinicalRecordRow // type='evolucao', com soapData não-null
 }
 
 export interface TextoEvent extends TimelineEventBase {
   kind: 'texto'
-  source: ClinicalRecordRow  // type='texto'
+  source: ClinicalRecordRow // type='texto'
 }
 
 export interface ArquivoEvent extends TimelineEventBase {
   kind: 'arquivo'
-  source: ClinicalRecordRow  // type='arquivo'
+  source: ClinicalRecordRow // type='arquivo'
 }
 
 export interface VitalEvent extends TimelineEventBase {
@@ -62,7 +62,7 @@ export interface VitalEvent extends TimelineEventBase {
 
 export interface AppointmentEvent extends TimelineEventBase {
   kind: 'appointment'
-  source: AppointmentHistoryRow  // já agregada com stepId em page.tsx
+  source: AppointmentHistoryRow // já agregada com stepId em page.tsx
 }
 
 export interface PaymentEvent extends TimelineEventBase {
@@ -115,7 +115,7 @@ export interface QuickViewSnapshot {
   }
   contact: {
     phone: string | null
-    whatsappUrl: string | null  // pré-computado via buildWhatsAppUrl
+    whatsappUrl: string | null // pré-computado via buildWhatsAppUrl
     email: string | null
   }
   plan: {
@@ -131,7 +131,7 @@ export interface QuickViewSnapshot {
   financial: {
     receivedCents: number
     pendingCents: number
-    lastPaidAt: string | null  // ISO, ou null se nunca pago
+    lastPaidAt: string | null // ISO, ou null se nunca pago
   }
   /** Permissões de RBAC para decidir quais botões renderizar (computado a partir de session.role). */
   permissions: {
@@ -251,14 +251,14 @@ Por ser leitura agregada, não há validação de entrada que esta feature acres
 
 ## 7. Tenant Isolation — checklist
 
-| Fonte | Filtragem aplicada |
-|---|---|
-| `getPatient` | `eq('tenant_id', tenantId)` + RLS |
-| `listClinicalRecords` | RLS sobre `clinical_records.tenant_id` |
-| `listVitalSigns` | `eq('tenant_id', tenantId)` + RLS |
-| `appointments_effective` (view) | herda RLS de `appointments` |
-| `listPaymentsForPatient` | helper existente já filtra |
-| `listAllergies/Diagnoses/History` | RLS sobre `patient_*.tenant_id` |
-| `resolveAuthors` (NOVO) | `eq('tenant_id', tenantId)` em `doctors` e `user_profile` + RLS de ambas |
+| Fonte                             | Filtragem aplicada                                                       |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| `getPatient`                      | `eq('tenant_id', tenantId)` + RLS                                        |
+| `listClinicalRecords`             | RLS sobre `clinical_records.tenant_id`                                   |
+| `listVitalSigns`                  | `eq('tenant_id', tenantId)` + RLS                                        |
+| `appointments_effective` (view)   | herda RLS de `appointments`                                              |
+| `listPaymentsForPatient`          | helper existente já filtra                                               |
+| `listAllergies/Diagnoses/History` | RLS sobre `patient_*.tenant_id`                                          |
+| `resolveAuthors` (NOVO)           | `eq('tenant_id', tenantId)` em `doctors` e `user_profile` + RLS de ambas |
 
 ✅ Nenhum vazamento possível entre tenants. Princípio III preservado.

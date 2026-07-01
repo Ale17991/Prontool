@@ -100,9 +100,7 @@ export function ConfigForm({ initial }: ConfigFormProps) {
             className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
           />
           <div>
-            <div className="font-semibold text-slate-900">
-              Habilitar lembretes automáticos
-            </div>
+            <div className="font-semibold text-slate-900">Habilitar lembretes automáticos</div>
             <p className="mt-0.5 text-xs text-slate-500">
               Quando habilitado, pacientes recebem email antes de cada consulta.
             </p>
@@ -124,8 +122,8 @@ export function ConfigForm({ initial }: ConfigFormProps) {
       <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-slate-900">Antecedências</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Quantas horas antes da consulta o lembrete deve ser enviado. Você pode
-          adicionar até 5 antecedências (ex.: 48h e 2h antes).
+          Quantas horas antes da consulta o lembrete deve ser enviado. Você pode adicionar até 5
+          antecedências (ex.: 48h e 2h antes).
         </p>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -171,8 +169,7 @@ export function ConfigForm({ initial }: ConfigFormProps) {
       <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-slate-900">Janela de envio</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Lembretes só são enviados dentro desta janela (horário de Brasília). Evita
-          madrugada.
+          Lembretes só são enviados dentro desta janela (horário de Brasília). Evita madrugada.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
@@ -208,17 +205,14 @@ export function ConfigForm({ initial }: ConfigFormProps) {
 
       {/* Template */}
       <section className="rounded-lg border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold text-slate-900">
-          Template do email (opcional)
-        </h2>
+        <h2 className="text-sm font-semibold text-slate-900">Template do email (opcional)</h2>
         <p className="mt-1 text-xs text-slate-500">
           Deixe em branco para usar o template padrão. Placeholders disponíveis:
         </p>
         <ul className="mt-2 grid gap-1 text-xs text-slate-600 sm:grid-cols-2">
           {PLACEHOLDER_HINTS.map(([token, desc]) => (
             <li key={token}>
-              <code className="rounded bg-muted px-1 py-0.5 font-mono">{token}</code> —{' '}
-              {desc}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono">{token}</code> — {desc}
             </li>
           ))}
         </ul>
@@ -236,9 +230,7 @@ export function ConfigForm({ initial }: ConfigFormProps) {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Corpo (HTML simples)
-            </label>
+            <label className="block text-xs font-medium text-slate-700">Corpo (HTML simples)</label>
             <textarea
               rows={6}
               maxLength={10000}

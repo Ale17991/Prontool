@@ -28,21 +28,23 @@ const paymentModeChangeSchema = z
     valid_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     reason: z.string().min(3).max(500),
   })
-  .refine(
-    (v) =>
-      v.payment_mode !== 'comissionado' || typeof v.percentage_bps === 'number',
-    { message: 'percentage_bps obrigatório para Comissionado', path: ['percentage_bps'] },
-  )
+  .refine((v) => v.payment_mode !== 'comissionado' || typeof v.percentage_bps === 'number', {
+    message: 'percentage_bps obrigatório para Comissionado',
+    path: ['percentage_bps'],
+  })
   .refine(
     (v) =>
       v.payment_mode !== 'fixo' ||
       (typeof v.monthly_amount_cents === 'number' && typeof v.billing_day === 'number'),
-    { message: 'monthly_amount_cents e billing_day obrigatórios para Fixo', path: ['monthly_amount_cents'] },
+    {
+      message: 'monthly_amount_cents e billing_day obrigatórios para Fixo',
+      path: ['monthly_amount_cents'],
+    },
   )
-  .refine(
-    (v) => v.payment_mode !== 'liberal' || typeof v.liberal_default_cents === 'number',
-    { message: 'liberal_default_cents obrigatório para Liberal', path: ['liberal_default_cents'] },
-  )
+  .refine((v) => v.payment_mode !== 'liberal' || typeof v.liberal_default_cents === 'number', {
+    message: 'liberal_default_cents obrigatório para Liberal',
+    path: ['liberal_default_cents'],
+  })
 
 const patchSchema = z.object({
   full_name: z.string().min(1).max(200).optional(),
@@ -76,10 +78,7 @@ const patchSchema = z.object({
   payment_mode_change: paymentModeChangeSchema.optional(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(
       ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],
@@ -215,9 +214,7 @@ export async function PATCH(
           ...(parsed.data.council_state !== undefined
             ? { councilState: parsed.data.council_state }
             : {}),
-          ...(parsed.data.birth_date !== undefined
-            ? { birthDate: parsed.data.birth_date }
-            : {}),
+          ...(parsed.data.birth_date !== undefined ? { birthDate: parsed.data.birth_date } : {}),
           ...(parsed.data.specialty !== undefined ? { specialty: parsed.data.specialty } : {}),
           ...(parsed.data.cbo !== undefined ? { cbo: parsed.data.cbo } : {}),
         },

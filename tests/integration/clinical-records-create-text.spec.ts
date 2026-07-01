@@ -2,10 +2,7 @@
  * Admin cria registro clínico tipo `texto` e o lê de volta.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedPatient } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
@@ -25,7 +22,10 @@ describe('clinical_records — admin cria registro de texto', () => {
       new Request(`http://localhost/api/pacientes/${patientId}/registros`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: `Bearer ${jwt}` },
-        body: JSON.stringify({ title: 'Anamnese inicial', content: 'Paciente refere dor lombar há 3 dias.' }),
+        body: JSON.stringify({
+          title: 'Anamnese inicial',
+          content: 'Paciente refere dor lombar há 3 dias.',
+        }),
       }),
       { params: { id: patientId } },
     )

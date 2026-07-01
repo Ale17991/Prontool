@@ -52,9 +52,7 @@ export async function listProceduresByDoctor(
 ): Promise<PublishedProcedure[]> {
   const { data, error } = await supabase
     .from('public_booking_doctor_procedures')
-    .select(
-      'tenant_id, doctor_id, procedure_id, display_name, duration_minutes, display_order',
-    )
+    .select('tenant_id, doctor_id, procedure_id, display_name, duration_minutes, display_order')
     .eq('tenant_id', tenantId)
     .eq('doctor_id', doctorId)
     .order('display_order')
@@ -83,9 +81,7 @@ export async function listProceduresAnyDoctor(
 ): Promise<PublishedProcedure[]> {
   const { data, error } = await supabase
     .from('public_booking_doctor_procedures')
-    .select(
-      'tenant_id, doctor_id, procedure_id, display_name, duration_minutes, display_order',
-    )
+    .select('tenant_id, doctor_id, procedure_id, display_name, duration_minutes, display_order')
     .eq('tenant_id', tenantId)
     .order('display_order')
   if (error) {
@@ -119,9 +115,7 @@ export async function listProceduresAnyDoctor(
       })
     }
   }
-  return Array.from(byProcedure.values()).sort(
-    (a, b) => a.displayOrder - b.displayOrder,
-  )
+  return Array.from(byProcedure.values()).sort((a, b) => a.displayOrder - b.displayOrder)
 }
 
 /**
@@ -141,7 +135,5 @@ export async function listDoctorsForProcedure(
   if (error) {
     throw new Error(`listDoctorsForProcedure failed: ${error.message}`)
   }
-  return Array.from(
-    new Set((data ?? []).map((r) => r.doctor_id as string)),
-  )
+  return Array.from(new Set((data ?? []).map((r) => r.doctor_id as string)))
 }

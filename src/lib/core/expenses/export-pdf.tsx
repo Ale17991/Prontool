@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { ExpenseExportRow, ExpenseExportMeta } from './export-excel'
@@ -40,15 +33,33 @@ const styles = StyleSheet.create({
     minHeight: 18,
     alignItems: 'center',
   },
-  th: { paddingHorizontal: 5, paddingVertical: 4, fontFamily: 'Helvetica-Bold', fontSize: 8, color: '#334155' },
+  th: {
+    paddingHorizontal: 5,
+    paddingVertical: 4,
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+    color: '#334155',
+  },
   td: { paddingHorizontal: 5, paddingVertical: 4, fontSize: 8 },
   cDate: { width: 58 },
   cCat: { width: 64 },
   cDesc: { flex: 1 },
   cSup: { width: 90 },
   cAmount: { width: 70, textAlign: 'right' },
-  totalRow: { flexDirection: 'row', marginTop: 8, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#cbd5e1' },
-  totalLabel: { flex: 1, textAlign: 'right', fontFamily: 'Helvetica-Bold', fontSize: 9, paddingRight: 8 },
+  totalRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#cbd5e1',
+  },
+  totalLabel: {
+    flex: 1,
+    textAlign: 'right',
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 9,
+    paddingRight: 8,
+  },
   totalValue: { width: 70, textAlign: 'right', fontFamily: 'Helvetica-Bold', fontSize: 9 },
 })
 
@@ -62,14 +73,17 @@ function ddmmyyyy(ymd: string): string {
 
 export async function renderExpensesPdf(
   rows: ExpenseExportRow[],
-  meta: ExpenseExportMeta & { clinicProfile?: ClinicProfile | null; signedLogoUrl?: string | null } = {},
+  meta: ExpenseExportMeta & {
+    clinicProfile?: ClinicProfile | null
+    signedLogoUrl?: string | null
+  } = {},
 ): Promise<Buffer> {
   const totalCents = rows.reduce((acc, r) => acc + Number(r.amount_cents), 0)
   const periodo =
     meta.from || meta.to ? `Período: ${meta.from ?? '…'} a ${meta.to ?? '…'}` : 'Período: todos'
   const catLabel =
     meta.category && meta.category !== 'all'
-      ? CATEGORY_LABEL[meta.category] ?? meta.category
+      ? (CATEGORY_LABEL[meta.category] ?? meta.category)
       : 'Todas as categorias'
 
   const doc = (

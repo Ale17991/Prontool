@@ -34,6 +34,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 ### Cenário 1 — US1 P1: contexto sempre visível
 
 **Setup**:
+
 1. Criar paciente "Maria Teste 1" via `/operacao/pacientes/novo`.
 2. Adicionar:
    - 1 alergia "Penicilina" severidade `grave`
@@ -45,6 +46,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
    - 1 evolução SOAP
 
 **Validar**:
+
 - [ ] Abrir a ficha → layout em 2 colunas em desktop (≥768px).
 - [ ] Sidebar mostra: avatar, idade, CPF, telefone com botão WhatsApp, email, plano, chip "Penicilina · Grave" vermelho, chips "I10" e "E11" (com E11 badge sutil de "Acompanhamento"), última medição vital com IMC e classificação, resumo financeiro (recebido > 0), botões de ação respeitando RBAC.
 - [ ] Rolar a página até o final da timeline → sidebar permanece visível (sticky).
@@ -55,6 +57,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 **Setup**: Criar paciente "João Sem Alergias" sem nenhuma alergia.
 
 **Validar**:
+
 - [ ] Sidebar **não** renderiza o bloco "Alergias" (não mostra "Nenhuma alergia").
 - [ ] Idem para diagnósticos, vitais, financeiro.
 
@@ -63,6 +66,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 **Setup**: Em uma ficha existente, clicar em "Anonimizar paciente" (botão admin).
 
 **Validar**:
+
 - [ ] Sidebar mostra **apenas** o card de aviso de anonimização.
 - [ ] Timeline mostra apenas eventos `appointment` e `payment` (não anamneses, evoluções, vitais, arquivos, textos).
 
@@ -71,6 +75,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 **Setup**: Paciente com 10+ evoluções antigas.
 
 **Validar**:
+
 - [ ] Rolar até a 5ª evolução. Clicar em "Nova evolução" na sidebar.
 - [ ] Sheet abre à direita; a timeline atrás **não muda de posição**.
 - [ ] Preencher S e A; salvar.
@@ -81,6 +86,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 ### Cenário 5 — US2: nova alergia atualiza sidebar sem reload
 
 **Validar**:
+
 - [ ] Clicar em "Nova alergia" → sheet.
 - [ ] Cadastrar "Dipirona / moderada".
 - [ ] Após salvar, sheet fecha e o chip "Dipirona · Moderada" aparece na sidebar sem reload (via `router.refresh()`).
@@ -88,6 +94,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 ### Cenário 6 — US3 P2: filtros
 
 **Validar**:
+
 - [ ] Timeline tem chips: Tudo, Evoluções, Anamneses, Exames/Anexos, Sinais vitais, Atendimentos, Pagamentos.
 - [ ] Cada chip mostra contagem entre parênteses.
 - [ ] Clicar em "Evoluções" → só evoluções SOAP visíveis.
@@ -98,6 +105,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 ### Cenário 7 — Aba "Cadastro"
 
 **Validar**:
+
 - [ ] Coluna direita tem 2 abas no topo: "Clínico" (padrão) e "Cadastro".
 - [ ] Clicar em "Cadastro" → URL muda para `?tab=cadastro`. Mostra `<AddressEditor>`, opt-in lembretes, plano de saúde, plano terapêutico.
 - [ ] Editar endereço e salvar → permanece na aba "Cadastro".
@@ -109,6 +117,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 **Setup**: DevTools → toggle device toolbar → iPhone 13 (375x812).
 
 **Validar**:
+
 - [ ] Layout single-column.
 - [ ] Topo: header compacto com avatar+nome+idade.
 - [ ] Botão "Ver detalhes do paciente" expande os blocos da quick-view.
@@ -119,6 +128,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 ### Cenário 9 — Edge case: trocar paciente com sheet aberto
 
 **Validar**:
+
 - [ ] Abrir paciente A, abrir sheet "Nova evolução".
 - [ ] Sem fechar o sheet, clicar em "Voltar para pacientes" → ir para paciente B.
 - [ ] Sheet fechado automaticamente (não persiste entre rotas).
@@ -128,6 +138,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 **Setup**: Logar como `recepcionista`.
 
 **Validar**:
+
 - [ ] Sidebar não mostra botões "Nova evolução", "Registrar vital", "Novo diagnóstico" (FR-028).
 - [ ] Botão "Imprimir prontuário" continua disponível (recepcionista pode imprimir? — validar contra `can(role, 'print.chart')`; se não tem, esconder).
 - [ ] Tentar acessar endpoint diretamente (cURL com cookie de recepcionista contra `/api/pacientes/X/registros` POST) → HTTP 403 (server-side gate).
@@ -137,6 +148,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 **Setup**: Forçar erro em uma das fontes (ex.: revogar grant em `vital_signs` temporariamente).
 
 **Validar**:
+
 - [ ] Como admin, ver o failures card no topo com a seção que falhou.
 - [ ] Outras seções continuam renderizando normalmente.
 - [ ] Restaurar grant.
@@ -144,6 +156,7 @@ Abrir `http://localhost:3000` e fazer login com o usuário seed (verificar `.env
 ### Cenário 12 — A11y: navegação por teclado
 
 **Validar**:
+
 - [ ] `Tab` percorre: voltar → editar identidade → botões de contato (WhatsApp etc.) → chips de alergia → chips de CID → botões de ação → tabs Clínico/Cadastro → chips de filtro → itens da timeline.
 - [ ] `Enter`/`Space` num item da timeline expande/colapsa.
 - [ ] `Esc` num item expandido colapsa todos.
@@ -169,6 +182,7 @@ pnpm test src/app/operacao/pacientes
 ```
 
 **Critérios para PR-ready**:
+
 - ✅ Todos os cenários acima passam
 - ✅ `pnpm typecheck` sem erros novos
 - ✅ `pnpm test` verde

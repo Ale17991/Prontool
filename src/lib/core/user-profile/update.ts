@@ -10,9 +10,11 @@ let cachedTimezones: Set<string> | null = null
 function supportedTimezones(): Set<string> {
   if (cachedTimezones) return cachedTimezones
   // Intl.supportedValuesOf é o catálogo IANA local (Node 18+).
-  const list = (Intl as unknown as {
-    supportedValuesOf?: (key: string) => string[]
-  }).supportedValuesOf?.('timeZone')
+  const list = (
+    Intl as unknown as {
+      supportedValuesOf?: (key: string) => string[]
+    }
+  ).supportedValuesOf?.('timeZone')
   cachedTimezones = new Set(list ?? ['America/Sao_Paulo', 'UTC'])
   return cachedTimezones
 }

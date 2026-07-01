@@ -50,7 +50,9 @@
     font-size: 13px;
     font-weight: 400;
     line-height: 1.4;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+      monospace;
   }
 }
 ```
@@ -59,14 +61,14 @@
 
 ## Regras de uso
 
-| Caso | Classe |
-|---|---|
-| Título de página | `text-display` |
-| Cabeçalho de seção dentro de página | `text-h1` ou `text-h2` |
-| Card title | `text-h3` |
-| Corpo de texto, descrições, formulários | `text-body` |
-| Labels auxiliares, badges, hint text | `text-caption` |
-| Dados clínicos: dose, CPF, valores, IDs | `text-mono` |
+| Caso                                                            | Classe                                                                       |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Título de página                                                | `text-display`                                                               |
+| Cabeçalho de seção dentro de página                             | `text-h1` ou `text-h2`                                                       |
+| Card title                                                      | `text-h3`                                                                    |
+| Corpo de texto, descrições, formulários                         | `text-body`                                                                  |
+| Labels auxiliares, badges, hint text                            | `text-caption`                                                               |
+| Dados clínicos: dose, CPF, valores, IDs                         | `text-mono`                                                                  |
 | Rótulo de métrica em densidade alta (ex.: célula de calendário) | `text-caption` + override local `text-[11px]` — **única exceção autorizada** |
 
 ---

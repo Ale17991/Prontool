@@ -286,7 +286,11 @@ function toBps(input: string): number | null {
 }
 
 function toCents(input: string): number | null {
-  const cleaned = input.trim().replace(/R\$\s*/gi, '').replace(/\./g, '').replace(',', '.')
+  const cleaned = input
+    .trim()
+    .replace(/R\$\s*/gi, '')
+    .replace(/\./g, '')
+    .replace(',', '.')
   if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null
   const v = Number(cleaned)
   if (Number.isNaN(v) || v < 0) return null

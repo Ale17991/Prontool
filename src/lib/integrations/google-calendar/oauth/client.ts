@@ -62,7 +62,9 @@ export async function exchangeCode(code: string): Promise<GoogleOAuthCredentials
   }
   if (typeof json.refresh_token !== 'string') {
     // Sem refresh_token não conseguimos manter a conexão — força reconsentir.
-    throw new GoogleTokenError('Google não retornou refresh_token (reconecte concedendo acesso offline).')
+    throw new GoogleTokenError(
+      'Google não retornou refresh_token (reconecte concedendo acesso offline).',
+    )
   }
   return googleOAuthCredentialsSchema.parse({
     access_token: json.access_token,
@@ -92,7 +94,10 @@ export async function refreshAccessToken(
   const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
   if (!res.ok || typeof json.access_token !== 'string') {
     const permanent = json.error === 'invalid_grant'
-    throw new GoogleTokenError(`refreshAccessToken falhou: ${res.status} ${JSON.stringify(json)}`, permanent)
+    throw new GoogleTokenError(
+      `refreshAccessToken falhou: ${res.status} ${JSON.stringify(json)}`,
+      permanent,
+    )
   }
   return {
     access_token: json.access_token,

@@ -151,10 +151,7 @@ async function getPlatformAdminTenants(
     if (scopedTenantIds.length === 0) return []
   }
 
-  let query = supabase
-    .from('tenants')
-    .select('id, name, slug, status')
-    .eq('status', 'active')
+  let query = supabase.from('tenants').select('id, name, slug, status').eq('status', 'active')
   if (scopedTenantIds) query = query.in('id', scopedTenantIds)
   const { data: tlist, error: tErr } = await query.order('name', { ascending: true })
   if (tErr) {

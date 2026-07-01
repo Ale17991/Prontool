@@ -12,10 +12,7 @@ export const runtime = 'nodejs'
 
 const ROUTE = '/api/tiss/lotes/[id]/xml'
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(['admin', 'financeiro'], {
       entity: 'tiss_lotes',

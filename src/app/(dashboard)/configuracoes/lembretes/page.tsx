@@ -20,9 +20,7 @@ export default async function LembretesPage() {
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
   const [config, history] = await Promise.all([
     getReminderConfig(supabase, session.tenantId),
-    listRemindersHistory(supabase, { tenantId: session.tenantId, limit: 20 }).catch(
-      () => [],
-    ),
+    listRemindersHistory(supabase, { tenantId: session.tenantId, limit: 20 }).catch(() => []),
   ])
 
   return (
@@ -42,8 +40,8 @@ export default async function LembretesPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-slate-900">Histórico de envios</h2>
         <p className="text-sm text-slate-500">
-          Últimos 20 lembretes processados pelo motor. Clique em &quot;Reenviar&quot; para
-          disparar uma nova tentativa.
+          Últimos 20 lembretes processados pelo motor. Clique em &quot;Reenviar&quot; para disparar
+          uma nova tentativa.
         </p>
         <HistoryTable rows={history} />
       </section>

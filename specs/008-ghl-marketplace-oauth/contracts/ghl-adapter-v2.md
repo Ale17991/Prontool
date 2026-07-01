@@ -15,12 +15,12 @@ export const ghlAdapter: IntegrationAdapter<GhlConfigV2, GhlOAuthCredentials> = 
   label: 'GoHighLevel',
   description:
     'CRM e automação de marketing. Contato sincronizado bidirecionalmente; atendimento vira nota.',
-  configSchema: ghlConfigV2Schema,           // de oauth/types.ts
+  configSchema: ghlConfigV2Schema, // de oauth/types.ts
   credentialsSchema: ghlOAuthCredentialsSchema,
   redactCredentials: (c) => ({
     access_token: '***',
     refresh_token: '***',
-    expires_at: c.expires_at,                 // não-sensível
+    expires_at: c.expires_at, // não-sensível
     scopes: c.scopes.join(','),
     location_id: c.location_id,
   }),
@@ -70,7 +70,10 @@ async function handleGhlDomainEvent(
         .eq('id', event.patient.id)
         .eq('tenant_id', ctx.tenantId)
       if (upd.error) throw new Error(`patients.ghl_contact_id update failed: ${upd.error.message}`)
-      await recordSyncSuccess(ctx.supabase, ctx.tenantId, { kind: 'outbound_contact', detail: { patient_id: event.patient.id } })
+      await recordSyncSuccess(ctx.supabase, ctx.tenantId, {
+        kind: 'outbound_contact',
+        detail: { patient_id: event.patient.id },
+      })
       return
     }
 
@@ -85,7 +88,10 @@ async function handleGhlDomainEvent(
         contactId: event.patient.ghlContactId,
         body: formatAppointmentNote(event),
       })
-      await recordSyncSuccess(ctx.supabase, ctx.tenantId, { kind: 'outbound_note', detail: { appointment_id: event.appointment.id } })
+      await recordSyncSuccess(ctx.supabase, ctx.tenantId, {
+        kind: 'outbound_note',
+        detail: { appointment_id: event.appointment.id },
+      })
       return
     }
 
@@ -145,7 +151,12 @@ export async function withGhlAuth(
   const now = Date.now()
   const expiresAt = Date.parse(creds.expires_at)
   if (expiresAt - now > 60_000) {
-    return { kind: 'connected', accessToken: creds.access_token, locationId: creds.location_id, tokenJustRefreshed: false }
+    return {
+      kind: 'connected',
+      accessToken: creds.access_token,
+      locationId: creds.location_id,
+      tokenJustRefreshed: false,
+    }
   }
 
   // 3. Refresh path: advisory lock + double-check.

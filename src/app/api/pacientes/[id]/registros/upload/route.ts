@@ -58,7 +58,7 @@ export async function POST(
     const fileName =
       file.name && file.name.length > 0
         ? file.name
-        : (form.get('filename') as string | null) ?? 'arquivo.bin'
+        : ((form.get('filename') as string | null) ?? 'arquivo.bin')
 
     const supabase = createSupabaseServiceClient()
     const created = await uploadClinicalFile(supabase, {

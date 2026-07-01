@@ -35,8 +35,8 @@ export async function TabNotificacoes({ tenantId, userId }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="text-sm text-slate-500">
-          {items.length} notificaç{items.length === 1 ? 'ão' : 'ões'} ·{' '}
-          {unread_count} não lida{unread_count === 1 ? '' : 's'}
+          {items.length} notificaç{items.length === 1 ? 'ão' : 'ões'} · {unread_count} não lida
+          {unread_count === 1 ? '' : 's'}
           {has_overdue ? ' · contém tarefa atrasada' : ''}.
         </p>
         {unread_count > 0 ? <MarkAllButton /> : null}

@@ -40,9 +40,7 @@ export function PatientCardEditor({
   useEffect(() => {
     let active = true
     setStatus(null)
-    fetch(
-      `/api/pacientes/${patientId}/health-plan-cards?health_plan_id=${healthPlanId}`,
-    )
+    fetch(`/api/pacientes/${patientId}/health-plan-cards?health_plan_id=${healthPlanId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: CardStatus | null) => {
         if (active && data) {
@@ -157,11 +155,7 @@ export function PatientCardEditor({
             disabled={saving}
             className="inline-flex h-9 items-center gap-1 rounded-md bg-slate-900 px-3 text-[11px] font-bold text-white hover:bg-slate-800 disabled:opacity-60"
           >
-            {saving ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Check className="h-3 w-3" />
-            )}
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
             Salvar
           </button>
           <button

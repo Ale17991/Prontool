@@ -22,7 +22,11 @@ const createSchema = z.object({ body: z.string().trim().min(1).max(5000) })
 
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_care_notes', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_care_notes',
+      route: ROUTE,
+      request: req,
+    })
     const supabase = createSupabaseServiceClient()
     const notes = await listCareNotes(supabase, session.tenantId, params.id)
     return NextResponse.json({ notes }, { status: 200 })
@@ -31,13 +35,25 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_care_notes', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_care_notes',
+      route: ROUTE,
+      request: req,
+    })
     const parsed = createSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'A orientação deve ter entre 1 e 5000 caracteres.' } },
+        {
+          error: {
+            code: 'INVALID_BODY',
+            message: 'A orientação deve ter entre 1 e 5000 caracteres.',
+          },
+        },
         { status: 422 },
       )
     }
@@ -54,12 +70,22 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_care_notes', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_care_notes',
+      route: ROUTE,
+      request: req,
+    })
     const noteId = new URL(req.url).searchParams.get('noteId')
     if (!noteId) {
-      return NextResponse.json({ error: { code: 'INVALID_BODY', message: 'noteId obrigatório.' } }, { status: 422 })
+      return NextResponse.json(
+        { error: { code: 'INVALID_BODY', message: 'noteId obrigatório.' } },
+        { status: 422 },
+      )
     }
     const supabase = createSupabaseServiceClient()
     await deleteCareNote(supabase, { tenantId: session.tenantId, id: noteId })

@@ -17,9 +17,7 @@ export interface CreateNoteResult {
   ghlNoteId: string
 }
 
-export async function createNoteInGhl(
-  input: CreateNoteInput,
-): Promise<CreateNoteResult> {
+export async function createNoteInGhl(input: CreateNoteInput): Promise<CreateNoteResult> {
   const url = `${GHL_API_BASE}/contacts/${encodeURIComponent(input.contactId)}/notes`
   const res = await fetchWithRetry(url, {
     method: 'POST',
@@ -34,9 +32,10 @@ export async function createNoteInGhl(
     )
     throw new Error(`GHL POST /contacts/{id}/notes ${res.status}`)
   }
-  const payload = (await res.json().catch(() => null)) as
-    | { note?: { id?: string }; id?: string }
-    | null
+  const payload = (await res.json().catch(() => null)) as {
+    note?: { id?: string }
+    id?: string
+  } | null
   const ghlNoteId = payload?.note?.id ?? payload?.id ?? ''
   return { ghlNoteId }
 }

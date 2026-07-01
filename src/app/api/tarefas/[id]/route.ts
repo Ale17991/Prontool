@@ -115,10 +115,7 @@ export async function PATCH(
         const code = err.message.toLowerCase().includes('user')
           ? 'USER_NOT_FOUND'
           : 'TASK_NOT_FOUND'
-        return NextResponse.json(
-          { error: { code, message: err.message } },
-          { status: 404 },
-        )
+        return NextResponse.json({ error: { code, message: err.message } }, { status: 404 })
       }
       if (err instanceof ValidationError) {
         return NextResponse.json(

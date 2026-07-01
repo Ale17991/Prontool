@@ -30,9 +30,7 @@ export default async function PacienteLoginPage({
   const clinic = await resolvePortalClinicBySlug(supabase, params.slug)
   if (!clinic) notFound()
 
-  const session = verifyPatientSessionCookie(
-    cookies().get(PATIENT_SESSION_COOKIE_NAME)?.value,
-  )
+  const session = verifyPatientSessionCookie(cookies().get(PATIENT_SESSION_COOKIE_NAME)?.value)
   if (session && session.tenantId === clinic.tenantId) {
     redirect(`/paciente/${params.slug}/painel`)
   }
@@ -55,10 +53,7 @@ export default async function PacienteLoginPage({
       <PatientLoginForm slug={params.slug} />
 
       <footer className="text-center text-xs text-slate-400">
-        <p>
-          Em caso de dúvida sobre seus dados de acesso, entre em contato com a
-          clínica.
-        </p>
+        <p>Em caso de dúvida sobre seus dados de acesso, entre em contato com a clínica.</p>
       </footer>
     </div>
   )

@@ -138,16 +138,14 @@ describe('T173 — anonymization preserves appointment ledger', () => {
     // (a) Decrypted PII fields return the placeholder token.
     const key = process.env.PATIENT_DATA_ENCRYPTION_KEY!
     const { data: decryptedName } = await sb.rpc('dec_text_with_key', {
-      cipher: (
-        await sb.from('patients').select('full_name_enc').eq('id', patientId).single()
-      ).data!.full_name_enc,
+      cipher: (await sb.from('patients').select('full_name_enc').eq('id', patientId).single()).data!
+        .full_name_enc,
       key,
     })
     expect(decryptedName).toBe('[anonimizado]')
     const { data: decryptedCpf } = await sb.rpc('dec_text_with_key', {
-      cipher: (
-        await sb.from('patients').select('cpf_enc').eq('id', patientId).single()
-      ).data!.cpf_enc,
+      cipher: (await sb.from('patients').select('cpf_enc').eq('id', patientId).single()).data!
+        .cpf_enc,
       key,
     })
     expect(decryptedCpf).toBe('[anonimizado]')

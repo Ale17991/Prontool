@@ -57,10 +57,7 @@ export function siteLabel(site: PerioSite): string {
  * Nível de inserção clínica (CAL) = profundidade de sondagem + recessão (com
  * sinal: + recessão soma, − margem coronal reduz). Null se faltar PD.
  */
-export function calcCal(
-  probingDepthMm: number | null,
-  recessionMm: number | null,
-): number | null {
+export function calcCal(probingDepthMm: number | null, recessionMm: number | null): number | null {
   if (probingDepthMm === null) return null
   return probingDepthMm + (recessionMm ?? 0)
 }
@@ -96,9 +93,7 @@ export function calcIndicators(
   findings: PerioFindingInput[],
 ): PerioIndicators {
   const missing = new Set(findings.filter((f) => f.isMissing).map((f) => f.toothFdi))
-  const valid = measurements.filter(
-    (m) => !missing.has(m.toothFdi) && m.probingDepthMm !== null,
-  )
+  const valid = measurements.filter((m) => !missing.has(m.toothFdi) && m.probingDepthMm !== null)
 
   const sitesMeasured = valid.length
   const sitesBleeding = valid.filter((m) => m.bleeding).length

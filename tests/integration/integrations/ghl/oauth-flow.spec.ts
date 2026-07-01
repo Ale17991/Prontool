@@ -15,10 +15,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
-import {
-  ghlOauthTokenSpy,
-  makeGhlTokenResponse,
-} from '@/tests/helpers/msw-spies'
+import { ghlOauthTokenSpy, makeGhlTokenResponse } from '@/tests/helpers/msw-spies'
 import { STATE_COOKIE_NAME } from '@/lib/integrations/ghl/oauth/state'
 
 function parseSetCookie(header: string | null, name: string): string | null {
@@ -129,12 +126,17 @@ describe('US1 — /api/oauth/ghl/{authorize,callback,refresh} + DELETE', () => {
     // 3. Simula GHL chamando o callback.
     const { GET: callback } = await import('@/app/api/oauth/ghl/callback/route')
     const cbRes = await callback(
-      new Request(`http://localhost/api/oauth/ghl/callback?code=fake_code_123&state=${stateNonce}`, {
-        headers: { cookie: `${STATE_COOKIE_NAME}=${encodeURIComponent(cookieValue)}` },
-      }),
+      new Request(
+        `http://localhost/api/oauth/ghl/callback?code=fake_code_123&state=${stateNonce}`,
+        {
+          headers: { cookie: `${STATE_COOKIE_NAME}=${encodeURIComponent(cookieValue)}` },
+        },
+      ),
     )
     expect(cbRes.status).toBe(302)
-    expect(cbRes.headers.get('location')).toContain('/configuracoes/integracoes/ghl?status=connected')
+    expect(cbRes.headers.get('location')).toContain(
+      '/configuracoes/integracoes/ghl?status=connected',
+    )
 
     // GHL token endpoint foi chamado com authorization_code.
     expect(ghlOauthTokenSpy.calls).toHaveLength(1)

@@ -12,7 +12,7 @@ export function mintTraceId(): string {
  */
 export function traceIdFromHeaders(headers: Headers | Record<string, string | undefined>): string {
   const get = (k: string) =>
-    headers instanceof Headers ? headers.get(k) ?? undefined : headers[k]
+    headers instanceof Headers ? (headers.get(k) ?? undefined) : headers[k]
   return (
     get('x-trace-id') ??
     get('X-Trace-Id') ??

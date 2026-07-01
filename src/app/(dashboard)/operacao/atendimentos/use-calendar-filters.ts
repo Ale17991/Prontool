@@ -16,19 +16,12 @@ import {
 // As helpers vivem em ./calendar-filters (módulo server-safe sem 'use client').
 // Server components devem importar diretamente do módulo puro — re-exportar
 // daqui mantém callers client funcionando sem fricção.
-export type {
-  CalendarFilters,
-  CalendarStatus,
-  CalendarView,
-} from './calendar-filters'
+export type { CalendarFilters, CalendarStatus, CalendarView } from './calendar-filters'
 
 export interface UseCalendarFiltersResult {
   filters: CalendarFilters
   range: { from: Date; to: Date }
-  setFilter: <K extends keyof CalendarFilters>(
-    key: K,
-    value: CalendarFilters[K] | null,
-  ) => void
+  setFilter: <K extends keyof CalendarFilters>(key: K, value: CalendarFilters[K] | null) => void
   /**
    * Batch update — necessário para atalhos que precisam mudar view+date
    * atomicamente. Chamar setFilter duas vezes em sequência perde a primeira

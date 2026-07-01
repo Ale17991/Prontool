@@ -154,7 +154,8 @@ export async function resendInvite(
     throw new ConflictError('NOT_PENDING', 'Usuário não está em estado de convite pendente')
   }
 
-  const { data: target, error: getError } = await supabaseService.auth.admin.getUserById(targetUserId)
+  const { data: target, error: getError } =
+    await supabaseService.auth.admin.getUserById(targetUserId)
   if (getError || !target?.user) {
     throw new ConflictError('USER_NOT_FOUND', 'Conta não encontrada')
   }

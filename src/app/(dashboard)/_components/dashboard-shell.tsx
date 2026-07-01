@@ -3,14 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
-import {
-  ArrowLeftRight,
-  Lock,
-  Menu,
-  Search,
-  Stethoscope,
-  type LucideIcon,
-} from 'lucide-react'
+import { ArrowLeftRight, Lock, Menu, Search, Stethoscope, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
 import { listFeatureFlags } from '@/lib/feature-flags'
@@ -24,11 +17,7 @@ import {
 import { NotificationBell } from './notification-bell'
 import { SupportTicketDialog } from './support-ticket-dialog'
 import { ChatProvider, useChat } from './chat-provider'
-import {
-  getVisibleSections,
-  type NavContext,
-  type VisibleSection,
-} from './sidebar-sections'
+import { getVisibleSections, type NavContext, type VisibleSection } from './sidebar-sections'
 
 const CHAT_HREF = '/operacao/chat'
 
@@ -77,7 +66,10 @@ export function DashboardShell({
   isMultiTenant = false,
   userAvatarUrl = null,
   userFullName = null,
-  entitlements = { plan: 'legacy', modules: [...['tiss', 'portal_paciente', 'telemedicina', 'crm'] as ModuleId[]] },
+  entitlements = {
+    plan: 'legacy',
+    modules: [...(['tiss', 'portal_paciente', 'telemedicina', 'crm'] as ModuleId[])],
+  },
   children,
 }: DashboardShellProps) {
   const pathname = usePathname() ?? ''
@@ -158,68 +150,68 @@ export function DashboardShell({
 
   return (
     <ChatProvider userId={userId} tenantId={tenantId}>
-    <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans">
-      {/* Sidebar fixa (≥md) — 016: bg #0E3C5B (azul institucional do designer) */}
-      <aside className="z-20 hidden w-64 shrink-0 flex-col bg-sidebar p-6 shadow-xl md:flex">
-        {sidebarInner}
-      </aside>
-
-      {/* Drawer mobile (<md) */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent
-          side="left"
-          className="flex w-72 max-w-[80vw] flex-col bg-sidebar p-6 sm:max-w-[80vw]"
-        >
-          <SheetTitle className="sr-only">Navegação</SheetTitle>
+      <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans">
+        {/* Sidebar fixa (≥md) — 016: bg #0E3C5B (azul institucional do designer) */}
+        <aside className="z-20 hidden w-64 shrink-0 flex-col bg-sidebar p-6 shadow-xl md:flex">
           {sidebarInner}
-        </SheetContent>
-      </Sheet>
+        </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col bg-slate-50">
-        <header className="z-10 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 shadow-sm md:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setDrawerOpen(true)}
-              aria-label="Abrir menu"
-              className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <h1 className="truncate text-lg font-bold tracking-tight text-slate-900">
-              {activeItem?.label ?? 'Painel'}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Buscar paciente, atendimento…"
-                className="w-64 rounded-xl border border-slate-200 bg-slate-100 py-2 pl-10 pr-4 text-xs outline-none transition-all focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
-              />
+        {/* Drawer mobile (<md) */}
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetContent
+            side="left"
+            className="flex w-72 max-w-[80vw] flex-col bg-sidebar p-6 sm:max-w-[80vw]"
+          >
+            <SheetTitle className="sr-only">Navegação</SheetTitle>
+            {sidebarInner}
+          </SheetContent>
+        </Sheet>
+
+        <main className="flex min-w-0 flex-1 flex-col bg-slate-50">
+          <header className="z-10 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 shadow-sm md:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDrawerOpen(true)}
+                aria-label="Abrir menu"
+                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <h1 className="truncate text-lg font-bold tracking-tight text-slate-900">
+                {activeItem?.label ?? 'Painel'}
+              </h1>
             </div>
-            <NotificationBell />
-            <div className="hidden h-6 w-px bg-slate-200 md:block" />
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95 disabled:cursor-wait disabled:opacity-60"
-              title="Sair"
-            >
-              <Lock className="h-3 w-3" />
-              <span className="hidden sm:inline">{signingOut ? 'Saindo…' : 'Sair'}</span>
-            </button>
-          </div>
-        </header>
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="relative hidden md:block">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar paciente, atendimento…"
+                  className="w-64 rounded-xl border border-slate-200 bg-slate-100 py-2 pl-10 pr-4 text-xs outline-none transition-all focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
+                />
+              </div>
+              <NotificationBell />
+              <div className="hidden h-6 w-px bg-slate-200 md:block" />
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="flex shrink-0 items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-200 active:scale-95 disabled:cursor-wait disabled:opacity-60"
+                title="Sair"
+              >
+                <Lock className="h-3 w-3" />
+                <span className="hidden sm:inline">{signingOut ? 'Saindo…' : 'Sair'}</span>
+              </button>
+            </div>
+          </header>
 
-        {/* Feature 009 — barra de abas horizontais REMOVIDA. Cada item da
+          {/* Feature 009 — barra de abas horizontais REMOVIDA. Cada item da
             sidebar leva direto à página final. */}
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
-      </main>
-    </div>
+          <div className="flex-1 overflow-y-auto p-4 md:p-8">{children}</div>
+        </main>
+      </div>
     </ChatProvider>
   )
 }
@@ -256,7 +248,11 @@ function SidebarInner({
           {clinicLogoUrl ? (
             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={clinicLogoUrl} alt="Logo da clínica" className="h-full w-full object-contain" />
+              <img
+                src={clinicLogoUrl}
+                alt="Logo da clínica"
+                className="h-full w-full object-contain"
+              />
             </div>
           ) : (
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
@@ -285,7 +281,9 @@ function SidebarInner({
           <div
             key={section.id}
             className={
-              section.id === 'configuracoes' ? 'mt-2 border-t border-sidebar-separator pt-4' : undefined
+              section.id === 'configuracoes'
+                ? 'mt-2 border-t border-sidebar-separator pt-4'
+                : undefined
             }
           >
             {/* Feature 014 — seção "Configurações" colapsada para botão único;
@@ -321,7 +319,7 @@ function SidebarInner({
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={userAvatarUrl} alt="Avatar" className="h-full w-full object-cover" />
             ) : (
-              (userFullName ?? email)?.slice(0, 1) ?? '?'
+              ((userFullName ?? email)?.slice(0, 1) ?? '?')
             )}
           </div>
           <div className="flex-1 overflow-hidden">
@@ -363,10 +361,7 @@ function SidebarLink({
       )}
     >
       <Icon
-        className={cn(
-          'h-4 w-4 shrink-0',
-          active ? 'text-sidebar-active-text' : 'opacity-80',
-        )}
+        className={cn('h-4 w-4 shrink-0', active ? 'text-sidebar-active-text' : 'opacity-80')}
       />
       <span className="truncate">{label}</span>
       {badge}

@@ -13,19 +13,19 @@ Adiciona configuração de lembretes por clínica em `tenant_clinic_profile`, fl
 
 Registro append-only de cada tentativa de envio.
 
-| Coluna | Tipo | Constraint | Descrição |
-|--------|------|------------|-----------|
-| `id` | `UUID` | PK, default `gen_random_uuid()` | Identificador único |
-| `tenant_id` | `UUID` | NOT NULL, FK `tenants(id) ON DELETE RESTRICT` | Tenant proprietário |
-| `appointment_id` | `UUID` | NOT NULL, FK `appointments(id) ON DELETE RESTRICT` | Agendamento referenciado |
-| `scheduled_offset_hours` | `INTEGER` | NOT NULL, CHECK `BETWEEN -1 AND 168` | Antecedência configurada (h); `-1` = envio manual fora do ciclo |
-| `channel` | `TEXT` | NOT NULL, CHECK `IN ('email', 'whatsapp', 'sms')` | Canal — Fase 1 só `email`; outros reservados |
-| `status` | `TEXT` | NOT NULL, CHECK `IN ('queued', 'sent', 'failed', 'skipped_opt_out', 'skipped_reversed', 'skipped_no_email', 'skipped_doctor_inactive')` | Estado final do envio |
-| `error` | `TEXT` | NULL | Motivo legível de falha (truncado a 500 chars) |
-| `provider_message_id` | `TEXT` | NULL | ID retornado pelo provedor de email (rastreabilidade) |
-| `is_manual` | `BOOLEAN` | NOT NULL, default `FALSE` | `TRUE` quando reenvio manual (US3); `FALSE` quando ciclo automático |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Quando o registro foi criado |
-| `sent_at` | `TIMESTAMPTZ` | NULL | Quando o envio efetivamente saiu (`status='sent'`) |
+| Coluna                   | Tipo          | Constraint                                                                                                                              | Descrição                                                           |
+| ------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `id`                     | `UUID`        | PK, default `gen_random_uuid()`                                                                                                         | Identificador único                                                 |
+| `tenant_id`              | `UUID`        | NOT NULL, FK `tenants(id) ON DELETE RESTRICT`                                                                                           | Tenant proprietário                                                 |
+| `appointment_id`         | `UUID`        | NOT NULL, FK `appointments(id) ON DELETE RESTRICT`                                                                                      | Agendamento referenciado                                            |
+| `scheduled_offset_hours` | `INTEGER`     | NOT NULL, CHECK `BETWEEN -1 AND 168`                                                                                                    | Antecedência configurada (h); `-1` = envio manual fora do ciclo     |
+| `channel`                | `TEXT`        | NOT NULL, CHECK `IN ('email', 'whatsapp', 'sms')`                                                                                       | Canal — Fase 1 só `email`; outros reservados                        |
+| `status`                 | `TEXT`        | NOT NULL, CHECK `IN ('queued', 'sent', 'failed', 'skipped_opt_out', 'skipped_reversed', 'skipped_no_email', 'skipped_doctor_inactive')` | Estado final do envio                                               |
+| `error`                  | `TEXT`        | NULL                                                                                                                                    | Motivo legível de falha (truncado a 500 chars)                      |
+| `provider_message_id`    | `TEXT`        | NULL                                                                                                                                    | ID retornado pelo provedor de email (rastreabilidade)               |
+| `is_manual`              | `BOOLEAN`     | NOT NULL, default `FALSE`                                                                                                               | `TRUE` quando reenvio manual (US3); `FALSE` quando ciclo automático |
+| `created_at`             | `TIMESTAMPTZ` | NOT NULL, default `now()`                                                                                                               | Quando o registro foi criado                                        |
+| `sent_at`                | `TIMESTAMPTZ` | NULL                                                                                                                                    | Quando o envio efetivamente saiu (`status='sent'`)                  |
 
 #### Constraints adicionais
 
@@ -109,16 +109,16 @@ CREATE TRIGGER appointment_reminders_no_delete
 
 Configuração de lembretes da clínica.
 
-| Coluna | Tipo | Default | Descrição |
-|--------|------|---------|-----------|
-| `reminder_enabled` | `BOOLEAN` | `FALSE` | Toggle global da feature por tenant |
-| `reminder_offsets_hours` | `INTEGER[]` | `'{24}'` | Lista de antecedências em horas |
-| `reminder_send_weekends` | `BOOLEAN` | `TRUE` | Permitir envio sáb/dom |
-| `reminder_window_start` | `TIME` | `'08:00'` | Hora local (TZ tenant) início janela permitida |
-| `reminder_window_end` | `TIME` | `'20:00'` | Hora local fim janela |
-| `reminder_template_subject` | `TEXT` | `NULL` | Custom subject; `NULL` = usa default |
-| `reminder_template_body` | `TEXT` | `NULL` | Custom body HTML; `NULL` = usa default |
-| `reminder_last_run_at` | `TIMESTAMPTZ` | `NULL` | Última execução do cron para este tenant |
+| Coluna                      | Tipo          | Default   | Descrição                                      |
+| --------------------------- | ------------- | --------- | ---------------------------------------------- |
+| `reminder_enabled`          | `BOOLEAN`     | `FALSE`   | Toggle global da feature por tenant            |
+| `reminder_offsets_hours`    | `INTEGER[]`   | `'{24}'`  | Lista de antecedências em horas                |
+| `reminder_send_weekends`    | `BOOLEAN`     | `TRUE`    | Permitir envio sáb/dom                         |
+| `reminder_window_start`     | `TIME`        | `'08:00'` | Hora local (TZ tenant) início janela permitida |
+| `reminder_window_end`       | `TIME`        | `'20:00'` | Hora local fim janela                          |
+| `reminder_template_subject` | `TEXT`        | `NULL`    | Custom subject; `NULL` = usa default           |
+| `reminder_template_body`    | `TEXT`        | `NULL`    | Custom body HTML; `NULL` = usa default         |
+| `reminder_last_run_at`      | `TIMESTAMPTZ` | `NULL`    | Última execução do cron para este tenant       |
 
 #### Constraints
 
@@ -147,9 +147,9 @@ ALTER TABLE tenant_clinic_profile
 
 Opt-in/opt-out do paciente.
 
-| Coluna | Tipo | Default | Descrição |
-|--------|------|---------|-----------|
-| `reminders_opt_in` | `BOOLEAN` | `TRUE` | `FALSE` = paciente pediu para não receber lembretes automáticos |
+| Coluna             | Tipo      | Default | Descrição                                                       |
+| ------------------ | --------- | ------- | --------------------------------------------------------------- |
+| `reminders_opt_in` | `BOOLEAN` | `TRUE`  | `FALSE` = paciente pediu para não receber lembretes automáticos |
 
 Sem novo índice (filtragem por `tenant_id` + `reminders_opt_in = TRUE` cobre via index existente em `tenant_id`; opt-in é raro o suficiente para não justificar índice dedicado).
 

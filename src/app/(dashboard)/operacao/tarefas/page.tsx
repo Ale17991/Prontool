@@ -35,9 +35,7 @@ export default async function TarefasPage({ searchParams }: PageProps) {
 
   let assignedToFilter: string | undefined
   if (session.role === 'admin') {
-    assignedToFilter = searchParams.assigned_to === 'me'
-      ? session.userId
-      : searchParams.assigned_to
+    assignedToFilter = searchParams.assigned_to === 'me' ? session.userId : searchParams.assigned_to
   } else {
     assignedToFilter = session.userId
   }
@@ -90,7 +88,11 @@ export default async function TarefasPage({ searchParams }: PageProps) {
               <CardTitle className="text-sm">Nova tarefa</CardTitle>
             </CardHeader>
             <CardContent>
-              <NewTaskForm isAdmin={isAdmin} members={memberOptions} currentUserId={session.userId} />
+              <NewTaskForm
+                isAdmin={isAdmin}
+                members={memberOptions}
+                currentUserId={session.userId}
+              />
             </CardContent>
           </Card>
         ) : null}

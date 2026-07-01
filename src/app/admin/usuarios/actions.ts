@@ -64,7 +64,9 @@ export async function adminSetStatusAction(
   const ctx = await superCtx()
   if (!ctx) return { ok: false, error: 'Não autorizado.' }
   try {
-    await setTeamMemberStatus(svc(), tenantId, ctx.actorId, ctx.actorEmail, targetUserId, { status })
+    await setTeamMemberStatus(svc(), tenantId, ctx.actorId, ctx.actorEmail, targetUserId, {
+      status,
+    })
     revalidatePath(PATH)
     return { ok: true }
   } catch (e) {
@@ -173,7 +175,12 @@ export async function adminInviteUserAction(
  */
 export async function adminUpdateClinicProfileAction(
   tenantId: string,
-  patch: { displayName?: string; cnpj?: string | null; phone?: string | null; email?: string | null },
+  patch: {
+    displayName?: string
+    cnpj?: string | null
+    phone?: string | null
+    email?: string | null
+  },
 ): Promise<AdminUserActionResult> {
   const ctx = await superCtx()
   if (!ctx) return { ok: false, error: 'Não autorizado.' }

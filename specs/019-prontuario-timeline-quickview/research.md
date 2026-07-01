@@ -12,6 +12,7 @@ Esta fase resolve as decisões técnicas pendentes antes de Phase 1 (design). Tu
 **Question**: A FR-030 exige trap de foco, retorno de foco ao botão que abriu, anúncio para leitores de tela, fechamento por `Esc`. O componente `src/components/ui/sheet.tsx` (Radix-based) cobre tudo out-of-the-box?
 
 **Decision**: Sim, sem custo extra. O `Sheet` do shadcn é wrapper de `@radix-ui/react-dialog`, que já implementa:
+
 - Focus trap automático enquanto aberto;
 - `aria-modal="true"` + `role="dialog"` no container;
 - `onEscapeKeyDown` default fechando o overlay;
@@ -31,11 +32,13 @@ Esta fase resolve as decisões técnicas pendentes antes de Phase 1 (design). Tu
 **Decision**: **Client-side shallow** com `router.replace('/operacao/pacientes/X?tab=cadastro', { scroll: false })` + `useSearchParams()` no componente cliente. Motivo: ambas as abas usam exatamente os mesmos dados (já carregados pelo SSR de `page.tsx`); fazer round-trip ao servidor a cada tab switch é desperdício e introduz latência ≥300ms. A página inteira é carregada uma vez via SSR, e a tab switch é uma alternância de visibilidade, não um re-fetch.
 
 **Implication for design**:
+
 - `page.tsx` recebe `searchParams.tab` apenas para definir a aba inicial no SSR (evitar flash).
 - O componente `<PatientDetailLayout>` (client) usa `useSearchParams()` para o estado em runtime.
 - Botão "Editar" da sidebar chama `router.replace(href, { scroll: false })`.
 
 **Alternatives considered**:
+
 - Server-side com `revalidatePath`: lento e desnecessário.
 - Estado local React (sem URL): perde deep-link e botão "voltar" do navegador.
 
@@ -50,6 +53,7 @@ Esta fase resolve as decisões técnicas pendentes antes de Phase 1 (design). Tu
 **Action**: Criar `src/components/ui/tabs.tsx` como **parte desta feature** (não fora dela), porque é um pré-requisito direto.
 
 **Alternatives considered**:
+
 - Inline `<Tabs.Root>` direto do Radix: dispersa a customização do design system 016 e fica feio em múltiplos lugares (Cadastro tab agora, futuras features depois).
 - Implementação custom em `<button>` + state: perde a a11y do Radix (`aria-selected`, navegação por seta esquerda/direita).
 
@@ -73,6 +77,7 @@ Como `page.tsx` já carrega `doctorsList` para o `<TreatmentStepsSection>`, pode
 **RLS**: ambos os SELECTs filtram explicitamente por `tenant_id` (defesa em profundidade) + RLS atual de `doctors`/`user_profile` cobre.
 
 **Alternatives considered**:
+
 - Join SQL na fonte (clinical_records, vital_signs, appointments): replicar em 4 lugares e quebra ao apagar autor. Pior.
 - Resolver em cliente via componente: dispara query por item. Anti-padrão N+1. Pior.
 
@@ -87,6 +92,7 @@ Como `page.tsx` já carrega `doctorsList` para o `<TreatmentStepsSection>`, pode
 **Action**: Render linear via `events.map(...)`. Se telemetria pós-launch mostrar paciente com >300 eventos (raro pela A-002), reabrir.
 
 **Alternatives considered**:
+
 - `@tanstack/react-virtual`: ótimo para listas longas planas, ruim para itens com altura dinâmica + impressão.
 - Paginação infinite-scroll: muda UX (perde "ver tudo de uma vez"). Edge case 500 eventos sugere botão "Carregar mais antigos" — fica para iteração futura.
 
@@ -106,6 +112,7 @@ Como `page.tsx` já carrega `doctorsList` para o `<TreatmentStepsSection>`, pode
 **Action**: Nova função `assembleTimelineEvents(supabase, { tenantId, patientId, limit }): Promise<TimelineEvent[]>`. Internamente, **chama os mesmos `list*` que `assembleProntuarioBundle` chama** (`listClinicalRecords`, `listVitalSigns`, etc.) — não há query nova nem duplicação de SQL.
 
 **Alternatives considered**:
+
 - Função única `assemblePatientView` com dois modos: aumenta complexidade interna, hoje viola SRP. Reabrir se três consumidores diferentes aparecerem.
 
 ---
@@ -115,6 +122,7 @@ Como `page.tsx` já carrega `doctorsList` para o `<TreatmentStepsSection>`, pode
 **Question**: A timeline filtrada por "Sinais vitais" deve mostrar cada medição como evento expansível **e** o gráfico atual (`VitalSignsSection` usa `LineChart` do recharts) deve continuar acessível?
 
 **Decision**: A timeline mostra **eventos individuais expansíveis** (uma medição = um evento). O **gráfico de série temporal** continua acessível em **uma seção dedicada** na aba "Clínico" — pode ser:
+
 - Opção A: **Botão "Ver gráfico" no chip de filtro "Sinais vitais"** que troca a renderização da timeline por um modo gráfico. Sem nova rota, é só um React state.
 - Opção B: Card colapsável "Tendência de sinais vitais" no topo da timeline quando o filtro está em "Sinais vitais".
 
@@ -156,17 +164,17 @@ Como `page.tsx` já carrega `doctorsList` para o `<TreatmentStepsSection>`, pode
 
 ## Resumo de decisões
 
-| ID | Decisão | Bloqueia algo? |
-|----|---------|----------------|
-| R1 | shadcn Sheet cobre a11y; usar `<SheetTitle>`/`<SheetDescription>` | ✅ Pronto |
-| R2 | Tabs com URL via `router.replace` shallow | ✅ Pronto |
-| R3 | Adicionar `src/components/ui/tabs.tsx` (shadcn wrapper) como parte desta feature | ✅ Pronto |
-| R4 | `resolveAuthors()` batch: doctors + user_profile, retorna `Map<userId, name>` | ✅ Pronto |
-| R5 | Sem virtualização para ≤200 eventos | ✅ Pronto |
-| R6 | `assembleTimelineEvents` separado de `assembleProntuarioBundle` | ✅ Pronto |
-| R7 | Toggle Lista/Gráfico quando filtro = "Sinais vitais" | ✅ Pronto |
-| R8 | Cleanup automático de Sheet ao mudar paciente (arquitetura RSC) | ✅ Pronto |
-| R9 | Header mobile mostra alerta vermelho se alergia "grave" presente | ✅ Pronto |
-| R10 | `QuickViewSnapshot.financial.lastPaidAt` deriva de `payments.records` client-side | ✅ Pronto |
+| ID  | Decisão                                                                           | Bloqueia algo? |
+| --- | --------------------------------------------------------------------------------- | -------------- |
+| R1  | shadcn Sheet cobre a11y; usar `<SheetTitle>`/`<SheetDescription>`                 | ✅ Pronto      |
+| R2  | Tabs com URL via `router.replace` shallow                                         | ✅ Pronto      |
+| R3  | Adicionar `src/components/ui/tabs.tsx` (shadcn wrapper) como parte desta feature  | ✅ Pronto      |
+| R4  | `resolveAuthors()` batch: doctors + user_profile, retorna `Map<userId, name>`     | ✅ Pronto      |
+| R5  | Sem virtualização para ≤200 eventos                                               | ✅ Pronto      |
+| R6  | `assembleTimelineEvents` separado de `assembleProntuarioBundle`                   | ✅ Pronto      |
+| R7  | Toggle Lista/Gráfico quando filtro = "Sinais vitais"                              | ✅ Pronto      |
+| R8  | Cleanup automático de Sheet ao mudar paciente (arquitetura RSC)                   | ✅ Pronto      |
+| R9  | Header mobile mostra alerta vermelho se alergia "grave" presente                  | ✅ Pronto      |
+| R10 | `QuickViewSnapshot.financial.lastPaidAt` deriva de `payments.records` client-side | ✅ Pronto      |
 
 Nenhuma decisão aberta. Phase 1 pode prosseguir.

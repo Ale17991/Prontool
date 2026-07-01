@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
-import {
-  getTenantTimezone,
-  ymdStartOfDayUtc,
-  ymdNextDayStartUtc,
-} from '@/lib/utils/tenant-tz'
+import { getTenantTimezone, ymdStartOfDayUtc, ymdNextDayStartUtc } from '@/lib/utils/tenant-tz'
 import {
   fetchActiveAppointments,
   fetchProcedureLines as fetchLines,
@@ -16,10 +12,7 @@ import {
   type ProcedureLineRow as LineRow,
   type ReportDoctorRow as DoctorRow,
 } from './_sources'
-import {
-  aggregateDoctorPlanMatrix,
-  type DoctorPlanBreakdown,
-} from './doctor-plan-matrix'
+import { aggregateDoctorPlanMatrix, type DoctorPlanBreakdown } from './doctor-plan-matrix'
 
 /**
  * Agregadores para o relatorio "Por Profissional":
@@ -347,12 +340,7 @@ export async function detailByProfessional(
     .sort((a, b) => a.appointmentAt.localeCompare(b.appointmentAt))
   const totalParticipationCents = participations.reduce((s, p) => s + p.amountCents, 0)
 
-  const active = await fetchActiveAppointments(
-    supabase,
-    input.tenantId,
-    fromTs,
-    toExclusive,
-  )
+  const active = await fetchActiveAppointments(supabase, input.tenantId, fromTs, toExclusive)
   const ownAppointments = active.filter((a) => a.doctor_id === input.doctorId)
   if (ownAppointments.length === 0) {
     return {
@@ -554,12 +542,7 @@ async function decryptPatientNames(
   if (error) throw new Error(`decrypt_patient_names_for_ids failed: ${error.message}`)
 
   for (const row of (data ?? []) as unknown as DecryptedNameRow[]) {
-    result.set(
-      row.id,
-      row.anonymized_at ? '[anonimizado]' : row.full_name ?? '(sem nome)',
-    )
+    result.set(row.id, row.anonymized_at ? '[anonimizado]' : (row.full_name ?? '(sem nome)'))
   }
   return result
 }
-
-

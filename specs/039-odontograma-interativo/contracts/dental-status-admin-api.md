@@ -15,6 +15,7 @@ Cria um novo status.
 
 - **Auth**: `requireSuperAdmin()`.
 - **Body** (Zod):
+
 ```json
 {
   "code": "sealant",
@@ -26,6 +27,7 @@ Cria um novo status.
   "sortOrder": 35
 }
 ```
+
 **Validações**: `code` slug único (`^[a-z][a-z0-9_]*$`); `color` hex `#RRGGBB`; `scope ∈ tooth|face|both`; `tussCodeId` (se enviado) deve existir e ter `tuss_table='22'` (senão **422**).
 
 - **201**: status criado. **409** se `code` já existe.

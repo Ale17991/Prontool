@@ -40,12 +40,27 @@ const styles = StyleSheet.create({
   title: { fontSize: 14, fontFamily: 'Helvetica-Bold', marginBottom: 2 },
   subtle: { color: '#64748b', fontSize: 8 },
   meta: { marginBottom: 10 },
-  row: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#e2e8f0', paddingVertical: 4 },
-  head: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingVertical: 4 },
+  row: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#e2e8f0',
+    paddingVertical: 4,
+  },
+  head: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#cbd5e1',
+    paddingVertical: 4,
+  },
   cPos: { width: '32%' },
   cProc: { width: '48%' },
   cVal: { width: '20%', textAlign: 'right' },
-  label: { fontSize: 7, color: '#64748b', fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
+  label: {
+    fontSize: 7,
+    color: '#64748b',
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+  },
   totalRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
   totalBox: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
 })
@@ -54,14 +69,19 @@ export async function renderBudgetPdf(input: BudgetPdfInput): Promise<Buffer> {
   const doc = (
     <Document>
       <Page size="A4" style={styles.page}>
-        <ClinicHeader profile={input.clinicProfile} subtitle="Orçamento de tratamento odontológico" />
+        <ClinicHeader
+          profile={input.clinicProfile}
+          subtitle="Orçamento de tratamento odontológico"
+        />
 
         <View style={styles.meta}>
           <Text style={styles.title}>{input.budget.title || 'Orçamento'}</Text>
           <Text style={styles.subtle}>Paciente: {input.patientName}</Text>
           <Text style={styles.subtle}>
             Situação: {STATUS_LABEL[input.budget.status] ?? input.budget.status}
-            {input.budget.acceptedAt ? ` · Aceito em ${new Date(input.budget.acceptedAt).toLocaleDateString('pt-BR')}` : ''}
+            {input.budget.acceptedAt
+              ? ` · Aceito em ${new Date(input.budget.acceptedAt).toLocaleDateString('pt-BR')}`
+              : ''}
           </Text>
         </View>
 

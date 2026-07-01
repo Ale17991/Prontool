@@ -43,7 +43,8 @@ Resolve as incógnitas técnicas do plano. Cada decisão: **Decisão / Justifica
 ## R7. Origem dos dados (reuso do schema existente)
 
 Mapa confirmado por exploração do código (reuso, sem duplicar):
-- **Beneficiário**: `patients` (PII em `_enc`); decifrar via `get_patient_for_tenant(tenant, patient, key)`. **Gap**: não há campo de **número da carteira do convênio** no paciente → precisa ser capturado (decisão D-data, ver data-model: coluna nova cifrada em `patients` OU vínculo paciente×plano). 
+
+- **Beneficiário**: `patients` (PII em `_enc`); decifrar via `get_patient_for_tenant(tenant, patient, key)`. **Gap**: não há campo de **número da carteira do convênio** no paciente → precisa ser capturado (decisão D-data, ver data-model: coluna nova cifrada em `patients` OU vínculo paciente×plano).
 - **Executante/solicitante**: `doctors` (`cpf`, `council_state`=UF, `council_name`/`council_number`, `crm`); **CBO** não existe em `doctors` → capturar (coluna nova ou na config do médico).
 - **Procedimentos/valores**: `appointment_procedures` (linhas, `line_amount_cents`) + `tuss_codes` (code/description/tuss_table/valid_to). Valor efetivo via `appointments_effective.net_amount_cents`.
 - **Operadora**: `health_plans` (+ nova `tenant_tiss_operator_config` para Registro ANS, código do contratado, CNPJ/CNES).
@@ -52,6 +53,7 @@ Mapa confirmado por exploração do código (reuso, sem duplicar):
 ## R8. Gaps de dados que viram requisito de captura (decisão humana leve)
 
 Estes campos são **obrigatórios na guia** e **não existem hoje** — o data-model decide onde capturá-los; nenhum bloqueia o desenho, mas precisam existir antes de gerar guia válida:
+
 1. **Número da carteira do beneficiário** (Consulta campo 4 / SP-SADT) — sugerido: coluna cifrada `health_plan_card_enc` + validade em `patients`, ou tabela `patient_health_plan_cards` (paciente pode ter carteira por operadora). **Recomendação**: tabela `patient_health_plan_cards` (1 paciente × N convênios).
 2. **CBO do profissional** (dom. 24) — sugerido: coluna `cbo` em `doctors` (texto, dom. 24).
 3. **CNES do contratado** (Consulta campo 11) — na `tenant_tiss_operator_config` (por operadora) ou perfil da clínica; `9999999` se não houver.

@@ -232,7 +232,12 @@ function PayExpenseModal({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose()
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Marcar como paga</DialogTitle>
@@ -243,7 +248,12 @@ function PayExpenseModal({
         <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="amount">Valor pago (R$)</Label>
-            <Input id="amount" autoFocus value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input
+              id="amount"
+              autoFocus
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="method">Método</Label>
@@ -264,7 +274,12 @@ function PayExpenseModal({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="paid_at">Data/hora</Label>
-            <Input id="paid_at" type="datetime-local" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} />
+            <Input
+              id="paid_at"
+              type="datetime-local"
+              value={paidAt}
+              onChange={(e) => setPaidAt(e.target.value)}
+            />
           </div>
           {error ? (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
@@ -276,7 +291,11 @@ function PayExpenseModal({
               <X className="mr-1 h-3 w-3" /> Cancelar
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <CheckCircle2 className="mr-1 h-3 w-3" />}
+              {pending ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+              )}
               Confirmar pagamento
             </Button>
           </DialogFooter>
@@ -307,8 +326,14 @@ function VersionExpenseModal({
     e.preventDefault()
     setError(null)
     const cents = Math.round(Number(newAmount.replace(',', '.')) * 100)
-    if (!cents || cents <= 0) { setError('Novo valor inválido'); return }
-    if (reason.trim().length < 3) { setError('Motivo é obrigatório'); return }
+    if (!cents || cents <= 0) {
+      setError('Novo valor inválido')
+      return
+    }
+    if (reason.trim().length < 3) {
+      setError('Motivo é obrigatório')
+      return
+    }
     setPending(true)
     try {
       const res = await fetch(`/api/financeiro/contas-a-pagar/${row.id}/version`, {
@@ -332,36 +357,64 @@ function VersionExpenseModal({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose()
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Reajustar valor (versionar)</DialogTitle>
           <DialogDescription>
-            Despesa atual será encerrada na véspera de &quot;Vigente a partir de&quot; e nova versão criada. Histórico preservado (Princípio I).
+            Despesa atual será encerrada na véspera de &quot;Vigente a partir de&quot; e nova versão
+            criada. Histórico preservado (Princípio I).
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="ef">Vigente a partir de</Label>
-            <Input id="ef" type="date" value={effectiveFrom} onChange={(e) => setEffectiveFrom(e.target.value)} />
+            <Input
+              id="ef"
+              type="date"
+              value={effectiveFrom}
+              onChange={(e) => setEffectiveFrom(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="na">Novo valor (R$)</Label>
-            <Input id="na" value={newAmount} onChange={(e) => setNewAmount(e.target.value)} placeholder={(row.amountCents / 100).toFixed(2)} />
+            <Input
+              id="na"
+              value={newAmount}
+              onChange={(e) => setNewAmount(e.target.value)}
+              placeholder={(row.amountCents / 100).toFixed(2)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="reason">Motivo</Label>
-            <Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ex.: reajuste contratual anual" className="min-h-[60px]" />
+            <Textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Ex.: reajuste contratual anual"
+              className="min-h-[60px]"
+            />
           </div>
           {error ? (
-            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">{error}</p>
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+              {error}
+            </p>
           ) : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
               <X className="mr-1 h-3 w-3" /> Cancelar
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
+              {pending ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-1 h-3 w-3" />
+              )}
               Versionar
             </Button>
           </DialogFooter>

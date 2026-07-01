@@ -42,10 +42,7 @@ function clientIp(req: Request): string | null {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/health-plan-cards`
   try {
     const session = await requireRole(ROLES, {
@@ -54,9 +51,7 @@ export async function GET(
       route,
       request: req,
     })
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         { error: { code: 'INVALID_QUERY', message: 'health_plan_id (UUID) obrigatório' } },

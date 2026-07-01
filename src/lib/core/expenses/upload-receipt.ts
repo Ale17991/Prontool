@@ -5,12 +5,7 @@ import { DomainError, NotFoundError, ValidationError } from '@/lib/observability
 const BUCKET = 'expense-receipts'
 const MAX_BYTES = 10 * 1024 * 1024
 const ALLOWED_EXT = new Set(['pdf', 'jpg', 'jpeg', 'png'])
-const ALLOWED_MIME = new Set([
-  'application/pdf',
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-])
+const ALLOWED_MIME = new Set(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'])
 
 export interface UploadReceiptInput {
   tenantId: string
@@ -51,17 +46,15 @@ export async function uploadExpenseReceipt(
   const safeBase = sanitizeFilename(input.fileName)
   const ext = safeBase.split('.').pop()?.toLowerCase() ?? ''
   if (!ALLOWED_EXT.has(ext)) {
-    throw new ValidationError(
-      'Tipo de arquivo nao suportado. Use PDF, JPG, JPEG ou PNG.',
-      { extension: ext },
-    )
+    throw new ValidationError('Tipo de arquivo nao suportado. Use PDF, JPG, JPEG ou PNG.', {
+      extension: ext,
+    })
   }
   const contentType = (input.contentType || '').toLowerCase()
   if (contentType && !ALLOWED_MIME.has(contentType)) {
-    throw new ValidationError(
-      'Content-type nao suportado. Use PDF, JPG, JPEG ou PNG.',
-      { content_type: input.contentType },
-    )
+    throw new ValidationError('Content-type nao suportado. Use PDF, JPG, JPEG ou PNG.', {
+      content_type: input.contentType,
+    })
   }
 
   const expense = await supabase
@@ -75,11 +68,9 @@ export async function uploadExpenseReceipt(
   }
   if (!expense.data) throw new NotFoundError('expense', input.expenseId)
   if (expense.data.deleted_at) {
-    throw new DomainError(
-      'EXPENSE_DELETED',
-      'Despesa apagada nao aceita novo comprovante',
-      { status: 409 },
-    )
+    throw new DomainError('EXPENSE_DELETED', 'Despesa apagada nao aceita novo comprovante', {
+      status: 409,
+    })
   }
 
   const finalName = await resolveUniqueName(supabase, {
@@ -152,11 +143,9 @@ async function resolveUniqueName(
     const candidate = `${stem}-${i}${ext}`
     if (!taken.has(candidate)) return candidate
   }
-  throw new DomainError(
-    'RECEIPT_NAME_EXHAUSTED',
-    'Limite de variacoes de nome atingido',
-    { status: 409 },
-  )
+  throw new DomainError('RECEIPT_NAME_EXHAUSTED', 'Limite de variacoes de nome atingido', {
+    status: 409,
+  })
 }
 
 function sanitizeFilename(name: string): string {

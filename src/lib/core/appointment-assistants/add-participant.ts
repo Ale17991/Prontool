@@ -58,14 +58,17 @@ export async function addParticipant(
     )
   }
 
-  const { data, error } = await supabase.rpc('attach_assistant_to_appointment' as never, {
-    p_appointment_id: input.appointmentId,
-    p_assistant_doctor_id: input.doctorId,
-    p_amount_cents: input.amountCents,
-    p_actor: input.actorUserId,
-    p_procedure_id: input.procedureId,
-    p_participation_degree: input.participationDegree,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'attach_assistant_to_appointment' as never,
+    {
+      p_appointment_id: input.appointmentId,
+      p_assistant_doctor_id: input.doctorId,
+      p_amount_cents: input.amountCents,
+      p_actor: input.actorUserId,
+      p_procedure_id: input.procedureId,
+      p_participation_degree: input.participationDegree,
+    } as never,
+  )
 
   if (error) {
     const msg = error.message ?? ''

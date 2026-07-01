@@ -13,16 +13,16 @@ Representa um insumo/material consumido em um atendimento clínico. Snapshot imu
 
 ### Tabela: `public.appointment_materials`
 
-| Coluna | Tipo SQL | Constraints | Descrição |
-|---|---|---|---|
-| `id` | `UUID` | PK, DEFAULT `gen_random_uuid()` | Identificador único |
-| `tenant_id` | `UUID` | NOT NULL, FK → `public.tenants(id)` ON DELETE RESTRICT | Clínica dona do registro (RLS scope) |
-| `appointment_id` | `UUID` | NOT NULL, FK → `public.appointments(id)` ON DELETE RESTRICT | Atendimento ao qual o material pertence |
-| `tuss_code` | `TEXT` | NOT NULL, FK → `public.tuss_codes(code)` ON DELETE RESTRICT | Código TUSS oficial (validado em service como pertencente à tabela 19) |
-| `tuss_description` | `TEXT` | NOT NULL, CHECK `length(tuss_description) BETWEEN 1 AND 500` | Snapshot da descrição no momento do INSERT — preserva histórico se o catálogo mudar |
-| `quantity` | `INTEGER` | NOT NULL, DEFAULT 1, CHECK `quantity > 0` | Quantidade utilizada (inteiro positivo) |
-| `created_by` | `UUID` | NOT NULL, FK → `auth.users(id)` ON DELETE RESTRICT | Ator que registrou |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT `now()` | Momento da inserção (UTC) |
+| Coluna             | Tipo SQL      | Constraints                                                  | Descrição                                                                           |
+| ------------------ | ------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `id`               | `UUID`        | PK, DEFAULT `gen_random_uuid()`                              | Identificador único                                                                 |
+| `tenant_id`        | `UUID`        | NOT NULL, FK → `public.tenants(id)` ON DELETE RESTRICT       | Clínica dona do registro (RLS scope)                                                |
+| `appointment_id`   | `UUID`        | NOT NULL, FK → `public.appointments(id)` ON DELETE RESTRICT  | Atendimento ao qual o material pertence                                             |
+| `tuss_code`        | `TEXT`        | NOT NULL, FK → `public.tuss_codes(code)` ON DELETE RESTRICT  | Código TUSS oficial (validado em service como pertencente à tabela 19)              |
+| `tuss_description` | `TEXT`        | NOT NULL, CHECK `length(tuss_description) BETWEEN 1 AND 500` | Snapshot da descrição no momento do INSERT — preserva histórico se o catálogo mudar |
+| `quantity`         | `INTEGER`     | NOT NULL, DEFAULT 1, CHECK `quantity > 0`                    | Quantidade utilizada (inteiro positivo)                                             |
+| `created_by`       | `UUID`        | NOT NULL, FK → `auth.users(id)` ON DELETE RESTRICT           | Ator que registrou                                                                  |
+| `created_at`       | `TIMESTAMPTZ` | NOT NULL, DEFAULT `now()`                                    | Momento da inserção (UTC)                                                           |
 
 ### Constraints adicionais
 
@@ -263,6 +263,7 @@ appointment_materials (N) ─→ (1) auth.users   [created_by]
 ```
 
 Cardinalidade e regras:
+
 - Um atendimento pode ter zero ou muitos materiais.
 - Um material pertence a exatamente um atendimento (FK NOT NULL).
 - Material e atendimento devem compartilhar `tenant_id` (trigger).
@@ -281,6 +282,7 @@ Atendimentos cancelados (com row em `appointment_reversals`) **não podem** rece
 ## Migration Order — `0061_appointment_materials.sql`
 
 Ordem dentro do arquivo:
+
 1. `CREATE TABLE public.appointment_materials (...)` com PK, FKs, CHECKs.
 2. `CREATE INDEX` x2.
 3. `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`.

@@ -11,11 +11,7 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
-import {
-  seedTenant,
-  seedClinicProfile,
-  seedPatientWithPii,
-} from '@/tests/helpers/seed-factories'
+import { seedTenant, seedClinicProfile, seedPatientWithPii } from '@/tests/helpers/seed-factories'
 import { POST as loginPost } from '@/app/api/paciente/login/route'
 import type { NextRequest } from 'next/server'
 
@@ -76,9 +72,7 @@ describe('Feature 030 — contrato do login do portal', () => {
       const res = await loginPost(loginRequest({ cpf, birthdate: '01011990' }, ip))
       expect(res.status).toBe(401)
     }
-    const blocked = await loginPost(
-      loginRequest({ cpf: '99988877706', birthdate: '01011990' }, ip),
-    )
+    const blocked = await loginPost(loginRequest({ cpf: '99988877706', birthdate: '01011990' }, ip))
     expect(blocked.status).toBe(429)
     expect(Number(blocked.headers.get('retry-after'))).toBeGreaterThan(0)
   })
@@ -86,9 +80,7 @@ describe('Feature 030 — contrato do login do portal', () => {
   it('após 5 falhas do mesmo CPF (IPs distintos) → 429 (rate-limit por CPF)', async () => {
     const cpf = '39053344705'
     for (let i = 0; i < 5; i++) {
-      const res = await loginPost(
-        loginRequest({ cpf, birthdate: '01011990' }, `10.0.3.${i + 1}`),
-      )
+      const res = await loginPost(loginRequest({ cpf, birthdate: '01011990' }, `10.0.3.${i + 1}`))
       expect(res.status).toBe(401)
     }
     const blocked = await loginPost(loginRequest({ cpf, birthdate: '01011990' }, '10.0.3.99'))
@@ -128,7 +120,10 @@ describe('Feature 030 — contrato do login do portal', () => {
 
   it('slug desconhecido → 404 (sem vazamento de credencial)', async () => {
     const res = await loginPost(
-      loginRequest({ slug: 'clinica-que-nao-existe', cpf: CPF, birthdate: BIRTH_DIGITS }, '10.0.6.1'),
+      loginRequest(
+        { slug: 'clinica-que-nao-existe', cpf: CPF, birthdate: BIRTH_DIGITS },
+        '10.0.6.1',
+      ),
     )
     expect(res.status).toBe(404)
   })

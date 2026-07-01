@@ -23,7 +23,7 @@ Abordagem técnica: reaproveitar integralmente os padrões existentes — migrat
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável (NON-NEGOTIABLE)**: Sem valores financeiros nesta feature. Princípio aplicado por analogia: `dental_chart_entries` é **append-only** (trigger `enforce_append_only_columns('')`, sem UPDATE/DELETE). Correção = novo registro. ✅ PASS
 - **II. Auditabilidade Total (NON-NEGOTIABLE)**: Cada INSERT de marcação dispara `log_audit_event` (ator via `session_uuid('app.actor_id')`, tenant, entidade, status). Mutações do catálogo global são ação de plataforma (sem `tenant_id`) — registradas via colunas `created_by`/`updated_by` na tabela; não usam o `audit_log` por-tenant (decisão D2 em research.md). ✅ PASS

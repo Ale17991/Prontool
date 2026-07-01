@@ -1,14 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from '@/lib/observability/errors'
-import {
-  isPatientTagColor,
-  type PatientTagColor,
-} from './palette'
+import { ConflictError, NotFoundError, ValidationError } from '@/lib/observability/errors'
+import { isPatientTagColor, type PatientTagColor } from './palette'
 
 /**
  * As tabelas patient_tags e patient_tag_assignments foram criadas em
@@ -30,10 +23,7 @@ function untyped(supabase: SupabaseClient<Database>): { from: UntypedFrom } {
  */
 function isMissingTable(err: { code?: string; message?: string } | null): boolean {
   if (!err) return false
-  return (
-    err.code === '42P01' ||
-    /relation .* does not exist/i.test(err.message ?? '')
-  )
+  return err.code === '42P01' || /relation .* does not exist/i.test(err.message ?? '')
 }
 
 export interface PatientTag {
@@ -218,9 +208,7 @@ export async function listTagsForPatient(
     if (isMissingTable(tagsErr)) return []
     throw new Error(`fetch tags by id failed: ${tagsErr.message}`)
   }
-  return ((tags ?? []) as TagRow[])
-    .map(toTag)
-    .sort((a, b) => a.name.localeCompare(b.name))
+  return ((tags ?? []) as TagRow[]).map(toTag).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /**

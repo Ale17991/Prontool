@@ -21,17 +21,18 @@ Reorganizar a página `/operacao/pacientes/[id]` de uma pilha vertical de ~10 ca
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Aplicabilidade | Status | Justificativa |
-|---|---|---|---|
-| **I. Integridade Financeira Imutável** | Leitura apenas de `payment_records`/`appointments_effective` para sidebar e timeline. Nenhum INSERT/UPDATE/DELETE financeiro. | ✅ PASS | Feature é UX-only. Append-only preservado por inércia. |
-| **II. Auditabilidade Total de Preços** | Não altera tabelas auditadas. Os formulários re-embrulhados em Sheets continuam usando os mesmos endpoints `/api/pacientes/[id]/*` que já registram `log_audit_event`. | ✅ PASS | Trilha de auditoria preservada. |
-| **III. Isolamento Multi-Tenant** | Todas as consultas continuam filtradas por `tenant_id` via `session.tenantId` (padrão atual). O novo SELECT batch para resolver nomes em `doctors` + `user_profile` MUST incluir `eq('tenant_id', session.tenantId)`. RLS atual cobre. | ✅ PASS | Cobertura RLS + WHERE de tenant. Documentar como teste em data-model.md. |
-| **IV. Conformidade TUSS/ANS** | TUSS é lido apenas para exibição de procedimentos no histórico (já presente). Sem mudança no catálogo. | ✅ PASS | N/A direta. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | Botões/ações renderizam só se `can(role, …)` permite (defesa em profundidade), e endpoints continuam validando server-side. Mantém o padrão de `page.tsx:354-365`. | ✅ PASS | RBAC client-side é UX, não controle de segurança. Server-side intacto. |
+| Princípio                                    | Aplicabilidade                                                                                                                                                                                                                         | Status  | Justificativa                                                            |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------ |
+| **I. Integridade Financeira Imutável**       | Leitura apenas de `payment_records`/`appointments_effective` para sidebar e timeline. Nenhum INSERT/UPDATE/DELETE financeiro.                                                                                                          | ✅ PASS | Feature é UX-only. Append-only preservado por inércia.                   |
+| **II. Auditabilidade Total de Preços**       | Não altera tabelas auditadas. Os formulários re-embrulhados em Sheets continuam usando os mesmos endpoints `/api/pacientes/[id]/*` que já registram `log_audit_event`.                                                                 | ✅ PASS | Trilha de auditoria preservada.                                          |
+| **III. Isolamento Multi-Tenant**             | Todas as consultas continuam filtradas por `tenant_id` via `session.tenantId` (padrão atual). O novo SELECT batch para resolver nomes em `doctors` + `user_profile` MUST incluir `eq('tenant_id', session.tenantId)`. RLS atual cobre. | ✅ PASS | Cobertura RLS + WHERE de tenant. Documentar como teste em data-model.md. |
+| **IV. Conformidade TUSS/ANS**                | TUSS é lido apenas para exibição de procedimentos no histórico (já presente). Sem mudança no catálogo.                                                                                                                                 | ✅ PASS | N/A direta.                                                              |
+| **V. Segurança por Perfil de Acesso (RBAC)** | Botões/ações renderizam só se `can(role, …)` permite (defesa em profundidade), e endpoints continuam validando server-side. Mantém o padrão de `page.tsx:354-365`.                                                                     | ✅ PASS | RBAC client-side é UX, não controle de segurança. Server-side intacto.   |
 
 **Domínio adicional**:
+
 - **LGPD**: paciente anonimizado mantém renderização restrita (FR-026). Logs novos do client não devem conter PII (usar `user_id` truncado é OK, nome **só** se já retornado pelos endpoints com RLS).
 - **Relógio UTC**: timestamps continuam UTC em persistência, formatados na UI via `formatDateTime` existente.
 - **Moeda**: continuam centavos; sidebar usa `formatCurrency` existente.
@@ -145,18 +146,18 @@ Itens que `research.md` resolverá:
 Sem violações da constituição; Complexity Tracking vazio.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |
 
 ## Constitution Check — Re-evaluation pós-Phase 1 (2026-05-20)
 
-| Princípio | Status após design | Notas |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | ✅ PASS | Designs (data-model.md, contracts/) confirmam: zero INSERT/UPDATE/DELETE financeiro. Sheets reutilizam endpoints existentes que já honram append-only. |
-| **II. Auditabilidade Total de Preços** | ✅ PASS | Sheets disparam endpoints existentes (`/api/pacientes/[id]/registros`, `/diagnosticos`, etc.) que já chamam `log_audit_event`. `resolveAuthors` é leitura. |
-| **III. Isolamento Multi-Tenant** | ✅ PASS | `data-model.md` §7 lista checklist de tenant filtering em cada fonte. `resolveAuthors` explicita `eq('tenant_id', tenantId)` em ambos SELECTs. RLS atual cobre. |
-| **IV. Conformidade TUSS/ANS** | ✅ PASS | TUSS continua leitura apenas; sem nova mutação. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | ✅ PASS | `permissions` no `QuickViewSnapshot` deriva de `can(role, …)` server-side. Componentes (C1 I-3, C7 I-3) honram via render condicional; endpoints continuam validando. |
-| **LGPD / Anonimização** | ✅ PASS | `<PatientQuickView>` (C1 I-1), `<ClinicalTimeline>` (C2 I-4), `<CadastroTab>` (C4 I-1) todos honram `isAnonymized` com render restrito. Logs novos do client não vazam PII. |
+| Princípio                                    | Status após design | Notas                                                                                                                                                                       |
+| -------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável**       | ✅ PASS            | Designs (data-model.md, contracts/) confirmam: zero INSERT/UPDATE/DELETE financeiro. Sheets reutilizam endpoints existentes que já honram append-only.                      |
+| **II. Auditabilidade Total de Preços**       | ✅ PASS            | Sheets disparam endpoints existentes (`/api/pacientes/[id]/registros`, `/diagnosticos`, etc.) que já chamam `log_audit_event`. `resolveAuthors` é leitura.                  |
+| **III. Isolamento Multi-Tenant**             | ✅ PASS            | `data-model.md` §7 lista checklist de tenant filtering em cada fonte. `resolveAuthors` explicita `eq('tenant_id', tenantId)` em ambos SELECTs. RLS atual cobre.             |
+| **IV. Conformidade TUSS/ANS**                | ✅ PASS            | TUSS continua leitura apenas; sem nova mutação.                                                                                                                             |
+| **V. Segurança por Perfil de Acesso (RBAC)** | ✅ PASS            | `permissions` no `QuickViewSnapshot` deriva de `can(role, …)` server-side. Componentes (C1 I-3, C7 I-3) honram via render condicional; endpoints continuam validando.       |
+| **LGPD / Anonimização**                      | ✅ PASS            | `<PatientQuickView>` (C1 I-1), `<ClinicalTimeline>` (C2 I-4), `<CadastroTab>` (C4 I-1) todos honram `isAnonymized` com render restrito. Logs novos do client não vazam PII. |
 
 **Verdict**: Phase 1 design não introduz nenhuma violação. Pronta para `/speckit.tasks`.

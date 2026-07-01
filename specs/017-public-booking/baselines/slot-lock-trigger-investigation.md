@@ -9,6 +9,7 @@
 ### Criação do slot lock
 
 Linhas 189-192:
+
 ```sql
 DROP TRIGGER IF EXISTS appointments_create_slot_lock ON public.appointments;
 CREATE TRIGGER appointments_create_slot_lock
@@ -21,6 +22,7 @@ CREATE TRIGGER appointments_create_slot_lock
 ### Release do slot lock
 
 Linhas 202-205:
+
 ```sql
 DROP TRIGGER IF EXISTS appointment_reversals_release_slot_lock ON public.appointment_reversals;
 CREATE TRIGGER appointment_reversals_release_slot_lock
@@ -29,6 +31,7 @@ CREATE TRIGGER appointment_reversals_release_slot_lock
 ```
 
 Função `release_slot_lock_on_reversal` (linhas 194-200):
+
 ```sql
 DELETE FROM public.appointment_slot_locks
  WHERE appointment_id = NEW.appointment_id;

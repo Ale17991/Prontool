@@ -117,9 +117,7 @@ export function CancelAppointmentForm({
           maxLength={500}
         />
       </div>
-      {error ? (
-        <p className="text-sm font-semibold text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="text-sm font-semibold text-destructive">{error}</p> : null}
       <div className="flex justify-end">
         <Button type="submit" variant="destructive" disabled={pending} className="gap-2">
           {pending ? (

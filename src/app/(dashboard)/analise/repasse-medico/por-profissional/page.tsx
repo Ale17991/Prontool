@@ -90,13 +90,7 @@ export default async function PorProfissionalPage({ searchParams }: PageProps) {
               <Label htmlFor="from" className="text-xs">
                 Data início
               </Label>
-              <Input
-                id="from"
-                name="from"
-                type="date"
-                defaultValue={period.from}
-                required
-              />
+              <Input id="from" name="from" type="date" defaultValue={period.from} required />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="to" className="text-xs">
@@ -111,10 +105,7 @@ export default async function PorProfissionalPage({ searchParams }: PageProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <SummaryStat label="Profissionais ativos" value={summary.length.toString()} />
-        <SummaryStat
-          label="Procedimentos no período"
-          value={totalProcedures.toString()}
-        />
+        <SummaryStat label="Procedimentos no período" value={totalProcedures.toString()} />
         <SummaryStat
           label="Faturamento no período"
           value={formatCurrency(totalRevenue)}
@@ -138,12 +129,7 @@ export default async function PorProfissionalPage({ searchParams }: PageProps) {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {summary.map((row) => (
-            <ProfessionalCard
-              key={row.doctorId}
-              row={row}
-              from={period.from}
-              to={period.to}
-            />
+            <ProfessionalCard key={row.doctorId} row={row} from={period.from} to={period.to} />
           ))}
         </div>
       )}
@@ -185,9 +171,7 @@ function ProfessionalCard({
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Procedimentos
             </p>
-            <p className="text-xl font-black text-slate-900 tabular-nums">
-              {row.procedureCount}
-            </p>
+            <p className="text-xl font-black text-slate-900 tabular-nums">{row.procedureCount}</p>
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -233,9 +217,7 @@ function SummaryStat({
         <div className="mb-3 inline-flex rounded-xl border border-info/30 bg-info-bg p-2.5 text-info-text">
           <Users className="h-4 w-4" />
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <p
           className={
             highlight

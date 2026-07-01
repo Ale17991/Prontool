@@ -6,10 +6,7 @@
  *   2. Migration 0080 fez backfill dos existentes.
  */
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedTussCode, seedUser } from '@/tests/helpers/seed-factories'
 import { createProcedure } from '@/lib/core/procedures/create'
 

@@ -4,7 +4,10 @@ import type { Database } from '@/lib/db/types'
 
 /** Token curto URL-safe (12 chars), sem dep externa. */
 function shortToken(len = 12): string {
-  return randomBytes(24).toString('base64url').replace(/[^a-zA-Z0-9]/g, '').slice(0, len)
+  return randomBytes(24)
+    .toString('base64url')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, len)
 }
 
 /**

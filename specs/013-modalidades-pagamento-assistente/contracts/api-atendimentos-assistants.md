@@ -164,9 +164,9 @@ Remove (soft) um assistente — seta `removed_at`/`removed_by`.
 
 ## 5. Auditoria
 
-| Ação                                              | entity                  | field      | new_value                                        |
-| ------------------------------------------------- | ----------------------- | ---------- | ------------------------------------------------ |
-| Adicionar assistente (POST manual ou POST direto) | `appointment_assistants`| `added`    | `{appointment_id, assistant_doctor_id, amount}`  |
-| Remover assistente (PATCH)                        | `appointment_assistants`| `removed`  | `{removed_at, removed_by}`                       |
-| Tentativa de adicionar não-liberal                | `appointment_assistants`| `validation_denied` | `{reason: 'ASSISTANT_NOT_LIBERAL', doctor_id}` |
-| Tentativa de criar atendimento com Liberal como principal | `appointments`  | `validation_denied` | `{reason: 'LIBERAL_AS_PRINCIPAL', doctor_id}` |
+| Ação                                                      | entity                   | field               | new_value                                       |
+| --------------------------------------------------------- | ------------------------ | ------------------- | ----------------------------------------------- |
+| Adicionar assistente (POST manual ou POST direto)         | `appointment_assistants` | `added`             | `{appointment_id, assistant_doctor_id, amount}` |
+| Remover assistente (PATCH)                                | `appointment_assistants` | `removed`           | `{removed_at, removed_by}`                      |
+| Tentativa de adicionar não-liberal                        | `appointment_assistants` | `validation_denied` | `{reason: 'ASSISTANT_NOT_LIBERAL', doctor_id}`  |
+| Tentativa de criar atendimento com Liberal como principal | `appointments`           | `validation_denied` | `{reason: 'LIBERAL_AS_PRINCIPAL', doctor_id}`   |

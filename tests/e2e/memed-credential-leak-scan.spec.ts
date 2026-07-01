@@ -12,7 +12,12 @@
 import { test, expect } from '@playwright/test'
 import { MEMED_E2E_SENTINELS } from '../../playwright.memed.config'
 import { loginAsAdmin } from './fixtures'
-import { seedMemedFixture, stubMemedSdk, openPrescription, type MemedE2eFixture } from './memed-helpers'
+import {
+  seedMemedFixture,
+  stubMemedSdk,
+  openPrescription,
+  type MemedE2eFixture,
+} from './memed-helpers'
 
 // Chaves públicas de homologação (hardcoded na cápsula server-side) — também
 // não podem aparecer no navegador.
@@ -27,7 +32,9 @@ test.beforeAll(async () => {
   fixture = await seedMemedFixture()
 })
 
-test('fluxo completo de prescrição não vaza api_key/secret_key para o navegador', async ({ page }) => {
+test('fluxo completo de prescrição não vaza api_key/secret_key para o navegador', async ({
+  page,
+}) => {
   const haystacks: string[] = []
 
   page.on('request', (req) => {
@@ -63,7 +70,9 @@ test('fluxo completo de prescrição não vaza api_key/secret_key para o navegad
     { timeout: 60_000 },
   )
   await page.evaluate((id) => {
-    ;(window as unknown as { __emitPrescricaoImpressa: (d: unknown) => void }).__emitPrescricaoImpressa({ id })
+    ;(
+      window as unknown as { __emitPrescricaoImpressa: (d: unknown) => void }
+    ).__emitPrescricaoImpressa({ id })
   }, rxId)
   await recorded
 
@@ -86,7 +95,10 @@ test('fluxo completo de prescrição não vaza api_key/secret_key para o navegad
   ]
   for (const needle of forbidden) {
     expect
-      .soft(corpus.includes(needle.toLowerCase()), `credencial/padrão vazou no front: "${needle.slice(0, 24)}…"`)
+      .soft(
+        corpus.includes(needle.toLowerCase()),
+        `credencial/padrão vazou no front: "${needle.slice(0, 24)}…"`,
+      )
       .toBe(false)
   }
   expect(haystacks.length).toBeGreaterThan(10) // sanity: o scan viu tráfego real

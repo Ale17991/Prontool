@@ -35,16 +35,12 @@ beforeEach(() => {
 
 describe('/operacao/alertas → /operacao/notificacoes?tab=alertas (US2)', () => {
   it('redirects without query string', () => {
-    expect(() => LegacyAlertasRedirect({ searchParams: {} })).toThrow(
-      /NEXT_PERMANENT_REDIRECT/,
-    )
+    expect(() => LegacyAlertasRedirect({ searchParams: {} })).toThrow(/NEXT_PERMANENT_REDIRECT/)
     expectRedirectTo('/operacao/notificacoes?tab=alertas')
   })
 
   it('preserves ?status=aberto', () => {
-    expect(() =>
-      LegacyAlertasRedirect({ searchParams: { status: 'aberto' } }),
-    ).toThrow()
+    expect(() => LegacyAlertasRedirect({ searchParams: { status: 'aberto' } })).toThrow()
     expectRedirectTo('/operacao/notificacoes?tab=alertas&status=aberto')
   })
 
@@ -61,9 +57,7 @@ describe('/operacao/alertas → /operacao/notificacoes?tab=alertas (US2)', () =>
   })
 
   it('ignores ?tab= override from incoming URL (always force tab=alertas)', () => {
-    expect(() =>
-      LegacyAlertasRedirect({ searchParams: { tab: 'dlq' } }),
-    ).toThrow()
+    expect(() => LegacyAlertasRedirect({ searchParams: { tab: 'dlq' } })).toThrow()
     const dest = permanentRedirectMock.mock.calls[0]?.[0] as string
     expect(dest).toBe('/operacao/notificacoes?tab=alertas')
   })
@@ -76,27 +70,21 @@ describe('/operacao/dlq → /operacao/notificacoes?tab=dlq (US2)', () => {
   })
 
   it('preserves query strings', () => {
-    expect(() =>
-      LegacyDlqRedirect({ searchParams: { foo: 'bar' } }),
-    ).toThrow()
+    expect(() => LegacyDlqRedirect({ searchParams: { foo: 'bar' } })).toThrow()
     const dest = permanentRedirectMock.mock.calls[0]?.[0] as string
     expect(dest).toContain('/operacao/notificacoes?tab=dlq')
     expect(dest).toContain('foo=bar')
   })
 
   it('ignores ?tab= override from incoming URL (always force tab=dlq)', () => {
-    expect(() =>
-      LegacyDlqRedirect({ searchParams: { tab: 'alertas' } }),
-    ).toThrow()
+    expect(() => LegacyDlqRedirect({ searchParams: { tab: 'alertas' } })).toThrow()
     expectRedirectTo('/operacao/notificacoes?tab=dlq')
   })
 })
 
 describe('/analise/auditoria → /configuracoes/auditoria (US3)', () => {
   it('redirects without query string', () => {
-    expect(() =>
-      LegacyAuditoriaRedirect({ searchParams: {} }),
-    ).toThrow()
+    expect(() => LegacyAuditoriaRedirect({ searchParams: {} })).toThrow()
     expectRedirectTo('/configuracoes/auditoria')
   })
 

@@ -14,9 +14,7 @@ import { validateTissXml } from '@/lib/core/tiss/validate'
 
 describe('Feature 029 — pipeline de validação TISS XSD 04.03.00', () => {
   it('carrega os XSDs e rejeita um XML que não é mensagemTISS', async () => {
-    const result = await validateTissXml(
-      '<?xml version="1.0" encoding="UTF-8"?><foo/>',
-    )
+    const result = await validateTissXml('<?xml version="1.0" encoding="UTF-8"?><foo/>')
     expect(result.valid).toBe(false)
     expect(result.errors.length).toBeGreaterThan(0)
   })

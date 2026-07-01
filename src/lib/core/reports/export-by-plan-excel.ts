@@ -36,9 +36,7 @@ export async function renderByPlanExcel(
   resumo.addRow({})
   resumo.addRow({
     metric: 'Profissional com mais procedimentos',
-    value: detail.topDoctor
-      ? `${detail.topDoctor.doctorName} (${detail.topDoctor.count})`
-      : '—',
+    value: detail.topDoctor ? `${detail.topDoctor.doctorName} (${detail.topDoctor.count})` : '—',
   })
   resumo.addRow({
     metric: 'Procedimento mais realizado',

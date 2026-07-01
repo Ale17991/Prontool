@@ -25,8 +25,7 @@ async function main(): Promise<void> {
     throw new Error(`failed to download ${DEFAULT_URL}: HTTP ${res.status}`)
   }
   const isCsv =
-    /\.csv($|\?)/i.test(DEFAULT_URL) ||
-    (res.headers.get('content-type') ?? '').includes('csv')
+    /\.csv($|\?)/i.test(DEFAULT_URL) || (res.headers.get('content-type') ?? '').includes('csv')
 
   let normalized: NormalizedRow[]
   if (isCsv) {

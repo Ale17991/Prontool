@@ -72,9 +72,9 @@ describe('getPatientOptIn', () => {
       data: null,
       error: { message: 'connection lost' },
     })
-    await expect(
-      getPatientOptIn(client, 'patient-uuid', 'tenant-uuid'),
-    ).rejects.toThrow(/getPatientOptIn failed/)
+    await expect(getPatientOptIn(client, 'patient-uuid', 'tenant-uuid')).rejects.toThrow(
+      /getPatientOptIn failed/,
+    )
   })
 })
 
@@ -97,8 +97,8 @@ describe('setPatientOptIn', () => {
 
   it('lança erro em falha de DB', async () => {
     const { client } = mockSupabaseUpdate({ error: { message: 'rls violation' } })
-    await expect(
-      setPatientOptIn(client, 'patient-uuid', 'tenant-uuid', false),
-    ).rejects.toThrow(/setPatientOptIn failed/)
+    await expect(setPatientOptIn(client, 'patient-uuid', 'tenant-uuid', false)).rejects.toThrow(
+      /setPatientOptIn failed/,
+    )
   })
 })

@@ -14,25 +14,27 @@ Content-Type: application/json
 
 ### Path params
 
-| Param | Tipo | Validação |
-|---|---|---|
+| Param  | Tipo   | Validação                   |
+| ------ | ------ | --------------------------- |
 | `slug` | string | `^[a-z0-9][a-z0-9-]{2,31}$` |
 
 ### Body (Zod schema)
 
 ```typescript
 {
-  doctor_id: string()  // UUID
-  procedure_id: string()  // UUID
-  slot_start: string()  // ISO 8601 UTC
+  doctor_id: string() // UUID
+  procedure_id: string() // UUID
+  slot_start: string() // ISO 8601 UTC
   patient: {
     full_name: string().min(3).max(120)
-    cpf: string().regex(/^\d{11}$/).optional()  // só dígitos
+    cpf: string()
+      .regex(/^\d{11}$/)
+      .optional() // só dígitos
     email: string().email().max(120)
-    phone: string().min(8).max(20)  // formato livre, validação básica
-    birth_date: string().regex(/^\d{4}-\d{2}-\d{2}$/)  // ISO date
+    phone: string().min(8).max(20) // formato livre, validação básica
+    birth_date: string().regex(/^\d{4}-\d{2}-\d{2}$/) // ISO date
   }
-  lgpd_consent: literal(true)  // booleano que MUST ser true
+  lgpd_consent: literal(true) // booleano que MUST ser true
   turnstile_token: string().min(20).max(2048)
 }
 ```
@@ -164,6 +166,7 @@ Genérico. Erro completo só em logs.
 ## Idempotência
 
 **Não há proteção idempotente nativa**. Se cliente clicar 2x submit antes do response:
+
 - Primeira request: cria appointment + slot lock.
 - Segunda request: EXCLUDE viola → 409. Cliente vê erro "Slot ocupado", mas a primeira já completou.
 

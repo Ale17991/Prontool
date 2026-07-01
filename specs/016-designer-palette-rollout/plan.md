@@ -30,17 +30,18 @@ Aplicar ao código do Prontool a paleta híbrida do designer (azul institucional
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Aplicabilidade | Status |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | N/A — esta feature não toca em valores, faturas, preços, ajustes ou estornos. Nenhum `UPDATE`/`DELETE` em dados financeiros é introduzido. | ✅ Pass |
-| **II. Auditabilidade Total de Preços** | N/A — nenhum cadastro auditável é alterado. A mudança de classes CSS em componentes de UI não gera eventos de domínio. | ✅ Pass |
-| **III. Isolamento Multi-Tenant** | N/A direta. Verificação indireta: a sidebar é reestilizada, mas o **link "Trocar clínica"** (que depende de `availableTenants` por usuário) **mantém** sua lógica intacta — apenas a cor muda (`text-sky-300` → `text-sidebar-switch`). Nenhuma consulta nova ao banco; nenhum `tenant_id` é manipulado. | ✅ Pass |
-| **IV. Conformidade TUSS/ANS** | N/A — esta feature não toca em códigos, catálogos, validações TUSS, nem em integração TISS/XML. | ✅ Pass |
-| **V. Segurança por Perfil de Acesso (RBAC)** | N/A direta. Verificação indireta: nenhum botão/ação muda de visibilidade nem de gating; apenas aparência muda. RBAC server-side permanece como única fonte de autorização. Itens da sidebar continuam sendo filtrados conforme `session.role` pelo `dashboard-shell.tsx` existente. | ✅ Pass |
+| Principle                                    | Aplicabilidade                                                                                                                                                                                                                                                                                           | Status  |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| **I. Integridade Financeira Imutável**       | N/A — esta feature não toca em valores, faturas, preços, ajustes ou estornos. Nenhum `UPDATE`/`DELETE` em dados financeiros é introduzido.                                                                                                                                                               | ✅ Pass |
+| **II. Auditabilidade Total de Preços**       | N/A — nenhum cadastro auditável é alterado. A mudança de classes CSS em componentes de UI não gera eventos de domínio.                                                                                                                                                                                   | ✅ Pass |
+| **III. Isolamento Multi-Tenant**             | N/A direta. Verificação indireta: a sidebar é reestilizada, mas o **link "Trocar clínica"** (que depende de `availableTenants` por usuário) **mantém** sua lógica intacta — apenas a cor muda (`text-sky-300` → `text-sidebar-switch`). Nenhuma consulta nova ao banco; nenhum `tenant_id` é manipulado. | ✅ Pass |
+| **IV. Conformidade TUSS/ANS**                | N/A — esta feature não toca em códigos, catálogos, validações TUSS, nem em integração TISS/XML.                                                                                                                                                                                                          | ✅ Pass |
+| **V. Segurança por Perfil de Acesso (RBAC)** | N/A direta. Verificação indireta: nenhum botão/ação muda de visibilidade nem de gating; apenas aparência muda. RBAC server-side permanece como única fonte de autorização. Itens da sidebar continuam sendo filtrados conforme `session.role` pelo `dashboard-shell.tsx` existente.                      | ✅ Pass |
 
 **Gates adicionais (Quality)**:
+
 - **Migration**: Sem migrations. ✅
 - **Append-only**: Sem persistência tocada. ✅
 - **LGPD**: Sem dados pessoais/saúde tocados. ✅
@@ -99,6 +100,7 @@ package.json                                # [SEM EDIT — todas as deps já es
 **Estrutura escolhida**: **Single Next.js project (existente)** — esta feature não justifica reorganização de diretórios. Caminhos reais estão acima.
 
 **Outros call-sites de status de appointment** (a auditar e migrar durante implementação):
+
 - `src/app/(dashboard)/operacao/atendimentos/calendar/calendar-block.tsx` (confirmado)
 - `appointments-history-table.tsx` (confirmado via grep)
 - `filter-bar.tsx` (confirmado via grep)
@@ -109,6 +111,7 @@ package.json                                # [SEM EDIT — todas as deps já es
 ### Phase 0 — Outline & Research ✅ COMPLETO
 
 Output: [research.md](./research.md). Resolveu:
+
 - Conversão hex → HSL para 11 valores cromáticos.
 - Estratégia `next/font/google` + preservação `cv11`/`ss01`.
 - Descoberta crítica: banco tem só 3 estados de appointment (`ativo`/`agendado`/`estornado`); componente cobre 7 visuais para evolução futura.
@@ -123,6 +126,7 @@ Zero `NEEDS CLARIFICATION` remanescente.
 ### Phase 1 — Design & Contracts (este passo)
 
 Outputs:
+
 - `data-model.md` — entidades-conceito do design system (tokens, status, escala tipográfica) tratadas como "modelo de dados" da feature, mesmo sendo UI.
 - `contracts/tokens.schema.json` — schema JSON canônico dos tokens expostos.
 - `contracts/appointment-status-badge.contract.md` — props + acceptance de UX.
@@ -139,8 +143,8 @@ Não escrito por este comando. Esperado: decomposição das 6 user stories em ta
 > **Sem violações de constituição**. Esta seção fica intencionalmente vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |
 
 ---
 

@@ -50,13 +50,10 @@ export function SupportTicketDialog() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(
-    null,
-  )
+  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null)
 
   const titleValid = title.trim().length >= 3 && title.trim().length <= 120
-  const descriptionValid =
-    description.trim().length >= 10 && description.trim().length <= 5000
+  const descriptionValid = description.trim().length >= 10 && description.trim().length <= 5000
   const canSubmit = titleValid && descriptionValid && !submitting
 
   function reset() {
@@ -86,8 +83,7 @@ export function SupportTicketDialog() {
         const body = (await res.json().catch(() => ({}))) as { message?: string }
         setFeedback({
           kind: 'error',
-          message:
-            body.message ?? 'Não foi possível enviar agora. Tente novamente em instantes.',
+          message: body.message ?? 'Não foi possível enviar agora. Tente novamente em instantes.',
         })
         return
       }

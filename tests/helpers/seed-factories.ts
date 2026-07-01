@@ -8,7 +8,9 @@ export interface SeededTenant {
   slug: string
 }
 
-export async function seedTenant(slug = `tenant-${randomUUID().slice(0, 8)}`): Promise<SeededTenant> {
+export async function seedTenant(
+  slug = `tenant-${randomUUID().slice(0, 8)}`,
+): Promise<SeededTenant> {
   const sb = serviceClient()
   const tenantId = randomUUID()
   await sb

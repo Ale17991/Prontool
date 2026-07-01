@@ -29,33 +29,21 @@ vi.mock('next/navigation', () => ({
   permanentRedirect: redirectMock,
 }))
 
-vi.mock(
-  '@/app/(dashboard)/operacao/notificacoes/_components/tab-bar',
-  () => ({
-    TabBar: tabBarMock,
-  }),
-)
+vi.mock('@/app/(dashboard)/operacao/notificacoes/_components/tab-bar', () => ({
+  TabBar: tabBarMock,
+}))
 
-vi.mock(
-  '@/app/(dashboard)/operacao/notificacoes/_components/tab-notificacoes',
-  () => ({
-    TabNotificacoes: tabNotificacoesMock,
-  }),
-)
+vi.mock('@/app/(dashboard)/operacao/notificacoes/_components/tab-notificacoes', () => ({
+  TabNotificacoes: tabNotificacoesMock,
+}))
 
-vi.mock(
-  '@/app/(dashboard)/operacao/notificacoes/_components/tab-alertas',
-  () => ({
-    TabAlertas: tabAlertasMock,
-  }),
-)
+vi.mock('@/app/(dashboard)/operacao/notificacoes/_components/tab-alertas', () => ({
+  TabAlertas: tabAlertasMock,
+}))
 
-vi.mock(
-  '@/app/(dashboard)/operacao/notificacoes/_components/tab-dlq',
-  () => ({
-    TabDlq: tabDlqMock,
-  }),
-)
+vi.mock('@/app/(dashboard)/operacao/notificacoes/_components/tab-dlq', () => ({
+  TabDlq: tabDlqMock,
+}))
 
 import NotificacoesPage from '@/app/(dashboard)/operacao/notificacoes/page'
 
@@ -189,8 +177,6 @@ describe('NotificacoesPage — silent fallback (FR-006)', () => {
 describe('NotificacoesPage — auth gate', () => {
   it('sem sessão → redirect para /login', async () => {
     getSessionMock.mockResolvedValue(null)
-    await expect(NotificacoesPage({ searchParams: {} })).rejects.toThrow(
-      /NEXT_REDIRECT \/login/,
-    )
+    await expect(NotificacoesPage({ searchParams: {} })).rejects.toThrow(/NEXT_REDIRECT \/login/)
   })
 })

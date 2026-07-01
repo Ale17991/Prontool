@@ -18,8 +18,7 @@ describe('Feature 011 — RBAC matrix /api/impostos', () => {
   let tenantId: string
   let adminUserId: string
   let seededTaxId: string
-  const users: Record<TenantRole, { userId: string; email: string; jwt: string }> =
-    {} as never
+  const users: Record<TenantRole, { userId: string; email: string; jwt: string }> = {} as never
 
   beforeAll(async () => {
     await resetDatabase()

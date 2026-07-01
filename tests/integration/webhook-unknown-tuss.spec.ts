@@ -7,10 +7,7 @@
  * Red-first: worker import fails until T085.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedGhlConfig } from '@/tests/helpers/seed-factories'
 import { buildSignedWebhookRequest, buildValidGhlPayload } from '@/tests/helpers/webhook-request'
 
@@ -48,10 +45,7 @@ describe('T066 — webhook with unknown TUSS code', () => {
     expect(raw?.processing_status).toBe('dlq')
     expect(raw?.failure_reason).toMatch(/TUSS/i)
 
-    const { data: alerts } = await sb
-      .from('alerts')
-      .select('type')
-      .eq('tenant_id', tenantId)
+    const { data: alerts } = await sb.from('alerts').select('type').eq('tenant_id', tenantId)
     expect(alerts).toEqual(
       expect.arrayContaining([expect.objectContaining({ type: 'webhook_rejected' })]),
     )

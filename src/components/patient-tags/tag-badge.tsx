@@ -1,8 +1,5 @@
 import { X } from 'lucide-react'
-import {
-  PATIENT_TAG_COLOR_CLASSES,
-  type PatientTagColor,
-} from '@/lib/core/patient-tags/palette'
+import { PATIENT_TAG_COLOR_CLASSES, type PatientTagColor } from '@/lib/core/patient-tags/palette'
 import { cn } from '@/lib/utils'
 
 export interface TagBadgeProps {
@@ -22,9 +19,7 @@ export function TagBadge({ name, color, size = 'md', onRemove, className }: TagB
       className={cn(
         'inline-flex items-center gap-1 rounded-full border font-semibold',
         palette.badge,
-        size === 'sm'
-          ? 'px-1.5 py-0 text-[10px]'
-          : 'px-2 py-0.5 text-xs',
+        size === 'sm' ? 'px-1.5 py-0 text-[10px]' : 'px-2 py-0.5 text-xs',
         className,
       )}
     >

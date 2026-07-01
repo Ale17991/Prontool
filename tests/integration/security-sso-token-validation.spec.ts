@@ -81,9 +81,7 @@ describe('security: verify-sso-token', () => {
 
   beforeEach(() => {
     _resetJwksCacheForTests()
-    mswServer.use(
-      http.get(SSO_JWKS_URL, () => HttpResponse.json({ keys: [keys.publicJwk] })),
-    )
+    mswServer.use(http.get(SSO_JWKS_URL, () => HttpResponse.json({ keys: [keys.publicJwk] })))
   })
 
   afterAll(() => {

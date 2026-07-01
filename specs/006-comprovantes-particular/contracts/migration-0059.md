@@ -107,6 +107,7 @@ Em **prod, nunca rodar** — perda de dados (receipts e atendimentos particulare
 ## Migration 0060 (futura, fora deste plan)
 
 Quando confirmado:
+
 1. Frontend ✅ deployado e lendo só de `expense_receipts`.
 2. Audit log sem entries de tentativa de write em `expenses.receipt_file_*` por 1 semana.
 3. Backup de prod realizado.
@@ -123,6 +124,7 @@ CREATE OR REPLACE FUNCTION public.enforce_expenses_mutation() ...; -- remove os 
 ## Sequência de aplicação em prod
 
 Ordem critical:
+
 1. **Aplicar 0059** no banco (via SQL Editor ou supabase db push).
 2. **Deploy do frontend/backend** apontando pra `expense_receipts`. Endpoint singular `/comprovante` removido.
 3. **Smoke test**: criar despesa nova, anexar comprovante, listar. Criar atendimento particular, ver badge.

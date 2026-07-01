@@ -95,7 +95,11 @@ export function MonthView({ date, appointments }: MonthViewProps) {
               )}
             >
               <div className="flex items-center justify-between text-[11px] font-semibold">
-                <span className={isToday ? 'rounded-full bg-primary px-1.5 py-0.5 text-white' : 'text-slate-600'}>
+                <span
+                  className={
+                    isToday ? 'rounded-full bg-primary px-1.5 py-0.5 text-white' : 'text-slate-600'
+                  }
+                >
                   {d.getDate()}
                 </span>
                 {items.length > 0 ? (
@@ -126,8 +130,8 @@ export function MonthView({ date, appointments }: MonthViewProps) {
                     >
                       <Icon className="h-2.5 w-2.5 shrink-0 opacity-80" aria-hidden="true" />
                       <span className="truncate">
-                        {format(new Date(a.appointmentAt), 'HH:mm', { locale: ptBR })}{' '}
-                        · {a.patientLabel}
+                        {format(new Date(a.appointmentAt), 'HH:mm', { locale: ptBR })} ·{' '}
+                        {a.patientLabel}
                       </span>
                     </Link>
                   )

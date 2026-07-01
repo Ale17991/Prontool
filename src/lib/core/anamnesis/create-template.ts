@@ -71,7 +71,8 @@ export async function createAnamnesisTemplate(
       description: input.description ?? null,
       version,
       previous_version_id: input.previousVersionId ?? null,
-      fields: input.fields as unknown as Database['public']['Tables']['anamnesis_templates']['Insert']['fields'],
+      fields:
+        input.fields as unknown as Database['public']['Tables']['anamnesis_templates']['Insert']['fields'],
       created_by: input.actorUserId,
     })
     .select()
@@ -79,9 +80,7 @@ export async function createAnamnesisTemplate(
 
   if (error) {
     if (error.code === '23505') {
-      throw new ValidationError(
-        `Já existe uma versão v${version} do modelo "${input.title}"`,
-      )
+      throw new ValidationError(`Já existe uma versão v${version} do modelo "${input.title}"`)
     }
     throw new Error(`createAnamnesisTemplate failed: ${error.message}`)
   }

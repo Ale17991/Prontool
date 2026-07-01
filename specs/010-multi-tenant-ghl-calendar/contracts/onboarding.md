@@ -42,6 +42,7 @@ Cria a primeira clínica para um usuário autenticado sem nenhum vínculo ativo,
 ```
 
 **Errors**:
+
 - `400 invalid_field` — Zod fail.
 - `409 already_has_tenant` — usuário já tem vínculo ativo.
 - `409 slug_exhausted` — 100 sufixos tentados sem sucesso (improvável; defesa contra loop).
@@ -49,7 +50,7 @@ Cria a primeira clínica para um usuário autenticado sem nenhum vínculo ativo,
 **Client follow-up**: após receber 201, fazer:
 
 ```ts
-await supabase.auth.refreshSession()  // pega o novo claim tenant_id
+await supabase.auth.refreshSession() // pega o novo claim tenant_id
 router.push('/operacao/atendimentos')
 router.refresh()
 ```

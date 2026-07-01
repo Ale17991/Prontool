@@ -15,7 +15,7 @@
 - Q: Admin fechou repasse errado — pode reabrir? → A: **Reabertura restrita**: permitida apenas (a) nas primeiras 24h após `closed_at`, (b) se NENHUM dos repasses do mês já foi marcado como pago (`paid_at IS NULL` em todas as linhas de `monthly_payouts` daquele mês). Exige justificativa textual ≥20 caracteres e gera entrada append-only em nova tabela `monthly_payouts_reopens` para forensia. Após reabertura, o mês volta ao estado "aberto" e os cálculos passam a refletir dados ao vivo novamente. Refechamento sobrescreve a snapshot anterior **mas** preserva-a via `monthly_payouts_reopens` (mantém os valores originais para auditoria).
 - Q: Saldo inicial do caixa do tenant — editável quando, com qual modelo? → A: **Histórico de ajustes append-only** via nova tabela `tenant_cash_balance_adjustments`. Cada vez que o admin edita o saldo (aporte, retirada, ajuste contábil), o sistema cria uma nova linha com `effective_from`, `amount_cents` (delta ou valor absoluto — decisão de plan), `reason`, `actor_user_id`. O gráfico de fluxo de caixa em qualquer data usa a soma dos ajustes vigentes naquele momento como baseline. Princípio I-compliant; auditoria perfeita; histórico de gráfico não muda retroativamente quando admin acrescenta um ajuste com `effective_from = hoje`.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Recepção/Financeiro vê o que receber esta semana (Priority: P1)
 
@@ -125,7 +125,7 @@ O dono quer um "raio-x" rápido ao abrir a tela financeira. Em `/analise/dashboa
 - **Múltiplas moedas**: não suportado. Tudo em centavos BRL.
 - **Fuso horário**: respeitar `tenant-tz` — "hoje" depende do tenant; relatório mensal usa boundaries no fuso do tenant (já é como `computeOperatingResult` faz).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -209,7 +209,7 @@ O dono quer um "raio-x" rápido ao abrir a tela financeira. Em `/analise/dashboa
 - **Monthly Payout Reopen** (nova, `monthly_payouts_reopens`): registro forense de cada reabertura de mês (FR-032a). Colunas: `id`, `tenant_id`, `month` (YYYY-MM), `reopened_at`, `reopened_by` (user_id), `reason` (text, ≥20 chars), `snapshot_before` (JSONB com cópia dos valores de `monthly_payouts` daquele mês imediatamente antes da reabertura), `created_at`. Append-only via trigger.
 - **Tenant Cash Balance Adjustment** (nova, `tenant_cash_balance_adjustments`): ajustes do saldo de caixa do tenant (FR-021). Colunas: `id`, `tenant_id`, `effective_from` (date), `amount_cents` (int com sinal — positivo = aporte/crédito, negativo = retirada/débito), `reason` (text), `actor_user_id` (FK), `created_at`. Append-only via trigger. Saldo vigente em qualquer data D = `SUM(amount_cents) WHERE tenant_id=$1 AND effective_from <= D`.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

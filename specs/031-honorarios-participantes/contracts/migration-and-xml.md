@@ -33,6 +33,7 @@ NOTIFY pgrst, 'reload schema';
 ```
 
 **Notas de conformidade**:
+
 - Nenhum DROP de coluna/tabela financeira (Constitution I/migrações).
 - Append-only preservado; novas colunas imutáveis após INSERT.
 - RLS inalterada (SELECT por tenant; mutação por RPC/service).
@@ -56,6 +57,7 @@ procedimentoExecutado
 ```
 
 **Regras**:
+
 - `equipeSadt` entra **depois** dos campos de valor da linha, conforme `ct_procedimentoExecutadoSadt` (ordem exata do XSD — `equipeSadt` é o último elemento da sequência).
 - Participante sem CPF/conselho/UF/CBO completos → guia fica `rascunho` com `validation_errors` apontando o campo.
 - Teste-âncora: `render-spsadt` com `equipeSadt` valida contra `tissGuiasV4_03_00.xsd` (xmllint-wasm).

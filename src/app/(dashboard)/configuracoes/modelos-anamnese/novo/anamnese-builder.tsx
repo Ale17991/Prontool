@@ -30,14 +30,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
-type FieldType =
-  | 'texto_curto'
-  | 'texto_longo'
-  | 'checkbox'
-  | 'radio'
-  | 'select'
-  | 'data'
-  | 'numero'
+type FieldType = 'texto_curto' | 'texto_longo' | 'checkbox' | 'radio' | 'select' | 'data' | 'numero'
 
 interface Field {
   id: string
@@ -49,15 +42,51 @@ interface Field {
 }
 
 const DEFAULT_FIELDS: Field[] = [
-  { id: 'default_nome', type: 'texto_curto', label: 'Nome completo', required: true, is_default: true },
+  {
+    id: 'default_nome',
+    type: 'texto_curto',
+    label: 'Nome completo',
+    required: true,
+    is_default: true,
+  },
   { id: 'default_cpf', type: 'texto_curto', label: 'CPF', required: true, is_default: true },
-  { id: 'default_telefone', type: 'texto_curto', label: 'Telefone', required: true, is_default: true },
+  {
+    id: 'default_telefone',
+    type: 'texto_curto',
+    label: 'Telefone',
+    required: true,
+    is_default: true,
+  },
   { id: 'default_email', type: 'texto_curto', label: 'Email', required: false, is_default: true },
-  { id: 'default_data_nasc', type: 'data', label: 'Data de nascimento', required: false, is_default: true },
-  { id: 'default_plano', type: 'texto_curto', label: 'Plano de saúde', required: false, is_default: true },
+  {
+    id: 'default_data_nasc',
+    type: 'data',
+    label: 'Data de nascimento',
+    required: false,
+    is_default: true,
+  },
+  {
+    id: 'default_plano',
+    type: 'texto_curto',
+    label: 'Plano de saúde',
+    required: false,
+    is_default: true,
+  },
   { id: 'default_cep', type: 'texto_curto', label: 'CEP', required: false, is_default: true },
-  { id: 'default_endereco', type: 'texto_longo', label: 'Endereço completo', required: false, is_default: true },
-  { id: 'default_alergias', type: 'texto_longo', label: 'Alergias conhecidas', required: true, is_default: true },
+  {
+    id: 'default_endereco',
+    type: 'texto_longo',
+    label: 'Endereço completo',
+    required: false,
+    is_default: true,
+  },
+  {
+    id: 'default_alergias',
+    type: 'texto_longo',
+    label: 'Alergias conhecidas',
+    required: true,
+    is_default: true,
+  },
 ]
 
 const FIELD_TYPES: Array<{
@@ -69,10 +98,25 @@ const FIELD_TYPES: Array<{
   // 016 — campos categoricos (tipos de field) — usa paleta do designer
   // onde semantic e Tailwind defaults para variedade categorica.
   { type: 'texto_curto', label: 'Campo de texto', icon: Type, color: 'text-info-text bg-info-bg' },
-  { type: 'texto_longo', label: 'Área de texto', icon: AlignLeft, color: 'text-indigo-600 bg-indigo-50' },
-  { type: 'checkbox', label: 'Checkboxes', icon: CheckSquare, color: 'text-success-strong bg-success-bg' },
+  {
+    type: 'texto_longo',
+    label: 'Área de texto',
+    icon: AlignLeft,
+    color: 'text-indigo-600 bg-indigo-50',
+  },
+  {
+    type: 'checkbox',
+    label: 'Checkboxes',
+    icon: CheckSquare,
+    color: 'text-success-strong bg-success-bg',
+  },
   { type: 'radio', label: 'Múltipla escolha', icon: Radio, color: 'text-violet-600 bg-violet-50' },
-  { type: 'select', label: 'Seleção única', icon: ChevronDown, color: 'text-[hsl(var(--warning-foreground))] bg-[hsl(var(--warning)/0.15)]' },
+  {
+    type: 'select',
+    label: 'Seleção única',
+    icon: ChevronDown,
+    color: 'text-[hsl(var(--warning-foreground))] bg-[hsl(var(--warning)/0.15)]',
+  },
   { type: 'data', label: 'Data', icon: Calendar, color: 'text-destructive bg-destructive/10' },
   { type: 'numero', label: 'Numérico', icon: Hash, color: 'text-slate-600 bg-slate-50' },
 ]
@@ -187,8 +231,8 @@ export function AnamneseBuilder() {
             Construtor de modelos
           </h1>
           <p className="text-sm text-slate-500">
-            Padronize atendimentos com campos estruturados. Salvar cria v1; editar depois
-            cria nova versão (anamneses anteriores ficam preservadas).
+            Padronize atendimentos com campos estruturados. Salvar cria v1; editar depois cria nova
+            versão (anamneses anteriores ficam preservadas).
           </p>
         </div>
 
@@ -321,9 +365,7 @@ export function AnamneseBuilder() {
                             <div>
                               <p className="text-sm font-semibold text-slate-900">
                                 {d.label}
-                                {d.required ? (
-                                  <span className="ml-1 text-rose-500">*</span>
-                                ) : null}
+                                {d.required ? <span className="ml-1 text-rose-500">*</span> : null}
                               </p>
                               <p className="text-[10px] text-slate-500">
                                 Tipo: {d.type.replace('_', ' ')}
@@ -349,8 +391,7 @@ export function AnamneseBuilder() {
                       Os campos padrão acima já estão prontos.
                     </p>
                     <p className="text-xs text-slate-500">
-                      Para adicionar campos personalizados, escolha um tipo no painel
-                      à esquerda.
+                      Para adicionar campos personalizados, escolha um tipo no painel à esquerda.
                     </p>
                   </div>
                 ) : (
@@ -370,9 +411,7 @@ export function AnamneseBuilder() {
                             <div className="flex-1 space-y-3">
                               <Input
                                 value={field.label}
-                                onChange={(e) =>
-                                  updateField(field.id, { label: e.target.value })
-                                }
+                                onChange={(e) => updateField(field.id, { label: e.target.value })}
                                 className="font-semibold"
                                 placeholder="Rótulo do campo"
                               />
@@ -501,9 +540,7 @@ export function AnamneseBuilder() {
                         <div key={field.id} className="space-y-1">
                           <label className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-700">
                             {field.label}
-                            {field.required ? (
-                              <span className="text-rose-500">*</span>
-                            ) : null}
+                            {field.required ? <span className="text-rose-500">*</span> : null}
                             {field.is_default ? (
                               <Badge
                                 variant="secondary"

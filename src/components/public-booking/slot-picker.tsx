@@ -84,15 +84,10 @@ export function SlotPicker({
   initialProcedureId,
 }: SlotPickerProps) {
   const firstProcId = procedures[0]?.procedureId ?? null
-  const [procedureId, setProcedureId] = useState<string | null>(
-    initialProcedureId ?? firstProcId,
-  )
+  const [procedureId, setProcedureId] = useState<string | null>(initialProcedureId ?? firstProcId)
 
   const today = useMemo(() => startOfDay(new Date()), [])
-  const maxDate = useMemo(
-    () => startOfDay(addDays(today, maxDaysAdvance)),
-    [today, maxDaysAdvance],
-  )
+  const maxDate = useMemo(() => startOfDay(addDays(today, maxDaysAdvance)), [today, maxDaysAdvance])
 
   const [visibleMonth, setVisibleMonth] = useState<Date>(startOfMonth(today))
   const [slots, setSlots] = useState<Slot[]>([])
@@ -124,10 +119,7 @@ export function SlotPicker({
       setLoading(true)
       setError(null)
       try {
-        const url = new URL(
-          `/api/public/booking/${slug}/slots`,
-          window.location.origin,
-        )
+        const url = new URL(`/api/public/booking/${slug}/slots`, window.location.origin)
         url.searchParams.set('doctor_id', doctorId)
         url.searchParams.set('procedure_id', procedureId!)
         url.searchParams.set('from', range.from)
@@ -270,12 +262,10 @@ export function SlotPicker({
             ))}
             {monthGrid.map((day) => {
               const inMonth = isSameMonth(day, visibleMonth)
-              const inWindow =
-                !isBefore(day, today) && !isAfter(day, maxDate)
+              const inWindow = !isBefore(day, today) && !isAfter(day, maxDate)
               const dateKey = toISODate(day)
               const hasSlots = slotsByDate.has(dateKey)
-              const isSelected =
-                selectedDate !== null && isSameDay(day, selectedDate)
+              const isSelected = selectedDate !== null && isSameDay(day, selectedDate)
               const isToday = isSameDay(day, today)
               const clickable = inMonth && inWindow && hasSlots
 
@@ -311,14 +301,10 @@ export function SlotPicker({
           </div>
 
           {loading ? (
-            <p className="mt-3 text-center text-xs text-slate-500">
-              Carregando disponibilidade…
-            </p>
+            <p className="mt-3 text-center text-xs text-slate-500">Carregando disponibilidade…</p>
           ) : null}
           {error ? (
-            <p className="mt-3 text-center text-xs text-destructive">
-              Erro ao carregar: {error}
-            </p>
+            <p className="mt-3 text-center text-xs text-destructive">Erro ao carregar: {error}</p>
           ) : null}
           {!loading && !error && slotsByDate.size === 0 ? (
             <p className="mt-3 text-center text-xs text-slate-500">
@@ -342,9 +328,7 @@ export function SlotPicker({
               Selecione uma data no calendário para ver os horários disponíveis.
             </p>
           ) : selectedSlots.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              Sem horários disponíveis nesta data.
-            </p>
+            <p className="text-xs text-slate-500">Sem horários disponíveis nesta data.</p>
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 md:grid-cols-3">
               {selectedSlots.map((s) => (

@@ -15,7 +15,7 @@
 - Q: Resolução de conflito quando dois admins editam o mesmo preço simultaneamente? → A: Concorrência otimista — formulário carrega token de versão; submissão com token obsoleto é rejeitada com mensagem clara pedindo recarga e revisão antes de retentar.
 - Q: Canal de entrega dos alertas operacionais ao admin da clínica? → A: E-mail para todos os admins do tenant + dashboard in-app consolidado. WhatsApp/SMS e canais pluggáveis ficam fora de escopo para v1.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Atendimento faturado automaticamente via webhook GHL (Priority: P1)
 
@@ -227,7 +227,7 @@ totais.
   relatórios somam o valor líquido (original − reversão). Deletar fisicamente
   o atendimento original é proibido.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -245,7 +245,7 @@ totais.
   novo `valid_from`. A vigência da versão anterior é **implicitamente
   encerrada na véspera do novo `valid_from`** por cálculo derivado em tempo
   de consulta (ex.: `valid_to = LEAD(valid_from) OVER (...) - INTERVAL '1
-  day'`), sem mutação física da linha anterior.
+day'`), sem mutação física da linha anterior.
 - **FR-005**: O sistema MUST exigir um motivo textual obrigatório em toda
   alteração de preço.
 - **FR-005a**: O sistema MUST aplicar **concorrência otimista** em edições
@@ -481,7 +481,7 @@ totais.
   deduplicação. Persistido append-only; transições de status são registradas
   como eventos associados, sem sobrescrever histórico.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

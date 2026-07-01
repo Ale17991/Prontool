@@ -64,7 +64,9 @@ describe('RPC decrypt_patient_names_for_ids', () => {
       p_key: DEV_KEY,
     })
     expect(error).toBeNull()
-    const byId = new Map(((data ?? []) as Array<{ id: string; full_name: string }>).map((r) => [r.id, r.full_name]))
+    const byId = new Map(
+      ((data ?? []) as Array<{ id: string; full_name: string }>).map((r) => [r.id, r.full_name]),
+    )
     expect(byId.get(alice)).toBe('Alice Teste')
     expect(byId.get(bob)).toBe('Bob Teste')
     expect(byId.size).toBe(2)

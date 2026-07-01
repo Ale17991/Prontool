@@ -28,8 +28,9 @@ Returns all users linked to the current tenant.
 ```
 
 **Status derivation** (R6):
+
 - `pending` ⇔ `user_tenants.status = 'active'` AND `auth.users.email_confirmed_at IS NULL`
-- `active`  ⇔ `user_tenants.status = 'active'` AND `auth.users.email_confirmed_at IS NOT NULL`
+- `active` ⇔ `user_tenants.status = 'active'` AND `auth.users.email_confirmed_at IS NOT NULL`
 - `disabled` ⇔ `user_tenants.status = 'disabled'`
 
 **Errors**: `401`, `403`.
@@ -50,6 +51,7 @@ Invites a user.
 ```
 
 **Server flow** (R7):
+
 1. Validate input.
 2. Check no active `user_tenants` row exists for `(tenant_id, email)` — if exists → `409 user_already_active`.
 3. `supabase.auth.admin.createUser({ email, email_confirm: false })` (idempotent: if email exists, reuse `id`).
@@ -71,6 +73,7 @@ Invites a user.
 ```
 
 **Errors**:
+
 - `400 invalid_email`, `400 invalid_role`
 - `409 user_already_active`
 - `502 invite_email_send_failed` — created the row but ViaCEP-style proxy back: `auth.admin.inviteUserByEmail` returned an error. The row is kept; admin can retry via "Reenviar convite" UI (which calls `inviteUserByEmail` again).
@@ -82,6 +85,7 @@ Invites a user.
 Re-sends the invite email for a pending user.
 
 **Server flow**:
+
 1. Validate target row exists with `status='active'` and `email_confirmed_at IS NULL`.
 2. Call `auth.admin.inviteUserByEmail` again.
 3. Audit: `entity=user_tenants, field=invite, new_value={ email, role, resent: true }`.
@@ -89,6 +93,7 @@ Re-sends the invite email for a pending user.
 **Response 204**.
 
 **Errors**:
+
 - `404 user_not_found`
 - `409 not_pending` — user already accepted; nothing to re-send.
 
@@ -107,6 +112,7 @@ Updates a user's role.
 ```
 
 **Server flow**:
+
 1. Reject if `userId === auth.uid()` AND new role !== `admin` AND `is_last_active_admin(tenant, self)` → `409 last_admin`.
 2. `UPDATE user_tenants SET role = :role` for the target row in the active tenant.
 3. The `enforce_last_admin` trigger is the second line of defense.
@@ -115,6 +121,7 @@ Updates a user's role.
 **Response 200**: updated user row in the same shape as `GET /usuarios`.
 
 **Errors**:
+
 - `400 invalid_role`
 - `404 user_not_found`
 - `409 last_admin` — would leave tenant without an admin.
@@ -134,6 +141,7 @@ Activates or deactivates a user.
 ```
 
 **Server flow**:
+
 - If `userId === auth.uid()` AND `status === 'disabled'` → reject `409 cannot_disable_self`.
 - If `status === 'disabled'` AND target is the last active admin → reject `409 last_admin` (also enforced by trigger).
 - `UPDATE user_tenants SET status, disabled_at, disabled_by = (case)` for the row.
@@ -143,6 +151,7 @@ Activates or deactivates a user.
 **Response 200**: updated user row.
 
 **Errors**:
+
 - `400 invalid_status`
 - `404 user_not_found`
 - `409 cannot_disable_self`

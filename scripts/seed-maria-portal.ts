@@ -72,7 +72,8 @@ async function main() {
   })
   if (found.error) throw new Error(`lookup Maria: ${found.error.message}`)
   const maria = (found.data ?? [])[0]
-  if (!maria?.patient_id) throw new Error(`Maria (CPF ${MARIA_CPF}) não encontrada — rode o seed-demo-cloud antes`)
+  if (!maria?.patient_id)
+    throw new Error(`Maria (CPF ${MARIA_CPF}) não encontrada — rode o seed-demo-cloud antes`)
   const patientId = maria.patient_id
   log(`tenant=${tenantId}  maria=${patientId}  actor=${ACTOR}`)
 
@@ -155,32 +156,130 @@ async function main() {
             name: 'Treino A — Inferiores',
             focus: 'Pernas e glúteos',
             exercises: [
-              { name: 'Agachamento livre', sets: 4, reps: '12', loadKg: 20, restSeconds: 60, notes: 'Descer até paralela' },
-              { name: 'Leg press 45°', sets: 4, reps: '12', loadKg: 80, restSeconds: 60, notes: null },
-              { name: 'Cadeira extensora', sets: 3, reps: '15', loadKg: 30, restSeconds: 45, notes: null },
-              { name: 'Mesa flexora', sets: 3, reps: '15', loadKg: 25, restSeconds: 45, notes: null },
-              { name: 'Panturrilha em pé', sets: 4, reps: '20', loadKg: 40, restSeconds: 30, notes: null },
+              {
+                name: 'Agachamento livre',
+                sets: 4,
+                reps: '12',
+                loadKg: 20,
+                restSeconds: 60,
+                notes: 'Descer até paralela',
+              },
+              {
+                name: 'Leg press 45°',
+                sets: 4,
+                reps: '12',
+                loadKg: 80,
+                restSeconds: 60,
+                notes: null,
+              },
+              {
+                name: 'Cadeira extensora',
+                sets: 3,
+                reps: '15',
+                loadKg: 30,
+                restSeconds: 45,
+                notes: null,
+              },
+              {
+                name: 'Mesa flexora',
+                sets: 3,
+                reps: '15',
+                loadKg: 25,
+                restSeconds: 45,
+                notes: null,
+              },
+              {
+                name: 'Panturrilha em pé',
+                sets: 4,
+                reps: '20',
+                loadKg: 40,
+                restSeconds: 30,
+                notes: null,
+              },
             ],
           },
           {
             name: 'Treino B — Superiores (empurrar)',
             focus: 'Peito, ombro e tríceps',
             exercises: [
-              { name: 'Supino reto com halteres', sets: 4, reps: '12', loadKg: 12, restSeconds: 60, notes: null },
-              { name: 'Desenvolvimento de ombros', sets: 3, reps: '12', loadKg: 8, restSeconds: 60, notes: null },
-              { name: 'Crucifixo na máquina', sets: 3, reps: '15', loadKg: 25, restSeconds: 45, notes: null },
-              { name: 'Tríceps na polia', sets: 3, reps: '15', loadKg: 20, restSeconds: 45, notes: null },
+              {
+                name: 'Supino reto com halteres',
+                sets: 4,
+                reps: '12',
+                loadKg: 12,
+                restSeconds: 60,
+                notes: null,
+              },
+              {
+                name: 'Desenvolvimento de ombros',
+                sets: 3,
+                reps: '12',
+                loadKg: 8,
+                restSeconds: 60,
+                notes: null,
+              },
+              {
+                name: 'Crucifixo na máquina',
+                sets: 3,
+                reps: '15',
+                loadKg: 25,
+                restSeconds: 45,
+                notes: null,
+              },
+              {
+                name: 'Tríceps na polia',
+                sets: 3,
+                reps: '15',
+                loadKg: 20,
+                restSeconds: 45,
+                notes: null,
+              },
             ],
           },
           {
             name: 'Treino C — Superiores (puxar) + core',
             focus: 'Costas, bíceps e abdômen',
             exercises: [
-              { name: 'Puxada frente na polia', sets: 4, reps: '12', loadKg: 35, restSeconds: 60, notes: null },
-              { name: 'Remada baixa', sets: 4, reps: '12', loadKg: 40, restSeconds: 60, notes: null },
-              { name: 'Rosca direta', sets: 3, reps: '12', loadKg: 10, restSeconds: 45, notes: null },
-              { name: 'Prancha abdominal', sets: 3, reps: '40s', loadKg: null, restSeconds: 30, notes: 'Manter quadril alinhado' },
-              { name: 'Esteira (caminhada inclinada)', sets: 1, reps: '20 min', loadKg: null, restSeconds: null, notes: 'Inclinação 6%, ritmo moderado' },
+              {
+                name: 'Puxada frente na polia',
+                sets: 4,
+                reps: '12',
+                loadKg: 35,
+                restSeconds: 60,
+                notes: null,
+              },
+              {
+                name: 'Remada baixa',
+                sets: 4,
+                reps: '12',
+                loadKg: 40,
+                restSeconds: 60,
+                notes: null,
+              },
+              {
+                name: 'Rosca direta',
+                sets: 3,
+                reps: '12',
+                loadKg: 10,
+                restSeconds: 45,
+                notes: null,
+              },
+              {
+                name: 'Prancha abdominal',
+                sets: 3,
+                reps: '40s',
+                loadKg: null,
+                restSeconds: 30,
+                notes: 'Manter quadril alinhado',
+              },
+              {
+                name: 'Esteira (caminhada inclinada)',
+                sets: 1,
+                reps: '20 min',
+                loadKg: null,
+                restSeconds: null,
+                notes: 'Inclinação 6%, ritmo moderado',
+              },
             ],
           },
         ],
@@ -200,7 +299,8 @@ async function main() {
         patientId,
         actorUserId: ACTOR,
         title: 'Plano alimentar — Low carb moderado (~1600 kcal)',
-        notes: 'Beber 2 L de água/dia. Evitar açúcar e ultraprocessados. Ajustar porções conforme fome.',
+        notes:
+          'Beber 2 L de água/dia. Evitar açúcar e ultraprocessados. Ajustar porções conforme fome.',
         meals: [
           {
             name: 'Café da manhã',
@@ -264,7 +364,9 @@ async function main() {
     }
   }
 
-  log('\n✅ portal da Maria populado. Faça login no portal com CPF 11122233396 e data de nascimento 12/03/1985.')
+  log(
+    '\n✅ portal da Maria populado. Faça login no portal com CPF 11122233396 e data de nascimento 12/03/1985.',
+  )
 }
 
 main().catch((e) => {

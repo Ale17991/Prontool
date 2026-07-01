@@ -39,7 +39,10 @@ describe('Feature 013 — operating result formula', () => {
       role: 'admin',
     })
     const principal = await seedDoctor(tenantId, { bps: 3000 })
-    const liberal = await seedDoctor(tenantId, { paymentMode: 'liberal', liberalDefaultCents: 3500 })
+    const liberal = await seedDoctor(tenantId, {
+      paymentMode: 'liberal',
+      liberalDefaultCents: 3500,
+    })
     // Fixo com billing_day=1 (sempre conta no mês corrente)
     await seedDoctor(tenantId, {
       paymentMode: 'fixo',
@@ -81,27 +84,28 @@ describe('Feature 013 — operating result formula', () => {
     })
 
     // Linha de procedimento + completion para que appointments_effective conte.
-    await sb
-      .from('appointment_procedures' as never)
-      .insert({
-        tenant_id: tenantId,
-        appointment_id: apptId,
-        procedure_id: procedureId,
-        plan_id: planId,
-        source_price_version_id: pv,
-        sequence: 1,
-        line_amount_cents: 10000,
-        vigente_amount_cents: 10000,
-        amount_was_overridden: false,
-      } as never)
+    await sb.from('appointment_procedures' as never).insert({
+      tenant_id: tenantId,
+      appointment_id: apptId,
+      procedure_id: procedureId,
+      plan_id: planId,
+      source_price_version_id: pv,
+      sequence: 1,
+      line_amount_cents: 10000,
+      vigente_amount_cents: 10000,
+      amount_was_overridden: false,
+    } as never)
 
     // Anexa assistente liberal.
-    await sb.rpc('attach_assistant_to_appointment' as never, {
-      p_appointment_id: apptId,
-      p_assistant_doctor_id: liberal.doctorId,
-      p_amount_cents: 3500,
-      p_actor: admin.userId,
-    } as never)
+    await sb.rpc(
+      'attach_assistant_to_appointment' as never,
+      {
+        p_appointment_id: apptId,
+        p_assistant_doctor_id: liberal.doctorId,
+        p_amount_cents: 3500,
+        p_actor: admin.userId,
+      } as never,
+    )
 
     // Expense imposto: precisa de tax_id válido.
     const { data: tax } = await sb

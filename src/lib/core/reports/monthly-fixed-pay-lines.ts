@@ -34,14 +34,16 @@ export async function selectMonthlyFixedPayLines(
     throw new Error(`selectMonthlyFixedPayLines failed: ${error.message}`)
   }
 
-  return ((data ?? []) as unknown as Array<{
-    doctor_id: string
-    doctor_name: string
-    amount_cents: number
-    billing_day: number
-    month_start: string
-    billing_date: string
-  }>).map((r) => ({
+  return (
+    (data ?? []) as unknown as Array<{
+      doctor_id: string
+      doctor_name: string
+      amount_cents: number
+      billing_day: number
+      month_start: string
+      billing_date: string
+    }>
+  ).map((r) => ({
     doctorId: r.doctor_id,
     doctorName: r.doctor_name,
     amountCents: r.amount_cents,

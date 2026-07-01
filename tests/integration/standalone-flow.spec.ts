@@ -105,11 +105,13 @@ describe('US1 — POST /api/atendimentos/manual (standalone)', () => {
         body: JSON.stringify({
           patient_id: patientId,
           doctor_id: doctorId,
-          procedures: [{
-            procedure_id: procedureId,
-            plan_id: planId,
-            amount_cents_override: 12000,
-          }],
+          procedures: [
+            {
+              procedure_id: procedureId,
+              plan_id: planId,
+              amount_cents_override: 12000,
+            },
+          ],
           appointment_at: new Date(Date.now() - 60_000).toISOString(),
         }),
       }),
@@ -180,10 +182,12 @@ describe('US1 — POST /api/atendimentos/manual (standalone)', () => {
         body: JSON.stringify({
           patient_id: '00000000-0000-0000-0000-000000000000',
           doctor_id: '00000000-0000-0000-0000-000000000000',
-          procedures: [{
-            procedure_id: '00000000-0000-0000-0000-000000000000',
-            plan_id: '00000000-0000-0000-0000-000000000000',
-          }],
+          procedures: [
+            {
+              procedure_id: '00000000-0000-0000-0000-000000000000',
+              plan_id: '00000000-0000-0000-0000-000000000000',
+            },
+          ],
           appointment_at: new Date(Date.now() - 60_000).toISOString(),
         }),
       }),

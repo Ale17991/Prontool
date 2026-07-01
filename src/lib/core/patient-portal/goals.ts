@@ -46,9 +46,19 @@ export async function listGoals(
     .eq('patient_id', patientId)
     .eq('active', true)
   if (error) throw new Error(`listGoals: ${error.message}`)
-  return ((data ?? []) as Array<{ id: string; metric_type: string; direction: GoalDirection; target_value: number }>).map(
-    (r) => ({ id: r.id, metricType: r.metric_type, direction: r.direction, targetValue: Number(r.target_value) }),
-  )
+  return (
+    (data ?? []) as Array<{
+      id: string
+      metric_type: string
+      direction: GoalDirection
+      target_value: number
+    }>
+  ).map((r) => ({
+    id: r.id,
+    metricType: r.metric_type,
+    direction: r.direction,
+    targetValue: Number(r.target_value),
+  }))
 }
 
 export interface SetGoalArgs {

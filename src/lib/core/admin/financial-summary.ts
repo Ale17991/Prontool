@@ -36,7 +36,9 @@ export async function getFinancialSummary(
   const prices = await getPlanPrices(supabase)
 
   const [{ data: entData }, { data: tenantData }] = await Promise.all([
-    supabase.from('tenant_entitlements').select('tenant_id, plan, status, trial_ends_at, updated_at'),
+    supabase
+      .from('tenant_entitlements')
+      .select('tenant_id, plan, status, trial_ends_at, updated_at'),
     supabase.from('tenants').select('id, name'),
   ])
   const ents = (entData ?? []) as unknown as EntRow[]
@@ -52,7 +54,12 @@ export async function getFinancialSummary(
     clinica: { count: 0, cents: 0 },
     legacy: { count: 0, cents: 0 },
   }
-  const countByStatus: Record<BillingStatus, number> = { trial: 0, active: 0, past_due: 0, canceled: 0 }
+  const countByStatus: Record<BillingStatus, number> = {
+    trial: 0,
+    active: 0,
+    past_due: 0,
+    canceled: 0,
+  }
   const trialsEnding: FinancialSummary['trialsEnding'] = []
   const pastDue: FinancialSummary['pastDue'] = []
   const churn: FinancialSummary['churn'] = []
@@ -76,11 +83,21 @@ export async function getFinancialSummary(
     if (status === 'trial' && e.trial_ends_at) {
       const end = new Date(e.trial_ends_at)
       if (end <= trialLimit) {
-        trialsEnding.push({ tenantId: e.tenant_id, name: name(e.tenant_id), plan, trialEndsAt: e.trial_ends_at })
+        trialsEnding.push({
+          tenantId: e.tenant_id,
+          name: name(e.tenant_id),
+          plan,
+          trialEndsAt: e.trial_ends_at,
+        })
       }
     }
     if (status === 'past_due') {
-      pastDue.push({ tenantId: e.tenant_id, name: name(e.tenant_id), plan, priceCents: prices[plan] })
+      pastDue.push({
+        tenantId: e.tenant_id,
+        name: name(e.tenant_id),
+        plan,
+        priceCents: prices[plan],
+      })
     }
     if (status === 'canceled' && e.updated_at) {
       const at = new Date(e.updated_at)

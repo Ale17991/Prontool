@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import type { ProfessionalDetail } from './by-professional'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
@@ -155,11 +148,7 @@ export function ByProfessionalReportDocument({
   signedLogoUrl?: string | null
 }) {
   const registro = formatRegistro(detail.doctor)
-  const meta = [
-    detail.doctor.role,
-    detail.doctor.specialty,
-    registro,
-  ].filter(Boolean).join(' · ')
+  const meta = [detail.doctor.role, detail.doctor.specialty, registro].filter(Boolean).join(' · ')
 
   return (
     <Document>
@@ -183,15 +172,11 @@ export function ByProfessionalReportDocument({
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Valor total faturado</Text>
-            <Text style={styles.summaryValue}>
-              {formatBRL(detail.totals.totalRevenueCents)}
-            </Text>
+            <Text style={styles.summaryValue}>{formatBRL(detail.totals.totalRevenueCents)}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Total de comissão</Text>
-            <Text style={styles.summaryValue}>
-              {formatBRL(detail.totals.totalCommissionCents)}
-            </Text>
+            <Text style={styles.summaryValue}>{formatBRL(detail.totals.totalCommissionCents)}</Text>
           </View>
           {detail.totals.totalParticipationCents > 0 ? (
             <View style={styles.summaryCard}>
@@ -234,12 +219,8 @@ export function ByProfessionalReportDocument({
                 <Text style={[styles.td, styles.cellTuss]}>{row.tussCode}</Text>
                 <Text style={[styles.td, styles.cellProc]}>{row.procedureName}</Text>
                 <Text style={[styles.td, styles.cellPlan]}>{row.planName}</Text>
-                <Text style={[styles.td, styles.cellAmount]}>
-                  {formatBRL(row.amountCents)}
-                </Text>
-                <Text style={[styles.td, styles.cellComm]}>
-                  {formatBRL(row.commissionCents)}
-                </Text>
+                <Text style={[styles.td, styles.cellAmount]}>{formatBRL(row.amountCents)}</Text>
+                <Text style={[styles.td, styles.cellComm]}>{formatBRL(row.commissionCents)}</Text>
               </View>
             ))
           )}
@@ -247,7 +228,9 @@ export function ByProfessionalReportDocument({
 
         {detail.participations.length > 0 ? (
           <>
-            <Text style={styles.sectionTitle}>Honorários de participação (equipe/instrumentação)</Text>
+            <Text style={styles.sectionTitle}>
+              Honorários de participação (equipe/instrumentação)
+            </Text>
             <View style={styles.table}>
               <View style={styles.trHeader}>
                 <Text style={[styles.th, styles.cellDate]}>Data</Text>
@@ -258,7 +241,9 @@ export function ByProfessionalReportDocument({
               </View>
               {detail.participations.map((p, idx) => (
                 <View key={`${p.appointmentId}-${idx}`} style={styles.tr}>
-                  <Text style={[styles.td, styles.cellDate]}>{formatDateTime(p.appointmentAt)}</Text>
+                  <Text style={[styles.td, styles.cellDate]}>
+                    {formatDateTime(p.appointmentAt)}
+                  </Text>
                   <Text style={[styles.td, styles.cellTuss]}>{p.tussCode}</Text>
                   <Text style={[styles.td, { width: '45%' }]}>{p.procedureName}</Text>
                   <Text style={[styles.td, styles.cellPlan]}>{p.participationDegree ?? '—'}</Text>
@@ -280,7 +265,9 @@ export function ByProfessionalReportDocument({
             <View style={styles.totalsRow}>
               <Text style={styles.totalsLabel}>A receber (comissão + participação)</Text>
               <Text style={styles.totalsValue}>
-                {formatBRL(detail.totals.totalCommissionCents + detail.totals.totalParticipationCents)}
+                {formatBRL(
+                  detail.totals.totalCommissionCents + detail.totals.totalParticipationCents,
+                )}
               </Text>
             </View>
           ) : null}
@@ -291,10 +278,9 @@ export function ByProfessionalReportDocument({
         </View>
 
         <Text style={styles.footer}>
-          Gerado em{' '}
-          {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Apenas
-          atendimentos ativos (estornos excluídos). Comissão calculada a partir do
-          percentual congelado no momento de cada atendimento.
+          Gerado em {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Apenas
+          atendimentos ativos (estornos excluídos). Comissão calculada a partir do percentual
+          congelado no momento de cada atendimento.
         </Text>
       </Page>
     </Document>

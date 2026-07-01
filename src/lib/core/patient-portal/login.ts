@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
-import {
-  bumpRateLimit,
-  checkRateLimit,
-  RATE_LIMITS,
-} from '@/lib/core/public-booking/rate-limit'
+import { bumpRateLimit, checkRateLimit, RATE_LIMITS } from '@/lib/core/public-booking/rate-limit'
 import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
 import { CLINIC_LOGO_BUCKET } from '@/lib/core/clinic-profile/types'
 import { hashIpForPatientPortal, logPatientAccess } from './audit'
@@ -130,19 +126,23 @@ export async function verifyPatientLogin(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required for patient portal login')
 
-  const { data, error } = await supabase.rpc('patient_portal_verify_login' as never, {
-    p_slug: slug,
-    p_cpf: input.cpf,
-    p_birthdate: input.birthdate,
-    p_key: key,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'patient_portal_verify_login' as never,
+    {
+      p_slug: slug,
+      p_cpf: input.cpf,
+      p_birthdate: input.birthdate,
+      p_key: key,
+    } as never,
+  )
   if (error) throw new Error(`patient_portal_verify_login failed: ${error.message}`)
 
-  const rows = (data as unknown as Array<{
-    patient_id: string
-    tenant_id: string
-    full_name: string
-  }> | null) ?? []
+  const rows =
+    (data as unknown as Array<{
+      patient_id: string
+      tenant_id: string
+      full_name: string
+    }> | null) ?? []
   const match = rows[0]
 
   const auditIpHash = hashIpForPatientPortal(input.ip, clinic.tenantId)
@@ -151,7 +151,12 @@ export async function verifyPatientLogin(
     // Falha conta no rate-limit (só falhas consomem tentativas).
     await Promise.all([
       bumpRateLimit({ supabase, tenantId: clinic.tenantId, ipHash, action: 'patient_login' }),
-      bumpRateLimit({ supabase, tenantId: clinic.tenantId, ipHash: cpfHash, action: 'patient_login' }),
+      bumpRateLimit({
+        supabase,
+        tenantId: clinic.tenantId,
+        ipHash: cpfHash,
+        action: 'patient_login',
+      }),
       logPatientAccess({
         supabase,
         tenantId: clinic.tenantId,

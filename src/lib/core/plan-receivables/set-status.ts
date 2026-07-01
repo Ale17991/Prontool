@@ -50,9 +50,7 @@ export async function setPlanReceiptStatus(
 
   const nowIso = new Date().toISOString()
   const receivedAt =
-    input.status === 'recebido'
-      ? input.receivedAt ?? new Date().toISOString().slice(0, 10)
-      : null
+    input.status === 'recebido' ? (input.receivedAt ?? new Date().toISOString().slice(0, 10)) : null
 
   const rows = lines.map((l) => ({
     tenant_id: input.tenantId,

@@ -13,7 +13,7 @@
 - Q: Após uma ação bem-sucedida no painel, o painel fecha automaticamente ou permanece aberto? → A: Permanece aberto e refresca o conteúdo com o novo estado. Agenda subjacente atualiza em paralelo. Usuário fecha manualmente quando quiser.
 - Q: Ao clicar em outro atendimento com formulário sujo (ex: motivo de cancelamento digitado), descartar silenciosamente ou pedir confirmação? → A: Pedir confirmação, mesmo guard do ESC. Qualquer ação que descarte dados não-salvos passa pelo mesmo prompt.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Ver detalhe do atendimento sem perder o contexto da agenda (Priority: P1)
 
@@ -75,7 +75,7 @@ Um membro do time recebe um link `/operacao/atendimentos/<uuid>` por notificaç�
 - **Viewport mobile**: o painel ocupa a tela inteira (não fica espremido em 500px num celular).
 - **Fechar/trocar com formulário preenchido**: se há campos modificados (ex: motivo de cancelamento digitado), confirmar com o usuário antes de descartar. Vale para ESC, clique no X, clique fora do painel, e clique em outro atendimento.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -97,7 +97,7 @@ Um membro do time recebe um link `/operacao/atendimentos/<uuid>` por notificaç�
 
 - **Atendimento (existente)**: registro de consulta/procedimento já agendado/realizado. Sem mudanças no modelo — feature só consome e age sobre dados existentes.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

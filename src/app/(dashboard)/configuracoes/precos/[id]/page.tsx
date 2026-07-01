@@ -6,7 +6,14 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { EditPriceForm } from './edit-price-form'
 
@@ -54,8 +61,7 @@ export default async function PrecoDetailPage({ params }: { params: { id: string
     .order('created_at', { ascending: false })
   const chain = (chainRaw ?? []) as unknown as VersionRow[]
 
-  const currentHead =
-    chain.find((v) => v.valid_from <= today) ?? chain[chain.length - 1] ?? seed
+  const currentHead = chain.find((v) => v.valid_from <= today) ?? chain[chain.length - 1] ?? seed
   const editableHead = chain[0] ?? seed
   const canWrite = can(session.role, 'price.write')
 
@@ -75,8 +81,9 @@ export default async function PrecoDetailPage({ params }: { params: { id: string
             {seed.procedures?.display_name ?? seed.procedures?.tuss_code ?? 'Preço'}
           </h1>
           <p className="mt-1 text-xs text-slate-500">
-            TUSS <span className="font-mono font-bold text-primary">{seed.procedures?.tuss_code}</span>{' '}
-            · Convênio <span className="font-semibold">{seed.health_plans?.name}</span>
+            TUSS{' '}
+            <span className="font-mono font-bold text-primary">{seed.procedures?.tuss_code}</span> ·
+            Convênio <span className="font-semibold">{seed.health_plans?.name}</span>
           </p>
         </div>
         {seedFuture ? (
@@ -150,10 +157,7 @@ export default async function PrecoDetailPage({ params }: { params: { id: string
             </TableHeader>
             <TableBody>
               {chain.map((v) => (
-                <TableRow
-                  key={v.id}
-                  className={v.id === seed.id ? 'bg-blue-50/40' : undefined}
-                >
+                <TableRow key={v.id} className={v.id === seed.id ? 'bg-blue-50/40' : undefined}>
                   <TableCell className="text-slate-700">{formatDate(v.valid_from)}</TableCell>
                   <TableCell className="font-bold text-slate-900">
                     {formatCurrency(v.amount_cents)}

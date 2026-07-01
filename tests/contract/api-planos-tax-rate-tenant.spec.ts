@@ -44,11 +44,7 @@ describe('Feature 011 — PATCH /api/planos/{id} tax_rate_bps tenant isolation',
 
     // Estado do plano de B intacto
     const sb = serviceClient()
-    const { data } = await sb
-      .from('health_plans')
-      .select('tax_rate_bps')
-      .eq('id', planOfB)
-      .single()
+    const { data } = await sb.from('health_plans').select('tax_rate_bps').eq('id', planOfB).single()
     expect((data as { tax_rate_bps?: number } | null)?.tax_rate_bps).toBe(0)
   })
 })

@@ -11,6 +11,7 @@ Retorna o estado atual do odontograma do paciente + o catálogo de status ativo 
 - **Query (opcional)**: `dentition=permanent|deciduous` (filtra resposta; default ambos).
 
 **200 Response**:
+
 ```json
 {
   "patientId": "uuid",
@@ -26,11 +27,20 @@ Retorna o estado atual do odontograma do paciente + o catálogo de status ativo 
     }
   ],
   "catalog": [
-    { "id": "uuid", "code": "caries", "label": "Cárie", "color": "#dc2626",
-      "icon": null, "scope": "face", "tussCodeId": null, "sortOrder": 10 }
+    {
+      "id": "uuid",
+      "code": "caries",
+      "label": "Cárie",
+      "color": "#dc2626",
+      "icon": null,
+      "scope": "face",
+      "tussCodeId": null,
+      "sortOrder": 10
+    }
   ]
 }
 ```
+
 - `current` vem da RPC `dental_chart_current`. Posições sem registro são omitidas (cliente assume "sem registro").
 - `catalog` = `dental_status_catalog WHERE is_active ORDER BY sort_order`.
 
@@ -40,6 +50,7 @@ Cria uma marcação (append-only). "Limpar" = enviar `statusCode/ statusId` do s
 
 - **Auth**: `requireRole(['admin','profissional_saude'])` (FR-021).
 - **Body** (Zod):
+
 ```json
 {
   "toothFdi": 16,
@@ -51,6 +62,7 @@ Cria uma marcação (append-only). "Limpar" = enviar `statusCode/ statusId` do s
 ```
 
 **Validações**:
+
 - `toothFdi` ∈ conjunto FDI válido (`assertValidTooth`).
 - `surface` ∈ enum de faces, ou ausente/null.
 - Coerência escopo↔surface conforme o `scope` do status (`tooth` ⇒ surface null; `face` ⇒ surface obrigatória; `both` ⇒ qualquer). Erro **422** se violar.
@@ -60,7 +72,7 @@ Cria uma marcação (append-only). "Limpar" = enviar `statusCode/ statusId` do s
 
 **Erros**: `400` payload inválido · `403` papel sem permissão · `404` paciente fora do tenant · `409`/`422` coerência de escopo · `500`.
 
-## GET `/api/pacientes/[id]/odontograma/historico` *(opcional nesta fase, suporta US3)*
+## GET `/api/pacientes/[id]/odontograma/historico` _(opcional nesta fase, suporta US3)_
 
 Histórico append-only por posição.
 

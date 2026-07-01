@@ -58,8 +58,12 @@ export function CalendarBlock({
   const leftPercent = assignment.lane * widthPercent
 
   const variant = effectiveStatusToVariant(a.effectiveStatus)
-  const { className: statusClass, Icon: StatusIcon, label: statusLabel, style: statusStyle } =
-    APPOINTMENT_STATUS_STYLES[variant]
+  const {
+    className: statusClass,
+    Icon: StatusIcon,
+    label: statusLabel,
+    style: statusStyle,
+  } = APPOINTMENT_STATUS_STYLES[variant]
 
   const startTime = formatHHmm(assignment.block.start)
   const endTime = formatHHmm(assignment.block.end)

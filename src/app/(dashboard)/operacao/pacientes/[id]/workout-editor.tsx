@@ -47,7 +47,14 @@ interface WorkoutPlan {
   }>
 }
 
-const emptyExercise = (): ExerciseForm => ({ name: '', sets: '', reps: '', loadKg: '', restSeconds: '', notes: '' })
+const emptyExercise = (): ExerciseForm => ({
+  name: '',
+  sets: '',
+  reps: '',
+  loadKg: '',
+  restSeconds: '',
+  notes: '',
+})
 const emptySession = (): SessionForm => ({ name: '', focus: '', exercises: [emptyExercise()] })
 
 function planToForm(p: WorkoutPlan): { title: string; notes: string; sessions: SessionForm[] } {
@@ -127,7 +134,9 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
   function patchExercise(si: number, ei: number, patch: Partial<ExerciseForm>) {
     setSessions((prev) =>
       prev.map((s, i) =>
-        i === si ? { ...s, exercises: s.exercises.map((e, j) => (j === ei ? { ...e, ...patch } : e)) } : s,
+        i === si
+          ? { ...s, exercises: s.exercises.map((e, j) => (j === ei ? { ...e, ...patch } : e)) }
+          : s,
       ),
     )
   }
@@ -164,7 +173,11 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
         const res = await fetch(base, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ title: title.trim(), notes: strOrNull(notes), sessions: cleanSessions }),
+          body: JSON.stringify({
+            title: title.trim(),
+            notes: strOrNull(notes),
+            sessions: cleanSessions,
+          }),
         })
         if (!res.ok) {
           const b = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
@@ -190,16 +203,26 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-xs text-slate-500">
-          Exibido ao paciente no portal (seção “Treino”). Salvar cria uma nova versão e arquiva a anterior.
+          Exibido ao paciente no portal (seção “Treino”). Salvar cria uma nova versão e arquiva a
+          anterior.
         </p>
 
         {loading ? (
           <p className="text-sm text-slate-400">Carregando…</p>
         ) : !editing ? (
           <>
-            {active ? <WorkoutReadView plan={active} /> : <p className="text-sm text-slate-500">Nenhum plano de treino ativo.</p>}
+            {active ? (
+              <WorkoutReadView plan={active} />
+            ) : (
+              <p className="text-sm text-slate-500">Nenhum plano de treino ativo.</p>
+            )}
             {canWrite ? (
-              <Button size="sm" variant={active ? 'outline' : 'default'} onClick={() => openForm(Boolean(active))} className="gap-1.5">
+              <Button
+                size="sm"
+                variant={active ? 'outline' : 'default'}
+                onClick={() => openForm(Boolean(active))}
+                className="gap-1.5"
+              >
                 <Plus className="h-3.5 w-3.5" />
                 {active ? 'Novo plano (a partir do atual)' : 'Criar plano de treino'}
               </Button>
@@ -209,12 +232,26 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
-                <Label htmlFor="w_title" className="text-[11px]">Título do plano</Label>
-                <Input id="w_title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Treino ABC — hipertrofia" />
+                <Label htmlFor="w_title" className="text-[11px]">
+                  Título do plano
+                </Label>
+                <Input
+                  id="w_title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex.: Treino ABC — hipertrofia"
+                />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="w_notes" className="text-[11px]">Observações gerais</Label>
-                <Input id="w_notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex.: 3x por semana, progredir carga" />
+                <Label htmlFor="w_notes" className="text-[11px]">
+                  Observações gerais
+                </Label>
+                <Input
+                  id="w_notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex.: 3x por semana, progredir carga"
+                />
               </div>
             </div>
 
@@ -234,7 +271,11 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
                     className="h-8 w-40"
                   />
                   {sessions.length > 1 ? (
-                    <button type="button" onClick={() => setSessions((p) => p.filter((_, i) => i !== si))} className="text-slate-400 hover:text-destructive">
+                    <button
+                      type="button"
+                      onClick={() => setSessions((p) => p.filter((_, i) => i !== si))}
+                      className="text-slate-400 hover:text-destructive"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   ) : null}
@@ -243,19 +284,54 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
                 <div className="space-y-2">
                   {s.exercises.map((e, ei) => (
                     <div key={ei} className="grid grid-cols-12 items-center gap-1.5">
-                      <Input className="col-span-4 h-8" value={e.name} onChange={(ev) => patchExercise(si, ei, { name: ev.target.value })} placeholder="Exercício" />
-                      <Input className="col-span-1 h-8" value={e.sets} onChange={(ev) => patchExercise(si, ei, { sets: ev.target.value })} placeholder="séries" inputMode="numeric" />
-                      <Input className="col-span-2 h-8" value={e.reps} onChange={(ev) => patchExercise(si, ei, { reps: ev.target.value })} placeholder="reps" />
-                      <Input className="col-span-2 h-8" value={e.loadKg} onChange={(ev) => patchExercise(si, ei, { loadKg: ev.target.value })} placeholder="carga kg" inputMode="decimal" />
-                      <Input className="col-span-2 h-8" value={e.notes} onChange={(ev) => patchExercise(si, ei, { notes: ev.target.value })} placeholder="obs" />
-                      <button type="button" onClick={() => patchSession(si, { exercises: s.exercises.filter((_, j) => j !== ei) })} className="col-span-1 flex justify-center text-slate-400 hover:text-destructive">
+                      <Input
+                        className="col-span-4 h-8"
+                        value={e.name}
+                        onChange={(ev) => patchExercise(si, ei, { name: ev.target.value })}
+                        placeholder="Exercício"
+                      />
+                      <Input
+                        className="col-span-1 h-8"
+                        value={e.sets}
+                        onChange={(ev) => patchExercise(si, ei, { sets: ev.target.value })}
+                        placeholder="séries"
+                        inputMode="numeric"
+                      />
+                      <Input
+                        className="col-span-2 h-8"
+                        value={e.reps}
+                        onChange={(ev) => patchExercise(si, ei, { reps: ev.target.value })}
+                        placeholder="reps"
+                      />
+                      <Input
+                        className="col-span-2 h-8"
+                        value={e.loadKg}
+                        onChange={(ev) => patchExercise(si, ei, { loadKg: ev.target.value })}
+                        placeholder="carga kg"
+                        inputMode="decimal"
+                      />
+                      <Input
+                        className="col-span-2 h-8"
+                        value={e.notes}
+                        onChange={(ev) => patchExercise(si, ei, { notes: ev.target.value })}
+                        placeholder="obs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          patchSession(si, { exercises: s.exercises.filter((_, j) => j !== ei) })
+                        }
+                        className="col-span-1 flex justify-center text-slate-400 hover:text-destructive"
+                      >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   ))}
                   <button
                     type="button"
-                    onClick={() => patchSession(si, { exercises: [...s.exercises, emptyExercise()] })}
+                    onClick={() =>
+                      patchSession(si, { exercises: [...s.exercises, emptyExercise()] })
+                    }
                     className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
                   >
                     <Plus className="h-3 w-3" /> exercício
@@ -275,7 +351,14 @@ export function WorkoutEditor({ patientId, canWrite }: { patientId: string; canW
             <div className="flex items-center justify-between border-t border-slate-100 pt-3">
               {error ? <span className="text-xs text-destructive">{error}</span> : <span />}
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={pending}>Cancelar</Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditing(false)}
+                  disabled={pending}
+                >
+                  Cancelar
+                </Button>
                 <Button size="sm" onClick={save} disabled={pending}>
                   {pending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
                   Salvar plano
@@ -293,9 +376,15 @@ function WorkoutReadView({ plan }: { plan: WorkoutPlan }) {
   const [open, setOpen] = useState(true)
   return (
     <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
-      <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between"
+      >
         <span className="text-sm font-semibold text-slate-800">{plan.title}</span>
-        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
       {plan.notes ? <p className="mt-1 text-xs text-slate-500">{plan.notes}</p> : null}
       {open ? (
@@ -304,13 +393,20 @@ function WorkoutReadView({ plan }: { plan: WorkoutPlan }) {
             <div key={i}>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 {s.name}
-                {s.focus ? <span className="ml-1 font-normal normal-case text-slate-400">· {s.focus}</span> : null}
+                {s.focus ? (
+                  <span className="ml-1 font-normal normal-case text-slate-400">· {s.focus}</span>
+                ) : null}
               </p>
               <ul className="mt-1 space-y-0.5">
                 {s.exercises.map((e, j) => (
                   <li key={j} className="text-sm text-slate-700">
                     {e.name}
-                    {(e.sets || e.reps) ? <span className="text-slate-500"> — {e.sets ?? '?'}×{e.reps ?? '?'}</span> : null}
+                    {e.sets || e.reps ? (
+                      <span className="text-slate-500">
+                        {' '}
+                        — {e.sets ?? '?'}×{e.reps ?? '?'}
+                      </span>
+                    ) : null}
                     {e.loadKg ? <span className="text-slate-500"> · {e.loadKg}kg</span> : null}
                     {e.notes ? <span className="text-slate-400"> ({e.notes})</span> : null}
                   </li>

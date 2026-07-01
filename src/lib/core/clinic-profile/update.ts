@@ -44,8 +44,12 @@ export const clinicProfilePatchSchema = z.object({
         .string()
         .nullable()
         .optional()
-        .transform((v) => (v === null || v === undefined || v === '' ? null : v.replace(/\D+/g, '')))
-        .refine((v) => v === null || v === undefined || /^[0-9]{8}$/.test(v), { message: 'CEP inválido' }),
+        .transform((v) =>
+          v === null || v === undefined || v === '' ? null : v.replace(/\D+/g, ''),
+        )
+        .refine((v) => v === null || v === undefined || /^[0-9]{8}$/.test(v), {
+          message: 'CEP inválido',
+        }),
       street: optionalString(200),
       number: optionalString(20),
       complement: optionalString(100),
@@ -56,9 +60,12 @@ export const clinicProfilePatchSchema = z.object({
         .nullable()
         .optional()
         .transform((v) => (v === null || v === undefined || v === '' ? null : v.toUpperCase()))
-        .refine((v) => v === null || v === undefined || (UF_CODES as readonly string[]).includes(v), {
-          message: 'UF inválida',
-        }),
+        .refine(
+          (v) => v === null || v === undefined || (UF_CODES as readonly string[]).includes(v),
+          {
+            message: 'UF inválida',
+          },
+        ),
     })
     .partial()
     .optional(),
@@ -70,9 +77,12 @@ export const clinicProfilePatchSchema = z.object({
         .nullable()
         .optional()
         .transform((v) => (v === null || v === undefined || v === '' ? null : v.toUpperCase()))
-        .refine((v) => v === null || v === undefined || (COUNCIL_CODES as readonly string[]).includes(v), {
-          message: 'Conselho inválido',
-        }),
+        .refine(
+          (v) => v === null || v === undefined || (COUNCIL_CODES as readonly string[]).includes(v),
+          {
+            message: 'Conselho inválido',
+          },
+        ),
       registration: optionalString(30),
     })
     .partial()
@@ -119,7 +129,8 @@ const COLUMN_FOR_FIELD: Record<string, string> = {
 
 function flattenPatch(patch: ClinicProfilePatch): Record<string, string | null> {
   const out: Record<string, string | null> = {}
-  if ('corporateName' in patch) out['corporateName'] = (patch.corporateName ?? null) as string | null
+  if ('corporateName' in patch)
+    out['corporateName'] = (patch.corporateName ?? null) as string | null
   if ('cnpj' in patch) out['cnpj'] = (patch.cnpj ?? null) as string | null
   if ('phone' in patch) out['phone'] = (patch.phone ?? null) as string | null
   if ('email' in patch) out['email'] = (patch.email ?? null) as string | null
@@ -296,11 +307,19 @@ export async function updateClinicProfile(
     const winAudit: Array<{ field: string; oldValue: string; newValue: string }> = []
     if (newOpen !== current.calendarOpenTime) {
       winUpdate.calendar_open_time = newOpen
-      winAudit.push({ field: 'calendar_open_time', oldValue: current.calendarOpenTime, newValue: newOpen })
+      winAudit.push({
+        field: 'calendar_open_time',
+        oldValue: current.calendarOpenTime,
+        newValue: newOpen,
+      })
     }
     if (newClose !== current.calendarCloseTime) {
       winUpdate.calendar_close_time = newClose
-      winAudit.push({ field: 'calendar_close_time', oldValue: current.calendarCloseTime, newValue: newClose })
+      winAudit.push({
+        field: 'calendar_close_time',
+        oldValue: current.calendarCloseTime,
+        newValue: newClose,
+      })
     }
     if (winAudit.length > 0) {
       const { error: winErr } = await supabase
@@ -341,7 +360,9 @@ export async function updateClinicProfile(
         .update({ surgical_scan_required: newVal } as never)
         .eq('tenant_id', tenantId)
       if (scanErr) {
-        throw new Error(`updateClinicProfile surgical_scan_required update failed: ${scanErr.message}`)
+        throw new Error(
+          `updateClinicProfile surgical_scan_required update failed: ${scanErr.message}`,
+        )
       }
       await supabase.from('audit_log').insert({
         tenant_id: tenantId,

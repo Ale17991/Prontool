@@ -6,6 +6,7 @@
 ## Summary
 
 Quatro painéis somente-leitura no `/admin` (super-admin), reusando dados existentes:
+
 1. **Financeiro/MRR** — preço por plano em config editável nova (`plan_prices`), MRR total e por plano, contagens por status de cobrança, trials a vencer, inadimplentes, churn.
 2. **Saúde & uso das clínicas** — atendimentos no período, usuários ativos, última atividade, sinal de risco (inativa > 14 dias).
 3. **Auditoria global** — feed cross-tenant de `audit_log` das ações sensíveis, com filtros.
@@ -27,9 +28,9 @@ Quatro painéis somente-leitura no `/admin` (super-admin), reusando dados existe
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-- **I. Integridade Financeira Imutável** — ✅ `plan_prices` é **config de cobrança da plataforma** (mensalidade SaaS), NÃO uma tabela de preço ligada a atendimento/fatura. Não há vínculo com registros financeiros históricos, então o versionamento `valid_from/valid_to` do Princípio I (que protege preços aplicados a atendimentos) não se aplica. Mudança de preço é auditada (Princípio II). MRR é um agregado de dashboard, não um registro financeiro persistido. *(Se no futuro quiser MRR histórico exato, versionar plan_prices é um follow-up.)*
+- **I. Integridade Financeira Imutável** — ✅ `plan_prices` é **config de cobrança da plataforma** (mensalidade SaaS), NÃO uma tabela de preço ligada a atendimento/fatura. Não há vínculo com registros financeiros históricos, então o versionamento `valid_from/valid_to` do Princípio I (que protege preços aplicados a atendimentos) não se aplica. Mudança de preço é auditada (Princípio II). MRR é um agregado de dashboard, não um registro financeiro persistido. _(Se no futuro quiser MRR histórico exato, versionar plan_prices é um follow-up.)_
 - **II. Auditabilidade de Preços** — ✅ Editar preço de plano grava `audit_log` (ator/antes/depois/motivo). Os 4 painéis são leitura.
 - **III. Isolamento Multi-Tenant** — ✅ Agregações cross-tenant são leituras LEGÍTIMAS do super-admin (já é o padrão do /admin via service client). `plan_prices` é global (config de plataforma, sem tenant_id). Nada exposto a não-super-admins.
 - **IV. Conformidade TUSS/ANS** — ✅ N/A.
@@ -87,7 +88,7 @@ tests/unit/ (MRR, risco, mapeamento de eventos)
 
 > Sem violações que exijam justificativa. Notas:
 
-| Item | Decisão |
-|------|---------|
+| Item                                   | Decisão                                                                                                                                  |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `plan_prices` mutável (não versionado) | Config de plataforma, não preço de atendimento — fora do Princípio I. Mudança auditada. Versionar = follow-up se quiserem MRR histórico. |
-| Agregações potencialmente pesadas | `count`/`head`, janelas de tempo, degradação por card (FR-003). Otimização fina é tarefa de implementação. |
+| Agregações potencialmente pesadas      | `count`/`head`, janelas de tempo, degradação por card (FR-003). Otimização fina é tarefa de implementação.                               |

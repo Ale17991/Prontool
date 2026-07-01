@@ -133,8 +133,10 @@ const server = createServer(async (req, res) => {
     registered.set(id, { external_id: id, attributes: { external_id: id } })
     return void json(res, 200, { ok: true, token: mintToken(id) })
   }
-  if (path === '/iframe-stub.html') return void serveStatic(res, 'iframe-stub.html', 'text/html; charset=utf-8')
-  if (path === '/sdk-stub.js') return void serveStatic(res, 'memed-sdk-stub.js', 'application/javascript; charset=utf-8')
+  if (path === '/iframe-stub.html')
+    return void serveStatic(res, 'iframe-stub.html', 'text/html; charset=utf-8')
+  if (path === '/sdk-stub.js')
+    return void serveStatic(res, 'memed-sdk-stub.js', 'application/javascript; charset=utf-8')
 
   // --- "API Memed" ----------------------------------------------------------
   // Conformidade: o client manda as chaves na query string. Sem elas → 400.

@@ -5,9 +5,9 @@
 
 ## Rota
 
-| Método | Path | Papéis | Descrição |
-|---|---|---|---|
-| POST | `/api/configuracoes/usuarios/manual` | admin | Cria conta com senha + vínculo ao tenant + (opcional) vínculo a profissional |
+| Método | Path                                 | Papéis | Descrição                                                                    |
+| ------ | ------------------------------------ | ------ | ---------------------------------------------------------------------------- |
+| POST   | `/api/configuracoes/usuarios/manual` | admin  | Cria conta com senha + vínculo ao tenant + (opcional) vínculo a profissional |
 
 `runtime = 'nodejs'`, `dynamic = 'force-dynamic'`.
 
@@ -24,7 +24,7 @@ const manualCreateSchema = z.object({
   password: z.string().min(8).max(72),
   phone: z.string().trim().max(40).optional().nullable(),
   role: z.enum(['admin', 'financeiro', 'recepcionista', 'profissional_saude']),
-  doctor_id: z.string().uuid().nullable().optional(),  // vínculo opcional
+  doctor_id: z.string().uuid().nullable().optional(), // vínculo opcional
 })
 ```
 
@@ -52,20 +52,21 @@ const manualCreateSchema = z.object({
 
 **Errors**
 
-| Status | Code | Quando |
-|---|---|---|
-| 400 | `INVALID_BODY` | Zod fail (senha < 8, email inválido, role inválida) |
-| 401 | `UNAUTHENTICATED` | sem sessão |
-| 403 | `FORBIDDEN` | papel != admin |
-| 404 | `DOCTOR_NOT_FOUND` | doctor_id não pertence ao tenant |
-| 409 | `USER_ALREADY_ACTIVE` | email já vinculado ao tenant |
-| 409 | `DOCTOR_ALREADY_LINKED` | doctor já vinculado a outro user_id |
+| Status | Code                    | Quando                                              |
+| ------ | ----------------------- | --------------------------------------------------- |
+| 400    | `INVALID_BODY`          | Zod fail (senha < 8, email inválido, role inválida) |
+| 401    | `UNAUTHENTICATED`       | sem sessão                                          |
+| 403    | `FORBIDDEN`             | papel != admin                                      |
+| 404    | `DOCTOR_NOT_FOUND`      | doctor_id não pertence ao tenant                    |
+| 409    | `USER_ALREADY_ACTIVE`   | email já vinculado ao tenant                        |
+| 409    | `DOCTOR_ALREADY_LINKED` | doctor já vinculado a outro user_id                 |
 
 ---
 
 ## Modificação de GET /api/configuracoes/usuarios
 
 A listagem de equipe **deve** projetar:
+
 - `linked_doctor: { id, full_name } | null` — se o `user_id` está em `doctors.user_id` do tenant
 - Para `role='profissional_saude'` e `linked_doctor=null`: UI mostra aviso "Sem profissional vinculado"
 
@@ -97,10 +98,10 @@ E o `TeamMember` type ganha `linkedDoctor: { id: string; fullName: string } | nu
 
 ## Testes de contrato exigidos
 
-| Arquivo | Cenários |
-|---|---|
-| `tests/contract/api-usuarios-manual-rbac.spec.ts` | financeiro/recepcionista/profissional_saude POST → 403; admin → 201 |
-| `tests/contract/doctors-user-id-unique.spec.ts` | UPDATE doctors SET user_id=X em dois doctors do mesmo tenant → 23505 unique violation; em tenants diferentes → permitido |
+| Arquivo                                                         | Cenários                                                                                                                                    |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/contract/api-usuarios-manual-rbac.spec.ts`               | financeiro/recepcionista/profissional_saude POST → 403; admin → 201                                                                         |
+| `tests/contract/doctors-user-id-unique.spec.ts`                 | UPDATE doctors SET user_id=X em dois doctors do mesmo tenant → 23505 unique violation; em tenants diferentes → permitido                    |
 | `tests/integration/manual-user-create-with-doctor-link.spec.ts` | Cria usuário com vínculo a doctor → doctor.user_id atualizado; tenta criar 2º usuário vinculado ao mesmo doctor → 409 DOCTOR_ALREADY_LINKED |
 
 ### Casos de integração

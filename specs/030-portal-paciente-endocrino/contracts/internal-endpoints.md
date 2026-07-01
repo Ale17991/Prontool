@@ -22,4 +22,5 @@
   - Recepcionista/financeiro → **403** (audit deny).
 
 ## Códigos de status
+
 - 401 sessão de paciente ausente/expirada ou login inválido (genérico); 403 papel staff não autorizado; 422 validação de métrica; 429 rate-limit; 200/201 sucesso.

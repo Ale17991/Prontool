@@ -16,8 +16,8 @@ Content-Type: application/json
 
 ### Path params
 
-| Param | Tipo | Validação |
-|---|---|---|
+| Param   | Tipo   | Validação                                  |
+| ------- | ------ | ------------------------------------------ |
 | `token` | string | base64url, 32 bytes (43 chars sem padding) |
 
 ---
@@ -97,6 +97,7 @@ Limite: 5 tentativas de cancelar/hora por IP — protege contra brute force de t
 **Crítico**: vários clients de email (Apple Mail, Gmail mobile) fazem **pré-fetch** de URLs nos emails para preview/proteção. Se a rota fosse `GET /api/public/booking/cancel/[token]` e cancelasse, **o preview cancelaria a consulta sem o paciente saber**.
 
 **Mitigação**: a rota `/api/...` aceita apenas POST. A página GET `/agendar/[slug]/cancelar/[token]` é uma **tela intermediária**:
+
 1. GET `/agendar/[slug]/cancelar/[token]` (link no email)
 2. Server-side renderiza a tela com resumo do agendamento + botão "Confirmar cancelamento" (que faz POST via JavaScript ou form)
 3. Submit POST → API → cancela

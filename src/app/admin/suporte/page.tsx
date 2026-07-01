@@ -10,7 +10,11 @@ export default async function AdminSuportePage() {
   const sb: any = createSupabaseServiceClient()
   const server = createSupabaseServerClient()
   const [tenantsRes, supportRes, assignRes, usersRes, meRes] = await Promise.all([
-    sb.from('tenants').select('id, name, slug').eq('status', 'active').order('name', { ascending: true }),
+    sb
+      .from('tenants')
+      .select('id, name, slug')
+      .eq('status', 'active')
+      .order('name', { ascending: true }),
     sb.from('platform_admins').select('user_id, is_super'),
     sb.from('platform_admin_tenants').select('user_id, tenant_id'),
     sb.auth.admin.listUsers({ page: 1, perPage: 200 }),
@@ -46,9 +50,9 @@ export default async function AdminSuportePage() {
       email: emailById.get(p.user_id) ?? p.user_id,
       assignedTenantIds: assignsByUser.get(p.user_id) ?? [],
     }))
-  const tenantOptions = ((tenantsRes.data ?? []) as Array<{ id: string; name: string; slug: string }>).map(
-    (t) => ({ tenantId: t.id, name: t.name, slug: t.slug }),
-  )
+  const tenantOptions = (
+    (tenantsRes.data ?? []) as Array<{ id: string; name: string; slug: string }>
+  ).map((t) => ({ tenantId: t.id, name: t.name, slug: t.slug }))
 
   return (
     <div className="space-y-8">

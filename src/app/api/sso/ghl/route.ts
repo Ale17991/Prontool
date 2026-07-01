@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/observability/logger'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import {
-  InvalidSsoTokenError,
-  verifySsoToken,
-} from '@/lib/integrations/ghl/oauth/verify-sso-token'
+import { InvalidSsoTokenError, verifySsoToken } from '@/lib/integrations/ghl/oauth/verify-sso-token'
 import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-events'
 
 /**
@@ -85,10 +82,7 @@ export async function GET(req: Request): Promise<Response> {
       },
     })
   } catch (err) {
-    logger.warn(
-      { err: err instanceof Error ? err.message : String(err) },
-      'sso-ghl-audit-failed',
-    )
+    logger.warn({ err: err instanceof Error ? err.message : String(err) }, 'sso-ghl-audit-failed')
   }
 
   // Set cookie marker + redirect to /login. Layout do dashboard lê o cookie
@@ -105,7 +99,7 @@ export async function GET(req: Request): Promise<Response> {
       `Max-Age=${SSO_ORIGIN_COOKIE_MAX_AGE}`,
     ].join('; '),
     'Content-Security-Policy':
-      "frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com",
+      'frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com',
   }
   return new Response(null, { status: 302, headers })
 }
@@ -118,8 +112,8 @@ function sanitizeRedirectTo(raw: string | null): string {
 }
 
 function jsonError(status: number, code: string, message: string): Response {
-  return new Response(
-    JSON.stringify({ error: { code, message } }),
-    { status, headers: { 'content-type': 'application/json' } },
-  )
+  return new Response(JSON.stringify({ error: { code, message } }), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  })
 }

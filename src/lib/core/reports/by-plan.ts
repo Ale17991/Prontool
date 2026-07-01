@@ -2,11 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { applyPlanTax } from './apply-plan-tax'
-import {
-  getTenantTimezone,
-  ymdStartOfDayUtc,
-  ymdNextDayStartUtc,
-} from '@/lib/utils/tenant-tz'
+import { getTenantTimezone, ymdStartOfDayUtc, ymdNextDayStartUtc } from '@/lib/utils/tenant-tz'
 
 /**
  * Agregadores para o relatorio "Por Plano":
@@ -121,12 +117,7 @@ export async function summaryByPlan(
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   // 1) Atendimentos ATIVOS no periodo.
-  const activeIds = await fetchActiveAppointmentIds(
-    supabase,
-    input.tenantId,
-    fromTs,
-    toExclusive,
-  )
+  const activeIds = await fetchActiveAppointmentIds(supabase, input.tenantId, fromTs, toExclusive)
   if (activeIds.length === 0) return []
 
   // 2) Linhas desses atendimentos.
@@ -232,12 +223,7 @@ export async function detailByPlan(
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   // 1) Atendimentos ATIVOS no periodo (com dados do profissional).
-  const active = await fetchActiveAppointments(
-    supabase,
-    input.tenantId,
-    fromTs,
-    toExclusive,
-  )
+  const active = await fetchActiveAppointments(supabase, input.tenantId, fromTs, toExclusive)
   if (active.length === 0) {
     const planFallback =
       input.planId === null
@@ -303,7 +289,7 @@ export async function detailByPlan(
       appointmentId: l.appointment_id,
       appointmentAt: a?.appointment_at ?? '',
       patientId: a?.patient_id ?? '',
-      patientName: a?.patient_id ? namesMap.get(a.patient_id) ?? '—' : '—',
+      patientName: a?.patient_id ? (namesMap.get(a.patient_id) ?? '—') : '—',
       procedureId: l.procedure_id,
       tussCode: l.procedures?.tuss_code ?? '',
       procedureName: l.procedures?.display_name ?? l.procedures?.tuss_code ?? 'Sem nome',
@@ -354,8 +340,7 @@ export async function detailByPlan(
     pExisting.count += row.quantity
     procedureCounts.set(row.procedureId, pExisting)
   }
-  const topDoctor =
-    Array.from(doctorCounts.values()).sort((a, b) => b.count - a.count)[0] ?? null
+  const topDoctor = Array.from(doctorCounts.values()).sort((a, b) => b.count - a.count)[0] ?? null
   const topProcedure =
     Array.from(procedureCounts.values()).sort((a, b) => b.count - a.count)[0] ?? null
 
@@ -493,10 +478,7 @@ async function decryptPatientNames(
   if (error) throw new Error(`decrypt_patient_names_for_ids failed: ${error.message}`)
 
   for (const row of (data ?? []) as unknown as DecryptedNameRow[]) {
-    result.set(
-      row.id,
-      row.anonymized_at ? '[anonimizado]' : row.full_name ?? '(sem nome)',
-    )
+    result.set(row.id, row.anonymized_at ? '[anonimizado]' : (row.full_name ?? '(sem nome)'))
   }
   return result
 }
@@ -525,4 +507,3 @@ function validatePeriod(from: string, to: string): void {
     throw new ValidationError('Parâmetro `from` não pode ser posterior a `to`')
   }
 }
-

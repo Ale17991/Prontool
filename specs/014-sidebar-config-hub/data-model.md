@@ -20,10 +20,10 @@ Reaproveitado de `dashboard-shell.tsx`. **Sem mudança de tipo** — apenas o co
 
 ```ts
 interface NavItem {
-  href: Route                                  // typed route do Next.js
-  label: string                                // texto exibido na sidebar
-  icon: LucideIcon                             // ícone (lucide-react)
-  show: (ctx: NavContext) => boolean           // predicado RBAC + flags
+  href: Route // typed route do Next.js
+  label: string // texto exibido na sidebar
+  icon: LucideIcon // ícone (lucide-react)
+  show: (ctx: NavContext) => boolean // predicado RBAC + flags
 }
 
 interface NavSection {
@@ -33,24 +33,25 @@ interface NavSection {
 }
 
 interface NavContext {
-  role: TenantRole                             // 'admin' | 'financeiro' | ...
-  flags: Record<FeatureName, boolean>          // listFeatureFlags()
+  role: TenantRole // 'admin' | 'financeiro' | ...
+  flags: Record<FeatureName, boolean> // listFeatureFlags()
 }
 ```
 
 **Conteúdo do array `SECTIONS` após esta feature** (alteração de dados, não de schema):
 
-| Section | Item label | Predicado `show` |
-|---------|-----------|------------------|
-| operacao | Agenda | `can(role, 'appointment.read')` |
-| operacao | Pacientes | `can(role, 'appointment.read')` |
-| operacao | Tarefas | `can(role, 'task.read')` |
-| analise | Relatórios | `flags.relatorios && can(role, 'report.read')` |
-| analise | Comissões | `flags.comissoes && can(role, 'doctor.read')` |
-| analise | Despesas | `flags.despesas && role === 'admin'` |
-| configuracoes | Configurações | `() => true` |
+| Section       | Item label    | Predicado `show`                               |
+| ------------- | ------------- | ---------------------------------------------- |
+| operacao      | Agenda        | `can(role, 'appointment.read')`                |
+| operacao      | Pacientes     | `can(role, 'appointment.read')`                |
+| operacao      | Tarefas       | `can(role, 'task.read')`                       |
+| analise       | Relatórios    | `flags.relatorios && can(role, 'report.read')` |
+| analise       | Comissões     | `flags.comissoes && can(role, 'doctor.read')`  |
+| analise       | Despesas      | `flags.despesas && role === 'admin'`           |
+| configuracoes | Configurações | `() => true`                                   |
 
 Itens **removidos** da estrutura atual:
+
 - operacao → Notificações, Alertas do sistema, Pendências
 - analise → Auditoria
 - configuracoes → Clínica, Meu Perfil, Usuários, Procedimentos, Convênios, Profissionais, Modelos de Anamnese, Integrações (todos absorvidos pelo hub)
@@ -99,19 +100,20 @@ interface HubCardDef {
 
 **Conteúdo de `HUB_CARDS` (ordem fixa — FR-009):**
 
-| # | id | title | description (1 linha) | href | show |
-|---|-----|-------|----------------------|------|------|
-| 1 | clinica | Clínica | Dados, logo e identidade visual da clínica | /configuracoes/clinica | `role === 'admin'` |
-| 2 | perfil | Meu Perfil | Seus dados pessoais, avatar e preferências | /configuracoes/perfil | `() => true` |
-| 3 | usuarios | Usuários | Convide e gerencie quem tem acesso à clínica | /configuracoes/usuarios | `role === 'admin'` |
-| 4 | procedimentos | Procedimentos | Catálogo de procedimentos e códigos TUSS | /configuracoes/procedimentos | `can(role, 'procedure.read')` |
-| 5 | convenios | Convênios | Convênios atendidos e tabelas de preço | /configuracoes/convenios | `can(role, 'plan.read')` |
-| 6 | profissionais | Profissionais | Profissionais de saúde e comissões | /configuracoes/profissionais | `can(role, 'doctor.read')` |
-| 7 | modelos-anamnese | Modelos de Anamnese | Modelos clínicos reutilizáveis nos atendimentos | /configuracoes/modelos-anamnese | `flags.anamnese && role === 'admin'` |
-| 8 | integracoes | Integrações | Conexões com WhatsApp, GHL e outros sistemas | /configuracoes/integracoes | `role === 'admin'` |
-| 9 | auditoria | Auditoria | Trilha completa de alterações e acessos sensíveis | /configuracoes/auditoria | `can(role, 'audit.read')` |
+| #   | id               | title               | description (1 linha)                             | href                            | show                                 |
+| --- | ---------------- | ------------------- | ------------------------------------------------- | ------------------------------- | ------------------------------------ |
+| 1   | clinica          | Clínica             | Dados, logo e identidade visual da clínica        | /configuracoes/clinica          | `role === 'admin'`                   |
+| 2   | perfil           | Meu Perfil          | Seus dados pessoais, avatar e preferências        | /configuracoes/perfil           | `() => true`                         |
+| 3   | usuarios         | Usuários            | Convide e gerencie quem tem acesso à clínica      | /configuracoes/usuarios         | `role === 'admin'`                   |
+| 4   | procedimentos    | Procedimentos       | Catálogo de procedimentos e códigos TUSS          | /configuracoes/procedimentos    | `can(role, 'procedure.read')`        |
+| 5   | convenios        | Convênios           | Convênios atendidos e tabelas de preço            | /configuracoes/convenios        | `can(role, 'plan.read')`             |
+| 6   | profissionais    | Profissionais       | Profissionais de saúde e comissões                | /configuracoes/profissionais    | `can(role, 'doctor.read')`           |
+| 7   | modelos-anamnese | Modelos de Anamnese | Modelos clínicos reutilizáveis nos atendimentos   | /configuracoes/modelos-anamnese | `flags.anamnese && role === 'admin'` |
+| 8   | integracoes      | Integrações         | Conexões com WhatsApp, GHL e outros sistemas      | /configuracoes/integracoes      | `role === 'admin'`                   |
+| 9   | auditoria        | Auditoria           | Trilha completa de alterações e acessos sensíveis | /configuracoes/auditoria        | `can(role, 'audit.read')`            |
 
 **Invariantes** (testáveis):
+
 - INV-1: `HUB_CARDS.length === 9` (nem 8, nem 10 — a feature define exatamente esses 9 destinos).
 - INV-2: `HUB_CARDS[8].id === 'auditoria'` (Auditoria sempre no último índice — FR-009).
 - INV-3: Cada `card.show({ role: 'admin', flags: <todas true> })` retorna `true` para os 9 cards.
@@ -127,21 +129,22 @@ Define as abas server-rendered da página `/operacao/notificacoes`. Vive como ti
 ```ts
 interface NotificationsTabDef {
   id: 'notificacoes' | 'alertas' | 'dlq'
-  label: string                          // 'Notificações' | 'Alertas do sistema' | 'Pendências'
-  href: Route                            // /operacao/notificacoes?tab=...
-  requires: Permission | null            // null = sempre visível para autenticado
+  label: string // 'Notificações' | 'Alertas do sistema' | 'Pendências'
+  href: Route // /operacao/notificacoes?tab=...
+  requires: Permission | null // null = sempre visível para autenticado
 }
 ```
 
 **Conteúdo:**
 
-| tab id | label | requires |
-|--------|-------|----------|
-| notificacoes | Notificações | `null` (sempre visível — é a aba padrão) |
-| alertas | Alertas do sistema | `alert.read` |
-| dlq | Pendências | `dlq.read` |
+| tab id       | label              | requires                                 |
+| ------------ | ------------------ | ---------------------------------------- |
+| notificacoes | Notificações       | `null` (sempre visível — é a aba padrão) |
+| alertas      | Alertas do sistema | `alert.read`                             |
+| dlq          | Pendências         | `dlq.read`                               |
 
 **Comportamento**:
+
 - Filtra a lista pelas permissões do usuário **no servidor** antes de renderizar a tab bar.
 - `searchParams.tab` resolve a aba ativa; se não vier, default = `notificacoes`.
 - Se vier `?tab=alertas` mas o usuário não tem `alert.read`, **cai silenciosamente** para `notificacoes` (edge case já especificado).
@@ -151,6 +154,7 @@ interface NotificationsTabDef {
 ## Banco de dados
 
 **Não há mudança.** Esta feature não toca:
+
 - Migrations (`supabase/migrations/`)
 - Tabelas (`appointments`, `notifications`, `alerts`, `audit_log`, etc.)
 - RLS policies
@@ -159,12 +163,12 @@ interface NotificationsTabDef {
 
 Listagem dos dados que cada página exibe (sem mudanças — só repetindo o que já existe):
 
-| Página | Tabela fonte | Cliente Supabase | Filtro |
-|--------|--------------|------------------|--------|
-| `/operacao/notificacoes` (aba notificações) | `notifications` | server | `tenant_id` + `user_id` |
-| `/operacao/notificacoes` (aba alertas) | `alerts` | server | `tenant_id` |
-| `/operacao/notificacoes` (aba pendências) | (mesmas queries de `/operacao/dlq` hoje) | server | `tenant_id` |
-| `/configuracoes/auditoria` | `audit_log` | server | `tenant_id` |
+| Página                                      | Tabela fonte                             | Cliente Supabase | Filtro                  |
+| ------------------------------------------- | ---------------------------------------- | ---------------- | ----------------------- |
+| `/operacao/notificacoes` (aba notificações) | `notifications`                          | server           | `tenant_id` + `user_id` |
+| `/operacao/notificacoes` (aba alertas)      | `alerts`                                 | server           | `tenant_id`             |
+| `/operacao/notificacoes` (aba pendências)   | (mesmas queries de `/operacao/dlq` hoje) | server           | `tenant_id`             |
+| `/configuracoes/auditoria`                  | `audit_log`                              | server           | `tenant_id`             |
 
 Todas continuam aplicando RLS por `tenant_id` via `getSession()` + clientes Supabase já existentes (Constituição III).
 

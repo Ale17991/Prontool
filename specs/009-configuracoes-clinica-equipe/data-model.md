@@ -13,35 +13,37 @@
 
 Identidade institucional do tenant. 1:1 com `public.tenants`.
 
-| Coluna | Tipo | Constraint | Notas |
-|--------|------|------------|-------|
-| `tenant_id` | UUID | PRIMARY KEY, FK `tenants(id)` ON DELETE RESTRICT | reusa o id do tenant |
-| `logo_path` | TEXT | NULL | path no bucket `clinic-logos`; ex: `{tenant_id}/logo.png` |
-| `logo_uploaded_at` | TIMESTAMPTZ | NULL | quando a logo atual foi subida |
-| `corporate_name` | TEXT | NULL, length ≤ 200 | razão social/nome fantasia |
-| `cnpj` | CHAR(14) | NULL, CHECK `cnpj IS NULL OR cnpj ~ '^[0-9]{14}$'` | só dígitos; máscara é UI |
-| `phone` | TEXT | NULL, length ≤ 20 | só dígitos preferencialmente |
-| `email` | TEXT | NULL, length ≤ 200 | e-mail de contato da clínica |
-| `address_cep` | CHAR(8) | NULL, CHECK `address_cep IS NULL OR address_cep ~ '^[0-9]{8}$'` | |
-| `address_street` | TEXT | NULL, length ≤ 200 | |
-| `address_number` | TEXT | NULL, length ≤ 20 | |
-| `address_complement` | TEXT | NULL, length ≤ 100 | |
-| `address_neighborhood` | TEXT | NULL, length ≤ 100 | |
-| `address_city` | TEXT | NULL, length ≤ 100 | |
-| `address_uf` | CHAR(2) | NULL, CHECK `address_uf IS NULL OR address_uf ~ '^[A-Z]{2}$'` | |
-| `tech_responsible_name` | TEXT | NULL, length ≤ 200 | |
-| `tech_responsible_council` | TEXT | NULL, CHECK `tech_responsible_council IS NULL OR tech_responsible_council ~ '^[A-Z]{3,12}$'` | CRM, CRO, CREFITO, CRP, CRN, etc. |
-| `tech_responsible_registration` | TEXT | NULL, length ≤ 30 | número de registro |
-| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
-| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | trigger `touch_updated_at` |
+| Coluna                          | Tipo        | Constraint                                                                                   | Notas                                                     |
+| ------------------------------- | ----------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `tenant_id`                     | UUID        | PRIMARY KEY, FK `tenants(id)` ON DELETE RESTRICT                                             | reusa o id do tenant                                      |
+| `logo_path`                     | TEXT        | NULL                                                                                         | path no bucket `clinic-logos`; ex: `{tenant_id}/logo.png` |
+| `logo_uploaded_at`              | TIMESTAMPTZ | NULL                                                                                         | quando a logo atual foi subida                            |
+| `corporate_name`                | TEXT        | NULL, length ≤ 200                                                                           | razão social/nome fantasia                                |
+| `cnpj`                          | CHAR(14)    | NULL, CHECK `cnpj IS NULL OR cnpj ~ '^[0-9]{14}$'`                                           | só dígitos; máscara é UI                                  |
+| `phone`                         | TEXT        | NULL, length ≤ 20                                                                            | só dígitos preferencialmente                              |
+| `email`                         | TEXT        | NULL, length ≤ 200                                                                           | e-mail de contato da clínica                              |
+| `address_cep`                   | CHAR(8)     | NULL, CHECK `address_cep IS NULL OR address_cep ~ '^[0-9]{8}$'`                              |                                                           |
+| `address_street`                | TEXT        | NULL, length ≤ 200                                                                           |                                                           |
+| `address_number`                | TEXT        | NULL, length ≤ 20                                                                            |                                                           |
+| `address_complement`            | TEXT        | NULL, length ≤ 100                                                                           |                                                           |
+| `address_neighborhood`          | TEXT        | NULL, length ≤ 100                                                                           |                                                           |
+| `address_city`                  | TEXT        | NULL, length ≤ 100                                                                           |                                                           |
+| `address_uf`                    | CHAR(2)     | NULL, CHECK `address_uf IS NULL OR address_uf ~ '^[A-Z]{2}$'`                                |                                                           |
+| `tech_responsible_name`         | TEXT        | NULL, length ≤ 200                                                                           |                                                           |
+| `tech_responsible_council`      | TEXT        | NULL, CHECK `tech_responsible_council IS NULL OR tech_responsible_council ~ '^[A-Z]{3,12}$'` | CRM, CRO, CREFITO, CRP, CRN, etc.                         |
+| `tech_responsible_registration` | TEXT        | NULL, length ≤ 30                                                                            | número de registro                                        |
+| `created_at`                    | TIMESTAMPTZ | NOT NULL DEFAULT now()                                                                       |                                                           |
+| `updated_at`                    | TIMESTAMPTZ | NOT NULL DEFAULT now()                                                                       | trigger `touch_updated_at`                                |
 
 **Validações de domínio** (server, em `update.ts`):
+
 - CNPJ: 14 dígitos + dígitos verificadores via algoritmo módulo 11.
 - Email: regex padrão + `length` ≤ 200.
 - UF: enum dos 27 estados brasileiros.
 - Council: aceita o conjunto comum (CRM, CRO, CREFITO, CRP, CRN, COREN, CRF, CRBM, CRESS) — lista validada em Zod, não em DB.
 
 **RLS**:
+
 ```sql
 ALTER TABLE public.tenant_clinic_profile ENABLE ROW LEVEL SECURITY;
 
@@ -62,6 +64,7 @@ CREATE POLICY tenant_clinic_profile_update ON public.tenant_clinic_profile
 ```
 
 **Triggers**:
+
 - `tenant_clinic_profile_touch_updated_at`: BEFORE UPDATE → `touch_updated_at()` (já existe).
 
 **State**: row inserida lazy — quando o admin acessa `/configuracoes/clinica` pela primeira vez, o handler faz `INSERT ... ON CONFLICT DO NOTHING` se ainda não existir. Não há "perfil rascunho vs publicado".
@@ -72,17 +75,18 @@ CREATE POLICY tenant_clinic_profile_update ON public.tenant_clinic_profile
 
 Preferências individuais do usuário. 1:1 com `auth.users`.
 
-| Coluna | Tipo | Constraint | Notas |
-|--------|------|------------|-------|
-| `user_id` | UUID | PRIMARY KEY, FK `auth.users(id)` ON DELETE CASCADE | |
-| `full_name` | TEXT | NULL, length ≤ 200 | nome completo de exibição |
-| `avatar_path` | TEXT | NULL | path no bucket `user-avatars`; ex: `{tenant_id}/{user_id}.png`. Como o avatar é por usuário e os tenants podem ter regras diferentes, persistir o tenant_id na qual o avatar foi subido permite RLS no Storage. Para o caso de usuário com múltiplos tenants ver R4. |
-| `avatar_uploaded_at` | TIMESTAMPTZ | NULL | |
-| `timezone` | TEXT | NOT NULL DEFAULT 'America/Sao_Paulo' | IANA TZ |
-| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
-| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| Coluna               | Tipo        | Constraint                                         | Notas                                                                                                                                                                                                                                                                |
+| -------------------- | ----------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user_id`            | UUID        | PRIMARY KEY, FK `auth.users(id)` ON DELETE CASCADE |                                                                                                                                                                                                                                                                      |
+| `full_name`          | TEXT        | NULL, length ≤ 200                                 | nome completo de exibição                                                                                                                                                                                                                                            |
+| `avatar_path`        | TEXT        | NULL                                               | path no bucket `user-avatars`; ex: `{tenant_id}/{user_id}.png`. Como o avatar é por usuário e os tenants podem ter regras diferentes, persistir o tenant_id na qual o avatar foi subido permite RLS no Storage. Para o caso de usuário com múltiplos tenants ver R4. |
+| `avatar_uploaded_at` | TIMESTAMPTZ | NULL                                               |                                                                                                                                                                                                                                                                      |
+| `timezone`           | TEXT        | NOT NULL DEFAULT 'America/Sao_Paulo'               | IANA TZ                                                                                                                                                                                                                                                              |
+| `created_at`         | TIMESTAMPTZ | NOT NULL DEFAULT now()                             |                                                                                                                                                                                                                                                                      |
+| `updated_at`         | TIMESTAMPTZ | NOT NULL DEFAULT now()                             |                                                                                                                                                                                                                                                                      |
 
 **RLS**:
+
 ```sql
 ALTER TABLE public.user_profile ENABLE ROW LEVEL SECURITY;
 
@@ -183,6 +187,7 @@ CREATE TRIGGER user_tenants_enforce_last_admin
 ```
 
 **RBAC adjustments**:
+
 - A função existente `public.jwt_role()` continua autoritativa.
 - A custom-claims function (migration 0019) **deve** ser atualizada para **omitir** `tenant_id`/`role` quando a row em `user_tenants` está com `status='disabled'` — efetivamente expulsando o usuário desativado das policies de RLS na próxima requisição (R15).
 
@@ -192,17 +197,17 @@ CREATE TRIGGER user_tenants_enforce_last_admin
 
 Eventos novos a registrar:
 
-| Evento | `entity` | `entity_id` | `field` | `old_value` / `new_value` |
-|--------|----------|-------------|---------|---------------------------|
-| Atualização de dados da clínica | `tenant_clinic_profile` | `tenant_id` | nome do campo (`corporate_name`, `cnpj`, `address_cep`, …) — uma linha por campo alterado | string anterior / nova |
-| Upload de logo | `tenant_clinic_profile` | `tenant_id` | `logo` | path antigo / path novo |
-| Convite enviado | `user_tenants` | `user_id` | `invite` | `null` / `{ email, role }` |
-| Mudança de papel | `user_tenants` | `user_id` | `role` | papel antigo / novo |
-| Desativação | `user_tenants` | `user_id` | `status` | `active` / `disabled` |
-| Reativação | `user_tenants` | `user_id` | `status` | `disabled` / `active` |
-| Troca de senha | `user_profile` | `user_id` | `password` | `null` / `null` (apenas registro temporal) |
-| Atualização de perfil pessoal | `user_profile` | `user_id` | nome do campo (`full_name`, `timezone`) | string anterior / nova |
-| Upload de avatar | `user_profile` | `user_id` | `avatar` | path antigo / path novo |
+| Evento                          | `entity`                | `entity_id` | `field`                                                                                   | `old_value` / `new_value`                  |
+| ------------------------------- | ----------------------- | ----------- | ----------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Atualização de dados da clínica | `tenant_clinic_profile` | `tenant_id` | nome do campo (`corporate_name`, `cnpj`, `address_cep`, …) — uma linha por campo alterado | string anterior / nova                     |
+| Upload de logo                  | `tenant_clinic_profile` | `tenant_id` | `logo`                                                                                    | path antigo / path novo                    |
+| Convite enviado                 | `user_tenants`          | `user_id`   | `invite`                                                                                  | `null` / `{ email, role }`                 |
+| Mudança de papel                | `user_tenants`          | `user_id`   | `role`                                                                                    | papel antigo / novo                        |
+| Desativação                     | `user_tenants`          | `user_id`   | `status`                                                                                  | `active` / `disabled`                      |
+| Reativação                      | `user_tenants`          | `user_id`   | `status`                                                                                  | `disabled` / `active`                      |
+| Troca de senha                  | `user_profile`          | `user_id`   | `password`                                                                                | `null` / `null` (apenas registro temporal) |
+| Atualização de perfil pessoal   | `user_profile`          | `user_id`   | nome do campo (`full_name`, `timezone`)                                                   | string anterior / nova                     |
+| Upload de avatar                | `user_profile`          | `user_id`   | `avatar`                                                                                  | path antigo / path novo                    |
 
 **Reason field**: textual, gerado pelo handler (ex.: `"updated by /api/configuracoes/clinica PUT"`). Para mudança de papel sensível (`admin` ↔ outros), o front pode pedir uma justificativa textual e enviá-la — mas não é obrigatório no MVP (campo `reason` aceita string padrão).
 
@@ -222,6 +227,7 @@ ON CONFLICT (id) DO NOTHING;
 **Policies**: ver R4 do `research.md`.
 
 **Path schemas**:
+
 - `clinic-logos`: `{tenant_id}/logo.{jpg|png}`
 - `user-avatars`: `{tenant_id}/{user_id}.{jpg|png}`
 

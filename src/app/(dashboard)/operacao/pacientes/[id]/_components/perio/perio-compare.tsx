@@ -20,8 +20,16 @@ interface CompareSite {
 }
 
 interface CompareView {
-  from: { id: string; examDate: string; indicators: { bopPct: number; pocketsGe4: number; calAvgMm: number | null } }
-  to: { id: string; examDate: string; indicators: { bopPct: number; pocketsGe4: number; calAvgMm: number | null } }
+  from: {
+    id: string
+    examDate: string
+    indicators: { bopPct: number; pocketsGe4: number; calAvgMm: number | null }
+  }
+  to: {
+    id: string
+    examDate: string
+    indicators: { bopPct: number; pocketsGe4: number; calAvgMm: number | null }
+  }
   sites: CompareSite[]
   deltas: { bopPct: number; pocketsGe4: number; calAvgMm: number | null }
 }
@@ -44,9 +52,12 @@ export function PerioCompare({ patientId, exams }: { patientId: string; exams: E
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/pacientes/${patientId}/periograma/comparar?from=${fromId}&to=${toId}`, {
-        headers: { accept: 'application/json' },
-      })
+      const res = await fetch(
+        `/api/pacientes/${patientId}/periograma/comparar?from=${fromId}&to=${toId}`,
+        {
+          headers: { accept: 'application/json' },
+        },
+      )
       if (!res.ok) {
         const j = await res.json().catch(() => null)
         throw new Error(j?.error?.message ?? `HTTP ${res.status}`)
@@ -65,7 +76,11 @@ export function PerioCompare({ patientId, exams }: { patientId: string; exams: E
   }, [load])
 
   if (finalized.length < 2) {
-    return <p className="text-sm text-slate-500">São necessários ao menos dois exames finalizados para comparar.</p>
+    return (
+      <p className="text-sm text-slate-500">
+        São necessários ao menos dois exames finalizados para comparar.
+      </p>
+    )
   }
 
   const changed = data?.sites.filter((s) => s.deltaPd !== null && s.deltaPd !== 0) ?? []
@@ -83,11 +98,23 @@ export function PerioCompare({ patientId, exams }: { patientId: string; exams: E
       {data ? (
         <>
           <div className="grid grid-cols-3 gap-3">
-            <Delta label="BOP" value={`${data.deltas.bopPct > 0 ? '+' : ''}${data.deltas.bopPct}%`} good={data.deltas.bopPct <= 0} />
-            <Delta label="Bolsas ≥4mm" value={`${data.deltas.pocketsGe4 > 0 ? '+' : ''}${data.deltas.pocketsGe4}`} good={data.deltas.pocketsGe4 <= 0} />
+            <Delta
+              label="BOP"
+              value={`${data.deltas.bopPct > 0 ? '+' : ''}${data.deltas.bopPct}%`}
+              good={data.deltas.bopPct <= 0}
+            />
+            <Delta
+              label="Bolsas ≥4mm"
+              value={`${data.deltas.pocketsGe4 > 0 ? '+' : ''}${data.deltas.pocketsGe4}`}
+              good={data.deltas.pocketsGe4 <= 0}
+            />
             <Delta
               label="CAL médio"
-              value={data.deltas.calAvgMm === null ? '—' : `${data.deltas.calAvgMm > 0 ? '+' : ''}${data.deltas.calAvgMm} mm`}
+              value={
+                data.deltas.calAvgMm === null
+                  ? '—'
+                  : `${data.deltas.calAvgMm > 0 ? '+' : ''}${data.deltas.calAvgMm} mm`
+              }
               good={(data.deltas.calAvgMm ?? 0) <= 0}
             />
           </div>
@@ -104,15 +131,27 @@ export function PerioCompare({ patientId, exams }: { patientId: string; exams: E
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {changed.length === 0 ? (
-                  <tr><td colSpan={4} className="px-3 py-4 text-center text-slate-400">Sem variação de profundidade entre os exames.</td></tr>
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-slate-400">
+                      Sem variação de profundidade entre os exames.
+                    </td>
+                  </tr>
                 ) : null}
                 {changed.map((s) => (
                   <tr key={`${s.toothFdi}:${s.site}`}>
-                    <td className="px-3 py-1.5">Dente {s.toothFdi} · {siteLabel(s.site)}</td>
+                    <td className="px-3 py-1.5">
+                      Dente {s.toothFdi} · {siteLabel(s.site)}
+                    </td>
                     <td className="px-3 py-1.5 text-center">{s.fromPd ?? '—'}</td>
                     <td className="px-3 py-1.5 text-center">{s.toPd ?? '—'}</td>
-                    <td className={cn('px-3 py-1.5 text-center font-semibold', (s.deltaPd ?? 0) < 0 ? 'text-emerald-600' : 'text-red-600')}>
-                      {s.deltaPd! > 0 ? '+' : ''}{s.deltaPd}
+                    <td
+                      className={cn(
+                        'px-3 py-1.5 text-center font-semibold',
+                        (s.deltaPd ?? 0) < 0 ? 'text-emerald-600' : 'text-red-600',
+                      )}
+                    >
+                      {s.deltaPd! > 0 ? '+' : ''}
+                      {s.deltaPd}
                     </td>
                   </tr>
                 ))}
@@ -125,13 +164,29 @@ export function PerioCompare({ patientId, exams }: { patientId: string; exams: E
   )
 }
 
-function Picker({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: ExamOpt[] }) {
+function Picker({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: ExamOpt[]
+}) {
   return (
     <label className="flex flex-col gap-1 text-xs text-slate-500">
       {label}
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded border px-2 py-1 text-slate-800">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded border px-2 py-1 text-slate-800"
+      >
         {options.map((o) => (
-          <option key={o.id} value={o.id}>{o.examDate}</option>
+          <option key={o.id} value={o.id}>
+            {o.examDate}
+          </option>
         ))}
       </select>
     </label>
@@ -142,7 +197,9 @@ function Delta({ label, value, good }: { label: string; value: string; good: boo
   return (
     <div className="rounded-lg border border-slate-200 p-3">
       <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</div>
-      <div className={cn('text-lg font-bold', good ? 'text-emerald-600' : 'text-red-600')}>{value}</div>
+      <div className={cn('text-lg font-bold', good ? 'text-emerald-600' : 'text-red-600')}>
+        {value}
+      </div>
     </div>
   )
 }

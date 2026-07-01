@@ -2,10 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
 import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
-import {
-  PATIENT_PHOTO_BUCKET,
-  PATIENT_PHOTO_SIGNED_URL_TTL_SECONDS,
-} from './photo'
+import { PATIENT_PHOTO_BUCKET, PATIENT_PHOTO_SIGNED_URL_TTL_SECONDS } from './photo'
 
 /**
  * Detalhe do paciente com PII descriptografada via RPC
@@ -132,12 +129,12 @@ export async function getPatient(
     .eq('tenant_id', args.tenantId)
     .eq('id', args.patientId)
     .maybeSingle()
-  const hp = (planResult.data?.health_plans ?? null) as
-    | { id: string; name: string }
-    | null
-  const opsRow = planResult.data as
-    | { status?: string | null; alert_note?: string | null; photo_path?: string | null }
-    | null
+  const hp = (planResult.data?.health_plans ?? null) as { id: string; name: string } | null
+  const opsRow = planResult.data as {
+    status?: string | null
+    alert_note?: string | null
+    photo_path?: string | null
+  } | null
   const photoSignedUrl = await createSignedUrlOrNull(
     supabase,
     PATIENT_PHOTO_BUCKET,

@@ -1,6 +1,5 @@
 ---
-
-description: "Tasks — 025-agenda-sheet-modal"
+description: 'Tasks — 025-agenda-sheet-modal'
 ---
 
 # Tasks: Detalhe do Atendimento como Painel Lateral na Agenda
@@ -28,7 +27,7 @@ Single-project Next.js App Router. Tudo novo cai em `src/app/(dashboard)/operaca
 
 **Purpose**: Estrutura mínima para começar.
 
-- [X] T001 Criar diretório `src/app/(dashboard)/operacao/atendimentos/_components/` (prefixo `_` garante que Next NÃO trate como rota)
+- [x] T001 Criar diretório `src/app/(dashboard)/operacao/atendimentos/_components/` (prefixo `_` garante que Next NÃO trate como rota)
 
 ---
 
@@ -38,9 +37,9 @@ Single-project Next.js App Router. Tudo novo cai em `src/app/(dashboard)/operaca
 
 **⚠️ CRITICAL**: US1 e US2 não podem começar antes desta fase terminar.
 
-- [X] T002 [P] Definir tipos compartilhados em `src/app/(dashboard)/operacao/atendimentos/_components/types.ts` — `AppointmentDetailDTO` (espelho do retorno de `GET /api/atendimentos/[id]`), `AppointmentDetailState` (`{ data, loading, error }`), `PanelMode` (`'closed' | 'loading' | 'ready' | 'error'`). Importar tipos já existentes (`AppointmentMaterial`, `AppointmentProcedureLine`, `PatientAllergyDTO`) sem duplicar.
+- [x] T002 [P] Definir tipos compartilhados em `src/app/(dashboard)/operacao/atendimentos/_components/types.ts` — `AppointmentDetailDTO` (espelho do retorno de `GET /api/atendimentos/[id]`), `AppointmentDetailState` (`{ data, loading, error }`), `PanelMode` (`'closed' | 'loading' | 'ready' | 'error'`). Importar tipos já existentes (`AppointmentMaterial`, `AppointmentProcedureLine`, `PatientAllergyDTO`) sem duplicar.
 
-- [X] T003 [P] Implementar hook `useAppointmentDetail(id: string | null)` em `src/app/(dashboard)/operacao/atendimentos/_components/use-appointment-detail.ts` — `fetch('/api/atendimentos/${id}')` com `AbortController` por mudança de id; expõe `{ data, loading, error, refetch }`. Cancela request anterior quando id muda (cobre FR-011). Mapeia 401/403/404/5xx para `error.code` legível.
+- [x] T003 [P] Implementar hook `useAppointmentDetail(id: string | null)` em `src/app/(dashboard)/operacao/atendimentos/_components/use-appointment-detail.ts` — `fetch('/api/atendimentos/${id}')` com `AbortController` por mudança de id; expõe `{ data, loading, error, refetch }`. Cancela request anterior quando id muda (cobre FR-011). Mapeia 401/403/404/5xx para `error.code` legível.
 
 **Checkpoint**: Tipos + hook prontos. US1 e US2 podem começar.
 
@@ -54,15 +53,15 @@ Single-project Next.js App Router. Tudo novo cai em `src/app/(dashboard)/operaca
 
 ### Implementation for User Story 1
 
-- [X] T004 [P] [US1] Criar `src/app/(dashboard)/operacao/atendimentos/_components/appointment-detail-body.tsx` (Client) — render puro dos dados de `AppointmentDetailDTO`. Reusa o JSX da página standalone `[id]/page.tsx` (cards Dados clínicos, Alergias, Procedimentos, Materiais, Financeiro). Aceita props `{ data, refetch, role }` — NÃO faz fetch interno, NÃO importa `createSupabaseServiceClient`. Footer com ações é slot via `actions?: ReactNode` (preenchido pelo Panel). **Preservar as guards de visibilidade por role da página standalone** (`canReverse`, `canManageSchedule`, `canProgressSchedule`, `canCancelSchedule` em `[id]/page.tsx` linhas 178–198): cards de ação só renderizam quando o role autoriza. Aceita `role: TenantRole` como prop e reaplica a mesma lógica `can(role, 'appointment.reverse')` etc. — não importar `getSession()` (server-only); role vem propagada do Host via prop.
+- [x] T004 [P] [US1] Criar `src/app/(dashboard)/operacao/atendimentos/_components/appointment-detail-body.tsx` (Client) — render puro dos dados de `AppointmentDetailDTO`. Reusa o JSX da página standalone `[id]/page.tsx` (cards Dados clínicos, Alergias, Procedimentos, Materiais, Financeiro). Aceita props `{ data, refetch, role }` — NÃO faz fetch interno, NÃO importa `createSupabaseServiceClient`. Footer com ações é slot via `actions?: ReactNode` (preenchido pelo Panel). **Preservar as guards de visibilidade por role da página standalone** (`canReverse`, `canManageSchedule`, `canProgressSchedule`, `canCancelSchedule` em `[id]/page.tsx` linhas 178–198): cards de ação só renderizam quando o role autoriza. Aceita `role: TenantRole` como prop e reaplica a mesma lógica `can(role, 'appointment.reverse')` etc. — não importar `getSession()` (server-only); role vem propagada do Host via prop.
 
-- [X] T005 [P] [US1] Criar `src/app/(dashboard)/operacao/atendimentos/_components/appointment-detail-panel.tsx` (Client) — consome `useAppointmentDetail(id)`. Wrappa `Sheet` do shadcn (`side="right"`, `className="w-full sm:max-w-[600px] sm:w-[600px] overflow-y-auto p-0"`). Estados de UI: loading (spinner centrado), error (mensagem + "Tentar novamente" → `refetch()`), ready (renderiza `<AppointmentDetailBody />`). `SheetTitle` em `sr-only` para a11y. Aceita props `{ appointmentId: string | null, onOpenChange: (open: boolean) => void, onDirtyChange?: (dirty: boolean) => void }`.
+- [x] T005 [P] [US1] Criar `src/app/(dashboard)/operacao/atendimentos/_components/appointment-detail-panel.tsx` (Client) — consome `useAppointmentDetail(id)`. Wrappa `Sheet` do shadcn (`side="right"`, `className="w-full sm:max-w-[600px] sm:w-[600px] overflow-y-auto p-0"`). Estados de UI: loading (spinner centrado), error (mensagem + "Tentar novamente" → `refetch()`), ready (renderiza `<AppointmentDetailBody />`). `SheetTitle` em `sr-only` para a11y. Aceita props `{ appointmentId: string | null, onOpenChange: (open: boolean) => void, onDirtyChange?: (dirty: boolean) => void }`.
 
-- [X] T006 [US1] Criar `src/app/(dashboard)/operacao/atendimentos/_components/appointment-detail-host.tsx` (Client) — wrappa `children` da lista/calendário. **Recebe prop `role: TenantRole`** (passada do Server Component pai). Estado `useState<string | null>(selectedId)`. Mount listener no root via `useRef + onClick` (event delegation): se o target (ou ancestral via `.closest('a[data-appointment-id]')`) tiver `data-appointment-id` E `event.button === 0` E sem `metaKey/ctrlKey/shiftKey/altKey`, `event.preventDefault()` + `setSelectedId(id)`. Renderiza `<>{children}<AppointmentDetailPanel role={role} ... /></>`. Mantém `dirtyRef` e `pendingActionRef` (`useRef<boolean>(false)`) — passados via props para o Panel; consultados em `onOpenChange(false)` antes de zerar o `selectedId` (US2 finaliza esse fluxo, mas a infra dos refs entra aqui).
+- [x] T006 [US1] Criar `src/app/(dashboard)/operacao/atendimentos/_components/appointment-detail-host.tsx` (Client) — wrappa `children` da lista/calendário. **Recebe prop `role: TenantRole`** (passada do Server Component pai). Estado `useState<string | null>(selectedId)`. Mount listener no root via `useRef + onClick` (event delegation): se o target (ou ancestral via `.closest('a[data-appointment-id]')`) tiver `data-appointment-id` E `event.button === 0` E sem `metaKey/ctrlKey/shiftKey/altKey`, `event.preventDefault()` + `setSelectedId(id)`. Renderiza `<>{children}<AppointmentDetailPanel role={role} ... /></>`. Mantém `dirtyRef` e `pendingActionRef` (`useRef<boolean>(false)`) — passados via props para o Panel; consultados em `onOpenChange(false)` antes de zerar o `selectedId` (US2 finaliza esse fluxo, mas a infra dos refs entra aqui).
 
-- [X] T007 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/page.tsx` — importar `AppointmentDetailHost` e envolvê-lo na seção que hoje contém a `<Table>` da lista, passando `role={session.role}`. Em cada `<Link href={\`/operacao/atendimentos/${r.id}\`}>` da tabela (linha 408), adicionar `data-appointment-id={r.id}`. **Não remover o `<Link>`** — middle/ctrl-click continuam abrindo nova aba.
+- [x] T007 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/page.tsx` — importar `AppointmentDetailHost` e envolvê-lo na seção que hoje contém a `<Table>` da lista, passando `role={session.role}`. Em cada `<Link href={\`/operacao/atendimentos/${r.id}\`}>`da tabela (linha 408), adicionar`data-appointment-id={r.id}`. **Não remover o `<Link>`\*\* — middle/ctrl-click continuam abrindo nova aba.
 
-- [X] T008 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/calendar/calendar-view.tsx` (e `calendar-block.tsx`) — onde cada bloco de atendimento renderiza link/clique para o detalhe, garantir que (a) seja um `<a href={\`/operacao/atendimentos/${id}\`}>` e (b) tenha `data-appointment-id={id}`. Envolver a grade do calendário no `AppointmentDetailHost` passando `role={session.role}`. Mesma estratégia para `src/app/(dashboard)/operacao/atendimentos/views/month-view.tsx`.
+- [x] T008 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/calendar/calendar-view.tsx` (e `calendar-block.tsx`) — onde cada bloco de atendimento renderiza link/clique para o detalhe, garantir que (a) seja um `<a href={\`/operacao/atendimentos/${id}\`}>`e (b) tenha`data-appointment-id={id}`. Envolver a grade do calendário no `AppointmentDetailHost`passando`role={session.role}`. Mesma estratégia para `src/app/(dashboard)/operacao/atendimentos/views/month-view.tsx`.
 
 **Checkpoint**: Pode demonstrar — clicar em qualquer atendimento abre o painel com loading, depois dados; X/ESC/click-outside fecha; ctrl-click ainda abre nova aba. Ainda sem ações (ainda é só visualização).
 
@@ -76,19 +75,19 @@ Single-project Next.js App Router. Tudo novo cai em `src/app/(dashboard)/operaca
 
 ### Implementation for User Story 2
 
-- [X] T009 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/confirm-button.tsx` — adicionar props opcionais `onSuccess?: () => void` e `onPendingChange?: (pending: boolean) => void`. Chamar `onSuccess?.()` após `router.refresh()` na branch de sucesso. `onPendingChange?.(true)` antes do fetch e `onPendingChange?.(false)` no finally. Caller atual (`[id]/page.tsx`) passa undefined → comportamento inalterado.
+- [x] T009 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/confirm-button.tsx` — adicionar props opcionais `onSuccess?: () => void` e `onPendingChange?: (pending: boolean) => void`. Chamar `onSuccess?.()` após `router.refresh()` na branch de sucesso. `onPendingChange?.(true)` antes do fetch e `onPendingChange?.(false)` no finally. Caller atual (`[id]/page.tsx`) passa undefined → comportamento inalterado.
 
-- [X] T010 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/cancel-form.tsx` — adicionar props opcionais `onSuccess?: () => void`, `onDirtyChange?: (dirty: boolean) => void` e `onPendingChange?: (pending: boolean) => void`. Disparar `onSuccess?.()` após `router.refresh()` na branch de sucesso. Disparar `onDirtyChange?.(true)` ao primeiro `onChange` da textarea; `onDirtyChange?.(false)` no reset/submit-success. Disparar `onPendingChange?.(true)` antes do fetch e `onPendingChange?.(false)` no finally.
+- [x] T010 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/cancel-form.tsx` — adicionar props opcionais `onSuccess?: () => void`, `onDirtyChange?: (dirty: boolean) => void` e `onPendingChange?: (pending: boolean) => void`. Disparar `onSuccess?.()` após `router.refresh()` na branch de sucesso. Disparar `onDirtyChange?.(true)` ao primeiro `onChange` da textarea; `onDirtyChange?.(false)` no reset/submit-success. Disparar `onPendingChange?.(true)` antes do fetch e `onPendingChange?.(false)` no finally.
 
-- [X] T011 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/mark-realized-form.tsx` — adicionar props opcionais `onSuccess?: () => void` e `onPendingChange?: (pending: boolean) => void`. Mesmo padrão de T009 (chamar callbacks após `router.refresh()` e em volta do fetch).
+- [x] T011 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/mark-realized-form.tsx` — adicionar props opcionais `onSuccess?: () => void` e `onPendingChange?: (pending: boolean) => void`. Mesmo padrão de T009 (chamar callbacks após `router.refresh()` e em volta do fetch).
 
-- [X] T012 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/reversal-form.tsx` — adicionar props opcionais `onSuccess?: () => void`, `onDirtyChange?: (dirty: boolean) => void` e `onPendingChange?: (pending: boolean) => void`. Mesmo padrão de T010 para campo de texto livre.
+- [x] T012 [P] [US2] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/reversal-form.tsx` — adicionar props opcionais `onSuccess?: () => void`, `onDirtyChange?: (dirty: boolean) => void` e `onPendingChange?: (pending: boolean) => void`. Mesmo padrão de T010 para campo de texto livre.
 
-- [X] T013 [US2] No `appointment-detail-body.tsx` (T004), na seção de ações, passar `onSuccess={refetch}` e `onDirtyChange={onDirtyChange}` para cada form. Quando `refetch()` roda, o painel re-busca os dados — combinado com `router.refresh()` que cada form já dispara, agenda subjacente também atualiza.
+- [x] T013 [US2] No `appointment-detail-body.tsx` (T004), na seção de ações, passar `onSuccess={refetch}` e `onDirtyChange={onDirtyChange}` para cada form. Quando `refetch()` roda, o painel re-busca os dados — combinado com `router.refresh()` que cada form já dispara, agenda subjacente também atualiza.
 
-- [X] T014 [US2] No `appointment-detail-host.tsx` (T006), implementar o guard completo: handler para mudança de `selectedId` (click em outro atendimento) e para fechamento (`onOpenChange(false)`) consulta **dois refs** em ordem: (1) `pendingActionRef.current` — se `true`, `if (!window.confirm('Ação em andamento. Cancelar mesmo assim?')) return`; (2) `dirtyRef.current` — se `true`, `if (!window.confirm('Descartar alterações não salvas?')) return`. Se ambos falsos: prossegue silenciosamente. Resetar `dirtyRef.current = false` e `pendingActionRef.current = false` após cada troca/fechamento aceito.
+- [x] T014 [US2] No `appointment-detail-host.tsx` (T006), implementar o guard completo: handler para mudança de `selectedId` (click em outro atendimento) e para fechamento (`onOpenChange(false)`) consulta **dois refs** em ordem: (1) `pendingActionRef.current` — se `true`, `if (!window.confirm('Ação em andamento. Cancelar mesmo assim?')) return`; (2) `dirtyRef.current` — se `true`, `if (!window.confirm('Descartar alterações não salvas?')) return`. Se ambos falsos: prossegue silenciosamente. Resetar `dirtyRef.current = false` e `pendingActionRef.current = false` após cada troca/fechamento aceito.
 
-- [X] T015 [US2] No `appointment-detail-panel.tsx` (T005), garantir que o painel **permanece aberto** após `onSuccess` (apenas re-renderiza com novo `data`). Não chamar `onOpenChange(false)` em nenhum sucesso de ação. Cobre FR-005 e a Q2 da clarificação.
+- [x] T015 [US2] No `appointment-detail-panel.tsx` (T005), garantir que o painel **permanece aberto** após `onSuccess` (apenas re-renderiza com novo `data`). Não chamar `onOpenChange(false)` em nenhum sucesso de ação. Cobre FR-005 e a Q2 da clarificação.
 
 **Checkpoint**: MVP completo. Painel funcional para visualizar + agir. Demonstrar com confirmar/cancelar/estornar; agenda atualiza atrás; form sujo é protegido.
 
@@ -102,7 +101,7 @@ Single-project Next.js App Router. Tudo novo cai em `src/app/(dashboard)/operaca
 
 ### Implementation for User Story 3
 
-- [X] T016 [US3] Verificação manual de não-regressão: abrir página standalone com URL direta, fazer F5, abrir Network tab e confirmar que (a) renderiza HTML completo do detalhe, (b) ações funcionam normalmente (a página standalone continua passando `undefined` para `onSuccess`/`onDirtyChange`, ou seja, comportamento inalterado). **Nenhum código novo** — apenas validar que os edits dos forms em T009-T012 não quebraram a página standalone.
+- [x] T016 [US3] Verificação manual de não-regressão: abrir página standalone com URL direta, fazer F5, abrir Network tab e confirmar que (a) renderiza HTML completo do detalhe, (b) ações funcionam normalmente (a página standalone continua passando `undefined` para `onSuccess`/`onDirtyChange`, ou seja, comportamento inalterado). **Nenhum código novo** — apenas validar que os edits dos forms em T009-T012 não quebraram a página standalone.
 
 **Checkpoint**: Os 3 caminhos de visualização do detalhe (lista→painel, calendário→painel, URL direta→página) funcionam.
 
@@ -114,11 +113,11 @@ Single-project Next.js App Router. Tudo novo cai em `src/app/(dashboard)/operaca
 
 - [ ] T017 [P] (Opcional, recomendado) Criar `tests/unit/appointment-detail-panel.spec.tsx` — cobrir: (a) `useAppointmentDetail` cancela request anterior ao mudar id, (b) guard de fechamento chama confirm quando `dirtyRef=true` e bloqueia se cancelado, (c) `onSuccess` dispara refetch. Usar `vitest` + `@testing-library/react` se já presente; caso contrário, ficar no nível do hook puro.
 
-- [X] T018 Rodar `pnpm typecheck` — 0 erros.
+- [x] T018 Rodar `pnpm typecheck` — 0 erros.
 
-- [X] T019 Rodar `pnpm lint:auth` + `pnpm lint` — 0 erros. Em especial: nenhum arquivo em `_components/` importando `@/lib/db/supabase-service` (verificar com grep antes do push).
+- [x] T019 Rodar `pnpm lint:auth` + `pnpm lint` — 0 erros. Em especial: nenhum arquivo em `_components/` importando `@/lib/db/supabase-service` (verificar com grep antes do push).
 
-- [X] T020 Rodar `pnpm test` (suite específica de atendimentos passa; falhas globais são de integração GHL não-relacionadas, herdadas de execuções anteriores) (vitest) — sem regressão em suite existente; novos tests verdes.
+- [x] T020 Rodar `pnpm test` (suite específica de atendimentos passa; falhas globais são de integração GHL não-relacionadas, herdadas de execuções anteriores) (vitest) — sem regressão em suite existente; novos tests verdes.
 
 - [ ] T021 Executar `quickstart.md` completo (11 fluxos manuais via `pnpm dev`) — todas as caixas marcadas. **Bloqueante para merge** por exigência da spec (validação manual obrigatória derivada do incidente do commit revertido `f1c08c4`).
 

@@ -1,5 +1,14 @@
 import * as React from 'react'
-import { Calendar, Check, CheckCheck, Clock, RotateCcw, UserX, X, type LucideIcon } from 'lucide-react'
+import {
+  Calendar,
+  Check,
+  CheckCheck,
+  Clock,
+  RotateCcw,
+  UserX,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type AppointmentStatusVariant =
@@ -33,7 +42,10 @@ export interface AppointmentStatusVariantStyle {
 // info-bg/info-text, warning, alert, muted). Padroes visuais alem da cor:
 // no_show = listrado, cancelado = tracejado, em_atendimento = ponto pulsante
 // com fallback motion-safe (WCAG 2.3.3).
-export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatusVariant, AppointmentStatusVariantStyle> = {
+export const APPOINTMENT_STATUS_STYLES: Record<
+  AppointmentStatusVariant,
+  AppointmentStatusVariantStyle
+> = {
   agendado: {
     label: 'Agendado',
     Icon: Calendar,
@@ -67,8 +79,7 @@ export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatusVariant, Appoint
   cancelado: {
     label: 'Cancelado',
     Icon: X,
-    className:
-      'bg-muted text-muted-foreground border-dashed border-muted-foreground/40',
+    className: 'bg-muted text-muted-foreground border-dashed border-muted-foreground/40',
   },
   estornado: {
     label: 'Estornado',
@@ -87,9 +98,7 @@ export function AppointmentStatusBadge({
   const { label, Icon, className: variantClass, showPulseDot, style } = config
 
   const sizeClass =
-    size === 'sm'
-      ? 'gap-1 px-1.5 py-0.5 text-[11px]'
-      : 'gap-1.5 px-2 py-0.5 text-[12px]'
+    size === 'sm' ? 'gap-1 px-1.5 py-0.5 text-[11px]' : 'gap-1.5 px-2 py-0.5 text-[12px]'
   const iconSize = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'
 
   return (
@@ -113,11 +122,7 @@ export function AppointmentStatusBadge({
         />
       ) : null}
       <Icon className={cn(iconSize, 'shrink-0')} aria-hidden="true" />
-      {iconOnly ? (
-        <span className="sr-only">{label}</span>
-      ) : (
-        <span>{label}</span>
-      )}
+      {iconOnly ? <span className="sr-only">{label}</span> : <span>{label}</span>}
     </span>
   )
 }

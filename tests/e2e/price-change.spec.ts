@@ -7,13 +7,7 @@
  * assert the chain grew from 1 to 2 versions.
  */
 import { test, expect } from '@playwright/test'
-import {
-  ensureDemoSeed,
-  getDemoTenantId,
-  loadEnv,
-  loginAsAdmin,
-  serviceClient,
-} from './fixtures'
+import { ensureDemoSeed, getDemoTenantId, loadEnv, loginAsAdmin, serviceClient } from './fixtures'
 
 loadEnv()
 
@@ -72,8 +66,7 @@ test('admin edits a price and history shows the previous version', async ({ page
 
   await Promise.all([
     page.waitForResponse(
-      (res) =>
-        res.url().endsWith('/api/precos/versions') && res.request().method() === 'POST',
+      (res) => res.url().endsWith('/api/precos/versions') && res.request().method() === 'POST',
     ),
     page.getByRole('button', { name: /criar nova versão/i }).click(),
   ])

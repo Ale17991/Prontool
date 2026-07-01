@@ -98,7 +98,11 @@ export async function correctExpense(
     .is('deleted_at', null)
   if (recErr) {
     // Não derruba a correção — comprovantes ficam na despesa antiga (recuperável).
-    console.error('correctExpense receipt re-link failed', { from: input.id, to: newId, error: recErr })
+    console.error('correctExpense receipt re-link failed', {
+      from: input.id,
+      to: newId,
+      error: recErr,
+    })
   }
 
   // 4) Auditoria.

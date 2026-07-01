@@ -37,8 +37,7 @@ async function main(): Promise<void> {
   if (!res.ok) throw new Error(`failed to download ${DEFAULT_URL}: HTTP ${res.status}`)
 
   const isCsv =
-    /\.csv($|\?)/i.test(DEFAULT_URL) ||
-    (res.headers.get('content-type') ?? '').includes('csv')
+    /\.csv($|\?)/i.test(DEFAULT_URL) || (res.headers.get('content-type') ?? '').includes('csv')
 
   let normalized: NormalizedRow[]
   if (isCsv) {
@@ -71,9 +70,7 @@ async function main(): Promise<void> {
   const BATCH = 1000
   for (let i = 0; i < normalized.length; i += BATCH) {
     const slice = normalized.slice(i, i + BATCH)
-    const { error } = await supabase
-      .from('cid10_codes')
-      .upsert(slice, { onConflict: 'code' })
+    const { error } = await supabase.from('cid10_codes').upsert(slice, { onConflict: 'code' })
     if (error) throw new Error(`cid10_codes upsert offset=${i}: ${error.message}`)
     console.info(
       `[seed-cid10] upsert ${Math.min(i + BATCH, normalized.length)}/${normalized.length}`,
@@ -95,9 +92,7 @@ function parseDataSusCsv(text: string): NormalizedRow[] {
   const codeIdx = pickIndex(header, ['SUBCAT', 'CATEGORIA', 'CODIGO', 'CODE'])
   const descIdx = pickIndex(header, ['DESCRICAO', 'DESCRIPTION'])
   if (codeIdx < 0 || descIdx < 0) {
-    throw new Error(
-      `CSV sem coluna de código ou descrição. Headers: ${header.join(', ')}`,
-    )
+    throw new Error(`CSV sem coluna de código ou descrição. Headers: ${header.join(', ')}`)
   }
 
   const seen = new Map<string, NormalizedRow>()

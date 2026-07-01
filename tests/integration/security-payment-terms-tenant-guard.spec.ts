@@ -83,18 +83,21 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     const jwt = mintTenantlessJwt(userId, u!.user!.email!)
 
     const client = rlsClient(jwt)
-    const { error } = await client.rpc('record_payment_terms_change' as never, {
-      p_tenant_id: tenantId,
-      p_doctor_id: doctorId,
-      p_payment_mode: 'comissionado',
-      p_percentage_bps: 5000,
-      p_monthly_amount_cents: null,
-      p_billing_day: null,
-      p_liberal_default_cents: null,
-      p_valid_from: '2026-01-01',
-      p_reason: 'tentativa malicious',
-      p_actor: userId,
-    } as never)
+    const { error } = await client.rpc(
+      'record_payment_terms_change' as never,
+      {
+        p_tenant_id: tenantId,
+        p_doctor_id: doctorId,
+        p_payment_mode: 'comissionado',
+        p_percentage_bps: 5000,
+        p_monthly_amount_cents: null,
+        p_billing_day: null,
+        p_liberal_default_cents: null,
+        p_valid_from: '2026-01-01',
+        p_reason: 'tentativa malicious',
+        p_actor: userId,
+      } as never,
+    )
 
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/TENANT_MISMATCH/)
@@ -119,18 +122,21 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     })
 
     const client = rlsClient(jwt)
-    const { data, error } = await client.rpc('record_payment_terms_change' as never, {
-      p_tenant_id: tenantId,
-      p_doctor_id: doctorId,
-      p_payment_mode: 'comissionado',
-      p_percentage_bps: 6000,
-      p_monthly_amount_cents: null,
-      p_billing_day: null,
-      p_liberal_default_cents: null,
-      p_valid_from: '2026-01-01',
-      p_reason: 'admin ajustou comissão',
-      p_actor: admin.userId,
-    } as never)
+    const { data, error } = await client.rpc(
+      'record_payment_terms_change' as never,
+      {
+        p_tenant_id: tenantId,
+        p_doctor_id: doctorId,
+        p_payment_mode: 'comissionado',
+        p_percentage_bps: 6000,
+        p_monthly_amount_cents: null,
+        p_billing_day: null,
+        p_liberal_default_cents: null,
+        p_valid_from: '2026-01-01',
+        p_reason: 'admin ajustou comissão',
+        p_actor: admin.userId,
+      } as never,
+    )
 
     expect(error).toBeNull()
     expect(data).toBeTruthy()
@@ -234,12 +240,15 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     const jwt = mintTenantlessJwt(u!.user!.id, u!.user!.email!)
     const client = rlsClient(jwt)
 
-    const { error } = await client.rpc('attach_assistant_to_appointment' as never, {
-      p_appointment_id: apptId,
-      p_assistant_doctor_id: doctorId,
-      p_amount_cents: 5000,
-      p_actor: u!.user!.id,
-    } as never)
+    const { error } = await client.rpc(
+      'attach_assistant_to_appointment' as never,
+      {
+        p_appointment_id: apptId,
+        p_assistant_doctor_id: doctorId,
+        p_amount_cents: 5000,
+        p_actor: u!.user!.id,
+      } as never,
+    )
 
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/APPOINTMENT_NOT_FOUND/)
@@ -258,10 +267,13 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     // UUID random — não importa se existe; guard verifica antes do lookup.
     // Mas é fácil testar com UUID que NÃO existe; espera ASSISTANT_NOT_FOUND.
     const fakeId = randomUUID()
-    const { error } = await client.rpc('remove_appointment_assistant' as never, {
-      p_id: fakeId,
-      p_actor: u!.user!.id,
-    } as never)
+    const { error } = await client.rpc(
+      'remove_appointment_assistant' as never,
+      {
+        p_id: fakeId,
+        p_actor: u!.user!.id,
+      } as never,
+    )
 
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/ASSISTANT_NOT_FOUND/)

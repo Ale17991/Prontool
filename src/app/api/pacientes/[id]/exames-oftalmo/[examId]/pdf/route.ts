@@ -31,7 +31,9 @@ export async function GET(
 
     const [{ patient }, clinicProfile, defaultTemplate] = await Promise.all([
       getPatient(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      getClinicProfile(supabase, session.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(() => null),
+      getClinicProfile(supabase, session.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(
+        () => null,
+      ),
       getDefaultExamReportTemplate(supabase, {
         tenantId: session.tenantId,
         examType: 'oftalmologico',

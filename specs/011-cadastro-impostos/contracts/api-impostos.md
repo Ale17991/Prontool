@@ -5,12 +5,12 @@
 
 ## Rotas
 
-| Método | Path | Papéis | Descrição |
-|---|---|---|---|
-| GET | `/api/impostos` | admin, financeiro, recepcionista, profissional_saude | Lista impostos do tenant (com filtro de status) |
-| POST | `/api/impostos` | admin, financeiro | Cria novo imposto |
-| GET | `/api/impostos/{id}` | admin, financeiro, recepcionista, profissional_saude | Detalhe de um imposto |
-| PATCH | `/api/impostos/{id}` | admin, financeiro | Atualiza alíquota, descrição ou status (não nome/categoria) |
+| Método | Path                 | Papéis                                               | Descrição                                                   |
+| ------ | -------------------- | ---------------------------------------------------- | ----------------------------------------------------------- |
+| GET    | `/api/impostos`      | admin, financeiro, recepcionista, profissional_saude | Lista impostos do tenant (com filtro de status)             |
+| POST   | `/api/impostos`      | admin, financeiro                                    | Cria novo imposto                                           |
+| GET    | `/api/impostos/{id}` | admin, financeiro, recepcionista, profissional_saude | Detalhe de um imposto                                       |
+| PATCH  | `/api/impostos/{id}` | admin, financeiro                                    | Atualiza alíquota, descrição ou status (não nome/categoria) |
 
 `runtime = 'nodejs'`, `dynamic = 'force-dynamic'` (DB-backed).
 
@@ -91,12 +91,12 @@ const createTaxSchema = z.object({
 
 **Errors**
 
-| Status | Code | Quando |
-|---|---|---|
-| 400 | `INVALID_BODY` | Zod fail (campos faltando, range inválido, etc.) |
-| 401 | `UNAUTHENTICATED` | sem sessão |
-| 403 | `FORBIDDEN` | papel != admin/financeiro |
-| 409 | `TAX_DUPLICATE` | UNIQUE INDEX violado (nome duplicado, ci, trim) |
+| Status | Code              | Quando                                           |
+| ------ | ----------------- | ------------------------------------------------ |
+| 400    | `INVALID_BODY`    | Zod fail (campos faltando, range inválido, etc.) |
+| 401    | `UNAUTHENTICATED` | sem sessão                                       |
+| 403    | `FORBIDDEN`       | papel != admin/financeiro                        |
+| 409    | `TAX_DUPLICATE`   | UNIQUE INDEX violado (nome duplicado, ci, trim)  |
 
 **Side effects**
 
@@ -109,23 +109,25 @@ const createTaxSchema = z.object({
 **Body schema (Zod) — todos opcionais; pelo menos 1 obrigatório**
 
 ```ts
-const patchTaxSchema = z.object({
-  rate_bps: z.number().int().min(0).max(10000).optional(),
-  description: z.string().max(500).nullable().optional(),
-  is_active: z.boolean().optional(),
-}).refine((d) => Object.keys(d).length > 0, { message: 'pelo menos um campo' })
+const patchTaxSchema = z
+  .object({
+    rate_bps: z.number().int().min(0).max(10000).optional(),
+    description: z.string().max(500).nullable().optional(),
+    is_active: z.boolean().optional(),
+  })
+  .refine((d) => Object.keys(d).length > 0, { message: 'pelo menos um campo' })
 ```
 
 **Response 200**: TaxDTO atualizado (mesmo shape do POST).
 
 **Errors**
 
-| Status | Code | Quando |
-|---|---|---|
-| 400 | `INVALID_BODY` | Zod fail / nada para atualizar |
-| 401 | `UNAUTHENTICATED` | sem sessão |
-| 403 | `FORBIDDEN` | papel != admin/financeiro |
-| 404 | `TAX_NOT_FOUND` | id não existe ou cross-tenant (RLS retorna 0 rows) |
+| Status | Code              | Quando                                             |
+| ------ | ----------------- | -------------------------------------------------- |
+| 400    | `INVALID_BODY`    | Zod fail / nada para atualizar                     |
+| 401    | `UNAUTHENTICATED` | sem sessão                                         |
+| 403    | `FORBIDDEN`       | papel != admin/financeiro                          |
+| 404    | `TAX_NOT_FOUND`   | id não existe ou cross-tenant (RLS retorna 0 rows) |
 
 **Side effects**
 
@@ -143,13 +145,13 @@ Conforme FR-006: não há endpoint DELETE físico. Para "remover" um imposto, fa
 
 ## Testes de contrato exigidos
 
-| Arquivo | Cenários |
-|---|---|
-| `tests/contract/api-impostos-rbac.test.ts` | 4 papéis × 3 ações (GET, POST, PATCH) → esperar 200/201/403/403 conforme matriz |
-| `tests/contract/api-impostos-tenant-isolation.test.ts` | session=tenantA tenta GET/PATCH em row de tenantB → 404 |
-| `tests/contract/taxes-immutability.test.ts` | (SQL) tenta `UPDATE taxes SET name='X'` → exception |
-| `tests/contract/api-impostos-validation.test.ts` | Zod boundary cases (rate_bps -1, 10001, 99.9; name 0-char e 81-char; category inválida) |
-| `tests/contract/api-impostos-duplicate.test.ts` | criar "ISS" + criar "  iss " (trim+ci) → 409 |
+| Arquivo                                                | Cenários                                                                                |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `tests/contract/api-impostos-rbac.test.ts`             | 4 papéis × 3 ações (GET, POST, PATCH) → esperar 200/201/403/403 conforme matriz         |
+| `tests/contract/api-impostos-tenant-isolation.test.ts` | session=tenantA tenta GET/PATCH em row de tenantB → 404                                 |
+| `tests/contract/taxes-immutability.test.ts`            | (SQL) tenta `UPDATE taxes SET name='X'` → exception                                     |
+| `tests/contract/api-impostos-validation.test.ts`       | Zod boundary cases (rate_bps -1, 10001, 99.9; name 0-char e 81-char; category inválida) |
+| `tests/contract/api-impostos-duplicate.test.ts`        | criar "ISS" + criar " iss " (trim+ci) → 409                                             |
 
 ---
 

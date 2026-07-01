@@ -34,10 +34,7 @@ import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
 import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
-import type {
-  PatientFinancialSummary,
-  PaymentRecordDTO,
-} from '@/lib/core/payments/list'
+import type { PatientFinancialSummary, PaymentRecordDTO } from '@/lib/core/payments/list'
 import type { AnamnesePatientPrefill } from '../clinical-records-section'
 
 interface Props {
@@ -132,11 +129,7 @@ export function CadastroTab({
         canEdit={canEditPatient}
       />
 
-      <AddressEditor
-        patientId={patientId}
-        address={patient.address}
-        canEdit={canEditPatient}
-      />
+      <AddressEditor patientId={patientId} address={patient.address} canEdit={canEditPatient} />
 
       <RemindersOptInToggle
         patientId={patientId}

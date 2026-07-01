@@ -17,9 +17,21 @@ const METRIC_LABEL_OVERRIDE: Record<string, string> = { glicemia_jejum: 'Glicemi
 type Kind = 'atendimento' | 'medicoes' | 'orientacao'
 
 const KIND_META: Record<Kind, { label: string; dot: string; chipOn: string }> = {
-  atendimento: { label: 'Atendimentos', dot: 'bg-emerald-500', chipOn: 'bg-emerald-600 text-white border-emerald-600' },
-  medicoes: { label: 'Medições', dot: 'bg-violet-500', chipOn: 'bg-violet-600 text-white border-violet-600' },
-  orientacao: { label: 'Orientações', dot: 'bg-amber-500', chipOn: 'bg-amber-600 text-white border-amber-600' },
+  atendimento: {
+    label: 'Atendimentos',
+    dot: 'bg-emerald-500',
+    chipOn: 'bg-emerald-600 text-white border-emerald-600',
+  },
+  medicoes: {
+    label: 'Medições',
+    dot: 'bg-violet-500',
+    chipOn: 'bg-violet-600 text-white border-violet-600',
+  },
+  orientacao: {
+    label: 'Orientações',
+    dot: 'bg-amber-500',
+    chipOn: 'bg-amber-600 text-white border-amber-600',
+  },
 }
 
 const PERIODS: Array<{ key: string; label: string; months: number | null }> = [
@@ -118,10 +130,20 @@ export function PatientTimeline({
       nodes.push({ dateKey, sortAt: new Date(dateKey).getTime(), kind: 'medicoes', items })
     }
     for (const appt of appointments) {
-      nodes.push({ dateKey: dayKey(appt.appointmentAt), sortAt: new Date(appt.appointmentAt).getTime(), kind: 'atendimento', appt })
+      nodes.push({
+        dateKey: dayKey(appt.appointmentAt),
+        sortAt: new Date(appt.appointmentAt).getTime(),
+        kind: 'atendimento',
+        appt,
+      })
     }
     for (const note of careNotes) {
-      nodes.push({ dateKey: dayKey(note.createdAt), sortAt: new Date(note.createdAt).getTime(), kind: 'orientacao', note })
+      nodes.push({
+        dateKey: dayKey(note.createdAt),
+        sortAt: new Date(note.createdAt).getTime(),
+        kind: 'orientacao',
+        note,
+      })
     }
     nodes.sort((a, b) => b.sortAt - a.sortAt)
     return nodes
@@ -202,7 +224,9 @@ export function PatientTimeline({
         <ol className="relative space-y-5 border-l-2 border-slate-100 pl-5">
           {visible.map((n, idx) => (
             <li key={`${n.kind}-${n.dateKey}-${idx}`} className="relative">
-              <span className={`absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full ring-4 ring-white ${KIND_META[n.kind].dot}`} />
+              <span
+                className={`absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full ring-4 ring-white ${KIND_META[n.kind].dot}`}
+              />
               <time className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
                 {formatDay(n.dateKey)}
               </time>
@@ -221,7 +245,11 @@ export function PatientTimeline({
                         <span className="text-slate-500">{it.label}</span>
                         <span className="font-semibold tabular-nums text-slate-900">
                           {fmtNum(it.value)}
-                          {it.unit ? <span className="ml-0.5 text-xs font-normal text-slate-400">{it.unit}</span> : null}
+                          {it.unit ? (
+                            <span className="ml-0.5 text-xs font-normal text-slate-400">
+                              {it.unit}
+                            </span>
+                          ) : null}
                           {it.delta !== null && Math.abs(it.delta) >= 0.05 ? (
                             <span className="ml-1.5 text-[11px] font-medium text-slate-400">
                               {it.delta > 0 ? '▲' : '▼'} {fmtNum(Math.abs(it.delta))}
@@ -254,7 +282,9 @@ export function PatientTimeline({
                     </span>
                     Orientação da equipe
                   </p>
-                  <p className="mt-1.5 whitespace-pre-wrap pl-9 text-sm text-slate-700">{n.note.body}</p>
+                  <p className="mt-1.5 whitespace-pre-wrap pl-9 text-sm text-slate-700">
+                    {n.note.body}
+                  </p>
                 </div>
               )}
             </li>

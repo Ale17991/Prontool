@@ -22,7 +22,7 @@ Fora de escopo nesta fase (fases futuras): plano de tratamento/orçamento a part
 - Q: Como o profissional aplica um status ao clicar? → A: Modelo "paleta + pintar" (seleciona o status numa paleta e clica nos dentes/faces para aplicar).
 - Q: Cada marcação pode ter observação textual livre? → A: Sim, nota textual opcional por marcação (append-only preservado).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Registrar e visualizar o estado dentário no odontograma (Priority: P1)
 
@@ -86,7 +86,7 @@ Ao registrar status no odontograma durante (ou a partir de) um atendimento, as m
 - **Face inexistente para o dente**: incisivos não têm face oclusal (têm incisal); a face oclusal/incisal é tratada como a mesma posição, rotulada conforme o tipo de dente.
 - **Concorrência**: dois profissionais marcando o mesmo dente quase ao mesmo tempo — como append-only, ambos os eventos são gravados e o mais recente define o estado atual.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -122,13 +122,13 @@ Ao registrar status no odontograma durante (ou a partir de) um atendimento, as m
 - **FR-020**: O sistema MUST isolar os registros odontográficos por clínica (tenant), de modo que uma clínica nunca veja dados de outra.
 - **FR-021**: A criação de marcações MUST ser restrita aos papéis com permissão clínica (ex.: administrador e profissional de saúde), seguindo o modelo de papéis existente.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Status odontológico (catálogo)**: tipo de marcação disponível no odontograma. Atributos: rótulo, cor, ícone, escopo (dente/face), código TUSS opcional, ativo/inativo. Catálogo de plataforma, gerido por super-admin.
 - **Marcação odontográfica (registro)**: evento clínico append-only que aplica um status a uma posição. Atributos: clínica (tenant), paciente, número do dente (FDI), face (opcional, nulo para escopo dente), status aplicado, observação textual opcional, atendimento (opcional), autor, horário. Relaciona-se a Paciente, Atendimento e Status odontológico.
 - **Dente / Face (modelo de posição)**: representação lógica da carta dentária (32 dentes permanentes + 20 decíduos; 5 faces por dente) usada para posicionar marcações; é conceito de domínio, não necessariamente uma tabela.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

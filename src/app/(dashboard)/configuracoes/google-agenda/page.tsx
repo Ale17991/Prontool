@@ -37,8 +37,8 @@ export default async function GoogleAgendaPage() {
           Google Agenda
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Conecte sua conta Google para que os atendimentos agendados para você (pela clínica ou pelo
-          link público) entrem automaticamente na sua agenda pessoal.
+          Conecte sua conta Google para que os atendimentos agendados para você (pela clínica ou
+          pelo link público) entrem automaticamente na sua agenda pessoal.
         </p>
       </div>
 

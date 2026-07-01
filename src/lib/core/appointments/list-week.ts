@@ -126,15 +126,13 @@ export async function listAppointmentsForWeek(
     })
     type DecryptRow = { id: string; full_name: string | null; anonymized_at: string | null }
     for (const p of (rpc.data ?? []) as DecryptRow[]) {
-      patientNames.set(p.id, p.anonymized_at ? '[anonimizado]' : p.full_name ?? '—')
+      patientNames.set(p.id, p.anonymized_at ? '[anonimizado]' : (p.full_name ?? '—'))
     }
   }
 
   // Conta assistentes ativos por appointment_id em batch (feature 013).
   const assistantsByAppointment = new Map<string, number>()
-  const apptIdsForAssist = rows
-    .map((r) => r.id)
-    .filter((v): v is string => typeof v === 'string')
+  const apptIdsForAssist = rows.map((r) => r.id).filter((v): v is string => typeof v === 'string')
   if (apptIdsForAssist.length > 0) {
     try {
       const { data: assistantRows } = await supabase
@@ -179,8 +177,7 @@ export async function listAppointmentsForWeek(
         doctorId: r.doctor_id as string,
         doctorName: r.doctors?.full_name ?? '—',
         procedureId: r.procedure_id as string,
-        procedureLabel:
-          r.procedures?.display_name?.trim() || r.procedures?.tuss_code || '—',
+        procedureLabel: r.procedures?.display_name?.trim() || r.procedures?.tuss_code || '—',
         appointmentAt: at,
         durationMinutes: r.duration_minutes ?? DEFAULT_DURATION_MINUTES,
         effectiveStatus: status,

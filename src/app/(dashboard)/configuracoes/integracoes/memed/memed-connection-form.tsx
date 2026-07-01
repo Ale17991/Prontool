@@ -81,7 +81,11 @@ export function MemedConnectionForm({
   const active = Boolean(initialConfig?.connected)
   const onDone = () => router.refresh()
   return active ? (
-    <ActivePanel config={initialConfig!} productionConfigured={productionConfigured} onDone={onDone} />
+    <ActivePanel
+      config={initialConfig!}
+      productionConfigured={productionConfigured}
+      onDone={onDone}
+    />
   ) : (
     <ActivateCard productionConfigured={productionConfigured} onDone={onDone} />
   )
@@ -206,7 +210,12 @@ function ActivateCard({
               <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
-              <Button size="sm" disabled={!agreed || submitting} onClick={activate} className="gap-2">
+              <Button
+                size="sm"
+                disabled={!agreed || submitting}
+                onClick={activate}
+                className="gap-2"
+              >
                 <CheckCircle2 className="h-4 w-4" />
                 {submitting ? 'Ativando…' : 'Ativar prescrição digital'}
               </Button>

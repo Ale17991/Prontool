@@ -7,7 +7,12 @@
  */
 import { test, expect } from '@playwright/test'
 import { loginAsAdmin } from './fixtures'
-import { seedMemedFixture, stubMemedSdk, openPrescription, type MemedE2eFixture } from './memed-helpers'
+import {
+  seedMemedFixture,
+  stubMemedSdk,
+  openPrescription,
+  type MemedE2eFixture,
+} from './memed-helpers'
 
 let fixture: MemedE2eFixture
 
@@ -26,9 +31,11 @@ test('setFeatureToggle desativado não é sobrescrito pelo wrapper Clinni', asyn
 
   // Memed desativa a feature dentro do iframe.
   await page.evaluate(() => {
-    ;(window as unknown as {
-      __emitFeatureToggle: (a: { feature: string; enabled: boolean }) => void
-    }).__emitFeatureToggle({ feature: 'manualPrescription', enabled: false })
+    ;(
+      window as unknown as {
+        __emitFeatureToggle: (a: { feature: string; enabled: boolean }) => void
+      }
+    ).__emitFeatureToggle({ feature: 'manualPrescription', enabled: false })
   })
 
   // 1) Dentro do iframe a feature sumiu — e o wrapper não a ressuscitou.
@@ -51,7 +58,9 @@ test('setFeatureToggle desativado não é sobrescrito pelo wrapper Clinni', asyn
 
   // 4) O wrapper apenas OBSERVOU o toggle (registro), sem reagir reativando.
   const observed = await page.evaluate(
-    () => (window as unknown as { __lastFeatureToggle?: { feature: string; enabled: boolean } }).__lastFeatureToggle,
+    () =>
+      (window as unknown as { __lastFeatureToggle?: { feature: string; enabled: boolean } })
+        .__lastFeatureToggle,
   )
   expect(observed).toEqual({ feature: 'manualPrescription', enabled: false })
 })

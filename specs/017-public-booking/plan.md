@@ -34,15 +34,15 @@ Expor uma rota pública `/agendar/[slug]` (sem autenticação) onde pacientes po
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Aplicabilidade | Status | Justificativa |
-|---|---|---|---|
-| **I. Integridade Financeira Imutável** | Aplicável indiretamente — appointments é tabela financeira | ✅ **Pass** | Apenas INSERT em `appointments` com `status='agendado'`. Sem UPDATE/DELETE em registros existentes. Origem "pública" marcada via `audit_log` (não nova coluna em appointments). Cancelamento via token usa fluxo existente que respeita imutabilidade (status muda para cancelado/estornado conforme política do projeto). |
-| **II. Auditabilidade Total** | Aplicável diretamente | ✅ **Pass** | Cada operação pública (visualização, criação, cancelamento) gera `audit_log` com `actor_id=NULL`, `actor_label='public_booking'`, `event_type` discriminador, IP como **hash** (FR-018), user-agent. `log_audit_event` existente é reusado. |
-| **III. Isolamento Multi-Tenant** | Aplicável diretamente — **CRÍTICO** | ✅ **Pass** | `slug → tenant_id` via RPC com filtro explícito por `public_booking_enabled = TRUE`. RPC `public_booking_slots` SECURITY DEFINER **valida** que `(doctor, procedure)` está em `public_booking_doctor_procedures` daquele tenant antes de retornar slots. Todas as INSERTs derivam `tenant_id` da resolução do slug — nunca aceitam `tenant_id` do client. **Teste de contrato obrigatório** (FR-033, SC-005) prova isolamento antes do merge. |
-| **IV. Conformidade TUSS/ANS** | N/A | ✅ **Pass** | `procedure_id` referenciado em `public_booking_doctor_procedures` aponta para `procedures` existente, que já é TUSS-conforme. Sem novos códigos TUSS introduzidos. |
-| **V. Segurança por Perfil (RBAC)** | Aplicável — **novo padrão** | ✅ **Pass com nota** | Rota pública é **novo padrão** ("guest" anônimo). RBAC server-side: rota pública só pode INSERT em paths dedicados (`appointments`, `patients` se novo, `audit_log`, `public_booking_tokens`, `public_booking_rate_limits`, `notifications`); MUST NOT SELECT em entidades existentes (FR-034). Tela admin `/configuracoes/agendamento-publico` restrita a `admin`+`recepcionista` via `requireRole` existente. **Teste de autorização** garante que rota pública sem JWT não pode ler dados privados. |
+| Principle                              | Aplicabilidade                                             | Status               | Justificativa                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------------- | ---------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **I. Integridade Financeira Imutável** | Aplicável indiretamente — appointments é tabela financeira | ✅ **Pass**          | Apenas INSERT em `appointments` com `status='agendado'`. Sem UPDATE/DELETE em registros existentes. Origem "pública" marcada via `audit_log` (não nova coluna em appointments). Cancelamento via token usa fluxo existente que respeita imutabilidade (status muda para cancelado/estornado conforme política do projeto).                                                                                                                                                                             |
+| **II. Auditabilidade Total**           | Aplicável diretamente                                      | ✅ **Pass**          | Cada operação pública (visualização, criação, cancelamento) gera `audit_log` com `actor_id=NULL`, `actor_label='public_booking'`, `event_type` discriminador, IP como **hash** (FR-018), user-agent. `log_audit_event` existente é reusado.                                                                                                                                                                                                                                                            |
+| **III. Isolamento Multi-Tenant**       | Aplicável diretamente — **CRÍTICO**                        | ✅ **Pass**          | `slug → tenant_id` via RPC com filtro explícito por `public_booking_enabled = TRUE`. RPC `public_booking_slots` SECURITY DEFINER **valida** que `(doctor, procedure)` está em `public_booking_doctor_procedures` daquele tenant antes de retornar slots. Todas as INSERTs derivam `tenant_id` da resolução do slug — nunca aceitam `tenant_id` do client. **Teste de contrato obrigatório** (FR-033, SC-005) prova isolamento antes do merge.                                                          |
+| **IV. Conformidade TUSS/ANS**          | N/A                                                        | ✅ **Pass**          | `procedure_id` referenciado em `public_booking_doctor_procedures` aponta para `procedures` existente, que já é TUSS-conforme. Sem novos códigos TUSS introduzidos.                                                                                                                                                                                                                                                                                                                                     |
+| **V. Segurança por Perfil (RBAC)**     | Aplicável — **novo padrão**                                | ✅ **Pass com nota** | Rota pública é **novo padrão** ("guest" anônimo). RBAC server-side: rota pública só pode INSERT em paths dedicados (`appointments`, `patients` se novo, `audit_log`, `public_booking_tokens`, `public_booking_rate_limits`, `notifications`); MUST NOT SELECT em entidades existentes (FR-034). Tela admin `/configuracoes/agendamento-publico` restrita a `admin`+`recepcionista` via `requireRole` existente. **Teste de autorização** garante que rota pública sem JWT não pode ler dados privados. |
 
 **Gates adicionais (Quality)**:
 
@@ -154,6 +154,7 @@ tests/
 ### Phase 0 — Outline & Research ✅ COMPLETO
 
 Output: [research.md](./research.md). Resolveu 19 itens, incluindo:
+
 - ⚠ Decisão crítica: disponibilidade do médico declarada no escopo da feature pública (não em tabela genérica).
 - Padrões de SECURITY DEFINER do projeto (3 exemplos auditados).
 - Estratégia de criptografia de PII reaproveitada.
@@ -168,6 +169,7 @@ Zero `NEEDS CLARIFICATION` remanescente. Há 1 ponto a confirmar durante impleme
 ### Phase 1 — Design & Contracts (este passo)
 
 Outputs:
+
 - `data-model.md` — 5 entidades novas + 1 ALTER + 1 CHECK expansion + 3 RPCs.
 - `contracts/api-slots.contract.md` — GET `/api/public/booking/[slug]/slots`.
 - `contracts/api-create-booking.contract.md` — POST `/api/public/booking/[slug]/create`.
@@ -179,6 +181,7 @@ Outputs:
 ### Phase 2 — Tasks (gerado por `/speckit-tasks`)
 
 Não escrito por este comando. Esperado: decomposição das 5 user stories em tarefas atômicas, ordenadas por:
+
 1. Migration + RPCs (foundational)
 2. US2 (config admin) — primeiro porque sem ela US1 não pode ser testado
 3. US1 (fluxo paciente) — usa US2 para validar
@@ -194,8 +197,8 @@ Commit + push por user story.
 > **Sem violações de constituição**. Tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |
 
 **Nota sobre o "novo padrão de papel guest"**: não é violação — é extensão consistente do princípio V (RBAC server-side, defesa em camadas). Documentado em research §11.
 
