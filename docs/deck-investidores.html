@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinni — Deck de Captação</title>
+<style>
+  :root{
+    --bg:#0f172a; --bg2:#1e293b; --card:#ffffff; --ink:#0f172a;
+    --muted:#64748b; --line:#e2e8f0; --teal:#0ea5a4; --teal-d:#0f766e;
+    --accent:#14b8a6; --soft:#f0fdfa; --amber:#b45309; --amber-bg:#fffbeb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);overflow:hidden;
+  }
+  .deck{height:100vh;width:100vw;position:relative}
+  .slide{
+    position:absolute;inset:0;display:none;flex-direction:column;
+    padding:5vh 7vw;background:var(--card);
+    animation:fade .35s ease;overflow:auto;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* Cover */
+  .cover{background:linear-gradient(135deg,#0f766e 0%,#0f172a 100%);color:#fff;justify-content:center}
+  .cover h1{font-size:5.2rem;font-weight:800;letter-spacing:-2px;line-height:1}
+  .cover .tag{font-size:1.6rem;margin-top:1.2rem;color:#a7f3d0;font-weight:500;max-width:760px}
+  .cover .meta{margin-top:3rem;font-size:1.05rem;color:#cbd5e1}
+  .cover .badge{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    padding:.4rem 1rem;border-radius:999px;font-size:.95rem;color:#fff;margin-bottom:2rem;font-weight:600}
+
+  .kicker{color:var(--teal-d);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.6rem}
+  h2{font-size:2.7rem;font-weight:800;letter-spacing:-1px;line-height:1.05;margin-bottom:1.6rem;color:var(--ink)}
+  h2 .em{color:var(--teal-d)}
+  .lead{font-size:1.35rem;color:var(--muted);max-width:60ch;margin-bottom:1.4rem;line-height:1.5}
+
+  ul{list-style:none;display:flex;flex-direction:column;gap:.9rem;max-width:80ch}
+  li{font-size:1.25rem;line-height:1.45;padding-left:1.8rem;position:relative}
+  li::before{content:"";position:absolute;left:0;top:.55em;width:.7rem;height:.7rem;border-radius:3px;background:var(--teal)}
+  li b{color:var(--teal-d)}
+  .quote{margin-top:auto;font-size:1.5rem;font-weight:600;color:var(--ink);border-left:4px solid var(--teal);
+    padding:.6rem 0 .6rem 1.4rem;line-height:1.4;max-width:70ch}
+
+  table{border-collapse:collapse;width:100%;font-size:1.15rem;margin-top:.4rem}
+  th,td{text-align:left;padding:.75rem 1rem;border-bottom:1px solid var(--line)}
+  th{background:var(--soft);color:var(--teal-d);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.5px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:#f8fafc}
+  .hi{color:var(--teal-d);font-weight:800}
+  .neg{color:#b91c1c;font-weight:700}
+  .pos{color:#15803d;font-weight:800}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem 3rem;align-items:start}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:.5rem}
+  .card{background:var(--soft);border:1px solid #ccfbf1;border-radius:14px;padding:1.2rem 1.4rem}
+  .card h3{font-size:1.15rem;color:var(--teal-d);margin-bottom:.3rem}
+  .card p{font-size:1.05rem;color:var(--muted);line-height:1.4}
+
+  .stat{display:flex;gap:2.5rem;margin:1rem 0 1.6rem;flex-wrap:wrap}
+  .stat .b{font-size:2.6rem;font-weight:800;color:var(--teal-d);line-height:1}
+  .stat .l{font-size:1rem;color:var(--muted);margin-top:.3rem;max-width:18ch}
+
+  .note{background:var(--amber-bg);border:1px solid #fde68a;color:var(--amber);
+    padding:1rem 1.3rem;border-radius:12px;font-size:1.05rem;margin-top:1.2rem;line-height:1.45;max-width:90ch}
+  .fineprint{font-size:.92rem;color:var(--muted);margin-top:auto;padding-top:1rem}
+  .src{font-size:.9rem;color:var(--muted);line-height:1.7;word-break:break-word}
+  .src a{color:var(--teal-d);text-decoration:none}
+
+  /* nav chrome */
+  .bar{position:fixed;left:0;bottom:0;height:5px;background:var(--teal);z-index:50;transition:width .3s}
+  .counter{position:fixed;right:18px;bottom:14px;font-size:.85rem;color:#94a3b8;z-index:50;
+    background:rgba(15,23,42,.65);color:#e2e8f0;padding:.25rem .7rem;border-radius:999px;backdrop-filter:blur(6px)}
+  .hint{position:fixed;left:18px;bottom:12px;font-size:.78rem;color:#94a3b8;z-index:50}
+  .navzone{position:fixed;top:0;height:100vh;width:12vw;z-index:40;cursor:pointer}
+  .navzone.l{left:0}.navzone.r{right:0}
+  .flag{display:inline-block;background:#fef3c7;color:#92400e;font-size:.7em;font-weight:700;
+    padding:.05em .45em;border-radius:5px;vertical-align:middle;margin-left:.2em}
+  .small{font-size:.95rem;color:var(--muted)}
+  @media print{
+    body{overflow:visible}.slide{display:flex!important;position:relative;height:100vh;page-break-after:always;inset:auto}
+    .bar,.counter,.hint,.navzone{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide cover active">
+    <div><span class="badge">Rodada Seed · 2026</span></div>
+    <h1>Clinni</h1>
+    <p class="tag">Gestão completa para clínicas e consultórios — feita sob medida para cada especialidade.</p>
+    <p class="meta">Álefe Lima Martins · CEO &amp; Co-fundador · (27) 99273-4155 · clinnipro.com.br</p>
+  </section>
+
+  <!-- 2 PROBLEMA -->
+  <section class="slide">
+    <div class="kicker">O problema</div>
+    <h2>A clínica vive presa no operacional</h2>
+    <ul>
+      <li><b>Agenda, prontuário e financeiro em sistemas separados</b> — ou no papel. Retrabalho e dado que não conversa.</li>
+      <li><b>Software genérico</b> que não entende a rotina de cada especialidade (odonto, oftalmo, convênio/TISS, endócrino).</li>
+      <li><b>Faturamento de convênio (TISS) e repasse médico na mão</b> — fonte crônica de erro e receita perdida em glosas.</li>
+      <li>Ferramentas <b>cobradas por profissional</b>, que encarecem rápido conforme a clínica cresce.</li>
+    </ul>
+    <p class="quote">O gestor não precisa de mais um sistema. Precisa de um parceiro que tire o operacional do caminho para ele cuidar do paciente.</p>
+  </section>
+
+  <!-- 3 SOLUÇÃO -->
+  <section class="slide">
+    <div class="kicker">A solução</div>
+    <h2>Uma plataforma única que se <span class="em">molda à especialidade</span></h2>
+    <ul>
+      <li>Agenda + agendamento público + lembretes (e-mail/WhatsApp)</li>
+      <li>Prontuário clínico, anamnese e <b>prescrição digital (Memed)</b></li>
+      <li>Financeiro completo: contas a receber/pagar, fluxo de caixa, <b>repasse e comissão médica</b></li>
+      <li><b>Faturamento TISS</b> nativo para convênios</li>
+      <li>Portal do paciente, CRM e chat interno</li>
+      <li><b>Módulos por especialidade</b> ativáveis por clínica</li>
+    </ul>
+    <p class="fineprint">Multi-tenant · permissões granulares · isolamento de dados por clínica.</p>
+  </section>
+
+  <!-- 4 PRODUTO / MÓDULOS -->
+  <section class="slide">
+    <div class="kicker">Produto</div>
+    <h2>O diferencial são os <span class="em">módulos</span></h2>
+    <p class="lead">O núcleo serve qualquer clínica. O que prende o cliente é a especialização.</p>
+    <table>
+      <thead><tr><th>Módulo</th><th>Para quem</th></tr></thead>
+      <tbody>
+        <tr><td>Convênio / <b>TISS</b></td><td>Clínicas que faturam plano de saúde</td></tr>
+        <tr><td><b>Odontologia</b> (odontograma, periograma)</td><td>Consultórios e clínicas odonto</td></tr>
+        <tr><td><b>Oftalmologia</b></td><td>Clínicas oftalmo</td></tr>
+        <tr><td><b>Endócrino</b> + portal do paciente</td><td>Endocrinologia / acompanhamento metabólico</td></tr>
+        <tr><td>Telemedicina, Treino, Dieta, CRM</td><td>Add-ons de expansão</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Cada módulo é uma alavanca de <b>expansion revenue</b> (mais receita por cliente, sem novo CAC) e um <b>fosso competitivo</b> — o genérico não tem TISS, odontograma nem repasse nativo.</div>
+  </section>
+
+  <!-- 5 MERCADO -->
+  <section class="slide">
+    <div class="kicker">Mercado · Brasil 📊</div>
+    <h2>Grande e mal atendido</h2>
+    <div class="stat">
+      <div><div class="b">653.945</div><div class="l">médicos no Brasil (2025)</div></div>
+      <div><div class="b">450 mil</div><div class="l">cirurgiões-dentistas — o maior nº do mundo</div></div>
+      <div><div class="b">+18%/ano</div><div class="l">crescimento do setor healthtech</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Camada</th><th>Definição</th><th class="num">Unidades</th><th class="num">Receita/ano</th></tr></thead>
+      <tbody>
+        <tr><td><b>TAM</b></td><td>Clínicas/consultórios médicos + odonto digitalizáveis</td><td class="num">~250–300 mil <span class="flag">🔧</span></td><td class="num hi">~R$ 1,0–1,2 bi</td></tr>
+        <tr><td><b>SAM</b></td><td>Pequeno/médio porte, especialidades-chave</td><td class="num">~120 mil</td><td class="num hi">~R$ 475 mi</td></tr>
+        <tr><td><b>SOM</b></td><td>Meta em 5 anos (~2% do SAM)</td><td class="num">~2.300</td><td class="num hi">~R$ 11 mi ARR</td></tr>
+      </tbody>
+    </table>
+    <p class="fineprint">Fontes: Demografia Médica 2025 (CFM) · CFO 2025 · Distrito HealthTech Report 2025. ARPA ~R$ 330/clínica/mês.</p>
+  </section>
+
+  <!-- 6 COMPETITIVO -->
+  <section class="slide">
+    <div class="kicker">Cenário competitivo 📊</div>
+    <h2>O genérico cobra <span class="em">por profissional</span></h2>
+    <table>
+      <thead><tr><th>Player</th><th>Preço real (2025)</th><th>Modelo</th></tr></thead>
+      <tbody>
+        <tr><td><b>iClinic</b></td><td>R$ 99–299 / profissional / mês</td><td>Genérico (prontuário/agenda)</td></tr>
+        <tr><td><b>Feegow</b></td><td>R$ 129–249 / profissional / mês</td><td>Genérico (clínica média)</td></tr>
+        <tr><td>Ninsaúde / outros</td><td>Sob cotação, por usuário</td><td>Genérico</td></tr>
+        <tr style="background:var(--soft)"><td><b>Clinni</b></td><td><b>R$ 149–599 / clínica</b> + módulos</td><td><b>Especializado por nicho</b></td></tr>
+      </tbody>
+    </table>
+    <div class="cards">
+      <div class="card"><h3>Fosso 1 — Especialização real</h3><p>TISS, odontograma, periograma, repasse, portal endócrino. O genérico não tem.</p></div>
+      <div class="card"><h3>Fosso 2 — Preço por clínica</h3><p>Previsível e mais barato para quem tem equipe. Remove o "imposto por cabeça" que pune o crescimento do cliente.</p></div>
+    </div>
+  </section>
+
+  <!-- 7 MODELO DE NEGÓCIO -->
+  <section class="slide">
+    <div class="kicker">Modelo de negócio</div>
+    <h2>Assinatura recorrente · <span class="em">land &amp; expand</span></h2>
+    <table>
+      <thead><tr><th>Plano</th><th>Para</th><th class="num">Preço/mês <span class="flag">🔧</span></th></tr></thead>
+      <tbody>
+        <tr><td><b>Essencial</b></td><td>Consultório individual (agenda, prontuário, prescrição)</td><td class="num">R$ 149</td></tr>
+        <tr><td><b>Pro</b></td><td>Clínica c/ financeiro, repasse, relatórios</td><td class="num">R$ 299</td></tr>
+        <tr><td><b>Clínica</b></td><td>Multiunidade, auditoria, BI</td><td class="num">R$ 599</td></tr>
+        <tr><td>Add-on por módulo</td><td>TISS, Odonto, Oftalmo, Portal…</td><td class="num">+R$ 79 cada</td></tr>
+      </tbody>
+    </table>
+    <ul style="margin-top:1.2rem">
+      <li><b>ARPA ~R$ 330/mês</b>, crescendo com upsell de módulos (expansion sem novo CAC).</li>
+      <li>Receita 100% recorrente · cobrança automática · entra no Essencial → sobe para Pro → contrata módulos.</li>
+    </ul>
+  </section>
+
+  <!-- 8 TRAÇÃO -->
+  <section class="slide">
+    <div class="kicker">Onde estamos hoje</div>
+    <h2>Produto <span class="em">em produção</span>, com clientes pagantes</h2>
+    <ul>
+      <li>✅ Plataforma multi-tenant em produção, com clientes pagantes.</li>
+      <li>✅ <b>40+ features/módulos</b> entregues (agenda, financeiro, TISS, odonto, oftalmo, portal, prescrição, chat).</li>
+      <li>✅ Painel /admin com <b>MRR e gestão de planos</b> já operacional.</li>
+      <li>🎯 <b>Meta 2026:</b> chegar a 40 clínicas pagantes até dezembro (ramp do 2º semestre).</li>
+    </ul>
+    <div class="stat" style="margin-top:1.4rem">
+      <div><div class="b">[ X ]</div><div class="l">clientes pagantes hoje <span class="flag">🔧</span></div></div>
+      <div><div class="b">R$ [ Y ]</div><div class="l">MRR atual · [Z%] m/m <span class="flag">🔧</span></div></div>
+      <div><div class="b">[ … ]</div><div class="l">churn / NPS / casos <span class="flag">🔧</span></div></div>
+    </div>
+    <div class="note">A rodada é para <b>acelerar a aquisição</b>, não para construir do zero. Eficiência de capital já comprovada.</div>
+  </section>
+
+  <!-- 9 GO TO MARKET -->
+  <section class="slide">
+    <div class="kicker">Go-to-market</div>
+    <h2>Aquisição de baixo custo e ciclo curto</h2>
+    <ul>
+      <li><b>Inbound + conteúdo por especialidade</b> — SEO/landing por nicho ("software para clínica odonto", "faturamento TISS").</li>
+      <li><b>Inside sales</b> — ciclo curto; ticket comporta vendedor júnior (payback &lt; 6 meses).</li>
+      <li><b>Indicação</b> — clínica satisfeita traz colega (programa de referral).</li>
+      <li><b>Parcerias</b> — contadores de saúde, conselhos regionais, fornecedores do setor.</li>
+      <li><b>Land &amp; expand</b> — entra barato no núcleo, expande via módulos (NRR &gt; 100%).</li>
+    </ul>
+  </section>
+
+  <!-- 10 UNIT ECONOMICS -->
+  <section class="slide">
+    <div class="kicker">Unit economics · benchmarkado 📊</div>
+    <h2>Metas <span class="em">dentro</span> do benchmark de SaaS SMB</h2>
+    <table>
+      <thead><tr><th>Métrica</th><th>Clinni (meta) <span class="flag">🔧</span></th><th>Benchmark SaaS SMB 2025</th></tr></thead>
+      <tbody>
+        <tr><td>Margem bruta</td><td class="hi">80%</td><td>70–80%</td></tr>
+        <tr><td>Churn mensal (logo)</td><td class="hi">2,5% → 1,8%</td><td>3–5% (SMB)</td></tr>
+        <tr><td>CAC</td><td>R$ 1.200</td><td>—</td></tr>
+        <tr><td>Payback do CAC</td><td class="hi">~4,5 meses</td><td>alvo &lt; 12 meses</td></tr>
+        <tr><td>LTV</td><td>R$ 8,8k–10,5k</td><td>US$ 15k–40k</td></tr>
+        <tr><td><b>LTV / CAC</b></td><td class="hi">~6x a 9x</td><td>3:1 mín · 5:1+ eficiente</td></tr>
+      </tbody>
+    </table>
+    <div class="note">SMB tem churn alto por natureza — nosso antídoto é a <b>especialização + módulos</b> (lock-in de dado clínico + expansion). Mesmo no cenário pessimista (churn 3%, CAC R$ 1,8k), LTV/CAC ~6x e payback &lt; 6 meses.</div>
+  </section>
+
+  <!-- 11 PROJEÇÃO 5 ANOS -->
+  <section class="slide">
+    <div class="kicker">Projeção financeira · 5 anos ⭐</div>
+    <h2>Saída em <span class="em">~R$ 11 mi de ARR</span></h2>
+    <table>
+      <thead><tr><th>Fim do ano</th><th class="num">2027</th><th class="num">2028</th><th class="num">2029</th><th class="num">2030</th><th class="num">2031</th></tr></thead>
+      <tbody>
+        <tr><td>Clínicas ativas</td><td class="num">120</td><td class="num">350</td><td class="num">750</td><td class="num">1.400</td><td class="num">2.300</td></tr>
+        <tr><td>ARPA (R$/mês)</td><td class="num">330</td><td class="num">345</td><td class="num">360</td><td class="num">375</td><td class="num">390</td></tr>
+        <tr><td><b>MRR (R$ mil)</b></td><td class="num hi">40</td><td class="num hi">121</td><td class="num hi">270</td><td class="num hi">525</td><td class="num hi">897</td></tr>
+        <tr><td><b>ARR (R$ mil)</b></td><td class="num hi">475</td><td class="num hi">1.450</td><td class="num hi">3.240</td><td class="num hi">6.300</td><td class="num hi">10.760</td></tr>
+        <tr><td>Receita reconhecida (R$ mil)</td><td class="num">300</td><td class="num">950</td><td class="num">2.330</td><td class="num">4.700</td><td class="num">8.560</td></tr>
+      </tbody>
+    </table>
+    <p class="fineprint">Ano 1 = 2027 (base de ~40 clínicas ao fim de 2026). Crescimento de ARR ~3x ao ano nos primeiros anos, desacelerando conforme a base cresce. 2031 = 2% do SAM. <span class="flag">🔧</span></p>
+  </section>
+
+  <!-- 12 P&L / BREAKEVEN -->
+  <section class="slide">
+    <div class="kicker">P&amp;L resumido ⭐</div>
+    <h2>Breakeven operacional no <span class="em">Ano 5</span></h2>
+    <table>
+      <thead><tr><th>R$ mil</th><th class="num">2027</th><th class="num">2028</th><th class="num">2029</th><th class="num">2030</th><th class="num">2031</th></tr></thead>
+      <tbody>
+        <tr><td>Receita</td><td class="num">300</td><td class="num">950</td><td class="num">2.330</td><td class="num">4.700</td><td class="num">8.560</td></tr>
+        <tr><td>(–) COGS (20%)</td><td class="num">(60)</td><td class="num">(190)</td><td class="num">(466)</td><td class="num">(940)</td><td class="num">(1.712)</td></tr>
+        <tr><td>Margem bruta</td><td class="num">240</td><td class="num">760</td><td class="num">1.864</td><td class="num">3.760</td><td class="num">6.848</td></tr>
+        <tr><td>(–) Pessoas</td><td class="num">(600)</td><td class="num">(1.200)</td><td class="num">(2.000)</td><td class="num">(3.000)</td><td class="num">(4.000)</td></tr>
+        <tr><td>(–) Marketing &amp; Vendas</td><td class="num">(180)</td><td class="num">(420)</td><td class="num">(750)</td><td class="num">(1.100)</td><td class="num">(1.500)</td></tr>
+        <tr><td>(–) G&amp;A / ferramentas</td><td class="num">(100)</td><td class="num">(200)</td><td class="num">(320)</td><td class="num">(450)</td><td class="num">(600)</td></tr>
+        <tr><td><b>EBITDA</b></td><td class="num neg">(640)</td><td class="num neg">(1.060)</td><td class="num neg">(1.206)</td><td class="num neg">(790)</td><td class="num pos">+748</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Burn acumulado até virar ≈ <b>R$ 3,7 mi</b> → estratégia: <b>seed agora + Series A no Ano 2/3</b>. Crescimento ~3x + margem 80% mantêm o negócio na fronteira da Regra dos 40.</div>
+  </section>
+
+  <!-- 13 PREMISSAS -->
+  <section class="slide">
+    <div class="kicker">Premissas-chave · transparência</div>
+    <h2>Tudo sai de <span class="em">poucas alavancas</span></h2>
+    <ul>
+      <li><b>Aquisição:</b> novas clínicas/mês partindo de ~5 e escalando com S&amp;M.</li>
+      <li><b>Churn mensal:</b> 2,5% → 1,8% (abaixo do benchmark SMB de 3–5% por causa do lock-in clínico + contratos anuais + módulos).</li>
+      <li><b>ARPA:</b> R$ 330 → R$ 390 via upsell de planos e add-ons.</li>
+      <li><b>Margem bruta:</b> 80% (infra Vercel/Supabase, Resend, suporte, taxas).</li>
+      <li><b>Preços:</b> 149 / 299 / 599 + add-on 79 — coerentes com iClinic/Feegow.</li>
+      <li><b>CAC:</b> R$ 1.200 (inbound + inside sales).</li>
+    </ul>
+    <p class="fineprint">Números conservadores onde há incerteza. A planilha dinâmica roda cenários base / otimista / pessimista. <span class="flag">🔧</span></p>
+  </section>
+
+  <!-- 14 RISCOS -->
+  <section class="slide">
+    <div class="kicker">Riscos &amp; mitigações</div>
+    <h2>O que pode dar errado — e o plano</h2>
+    <table>
+      <thead><tr><th>Risco</th><th>Mitigação</th></tr></thead>
+      <tbody>
+        <tr><td><b>Churn de SMB</b> (alto por natureza)</td><td>Módulos + lock-in de dado clínico + contratos anuais; foco em onboarding</td></tr>
+        <tr><td>CAC sobe com escala</td><td>Mix inbound/referral; conteúdo por nicho; expansion sem novo CAC</td></tr>
+        <tr><td>Concorrentes com mais caixa</td><td>Especialização que o genérico não cobre; preço por clínica</td></tr>
+        <tr><td>Dependência de terceiros (Memed, TISS, WhatsApp)</td><td>Arquitetura de adapters plugável; múltiplos provedores</td></tr>
+        <tr><td>Regulatório (LGPD, ANS/TISS, CFM)</td><td>Isolamento por tenant; TISS no padrão ANS; trilha de auditoria</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 15 ASK -->
+  <section class="slide cover" style="background:linear-gradient(135deg,#0f766e 0%,#0f172a 100%);color:#fff;justify-content:flex-start;padding-top:8vh">
+    <div class="kicker" style="color:#5eead4">A captação ⭐</div>
+    <h2 style="color:#fff;font-size:3.4rem">Buscamos <span style="color:#5eead4">R$ 2,5 milhões</span> (seed) <span class="flag">🔧</span></h2>
+    <table style="color:#e2e8f0">
+      <thead><tr><th style="background:rgba(255,255,255,.08);color:#5eead4">Destino</th><th class="num" style="background:rgba(255,255,255,.08);color:#5eead4">%</th><th style="background:rgba(255,255,255,.08);color:#5eead4">Objetivo</th></tr></thead>
+      <tbody style="color:#e2e8f0">
+        <tr><td>Vendas &amp; Marketing</td><td class="num">45%</td><td>Máquina de aquisição (inside sales + inbound)</td></tr>
+        <tr><td>Produto &amp; Engenharia</td><td class="num">30%</td><td>Novos módulos de especialidade + escala</td></tr>
+        <tr><td>Sucesso do cliente</td><td class="num">15%</td><td>Onboarding e retenção (reduzir churn)</td></tr>
+        <tr><td>G&amp;A / reserva</td><td class="num">10%</td><td>Operação e contingência</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:1.6rem;font-size:1.25rem;color:#cbd5e1;max-width:80ch">~18 meses de runway → de <b style="color:#fff">~40</b> para <b style="color:#fff">~350 clínicas</b> (≈ R$ 1,45 mi ARR), unit economics provados e prontos para a <b style="color:#fff">Series A</b>.</p>
+  </section>
+
+  <!-- 16 ROADMAP -->
+  <section class="slide">
+    <div class="kicker">Roadmap &amp; marcos</div>
+    <h2>Da tração à escala em 36 meses</h2>
+    <table>
+      <thead><tr><th>Horizonte</th><th>Marco</th></tr></thead>
+      <tbody>
+        <tr><td><b>2026 · 2º sem.</b></td><td>Chegar a 40 clínicas pagantes · validar go-to-market</td></tr>
+        <tr><td><b>2027 · Ano 1</b></td><td>Máquina de inside sales rodando · ~120 clínicas</td></tr>
+        <tr><td><b>2028 · Ano 2</b></td><td>~350 clínicas · R$ 120k+ MRR · pronto para Series A</td></tr>
+        <tr><td><b>2029–2031</b></td><td>Series A · expansão nacional · liderança em nichos de especialidade</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 17 TIME -->
+  <section class="slide">
+    <div class="kicker">Time</div>
+    <h2>Enxuto e <span class="em">eficiente em capital</span></h2>
+    <ul>
+      <li><b>Álefe Lima Martins</b> — CEO &amp; Co-fundador. Visão de produto e conhecimento do setor de saúde.</li>
+      <li><b>[CTO / Eng]</b> — plataforma já em produção, stack moderna (Next.js, Supabase).</li>
+      <li><b>[Vendas / Growth]</b> — a contratar com a rodada.</li>
+    </ul>
+    <div class="note">Diferencial: <b>produto completo, em produção, construído por um time enxuto</b> — eficiência de capital comprovada antes mesmo da rodada.</div>
+  </section>
+
+  <!-- 18 FECHAMENTO -->
+  <section class="slide cover" style="background:linear-gradient(135deg,#0f766e 0%,#0f172a 100%);color:#fff;justify-content:center">
+    <h1 style="font-size:4rem">O sistema que se molda à clínica</h1>
+    <ul style="margin-top:2rem;color:#e2e8f0">
+      <li style="color:#e2e8f0">Produto maduro, em produção, com clientes pagantes.</li>
+      <li style="color:#e2e8f0">Mercado de ~R$ 1 bi, mal atendido por software genérico.</li>
+      <li style="color:#e2e8f0">Payback ~4,5 meses · LTV/CAC ~6–9x.</li>
+      <li style="color:#e2e8f0"><b style="color:#fff">R$ 2,5 mi para transformar tração em escala.</b></li>
+    </ul>
+    <p class="meta" style="margin-top:2.5rem">Vamos conversar — Álefe Lima Martins · (27) 99273-4155 · clinnipro.com.br</p>
+  </section>
+
+  <!-- 19 FONTES -->
+  <section class="slide">
+    <div class="kicker">Anexo A — Fontes &amp; benchmarks</div>
+    <h2 style="font-size:2rem">Para due diligence</h2>
+    <div class="grid2">
+      <div>
+        <h3 style="color:var(--teal-d);margin-bottom:.5rem">Mercado / setor</h3>
+        <p class="src">
+          Demografia Médica no Brasil 2025 (CFM/FMUSP) — <a>bvsms.saude.gov.br/.../demografia_medica_brasil_2025.pdf</a><br>
+          CFO — 450 mil cirurgiões-dentistas (2025) — <a>website.cfo.org.br</a><br>
+          CNES / DATASUS (refino do TAM) — <a>cnes.datasus.gov.br</a><br>
+          Distrito HealthTech Report 2025 (+18% a.a.) — <a>revistavisaohospitalar.com.br</a>
+        </p>
+        <h3 style="color:var(--teal-d);margin:1rem 0 .5rem">Concorrência / preços (2026)</h3>
+        <p class="src">
+          iClinic — R$ 99–299/prof/mês — <a>iclinic.com.br/precos</a><br>
+          Feegow — R$ 129–249/prof/mês — <a>feegowclinic.com.br/precos-e-planos</a><br>
+          Ninsaúde Apolo — <a>capterra.com/p/275060/Ninsaude-Apolo</a>
+        </p>
+      </div>
+      <div>
+        <h3 style="color:var(--teal-d);margin-bottom:.5rem">Benchmarks de SaaS</h3>
+        <p class="src">
+          SaaS Churn Benchmarks 2025 (SMB 3–5%/mês) — Vena<br>
+          B2B SaaS LTV / LTV:CAC por segmento — Optifai (939 empresas)<br>
+          SaaS Metrics Benchmarks 2025 (NRR, payback) — re:cap
+        </p>
+        <div class="note" style="margin-top:1.2rem">
+          <b>Nota metodológica do TAM:</b> a faixa de 250–300 mil unidades é estimativa bottom-up (médicos + dentistas, ajustada por compartilhamento de consultório e unidades digitalizáveis). Refinar com extração direta do CNES por tipo de estabelecimento. 🔧
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="bar" id="bar"></div>
+<div class="counter" id="counter">1 / 19</div>
+<div class="hint">← → ou espaço · F = tela cheia</div>
+<div class="navzone l" id="prevZone"></div>
+<div class="navzone r" id="nextZone"></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const counter=document.getElementById('counter'), bar=document.getElementById('bar');
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    counter.textContent=(i+1)+' / '+slides.length;
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    slides[i].scrollTop=0;
+  }
+  function next(){show(i+1)} function prev(){show(i-1)}
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();next()}
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev()}
+    else if(e.key==='Home'){show(0)} else if(e.key==='End'){show(slides.length-1)}
+    else if(e.key==='f'||e.key==='F'){toggleFs()}
+  });
+  document.getElementById('nextZone').onclick=next;
+  document.getElementById('prevZone').onclick=prev;
+  function toggleFs(){ if(!document.fullscreenElement){document.documentElement.requestFullscreen?.()} else {document.exitFullscreen?.()} }
+  // touch swipe
+  let x0=null;
+  addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+  addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50){dx<0?next():prev()}x0=null},{passive:true});
+  show(0);
+</script>
+</body>
+</html>
