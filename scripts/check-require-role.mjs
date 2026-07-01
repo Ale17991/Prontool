@@ -86,9 +86,13 @@ function main() {
 
     // Autenticado se chama requireRole (gate por papel + service client) OU
     // getSession/getSessionFromRequest (qualquer papel do tenant via client RLS,
-    // ex.: /api/support-tickets — getSession devolve 401 e a RLS isola o tenant).
+    // ex.: /api/support-tickets — getSession devolve 401 e a RLS isola o tenant)
+    // OU superAdminUserId/platformAdminUserId (gate de plataforma — retorna null
+    // ⇒ 403; usado pelas rotas /api/admin/*, ex.: impersonation).
     const hasAuth =
-      /requireRole\s*\(/.test(src) || /getSession(FromRequest)?\s*\(/.test(src)
+      /requireRole\s*\(/.test(src) ||
+      /getSession(FromRequest)?\s*\(/.test(src) ||
+      /(superAdminUserId|platformAdminUserId)\s*\(/.test(src)
     if (!hasAuth) {
       offenders.push({ rel, verbs })
     }

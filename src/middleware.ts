@@ -64,6 +64,53 @@ function decodeJwtTenantId(accessToken: string | null): string | null {
 }
 
 /**
+ * Feature 043 (US5) — detecta sessão de impersonação pelo claim
+ * `app_metadata.impersonation` que o auth hook (0167) injeta no caminho
+ * cross-tenant (1b). É a garantia read-only À PROVA de adulteração: o claim
+ * viaja no JWT ASSINADO, então apagar o cookie `clinni_impersonation` não o
+ * remove; um JWT com o claim removido teria assinatura inválida (rejeitado
+ * pela RLS/PostgREST no data layer). Decode sem verificar assinatura é seguro
+ * aqui porque a decisão é BLOQUEAR (fail-safe) e um token forjado sem o claim
+ * não escreve no banco de qualquer forma.
+ */
+function isImpersonationJwt(req: NextRequest): boolean {
+  try {
+    const parts = req.cookies
+      .getAll()
+      .filter((c) => /sb-.*-auth-token(\.\d+)?$/.test(c.name))
+      .sort((a, b) => a.name.localeCompare(b.name))
+    if (parts.length === 0) return false
+    let raw = parts.map((c) => c.value).join('')
+    if (raw.startsWith('base64-')) raw = raw.slice('base64-'.length)
+    let session: unknown
+    try {
+      session = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'))
+    } catch {
+      try {
+        session = JSON.parse(raw)
+      } catch {
+        return false
+      }
+    }
+    const s = session as { access_token?: unknown } | unknown[]
+    const token =
+      typeof (s as { access_token?: unknown }).access_token === 'string'
+        ? (s as { access_token: string }).access_token
+        : Array.isArray(s) && typeof s[0] === 'string'
+          ? (s[0] as string)
+          : null
+    const middle = token?.split('.')[1]
+    if (!middle) return false
+    const payload = JSON.parse(
+      Buffer.from(middle.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'),
+    ) as { app_metadata?: { impersonation?: boolean } }
+    return payload?.app_metadata?.impersonation === true
+  } catch {
+    return false
+  }
+}
+
+/**
  * Refreshes the Supabase auth session on every request and relays the
  * updated cookies into the response. Without this middleware, Server
  * Components that call `getSession()` see a stale (or missing) session
@@ -128,17 +175,24 @@ export async function middleware(req: NextRequest) {
   }
 
   // Feature 043 (US5) — impersonação READ-ONLY: enquanto o super-admin estiver
-  // impersonando uma clínica (cookie presente), TODA escrita é bloqueada no
-  // servidor (rotas /api/* e Server Actions, ambas POST). Exceto o controle da
-  // própria impersonação e o logout. Leitura (GET/HEAD) passa normalmente.
+  // impersonando uma clínica, TODA escrita é bloqueada no servidor (rotas /api/*
+  // e Server Actions, ambas POST). Exceto o controle da própria impersonação e o
+  // logout. Leitura (GET/HEAD) passa normalmente.
+  //
+  // O sinal é o claim `app_metadata.impersonation` do JWT (assinado, inviolável
+  // — 0167) OU o cookie clinni_impersonation (cobre a janela entre start e o
+  // refreshSession do cliente, antes do claim aparecer no token). Apagar o
+  // cookie NÃO libera escrita: o claim permanece no JWT.
   if (
-    req.cookies.get(IMPERSONATION_COOKIE)?.value &&
+    // Checagens baratas primeiro (curto-circuito): só decodifica o JWT p/ achar
+    // o claim de impersonação em ESCRITA a rota não-isenta e sem o cookie.
     MUTATING_METHODS.has(req.method) &&
     // O painel da plataforma (/admin e suas Server Actions/APIs) é do
     // super-admin — NUNCA é impersonado, então nunca é bloqueado.
     !pathname.startsWith('/admin') &&
     !pathname.startsWith('/api/admin/') &&
-    !pathname.startsWith('/api/auth/logout')
+    !pathname.startsWith('/api/auth/logout') &&
+    (req.cookies.get(IMPERSONATION_COOKIE)?.value || isImpersonationJwt(req))
   ) {
     return new NextResponse(
       JSON.stringify({

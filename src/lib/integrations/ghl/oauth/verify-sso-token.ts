@@ -127,10 +127,10 @@ export async function verifySsoToken(rawToken: string): Promise<SsoTokenClaims> 
   // anterior aceitava `https://marketplace.gohighlevel.com.attacker.com`
   // como prefixo válido — subdomain hijack se atacante controlasse JWKS key.
   if (
-    claims.iss &&
+    !claims.iss ||
     !ALLOWED_ISS.some((i) => claims.iss === i || claims.iss?.startsWith(`${i}/`))
   ) {
-    throw new InvalidSsoTokenError('iss not allowed')
+    throw new InvalidSsoTokenError('iss missing or not allowed')
   }
   if (!claims.locationId) throw new InvalidSsoTokenError('locationId claim missing')
   if (!claims.userId) throw new InvalidSsoTokenError('userId claim missing')
@@ -165,10 +165,13 @@ function pickJwk(jwks: Jwks, kid: string | undefined): Jwk | null {
   if (kid) {
     const exact = jwks.keys.find((k) => k.kid === kid)
     if (exact) return exact
+    // kid informado mas ausente do JWKS: NÃO adivinhar entre várias chaves.
   }
-  // Fallback: única chave RSA disponível.
-  const rsa = jwks.keys.find((k) => k.kty === 'RSA')
-  return rsa ?? null
+  // Fallback só quando há EXATAMENTE UMA chave RSA (não-ambíguo). Com kid
+  // desconhecido e múltiplas chaves, rejeita — evita verificar contra uma
+  // chave arbitrária do JWKS.
+  const rsaKeys = jwks.keys.filter((k) => k.kty === 'RSA')
+  return rsaKeys.length === 1 ? (rsaKeys[0] ?? null) : null
 }
 
 function b64urlDecode(s: string): Buffer {

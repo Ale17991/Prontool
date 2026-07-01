@@ -37,8 +37,13 @@ const QuerySchema = z.object({
 const SlugSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{2,31}$/)
 
 function extractIp(request: NextRequest): string {
-  const xff = request.headers.get('x-forwarded-for')
-  if (xff) return xff.split(',')[0]!.trim()
+  // Fontes CONFIÁVEIS apenas. NUNCA o x-forwarded-for mais à esquerda
+  // (controlado pelo cliente): isso permitiria forjar um bucket de rate-limit
+  // por request e envenenar o ip_hash gravado no audit_log. Na Vercel o
+  // request.ip / x-vercel-forwarded-for (setado pela edge) são autoritativos.
+  if (request.ip) return request.ip
+  const vercel = request.headers.get('x-vercel-forwarded-for')
+  if (vercel) return vercel.split(',')[0]!.trim()
   const real = request.headers.get('x-real-ip')
   if (real) return real.trim()
   return 'unknown'
