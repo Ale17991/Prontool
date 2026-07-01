@@ -47,6 +47,7 @@
     "seed:cid10:prod": "tsx --env-file=.env.production.local scripts/seed-cid10.ts",
     "seed:cid10:dryrun": "tsx scripts/seed-cid10-dryrun.ts",
     "seed:demo": "tsx --env-file=.env.local supabase/seed/demo-tenant.ts",
+    "seed:demo-pres": "tsx --env-file=.env.local supabase/seed/demo-presentation.ts",
     "simulate:webhook": "tsx --env-file=.env.local scripts/simulate-ghl-webhook.ts",
     "bench:webhook": "tsx --env-file=.env.local scripts/bench-webhook.ts",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,yaml,yml}\"",
