@@ -11,6 +11,18 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
+  # Chaves determinísticas do stack Supabase LOCAL (`supabase start`). São os
+  # demo keys universais publicados na doc oficial do Supabase — assinados com
+  # o JWT secret padrão do CLI, só valem contra o stack efêmero do runner.
+  # ZERO valor em produção. Os jobs de teste precisam delas porque no CI não
+  # existe `.env.local`/`.env.test` (de onde o harness lê fora do CI).
+  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+  SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+  SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+  # Chave de cifra de PII em dev/test (32 bytes hex, tudo-zero). Nunca é a de prod.
+  PATIENT_DATA_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+  PLATFORM_OPERATOR_TOKEN: dev-platform-operator-token-change-me
 
 jobs:
   lint:
