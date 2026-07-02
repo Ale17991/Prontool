@@ -22,7 +22,7 @@ const {
   redirectMock,
 } = vi.hoisted(() => ({
   getSessionMock: vi.fn(),
-  tabBarMock: vi.fn((props: unknown) => props),
+  tabBarMock: vi.fn(() => null),
   tabNotificacoesMock: vi.fn(() => 'TAB_NOTIFICACOES'),
   tabAlertasMock: vi.fn(() => 'TAB_ALERTAS'),
   tabDlqMock: vi.fn(() => 'TAB_DLQ'),
@@ -56,7 +56,15 @@ vi.mock('@/app/(dashboard)/operacao/notificacoes/_components/tab-dlq', () => ({
   TabDlq: tabDlqMock,
 }))
 
+import { renderToStaticMarkup } from 'react-dom/server'
 import NotificacoesPage from '@/app/(dashboard)/operacao/notificacoes/page'
+
+// A página é um Server Component (JSX). Criar `<TabBar/>` não invoca o mock —
+// só renderizar invoca. Renderizamos a árvore já resolvida pelo await para que
+// tabBarMock/tab*Mock capturem props e chamadas.
+async function renderPage(args: { searchParams: Record<string, string> }): Promise<void> {
+  renderToStaticMarkup(await NotificacoesPage(args))
+}
 
 function session(role: TenantRole) {
   return {
@@ -79,7 +87,7 @@ beforeEach(() => {
 describe('NotificacoesPage — tab bar availability matrix (Feature 014 US2)', () => {
   it('admin (alert.read + dlq.read) sees all 3 tabs', async () => {
     getSessionMock.mockResolvedValue(session('admin'))
-    await NotificacoesPage({ searchParams: {} })
+    await renderPage({ searchParams: {} })
 
     expect(tabBarMock).toHaveBeenCalledTimes(1)
     const props = tabBarMock.mock.calls[0]?.[0] as {
@@ -92,7 +100,7 @@ describe('NotificacoesPage — tab bar availability matrix (Feature 014 US2)', (
 
   it('financeiro (alert.read sim, dlq.read sim) sees all 3 tabs', async () => {
     getSessionMock.mockResolvedValue(session('financeiro'))
-    await NotificacoesPage({ searchParams: {} })
+    await renderPage({ searchParams: {} })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { available: string[] }
     expect(props.available).toEqual(['notificacoes', 'alertas', 'dlq'])
@@ -100,7 +108,7 @@ describe('NotificacoesPage — tab bar availability matrix (Feature 014 US2)', (
 
   it('recepcionista (sem alert.read, sem dlq.read) sees only notificacoes', async () => {
     getSessionMock.mockResolvedValue(session('recepcionista'))
-    await NotificacoesPage({ searchParams: {} })
+    await renderPage({ searchParams: {} })
 
     const props = tabBarMock.mock.calls[0]?.[0] as {
       active: string
@@ -112,7 +120,7 @@ describe('NotificacoesPage — tab bar availability matrix (Feature 014 US2)', (
 
   it('profissional_saude (sem alert.read, sem dlq.read) sees only notificacoes', async () => {
     getSessionMock.mockResolvedValue(session('profissional_saude'))
-    await NotificacoesPage({ searchParams: {} })
+    await renderPage({ searchParams: {} })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { available: string[] }
     expect(props.available).toEqual(['notificacoes'])
@@ -122,7 +130,7 @@ describe('NotificacoesPage — tab bar availability matrix (Feature 014 US2)', (
 describe('NotificacoesPage — active tab resolution', () => {
   it('admin ?tab=alertas → active=alertas + renderiza TabAlertas', async () => {
     getSessionMock.mockResolvedValue(session('admin'))
-    await NotificacoesPage({ searchParams: { tab: 'alertas' } })
+    await renderPage({ searchParams: { tab: 'alertas' } })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { active: string }
     expect(props.active).toBe('alertas')
@@ -133,7 +141,7 @@ describe('NotificacoesPage — active tab resolution', () => {
 
   it('admin ?tab=dlq → active=dlq + renderiza TabDlq', async () => {
     getSessionMock.mockResolvedValue(session('admin'))
-    await NotificacoesPage({ searchParams: { tab: 'dlq' } })
+    await renderPage({ searchParams: { tab: 'dlq' } })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { active: string }
     expect(props.active).toBe('dlq')
@@ -144,7 +152,7 @@ describe('NotificacoesPage — active tab resolution', () => {
 
   it('admin ?tab=notificacoes (default explícito) → active=notificacoes', async () => {
     getSessionMock.mockResolvedValue(session('admin'))
-    await NotificacoesPage({ searchParams: { tab: 'notificacoes' } })
+    await renderPage({ searchParams: { tab: 'notificacoes' } })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { active: string }
     expect(props.active).toBe('notificacoes')
@@ -155,7 +163,7 @@ describe('NotificacoesPage — active tab resolution', () => {
 describe('NotificacoesPage — silent fallback (FR-006)', () => {
   it('recepcionista ?tab=alertas (sem alert.read) → fallback silencioso para notificacoes', async () => {
     getSessionMock.mockResolvedValue(session('recepcionista'))
-    await NotificacoesPage({ searchParams: { tab: 'alertas' } })
+    await renderPage({ searchParams: { tab: 'alertas' } })
 
     const props = tabBarMock.mock.calls[0]?.[0] as {
       active: string
@@ -169,7 +177,7 @@ describe('NotificacoesPage — silent fallback (FR-006)', () => {
 
   it('recepcionista ?tab=dlq (sem dlq.read) → fallback silencioso para notificacoes', async () => {
     getSessionMock.mockResolvedValue(session('recepcionista'))
-    await NotificacoesPage({ searchParams: { tab: 'dlq' } })
+    await renderPage({ searchParams: { tab: 'dlq' } })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { active: string }
     expect(props.active).toBe('notificacoes')
@@ -178,7 +186,7 @@ describe('NotificacoesPage — silent fallback (FR-006)', () => {
 
   it('admin ?tab=foo (valor inválido) → fallback silencioso para notificacoes', async () => {
     getSessionMock.mockResolvedValue(session('admin'))
-    await NotificacoesPage({ searchParams: { tab: 'foo' } })
+    await renderPage({ searchParams: { tab: 'foo' } })
 
     const props = tabBarMock.mock.calls[0]?.[0] as { active: string }
     expect(props.active).toBe('notificacoes')
