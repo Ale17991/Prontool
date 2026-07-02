@@ -115,7 +115,9 @@ jobs:
           psql "$DB_URL" -tAc "SELECT has_table_privilege('service_role','public.tenants','SELECT');"
           echo "::endgroup::"
       - run: pnpm supabase:gen-types
-      - run: pnpm test:integration
+      # TEMP: --reporter=verbose expõe a ordem de execução dos arquivos p/ caçar
+      # o contaminador order-dependent (reverter depois).
+      - run: pnpm exec vitest run tests/integration --reporter=verbose
       - run: pnpm test:contract
       - if: always()
         run: supabase stop --no-backup
