@@ -22,7 +22,7 @@ const {
   redirectMock,
 } = vi.hoisted(() => ({
   getSessionMock: vi.fn(),
-  tabBarMock: vi.fn(() => null),
+  tabBarMock: vi.fn((_props: unknown) => null),
   tabNotificacoesMock: vi.fn(() => 'TAB_NOTIFICACOES'),
   tabAlertasMock: vi.fn(() => 'TAB_ALERTAS'),
   tabDlqMock: vi.fn(() => 'TAB_DLQ'),
