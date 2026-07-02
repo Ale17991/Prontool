@@ -373,6 +373,12 @@ export async function seedAppointment(args: {
   amountCents: number
   commissionBps: number
   at?: string
+  /**
+   * Marca o atendimento como REALIZADO (insere appointment_completions) para
+   * que `appointments_effective.effective_status` vire 'ativo' — pré-condição
+   * para entrar em receita/produção/repasse. Default false (fica 'agendado').
+   */
+  completed?: boolean
 }): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
@@ -392,6 +398,9 @@ export async function seedAppointment(args: {
       appointment_at: args.at ?? new Date().toISOString(),
     })
     .throwOnError()
+  if (args.completed) {
+    await seedAppointmentCompletion({ tenantId: args.tenantId, appointmentId: id })
+  }
   return id
 }
 

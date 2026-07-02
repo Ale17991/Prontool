@@ -15,6 +15,7 @@ import {
   seedPriceVersion,
   seedPatient,
   seedAppointment,
+  seedAppointmentCompletion,
 } from '@/tests/helpers/seed-factories'
 import { buildMonthlyReport } from '@/lib/core/reports/monthly'
 
@@ -104,6 +105,13 @@ describe('T132 — monthly report aggregation', () => {
       at: '2026-05-22T10:00:00Z',
     })
 
+    // Só atendimentos REALIZADOS ('ativo') entram na receita/contagem — a view
+    // vira 'ativo' quando há appointment_completions. apt3 é estornado (reversal
+    // tem precedência no CASE), então não é completado.
+    await seedAppointmentCompletion({ tenantId, appointmentId: apt1 })
+    await seedAppointmentCompletion({ tenantId, appointmentId: apt2 })
+    await seedAppointmentCompletion({ tenantId, appointmentId: apt4 })
+
     // Reversal on apt3
     const sb = serviceClient()
     await sb
@@ -142,16 +150,18 @@ describe('T132 — monthly report aggregation', () => {
     expect(report.totals.netRevenueCents).toBe(450_000)
     // Commission: docA net = 300_000 @ 40% = 120_000; docB net = 150_000 @ 30% = 45_000
     expect(report.totals.netCommissionCents).toBe(165_000)
+    // totals.appointmentCount conta TODOS os atendimentos do período (inclui o
+    // estornado); receita e counts por-plano/médico contam só 'ativo'.
     expect(report.totals.appointmentCount).toBe(4)
     expect(report.totals.reversalCount).toBe(1)
 
     const planAAgg = report.revenueByPlan.find((r) => r.planId === planA)
     const planBAgg = report.revenueByPlan.find((r) => r.planId === planB)
-    // planA: apt1 (100_000) + apt3 (reversed → 0) = 100_000, count 2
+    // planA: apt1 (100_000) ativo; apt3 estornado não conta = 100_000, count 1
     expect(planAAgg).toMatchObject({
       planName: 'Plan A',
       netRevenueCents: 100_000,
-      appointmentCount: 2,
+      appointmentCount: 1,
     })
     // planB: apt2 (200_000) + apt4 (150_000) = 350_000, count 2
     expect(planBAgg).toMatchObject({
@@ -170,7 +180,7 @@ describe('T132 — monthly report aggregation', () => {
     expect(docBAgg).toMatchObject({
       netProductionCents: 150_000,
       netCommissionCents: 45_000,
-      appointmentCount: 2,
+      appointmentCount: 1,
     })
 
     // Belt-and-suspenders: referenced appointment IDs all exist in the view.

@@ -1,12 +1,13 @@
 /**
  * Feature 014 — US3 — verifica o contrato do hub /configuracoes:
- *  - INV-1: HUB_CARDS tem exatamente 9 entradas.
+ *  - INV-1: HUB_CARDS tem exatamente 13 entradas.
  *  - INV-2: Auditoria é SEMPRE o último card.
- *  - INV-3: admin com todas flags-on vê os 9 cards.
+ *  - INV-3: admin com todas flags-on vê os 13 cards.
  *  - INV-4: roles com permissões mínimas veem pelo menos "Meu Perfil".
  *  - INV-5: cada `card.id` é único.
  *  - Ordem fixa (FR-009): clinica, perfil, usuarios, procedimentos,
- *    convenios, profissionais, modelos-anamnese, integracoes, auditoria.
+ *    convenios, profissionais, modelos-anamnese, agendamento-publico,
+ *    portal-paciente, lembretes, google-agenda, integracoes, auditoria.
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -40,12 +41,12 @@ function ctx(role: TenantRole, flags = ALL_FLAGS_ON): HubCardCtx {
 }
 
 describe('HUB_CARDS — invariantes estruturais', () => {
-  it('INV-1: HUB_CARDS.length === 9', () => {
-    expect(HUB_CARDS).toHaveLength(9)
+  it('INV-1: HUB_CARDS.length === 13', () => {
+    expect(HUB_CARDS).toHaveLength(13)
   })
 
   it('INV-2: último card é "auditoria"', () => {
-    expect(HUB_CARDS[8]?.id).toBe('auditoria')
+    expect(HUB_CARDS[HUB_CARDS.length - 1]?.id).toBe('auditoria')
   })
 
   it('FR-009: ordem fixa', () => {
@@ -57,6 +58,10 @@ describe('HUB_CARDS — invariantes estruturais', () => {
       'convenios',
       'profissionais',
       'modelos-anamnese',
+      'agendamento-publico',
+      'portal-paciente',
+      'lembretes',
+      'google-agenda',
       'integracoes',
       'auditoria',
     ])
@@ -74,7 +79,7 @@ describe('HUB_CARDS — invariantes estruturais', () => {
       expect(c.title.length).toBeLessThanOrEqual(30)
       expect(c.description.length).toBeGreaterThan(0)
       expect(c.description.length).toBeLessThanOrEqual(80)
-      expect(typeof c.icon).toBe('function')
+      expect(typeof c.icon).toBe('object') // lucide-react icons são componentes forwardRef
       expect(typeof c.show).toBe('function')
     }
   })
@@ -86,9 +91,9 @@ describe('HUB_CARDS — invariantes estruturais', () => {
 })
 
 describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
-  it('INV-3: admin com todas flags ON vê os 9 cards na ordem fixa', () => {
+  it('INV-3: admin com todas flags ON vê os 13 cards na ordem fixa', () => {
     const visible = getVisibleHubCards(ctx('admin'))
-    expect(visible).toHaveLength(9)
+    expect(visible).toHaveLength(13)
     expect(visible.map((c) => c.id)).toEqual([
       'clinica',
       'perfil',
@@ -97,15 +102,19 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
       'convenios',
       'profissionais',
       'modelos-anamnese',
+      'agendamento-publico',
+      'portal-paciente',
+      'lembretes',
+      'google-agenda',
       'integracoes',
       'auditoria',
     ])
   })
 
-  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 8)', () => {
+  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 12)', () => {
     const visible = getVisibleHubCards(ctx('admin', { ...ALL_FLAGS_ON, anamnese: false }))
     expect(visible.map((c) => c.id)).not.toContain('modelos-anamnese')
-    expect(visible).toHaveLength(8)
+    expect(visible).toHaveLength(12)
     // Auditoria continua sendo o último visível.
     expect(visible[visible.length - 1]?.id).toBe('auditoria')
   })

@@ -48,7 +48,8 @@ describe('Feature 031 — participações no fechamento do mês', () => {
     expect(error).toBeNull()
     const row = data as unknown as { liberal_payment_cents: number; total_due_cents: number }
     expect(Number(row.liberal_payment_cents)).toBe(18000)
-    expect(Number(row.total_due_cents)).toBe(18000)
+    // fixo tem salário fixo (800_000 no seed) — total = salário + honorário liberal.
+    expect(Number(row.total_due_cents)).toBe(818000)
   })
 
   it('snapshot fechado expõe liberalPaymentCents', async () => {

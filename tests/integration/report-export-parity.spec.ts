@@ -65,6 +65,7 @@ describe('T134 — export parity JSON ↔ Excel ↔ PDF', () => {
       commissionId,
       amountCents: 123_400,
       commissionBps: 4000,
+      completed: true,
       at: '2026-05-07T10:00:00Z',
     })
     await seedAppointment({
@@ -77,6 +78,7 @@ describe('T134 — export parity JSON ↔ Excel ↔ PDF', () => {
       commissionId,
       amountCents: 123_400,
       commissionBps: 4000,
+      completed: true,
       at: '2026-05-17T10:00:00Z',
     })
 

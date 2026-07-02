@@ -51,7 +51,9 @@ describe('Feature 031 — participações alimentam o repasse (mês aberto)', ()
     const fixo = snap.payouts.find((p) => p.doctorId === s.doctorFixoId)!
     const com = snap.payouts.find((p) => p.doctorId === s.doctorComissionadoId)!
     expect(fixo.liberalPaymentCents).toBe(15000)
-    expect(fixo.totalDueCents).toBe(15000) // fixo não tem comissão por atendimento
+    // fixo não tem comissão por atendimento, mas TEM salário fixo (800_000 no
+    // seed) — totalDue = salário + honorário liberal.
+    expect(fixo.totalDueCents).toBe(815000)
     expect(com.liberalPaymentCents).toBe(22000)
     // comissionado: total inclui honorário + sua eventual comissão
     expect(com.totalDueCents).toBe(com.commissionCents + 22000)

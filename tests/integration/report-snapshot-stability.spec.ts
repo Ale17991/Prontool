@@ -49,6 +49,7 @@ describe('T133 — monthly report is immutable under future price changes', () =
       commissionId,
       amountCents: 100_000,
       commissionBps: 4000,
+      completed: true,
       at: '2026-05-10T10:00:00Z',
     })
 
