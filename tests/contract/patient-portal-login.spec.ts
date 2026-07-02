@@ -23,7 +23,10 @@ const BIRTH_DIGITS = '15051990' // DDMMYYYY
 function loginRequest(body: Record<string, unknown>, ip = '10.0.0.1'): NextRequest {
   return new Request('http://localhost/api/paciente/login', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-forwarded-for': ip },
+    // A rota confia só em fontes não-forjáveis (request.ip / x-vercel-forwarded-for
+    // / x-real-ip) — NUNCA x-forwarded-for. Usar x-real-ip pra o IP valer no
+    // rate-limit por IP (senão todos os requests caem no bucket 'unknown').
+    headers: { 'content-type': 'application/json', 'x-real-ip': ip },
     body: JSON.stringify({ slug: SLUG, lgpd_consent: true, ...body }),
   }) as unknown as NextRequest
 }

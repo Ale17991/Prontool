@@ -494,7 +494,14 @@ export async function seedPatient(tenantId: string): Promise<string> {
  */
 export async function seedClinicProfile(
   tenantId: string,
-  opts: { slug: string; corporateName?: string; publicBookingEnabled?: boolean },
+  opts: {
+    slug: string
+    corporateName?: string
+    publicBookingEnabled?: boolean
+    /** Liga/desliga do portal do paciente (0114). Default true — o portal
+     * resolve a clínica só quando habilitado; testes de portal precisam disso. */
+    patientPortalEnabled?: boolean
+  },
 ): Promise<void> {
   const sb = serviceClient()
   await sb
@@ -504,6 +511,7 @@ export async function seedClinicProfile(
       corporate_name: opts.corporateName ?? 'Clínica Teste 030',
       public_booking_slug: opts.slug,
       public_booking_enabled: opts.publicBookingEnabled ?? false,
+      patient_portal_enabled: opts.patientPortalEnabled ?? true,
     })
     .throwOnError()
 }

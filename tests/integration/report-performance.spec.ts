@@ -51,9 +51,16 @@ describe('T137 — monthly report performance at 5 000 appointments', () => {
     const sb = serviceClient()
     for (let i = 0; i < APPOINTMENT_COUNT; i += BATCH_SIZE) {
       const batch = Array.from({ length: Math.min(BATCH_SIZE, APPOINTMENT_COUNT - i) }, (_, j) => {
-        const minute = (i + j) % 60
-        const hour = Math.floor(((i + j) / 60) % 24)
-        const day = 1 + Math.floor(((i + j) / (60 * 24)) % 28)
+        // Slots de 5 min, 5 min apart (mínimo permitido por duration_minutes_check
+        // é 5). 5k * 5min ≈ 17 dias — cabe em maio. Ranges adjacentes [t, t+5min)
+        // não sobrepõem → sem APPOINTMENT_CONFLICT.
+        // Offset +180min: o relatório filtra por data no fuso da clínica (BRT,
+        // UTC-3); sem offset os primeiros 36 slots (00:00–02:55Z) cairiam em
+        // 30/abr BRT e ficariam de fora do mês.
+        const totalMin = (i + j) * 5 + 180
+        const minute = totalMin % 60
+        const hour = Math.floor(totalMin / 60) % 24
+        const day = 1 + Math.floor(totalMin / (60 * 24))
         const dd = String(day).padStart(2, '0')
         const hh = String(hour).padStart(2, '0')
         const mm = String(minute).padStart(2, '0')
@@ -69,10 +76,7 @@ describe('T137 — monthly report performance at 5 000 appointments', () => {
           source_price_version_id: priceVersionId,
           source_commission_history_id: commissionId,
           appointment_at: `2026-05-${dd}T${hh}:${mm}:00Z`,
-          // Slots de 1 min, 1 min apart → ranges [t, t+1min) adjacentes, sem
-          // overlap (senão o EXCLUDE de conflito rejeita atendimentos 1min apart
-          // com a duração padrão de 30min).
-          duration_minutes: 1,
+          duration_minutes: 5,
         }
       })
       await sb.from('appointments').insert(batch).throwOnError()
