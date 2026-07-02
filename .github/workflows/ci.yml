@@ -11,15 +11,11 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
-  # Chaves determinísticas do stack Supabase LOCAL (`supabase start`). São os
-  # demo keys universais publicados na doc oficial do Supabase — assinados com
-  # o JWT secret padrão do CLI, só valem contra o stack efêmero do runner.
-  # ZERO valor em produção. Os jobs de teste precisam delas porque no CI não
-  # existe `.env.local`/`.env.test` (de onde o harness lê fora do CI).
-  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-  SUPABASE_SERVICE_ROLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-  SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+  # Vars estáticas de teste (não derivam do stack). As chaves do Supabase
+  # (URL/ANON/SERVICE_ROLE/JWT_SECRET) NÃO ficam aqui: são capturadas em
+  # runtime de `supabase status` dentro de cada job de teste, garantindo que
+  # batem com o secret que o CLI gerou (hardcodar os demo keys quebrou quando
+  # o secret do stack diverge → PostgREST cai pro role anon → permission denied).
   # Chave de cifra de PII em dev/test (32 bytes hex, tudo-zero). Nunca é a de prod.
   PATIENT_DATA_ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
   PLATFORM_OPERATOR_TOKEN: dev-platform-operator-token-change-me
@@ -68,6 +64,19 @@ jobs:
           version: latest
       - run: pnpm install --frozen-lockfile
       - run: supabase start
+      - name: Exporta chaves reais do stack + sanity-check de grants
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "SUPABASE_JWT_SECRET=$JWT_SECRET"
+          } >> "$GITHUB_ENV"
+          echo "::group::grant sanity"
+          echo -n "service_role SELECT em public.tenants: "
+          psql "$DB_URL" -tAc "SELECT has_table_privilege('service_role','public.tenants','SELECT');"
+          echo "::endgroup::"
       - run: pnpm test:coverage -- tests/unit
       - if: always()
         run: supabase stop --no-backup
@@ -90,6 +99,19 @@ jobs:
           version: latest
       - run: pnpm install --frozen-lockfile
       - run: supabase start
+      - name: Exporta chaves reais do stack + sanity-check de grants
+        run: |
+          eval "$(supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "SUPABASE_JWT_SECRET=$JWT_SECRET"
+          } >> "$GITHUB_ENV"
+          echo "::group::grant sanity"
+          echo -n "service_role SELECT em public.tenants: "
+          psql "$DB_URL" -tAc "SELECT has_table_privilege('service_role','public.tenants','SELECT');"
+          echo "::endgroup::"
       - run: pnpm supabase:gen-types
       - run: pnpm test:integration
       - run: pnpm test:contract
