@@ -18,6 +18,15 @@
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
 
--- Tabelas/sequences criadas por migrations FUTURAS (mesmo runner) herdam o grant.
+-- Mesma lacuna atinge FUNÇÕES: várias migrations fazem
+-- `REVOKE ALL ON FUNCTION ... FROM PUBLIC; GRANT EXECUTE TO anon, authenticated`
+-- (0093, 0095, 0096, 0113, 0115, 0134, 0158, 0161, 0166) e esquecem service_role.
+-- Em stack fresco ele perde o EXECUTE (só o tinha via PUBLIC) → 42501 ao chamar,
+-- p.ex., public_booking_resolve_slug pelo cliente service-role. As guardas
+-- internas por jwt_role continuam valendo; service_role é o role confiável.
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO service_role;
+
+-- Objetos criados por migrations FUTURAS (mesmo runner) herdam o grant.
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO service_role;
