@@ -130,7 +130,7 @@ describe('US1 — POST /api/atendimentos/manual (standalone)', () => {
     expect(row.data?.source_price_version_id).toBe(vigenteId)
   })
 
-  it('rejeita appointment_at no futuro', async () => {
+  it('aceita appointment_at no futuro (agenda futura — status agendado)', async () => {
     const { tenantId } = await seedTenant('us1-future')
     const admin = await seedUser(tenantId, 'admin')
     const planId = await seedHealthPlan(tenantId)
@@ -160,9 +160,11 @@ describe('US1 — POST /api/atendimentos/manual (standalone)', () => {
         }),
       }),
     )
-    expect(res.status).toBe(400)
-    const body = (await res.json()) as { error: { code: string } }
-    expect(body.error.code).toBe('APPOINTMENT_IN_FUTURE')
+    // Desde 048678e (feat: agenda futura) atendimentos futuros são válidos
+    // (criados como 'agendado'); a antiga rejeição APPOINTMENT_IN_FUTURE saiu.
+    expect(res.status).toBe(201)
+    const body = (await res.json()) as { source: string }
+    expect(body.source).toBe('manual')
   })
 
   it('rejeita financeiro com 403 (só admin e recepcionista)', async () => {

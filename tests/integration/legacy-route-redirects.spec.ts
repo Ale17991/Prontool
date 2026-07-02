@@ -9,9 +9,13 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-const permanentRedirectMock = vi.fn((dest: string) => {
-  throw new Error(`NEXT_PERMANENT_REDIRECT ${dest}`)
-})
+// vi.mock é içado ao topo do módulo; as fns precisam existir quando a factory
+// roda → vi.hoisted (const `*Mock` normal daria ReferenceError).
+const { permanentRedirectMock } = vi.hoisted(() => ({
+  permanentRedirectMock: vi.fn((dest: string) => {
+    throw new Error(`NEXT_PERMANENT_REDIRECT ${dest}`)
+  }),
+}))
 
 vi.mock('next/navigation', () => ({
   permanentRedirect: permanentRedirectMock,

@@ -11,14 +11,25 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import type { TenantRole } from '@/lib/db/types'
 
-const getSessionMock = vi.fn()
-const tabBarMock = vi.fn((props: unknown) => props)
-const tabNotificacoesMock = vi.fn(() => 'TAB_NOTIFICACOES')
-const tabAlertasMock = vi.fn(() => 'TAB_ALERTAS')
-const tabDlqMock = vi.fn(() => 'TAB_DLQ')
-const redirectMock = vi.fn((dest: string) => {
-  throw new Error(`NEXT_REDIRECT ${dest}`)
-})
+// vi.mock é içado ao topo; os mocks referenciados nas factories precisam existir
+// antes → vi.hoisted (consts `*Mock` normais dariam ReferenceError).
+const {
+  getSessionMock,
+  tabBarMock,
+  tabNotificacoesMock,
+  tabAlertasMock,
+  tabDlqMock,
+  redirectMock,
+} = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
+  tabBarMock: vi.fn((props: unknown) => props),
+  tabNotificacoesMock: vi.fn(() => 'TAB_NOTIFICACOES'),
+  tabAlertasMock: vi.fn(() => 'TAB_ALERTAS'),
+  tabDlqMock: vi.fn(() => 'TAB_DLQ'),
+  redirectMock: vi.fn((dest: string) => {
+    throw new Error(`NEXT_REDIRECT ${dest}`)
+  }),
+}))
 
 vi.mock('@/lib/auth/get-session', () => ({
   getSession: () => getSessionMock(),
