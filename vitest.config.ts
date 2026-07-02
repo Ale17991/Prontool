@@ -15,12 +15,6 @@ export default defineConfig({
     setupFiles: ['./tests/helpers/setup.ts'],
     testTimeout: 30_000,
     hookTimeout: 60_000,
-    // Suíte de integração compartilha um Postgres. Apesar do reset dinâmico
-    // (0170), sobra uma contaminação residual order-dependent entre alguns
-    // arquivos (um teste ocasionalmente vê estado de outro na suíte completa;
-    // passa sozinho). O retry re-executa o teste com o reset do beforeEach/All,
-    // partindo de estado limpo. Mitigação padrão p/ suíte com DB compartilhado.
-    retry: 2,
     include: ['tests/**/*.spec.ts'],
     exclude: ['tests/e2e/**', 'node_modules/**', '.next/**'],
     coverage: {
