@@ -69,9 +69,25 @@ describe('T137 — monthly report performance at 5 000 appointments', () => {
           source_price_version_id: priceVersionId,
           source_commission_history_id: commissionId,
           appointment_at: `2026-05-${dd}T${hh}:${mm}:00Z`,
+          // Slots de 1 min, 1 min apart → ranges [t, t+1min) adjacentes, sem
+          // overlap (senão o EXCLUDE de conflito rejeita atendimentos 1min apart
+          // com a duração padrão de 30min).
+          duration_minutes: 1,
         }
       })
       await sb.from('appointments').insert(batch).throwOnError()
+      // Marca REALIZADO em lote — o relatório só soma receita de 'ativo'.
+      await sb
+        .from('appointment_completions')
+        .insert(
+          batch.map((a) => ({
+            tenant_id: tenantId,
+            appointment_id: a.id,
+            completed_by: '00000000-0000-0000-0000-000000000000',
+            source: 'manual',
+          })),
+        )
+        .throwOnError()
     }
 
     const started = Date.now()

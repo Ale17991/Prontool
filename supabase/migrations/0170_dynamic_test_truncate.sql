@@ -45,6 +45,15 @@ BEGIN
       WHERE d.objid = c.oid AND d.deptype = 'e'
     );
 
+  -- `patient_metric_types` está na lista de preservação, MAS tem FK → tenants,
+  -- e o `TRUNCATE tenants ... CASCADE` zera a tabela inteira (o CASCADE ignora
+  -- a lista). Salvamos o catálogo global (tenant_id IS NULL) e restauramos após
+  -- o truncate. As linhas custom (tenant_id NOT NULL) somem — comportamento
+  -- desejado (são dados de teste).
+  DROP TABLE IF EXISTS _pmt_global;
+  CREATE TEMP TABLE _pmt_global AS
+    SELECT * FROM public.patient_metric_types WHERE tenant_id IS NULL;
+
   IF v_list IS NOT NULL THEN
     EXECUTE 'TRUNCATE ' || v_list || ' RESTART IDENTITY CASCADE';
   END IF;
@@ -52,6 +61,11 @@ BEGIN
   IF wipe_catalog THEN
     TRUNCATE public.tuss_codes, public.tuss_catalog_versions RESTART IDENTITY CASCADE;
   END IF;
+
+  INSERT INTO public.patient_metric_types
+  SELECT * FROM _pmt_global
+  ON CONFLICT DO NOTHING;
+  DROP TABLE _pmt_global;
 END $$;
 
 GRANT EXECUTE ON FUNCTION public.test_truncate_all_mutable(BOOLEAN) TO service_role;
