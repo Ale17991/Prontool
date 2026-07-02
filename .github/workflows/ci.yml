@@ -77,7 +77,9 @@ jobs:
           echo -n "service_role SELECT em public.tenants: "
           psql "$DB_URL" -tAc "SELECT has_table_privilege('service_role','public.tenants','SELECT');"
           echo "::endgroup::"
-      - run: pnpm test:coverage -- tests/unit
+      # `pnpm test:coverage -- tests/unit` NÃO escopava (rodava a suíte toda);
+      # o positional direto do vitest filtra corretamente para tests/unit.
+      - run: pnpm exec vitest run --coverage tests/unit
       - if: always()
         run: supabase stop --no-backup
 
