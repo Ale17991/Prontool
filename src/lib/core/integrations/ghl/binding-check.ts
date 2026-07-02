@@ -49,7 +49,10 @@ export async function assertGhlBindingFree(
     if (tenantErr && tenantErr.code !== 'PGRST116') {
       throw new Error(`assertGhlBindingFree tenant query failed: ${tenantErr.message}`)
     }
-    if (existingTenant) {
+    // Só é conflito se a conexão existente é de OUTRA location. Reconectar a
+    // MESMA location (reinstall/refresh de token pelo Marketplace) é permitido —
+    // o upsert atualiza os tokens. (FR-002 abaixo já exclui o próprio tenant.)
+    if (existingTenant && existingTenant.location_id !== locationId) {
       throw new ConflictError(GHL_TENANT_ALREADY_CONNECTED, FR001_MESSAGE, {
         tenant_id: tenantId,
         existing_location_id: existingTenant.location_id,
