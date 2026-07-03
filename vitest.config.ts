@@ -16,7 +16,16 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 60_000,
     include: ['tests/**/*.spec.ts'],
-    exclude: ['tests/e2e/**', 'node_modules/**', '.next/**'],
+    // Suíte GHL excluída (integração menos necessária, decisão 2026-07-02) — é
+    // também o contaminador suspeito da flakiness order-dependent do full-suite
+    // (testes lentos de 54-172s, retry storm do withGhlAuth). Reincluir se GHL
+    // voltar a ser prioridade.
+    exclude: [
+      'tests/e2e/**',
+      'node_modules/**',
+      '.next/**',
+      'tests/integration/integrations/ghl/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
