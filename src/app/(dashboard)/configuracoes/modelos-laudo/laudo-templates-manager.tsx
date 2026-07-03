@@ -128,7 +128,10 @@ export function LaudoTemplatesManager({ initial }: { initial: LaudoTemplateDTO[]
             <>
               <div>
                 <Label className="text-[11px] font-bold uppercase text-slate-500">Nome</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
               </div>
               <div>
                 <Label className="text-[11px] font-bold uppercase text-slate-500">

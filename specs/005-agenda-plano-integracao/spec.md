@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Integração completa entre plano de tratamento e agenda de atendimentos com horários — horário início/fim obrigatórios, validação de conflito por profissional bloqueante no banco, etapa do plano vincula a um atendimento, calendário como visualização padrão."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Bloqueio de conflito de horário por profissional (Priority: P1)
 
@@ -94,15 +94,17 @@ Em casos raros (dados antigos importados, bug de inserção, ou edição direta 
 - **Conflito detectado ao recarregar a tela** (etapa vinculada teve seu atendimento estornado por outro usuário): a UI exibe estado real do banco (etapa pendente sem appointment), permite recriar via "Reagendar".
 - **Constraint do banco rejeita por race condition** (dois POST simultâneos no mesmo slot): o segundo retorna 409, frontend mostra mensagem clara e re-fetch.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 #### Horário (US1)
+
 - **FR-001**: O formulário "Novo atendimento" e o formulário "Nova etapa do plano de tratamento" MUST exigir, além da data, um horário de início e um horário de fim — todos os três obrigatórios.
 - **FR-002**: O Sistema MUST validar `horário_fim > horário_início`. Caso contrário, mostra erro inline e impede submit.
 
 #### Conflito (US1)
+
 - **FR-010**: O Sistema MUST impedir a persistência de qualquer atendimento cujo intervalo `[início, fim)` se sobreponha ao intervalo `[início_existente, fim_existente)` de outro atendimento ativo do **mesmo profissional** no mesmo tenant. Atendimentos com status `estornado` NÃO contam para o cálculo de conflito.
 - **FR-011**: A verificação de conflito MUST ser executada na camada de banco de dados (constraint, trigger, ou exclusion constraint), não apenas na aplicação. Bypass do frontend e inserções via service-role devem ser bloqueados.
 - **FR-012**: Quando há conflito, o Sistema MUST retornar resposta HTTP 409 com payload incluindo: id do atendimento conflitante, nome do paciente do conflito, intervalo conflitante (início e fim), e procedimento. Frontend renderiza essa mensagem.
@@ -110,6 +112,7 @@ Em casos raros (dados antigos importados, bug de inserção, ou edição direta 
 - **FR-014**: A verificação de conflito MUST tratar bordas como intervalo semi-aberto: `[start, end)`. 14:00–14:30 e 14:30–15:00 são adjacentes, não conflitantes.
 
 #### Integração agenda ↔ plano (US2)
+
 - **FR-020**: Cada etapa do plano de tratamento (`treatment_plan_steps`) MUST referenciar opcionalmente um atendimento (`appointment_id`). O vínculo é 1:1 (uma etapa para um atendimento). Etapas pré-feature continuam funcionando com `appointment_id NULL`.
 - **FR-021**: Ao criar uma etapa com data + horário início + fim + profissional, o Sistema MUST automaticamente criar um atendimento com status `agendado`, vinculado à etapa, dentro da mesma transação. Falha de qualquer um aborta tudo.
 - **FR-022**: Ao marcar uma etapa como `concluído`, o Sistema MUST atualizar o estado do atendimento vinculado para `ativo` (realizado). Auditoria registra a transição.
@@ -119,18 +122,21 @@ Em casos raros (dados antigos importados, bug de inserção, ou edição direta 
 - **FR-026**: Ao criar um atendimento via "Novo atendimento" cujo `(patient_id, procedure_id)` corresponda a alguma etapa pendente do mesmo paciente sem `appointment_id`, o Sistema MUST vincular automaticamente — primeira etapa pendente por `created_at` (FIFO). Se não houver candidato, cria como avulso.
 
 #### Visualização padrão (US3)
+
 - **FR-030**: A página `/operacao/atendimentos` MUST abrir em modo Calendário por padrão para usuários sem preferência salva.
 - **FR-031**: A preferência (`list` ou `cal`) MUST ser persistida por dispositivo. Voltar à página em outro dispositivo abre no default global.
 - **FR-032**: Alternar visualização MUST atualizar a preferência salva.
 
 #### Status `agendado` explícito (US1+US2)
+
 - **FR-040**: Status `agendado` de um atendimento MUST ser determinado por: (a) **não** estornado, **e** (b) **não** marcado como realizado. NÃO é derivado por tempo (`appointment_at > now()`) — esse fallback da feature 004 é substituído por status explícito.
 - **FR-041**: Marcar um atendimento como realizado MUST ser uma ação append-only — registra em uma tabela de "completions" (ou equivalente) com timestamp, ator e razão opcional. Atendimento original imutável.
 
 #### Conflito visível (US4)
+
 - **FR-050**: O calendário MUST sinalizar visualmente conflitos pré-existentes (caso a constraint do banco seja desativada manualmente ou em dados legados): blocos sobrepostos do mesmo profissional aparecem com borda vermelha e ícone de aviso.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Atendimento (`appointments`)**: entidade central. Atributos relevantes adicionados/utilizados: `appointment_at` (início, já existe), `duration_minutes` (já existe, da feature 004), profissional, paciente, procedimento, status efetivo (agendado/ativo/estornado). Append-only — financeiro e horário não mutam após persistência.
 - **Realização do atendimento (`appointment_completions`)**: novo registro append-only que marca quando o atendimento foi realizado. Atributos: id, atendimento, timestamp, ator. UNIQUE por atendimento.
@@ -138,7 +144,7 @@ Em casos raros (dados antigos importados, bug de inserção, ou edição direta 
 - **Profissional (`doctors`)**: já existe. Sem mudança de schema.
 - **Conflito de horário**: não é uma entidade persistida — é uma regra de constraint sobre `appointments`. Implementado via exclusion constraint ou trigger sobre o intervalo de tempo.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

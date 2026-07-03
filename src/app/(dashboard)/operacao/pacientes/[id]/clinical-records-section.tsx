@@ -587,16 +587,13 @@ function AnamneseView({ snapshot }: { snapshot: AnamnesisSnapshot }) {
       </p>
       {fields.length === 0 ? (
         <p className="text-xs text-slate-500">
-          Esta anamnese só tem campos padrão (nome, CPF, plano, etc.) — os
-          dados aparecem no header e nas seções da ficha.
+          Esta anamnese só tem campos padrão (nome, CPF, plano, etc.) — os dados aparecem no header
+          e nas seções da ficha.
         </p>
       ) : (
         <dl className="space-y-2">
           {fields.map((f) => (
-            <div
-              key={f.id}
-              className="grid grid-cols-1 gap-0.5 md:grid-cols-[1fr_2fr] md:gap-4"
-            >
+            <div key={f.id} className="grid grid-cols-1 gap-0.5 md:grid-cols-[1fr_2fr] md:gap-4">
               <dt className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                 {f.label}
                 {f.required ? <span className="ml-1 text-rose-500">*</span> : null}
@@ -612,13 +609,7 @@ function AnamneseView({ snapshot }: { snapshot: AnamnesisSnapshot }) {
   )
 }
 
-function AnamneseResponse({
-  field,
-  value,
-}: {
-  field: AnamnesisFieldSnapshot
-  value: unknown
-}) {
+function AnamneseResponse({ field, value }: { field: AnamnesisFieldSnapshot; value: unknown }) {
   if (value === undefined || value === null || value === '') {
     return <span className="italic text-slate-400">—</span>
   }
@@ -799,8 +790,8 @@ function UploadFileForm({
           )}
         />
         <p className="text-[10px] text-slate-500">
-          Até 25 MB. Arquivo é guardado em storage privado; o registro na ficha
-          clínica mantém só o nome + tamanho.
+          Até 25 MB. Arquivo é guardado em storage privado; o registro na ficha clínica mantém só o
+          nome + tamanho.
         </p>
       </div>
       {error ? (
@@ -826,14 +817,7 @@ function UploadFileForm({
 // New anamnese form
 // ---------------------------------------------------------------------------
 
-type FieldType =
-  | 'texto_curto'
-  | 'texto_longo'
-  | 'checkbox'
-  | 'radio'
-  | 'select'
-  | 'data'
-  | 'numero'
+type FieldType = 'texto_curto' | 'texto_longo' | 'checkbox' | 'radio' | 'select' | 'data' | 'numero'
 
 interface TemplateRow {
   id: string
@@ -862,9 +846,7 @@ function buildPrefillFromPatient(
     const d = raw.replace(/\D/g, '')
     return d.length === 8 ? `${d.slice(0, 5)}-${d.slice(5)}` : raw
   }
-  const formatAllergies = (
-    list: AnamnesePatientPrefill['allergies'],
-  ): string | null => {
+  const formatAllergies = (list: AnamnesePatientPrefill['allergies']): string | null => {
     if (!list || list.length === 0) return null
     return list
       .map((a) => {
@@ -1083,9 +1065,7 @@ function NewEvolutionForm({
           {cidResults !== null ? (
             <div className="max-h-40 overflow-y-auto rounded-md border border-slate-200 bg-white text-xs">
               {cidResults.length === 0 ? (
-                <p className="px-3 py-2 text-slate-400">
-                  Nenhum resultado. Tente outro termo.
-                </p>
+                <p className="px-3 py-2 text-slate-400">Nenhum resultado. Tente outro termo.</p>
               ) : (
                 cidResults.map((c) => (
                   <button
@@ -1094,9 +1074,7 @@ function NewEvolutionForm({
                     onClick={() => addCid(c)}
                     className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-blue-50"
                   >
-                    <span className="font-mono font-bold text-blue-700">
-                      {c.code}
-                    </span>
+                    <span className="font-mono font-bold text-blue-700">{c.code}</span>
                     <span className="text-slate-700">{c.description}</span>
                   </button>
                 ))
@@ -1241,10 +1219,7 @@ function NewAnamneseForm({
       if (!f.required) continue
       const v = responses[f.id]
       const empty =
-        v === undefined ||
-        v === null ||
-        v === '' ||
-        (Array.isArray(v) && v.length === 0)
+        v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
       if (empty) {
         setError(`Preencha o campo obrigatório: ${f.label}`)
         return
@@ -1310,9 +1285,7 @@ function NewAnamneseForm({
             </SelectContent>
           </Select>
         )}
-        {loadError ? (
-          <p className="text-[11px] text-destructive">{loadError}</p>
-        ) : null}
+        {loadError ? <p className="text-[11px] text-destructive">{loadError}</p> : null}
       </div>
 
       {selected ? (
@@ -1368,10 +1341,7 @@ function FieldInput({
         {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
       </span>
       {field.is_default ? (
-        <Badge
-          variant="secondary"
-          className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
-        >
+        <Badge variant="secondary" className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800">
           Padrão
         </Badge>
       ) : null}
@@ -1422,10 +1392,7 @@ function FieldInput({
     return (
       <div className="space-y-1.5">
         {label}
-        <Select
-          value={(value as string | undefined) ?? ''}
-          onValueChange={(v) => onChange(v)}
-        >
+        <Select value={(value as string | undefined) ?? ''} onValueChange={(v) => onChange(v)}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione…" />
           </SelectTrigger>

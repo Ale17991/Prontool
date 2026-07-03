@@ -143,9 +143,7 @@ export function ClinicHeader({ profile, signedLogoUrl, subtitle }: ClinicHeaderP
       <View style={styles.body}>
         {/* Feature 010 (R13) — title primary = tenants.name (display).
             Razão social vira linha secundária junto com CNPJ. */}
-        <Text style={styles.clinicName}>
-          {p.displayName ?? p.corporateName ?? 'Clínica'}
-        </Text>
+        <Text style={styles.clinicName}>{p.displayName ?? p.corporateName ?? 'Clínica'}</Text>
         {p.corporateName && p.corporateName !== p.displayName ? (
           <Text style={styles.legalName}>{p.corporateName}</Text>
         ) : null}

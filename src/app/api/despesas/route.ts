@@ -18,7 +18,17 @@ export const runtime = 'nodejs'
 
 const querySchema = z.object({
   category: z
-    .enum(['aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'impostos', 'manutencao', 'outros', 'all'])
+    .enum([
+      'aluguel',
+      'equipamentos',
+      'materiais',
+      'pessoal',
+      'servicos',
+      'impostos',
+      'manutencao',
+      'outros',
+      'all',
+    ])
     .optional(),
   start_date: z
     .string()
@@ -31,7 +41,16 @@ const querySchema = z.object({
 })
 
 const createSchema = z.object({
-  category: z.enum(['aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'impostos', 'manutencao', 'outros']),
+  category: z.enum([
+    'aluguel',
+    'equipamentos',
+    'materiais',
+    'pessoal',
+    'servicos',
+    'impostos',
+    'manutencao',
+    'outros',
+  ]),
   description: z.string().min(2).max(500),
   supplier: z.string().max(200).optional().nullable(),
   amount_cents: z.number().int().positive(),
@@ -50,9 +69,7 @@ export async function GET(req: Request): Promise<Response> {
       request: req,
     })
 
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         { error: { code: 'INVALID_QUERY', message: 'Filtros inválidos' } },

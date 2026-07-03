@@ -24,11 +24,7 @@ interface PlanTaxRateFormProps {
   canWrite: boolean
 }
 
-export function PlanTaxRateForm({
-  planId,
-  initialTaxRateBps,
-  canWrite,
-}: PlanTaxRateFormProps) {
+export function PlanTaxRateForm({ planId, initialTaxRateBps, canWrite }: PlanTaxRateFormProps) {
   const router = useRouter()
   const [chargesTax, setChargesTax] = useState(initialTaxRateBps > 0)
   const [ratePercent, setRatePercent] = useState(

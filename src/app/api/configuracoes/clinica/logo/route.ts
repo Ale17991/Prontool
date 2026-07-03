@@ -48,7 +48,10 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json({ logo })
   } catch (err) {
     // ValidationError com reason=payload_too_large vira 413; demais ValidationError = 400.
-    if (err instanceof ValidationError && (err.meta as { reason?: string } | undefined)?.reason === 'payload_too_large') {
+    if (
+      err instanceof ValidationError &&
+      (err.meta as { reason?: string } | undefined)?.reason === 'payload_too_large'
+    ) {
       return NextResponse.json(
         { error: { code: 'PAYLOAD_TOO_LARGE', message: err.message } },
         { status: 413 },

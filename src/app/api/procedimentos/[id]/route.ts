@@ -42,7 +42,9 @@ export async function PATCH(
       tenantId: session.tenantId,
       procedureId: params.id,
       patch: {
-        ...(parsed.data.display_name !== undefined ? { displayName: parsed.data.display_name } : {}),
+        ...(parsed.data.display_name !== undefined
+          ? { displayName: parsed.data.display_name }
+          : {}),
         ...(parsed.data.active !== undefined ? { active: parsed.data.active } : {}),
         ...(parsed.data.default_amount_cents !== undefined
           ? { defaultAmountCents: parsed.data.default_amount_cents }
@@ -90,10 +92,7 @@ export async function DELETE(
       procedureId: params.id,
       actorUserId: session.userId,
     })
-    return NextResponse.json(
-      { id: result.id, deleted_at: result.deletedAt },
-      { status: 200 },
-    )
+    return NextResponse.json({ id: result.id, deleted_at: result.deletedAt }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route: `/api/procedimentos/${params.id}` })
   }

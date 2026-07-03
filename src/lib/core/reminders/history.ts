@@ -89,9 +89,7 @@ export async function listRemindersHistory(
     patientFullName: '', // omitido — PII; admin abre appointment para ver
     doctorFullName: r.appointments?.doctors?.full_name ?? '—',
     procedureName:
-      r.appointments?.procedures?.display_name ??
-      r.appointments?.procedures?.tuss_code ??
-      '—',
+      r.appointments?.procedures?.display_name ?? r.appointments?.procedures?.tuss_code ?? '—',
     status: r.status,
     error: r.error,
     isManual: r.is_manual,

@@ -13,7 +13,10 @@ import type { Database } from '@/lib/db/types'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import type { Entitlements, Feature, ModuleId } from '@/lib/core/entitlements/plans'
 
-async function loadEntitlements(): Promise<{ session: NonNullable<Awaited<ReturnType<typeof getSession>>>; ent: Entitlements }> {
+async function loadEntitlements(): Promise<{
+  session: NonNullable<Awaited<ReturnType<typeof getSession>>>
+  ent: Entitlements
+}> {
   const session = await getSession()
   if (!session) redirect('/login')
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>

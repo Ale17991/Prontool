@@ -1,6 +1,5 @@
 ---
-
-description: "Tasks for feature 012 — Tarefas + Notificações + Cadastro manual de usuário"
+description: 'Tasks for feature 012 — Tarefas + Notificações + Cadastro manual de usuário'
 ---
 
 # Tasks: Tarefas, Notificações e Cadastro Manual de Usuário
@@ -20,6 +19,7 @@ description: "Tasks for feature 012 — Tarefas + Notificações + Cadastro manu
 ## Path Conventions
 
 App Router monolítico (Next.js 14). Mapa rápido:
+
 - DB: `supabase/migrations/`
 - Core libs: `src/lib/core/<dominio>/`
 - RBAC: `src/lib/auth/rbac.ts`
@@ -257,6 +257,7 @@ Task: "T033 [US1] src/app/.../tarefas/tasks-filters.tsx"
 ### Parallel Team Strategy
 
 Com 3 devs:
+
 1. Todos completam Setup + Foundational.
 2. Após T018: Dev A faz US1; Dev B faz US2; Dev C faz US3. Sem conflito de arquivos exceto T034 e T049 (ambos tocam `dashboard-shell.tsx`) — devem coordenar via PRs sequenciais ou um faz a mudança e outros rebaseiam.
 3. Polish em conjunto.

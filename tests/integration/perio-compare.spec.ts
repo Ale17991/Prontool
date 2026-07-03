@@ -21,9 +21,17 @@ async function makeFinalizedExam(
     .single()
   const examId = exam!.id
   await sb.from('perio_site_measurements').insert({
-    tenant_id: tenantId, exam_id: examId, tooth_fdi: 16, site: 'mb', probing_depth_mm: pd, bleeding: pd >= 4,
+    tenant_id: tenantId,
+    exam_id: examId,
+    tooth_fdi: 16,
+    site: 'mb',
+    probing_depth_mm: pd,
+    bleeding: pd >= 4,
   })
-  await sb.from('perio_exams').update({ status: 'finalizado', finalized_at: new Date().toISOString(), finalized_by: userId }).eq('id', examId)
+  await sb
+    .from('perio_exams')
+    .update({ status: 'finalizado', finalized_at: new Date().toISOString(), finalized_by: userId })
+    .eq('id', examId)
   return examId
 }
 
@@ -48,7 +56,12 @@ describe('periograma — comparação de exames', () => {
 
   it('calcula deltaPd por sítio e deltas de indicadores', async () => {
     const sb = serviceClient()
-    const res = await comparePerioExams(sb, { tenantId, patientId, fromExamId: fromId, toExamId: toId })
+    const res = await comparePerioExams(sb, {
+      tenantId,
+      patientId,
+      fromExamId: fromId,
+      toExamId: toId,
+    })
     const site = res.sites.find((s) => s.toothFdi === 16 && s.site === 'mb')
     expect(site?.fromPd).toBe(5)
     expect(site?.toPd).toBe(3)

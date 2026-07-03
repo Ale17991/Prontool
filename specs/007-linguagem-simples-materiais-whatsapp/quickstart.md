@@ -235,22 +235,23 @@ pnpm test:integration
 
 Mapear cada SC para um passo:
 
-| SC | Validado por |
-|---|---|
-| SC-001 (atomicidade) | Fluxo 4.1 + teste de integração explícito |
-| SC-002 (sub-seção ausente quando vazio) | Fluxo 2 |
-| SC-003 (zero termos proibidos) | Fluxo 6.9 |
-| SC-004 (botão WhatsApp em todos pacientes) | Fluxo 5.1 + 5.2 |
-| SC-005 (WhatsApp em ≤ 2 segundos) | Fluxo 5 (subjetivo, observação) |
-| SC-006 (zero tickets em 30 dias) | Métrica de produção pós-deploy |
-| SC-007 (PDF mostra materiais) | Fluxo 1 passo 14 |
-| SC-008 (RLS) | Fluxo 4.4 |
+| SC                                         | Validado por                              |
+| ------------------------------------------ | ----------------------------------------- |
+| SC-001 (atomicidade)                       | Fluxo 4.1 + teste de integração explícito |
+| SC-002 (sub-seção ausente quando vazio)    | Fluxo 2                                   |
+| SC-003 (zero termos proibidos)             | Fluxo 6.9                                 |
+| SC-004 (botão WhatsApp em todos pacientes) | Fluxo 5.1 + 5.2                           |
+| SC-005 (WhatsApp em ≤ 2 segundos)          | Fluxo 5 (subjetivo, observação)           |
+| SC-006 (zero tickets em 30 dias)           | Métrica de produção pós-deploy            |
+| SC-007 (PDF mostra materiais)              | Fluxo 1 passo 14                          |
+| SC-008 (RLS)                               | Fluxo 4.4                                 |
 
 ---
 
 ## Rollback plan (caso necessário)
 
 Se algum fluxo falhar em prod:
+
 - **Migration 0061** é trivialmente reversível em dev (`DROP TABLE appointment_materials CASCADE; DROP FUNCTION ...`). Em prod, segue regra do projeto: dados existentes ficam órfãos mas seguros (FK ON DELETE RESTRICT impede limpeza acidental).
 - **UI rollback**: `git revert` do commit que tocou os arquivos de UI; a migration pode ficar — tabela vazia não causa dano.
 - **Linguagem rollback**: `git revert` dos arquivos de UI específicos. Banco intocado.

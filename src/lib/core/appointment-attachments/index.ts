@@ -61,9 +61,20 @@ export async function uploadAppointmentAttachment(
     throw new Error(`uploadAppointmentAttachment insert failed: ${error.message}`)
   }
 
-  const signedUrl = await createSignedUrlOrNull(supabase, APPOINTMENT_ATTACHMENT_BUCKET, path, SIGNED_TTL)
+  const signedUrl = await createSignedUrlOrNull(
+    supabase,
+    APPOINTMENT_ATTACHMENT_BUCKET,
+    path,
+    SIGNED_TTL,
+  )
   const row = data as { id: string; uploaded_at: string }
-  return { id: row.id, fileName, kind: input.kind ?? 'material_label', uploadedAt: row.uploaded_at, signedUrl }
+  return {
+    id: row.id,
+    fileName,
+    kind: input.kind ?? 'material_label',
+    uploadedAt: row.uploaded_at,
+    signedUrl,
+  }
 }
 
 export async function listAppointmentAttachments(
@@ -92,7 +103,12 @@ export async function listAppointmentAttachments(
       fileName: r.file_name,
       kind: r.kind,
       uploadedAt: r.uploaded_at,
-      signedUrl: await createSignedUrlOrNull(supabase, APPOINTMENT_ATTACHMENT_BUCKET, r.storage_path, SIGNED_TTL),
+      signedUrl: await createSignedUrlOrNull(
+        supabase,
+        APPOINTMENT_ATTACHMENT_BUCKET,
+        r.storage_path,
+        SIGNED_TTL,
+      ),
     })),
   )
 }

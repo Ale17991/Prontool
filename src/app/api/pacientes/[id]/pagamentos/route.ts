@@ -7,17 +7,16 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/pagamentos`
   try {
     // Leitura de VALORES — só quem tem finance.view_values (recepção fora).
-    const session = await requireRole(
-      ['admin', 'financeiro', 'profissional_saude'],
-      { entity: 'payment_records', entityId: params.id, route, request: req },
-    )
+    const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
+      entity: 'payment_records',
+      entityId: params.id,
+      route,
+      request: req,
+    })
     const supabase = createSupabaseServiceClient()
     const result = await listPaymentsForPatient(supabase, {
       tenantId: session.tenantId,

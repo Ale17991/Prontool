@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Aplicar o Design System documentado no relatório UI/UX ao código do Prontool — tokens semânticos, escala tipográfica, badges padronizados, status de agendamento com cor+ícone+label, sidebar com cores exatas, remoção de dark mode não funcional e migração de Inter para next/font/google."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Identificação inequívoca do status de uma consulta (Priority: P1)
 
@@ -102,7 +102,7 @@ Um médico abre o sistema em uma conexão 3G no consultório. Hoje o navegador b
 - **Compatibilidade com captura de tela / impressão**: padrões visuais (listras, hachuras) podem render diferente em PDF/print. Validar comprovantes (`expense-receipts`) e PDFs que usam `@react-pdf/renderer`.
 - **Conflito com personalização futura por tenant**: white-label foi mencionado como possibilidade. Garantir que tokens sejam suficientemente isolados para reaproveitar quando isso vier.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -147,7 +147,7 @@ Um médico abre o sistema em uma conexão 3G no consultório. Hoje o navegador b
 - **FR-022**: Componentes shadcn/ui que consomem tokens MUST refletir automaticamente os novos valores (sem fork de componente).
 - **FR-023**: O sistema MUST passar typecheck após cada conjunto de mudanças (não há gate de testes funcionais nesta feature, mas typecheck é obrigatório).
 
-### Key Entities *(componentes/conceitos do design system, sem detalhe de implementação)*
+### Key Entities _(componentes/conceitos do design system, sem detalhe de implementação)_
 
 - **Catálogo de Tokens Semânticos**: O conjunto nomeado de variáveis cromáticas (primary, secondary, accent, success, warning, info, alert, destructive, muted, border, ring) com seus respectivos foregrounds. Fonte única de verdade para cor no produto.
 - **Escala Tipográfica**: O conjunto nomeado de tamanhos/pesos/alturas que cobre desde título de página até nota de rodapé. Define limite mínimo de tamanho aceitável (12px regra; 11px exceção).
@@ -156,7 +156,7 @@ Um médico abre o sistema em uma conexão 3G no consultório. Hoje o navegador b
 - **Identidade Visual da Sidebar**: A combinação cromática específica do componente de navegação principal — fundo escuro, hierarquia de opacidade do texto, indicador de item ativo, link de troca de tenant.
 - **Identidade Tipográfica**: A configuração de fonte primária (Inter) e suas OpenType features ativas, mais o mecanismo de carregamento que não bloqueia render.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

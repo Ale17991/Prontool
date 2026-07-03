@@ -18,10 +18,9 @@ export function CancelForm({ slug, token }: CancelFormProps) {
     setSubmitting(true)
     setError(null)
     try {
-      const res = await fetch(
-        `/api/public/booking/cancel/${encodeURIComponent(token)}`,
-        { method: 'POST' },
-      )
+      const res = await fetch(`/api/public/booking/cancel/${encodeURIComponent(token)}`, {
+        method: 'POST',
+      })
       const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
       if (!res.ok) {
         const code = (json.error as string) ?? 'UNKNOWN'
@@ -51,9 +50,7 @@ export function CancelForm({ slug, token }: CancelFormProps) {
     return (
       <div className="space-y-4">
         <div className="rounded-lg border border-success/30 bg-success-bg p-6 text-center">
-          <h2 className="text-xl font-bold text-success-strong">
-            Agendamento cancelado
-          </h2>
+          <h2 className="text-xl font-bold text-success-strong">Agendamento cancelado</h2>
           <p className="mt-2 text-sm text-success-text">
             O horário foi liberado. Se desejar, você pode agendar outro horário.
           </p>
@@ -70,9 +67,7 @@ export function CancelForm({ slug, token }: CancelFormProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-700">
-        Tem certeza que deseja cancelar este agendamento?
-      </p>
+      <p className="text-sm text-slate-700">Tem certeza que deseja cancelar este agendamento?</p>
 
       {error && (
         <div

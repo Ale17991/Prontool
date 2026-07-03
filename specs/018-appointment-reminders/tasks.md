@@ -1,5 +1,5 @@
 ---
-description: "Task list for 018 Appointment Reminders (Phase 1 — email)"
+description: 'Task list for 018 Appointment Reminders (Phase 1 — email)'
 ---
 
 # Tasks: Motor de lembretes automáticos de consulta — email (Fase 1)
@@ -219,6 +219,7 @@ Setup (T001..T005)
 **Dentro da Foundational**: T010 e T012 são `[P]` (arquivos diferentes), mas T008 (`supabase:reset`) e T009 (`gen-types`) são sequenciais (T009 depende de T008).
 
 **Dentro de cada US**:
+
 - Tests são `[P]` entre si (arquivos distintos).
 - Implementations dentro da mesma US são geralmente sequenciais porque tocam mesmos arquivos (`actions.ts`, `page.tsx`, `process-batch.ts`).
 - US4 pode rodar em paralelo com US3 após US2 fechar.
@@ -230,12 +231,14 @@ Setup (T001..T005)
 ### MVP scope (entregável mínimo)
 
 **Setup + Foundational + US1 + US2** (T001..T040) já é um MVP viável:
+
 - Admin configura motor
 - Cron envia lembretes automáticos
 - Audit log capturando tudo
 - Idempotência + isolamento multi-tenant garantidos
 
 Sem US3 (histórico) e US4 (opt-out), a feature é utilizável mas:
+
 - Admin não vê o que foi enviado (apenas Resend dashboard externo)
 - Pacientes não conseguem opt-out (todos recebem)
 
@@ -266,6 +269,7 @@ Total estimado: 9 dev-days (alinhado com estimativa do spec).
 ✅ T024 (isolamento multi-tenant) marcado como gate constitucional III.
 
 **Total: 70 tasks** divididas em 7 phases:
+
 - Setup: 5 tasks
 - Foundational: 7 tasks
 - US1: 11 tasks (2 testes + 9 impl/commit)

@@ -15,11 +15,7 @@ export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTM
   ({ className, ...props }, ref) => (
     <div className="relative w-full">
       <div className="relative w-full overflow-x-auto">
-        <table
-          ref={ref}
-          className={cn('w-full caption-bottom text-sm', className)}
-          {...props}
-        />
+        <table ref={ref} className={cn('w-full caption-bottom text-sm', className)} {...props} />
       </div>
       <div
         aria-hidden
@@ -36,7 +32,10 @@ export const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn('bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400', className)}
+    className={cn(
+      'bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400',
+      className,
+    )}
     {...props}
   />
 ))
@@ -58,15 +57,19 @@ export const TableFooter = React.forwardRef<
 ))
 TableFooter.displayName = 'TableFooter'
 
-export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
-  ({ className, ...props }, ref) => (
-    <tr
-      ref={ref}
-      className={cn('border-b transition-colors hover:bg-slate-50 data-[state=selected]:bg-muted', className)}
-      {...props}
-    />
-  ),
-)
+export const TableRow = React.forwardRef<
+  HTMLTableRowElement,
+  React.HTMLAttributes<HTMLTableRowElement>
+>(({ className, ...props }, ref) => (
+  <tr
+    ref={ref}
+    className={cn(
+      'border-b transition-colors hover:bg-slate-50 data-[state=selected]:bg-muted',
+      className,
+    )}
+    {...props}
+  />
+))
 TableRow.displayName = 'TableRow'
 
 export const TableHead = React.forwardRef<

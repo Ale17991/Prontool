@@ -75,7 +75,11 @@ export function PatientPhotoEditor({
       <CardContent className="flex items-center gap-4">
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photoUrl} alt="Foto do paciente" className="h-20 w-20 rounded-full object-cover" />
+          <img
+            src={photoUrl}
+            alt="Foto do paciente"
+            className="h-20 w-20 rounded-full object-cover"
+          />
         ) : (
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-400">
             <User className="h-8 w-8" />
@@ -102,7 +106,11 @@ export function PatientPhotoEditor({
                 onClick={() => inputRef.current?.click()}
                 className="gap-2"
               >
-                {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {pending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
                 {photoUrl ? 'Trocar foto' : 'Enviar foto'}
               </Button>
               {photoUrl ? (

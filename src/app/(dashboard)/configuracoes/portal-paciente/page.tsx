@@ -6,10 +6,7 @@ import { can } from '@/lib/auth/rbac'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import type { Database } from '@/lib/db/types'
-import {
-  getPatientPortalConfig,
-  listMetricSettings,
-} from '@/lib/core/patient-portal/portal-config'
+import { getPatientPortalConfig, listMetricSettings } from '@/lib/core/patient-portal/portal-config'
 import { resolvePortalSections } from '@/lib/core/patient-portal/sections'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { PortalConfigForm } from './portal-config-form'
@@ -41,8 +38,8 @@ export default async function PortalPacientePage() {
           Portal do paciente
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Área onde o paciente entra com CPF e data de nascimento para acompanhar sua
-          evolução (peso, IMC e métricas metabólicas) e seus atendimentos. Disponível em{' '}
+          Área onde o paciente entra com CPF e data de nascimento para acompanhar sua evolução
+          (peso, IMC e métricas metabólicas) e seus atendimentos. Disponível em{' '}
           <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
             {baseUrl}/paciente/[endereço]
           </code>

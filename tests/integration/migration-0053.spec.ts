@@ -16,25 +16,27 @@ describe('migration 0053 — appointments.duration_minutes + tuss_catalog_versio
 
   it('(a) appointments.duration_minutes exists and is nullable', async () => {
     const supabase = serviceClient()
-    const { data, error } = await supabase.rpc('exec_sql' as never, {
-      sql: `
+    const { data, error } = await supabase.rpc(
+      'exec_sql' as never,
+      {
+        sql: `
         SELECT column_name, is_nullable, data_type
         FROM information_schema.columns
         WHERE table_schema = 'public'
           AND table_name = 'appointments'
           AND column_name = 'duration_minutes'
       `,
-    } as never)
+      } as never,
+    )
     // RPC indisponivel? Cair no fallback usando SELECT direto.
     if (error || !data) {
-      const direct = await supabase
-        .from('appointments')
-        .select('duration_minutes')
-        .limit(0)
+      const direct = await supabase.from('appointments').select('duration_minutes').limit(0)
       expect(direct.error).toBeNull()
       return
     }
-    expect((data as Array<{ column_name: string; is_nullable: string; data_type: string }>)[0]).toMatchObject({
+    expect(
+      (data as Array<{ column_name: string; is_nullable: string; data_type: string }>)[0],
+    ).toMatchObject({
       column_name: 'duration_minutes',
       is_nullable: 'YES',
       data_type: 'integer',

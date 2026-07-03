@@ -47,10 +47,7 @@ export async function getSession(): Promise<ActiveSession | null> {
       role,
     }
   } catch (err) {
-    logger.debug(
-      { error: err instanceof Error ? err.message : String(err) },
-      'get-session-failed',
-    )
+    logger.debug({ error: err instanceof Error ? err.message : String(err) }, 'get-session-failed')
     return null
   }
 }

@@ -1,12 +1,5 @@
 /* eslint-disable react/no-unknown-property */
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import type { ProntuarioBundle } from './assemble-prontuario'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 
@@ -309,9 +302,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
             }
             return Array.from(grouped.entries()).map(([cat, items]) => (
               <View key={cat} style={{ marginBottom: 4 }}>
-                <Text style={[styles.label, { marginTop: 3 }]}>
-                  {HISTORY_LABEL[cat] ?? cat}
-                </Text>
+                <Text style={[styles.label, { marginTop: 3 }]}>{HISTORY_LABEL[cat] ?? cat}</Text>
                 {items.map((h) => (
                   <Text key={h.id} style={styles.value}>
                     • {h.description}
@@ -356,9 +347,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
                   </Text>
                   <Text style={styles.value}>
                     Peso{' '}
-                    {last.weightGrams !== null
-                      ? `${(last.weightGrams / 1000).toFixed(1)} kg`
-                      : '—'}
+                    {last.weightGrams !== null ? `${(last.weightGrams / 1000).toFixed(1)} kg` : '—'}
                     {' · Altura '}
                     {last.heightCm ? `${last.heightCm} cm` : '—'}
                     {' · IMC '}
@@ -391,29 +380,19 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
                 </View>
                 {bundle.vitalSigns.slice(0, 5).map((v) => (
                   <View key={v.id} style={styles.tr}>
-                    <Text style={[styles.td, { flex: 1.5 }]}>
-                      {formatDateTime(v.measuredAt)}
-                    </Text>
+                    <Text style={[styles.td, { flex: 1.5 }]}>{formatDateTime(v.measuredAt)}</Text>
                     <Text style={[styles.td, { flex: 1 }]}>
-                      {v.systolicBp && v.diastolicBp
-                        ? `${v.systolicBp}/${v.diastolicBp}`
-                        : '—'}
+                      {v.systolicBp && v.diastolicBp ? `${v.systolicBp}/${v.diastolicBp}` : '—'}
                     </Text>
                     <Text style={[styles.td, { flex: 0.7 }]}>{v.heartRate ?? '—'}</Text>
                     <Text style={[styles.td, { flex: 0.7 }]}>
                       {v.temperatureCelsius?.toFixed(1) ?? '—'}
                     </Text>
-                    <Text style={[styles.td, { flex: 0.7 }]}>
-                      {v.oxygenSaturation ?? '—'}
-                    </Text>
+                    <Text style={[styles.td, { flex: 0.7 }]}>{v.oxygenSaturation ?? '—'}</Text>
                     <Text style={[styles.td, { flex: 0.8 }]}>
-                      {v.weightGrams !== null
-                        ? (v.weightGrams / 1000).toFixed(1)
-                        : '—'}
+                      {v.weightGrams !== null ? (v.weightGrams / 1000).toFixed(1) : '—'}
                     </Text>
-                    <Text style={[styles.td, { flex: 0.6 }]}>
-                      {v.bmi?.toFixed(1) ?? '—'}
-                    </Text>
+                    <Text style={[styles.td, { flex: 0.6 }]}>{v.bmi?.toFixed(1) ?? '—'}</Text>
                   </View>
                 ))}
               </View>
@@ -566,9 +545,7 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
                   {s.title}
                   {s.procedure?.tussCode ? ` · ${s.procedure.tussCode}` : ''}
                 </Text>
-                <Text style={[styles.td, { flex: 1.5 }]}>
-                  {s.doctor?.fullName ?? '—'}
-                </Text>
+                <Text style={[styles.td, { flex: 1.5 }]}>{s.doctor?.fullName ?? '—'}</Text>
                 <Text style={[styles.td, { flex: 0.8 }]}>{s.status}</Text>
               </View>
             ))}
@@ -592,25 +569,18 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
             {bundle.appointments.map((a) => (
               <View key={a.id}>
                 <View style={styles.tr}>
-                  <Text style={[styles.td, { flex: 1.4 }]}>
-                    {formatDateTime(a.appointmentAt)}
-                  </Text>
+                  <Text style={[styles.td, { flex: 1.4 }]}>{formatDateTime(a.appointmentAt)}</Text>
                   <Text style={[styles.td, { flex: 2 }]}>{a.procedureName ?? '—'}</Text>
                   <Text style={[styles.td, { flex: 1.2 }]}>{a.doctorName ?? '—'}</Text>
                   <Text style={[styles.td, { flex: 1 }]}>{a.planName ?? '—'}</Text>
-                  <Text style={[styles.td, { flex: 0.8 }]}>
-                    {formatBRL(a.netAmountCents)}
-                  </Text>
+                  <Text style={[styles.td, { flex: 0.8 }]}>{formatBRL(a.netAmountCents)}</Text>
                   <Text style={[styles.td, { flex: 0.7 }]}>{a.effectiveStatus ?? '—'}</Text>
                 </View>
                 {a.materials.length > 0 ? (
                   <View style={[styles.tr, { paddingTop: 0, paddingBottom: 2 }]}>
                     <Text style={[styles.td, { flex: 7, color: '#555', fontSize: 7 }]}>
                       {a.materials
-                        .map(
-                          (m) =>
-                            `${m.tussDescription} — Qtd: ${m.quantity}`,
-                        )
+                        .map((m) => `${m.tussDescription} — Qtd: ${m.quantity}`)
                         .join(' · ')}
                     </Text>
                   </View>
@@ -623,21 +593,15 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
         {/* ============== Footer fixo ============== */}
         <View style={styles.footer} fixed>
           <View style={styles.footerRow}>
-            <Text>
-              Prontuário gerado em {generated} pelo sistema Clinni.
-            </Text>
+            <Text>Prontuário gerado em {generated} pelo sistema Clinni.</Text>
             <Text
-              render={({ pageNumber, totalPages }) =>
-                `Página ${pageNumber} de ${totalPages}`
-              }
+              render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
             />
           </View>
           <View style={[styles.signatureLine]} />
-          <Text style={{ fontSize: 7, marginTop: 1 }}>
-            Assinatura do profissional responsável
-          </Text>
+          <Text style={{ fontSize: 7, marginTop: 1 }}>Assinatura do profissional responsável</Text>
           <Text style={{ fontSize: 7, color: '#64748b' }}>
-            Nome: ____________________________   Conselho: _______ Nº: __________
+            Nome: ____________________________ Conselho: _______ Nº: __________
           </Text>
         </View>
       </Page>
@@ -645,8 +609,6 @@ export function ProntuarioDocument({ bundle }: { bundle: ProntuarioBundle }) {
   )
 }
 
-export async function renderProntuarioPdf(
-  bundle: ProntuarioBundle,
-): Promise<Buffer> {
+export async function renderProntuarioPdf(bundle: ProntuarioBundle): Promise<Buffer> {
   return renderToBuffer(<ProntuarioDocument bundle={bundle} />)
 }

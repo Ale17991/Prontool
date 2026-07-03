@@ -72,9 +72,11 @@ export async function uploadClinicalFile(
 
 function sanitizeFilename(name: string): string {
   // Remove path separators and control chars; keep extension.
-  return name
-    .replace(/[\\/]/g, '_')
-    .replace(/[\x00-\x1f]/g, '')
-    .slice(0, 200)
-    .trim() || 'arquivo'
+  return (
+    name
+      .replace(/[\\/]/g, '_')
+      .replace(/[\x00-\x1f]/g, '')
+      .slice(0, 200)
+      .trim() || 'arquivo'
+  )
 }

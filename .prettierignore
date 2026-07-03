@@ -8,3 +8,5 @@ package-lock.json
 yarn.lock
 supabase/.branches/
 supabase/.temp/
+.claude/
+.specify/

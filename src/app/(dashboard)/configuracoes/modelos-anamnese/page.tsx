@@ -66,12 +66,10 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            Modelos de anamnese
-          </h1>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Modelos de anamnese</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Formulários clínicos versionados. Editar um modelo cria uma nova versão;
-            anamneses já preenchidas continuam referenciando a versão original.
+            Formulários clínicos versionados. Editar um modelo cria uma nova versão; anamneses já
+            preenchidas continuam referenciando a versão original.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -112,9 +110,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <FileJson className="h-8 w-8 text-slate-300" />
               <p className="text-sm font-medium text-slate-500">
-                {showInactive
-                  ? 'Nenhum modelo cadastrado ainda.'
-                  : 'Nenhum modelo ativo. '}
+                {showInactive ? 'Nenhum modelo cadastrado ainda.' : 'Nenhum modelo ativo. '}
                 {!showInactive && isAdmin ? (
                   <Link
                     href="/configuracoes/modelos-anamnese?mostrar_inativos=1"
@@ -143,9 +139,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                     <TableCell>
                       <p className="font-semibold text-slate-900">{t.title}</p>
                       {t.description ? (
-                        <p className="line-clamp-1 text-[11px] text-slate-500">
-                          {t.description}
-                        </p>
+                        <p className="line-clamp-1 text-[11px] text-slate-500">{t.description}</p>
                       ) : null}
                     </TableCell>
                     <TableCell>
@@ -155,9 +149,7 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                     </TableCell>
                     <TableCell className="text-xs text-slate-500">
                       {Array.isArray(t.fields) ? t.fields.length : 0}{' '}
-                      {Array.isArray(t.fields) && t.fields.length === 1
-                        ? 'campo'
-                        : 'campos'}
+                      {Array.isArray(t.fields) && t.fields.length === 1 ? 'campo' : 'campos'}
                     </TableCell>
                     <TableCell>
                       {t.active ? (

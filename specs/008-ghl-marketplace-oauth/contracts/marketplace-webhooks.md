@@ -19,11 +19,11 @@ Webhooks chamados pelo GHL Marketplace quando uma sub-account instala ou desinst
 
 ```json
 {
-  "eventId": "evt_...",        // identificador único do evento (idempotência)
+  "eventId": "evt_...", // identificador único do evento (idempotência)
   "type": "INSTALL",
   "appId": "<our app id>",
   "companyId": "...",
-  "locationId": "...",         // sub-account
+  "locationId": "...", // sub-account
   "location": {
     "id": "...",
     "name": "Clínica X",
@@ -72,13 +72,13 @@ Webhooks chamados pelo GHL Marketplace quando uma sub-account instala ou desinst
 
 **Resposta**:
 
-| Status | Body | Quando |
-|---|---|---|
-| 200 | `{ received: true, duplicate: false, tenant_id }` | Sucesso (novo ou atualizado). |
-| 200 | `{ received: true, duplicate: true }` | Replay do mesmo `eventId`. |
-| 400 | `{ error: { code: 'INVALID_BODY', issues } }` | JSON inválido / shape errado. |
-| 401 | `{ error: { code: 'INVALID_SIGNATURE' } }` | HMAC ou janela falharam. |
-| 500 | `{ error: { code: 'INSTALL_FAILED', correlation_id } }` | Erro inesperado pós-validação. Não retornar 5xx por erro do post-connect-setup — esse é best-effort. |
+| Status | Body                                                    | Quando                                                                                               |
+| ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 200    | `{ received: true, duplicate: false, tenant_id }`       | Sucesso (novo ou atualizado).                                                                        |
+| 200    | `{ received: true, duplicate: true }`                   | Replay do mesmo `eventId`.                                                                           |
+| 400    | `{ error: { code: 'INVALID_BODY', issues } }`           | JSON inválido / shape errado.                                                                        |
+| 401    | `{ error: { code: 'INVALID_SIGNATURE' } }`              | HMAC ou janela falharam.                                                                             |
+| 500    | `{ error: { code: 'INSTALL_FAILED', correlation_id } }` | Erro inesperado pós-validação. Não retornar 5xx por erro do post-connect-setup — esse é best-effort. |
 
 **Audit**:
 
@@ -122,14 +122,14 @@ Webhooks chamados pelo GHL Marketplace quando uma sub-account instala ou desinst
 
 **Resposta**:
 
-| Status | Body |
-|---|---|
-| 200 | `{ received: true, duplicate: false, tenant_id }` |
-| 200 | `{ received: true, no_match: true }` |
-| 200 | `{ received: true, duplicate: true }` |
-| 400 | `{ error: { code: 'INVALID_BODY' } }` |
-| 401 | `{ error: { code: 'INVALID_SIGNATURE' } }` |
-| 500 | `{ error: { code: 'UNINSTALL_FAILED' } }` (apenas se erro persistente impedir marcar `enabled=false`) |
+| Status | Body                                                                                                  |
+| ------ | ----------------------------------------------------------------------------------------------------- |
+| 200    | `{ received: true, duplicate: false, tenant_id }`                                                     |
+| 200    | `{ received: true, no_match: true }`                                                                  |
+| 200    | `{ received: true, duplicate: true }`                                                                 |
+| 400    | `{ error: { code: 'INVALID_BODY' } }`                                                                 |
+| 401    | `{ error: { code: 'INVALID_SIGNATURE' } }`                                                            |
+| 500    | `{ error: { code: 'UNINSTALL_FAILED' } }` (apenas se erro persistente impedir marcar `enabled=false`) |
 
 **Audit**: `integration.disconnect` (`motivo='marketplace_uninstall'`, `actor='system:ghl_marketplace_uninstall'`).
 

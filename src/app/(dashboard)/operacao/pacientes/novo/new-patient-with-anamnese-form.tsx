@@ -65,10 +65,7 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
       if (f.id === 'default_cpf') continue
       const v = responses[f.id]
       const empty =
-        v === undefined ||
-        v === null ||
-        v === '' ||
-        (Array.isArray(v) && v.length === 0)
+        v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
       if (empty) {
         setError(`Preencha o campo obrigatório: ${f.label}`)
         return
@@ -93,7 +90,7 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
     const planName =
       planId === '__none__'
         ? 'Sem plano (particular)'
-        : healthPlans.find((p) => p.id === planId)?.name ?? null
+        : (healthPlans.find((p) => p.id === planId)?.name ?? null)
     if (planName && template.fields.some((f) => f.id === 'default_plano')) {
       normalizedResponses['default_plano'] = planName
     }
@@ -262,9 +259,7 @@ function DefaultFieldInput({
   onPlanChange: (v: string) => void
 }) {
   const fullWidth =
-    field.id === 'default_nome' ||
-    field.id === 'default_endereco' ||
-    field.id === 'default_plano'
+    field.id === 'default_nome' || field.id === 'default_endereco' || field.id === 'default_plano'
   const colSpan = fullWidth ? 'md:col-span-2' : ''
 
   // Override visual pra default_plano: render Select com planos + sem-plano.
@@ -301,12 +296,7 @@ function DefaultFieldInput({
   return (
     <div className={`space-y-1.5 ${colSpan}`}>
       <FieldLabel field={field} />
-      <FieldBody
-        field={field}
-        value={value}
-        onChange={onChange}
-        onToggleOption={onToggleOption}
-      />
+      <FieldBody field={field} value={value} onChange={onChange} onToggleOption={onToggleOption} />
     </div>
   )
 }
@@ -325,36 +315,20 @@ function CustomFieldInput({
   return (
     <div className="space-y-1.5">
       <FieldLabel field={field} />
-      <FieldBody
-        field={field}
-        value={value}
-        onChange={onChange}
-        onToggleOption={onToggleOption}
-      />
+      <FieldBody field={field} value={value} onChange={onChange} onToggleOption={onToggleOption} />
     </div>
   )
 }
 
-function FieldLabel({
-  field,
-  forceRequired,
-}: {
-  field: AnamnesisField
-  forceRequired?: boolean
-}) {
+function FieldLabel({ field, forceRequired }: { field: AnamnesisField; forceRequired?: boolean }) {
   return (
     <Label className="flex items-center gap-2 text-xs">
       <span>
         {field.label}
-        {field.required || forceRequired ? (
-          <span className="ml-1 text-rose-500">*</span>
-        ) : null}
+        {field.required || forceRequired ? <span className="ml-1 text-rose-500">*</span> : null}
       </span>
       {field.is_default ? (
-        <Badge
-          variant="secondary"
-          className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
-        >
+        <Badge variant="secondary" className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800">
           Padrão
         </Badge>
       ) : null}
@@ -405,10 +379,7 @@ function FieldBody({
   if (type === 'select') {
     const opts = field.options ?? []
     return (
-      <Select
-        value={(value as string | undefined) ?? ''}
-        onValueChange={(v) => onChange(v)}
-      >
+      <Select value={(value as string | undefined) ?? ''} onValueChange={(v) => onChange(v)}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione…" />
         </SelectTrigger>
@@ -475,7 +446,9 @@ function FieldBody({
       value={(value as string | undefined) ?? ''}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      inputMode={field.id === 'default_cpf' || field.id === 'default_telefone' ? 'numeric' : undefined}
+      inputMode={
+        field.id === 'default_cpf' || field.id === 'default_telefone' ? 'numeric' : undefined
+      }
     />
   )
 }

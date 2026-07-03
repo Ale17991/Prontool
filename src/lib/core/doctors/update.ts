@@ -85,7 +85,9 @@ export async function updateDoctor(
     .update(updates)
     .eq('id', input.doctorId)
     .eq('tenant_id', input.tenantId)
-    .select('id, full_name, active, cpf, council_name, council_number, council_state, birth_date, specialty, cbo')
+    .select(
+      'id, full_name, active, cpf, council_name, council_number, council_state, birth_date, specialty, cbo',
+    )
     .maybeSingle()
   if (error) throw new Error(`updateDoctor failed: ${error.message}`)
   if (!data) throw new NotFoundError('doctor', input.doctorId)

@@ -6,7 +6,14 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatBps, formatDate, formatDateTime } from '@/lib/utils'
 import { LiberalSettlementsCard } from './liberal-settlements-card'
 
@@ -63,7 +70,10 @@ export default async function ComissoesPage() {
       ? Math.round(heads.reduce((acc, h) => acc + h.percentage_bps, 0) / heads.length)
       : 0
   const maxBps = heads.reduce((acc, h) => Math.max(acc, h.percentage_bps), 0)
-  const minBps = heads.reduce((acc, h) => Math.min(acc, h.percentage_bps), heads[0]?.percentage_bps ?? 0)
+  const minBps = heads.reduce(
+    (acc, h) => Math.min(acc, h.percentage_bps),
+    heads[0]?.percentage_bps ?? 0,
+  )
 
   return (
     <div className="space-y-6">
@@ -71,8 +81,7 @@ export default async function ComissoesPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Comissões</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Visão agregada dos percentuais vigentes + últimas mudanças no histórico
-            append-only.
+            Visão agregada dos percentuais vigentes + últimas mudanças no histórico append-only.
           </p>
         </div>
         <Link
@@ -85,10 +94,7 @@ export default async function ComissoesPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <StatCard
-          label="Profissionais ativos"
-          value={heads.length.toString()}
-        />
+        <StatCard label="Profissionais ativos" value={heads.length.toString()} />
         <StatCard label="Comissão média" value={formatBps(averageBps)} />
         <StatCard label="Maior comissão" value={formatBps(maxBps)} />
         <StatCard label="Menor comissão" value={formatBps(minBps)} />
@@ -107,7 +113,10 @@ export default async function ComissoesPage() {
           ) : heads.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-slate-500">
               Nenhum profissional ativo com comissão vigente. Cadastre em{' '}
-              <Link href="/configuracoes/profissionais" className="font-semibold text-link hover:text-link-hover underline">
+              <Link
+                href="/configuracoes/profissionais"
+                className="font-semibold text-link hover:text-link-hover underline"
+              >
                 Profissionais
               </Link>
               .
@@ -206,9 +215,7 @@ export default async function ComissoesPage() {
                           {isFuture ? <Badge variant="warning">Futura</Badge> : null}
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-sm text-xs text-slate-600">
-                        {r.reason}
-                      </TableCell>
+                      <TableCell className="max-w-sm text-xs text-slate-600">{r.reason}</TableCell>
                     </TableRow>
                   )
                 })}

@@ -16,9 +16,7 @@ export interface PlanTaxRow {
 }
 
 export interface PlanTaxResult<T extends PlanTaxRow> {
-  rows: Array<
-    T & { taxRateBps: number; taxFromPlanCents: number; netOfPlanTaxCents: number }
-  >
+  rows: Array<T & { taxRateBps: number; taxFromPlanCents: number; netOfPlanTaxCents: number }>
   totalTaxCents: number
 }
 

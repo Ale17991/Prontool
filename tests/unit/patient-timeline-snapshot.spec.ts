@@ -30,8 +30,13 @@ const PATIENT_BASE: PatientDetail = {
   guardianCpf: null,
   guardianRelationship: null,
   address: {
-    cep: null, street: null, number: null, complement: null,
-    neighborhood: null, city: null, state: null,
+    cep: null,
+    street: null,
+    number: null,
+    complement: null,
+    neighborhood: null,
+    city: null,
+    state: null,
   },
   anonymizedAt: null,
   status: 'ativo',
@@ -144,10 +149,7 @@ describe('buildQuickViewSnapshot', () => {
       patient: PATIENT_BASE,
       summary: SUMMARY_BASE,
       allergies: [],
-      diagnoses: [
-        diagnosis('E11', 'em_acompanhamento'),
-        diagnosis('I10', 'ativo'),
-      ],
+      diagnoses: [diagnosis('E11', 'em_acompanhamento'), diagnosis('I10', 'ativo')],
       vitalSigns: [],
       payments: [],
       role: 'admin',
@@ -191,16 +193,26 @@ describe('buildQuickViewSnapshot', () => {
 
   it('permissões por role: admin tem tudo, recepcionista não escreve clínico', () => {
     const adminSnap = buildQuickViewSnapshot({
-      patient: PATIENT_BASE, summary: SUMMARY_BASE,
-      allergies: [], diagnoses: [], vitalSigns: [], payments: [], role: 'admin',
+      patient: PATIENT_BASE,
+      summary: SUMMARY_BASE,
+      allergies: [],
+      diagnoses: [],
+      vitalSigns: [],
+      payments: [],
+      role: 'admin',
     })
     expect(adminSnap.permissions.canCreateEvolution).toBe(true)
     expect(adminSnap.permissions.canCreateAnamnesis).toBe(true)
     expect(adminSnap.permissions.canDeleteAnamnese).toBe(true)
 
     const recepSnap = buildQuickViewSnapshot({
-      patient: PATIENT_BASE, summary: SUMMARY_BASE,
-      allergies: [], diagnoses: [], vitalSigns: [], payments: [], role: 'recepcionista',
+      patient: PATIENT_BASE,
+      summary: SUMMARY_BASE,
+      allergies: [],
+      diagnoses: [],
+      vitalSigns: [],
+      payments: [],
+      role: 'recepcionista',
     })
     expect(recepSnap.permissions.canCreateEvolution).toBe(false)
     expect(recepSnap.permissions.canCreateAnamnesis).toBe(false)
@@ -210,16 +222,31 @@ describe('buildQuickViewSnapshot', () => {
 
   it('lastVital pega o primeiro elemento do array (já ordenado por measured_at desc)', () => {
     const v1: VitalSignsDTO = {
-      id: 'v1', patientId: 'p-1', appointmentId: null,
+      id: 'v1',
+      patientId: 'p-1',
+      appointmentId: null,
       measuredAt: '2026-05-15T00:00:00Z',
-      systolicBp: 130, diastolicBp: 85, heartRate: null, respiratoryRate: null,
-      temperatureCelsius: null, oxygenSaturation: null, weightGrams: null,
-      heightCm: null, bmi: null, notes: null,
-      measuredBy: 'user-a', createdAt: '2026-05-15T00:00:00Z',
+      systolicBp: 130,
+      diastolicBp: 85,
+      heartRate: null,
+      respiratoryRate: null,
+      temperatureCelsius: null,
+      oxygenSaturation: null,
+      weightGrams: null,
+      heightCm: null,
+      bmi: null,
+      notes: null,
+      measuredBy: 'user-a',
+      createdAt: '2026-05-15T00:00:00Z',
     }
     const snapshot = buildQuickViewSnapshot({
-      patient: PATIENT_BASE, summary: SUMMARY_BASE,
-      allergies: [], diagnoses: [], vitalSigns: [v1], payments: [], role: 'admin',
+      patient: PATIENT_BASE,
+      summary: SUMMARY_BASE,
+      allergies: [],
+      diagnoses: [],
+      vitalSigns: [v1],
+      payments: [],
+      role: 'admin',
     })
     expect(snapshot.lastVital?.id).toBe('v1')
     expect(snapshot.lastVital?.systolicBp).toBe(130)

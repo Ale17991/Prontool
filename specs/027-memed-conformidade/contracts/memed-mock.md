@@ -49,21 +49,21 @@ Mock HTTP usado por testes de integração e E2E. Substitui chamadas a `api.meme
 - Se qualquer campo vazio/null: `422 Unprocessable Entity` com:
   ```json
   {
-    "errors": [
-      { "field": "<campo>", "message": "obrigatório" }
-    ]
+    "errors": [{ "field": "<campo>", "message": "obrigatório" }]
   }
   ```
 
 ### `GET /usuarios/{external_id}` — Recuperar token do prescritor
 
 **Comportamento**:
+
 - Se `external_id` previamente registrado: `200 OK` com `{ data: { attributes: { token } } }`.
 - Caso contrário: `404 Not Found`.
 
 ### `GET /catalogos/especialidades` — Lista de especialidades
 
 Retorna 5 especialidades fixas:
+
 ```json
 [
   { "id": "cardiologia", "nome": "Cardiologia" },
@@ -77,6 +77,7 @@ Retorna 5 especialidades fixas:
 ## Headers obrigatórios em todas as requests
 
 O mock **MUST** verificar e retornar `400` se faltar:
+
 - `Accept: application/vnd.api+json`
 - `Content-Type: application/vnd.api+json` (apenas em POST/PATCH)
 - `Authorization: Bearer <token>` (HEADER, não querystring — alinha com prática moderna)

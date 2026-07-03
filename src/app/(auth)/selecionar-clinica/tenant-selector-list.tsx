@@ -66,12 +66,9 @@ export function TenantSelectorList({ tenants, currentTenantId }: TenantSelectorL
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900">
-              Selecionar clínica
-            </h1>
+            <h1 className="text-xl font-black tracking-tight text-slate-900">Selecionar clínica</h1>
             <p className="text-xs text-slate-500">
-              Você está vinculado a {tenants.length} clínicas. Escolha em qual quer
-              trabalhar agora.
+              Você está vinculado a {tenants.length} clínicas. Escolha em qual quer trabalhar agora.
             </p>
           </div>
         </div>
@@ -109,18 +106,12 @@ export function TenantSelectorList({ tenants, currentTenantId }: TenantSelectorL
                   <Building2 className="h-5 w-5" />
                 </div>
                 <div className="w-full space-y-1">
-                  <h2 className="truncate text-base font-bold text-slate-900">
-                    {t.name}
-                  </h2>
-                  <p className="truncate text-[11px] font-mono text-slate-500">
-                    {t.slug}
-                  </p>
+                  <h2 className="truncate text-base font-bold text-slate-900">{t.name}</h2>
+                  <p className="truncate text-[11px] font-mono text-slate-500">{t.slug}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary">{labelForRole(t.role)}</Badge>
-                  {t.ghlConnected ? (
-                    <Badge variant="success">Homio conectado</Badge>
-                  ) : null}
+                  {t.ghlConnected ? <Badge variant="success">Homio conectado</Badge> : null}
                 </div>
                 {t.lastUsedAt ? (
                   <p className="text-[10px] text-slate-400">
@@ -131,9 +122,7 @@ export function TenantSelectorList({ tenants, currentTenantId }: TenantSelectorL
                   </p>
                 ) : null}
                 {isBusy ? (
-                  <p className="text-[11px] font-medium text-primary">
-                    Selecionando…
-                  </p>
+                  <p className="text-[11px] font-medium text-primary">Selecionando…</p>
                 ) : null}
               </button>
             )

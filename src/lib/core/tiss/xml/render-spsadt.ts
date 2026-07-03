@@ -149,9 +149,7 @@ function buildGuiaSpSadt(g: SpSadtGuiaModel): Record<string, unknown> {
       valorProcedimentos: centsToDecimal(
         g.procedimentos.reduce((s, p) => s + p.valorTotalCents, 0),
       ),
-      valorTotalGeral: centsToDecimal(
-        g.procedimentos.reduce((s, p) => s + p.valorTotalCents, 0),
-      ),
+      valorTotalGeral: centsToDecimal(g.procedimentos.reduce((s, p) => s + p.valorTotalCents, 0)),
     },
   }
   if (g.numeroGuiaOperadora) {

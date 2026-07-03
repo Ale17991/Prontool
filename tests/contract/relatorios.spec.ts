@@ -35,12 +35,7 @@ describe('contract: relatorios endpoints', () => {
         | { required?: string[]; properties?: Record<string, unknown> }
         | undefined
       expect(schema?.required ?? []).toEqual(
-        expect.arrayContaining([
-          'period',
-          'revenue_by_plan',
-          'production_by_doctor',
-          'totals',
-        ]),
+        expect.arrayContaining(['period', 'revenue_by_plan', 'production_by_doctor', 'totals']),
       )
     })
   })

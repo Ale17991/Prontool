@@ -5,7 +5,7 @@
 **Status**: Draft  
 **Input**: User description: "Integração com a Memed (prescrição digital) no Prontool — permitir que profissionais de saúde emitam prescrição digital dentro do fluxo de atendimento/prontuário, atendendo qualquer tipo de clínica, com credenciais seguras, registro de prescritor, proxy de token, frontend de prescrição e conformidade de produção."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Emitir prescrição digital durante o atendimento (Priority: P1)
 
@@ -98,7 +98,7 @@ A equipe constrói e valida toda a integração em ambiente de homologação (se
 - **Especialidade sem correspondência no catálogo Memed**: registrar sem especialidade, sinalizando pendência, sem bloquear.
 - **Revogação/monitoramento pela Memed**: a integração pode ser auditada por até 180 dias e revogada por não conformidade → manter os requisitos continuamente atendidos.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -146,7 +146,7 @@ A equipe constrói e valida toda a integração em ambiente de homologação (se
 - **FR-024**: O sistema MUST registrar o aceite de um termo de responsabilidade exigido para uso da prescrição digital antes de habilitar a emissão em produção.
 - **FR-025**: A feature MUST permanecer agnóstica a profissão — funcionar para qualquer tipo de clínica (médica, odontológica, fisioterapia, psicologia, nutrição etc.), sem pressupor uma categoria específica.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Conexão Memed da clínica**: representa a conta Memed conectada por uma clínica (tenant) — ambiente ativo (homologação/produção), estado da conexão (conectada/desconectada) e o par de chaves cifrado; nunca exposta ao frontend.
 - **Prescritor**: o vínculo entre um profissional (doctor) do Prontool e seu cadastro de prescritor na Memed; carrega o identificador externo, o estado de "apto/registrado" e a referência de especialidade mapeada.
@@ -154,7 +154,7 @@ A equipe constrói e valida toda a integração em ambiente de homologação (se
 - **Mapeamento de Especialidade**: a correspondência entre a especialidade em texto livre do profissional e o identificador do catálogo da Memed.
 - **Aceite de Termo de Responsabilidade**: o registro de que a clínica/usuário responsável aceitou o termo exigido para emissão em produção.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

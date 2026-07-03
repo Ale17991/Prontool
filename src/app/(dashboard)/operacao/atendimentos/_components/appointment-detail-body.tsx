@@ -74,7 +74,15 @@ export function AppointmentDetailBody({
   onDirtyChange,
   onPendingChange,
 }: Props) {
-  const { appointment, patient, procedures, materials, allergies, assistants, assistantsRemovedCount } = data
+  const {
+    appointment,
+    patient,
+    procedures,
+    materials,
+    allergies,
+    assistants,
+    assistantsRemovedCount,
+  } = data
   const prescriberReady = data.memed?.prescriberReady ?? false
   const prescriptions = data.prescriptions ?? []
 
@@ -82,9 +90,9 @@ export function AppointmentDetailBody({
   const isFuture =
     appointment.appointment_at !== null &&
     new Date(appointment.appointment_at).getTime() > Date.now()
-  const status: (typeof KNOWN_STATUSES)[number] = (
-    KNOWN_STATUSES as readonly string[]
-  ).includes(rawStatus)
+  const status: (typeof KNOWN_STATUSES)[number] = (KNOWN_STATUSES as readonly string[]).includes(
+    rawStatus,
+  )
     ? (rawStatus as (typeof KNOWN_STATUSES)[number])
     : isFuture
       ? 'agendado'
@@ -304,9 +312,7 @@ export function AppointmentDetailBody({
       {procedures.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              Procedimentos ({procedures.length})
-            </CardTitle>
+            <CardTitle className="text-base">Procedimentos ({procedures.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {canAddProcedure && appointment.id ? (
@@ -349,7 +355,7 @@ export function AppointmentDetailBody({
                             Particular
                           </span>
                         ) : (
-                          line.planName ?? '—'
+                          (line.planName ?? '—')
                         )}
                       </TableCell>
                       <TableCell className="text-center font-mono text-xs tabular-nums">
@@ -458,8 +464,8 @@ export function AppointmentDetailBody({
             {status === 'agendado' ? (
               <>
                 <p className="mb-4 text-sm text-slate-500">
-                  Marca que o paciente avisou que vai comparecer (confirmação prévia).
-                  Não significa que o atendimento já foi realizado.
+                  Marca que o paciente avisou que vai comparecer (confirmação prévia). Não significa
+                  que o atendimento já foi realizado.
                 </p>
                 <ConfirmAppointmentButton
                   appointmentId={appointment.id}
@@ -470,10 +476,9 @@ export function AppointmentDetailBody({
             ) : (
               <>
                 <p className="mb-4 text-sm text-slate-500">
-                  Registra que o paciente compareceu e o atendimento foi realizado.
-                  A etapa vinculada do plano de tratamento (se houver) é marcada como
-                  concluída automaticamente e o atendimento passa a entrar nos
-                  faturamentos.
+                  Registra que o paciente compareceu e o atendimento foi realizado. A etapa
+                  vinculada do plano de tratamento (se houver) é marcada como concluída
+                  automaticamente e o atendimento passa a entrar nos faturamentos.
                 </p>
                 <MarkRealizedForm
                   appointmentId={appointment.id}
@@ -515,19 +520,16 @@ export function AppointmentDetailBody({
         <details className="group rounded-lg border border-slate-200 bg-white">
           <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-bold text-slate-700">
             <span>Estornar atendimento (sem cancelar agenda)</span>
-            <span className="text-xs font-medium text-slate-400 group-open:hidden">
-              mostrar
-            </span>
+            <span className="text-xs font-medium text-slate-400 group-open:hidden">mostrar</span>
             <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
               ocultar
             </span>
           </summary>
           <div className="border-t border-slate-100 p-4">
             <p className="mb-4 text-sm text-slate-500">
-              Use apenas para correções puramente financeiras (cobrança duplicada,
-              erro de valor) onde o atendimento aconteceu de fato. Para no-show
-              ou desmarcação use &quot;Cancelar atendimento&quot; acima — ele já
-              cuida do estorno automaticamente.
+              Use apenas para correções puramente financeiras (cobrança duplicada, erro de valor)
+              onde o atendimento aconteceu de fato. Para no-show ou desmarcação use &quot;Cancelar
+              atendimento&quot; acima — ele já cuida do estorno automaticamente.
             </p>
             <ReversalForm
               appointmentId={appointment.id}
@@ -547,9 +549,7 @@ export function AppointmentDetailBody({
               <DollarSign className="h-4 w-4 text-slate-400" />
               Dados financeiros
             </span>
-            <span className="text-xs font-medium text-slate-400 group-open:hidden">
-              mostrar
-            </span>
+            <span className="text-xs font-medium text-slate-400 group-open:hidden">mostrar</span>
             <span className="hidden text-xs font-medium text-slate-400 group-open:inline">
               ocultar
             </span>
@@ -564,9 +564,7 @@ export function AppointmentDetailBody({
               </ClinicalRow>
               <ClinicalRow icon={Receipt} label="Valor líquido">
                 <span
-                  className={
-                    status === 'estornado' ? 'font-black text-destructive' : 'font-black'
-                  }
+                  className={status === 'estornado' ? 'font-black text-destructive' : 'font-black'}
                 >
                   {formatCurrency(appointment.net_amount_cents)}
                 </span>
@@ -603,9 +601,7 @@ function ClinicalRow({
     <div className="flex gap-3">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <div className="mt-0.5 text-sm text-slate-700">{children}</div>
       </div>
     </div>
@@ -654,9 +650,7 @@ function AllergiesCard({ allergies }: { allergies: PatientAllergyDTO[] }) {
           }
         >
           <AlertTriangle
-            className={
-              accent === 'rose' ? 'h-4 w-4 text-destructive' : 'h-4 w-4 text-warning'
-            }
+            className={accent === 'rose' ? 'h-4 w-4 text-destructive' : 'h-4 w-4 text-warning'}
           />
           Alergias do paciente — {allergies.length} registrada
           {allergies.length === 1 ? '' : 's'}

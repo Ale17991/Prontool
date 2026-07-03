@@ -24,29 +24,32 @@ A entrega segue prioridade do spec. Nenhum dos três trabalhos depende do outro 
 **Performance Goals**: typeahead TUSS com p95 ≤ 250 ms (já alcançado em /cadastros/procedimentos com debounce de 250 ms, herdado pelo componente). Persistência atômica de até 20 materiais por atendimento sem regressão perceptível no salvamento (atual ~150 ms p95 em `POST /api/atendimentos/manual`).
 **Constraints**: append-only — `UPDATE`/`DELETE` em `appointment_materials` é proibido por trigger (alinhado a Principle I). Multi-tenant rígido — RLS no banco + filtro de `tenant_id` no service (Principle III). RBAC server-side em todos os endpoints novos (Principle V). Quantidade ≤ 0 ou não inteira deve falhar com erro 400 antes de tocar o banco (validação Zod). Para feature 3: regra "Algo deu errado…" só vale para erros genéricos não classificados — `DomainError` com mensagem específica preserva o texto original.
 **Scale/Scope**:
+
 - Materiais: estimado 0–5 itens por atendimento médio, picos ≤ 20. Catálogo TUSS tabela 19 tem ~3000 códigos vigentes.
 - Linguagem: varredura em ~45 arquivos identificados na pesquisa preliminar (Phase 0); a maioria dos 119 hits encontrados no grep são em código/comentários internos (não-UI) que **não** devem mudar. Os arquivos efetivamente alterados ficam em torno de **15–25 arquivos** de UI/PDF/error pages.
 - WhatsApp: 1 botão em 1 página + 1 helper puro com testes.
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Aplicação | Veredito |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | `appointment_materials` não armazena valor monetário (apenas código TUSS, descrição, quantidade) — não cria nova superfície financeira. Mas a regra de imutabilidade aplica-se: tabela é append-only via trigger `enforce_appointment_materials_mutation` (espelha o padrão de `expenses`/`appointment_reversals`). Nenhum `UPDATE` ou `DELETE` físico permitido pela API regular. Materiais ficam congelados no momento da inserção (snapshot de `tuss_description`). | ✅ PASS |
-| **II. Auditabilidade Total de Preços** | `appointment_materials` recebe trigger de audit (`audit_appointment_materials`) que insere em `audit_log` em todo INSERT — ator (`created_by`), `tenant_id`, entidade, valores. Mesmo padrão de `audit_appointments` da migration 0013. | ✅ PASS |
-| **III. Isolamento Multi-Tenant** | `tenant_id` NOT NULL na tabela nova, RLS habilitado, política `appointment_materials_tenant_isolation` com `USING/WITH CHECK (tenant_id = current_tenant_id())`. PK é UUID. Endpoints `/api/atendimentos/[id]/materiais` validam que o `appointment_id` pertence ao tenant antes de ler/escrever. | ✅ PASS |
-| **IV. Conformidade TUSS/ANS** | Materiais usam código TUSS oficial tabela 19 (catálogo já importado em `tuss_codes` via migrations 0003+0037). Endpoint typeahead consulta apenas `valid_to IS NULL` (códigos vigentes — comportamento existente em `searchTussCatalog`). Códigos retirados continuam aparecendo em registros históricos via `tuss_description` congelada. | ✅ PASS |
-| **V. Segurança por Perfil de Acesso (RBAC)** | Endpoints novos chamam `requireRole(['admin', 'recepcionista', 'profissional_saude'])` (mesma policy de `/api/atendimentos/manual`). UI esconde botão "+ Adicionar material" não como mecanismo de segurança, mas como UX — o servidor é fonte de verdade. Tentativas negadas geram audit entry (já garantido pelo `requireRole` existente). | ✅ PASS |
+| Princípio                                    | Aplicação                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Veredito |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **I. Integridade Financeira Imutável**       | `appointment_materials` não armazena valor monetário (apenas código TUSS, descrição, quantidade) — não cria nova superfície financeira. Mas a regra de imutabilidade aplica-se: tabela é append-only via trigger `enforce_appointment_materials_mutation` (espelha o padrão de `expenses`/`appointment_reversals`). Nenhum `UPDATE` ou `DELETE` físico permitido pela API regular. Materiais ficam congelados no momento da inserção (snapshot de `tuss_description`). | ✅ PASS  |
+| **II. Auditabilidade Total de Preços**       | `appointment_materials` recebe trigger de audit (`audit_appointment_materials`) que insere em `audit_log` em todo INSERT — ator (`created_by`), `tenant_id`, entidade, valores. Mesmo padrão de `audit_appointments` da migration 0013.                                                                                                                                                                                                                                | ✅ PASS  |
+| **III. Isolamento Multi-Tenant**             | `tenant_id` NOT NULL na tabela nova, RLS habilitado, política `appointment_materials_tenant_isolation` com `USING/WITH CHECK (tenant_id = current_tenant_id())`. PK é UUID. Endpoints `/api/atendimentos/[id]/materiais` validam que o `appointment_id` pertence ao tenant antes de ler/escrever.                                                                                                                                                                      | ✅ PASS  |
+| **IV. Conformidade TUSS/ANS**                | Materiais usam código TUSS oficial tabela 19 (catálogo já importado em `tuss_codes` via migrations 0003+0037). Endpoint typeahead consulta apenas `valid_to IS NULL` (códigos vigentes — comportamento existente em `searchTussCatalog`). Códigos retirados continuam aparecendo em registros históricos via `tuss_description` congelada.                                                                                                                             | ✅ PASS  |
+| **V. Segurança por Perfil de Acesso (RBAC)** | Endpoints novos chamam `requireRole(['admin', 'recepcionista', 'profissional_saude'])` (mesma policy de `/api/atendimentos/manual`). UI esconde botão "+ Adicionar material" não como mecanismo de segurança, mas como UX — o servidor é fonte de verdade. Tentativas negadas geram audit entry (já garantido pelo `requireRole` existente).                                                                                                                           | ✅ PASS  |
 
 **Restrições de domínio adicionais relevantes**:
+
 - LGPD: nenhum dado pessoal novo coletado; materiais são códigos clínicos, não PII. ✅
 - UTC: `created_at` em `TIMESTAMPTZ DEFAULT now()` (UTC). ✅
 - Moeda: N/A (sem valor monetário em materiais). ✅
 - Observabilidade: Pino logger nos route handlers; eventos estruturados com `tenant_id`+`user_id`+`trace_id`. ✅
 
 **Para Feature 3 (Linguagem)**:
+
 - Principle II (auditabilidade) reforça que `event_type='appointment.reversed'` no `audit_log` **NÃO** muda — apenas a UI que renderiza esse evento. ✅
 - Principle I é compatível com a renomeação UI: imutabilidade está em "não editar valor", não em "não renomear rótulo".
 
@@ -136,16 +139,16 @@ supabase/
 
 Os pontos de pesquisa abaixo foram resolvidos durante o estudo do código existente. **Nenhum NEEDS CLARIFICATION resta**. Detalhe completo em `research.md`.
 
-| # | Pergunta | Decisão | Fonte |
-|---|----------|---------|-------|
-| R1 | Catálogo TUSS tabela 19 já está populado? | **Sim**, importado via `pnpm seed:tuss` (migrations 0003 + 0037 + seed). `searchTussCatalog` aceita `table: '19'` e o `<TussTypeahead>` aceita `table` prop sem alteração. | `src/lib/core/catalog/list-tuss.ts`, `src/components/tuss/tuss-typeahead.tsx` |
-| R2 | Como persistir materiais atomicamente com a criação do atendimento? | Estender `createAppointmentManually` para aceitar `materiais?: MaterialInput[]` e fazer 2 inserts sequenciais dentro da mesma request (Supabase JS client não tem transações multi-statement; mitigamos com **RPC SQL** `create_appointment_with_materials` em `0061`). Para `treatment-steps`, mesmo padrão. | `src/lib/core/appointments/create-manual.ts`, `src/lib/core/treatment-steps/create-with-appointment.ts` |
-| R3 | Padrão de RLS + audit + append-only para nova tabela | Espelhar `expense_receipts` (migration 0058/0059): trigger `enforce_appointment_materials_mutation` rejeita UPDATE/DELETE de role não-admin; trigger `audit_appointment_materials` insere em `audit_log` no INSERT. RLS policy `tenant_id = current_tenant_id()`. | `supabase/migrations/0058_expense_receipts.sql`, `supabase/migrations/0059_expense_receipts_table_and_particular.sql` |
-| R4 | Onde o botão WhatsApp deve viver na ficha do paciente? | Ao lado do bloco de contato em `page.tsx` (header da ficha). Helper de formatação em `src/lib/utils/whatsapp.ts` (puro, testável). Componente `<WhatsAppButton phone={...} />` opcional, mas se for usado em só um lugar, inline no page.tsx é suficiente. | `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx` |
-| R5 | Quais arquivos contêm strings UI proibidas? | Grep preliminar: 45 arquivos com 119 hits. Nem todos são UI — após filtragem (excluir `src/lib/core/`, `src/lib/integrations/`, `src/lib/auth/`, comentários, type definitions), estimam-se **15–25 arquivos** que renderizam para usuário final. Lista completa será construída em Phase 1 antes da execução. | `src/app/(dashboard)/**`, `error.tsx`, `not-found.tsx`, `src/lib/core/reports/`, `src/lib/core/patient-medical/` |
-| R6 | Como manter `event_type='appointment.reversed'` em audit_log enquanto a UI mostra "Cancelado"? | A UI lê o evento e renderiza um label traduzido. Criar helper `src/lib/utils/audit-labels.ts` com `eventTypeToLabel(t)` que faz o mapeamento `appointment.reversed → 'Cancelamento de atendimento'`. Banco e logs continuam intactos. | Decisão de design |
-| R7 | Mensagens de erro com `digest` (Next.js) — onde são renderizadas? | `src/app/error.tsx` e `src/app/(dashboard)/operacao/pacientes/error.tsx`. Hoje exibem `error.digest` no fallback. Substituir por mensagem genérica + log do digest no `console.error` (que vai pra Pino na Vercel). | `src/app/(dashboard)/operacao/pacientes/error.tsx` |
-| R8 | Pluralização "Estornado" → "Cancelado" — substituição cega ou caso a caso? | **Caso a caso**, conforme edge case do spec. Cada arquivo revisado individualmente; usar grep para identificar, mas substituir manualmente respeitando gênero/plural ("Atendimento cancelado", "Etapa cancelada"). Sem `replace_all`. | Edge case do spec |
+| #   | Pergunta                                                                                       | Decisão                                                                                                                                                                                                                                                                                                        | Fonte                                                                                                                 |
+| --- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| R1  | Catálogo TUSS tabela 19 já está populado?                                                      | **Sim**, importado via `pnpm seed:tuss` (migrations 0003 + 0037 + seed). `searchTussCatalog` aceita `table: '19'` e o `<TussTypeahead>` aceita `table` prop sem alteração.                                                                                                                                     | `src/lib/core/catalog/list-tuss.ts`, `src/components/tuss/tuss-typeahead.tsx`                                         |
+| R2  | Como persistir materiais atomicamente com a criação do atendimento?                            | Estender `createAppointmentManually` para aceitar `materiais?: MaterialInput[]` e fazer 2 inserts sequenciais dentro da mesma request (Supabase JS client não tem transações multi-statement; mitigamos com **RPC SQL** `create_appointment_with_materials` em `0061`). Para `treatment-steps`, mesmo padrão.  | `src/lib/core/appointments/create-manual.ts`, `src/lib/core/treatment-steps/create-with-appointment.ts`               |
+| R3  | Padrão de RLS + audit + append-only para nova tabela                                           | Espelhar `expense_receipts` (migration 0058/0059): trigger `enforce_appointment_materials_mutation` rejeita UPDATE/DELETE de role não-admin; trigger `audit_appointment_materials` insere em `audit_log` no INSERT. RLS policy `tenant_id = current_tenant_id()`.                                              | `supabase/migrations/0058_expense_receipts.sql`, `supabase/migrations/0059_expense_receipts_table_and_particular.sql` |
+| R4  | Onde o botão WhatsApp deve viver na ficha do paciente?                                         | Ao lado do bloco de contato em `page.tsx` (header da ficha). Helper de formatação em `src/lib/utils/whatsapp.ts` (puro, testável). Componente `<WhatsAppButton phone={...} />` opcional, mas se for usado em só um lugar, inline no page.tsx é suficiente.                                                     | `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`                                                                |
+| R5  | Quais arquivos contêm strings UI proibidas?                                                    | Grep preliminar: 45 arquivos com 119 hits. Nem todos são UI — após filtragem (excluir `src/lib/core/`, `src/lib/integrations/`, `src/lib/auth/`, comentários, type definitions), estimam-se **15–25 arquivos** que renderizam para usuário final. Lista completa será construída em Phase 1 antes da execução. | `src/app/(dashboard)/**`, `error.tsx`, `not-found.tsx`, `src/lib/core/reports/`, `src/lib/core/patient-medical/`      |
+| R6  | Como manter `event_type='appointment.reversed'` em audit_log enquanto a UI mostra "Cancelado"? | A UI lê o evento e renderiza um label traduzido. Criar helper `src/lib/utils/audit-labels.ts` com `eventTypeToLabel(t)` que faz o mapeamento `appointment.reversed → 'Cancelamento de atendimento'`. Banco e logs continuam intactos.                                                                          | Decisão de design                                                                                                     |
+| R7  | Mensagens de erro com `digest` (Next.js) — onde são renderizadas?                              | `src/app/error.tsx` e `src/app/(dashboard)/operacao/pacientes/error.tsx`. Hoje exibem `error.digest` no fallback. Substituir por mensagem genérica + log do digest no `console.error` (que vai pra Pino na Vercel).                                                                                            | `src/app/(dashboard)/operacao/pacientes/error.tsx`                                                                    |
+| R8  | Pluralização "Estornado" → "Cancelado" — substituição cega ou caso a caso?                     | **Caso a caso**, conforme edge case do spec. Cada arquivo revisado individualmente; usar grep para identificar, mas substituir manualmente respeitando gênero/plural ("Atendimento cancelado", "Etapa cancelada"). Sem `replace_all`.                                                                          | Edge case do spec                                                                                                     |
 
 ## Phase 1: Design & Contracts
 
@@ -153,26 +156,29 @@ Os pontos de pesquisa abaixo foram resolvidos durante o estudo do código existe
 
 **Nova tabela**: `appointment_materials`
 
-| Coluna | Tipo | Constraints | Notas |
-|---|---|---|---|
-| `id` | UUID | PK, DEFAULT `gen_random_uuid()` | |
-| `tenant_id` | UUID | NOT NULL, FK `tenants(id) ON DELETE RESTRICT` | RLS scope |
-| `appointment_id` | UUID | NOT NULL, FK `appointments(id) ON DELETE RESTRICT` | 1:N |
-| `tuss_code` | TEXT | NOT NULL, FK `tuss_codes(code) ON DELETE RESTRICT` | apenas tabela 19 (validado em service, não FK) |
-| `tuss_description` | TEXT | NOT NULL | snapshot — congela texto no momento do INSERT |
-| `quantity` | INTEGER | NOT NULL, DEFAULT 1, CHECK `> 0` | |
-| `created_by` | UUID | NOT NULL, FK `auth.users(id) ON DELETE RESTRICT` | ator |
-| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT `now()` | UTC |
+| Coluna             | Tipo        | Constraints                                        | Notas                                          |
+| ------------------ | ----------- | -------------------------------------------------- | ---------------------------------------------- |
+| `id`               | UUID        | PK, DEFAULT `gen_random_uuid()`                    |                                                |
+| `tenant_id`        | UUID        | NOT NULL, FK `tenants(id) ON DELETE RESTRICT`      | RLS scope                                      |
+| `appointment_id`   | UUID        | NOT NULL, FK `appointments(id) ON DELETE RESTRICT` | 1:N                                            |
+| `tuss_code`        | TEXT        | NOT NULL, FK `tuss_codes(code) ON DELETE RESTRICT` | apenas tabela 19 (validado em service, não FK) |
+| `tuss_description` | TEXT        | NOT NULL                                           | snapshot — congela texto no momento do INSERT  |
+| `quantity`         | INTEGER     | NOT NULL, DEFAULT 1, CHECK `> 0`                   |                                                |
+| `created_by`       | UUID        | NOT NULL, FK `auth.users(id) ON DELETE RESTRICT`   | ator                                           |
+| `created_at`       | TIMESTAMPTZ | NOT NULL, DEFAULT `now()`                          | UTC                                            |
 
 **Índices**:
+
 - `appointment_materials_appointment_idx (appointment_id)` — leitura por atendimento (caso primário)
 - `appointment_materials_tenant_idx (tenant_id, created_at DESC)` — relatórios futuros
 
 **Triggers**:
+
 - `enforce_appointment_materials_mutation` BEFORE UPDATE/DELETE → RAISE EXCEPTION (exceto `service_role`)
 - `audit_appointment_materials` AFTER INSERT → INSERT em `audit_log` (entity_type='appointment_material', event_type='appointment_material.created')
 
 **RLS**:
+
 - ENABLE ROW LEVEL SECURITY
 - `appointment_materials_tenant_isolation` USING `tenant_id = current_tenant_id()` WITH CHECK `tenant_id = current_tenant_id()`
 
@@ -197,6 +203,7 @@ Content-Type: application/json
 ```
 
 Respostas:
+
 - `201 Created` — `{ "appointment_id": "...", "materials": [{ "id": "...", "tuss_code": "...", ... }] }`
 - `400 Bad Request` — payload inválido (quantity ≤ 0, código fora da tabela 19)
 - `401/403` — `requireRole`
@@ -206,10 +213,17 @@ Respostas:
 **2. `GET /api/atendimentos/[id]/materiais`** — listar materiais do atendimento.
 
 Resposta `200 OK`:
+
 ```json
 {
   "materials": [
-    { "id": "...", "tuss_code": "70000010", "tuss_description": "GAZE...", "quantity": 3, "created_at": "..." }
+    {
+      "id": "...",
+      "tuss_code": "70000010",
+      "tuss_description": "GAZE...",
+      "quantity": 3,
+      "created_at": "..."
+    }
   ]
 }
 ```
@@ -219,11 +233,13 @@ Resposta `200 OK`:
 ```ts
 {
   // ...campos existentes
-  materiais: z.array(z.object({
-    tuss_code: z.string().min(1),
-    tuss_description: z.string().min(1),
-    quantity: z.number().int().positive().default(1)
-  })).optional()
+  materiais: z.array(
+    z.object({
+      tuss_code: z.string().min(1),
+      tuss_description: z.string().min(1),
+      quantity: z.number().int().positive().default(1),
+    }),
+  ).optional()
 }
 ```
 
@@ -250,6 +266,7 @@ A rodar ao fim da Phase 1: `& .specify/scripts/powershell/update-agent-context.p
 ### Constitution Re-check (post-design)
 
 Reavaliando após design:
+
 - Tabela `appointment_materials` permanece append-only e tenant-isolada — ✅
 - RPC `create_appointment_with_materials` é SECURITY INVOKER (não escapa RLS) — ✅
 - Endpoints seguem `requireRole` + Zod — ✅
@@ -262,6 +279,6 @@ Reavaliando após design:
 
 > Sem violações. Tabela vazia.
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| _(nenhuma)_ | | |
+| Violation   | Why Needed | Simpler Alternative Rejected Because |
+| ----------- | ---------- | ------------------------------------ |
+| _(nenhuma)_ |            |                                      |

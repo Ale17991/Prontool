@@ -45,11 +45,10 @@ export class StateExpiredError extends Error {
  * Produz `{ cookieValue, nonce }`. Caller insere `cookieValue` em
  * `Set-Cookie` e `nonce` no parâmetro `state` da URL do chooselocation.
  */
-export function createStateCookie(args: {
-  tenantId: string
-  userId: string
-  nowMs?: number
-}): { cookieValue: string; nonce: string } {
+export function createStateCookie(args: { tenantId: string; userId: string; nowMs?: number }): {
+  cookieValue: string
+  nonce: string
+} {
   const nonce = randomUUID()
   const payload: OAuthStatePayload = {
     tenantId: args.tenantId,

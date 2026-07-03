@@ -6,7 +6,10 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
-import { setupParticipantScenario, type ParticipantScenario } from '@/tests/helpers/participants-setup'
+import {
+  setupParticipantScenario,
+  type ParticipantScenario,
+} from '@/tests/helpers/participants-setup'
 import { seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
@@ -22,9 +25,24 @@ describe('Feature 031 — RBAC endpoints de participantes', () => {
     const fin = await seedUser(s.tenantId, 'financeiro', 'fin')
     const rec = await seedUser(s.tenantId, 'recepcionista', 'rec')
     const prof = await seedUser(s.tenantId, 'profissional_saude', 'prof')
-    financeJwt = mintJwt({ userId: fin.userId, email: fin.email, tenantId: s.tenantId, role: 'financeiro' })
-    recJwt = mintJwt({ userId: rec.userId, email: rec.email, tenantId: s.tenantId, role: 'recepcionista' })
-    profJwt = mintJwt({ userId: prof.userId, email: prof.email, tenantId: s.tenantId, role: 'profissional_saude' })
+    financeJwt = mintJwt({
+      userId: fin.userId,
+      email: fin.email,
+      tenantId: s.tenantId,
+      role: 'financeiro',
+    })
+    recJwt = mintJwt({
+      userId: rec.userId,
+      email: rec.email,
+      tenantId: s.tenantId,
+      role: 'recepcionista',
+    })
+    profJwt = mintJwt({
+      userId: prof.userId,
+      email: prof.email,
+      tenantId: s.tenantId,
+      role: 'profissional_saude',
+    })
   })
 
   async function postAs(jwt: string): Promise<Response> {
@@ -58,7 +76,8 @@ describe('Feature 031 — RBAC endpoints de participantes', () => {
     const body = (await res.json()) as { participantId: string }
     expect(body.participantId).toBeTruthy()
 
-    const { DELETE } = await import('@/app/api/atendimentos/[id]/participantes/[participantId]/route')
+    const { DELETE } =
+      await import('@/app/api/atendimentos/[id]/participantes/[participantId]/route')
     const del = await DELETE(
       new Request(
         `http://localhost/api/atendimentos/${s.appointmentId}/participantes/${body.participantId}`,
@@ -82,7 +101,8 @@ describe('Feature 031 — RBAC endpoints de participantes', () => {
     } as never)
     if (error) throw new Error(error.message)
     const pid = data as unknown as string
-    const { DELETE } = await import('@/app/api/atendimentos/[id]/participantes/[participantId]/route')
+    const { DELETE } =
+      await import('@/app/api/atendimentos/[id]/participantes/[participantId]/route')
     const del = await DELETE(
       new Request(`http://localhost/api/atendimentos/${s.appointmentId}/participantes/${pid}`, {
         method: 'DELETE',

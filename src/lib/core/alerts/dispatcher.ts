@@ -26,7 +26,9 @@ const DEFAULT_PATH: Record<AlertType, string> = {
 
 const DEDUP_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
-export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertId: string; deduped: boolean }> {
+export async function dispatchAlert(
+  input: DispatchAlertInput,
+): Promise<{ alertId: string; deduped: boolean }> {
   const supabase = createSupabaseServiceClient()
 
   // Dedup: if an open alert of the same (tenant, type, subject_ref) was
@@ -92,9 +94,7 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
   // global que carregava TODOS os users do projeto Supabase pra depois
   // filtrar — debug logs poderiam expor emails inter-tenants. Padrão
   // alinhado com listTeamMembers (auditoria de segurança 2026-05-11).
-  const userLookups = await Promise.all(
-    adminIds.map((id) => supabase.auth.admin.getUserById(id)),
-  )
+  const userLookups = await Promise.all(adminIds.map((id) => supabase.auth.admin.getUserById(id)))
   const toEmails = userLookups
     .map((r) => r.data?.user?.email)
     .filter((email): email is string => typeof email === 'string' && email.length > 0)
@@ -140,25 +140,45 @@ export async function dispatchAlert(input: DispatchAlertInput): Promise<{ alertI
 
 function subjectFor(type: AlertType): string {
   switch (type) {
-    case 'dlq_event': return '[Clinni] Evento do Homio aguardando correção'
-    case 'webhook_rejected': return '[Clinni] Webhook Homio rejeitado'
-    case 'tuss_deprecated': return '[Clinni] Código TUSS descontinuado em uso'
-    case 'signature_failure': return '[Clinni] Falha de assinatura em webhook'
-    case 'rbac_denied': return '[Clinni] Tentativa de acesso negada'
-    case 'integration_sync_failed': return '[Clinni] Sync com integração externa falhou'
+    case 'dlq_event':
+      return '[Clinni] Evento do Homio aguardando correção'
+    case 'webhook_rejected':
+      return '[Clinni] Webhook Homio rejeitado'
+    case 'tuss_deprecated':
+      return '[Clinni] Código TUSS descontinuado em uso'
+    case 'signature_failure':
+      return '[Clinni] Falha de assinatura em webhook'
+    case 'rbac_denied':
+      return '[Clinni] Tentativa de acesso negada'
+    case 'integration_sync_failed':
+      return '[Clinni] Sync com integração externa falhou'
   }
 }
 
 /** Whitelist approach: only known non-PII keys are rendered in e-mail body. */
 function renderSafeDetail(type: AlertType, detail: Record<string, unknown>): string {
   const SAFE_KEYS = new Set([
-    'event_id', 'raw_event_id', 'ghl_event_id', 'procedure_id', 'plan_id',
-    'doctor_identifier', 'tuss_code', 'failure_reason', 'attempt_count',
-    'route', 'role', 'action', 'timestamp', 'provider',
+    'event_id',
+    'raw_event_id',
+    'ghl_event_id',
+    'procedure_id',
+    'plan_id',
+    'doctor_identifier',
+    'tuss_code',
+    'failure_reason',
+    'attempt_count',
+    'route',
+    'role',
+    'action',
+    'timestamp',
+    'provider',
   ])
   const lines: string[] = [`Tipo: ${type}`]
   for (const [k, v] of Object.entries(detail)) {
-    if (SAFE_KEYS.has(k) && (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')) {
+    if (
+      SAFE_KEYS.has(k) &&
+      (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')
+    ) {
       lines.push(`${k}: ${String(v)}`)
     }
   }

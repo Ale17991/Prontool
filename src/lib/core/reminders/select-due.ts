@@ -181,10 +181,7 @@ export function isWithinWindow(
  * Helper utilitário: testar se o dia da semana atual (no fuso do tenant)
  * é fim de semana (sábado=6, domingo=0).
  */
-export function isWeekend(
-  now: Date,
-  timezone: string = 'America/Sao_Paulo',
-): boolean {
+export function isWeekend(now: Date, timezone: string = 'America/Sao_Paulo'): boolean {
   const fmt = new Intl.DateTimeFormat('en-US', {
     timeZone: timezone,
     weekday: 'short',

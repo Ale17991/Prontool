@@ -15,7 +15,18 @@ import { UF_CODES } from '@/lib/core/clinic-profile/types'
  * estruturados. Admin-only (a página só renderiza com `doctor.write`).
  */
 
-const COUNCIL_OPTIONS = ['CRM', 'CRO', 'CRF', 'CRN', 'CREFITO', 'CRP', 'CRBM', 'COREN', 'CRMV', 'CRFa'] as const
+const COUNCIL_OPTIONS = [
+  'CRM',
+  'CRO',
+  'CRF',
+  'CRN',
+  'CREFITO',
+  'CRP',
+  'CRBM',
+  'COREN',
+  'CRMV',
+  'CRFa',
+] as const
 
 export function EditPrescriberFields({
   doctorId,
@@ -46,7 +57,11 @@ export function EditPrescriberFields({
   const [error, setError] = useState<string | null>(null)
 
   const complete = Boolean(
-    currentCpf && currentCouncilName && currentCouncilNumber && currentCouncilState && currentBirthDate,
+    currentCpf &&
+    currentCouncilName &&
+    currentCouncilNumber &&
+    currentCouncilState &&
+    currentBirthDate,
   )
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -129,7 +144,9 @@ export function EditPrescriberFields({
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <div className="space-y-1.5">
-          <Label htmlFor="presc-council-name" className="text-xs">Conselho</Label>
+          <Label htmlFor="presc-council-name" className="text-xs">
+            Conselho
+          </Label>
           <select
             id="presc-council-name"
             value={councilName}
@@ -137,12 +154,16 @@ export function EditPrescriberFields({
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {COUNCIL_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="presc-council-number" className="text-xs">Número do conselho</Label>
+          <Label htmlFor="presc-council-number" className="text-xs">
+            Número do conselho
+          </Label>
           <Input
             id="presc-council-number"
             inputMode="numeric"
@@ -153,7 +174,9 @@ export function EditPrescriberFields({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="presc-uf" className="text-xs">UF do conselho</Label>
+          <Label htmlFor="presc-uf" className="text-xs">
+            UF do conselho
+          </Label>
           <select
             id="presc-uf"
             value={councilState}
@@ -162,12 +185,16 @@ export function EditPrescriberFields({
           >
             <option value="">—</option>
             {UF_CODES.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="presc-cpf" className="text-xs">CPF</Label>
+          <Label htmlFor="presc-cpf" className="text-xs">
+            CPF
+          </Label>
           <Input
             id="presc-cpf"
             inputMode="numeric"
@@ -178,7 +205,9 @@ export function EditPrescriberFields({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="presc-birth" className="text-xs">Data de nascimento</Label>
+          <Label htmlFor="presc-birth" className="text-xs">
+            Data de nascimento
+          </Label>
           <Input
             id="presc-birth"
             type="date"
@@ -187,7 +216,9 @@ export function EditPrescriberFields({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="presc-cbo" className="text-xs">CBO (TISS)</Label>
+          <Label htmlFor="presc-cbo" className="text-xs">
+            CBO (TISS)
+          </Label>
           <Input
             id="presc-cbo"
             inputMode="numeric"

@@ -5,11 +5,7 @@
  * incluir tax_id na lista de colunas imutáveis. Append-only mantido.
  */
 import { describe, it, expect, beforeAll } from 'vitest'
-import {
-  resetDatabase,
-  rlsClient,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
@@ -33,25 +29,42 @@ describe('Feature 011 — expenses.tax_id imutável (Principle I)', () => {
     const { data: a } = await sb
       .from('taxes' as never)
       .insert({
-        tenant_id: tenantId, name: 'ISS', rate_bps: 500, category: 'municipal',
+        tenant_id: tenantId,
+        name: 'ISS',
+        rate_bps: 500,
+        category: 'municipal',
         created_by: adminUserId,
       } as never)
-      .select('id').single()
+      .select('id')
+      .single()
     taxA = (a as unknown as { id: string }).id
     const { data: b } = await sb
       .from('taxes' as never)
       .insert({
-        tenant_id: tenantId, name: 'IRPJ', rate_bps: 1500, category: 'federal',
+        tenant_id: tenantId,
+        name: 'IRPJ',
+        rate_bps: 1500,
+        category: 'federal',
         created_by: adminUserId,
       } as never)
-      .select('id').single()
+      .select('id')
+      .single()
     taxB = (b as unknown as { id: string }).id
 
-    const expInsert = await sb.from('expenses').insert({
-      tenant_id: tenantId, category: 'impostos', description: 'ISS abr',
-      amount_cents: 100, competence_date: '2026-05-01', recurring: false,
-      created_by: adminUserId, tax_id: taxA,
-    } as never).select('id').single()
+    const expInsert = await sb
+      .from('expenses')
+      .insert({
+        tenant_id: tenantId,
+        category: 'impostos',
+        description: 'ISS abr',
+        amount_cents: 100,
+        competence_date: '2026-05-01',
+        recurring: false,
+        created_by: adminUserId,
+        tax_id: taxA,
+      } as never)
+      .select('id')
+      .single()
     if (expInsert.error) throw new Error(`seed expense: ${expInsert.error.message}`)
     expenseId = (expInsert.data as unknown as { id: string }).id
   })
@@ -65,11 +78,7 @@ describe('Feature 011 — expenses.tax_id imutável (Principle I)', () => {
     expect(error).not.toBeNull()
     // Estado intacto
     const sbSvc = serviceClient()
-    const { data } = await sbSvc
-      .from('expenses')
-      .select('tax_id')
-      .eq('id', expenseId)
-      .single()
+    const { data } = await sbSvc.from('expenses').select('tax_id').eq('id', expenseId).single()
     expect((data as { tax_id: string } | null)?.tax_id).toBe(taxA)
   })
 })

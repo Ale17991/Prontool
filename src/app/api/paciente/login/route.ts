@@ -28,9 +28,15 @@ const digits = (s: string) => s.replace(/\D/g, '')
 
 const BodySchema = z.object({
   slug: z.string().regex(/^[a-z0-9][a-z0-9-]{2,31}$/),
-  cpf: z.string().transform(digits).pipe(z.string().regex(/^\d{11}$/)),
+  cpf: z
+    .string()
+    .transform(digits)
+    .pipe(z.string().regex(/^\d{11}$/)),
   /** Data de nascimento só números, DDMMYYYY (ex.: 15051990). */
-  birthdate: z.string().transform(digits).pipe(z.string().regex(/^\d{8}$/)),
+  birthdate: z
+    .string()
+    .transform(digits)
+    .pipe(z.string().regex(/^\d{8}$/)),
   lgpd_consent: z.literal(true),
 })
 
@@ -67,7 +73,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     const consentIssue = parsed.error.issues.some((i) => i.path[0] === 'lgpd_consent')
     if (consentIssue) {
       return NextResponse.json(
-        { error: { code: 'CONSENT_REQUIRED', message: 'Aceite o aviso de privacidade para continuar.' } },
+        {
+          error: {
+            code: 'CONSENT_REQUIRED',
+            message: 'Aceite o aviso de privacidade para continuar.',
+          },
+        },
         { status: 400 },
       )
     }

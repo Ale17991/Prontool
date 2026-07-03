@@ -7,7 +7,10 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
-import { setupParticipantScenario, type ParticipantScenario } from '@/tests/helpers/participants-setup'
+import {
+  setupParticipantScenario,
+  type ParticipantScenario,
+} from '@/tests/helpers/participants-setup'
 
 describe('Feature 031 — participantes append-only', () => {
   let s: ParticipantScenario
@@ -66,7 +69,10 @@ describe('Feature 031 — participantes append-only', () => {
 
   it('DELETE direto via authenticated é rejeitado', async () => {
     const rls = rlsClient(s.adminJwt)
-    const { error } = await rls.from('appointment_assistants' as never).delete().eq('id', rowId)
+    const { error } = await rls
+      .from('appointment_assistants' as never)
+      .delete()
+      .eq('id', rowId)
     if (error) expect(error.message).toMatch(/permission|denied|policy|append-only|DELETE/i)
     const sb = serviceClient()
     const { data } = await sb

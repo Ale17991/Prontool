@@ -36,15 +36,8 @@ import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
 import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { TreatmentStep } from '@/lib/core/treatment-steps/list'
-import type {
-  PatientFinancialSummary,
-  PaymentRecordDTO,
-} from '@/lib/core/payments/list'
-import type {
-  DoctorOption,
-  HealthPlanOption,
-  ProcedureOption,
-} from '../treatment-steps-section'
+import type { PatientFinancialSummary, PaymentRecordDTO } from '@/lib/core/payments/list'
+import type { DoctorOption, HealthPlanOption, ProcedureOption } from '../treatment-steps-section'
 import type { AnamnesePatientPrefill } from '../clinical-records-section'
 
 interface Props {
@@ -98,10 +91,7 @@ function isValidTab(
   value: string | null,
 ): value is 'evolucao' | 'clinico' | 'cadastro' | 'odontograma' {
   return (
-    value === 'evolucao' ||
-    value === 'clinico' ||
-    value === 'cadastro' ||
-    value === 'odontograma'
+    value === 'evolucao' || value === 'clinico' || value === 'cadastro' || value === 'odontograma'
   )
 }
 
@@ -123,9 +113,7 @@ export function PatientDetailLayout({
   const tabFromUrl = searchParams.get('tab')
   // 'odontograma' só é uma aba válida quando o módulo Odontologia está ativo —
   // acesso direto por URL com o módulo off degrada para a aba padrão.
-  const tabAllowed = (
-    v: string | null,
-  ): v is 'evolucao' | 'clinico' | 'cadastro' | 'odontograma' =>
+  const tabAllowed = (v: string | null): v is 'evolucao' | 'clinico' | 'cadastro' | 'odontograma' =>
     isValidTab(v) && (v !== 'odontograma' || hasOdonto)
   const [tab, setTab] = useState<'evolucao' | 'clinico' | 'cadastro' | 'odontograma'>(
     tabAllowed(tabFromUrl) ? tabFromUrl : initialTab,
@@ -152,10 +140,7 @@ export function PatientDetailLayout({
         params.set('tab', next)
       }
       const qs = params.toString()
-      router.replace(
-        `/operacao/pacientes/${patientId}${qs ? `?${qs}` : ''}`,
-        { scroll: false },
-      )
+      router.replace(`/operacao/pacientes/${patientId}${qs ? `?${qs}` : ''}`, { scroll: false })
     },
     [patientId, router, searchParams],
   )
@@ -204,10 +189,8 @@ export function PatientDetailLayout({
           role="alert"
           className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive"
         >
-          {patient.status === 'obito'
-            ? 'Paciente marcado como ÓBITO'
-            : 'Paciente INATIVO'}{' '}
-          — novos agendamentos e mensagens automáticas estão bloqueados.
+          {patient.status === 'obito' ? 'Paciente marcado como ÓBITO' : 'Paciente INATIVO'} — novos
+          agendamentos e mensagens automáticas estão bloqueados.
         </div>
       ) : null}
 
@@ -221,12 +204,7 @@ export function PatientDetailLayout({
         canViewFinancialValues={cadastro.canViewFinancialValues}
       />
 
-      <div
-        className={cn(
-          'grid grid-cols-1 gap-4',
-          'md:grid-cols-[320px_minmax(0,1fr)]',
-        )}
-      >
+      <div className={cn('grid grid-cols-1 gap-4', 'md:grid-cols-[320px_minmax(0,1fr)]')}>
         {/* Sidebar full — só desktop (md+) */}
         <aside className="hidden md:sticky md:top-4 md:block md:max-h-[calc(100vh-2rem)] md:overflow-y-auto md:pr-1">
           <PatientQuickView
@@ -252,9 +230,7 @@ export function PatientDetailLayout({
                 <TabsTrigger value="evolucao">Evolução do paciente</TabsTrigger>
               ) : null}
               <TabsTrigger value="clinico">Clínico</TabsTrigger>
-              {!isAnonymized ? (
-                <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
-              ) : null}
+              {!isAnonymized ? <TabsTrigger value="cadastro">Cadastro</TabsTrigger> : null}
               {!isAnonymized && hasOdonto ? (
                 <TabsTrigger value="odontograma">Odonto-Space</TabsTrigger>
               ) : null}

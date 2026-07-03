@@ -169,16 +169,16 @@ pnpm exec supabase --workdir . db psql -c "SELECT d.id, COUNT(h.id) FROM doctors
 
 A feature 013 está PRONTA para merge quando:
 
-| Check                                                                  | Como validar                                              |
-| ---------------------------------------------------------------------- | --------------------------------------------------------- |
-| Todos os profissionais existentes aparecem como Comissionado           | Query SQL em `doctor_payment_terms_current` agrupada por mode |
-| Cadastro com 3 modalidades funciona                                    | Smoke US1 (passos 4–11)                                   |
-| Assistente liberal funciona em atendimento novo + edição               | Smoke US2 (passos 4–12)                                   |
-| Calendário mostra "(+ N assistentes)"                                  | Smoke US2 (passo 10)                                      |
-| Relatório mensal tem `fixed_pay_lines` no dia correto                  | Smoke US3 (passos 1–2)                                    |
-| Relatório por profissional diferencia shape por modalidade             | Smoke US3 (passos 3–5)                                    |
-| Resultado operacional mostra fórmula completa                          | Smoke US3 (passo 6)                                       |
-| Estorno propaga em todos os relatórios                                 | Smoke US3 (passo 7)                                       |
-| Audit log captura todas as mudanças                                    | Smoke US1+US2 + `SELECT * FROM audit_log WHERE entity IN (...)` |
-| 0 regressões em comissões existentes (SC-006)                          | Snapshot diff de `/relatorios/por-profissional/[comissionado_id]` antes e depois |
-| `pnpm typecheck`, `pnpm lint:auth`, `pnpm test` verdes                 | CI pipeline                                               |
+| Check                                                        | Como validar                                                                     |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Todos os profissionais existentes aparecem como Comissionado | Query SQL em `doctor_payment_terms_current` agrupada por mode                    |
+| Cadastro com 3 modalidades funciona                          | Smoke US1 (passos 4–11)                                                          |
+| Assistente liberal funciona em atendimento novo + edição     | Smoke US2 (passos 4–12)                                                          |
+| Calendário mostra "(+ N assistentes)"                        | Smoke US2 (passo 10)                                                             |
+| Relatório mensal tem `fixed_pay_lines` no dia correto        | Smoke US3 (passos 1–2)                                                           |
+| Relatório por profissional diferencia shape por modalidade   | Smoke US3 (passos 3–5)                                                           |
+| Resultado operacional mostra fórmula completa                | Smoke US3 (passo 6)                                                              |
+| Estorno propaga em todos os relatórios                       | Smoke US3 (passo 7)                                                              |
+| Audit log captura todas as mudanças                          | Smoke US1+US2 + `SELECT * FROM audit_log WHERE entity IN (...)`                  |
+| 0 regressões em comissões existentes (SC-006)                | Snapshot diff de `/relatorios/por-profissional/[comissionado_id]` antes e depois |
+| `pnpm typecheck`, `pnpm lint:auth`, `pnpm test` verdes       | CI pipeline                                                                      |

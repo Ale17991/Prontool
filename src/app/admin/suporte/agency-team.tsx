@@ -56,14 +56,14 @@ export function AgencyTeam({ users }: { users: AgencyUser[] }) {
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-slate-900">
                   {u.email}
-                  {u.isSelf ? <span className="ml-1 text-[11px] font-normal text-slate-400">(você)</span> : null}
+                  {u.isSelf ? (
+                    <span className="ml-1 text-[11px] font-normal text-slate-400">(você)</span>
+                  ) : null}
                 </p>
                 <span
                   className={cn(
                     'mt-0.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold',
-                    u.isSuper
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-slate-100 text-slate-500',
+                    u.isSuper ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-500',
                   )}
                 >
                   {u.isSuper ? <ShieldCheck className="h-3 w-3" /> : null}
@@ -134,8 +134,19 @@ function CreateForm({
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
       <p className="mb-3 text-sm font-bold text-slate-900">Criar usuário da agência</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@agencia.com" className="h-8 text-xs" />
-        <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha (mín. 8)" type="text" className="h-8 text-xs" />
+        <Input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="email@agencia.com"
+          className="h-8 text-xs"
+        />
+        <Input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Senha (mín. 8)"
+          type="text"
+          className="h-8 text-xs"
+        />
       </div>
       <label className="mt-3 flex items-center gap-2 text-xs text-slate-600">
         <input type="checkbox" checked={isSuper} onChange={(e) => setIsSuper(e.target.checked)} />

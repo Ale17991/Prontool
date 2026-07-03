@@ -59,9 +59,7 @@ export async function webhooksSetup(
 
   for (const event of GHL_WEBHOOK_EVENTS) {
     try {
-      const reuse = existing.find(
-        (h) => h.event === event && h.targetUrl === targetUrl,
-      )
+      const reuse = existing.find((h) => h.event === event && h.targetUrl === targetUrl)
       let id: string
       if (reuse) {
         id = reuse.id
@@ -75,10 +73,7 @@ export async function webhooksSetup(
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      logger.warn(
-        { tenant_id: tenantId, event, err: message },
-        'ghl-webhook-setup-failed',
-      )
+      logger.warn({ tenant_id: tenantId, event, err: message }, 'ghl-webhook-setup-failed')
       await recordSyncFailure(supabase, tenantId, {
         kind: 'webhook_setup',
         errorCode: 'SETUP_FAILED',
@@ -96,18 +91,15 @@ export async function webhooksSetup(
 }
 
 async function listHooks(accessToken: string, locationId: string): Promise<RemoteHook[]> {
-  const res = await fetch(
-    `${GHL_API_BASE}/hooks/?locationId=${encodeURIComponent(locationId)}`,
-    {
-      method: 'GET',
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-        Version: GHL_API_VERSION,
-        accept: 'application/json',
-      },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  const res = await fetch(`${GHL_API_BASE}/hooks/?locationId=${encodeURIComponent(locationId)}`, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+      Version: GHL_API_VERSION,
+      accept: 'application/json',
     },
-  )
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  })
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     throw new Error(`GHL list hooks ${res.status}: ${text.slice(0, 200)}`)
@@ -145,9 +137,10 @@ async function createHook(
     const text = await res.text().catch(() => '')
     throw new Error(`GHL create hook ${res.status}: ${text.slice(0, 200)}`)
   }
-  const body = (await res.json().catch(() => null)) as
-    | { id?: string; hook?: { id?: string } }
-    | null
+  const body = (await res.json().catch(() => null)) as {
+    id?: string
+    hook?: { id?: string }
+  } | null
   const id = body?.id ?? body?.hook?.id
   if (!id) throw new Error('GHL create hook returned no id')
   return id

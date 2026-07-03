@@ -6,10 +6,7 @@
  * Red-first: handler import fails until T112.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import {
   seedTenant,
   seedUser,

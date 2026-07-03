@@ -92,7 +92,12 @@ export default async function AdminOverviewPage() {
           value={String(clinicsActive)}
           hint={planLine || '—'}
         />
-        <Stat icon={Users} label="Usuários ativos" value={String(ov?.users_active ?? 0)} hint="em todas as clínicas" />
+        <Stat
+          icon={Users}
+          label="Usuários ativos"
+          value={String(ov?.users_active ?? 0)}
+          hint="em todas as clínicas"
+        />
         <Stat
           icon={CalendarDays}
           label="Atendimentos"
@@ -121,7 +126,10 @@ export default async function AdminOverviewPage() {
             </Pill>
           ) : null}
           {(ov?.past_due ?? 0) > 0 ? (
-            <Pill icon={AlertTriangle} cls="bg-destructive/10 text-destructive border-destructive/20">
+            <Pill
+              icon={AlertTriangle}
+              cls="bg-destructive/10 text-destructive border-destructive/20"
+            >
               {ov?.past_due} inadimplente{(ov?.past_due ?? 0) === 1 ? '' : 's'}
             </Pill>
           ) : null}
@@ -197,7 +205,9 @@ function Pill({
   children: React.ReactNode
 }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-semibold ${cls}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-semibold ${cls}`}
+    >
       <Icon className="h-3.5 w-3.5" />
       {children}
     </span>

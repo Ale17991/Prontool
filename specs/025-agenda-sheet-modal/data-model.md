@@ -14,23 +14,23 @@
 
 Já materializada via migrations anteriores. Fornece os campos exibidos pelo painel:
 
-| Campo | Tipo | Uso no painel |
-|---|---|---|
-| `id` | UUID | Chave do painel (estado client) |
-| `patient_id` | UUID | Link para `/operacao/pacientes/[id]` e join com nome descriptografado |
-| `doctor_id` | UUID | Para resolver `doctors.full_name` no JSON de retorno |
-| `plan_id` | UUID nullable | Render do convênio ou badge "Particular" |
-| `appointment_at` | TIMESTAMPTZ | Data/hora de início |
-| `duration_minutes` | INT nullable | Derivar hora de fim |
-| `observacoes` | TEXT nullable | Bloco de observações |
-| `frozen_amount_cents` | BIGINT | Card financeiro (colapsável) |
-| `frozen_commission_bps` | INT | Card financeiro |
-| `net_amount_cents` | BIGINT | Card financeiro |
-| `effective_status` | TEXT | Badge de status + define quais ações aparecem |
-| `reversal_id` / `reversed_at` | UUID/TIMESTAMPTZ | Identificar estornado |
-| `procedures` (embed) | `{ tuss_code, display_name }` | Card "Dados clínicos" |
-| `doctors` (embed) | `{ full_name }` | Card "Dados clínicos" |
-| `health_plans` (embed) | `{ name }` | Card financeiro |
+| Campo                         | Tipo                          | Uso no painel                                                         |
+| ----------------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| `id`                          | UUID                          | Chave do painel (estado client)                                       |
+| `patient_id`                  | UUID                          | Link para `/operacao/pacientes/[id]` e join com nome descriptografado |
+| `doctor_id`                   | UUID                          | Para resolver `doctors.full_name` no JSON de retorno                  |
+| `plan_id`                     | UUID nullable                 | Render do convênio ou badge "Particular"                              |
+| `appointment_at`              | TIMESTAMPTZ                   | Data/hora de início                                                   |
+| `duration_minutes`            | INT nullable                  | Derivar hora de fim                                                   |
+| `observacoes`                 | TEXT nullable                 | Bloco de observações                                                  |
+| `frozen_amount_cents`         | BIGINT                        | Card financeiro (colapsável)                                          |
+| `frozen_commission_bps`       | INT                           | Card financeiro                                                       |
+| `net_amount_cents`            | BIGINT                        | Card financeiro                                                       |
+| `effective_status`            | TEXT                          | Badge de status + define quais ações aparecem                         |
+| `reversal_id` / `reversed_at` | UUID/TIMESTAMPTZ              | Identificar estornado                                                 |
+| `procedures` (embed)          | `{ tuss_code, display_name }` | Card "Dados clínicos"                                                 |
+| `doctors` (embed)             | `{ full_name }`               | Card "Dados clínicos"                                                 |
+| `health_plans` (embed)        | `{ name }`                    | Card financeiro                                                       |
 
 ### Tabelas auxiliares (read-only via API)
 
@@ -60,13 +60,13 @@ type AppointmentDetailState = {
 
 O painel não muda estado de banco — todas as ações delegam para os endpoints existentes que já têm suas próprias máquinas de estado:
 
-| Status atual | Ação disponível | Endpoint | Novo status |
-|---|---|---|---|
-| `agendado` | Confirmar agendamento | `POST /api/atendimentos/[id]/confirmar` | `confirmado` |
-| `confirmado` | Confirmar presença | `POST /api/atendimentos/[id]/realizado` | `ativo` |
-| `ativo` | Cancelar | `POST /api/atendimentos/[id]/cancelar` | `estornado` |
-| `agendado`/`confirmado`/`estornado` | Cancelar agenda | `POST /api/atendimentos/[id]/cancelar` | `cancelado`/`estornado` |
-| `ativo` | Estornar | `POST /api/atendimentos/[id]/reversal` | `estornado` |
+| Status atual                        | Ação disponível       | Endpoint                                | Novo status             |
+| ----------------------------------- | --------------------- | --------------------------------------- | ----------------------- |
+| `agendado`                          | Confirmar agendamento | `POST /api/atendimentos/[id]/confirmar` | `confirmado`            |
+| `confirmado`                        | Confirmar presença    | `POST /api/atendimentos/[id]/realizado` | `ativo`                 |
+| `ativo`                             | Cancelar              | `POST /api/atendimentos/[id]/cancelar`  | `estornado`             |
+| `agendado`/`confirmado`/`estornado` | Cancelar agenda       | `POST /api/atendimentos/[id]/cancelar`  | `cancelado`/`estornado` |
+| `ativo`                             | Estornar              | `POST /api/atendimentos/[id]/reversal`  | `estornado`             |
 
 Painel é read-side dessa máquina; refletir o novo estado após ação = `refetch()` do GET (Decisão 4 do `research.md`).
 
@@ -74,8 +74,8 @@ Painel é read-side dessa máquina; refletir o novo estado após ação = `refet
 
 ```typescript
 type PanelHostState = {
-  selectedAppointmentId: string | null  // null = painel fechado
-  pendingDirtyFormRef: React.RefObject<boolean>  // controla o guard de fechamento
+  selectedAppointmentId: string | null // null = painel fechado
+  pendingDirtyFormRef: React.RefObject<boolean> // controla o guard de fechamento
 }
 ```
 
@@ -83,11 +83,11 @@ type PanelHostState = {
 
 ## Validações
 
-| Regra | Onde |
-|---|---|
-| Sessão autenticada | Já no endpoint `GET /api/atendimentos/[id]` via `requireRole` |
-| Tenant correto | Já no endpoint (filter explícito por tenant_id) |
-| Atendimento existe | Endpoint retorna 404; painel mostra "Atendimento não encontrado" |
+| Regra               | Onde                                                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Sessão autenticada  | Já no endpoint `GET /api/atendimentos/[id]` via `requireRole`                                                        |
+| Tenant correto      | Já no endpoint (filter explícito por tenant_id)                                                                      |
+| Atendimento existe  | Endpoint retorna 404; painel mostra "Atendimento não encontrado"                                                     |
 | Permissão para ação | Server-side via `requireRole` em cada endpoint de ação; client esconde botões via `can(role, action)` apenas como UX |
 
 ## Não-objetivos

@@ -6,12 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { percentToBps } from '@/lib/validation/rate-bps'
 
 interface EditTaxFormProps {
@@ -77,8 +72,8 @@ export function EditTaxForm(props: EditTaxFormProps) {
             <Label className="text-xs">Nome (imutável)</Label>
             <Input value={props.name} disabled readOnly />
             <p className="text-[10px] text-slate-500">
-              Nome e categoria não podem ser alterados (integridade da auditoria). Para
-              corrigir o nome, desative este imposto e cadastre outro.
+              Nome e categoria não podem ser alterados (integridade da auditoria). Para corrigir o
+              nome, desative este imposto e cadastre outro.
             </p>
           </div>
 

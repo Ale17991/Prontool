@@ -1,5 +1,5 @@
 ---
-description: "Task list — Odontograma Interativo (Módulo Odontológico Fase 1)"
+description: 'Task list — Odontograma Interativo (Módulo Odontológico Fase 1)'
 ---
 
 # Tasks: Odontograma Interativo (Módulo Odontológico — Fase 1)
@@ -27,8 +27,8 @@ Web app single-app (Next.js App Router): `src/`, `supabase/migrations/`, `tests/
 
 **Purpose**: Estrutura de diretórios da feature.
 
-- [X] T001 [P] Criar diretório de core odontológico `src/lib/core/dental/` (com subpastas `status-catalog/` e `chart/`) e um `index.ts` de barrel vazio
-- [X] T002 [P] Criar diretório de UI `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/`
+- [x] T001 [P] Criar diretório de core odontológico `src/lib/core/dental/` (com subpastas `status-catalog/` e `chart/`) e um `index.ts` de barrel vazio
+- [x] T002 [P] Criar diretório de UI `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/`
 
 ---
 
@@ -38,16 +38,16 @@ Web app single-app (Next.js App Router): `src/`, `supabase/migrations/`, `tests/
 
 **⚠️ CRITICAL**: Nenhuma user story começa antes desta fase.
 
-- [X] T003 Criar migration `supabase/migrations/0133_odontogram.sql` — header padrão (feature 039, idempotente); tabela global `dental_status_catalog` (id, code UNIQUE, label, color, icon, scope CHECK tooth/face/both, tuss_code_id FK→tuss_codes nullable, sort_order, is_active, is_system, created_at/by, updated_at/by) conforme `data-model.md`
-- [X] T004 Na mesma migration `0133`: tabela per-tenant `dental_chart_entries` (id, tenant_id FK, patient_id FK, appointment_id FK nullable, tooth_fdi SMALLINT CHECK conjunto FDI, surface TEXT CHECK enum nullable, status_id FK→catalog, note CHECK ≤2000, recorded_at, created_by, created_at) + índices `(tenant_id,patient_id,tooth_fdi,surface,recorded_at DESC)` e `(tenant_id,appointment_id)`
-- [X] T005 Na `0133`: triggers — `enforce_append_only_columns('')` (BEFORE UPDATE/DELETE) em `dental_chart_entries`; consistência de tenant (BEFORE INSERT: patient_id e appointment_id pertencem ao tenant, padrão `appointment_materials`); coerência escopo↔surface (face⇒surface NOT NULL, tooth⇒surface NULL, both⇒qualquer); auditoria AFTER INSERT via `log_audit_event(...,'dental_chart_entries',...)`
-- [X] T006 Na `0133`: proteção do catálogo — trigger BEFORE UPDATE impede mudança de `code`; impede DELETE/desativação de linhas `is_system=TRUE`
-- [X] T007 Na `0133`: RLS — `dental_status_catalog` SELECT para `authenticated` (global, sem filtro tenant), GRANT SELECT; `dental_chart_entries` SELECT `tenant_id=jwt_tenant_id()`, INSERT com `jwt_role() IN ('admin','profissional_saude')`, GRANT SELECT/INSERT
-- [X] T008 Na `0133`: RPC `dental_chart_current(p_tenant_id, p_patient_id)` SECURITY DEFINER (`DISTINCT ON (tooth_fdi,surface) ORDER BY ... recorded_at DESC`, guarda `p_tenant_id=jwt_tenant_id()` quando authenticated), GRANT EXECUTE TO authenticated
-- [X] T009 Na `0133`: seed idempotente (`ON CONFLICT (code) DO NOTHING`) dos 10 status padrão da `data-model.md` (`none` is_system + cárie, restauração, selante, fratura, ausente, implante, coroa, extração indicada, canal)
-- [X] T010 Aplicar e validar a migration: `pnpm supabase:reset` (aplicou OK; migration renumerada 0133→0134 por colisão) (verificar que sobe sem erro e semeia o catálogo)
-- [X] T011 Regerar tipos do banco: `pnpm supabase:gen-types` (dental_status_catalog, dental_chart_entries, dental_chart_current presentes) (atualiza `src/lib/db/generated/types.ts` com as novas tabelas/RPC)
-- [X] T012 [P] Criar modelo de domínio `src/lib/core/dental/teeth.ts` — `PERMANENT_TEETH`, `DECIDUOUS_TEETH`, `SURFACES`, `dentitionOf`, `isAnterior`, `assertValidTooth`, `assertValidSurface`
+- [x] T003 Criar migration `supabase/migrations/0133_odontogram.sql` — header padrão (feature 039, idempotente); tabela global `dental_status_catalog` (id, code UNIQUE, label, color, icon, scope CHECK tooth/face/both, tuss_code_id FK→tuss_codes nullable, sort_order, is_active, is_system, created_at/by, updated_at/by) conforme `data-model.md`
+- [x] T004 Na mesma migration `0133`: tabela per-tenant `dental_chart_entries` (id, tenant_id FK, patient_id FK, appointment_id FK nullable, tooth_fdi SMALLINT CHECK conjunto FDI, surface TEXT CHECK enum nullable, status_id FK→catalog, note CHECK ≤2000, recorded_at, created_by, created_at) + índices `(tenant_id,patient_id,tooth_fdi,surface,recorded_at DESC)` e `(tenant_id,appointment_id)`
+- [x] T005 Na `0133`: triggers — `enforce_append_only_columns('')` (BEFORE UPDATE/DELETE) em `dental_chart_entries`; consistência de tenant (BEFORE INSERT: patient_id e appointment_id pertencem ao tenant, padrão `appointment_materials`); coerência escopo↔surface (face⇒surface NOT NULL, tooth⇒surface NULL, both⇒qualquer); auditoria AFTER INSERT via `log_audit_event(...,'dental_chart_entries',...)`
+- [x] T006 Na `0133`: proteção do catálogo — trigger BEFORE UPDATE impede mudança de `code`; impede DELETE/desativação de linhas `is_system=TRUE`
+- [x] T007 Na `0133`: RLS — `dental_status_catalog` SELECT para `authenticated` (global, sem filtro tenant), GRANT SELECT; `dental_chart_entries` SELECT `tenant_id=jwt_tenant_id()`, INSERT com `jwt_role() IN ('admin','profissional_saude')`, GRANT SELECT/INSERT
+- [x] T008 Na `0133`: RPC `dental_chart_current(p_tenant_id, p_patient_id)` SECURITY DEFINER (`DISTINCT ON (tooth_fdi,surface) ORDER BY ... recorded_at DESC`, guarda `p_tenant_id=jwt_tenant_id()` quando authenticated), GRANT EXECUTE TO authenticated
+- [x] T009 Na `0133`: seed idempotente (`ON CONFLICT (code) DO NOTHING`) dos 10 status padrão da `data-model.md` (`none` is_system + cárie, restauração, selante, fratura, ausente, implante, coroa, extração indicada, canal)
+- [x] T010 Aplicar e validar a migration: `pnpm supabase:reset` (aplicou OK; migration renumerada 0133→0134 por colisão) (verificar que sobe sem erro e semeia o catálogo)
+- [x] T011 Regerar tipos do banco: `pnpm supabase:gen-types` (dental_status_catalog, dental_chart_entries, dental_chart_current presentes) (atualiza `src/lib/db/generated/types.ts` com as novas tabelas/RPC)
+- [x] T012 [P] Criar modelo de domínio `src/lib/core/dental/teeth.ts` — `PERMANENT_TEETH`, `DECIDUOUS_TEETH`, `SURFACES`, `dentitionOf`, `isAnterior`, `assertValidTooth`, `assertValidSurface`
 
 **Checkpoint**: Banco + tipos + domínio prontos — user stories podem começar.
 
@@ -61,23 +61,23 @@ Web app single-app (Next.js App Router): `src/`, `supabase/migrations/`, `tests/
 
 ### Tests for User Story 1 ⚠️
 
-- [X] T013 [P] [US1] Teste de contrato append-only em `tests/contract/dental-chart-entries-append-only.test.ts` — UPDATE/DELETE em `dental_chart_entries` falha (42501)
-- [X] T014 [P] [US1] Teste de integração de isolamento de tenant em `tests/integration/odontogram-tenant-isolation.test.ts` — RPC/leitura do tenant B não retorna marcações do tenant A
-- [X] T015 [P] [US1] Teste de integração RBAC em `tests/integration/odontogram-rbac.test.ts` — `recepcionista` recebe 403 no POST; `admin`/`profissional_saude` conseguem criar
-- [X] T016 [P] [US1] Teste de validação em `tests/integration/odontogram-validation.test.ts` — `toothFdi` inválido → 400; status `tooth` com surface → 422; status `face` sem surface → 422
+- [x] T013 [P] [US1] Teste de contrato append-only em `tests/contract/dental-chart-entries-append-only.test.ts` — UPDATE/DELETE em `dental_chart_entries` falha (42501)
+- [x] T014 [P] [US1] Teste de integração de isolamento de tenant em `tests/integration/odontogram-tenant-isolation.test.ts` — RPC/leitura do tenant B não retorna marcações do tenant A
+- [x] T015 [P] [US1] Teste de integração RBAC em `tests/integration/odontogram-rbac.test.ts` — `recepcionista` recebe 403 no POST; `admin`/`profissional_saude` conseguem criar
+- [x] T016 [P] [US1] Teste de validação em `tests/integration/odontogram-validation.test.ts` — `toothFdi` inválido → 400; status `tooth` com surface → 422; status `face` sem surface → 422
 
 ### Implementation for User Story 1
 
-- [X] T017 [P] [US1] `src/lib/core/dental/status-catalog/list.ts` — `listActiveStatuses(supabase)` (somente `is_active`, ordenado por `sort_order`) + DTO
-- [X] T018 [P] [US1] `src/lib/core/dental/chart/create-entry.ts` — `createChartEntry(supabase, {tenantId, patientId, toothFdi, surface?, statusId, note?, appointmentId?, actorUserId})`: assert paciente no tenant, valida escopo↔surface contra o status, insert, retorna DTO (padrão `createVitalSigns`)
-- [X] T019 [P] [US1] `src/lib/core/dental/chart/list-current.ts` — `listCurrentChart(supabase, {tenantId, patientId})` via RPC `dental_chart_current`, retorna estado atual + DTO
-- [X] T020 [US1] `src/app/api/pacientes/[id]/odontograma/route.ts` — GET (`requireRole(['admin','financeiro','profissional_saude'])`: estado atual + catálogo ativo) e POST (`requireRole(['admin','profissional_saude'])`: cria marcação, Zod, `createSupabaseServiceClient`, `toHttpResponse`) conforme `contracts/odontograma-api.md`
-- [X] T021 [P] [US1] `src/app/api/dental-status/route.ts` — GET catálogo ativo para `authenticated` (paleta)
-- [X] T022 [P] [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/tooth.tsx` — SVG de 1 dente com 5 faces clicáveis (mesial/distal/oclusal-incisal/vestibular/lingual-palatina), cor por status, `aria-label` (dente+face+status), label oclusal vs incisal por `isAnterior`
-- [X] T023 [P] [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/status-palette.tsx` — paleta de status selecionável, filtrada por escopo do alvo (face: `face|both`; dente: `tooth|both`)
-- [X] T024 [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/odontogram-chart.tsx` (client) — carta dentária com quadrantes FDI, toggle permanente/decídua, modelo "paleta + pintar" com atualização otimista (pinta no clique, POST, reverte em erro)
-- [X] T025 [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/odontogram-tab.tsx` — wrapper server→client (carrega estado atual + catálogo via core, passa ao chart)
-- [X] T026 [US1] Integrar a aba **Odontograma** em `src/app/(dashboard)/operacao/pacientes/[id]/_components/patient-detail-layout.tsx` (novo `TabsTrigger`/`TabsContent` junto de Evolução/Clínico/Cadastro)
+- [x] T017 [P] [US1] `src/lib/core/dental/status-catalog/list.ts` — `listActiveStatuses(supabase)` (somente `is_active`, ordenado por `sort_order`) + DTO
+- [x] T018 [P] [US1] `src/lib/core/dental/chart/create-entry.ts` — `createChartEntry(supabase, {tenantId, patientId, toothFdi, surface?, statusId, note?, appointmentId?, actorUserId})`: assert paciente no tenant, valida escopo↔surface contra o status, insert, retorna DTO (padrão `createVitalSigns`)
+- [x] T019 [P] [US1] `src/lib/core/dental/chart/list-current.ts` — `listCurrentChart(supabase, {tenantId, patientId})` via RPC `dental_chart_current`, retorna estado atual + DTO
+- [x] T020 [US1] `src/app/api/pacientes/[id]/odontograma/route.ts` — GET (`requireRole(['admin','financeiro','profissional_saude'])`: estado atual + catálogo ativo) e POST (`requireRole(['admin','profissional_saude'])`: cria marcação, Zod, `createSupabaseServiceClient`, `toHttpResponse`) conforme `contracts/odontograma-api.md`
+- [x] T021 [P] [US1] `src/app/api/dental-status/route.ts` — GET catálogo ativo para `authenticated` (paleta)
+- [x] T022 [P] [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/tooth.tsx` — SVG de 1 dente com 5 faces clicáveis (mesial/distal/oclusal-incisal/vestibular/lingual-palatina), cor por status, `aria-label` (dente+face+status), label oclusal vs incisal por `isAnterior`
+- [x] T023 [P] [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/status-palette.tsx` — paleta de status selecionável, filtrada por escopo do alvo (face: `face|both`; dente: `tooth|both`)
+- [x] T024 [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/odontogram-chart.tsx` (client) — carta dentária com quadrantes FDI, toggle permanente/decídua, modelo "paleta + pintar" com atualização otimista (pinta no clique, POST, reverte em erro)
+- [x] T025 [US1] `src/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/odontogram-tab.tsx` — wrapper server→client (carrega estado atual + catálogo via core, passa ao chart)
+- [x] T026 [US1] Integrar a aba **Odontograma** em `src/app/(dashboard)/operacao/pacientes/[id]/_components/patient-detail-layout.tsx` (novo `TabsTrigger`/`TabsContent` junto de Evolução/Clínico/Cadastro)
 
 **Checkpoint**: US1 funcional e testável de forma independente — MVP entregável.
 
@@ -91,19 +91,19 @@ Web app single-app (Next.js App Router): `src/`, `supabase/migrations/`, `tests/
 
 ### Tests for User Story 2 ⚠️
 
-- [X] T027 [P] [US2] Teste de contrato em `tests/contract/dental-status-catalog-immutability.test.ts` — PATCH de `code` rejeitado (422); DELETE/desativação de `is_system` rejeitado
-- [X] T028 [P] [US2] Teste de integração de gating em `tests/integration/dental-status-admin-access.test.ts` — não super-admin recebe negação em GET/POST/PATCH `/api/admin/dental-status`
+- [x] T027 [P] [US2] Teste de contrato em `tests/contract/dental-status-catalog-immutability.test.ts` — PATCH de `code` rejeitado (422); DELETE/desativação de `is_system` rejeitado
+- [x] T028 [P] [US2] Teste de integração de gating em `tests/integration/dental-status-admin-access.test.ts` — não super-admin recebe negação em GET/POST/PATCH `/api/admin/dental-status`
 
 ### Implementation for User Story 2
 
-- [X] T029 [P] [US2] `src/lib/core/dental/status-catalog/create.ts` — `createStatus(supabase, {...})`: valida slug `code` único, hex color, scope, `tussCodeId` (se presente, `tuss_table='22'`), insert com `created_by`
-- [X] T030 [P] [US2] `src/lib/core/dental/status-catalog/update.ts` — `updateStatus(supabase, id, {...})`: campos editáveis (label/color/icon/scope/tussCodeId/sortOrder/isActive), bloqueia mudança de `code` e desativação de `is_system`, grava `updated_by`
-- [X] T031 [US2] `src/app/api/admin/dental-status/route.ts` — GET (todos, `requireSuperAdmin`) e POST (criar) conforme `contracts/dental-status-admin-api.md`
-- [X] T032 [US2] `src/app/api/admin/dental-status/[id]/route.ts` — PATCH (editar/ativar/desativar, `requireSuperAdmin`)
-- [X] T033 [P] [US2] `src/app/admin/catalogo/status-odontologicos/status-form.tsx` (client) — form criar/editar (label, color picker, icon, scope, busca TUSS tabela 22 via `searchTussCatalog`, sortOrder, isActive)
-- [X] T034 [P] [US2] `src/app/admin/catalogo/status-odontologicos/status-table.tsx` (client) — tabela do catálogo (ativos + inativos) com ação ativar/desativar/editar
-- [X] T035 [US2] `src/app/admin/catalogo/status-odontologicos/page.tsx` — SSR `requireSuperAdmin` + `createSupabaseServiceClient`, lista catálogo, renderiza tabela + form
-- [X] T036 [US2] Adicionar entrada de navegação para "Status odontológicos" no hub `/admin/catalogo` (ou layout admin existente)
+- [x] T029 [P] [US2] `src/lib/core/dental/status-catalog/create.ts` — `createStatus(supabase, {...})`: valida slug `code` único, hex color, scope, `tussCodeId` (se presente, `tuss_table='22'`), insert com `created_by`
+- [x] T030 [P] [US2] `src/lib/core/dental/status-catalog/update.ts` — `updateStatus(supabase, id, {...})`: campos editáveis (label/color/icon/scope/tussCodeId/sortOrder/isActive), bloqueia mudança de `code` e desativação de `is_system`, grava `updated_by`
+- [x] T031 [US2] `src/app/api/admin/dental-status/route.ts` — GET (todos, `requireSuperAdmin`) e POST (criar) conforme `contracts/dental-status-admin-api.md`
+- [x] T032 [US2] `src/app/api/admin/dental-status/[id]/route.ts` — PATCH (editar/ativar/desativar, `requireSuperAdmin`)
+- [x] T033 [P] [US2] `src/app/admin/catalogo/status-odontologicos/status-form.tsx` (client) — form criar/editar (label, color picker, icon, scope, busca TUSS tabela 22 via `searchTussCatalog`, sortOrder, isActive)
+- [x] T034 [P] [US2] `src/app/admin/catalogo/status-odontologicos/status-table.tsx` (client) — tabela do catálogo (ativos + inativos) com ação ativar/desativar/editar
+- [x] T035 [US2] `src/app/admin/catalogo/status-odontologicos/page.tsx` — SSR `requireSuperAdmin` + `createSupabaseServiceClient`, lista catálogo, renderiza tabela + form
+- [x] T036 [US2] Adicionar entrada de navegação para "Status odontológicos" no hub `/admin/catalogo` (ou layout admin existente)
 
 **Checkpoint**: US1 + US2 funcionam de forma independente.
 
@@ -117,15 +117,15 @@ Web app single-app (Next.js App Router): `src/`, `supabase/migrations/`, `tests/
 
 ### Tests for User Story 3 ⚠️
 
-- [X] T037 [P] [US3] Teste de integração de auditoria em `tests/integration/odontogram-audit.test.ts` — INSERT gera linha em `audit_log` (entity `dental_chart_entries`, actor, tenant)
-- [X] T038 [P] [US3] Teste de integração de vínculo em `tests/integration/odontogram-appointment-link.test.ts` — `appointmentId` de outro tenant/paciente é rejeitado; vínculo válido persiste
+- [x] T037 [P] [US3] Teste de integração de auditoria em `tests/integration/odontogram-audit.test.ts` — INSERT gera linha em `audit_log` (entity `dental_chart_entries`, actor, tenant)
+- [x] T038 [P] [US3] Teste de integração de vínculo em `tests/integration/odontogram-appointment-link.test.ts` — `appointmentId` de outro tenant/paciente é rejeitado; vínculo válido persiste
 
 ### Implementation for User Story 3
 
-- [X] T039 [P] [US3] `src/lib/core/dental/chart/list-history.ts` — `listChartHistory(supabase, {tenantId, patientId, toothFdi, surface?})` ordenado por `recorded_at DESC` com autor e status
-- [X] T040 [US3] `src/app/api/pacientes/[id]/odontograma/historico/route.ts` — GET histórico por posição (`requireRole(['admin','financeiro','profissional_saude'])`)
-- [X] T041 [US3] No `odontogram-chart.tsx`: ao abrir um dente/face, exibir popover de histórico (consome `/historico`) e permitir nota opcional ao marcar
-- [X] T042 [US3] Propagar contexto de atendimento: quando o odontograma é aberto a partir de um atendimento, enviar `appointmentId` no POST da marcação
+- [x] T039 [P] [US3] `src/lib/core/dental/chart/list-history.ts` — `listChartHistory(supabase, {tenantId, patientId, toothFdi, surface?})` ordenado por `recorded_at DESC` com autor e status
+- [x] T040 [US3] `src/app/api/pacientes/[id]/odontograma/historico/route.ts` — GET histórico por posição (`requireRole(['admin','financeiro','profissional_saude'])`)
+- [x] T041 [US3] No `odontogram-chart.tsx`: ao abrir um dente/face, exibir popover de histórico (consome `/historico`) e permitir nota opcional ao marcar
+- [x] T042 [US3] Propagar contexto de atendimento: quando o odontograma é aberto a partir de um atendimento, enviar `appointmentId` no POST da marcação
 
 **Checkpoint**: Todas as user stories independentemente funcionais.
 
@@ -135,11 +135,11 @@ Web app single-app (Next.js App Router): `src/`, `supabase/migrations/`, `tests/
 
 **Purpose**: Acabamento que cruza as stories.
 
-- [X] T043 [P] Alinhar cores do catálogo semeado com o design system (paleta feature 016) em `0133_odontogram.sql` (placeholders → cores oficiais)
-- [X] T044 [P] Passe de acessibilidade no SVG (foco por teclado, `role`/`aria-label`, contraste das cores de status)
-- [X] T045 Rodar `pnpm lint:auth` (rotas com `requireRole`/`requireSuperAdmin`, sem env direto) e `pnpm typecheck`
-- [X] T046 Rodar `tests/` completo (`pnpm test`) e validar os fluxos do `quickstart.md` manualmente (re-seedar `pnpm seed:demo` após testes)
-- [X] T047 [P] Documentar o módulo odontológico (entrada nas notas da feature / README de domínio se aplicável) e registrar follow-ups de fase 2 (plano de tratamento, periograma, anexos, gating por entitlement `odonto`)
+- [x] T043 [P] Alinhar cores do catálogo semeado com o design system (paleta feature 016) em `0133_odontogram.sql` (placeholders → cores oficiais)
+- [x] T044 [P] Passe de acessibilidade no SVG (foco por teclado, `role`/`aria-label`, contraste das cores de status)
+- [x] T045 Rodar `pnpm lint:auth` (rotas com `requireRole`/`requireSuperAdmin`, sem env direto) e `pnpm typecheck`
+- [x] T046 Rodar `tests/` completo (`pnpm test`) e validar os fluxos do `quickstart.md` manualmente (re-seedar `pnpm seed:demo` após testes)
+- [x] T047 [P] Documentar o módulo odontológico (entrada nas notas da feature / README de domínio se aplicável) e registrar follow-ups de fase 2 (plano de tratamento, periograma, anexos, gating por entitlement `odonto`)
 
 ---
 

@@ -75,9 +75,7 @@ export function CreateParticipantsEditor({
           onAdd={(row) => onChange([...value, row])}
           onRemove={(doctorId) =>
             onChange(
-              value.filter(
-                (p) => !(p.procedureIndex === proc.index && p.doctorId === doctorId),
-              ),
+              value.filter((p) => !(p.procedureIndex === proc.index && p.doctorId === doctorId)),
             )
           }
         />

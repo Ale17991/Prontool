@@ -10,7 +10,12 @@ import { seedTenant, seedUser, seedHealthPlan } from '@/tests/helpers/seed-facto
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 import type { TenantRole } from '@/lib/db/types'
 
-const SENSITIVE: Array<{ role: TenantRole; allowed: boolean; action: string; run: (jwt: string, tenantId: string) => Promise<{ error: unknown }> }> = []
+const SENSITIVE: Array<{
+  role: TenantRole
+  allowed: boolean
+  action: string
+  run: (jwt: string, tenantId: string) => Promise<{ error: unknown }>
+}> = []
 
 describe('Principle V — RBAC matrix', () => {
   let tenantId: string
@@ -49,7 +54,12 @@ describe('Principle V — RBAC matrix', () => {
   it('non-admin plan updates are blocked even when plan already exists', async () => {
     const planId = await seedHealthPlan(tenantId, 'To-toggle')
     const recep = await seedUser(tenantId, 'recepcionista')
-    const jwt = mintJwt({ userId: recep.userId, email: recep.email, tenantId, role: 'recepcionista' })
+    const jwt = mintJwt({
+      userId: recep.userId,
+      email: recep.email,
+      tenantId,
+      role: 'recepcionista',
+    })
     const sb = rlsClient(jwt)
     // RLS silently filters out unauthorized rows instead of raising, so
     // `.select()` after the update returns the rows that were actually
@@ -73,7 +83,12 @@ describe('Principle V — RBAC matrix', () => {
 
   it('only admin reads audit_log', async () => {
     const financeiro = await seedUser(tenantId, 'financeiro')
-    const jwtFin = mintJwt({ userId: financeiro.userId, email: financeiro.email, tenantId, role: 'financeiro' })
+    const jwtFin = mintJwt({
+      userId: financeiro.userId,
+      email: financeiro.email,
+      tenantId,
+      role: 'financeiro',
+    })
     const sbFin = rlsClient(jwtFin)
     const { data } = await sbFin.from('audit_log').select('*')
     expect(data).toEqual([])

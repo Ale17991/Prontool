@@ -64,13 +64,13 @@ describe('Principle III — tenant isolation', () => {
     expect(data).toEqual([])
   })
 
-  it("tenant A sees no procedures from tenant B", async () => {
+  it('tenant A sees no procedures from tenant B', async () => {
     const sb = rlsClient(jwtA)
     const { data } = await sb.from('procedures').select('id, tenant_id')
     expect((data ?? []).every((r) => r.tenant_id === tenantA)).toBe(true)
   })
 
-  it("tenant A cannot INSERT a price referencing tenant B", async () => {
+  it('tenant A cannot INSERT a price referencing tenant B', async () => {
     const sb = rlsClient(jwtA)
     const { error } = await sb.from('price_versions').insert({
       tenant_id: tenantB,

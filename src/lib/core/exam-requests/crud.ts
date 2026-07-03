@@ -29,8 +29,7 @@ export interface CreateExamRequestInput {
   doctorId?: string | null
 }
 
-const SELECT =
-  'id, items, clinical_indication, notes, appointment_id, issued_at, created_at'
+const SELECT = 'id, items, clinical_indication, notes, appointment_id, issued_at, created_at'
 
 function toDto(r: Record<string, unknown>): ExamRequest {
   const rawItems = Array.isArray(r.items) ? (r.items as Array<Record<string, unknown>>) : []
@@ -70,7 +69,8 @@ export async function createExamRequest(
   const items = normalizeItems(input.items)
   const indication = input.clinicalIndication?.trim() || null
   const notes = input.notes?.trim() || null
-  if (indication && indication.length > 4000) throw new ValidationError('Indicação clínica muito longa.')
+  if (indication && indication.length > 4000)
+    throw new ValidationError('Indicação clínica muito longa.')
   if (notes && notes.length > 2000) throw new ValidationError('Observações muito longas.')
 
   const { data, error } = await supabase

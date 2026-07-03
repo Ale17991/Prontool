@@ -49,9 +49,7 @@ export async function searchTussCatalog(
     // OR manufacturer ilike %q% (pra achar "abbott" em materiais/medicamentos).
     // Escapamos vírgulas/parênteses pra não quebrar a sintaxe do filtro.
     const safe = q.replace(/[(),]/g, ' ')
-    query = query.or(
-      `code.ilike.${safe}%,description.ilike.%${safe}%,manufacturer.ilike.%${safe}%`,
-    )
+    query = query.or(`code.ilike.${safe}%,description.ilike.%${safe}%,manufacturer.ilike.%${safe}%`)
   }
 
   const { data, error } = await query

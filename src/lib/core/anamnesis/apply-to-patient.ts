@@ -49,13 +49,9 @@ export async function applyAnamnesisToPatient(
     label: string
     required: boolean
   }>
-  const missing = fields
-    .filter((f) => f.required && !input.responses[f.id])
-    .map((f) => f.label)
+  const missing = fields.filter((f) => f.required && !input.responses[f.id]).map((f) => f.label)
   if (missing.length > 0) {
-    throw new ValidationError(
-      `Campos obrigatórios não preenchidos: ${missing.join(', ')}`,
-    )
+    throw new ValidationError(`Campos obrigatórios não preenchidos: ${missing.join(', ')}`)
   }
 
   const { data, error } = await supabase

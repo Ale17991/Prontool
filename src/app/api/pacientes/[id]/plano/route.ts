@@ -8,18 +8,18 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 /** Visão do plano de tratamento do paciente (itens + orçamentos + progresso). */
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/plano`
   try {
-    const session = await requireRole(['admin', 'financeiro', 'recepcionista', 'profissional_saude'], {
-      entity: 'treatment_plan_steps',
-      entityId: params.id,
-      route,
-      request: req,
-    })
+    const session = await requireRole(
+      ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],
+      {
+        entity: 'treatment_plan_steps',
+        entityId: params.id,
+        route,
+        request: req,
+      },
+    )
     const supabase = createSupabaseServiceClient()
     const plan = await listPlan(supabase, { tenantId: session.tenantId, patientId: params.id })
     return NextResponse.json(plan, { status: 200 })

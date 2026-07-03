@@ -1,10 +1,10 @@
 ---
-description: "Task list — Conformidade Memed (Checklist Pré-Produção)"
+description: 'Task list — Conformidade Memed (Checklist Pré-Produção)'
 ---
 
 # Tasks: Conformidade Memed — Checklist Pré-Produção
 
-**Input**: Design documents from `/specs/027-memed-conformidade/` (spec.md, plan.md, research.md, data-model.md, contracts/*, quickstart.md)
+**Input**: Design documents from `/specs/027-memed-conformidade/` (spec.md, plan.md, research.md, data-model.md, contracts/\*, quickstart.md)
 **Prerequisites**: spec 026-memed-prescricao-digital deve estar pelo menos em Phase 2 (tabelas criadas) para os testes de contrato rodarem; integração/E2E podem usar mock se Phase 3+ ainda não tiver entregue endpoints.
 **Tests**: incluídos — esta é uma feature de **verificação auditável**; testes são o próprio entregável.
 
@@ -171,7 +171,7 @@ description: "Task list — Conformidade Memed (Checklist Pré-Produção)"
 - [ ] T037 [P] Contract test transversal em `tests/contract/memed-conformity-tenant-isolation.spec.ts` — Constituição III: criar fixture em tenant A (config + prescriber + record); como cliente do tenant B (JWT trocado) tentar SELECT cada uma das 3 tabelas — assert 0 linhas retornadas em todas; tentar INSERT cross-tenant — assert falha
 - [ ] T038 [P] Contract test transversal em `tests/contract/memed-rbac.spec.ts` — Constituição V: matriz 4 papéis (`admin`, `financeiro`, `recepcionista`, `profissional_saude`) × 5 endpoints (`POST /api/integracoes/memed`, `DELETE /api/integracoes/memed`, `POST /api/medicos/[id]/memed-prescritor`, `GET /api/medicos/[id]/memed-token`, `POST /api/atendimentos/[id]/prescricoes`) — assert 200/201 para roles permitidos e 403 para os demais conforme spec 026
 - [ ] T039 [P] E2E smoke em `tests/e2e/memed-full-flow.spec.ts` — Playwright: login admin → conectar Memed (mock) → habilitar prescritor → trocar pra profissional → abrir atendimento → prescrever → emitir → fechar → ver indicador no prontuário; ≤ 30s no p95
-- [ ] T040 [P] CI workflow em `.github/workflows/memed-conformidade.yml` — trigger paths-filter (arquivos do spec 026 + tools/eslint-rules + tools/scripts + tests/{contract,integration,e2e}/memed-*); 4 jobs paralelos (lint, unit/contract/integration, build+scan, e2e); cada um falha → bloqueio de merge; tempo alvo ≤ 4min
+- [ ] T040 [P] CI workflow em `.github/workflows/memed-conformidade.yml` — trigger paths-filter (arquivos do spec 026 + tools/eslint-rules + tools/scripts + tests/{contract,integration,e2e}/memed-\*); 4 jobs paralelos (lint, unit/contract/integration, build+scan, e2e); cada um falha → bloqueio de merge; tempo alvo ≤ 4min
 - [ ] T041 [P] Atualizar `CLAUDE.md` ou criar `docs/memed-conformidade.md` — link para `specs/027-memed-conformidade/quickstart.md` + breve guia "como rodar a suíte localmente quando ajustar feature 026"
 - [ ] T042 Executar `pnpm test:memed-conformidade` end-to-end localmente — confirmar tempo ≤ 4 min e que todos os 42 testes verdes; documentar tempo medido em comentário no PR
 
@@ -245,6 +245,7 @@ Task: "Integration test em tests/integration/memed-error-messages-no-credentials
 ### Parallel Team Strategy (2 devs em paralelo)
 
 Depois de Phase 2 estar OK:
+
 - Dev A: Phases 3, 5, 7 (Prescritor + prescricaoImpressa + Credenciais)
 - Dev B: Phases 4, 6, 8 (Paciente + prescricaoExcluida + FeatureToggle)
 - Dev A ou B: Phase 9 (doc) + Phase 10 (cross-cutting)

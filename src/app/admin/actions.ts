@@ -34,7 +34,8 @@ export async function adminCreateClinicAction(input: {
   const name = input.name.trim()
   const slug = slugify(input.slug || input.name)
   if (name.length < 2) return { ok: false, error: 'Nome da clínica inválido.' }
-  if (!/^[a-z0-9-]{2,}$/.test(slug)) return { ok: false, error: 'Slug inválido (use letras/números).' }
+  if (!/^[a-z0-9-]{2,}$/.test(slug))
+    return { ok: false, error: 'Slug inválido (use letras/números).' }
   if (!PLANS.includes(input.plan)) return { ok: false, error: 'Plano inválido.' }
   if (!input.adminEmail.includes('@')) return { ok: false, error: 'E-mail do admin inválido.' }
   if ((input.adminPassword ?? '').length < 8) {
@@ -55,7 +56,9 @@ export async function adminCreateClinicAction(input: {
     if (tErr) {
       return {
         ok: false,
-        error: /duplicate|unique/i.test(tErr.message) ? 'Já existe uma clínica com esse slug.' : tErr.message,
+        error: /duplicate|unique/i.test(tErr.message)
+          ? 'Já existe uma clínica com esse slug.'
+          : tErr.message,
       }
     }
     const tenantId = (t as { id: string }).id
@@ -67,7 +70,10 @@ export async function adminCreateClinicAction(input: {
       p_status: 'active',
     })
     if (entErr) {
-      return { ok: false, error: `Clínica criada, mas falhou ao definir o plano: ${entErr.message}` }
+      return {
+        ok: false,
+        error: `Clínica criada, mas falhou ao definir o plano: ${entErr.message}`,
+      }
     }
 
     await createManualUser(sb, tenantId, actorId, null, {
@@ -80,16 +86,17 @@ export async function adminCreateClinicAction(input: {
     revalidatePath('/admin', 'layout')
     return { ok: true }
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Erro inesperado ao criar a clínica.' }
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'Erro inesperado ao criar a clínica.',
+    }
   }
 }
 
 const PLANS = ['essencial', 'pro', 'clinica', 'legacy']
 // Controláveis no painel = catálogo completo MENOS os "em breve". Inclui
 // treino/dieta (antes eram mostrados mas descartados ao salvar).
-const MODULES: string[] = ALL_MODULES.filter(
-  (m) => !COMING_SOON_MODULES.includes(m),
-)
+const MODULES: string[] = ALL_MODULES.filter((m) => !COMING_SOON_MODULES.includes(m))
 
 export interface AdminActionResult {
   ok: boolean
@@ -121,12 +128,15 @@ export async function setTenantPlanAction(input: {
     .eq('tenant_id', input.tenantId)
     .maybeSingle()
   const currentStatus = (cur.data as { status?: string } | null)?.status ?? 'active'
-  const { error } = await sb.rpc('set_tenant_entitlement' as never, {
-    p_tenant_id: input.tenantId,
-    p_plan: input.plan,
-    p_modules: modules,
-    p_status: currentStatus,
-  } as never)
+  const { error } = await sb.rpc(
+    'set_tenant_entitlement' as never,
+    {
+      p_tenant_id: input.tenantId,
+      p_plan: input.plan,
+      p_modules: modules,
+      p_status: currentStatus,
+    } as never,
+  )
   if (error) return { ok: false, error: error.message }
 
   // 'layout' revalida tudo sob /admin (lista + detalhe da clínica), senão o
@@ -158,7 +168,11 @@ export async function setTenantBillingAction(input: {
   const sb = createSupabaseServiceClient()
   const { error } = await sb
     .from('tenant_entitlements')
-    .update({ status: input.status, trial_ends_at: trialEndsAt, updated_at: new Date().toISOString() } as never)
+    .update({
+      status: input.status,
+      trial_ends_at: trialEndsAt,
+      updated_at: new Date().toISOString(),
+    } as never)
     .eq('tenant_id', input.tenantId)
   if (error) return { ok: false, error: error.message }
   revalidatePath('/admin', 'layout')

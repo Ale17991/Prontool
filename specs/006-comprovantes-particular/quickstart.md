@@ -41,6 +41,7 @@ pnpm supabase:gen-types
 ## Validação manual — Feature 2 (Atendimento particular)
 
 ### Caso A: paciente sem plano cadastrado
+
 1. Logar como recepcionista.
 2. Ir em `/operacao/atendimentos/novo`.
 3. Selecionar paciente "Júlia" (sem `plan_id`). **Esperado**: checkbox "Atendimento particular" vem **marcado**, select de plano oculto, valor pré-preenchido com `default_amount_cents` do procedimento.
@@ -51,19 +52,23 @@ pnpm supabase:gen-types
 8. No calendário (`/operacao/atendimentos?view=cal`), o bloco do atendimento mostra badge.
 
 ### Caso B: paciente com plano
+
 1. Selecionar paciente "Pedro" (com plano Unimed). **Esperado**: checkbox **desmarcado**, select de plano visível pré-selecionado em Unimed.
 2. Marcar manualmente o checkbox. **Esperado**: select de plano se esconde, valor recalcula via `default_amount_cents`.
 3. Desmarcar de novo. **Esperado**: select reaparece, valor via `price_versions`.
 
 ### Caso C: procedimento não coberto por plano
+
 1. Cadastrar um procedimento novo com `covered_by_plan = false`.
 2. Em "Novo atendimento", selecionar Pedro (com plano) + esse procedimento. **Esperado**: checkbox **forçado a marcado** (desabilitado), com nota "Procedimento não coberto por plano".
 
 ### Caso D: procedimento sem `default_amount_cents`
+
 1. Cadastrar procedimento novo sem valor particular.
 2. Em "Novo atendimento", marcar particular + selecionar esse procedimento. **Esperado**: aviso "Valor particular não cadastrado para este procedimento". Campo de valor em branco; salvar bloqueado até preencher manualmente.
 
 ### Caso E: nova etapa do plano de tratamento
+
 1. Ir em `/operacao/pacientes/[id]` de Júlia (sem plano). Aba "Plano de tratamento".
 2. "+ Nova etapa". **Esperado**: checkbox auto-marcado.
 3. Salvar etapa. **Esperado**: appointment auto-criado com `plan_id = NULL`; etapa exibe badge "Particular".
@@ -79,6 +84,7 @@ pnpm test:contract
 ```
 
 Específicos da feature:
+
 - `tests/integration/expense-receipts.spec.ts` — N uploads, listar, soft-delete admin, audit log.
 - `tests/integration/particular-appointment.spec.ts` — INSERT com plan_id NULL passa o trigger; INSERT com plan_id NULL + source_price_version_id SET falha com `APPOINTMENT_PARTICULAR_NO_PRICE_VERSION`.
 - `tests/unit/particular-detection.spec.ts` — matriz `(paciente.plan_id, procedimento.covered_by_plan)` → estado inicial.

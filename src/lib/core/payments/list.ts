@@ -196,18 +196,11 @@ export async function listPaymentsForPatient(
 function pickProcedureLabel(r: PaymentRecordRow): string | null {
   const fromAppointment = r.appointments?.procedures
   if (fromAppointment) {
-    return (
-      fromAppointment.display_name ?? fromAppointment.tuss_code ?? null
-    )
+    return fromAppointment.display_name ?? fromAppointment.tuss_code ?? null
   }
   const step = r.treatment_plan_steps
   if (step) {
-    return (
-      step.title ??
-      step.procedures?.display_name ??
-      step.procedures?.tuss_code ??
-      null
-    )
+    return step.title ?? step.procedures?.display_name ?? step.procedures?.tuss_code ?? null
   }
   return null
 }

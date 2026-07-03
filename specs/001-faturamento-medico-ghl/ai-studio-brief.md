@@ -47,10 +47,10 @@ rotas; só consuma o que está documentado.
 
 ## 2. Padrão de páginas
 
-| Tipo                          | Quando usar                                         |
-|-------------------------------|-----------------------------------------------------|
-| Server Component (default)    | Listagens, detalhes — dados vêm do Supabase server  |
-| `'use client'`                | Forms com estado local, botões com loading, modais  |
+| Tipo                       | Quando usar                                        |
+| -------------------------- | -------------------------------------------------- |
+| Server Component (default) | Listagens, detalhes — dados vêm do Supabase server |
+| `'use client'`             | Forms com estado local, botões com loading, modais |
 
 Cada rota fica em `src/app/(dashboard)/<nome>/page.tsx`. Mutações
 (reverter atendimento, criar preço, resolver alerta etc.) ficam em
@@ -60,6 +60,7 @@ chamam `fetch('/api/...')` e depois `router.refresh()`.
 Layout compartilhado já existe em `src/app/(dashboard)/layout.tsx` —
 sidebar de navegação + container principal. **Pode ignorar essa
 estrutura existente e propor uma melhor**, contanto que mantenha:
+
 - redirect pra `/login` quando não há sessão (`getSession()` retorna null)
 - nav links visíveis condicionalmente conforme `rbac.can(role, action)`
 
@@ -91,21 +92,21 @@ estrutura existente e propor uma melhor**, contanto que mantenha:
 
 ## 4. Telas a entregar
 
-| Rota                       | Status      | Endpoints consumidos                                          |
-|----------------------------|-------------|---------------------------------------------------------------|
-| `/login`                   | refazer     | `signInWithPassword` direto no client                         |
-| `/atendimentos`            | refazer     | `GET /api/atendimentos`                                       |
-| `/atendimentos/[id]`       | refazer     | `GET /api/atendimentos/[id]`, `POST .../reversal`             |
-| `/alertas`                 | refazer     | `GET /api/alertas`, `POST /api/alertas/[id]/resolve`          |
-| `/dlq`                     | refazer     | `GET /api/alertas/dlq`, `POST .../[id]/reprocess`             |
-| `/precos`                  | nova        | `GET /api/precos` (+ `/procedimentos`, `/planos` p/ dropdowns) |
-| `/precos/novo`             | nova        | `POST /api/precos/versions`                                   |
-| `/precos/[id]`             | nova        | `GET .../history`, `POST .../versions`                        |
-| `/procedimentos`           | nova        | `GET /api/procedimentos`, `POST`, `PATCH /[id]`, `GET /api/tuss-codes` (typeahead) |
-| `/planos`                  | nova        | `GET /api/planos`, `POST`, `PATCH /[id]`                      |
-| `/auditoria`               | nova        | `GET /api/auditoria`, links de export                         |
-| `/pacientes`               | nova        | `GET /api/pacientes`                                          |
-| `/pacientes/[id]`          | nova        | `GET /api/pacientes/[id]`, `GET /registros`, `POST` (texto), `POST /upload` (arquivo), `DELETE /registros/[recordId]`, `POST /anonymize` |
+| Rota                 | Status  | Endpoints consumidos                                                                                                                     |
+| -------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `/login`             | refazer | `signInWithPassword` direto no client                                                                                                    |
+| `/atendimentos`      | refazer | `GET /api/atendimentos`                                                                                                                  |
+| `/atendimentos/[id]` | refazer | `GET /api/atendimentos/[id]`, `POST .../reversal`                                                                                        |
+| `/alertas`           | refazer | `GET /api/alertas`, `POST /api/alertas/[id]/resolve`                                                                                     |
+| `/dlq`               | refazer | `GET /api/alertas/dlq`, `POST .../[id]/reprocess`                                                                                        |
+| `/precos`            | nova    | `GET /api/precos` (+ `/procedimentos`, `/planos` p/ dropdowns)                                                                           |
+| `/precos/novo`       | nova    | `POST /api/precos/versions`                                                                                                              |
+| `/precos/[id]`       | nova    | `GET .../history`, `POST .../versions`                                                                                                   |
+| `/procedimentos`     | nova    | `GET /api/procedimentos`, `POST`, `PATCH /[id]`, `GET /api/tuss-codes` (typeahead)                                                       |
+| `/planos`            | nova    | `GET /api/planos`, `POST`, `PATCH /[id]`                                                                                                 |
+| `/auditoria`         | nova    | `GET /api/auditoria`, links de export                                                                                                    |
+| `/pacientes`         | nova    | `GET /api/pacientes`                                                                                                                     |
+| `/pacientes/[id]`    | nova    | `GET /api/pacientes/[id]`, `GET /registros`, `POST` (texto), `POST /upload` (arquivo), `DELETE /registros/[recordId]`, `POST /anonymize` |
 
 Detalhes de UX por tela estão em §5.10.
 
@@ -125,7 +126,7 @@ Detalhes de UX por tela estão em §5.10.
   ```ts
   interface ErrorResponse {
     error: {
-      code: string             // 'FORBIDDEN', 'NOT_FOUND', 'INVALID_BODY', etc.
+      code: string // 'FORBIDDEN', 'NOT_FOUND', 'INVALID_BODY', etc.
       message: string
       meta?: Record<string, unknown>
     }
@@ -145,13 +146,13 @@ Detalhes de UX por tela estão em §5.10.
 type TenantRole = 'admin' | 'financeiro' | 'recepcionista' | 'profissional_saude'
 ```
 
-| Ação                                                       | admin | financeiro | recepcionista | profissional_saude |
-|------------------------------------------------------------|:-----:|:----------:|:-------------:|:------------------:|
-| Ler atendimentos / preços / procedures / plans / médicos   | ✅    | ✅         | ✅            | ✅ (só atendimentos) |
-| Reverter atendimento                                       | ✅    | ✅         | ❌            | ❌                  |
-| Criar/alterar preço, procedimento, plano, médico           | ✅    | ❌         | ❌            | ❌                  |
-| Ler/exportar auditoria                                     | ✅    | ❌         | ❌            | ❌                  |
-| Ler/resolver alertas, ler/reprocessar DLQ                  | ✅    | ✅         | ❌            | ❌                  |
+| Ação                                                     | admin | financeiro | recepcionista |  profissional_saude  |
+| -------------------------------------------------------- | :---: | :--------: | :-----------: | :------------------: |
+| Ler atendimentos / preços / procedures / plans / médicos |  ✅   |     ✅     |      ✅       | ✅ (só atendimentos) |
+| Reverter atendimento                                     |  ✅   |     ✅     |      ❌       |          ❌          |
+| Criar/alterar preço, procedimento, plano, médico         |  ✅   |     ❌     |      ❌       |          ❌          |
+| Ler/exportar auditoria                                   |  ✅   |     ❌     |      ❌       |          ❌          |
+| Ler/resolver alertas, ler/reprocessar DLQ                |  ✅   |     ✅     |      ❌       |          ❌          |
 
 Quando o usuário não tem permissão, o backend devolve **403** e grava uma
 linha em `audit_log`. **Esconda os botões/forms na UI** pra papéis sem
@@ -169,6 +170,7 @@ interface ActiveSession {
 ```
 
 Login em `/login`:
+
 ```ts
 import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
 
@@ -178,6 +180,7 @@ if (!error) router.push('/atendimentos')
 ```
 
 Em Server Component (qualquer `page.tsx`):
+
 ```ts
 import { getSession } from '@/lib/auth/get-session'
 
@@ -201,14 +204,14 @@ interface AppointmentEffective {
   frozen_amount_cents: number
   frozen_commission_bps: number
   effective_status: 'ativo' | 'estornado'
-  net_amount_cents: number          // 0 se estornado
+  net_amount_cents: number // 0 se estornado
   net_commission_cents: number
   reversal_id: string | null
   reversed_at: string | null
 }
 
 interface ListAppointmentsQuery {
-  from?: string                     // 'YYYY-MM-DD' inclusive
+  from?: string // 'YYYY-MM-DD' inclusive
   to?: string
   doctor_id?: string
   plan_id?: string
@@ -223,7 +226,7 @@ type ListAppointmentsResponse = AppointmentEffective[]
 ```ts
 interface GetAppointmentResponse {
   appointment: AppointmentEffective
-  audit: AuditRow[]                 // ver §5.9
+  audit: AuditRow[] // ver §5.9
 }
 ```
 
@@ -233,13 +236,13 @@ interface GetAppointmentResponse {
 
 ```ts
 interface ReverseAppointmentRequest {
-  reason: string                    // mín. 3 caracteres
+  reason: string // mín. 3 caracteres
 }
 
 interface ReverseAppointmentResponse {
   id: string
   appointment_id: string
-  reversal_amount_cents: number     // sempre negativo
+  reversal_amount_cents: number // sempre negativo
   reason: string
 }
 ```
@@ -262,7 +265,7 @@ interface Alert {
   id: string
   type: AlertType
   status: AlertStatus
-  detail: Record<string, unknown>          // chaves variam por tipo
+  detail: Record<string, unknown> // chaves variam por tipo
   subject_ref: Record<string, unknown> | null
   email_sent_to: string[]
   email_last_sent_at: string | null
@@ -308,7 +311,7 @@ interface DlqEvent {
   received_at: string
   failure_reason: string | null
   processing_attempt_count: number
-  payload: unknown                         // payload do GHL inteiro
+  payload: unknown // payload do GHL inteiro
 }
 
 type ListDlqResponse = DlqEvent[]
@@ -337,18 +340,18 @@ Erro 409 `code: 'NOT_IN_DLQ'` se já saiu da fila.
 ```ts
 interface PriceHead {
   id: string
-  procedureId: string                      // ⚠ camelCase aqui
+  procedureId: string // ⚠ camelCase aqui
   procedureTussCode: string
   planId: string
   planName: string
   amountCents: number
-  validFrom: string                        // 'YYYY-MM-DD'
+  validFrom: string // 'YYYY-MM-DD'
 }
 
 interface ListPricesQuery {
   procedure_id?: string
   plan_id?: string
-  as_of?: string                           // default = hoje
+  as_of?: string // default = hoje
 }
 
 type ListPricesResponse = PriceHead[]
@@ -363,9 +366,9 @@ interface CreatePriceVersionRequest {
   procedure_id: string
   plan_id: string
   amount_cents: number
-  valid_from: string                       // 'YYYY-MM-DD'
-  reason: string                           // mín. 3 caracteres
-  expected_head_id: string | null          // null = primeira versão
+  valid_from: string // 'YYYY-MM-DD'
+  reason: string // mín. 3 caracteres
+  expected_head_id: string | null // null = primeira versão
 }
 
 interface PriceVersion {
@@ -379,10 +382,11 @@ interface PriceVersion {
   previous_version_id: string | null
 }
 
-type CreatePriceVersionResponse = PriceVersion   // 201
+type CreatePriceVersionResponse = PriceVersion // 201
 ```
 
 **409 Conflict** (chain head mudou OU mesmo `valid_from` já existe):
+
 ```ts
 interface PriceVersionConflictResponse {
   code: 'PRICE_VERSION_CONFLICT'
@@ -392,6 +396,7 @@ interface PriceVersionConflictResponse {
 ```
 
 **UX obrigatória:** ao receber 409, abrir um **modal**:
+
 > "Outro administrador alterou este preço enquanto você editava. O valor
 > atual no banco é R$ X,XX (vigente desde DD/MM/AAAA). Recarregar?"
 
@@ -440,24 +445,25 @@ dentro do tenant). Busca por prefixo de `code` OU substring na
 
 ```ts
 interface TussSearchResult {
-  code: string                              // ex: '10101012'
-  description: string                       // ex: 'Consulta em consultório'
-  terminologyChapter: string | null         // capítulo da tabela TUSS, opcional
+  code: string // ex: '10101012'
+  description: string // ex: 'Consulta em consultório'
+  terminologyChapter: string | null // capítulo da tabela TUSS, opcional
 }
 
 interface SearchTussQuery {
-  q?: string                                // busca livre (vazio = primeiros N)
-  limit?: number                            // 1..200, default 50
+  q?: string // busca livre (vazio = primeiros N)
+  limit?: number // 1..200, default 50
 }
 
 type SearchTussResponse = TussSearchResult[]
 ```
 
 **UX recomendada do typeahead:**
+
 - Input com debounce de ~250ms; cada keystroke (≥2 caracteres) dispara
   `GET /api/tuss-codes?q=<texto>`.
 - Lista dropdown mostra `code — description` (ex: `10101012 — Consulta
-  em consultório`).
+em consultório`).
 - Quando o usuário clica num item, salva o `code` no estado do form e
   exibe o `description` num campo read-only do lado.
 - Estado vazio: "Digite código ou descrição para buscar."
@@ -467,8 +473,8 @@ type SearchTussResponse = TussSearchResult[]
 ```ts
 interface Procedure {
   id: string
-  tussCode: string                         // ⚠ camelCase
-  tussDescription: string | null           // resolvido do catálogo TUSS
+  tussCode: string // ⚠ camelCase
+  tussDescription: string | null // resolvido do catálogo TUSS
   displayName: string | null
   active: boolean
   createdAt: string
@@ -497,6 +503,7 @@ interface ProcedureCreatedResponse {
 ```
 
 Erros:
+
 - 400 `TUSS_CODE_INVALID` — código não existe no catálogo ou retirado
   (mensagem: "Código TUSS inválido ou descontinuado")
 - 409 `PROCEDURE_DUPLICATE` — já existe procedimento com esse TUSS no
@@ -528,7 +535,7 @@ interface HealthPlan {
   id: string
   name: string
   active: boolean
-  createdAt: string                        // ⚠ camelCase
+  createdAt: string // ⚠ camelCase
 }
 
 type ListPlansResponse = HealthPlan[]
@@ -540,7 +547,7 @@ type ListPlansResponse = HealthPlan[]
 
 ```ts
 interface CreatePlanRequest {
-  name: string                             // mín. 1 caractere
+  name: string // mín. 1 caractere
 }
 
 interface CreatePlanResponse {
@@ -581,7 +588,7 @@ interface AuditRow {
   actor_id: string | null
   actor_label: string | null
   timestamp_utc: string
-  entity: string                           // 'price_versions', 'procedures', etc.
+  entity: string // 'price_versions', 'procedures', etc.
   entity_id: string | null
   field: string | null
   old_value: string | null
@@ -600,7 +607,7 @@ interface AuditRow {
 ```ts
 interface ListAuditResponse {
   entries: AuditRow[]
-  next_cursor: string | null               // null quando acabou
+  next_cursor: string | null // null quando acabou
 }
 ```
 
@@ -623,20 +630,20 @@ então busca/paginação são em memória).
 interface PatientListItem {
   id: string
   ghlContactId: string
-  fullName: string                          // já descriptografado
+  fullName: string // já descriptografado
   cpf: string
   phone: string | null
   email: string | null
-  birthDate: string | null                  // 'YYYY-MM-DD'
-  anonymizedAt: string | null               // ISO timestamp ou null
+  birthDate: string | null // 'YYYY-MM-DD'
+  anonymizedAt: string | null // ISO timestamp ou null
   createdAt: string
   updatedAt: string
 }
 
 interface ListPatientsQuery {
-  q?: string                                // substring case-insensitive
-  page?: number                             // 1-based, default 1
-  page_size?: number                        // 1..100, default 25
+  q?: string // substring case-insensitive
+  page?: number // 1-based, default 1
+  page_size?: number // 1..100, default 25
 }
 
 interface ListPatientsResponse {
@@ -656,13 +663,13 @@ interface PatientFinancialSummary {
   appointmentCount: number
   activeAppointmentCount: number
   reversedAppointmentCount: number
-  totalRevenueCents: number                  // soma frozen
-  netRevenueCents: number                    // soma net (frozen + reversal)
+  totalRevenueCents: number // soma frozen
+  netRevenueCents: number // soma net (frozen + reversal)
   lastAppointmentAt: string | null
 }
 
 interface GetPatientResponse {
-  patient: PatientListItem                   // mesmo shape; PII vira '[anonimizado]' se anonymizedAt!=null
+  patient: PatientListItem // mesmo shape; PII vira '[anonimizado]' se anonymizedAt!=null
   summary: PatientFinancialSummary
 }
 ```
@@ -680,11 +687,11 @@ interface ClinicalRecord {
   patientId: string
   title: string
   type: ClinicalRecordType
-  content: string | null                     // texto: conteúdo; arquivo: null
-  fileName: string | null                    // arquivo: nome original; texto: null
-  fileUrl: string | null                     // arquivo: path no bucket clinical-files
+  content: string | null // texto: conteúdo; arquivo: null
+  fileName: string | null // arquivo: nome original; texto: null
+  fileUrl: string | null // arquivo: path no bucket clinical-files
   fileSizeBytes: number | null
-  createdBy: string                          // uuid do auth.users
+  createdBy: string // uuid do auth.users
   createdAt: string
   deletedAt: string | null
 }
@@ -698,8 +705,8 @@ type ListClinicalRecordsResponse = ClinicalRecord[]
 
 ```ts
 interface CreateTextRecordRequest {
-  title: string                              // 1..200 caracteres
-  content: string                            // mín 1 caractere
+  title: string // 1..200 caracteres
+  content: string // mín 1 caractere
 }
 // Resposta 201: ClinicalRecord (type='texto')
 ```
@@ -707,6 +714,7 @@ interface CreateTextRecordRequest {
 #### `POST /api/pacientes/[id]/registros/upload` — registro de arquivo
 
 **Permissão:** `admin`, `financeiro`. **Multipart/form-data** com:
+
 - `title` (string, 1..200)
 - `file` (binário, ≤ 25 MB)
 
@@ -715,9 +723,7 @@ formato `{tenant_id}/{patient_id}/{record_id}-{filename}`. Pra
 download, gerar URL assinada com Supabase client:
 
 ```ts
-const { data } = await supabase.storage
-  .from('clinical-files')
-  .createSignedUrl(record.fileUrl, 60) // 60s
+const { data } = await supabase.storage.from('clinical-files').createSignedUrl(record.fileUrl, 60) // 60s
 window.open(data.signedUrl)
 ```
 
@@ -742,7 +748,7 @@ trilha de auditoria).
 
 ```ts
 interface AnonymizeRequest {
-  reason: string                             // 10..500 caracteres
+  reason: string // 10..500 caracteres
 }
 
 interface AnonymizeResponse {
@@ -754,6 +760,7 @@ interface AnonymizeResponse {
 ```
 
 Efeito:
+
 - `patients.full_name_enc` / `cpf_enc` viram placeholder `[anonimizado]`
 - `phone_enc`, `email_enc`, `birth_date_enc` ficam `NULL`
 - `patients.anonymized_at` recebe timestamp
@@ -774,21 +781,21 @@ de motivo obrigatório (mín 10 chars).
 
 ### 5.10 Mapeamento tela → endpoint
 
-| Tela              | Endpoints                                                              | Notas de UX |
-|-------------------|------------------------------------------------------------------------|-------------|
-| `/atendimentos`   | `GET /api/atendimentos?from=&to=&status=`                              | Linha clicável → `/atendimentos/[id]`. Pill de status colorido. |
-| `/atendimentos/[id]` | `GET /api/atendimentos/[id]`, `POST .../reversal`                  | Botão "Reverter" só admin/financeiro **e** quando `effective_status === 'ativo'`. Modal de confirmação com campo `reason`. |
-| `/alertas`        | `GET /api/alertas?status=&type=`, `POST /api/alertas/[id]/resolve`     | Default filter `status=aberto`. Botão "Resolver" inline (admin). |
-| `/dlq`            | `GET /api/alertas/dlq`, `POST .../reprocess`                           | `failure_reason` em destaque. Resumo do payload (event_id, type, contact.id). Botão "Reprocessar" admin. |
-| `/precos`         | `GET /api/precos`, `GET /api/procedimentos`, `GET /api/planos`         | Filtros: dropdowns de procedimento e plano + datepicker `as_of`. Botão "+ Novo preço". Linha clicável → `/precos/[id]`. |
-| `/precos/novo`    | `GET /api/procedimentos`, `GET /api/planos`, `POST /api/precos/versions` | Form simples; `expected_head_id: null`. 409 → "Já existe — use a tela de edição". |
-| `/precos/[id]`    | `GET /api/precos/versions/[id]/history`, `POST /api/precos/versions`   | Card head no topo, form de edição abaixo (carrega `expected_head_id` escondido), tabela de histórico no rodapé. **409 = modal de conflito**. |
-| `/procedimentos`  | `GET/POST /api/procedimentos`, `PATCH /api/procedimentos/[id]`, `GET /api/tuss-codes` | Toggle "Ativo" inline (admin). **Form de criação usa typeahead** que busca em `/api/tuss-codes` — admin escolhe da lista, NÃO digita código. Recepcionista vê read-only. |
-| `/planos`         | `GET/POST /api/planos`, `PATCH /api/planos/[id]`                       | Idem procedimentos. **Não exibir campo de "Renomear"** — proibido. |
-| `/auditoria`      | `GET /api/auditoria`, `GET /api/auditoria/export`                      | Tabela paginada com "Carregar mais". Filtros: entidade (dropdown fixo), período, resultado. Botões "Exportar CSV" e "Exportar JSON" (`<a href>` direto). |
-| `/login`          | `signInWithPassword` no client                                         | Email + senha. Sucesso → push para `/atendimentos`. |
-| `/pacientes`      | `GET /api/pacientes?q=&page=&page_size=`                                | Tabela com busca (nome/CPF) e paginação. Linha clicável → `/pacientes/[id]`. Pill amarelo `[anonimizado]` quando `anonymizedAt`. |
-| `/pacientes/[id]` | `GET /api/pacientes/[id]`, `GET /api/pacientes/[id]/registros`, `POST/upload`, `DELETE`, `POST /anonymize` | Detalhe (PII), card de sumário financeiro, lista de registros, abas "Texto"/"Arquivo" no botão de novo registro, botão "Anonimizar (LGPD)" só admin com modal de confirmação. |
+| Tela                 | Endpoints                                                                                                  | Notas de UX                                                                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/atendimentos`      | `GET /api/atendimentos?from=&to=&status=`                                                                  | Linha clicável → `/atendimentos/[id]`. Pill de status colorido.                                                                                                               |
+| `/atendimentos/[id]` | `GET /api/atendimentos/[id]`, `POST .../reversal`                                                          | Botão "Reverter" só admin/financeiro **e** quando `effective_status === 'ativo'`. Modal de confirmação com campo `reason`.                                                    |
+| `/alertas`           | `GET /api/alertas?status=&type=`, `POST /api/alertas/[id]/resolve`                                         | Default filter `status=aberto`. Botão "Resolver" inline (admin).                                                                                                              |
+| `/dlq`               | `GET /api/alertas/dlq`, `POST .../reprocess`                                                               | `failure_reason` em destaque. Resumo do payload (event_id, type, contact.id). Botão "Reprocessar" admin.                                                                      |
+| `/precos`            | `GET /api/precos`, `GET /api/procedimentos`, `GET /api/planos`                                             | Filtros: dropdowns de procedimento e plano + datepicker `as_of`. Botão "+ Novo preço". Linha clicável → `/precos/[id]`.                                                       |
+| `/precos/novo`       | `GET /api/procedimentos`, `GET /api/planos`, `POST /api/precos/versions`                                   | Form simples; `expected_head_id: null`. 409 → "Já existe — use a tela de edição".                                                                                             |
+| `/precos/[id]`       | `GET /api/precos/versions/[id]/history`, `POST /api/precos/versions`                                       | Card head no topo, form de edição abaixo (carrega `expected_head_id` escondido), tabela de histórico no rodapé. **409 = modal de conflito**.                                  |
+| `/procedimentos`     | `GET/POST /api/procedimentos`, `PATCH /api/procedimentos/[id]`, `GET /api/tuss-codes`                      | Toggle "Ativo" inline (admin). **Form de criação usa typeahead** que busca em `/api/tuss-codes` — admin escolhe da lista, NÃO digita código. Recepcionista vê read-only.      |
+| `/planos`            | `GET/POST /api/planos`, `PATCH /api/planos/[id]`                                                           | Idem procedimentos. **Não exibir campo de "Renomear"** — proibido.                                                                                                            |
+| `/auditoria`         | `GET /api/auditoria`, `GET /api/auditoria/export`                                                          | Tabela paginada com "Carregar mais". Filtros: entidade (dropdown fixo), período, resultado. Botões "Exportar CSV" e "Exportar JSON" (`<a href>` direto).                      |
+| `/login`             | `signInWithPassword` no client                                                                             | Email + senha. Sucesso → push para `/atendimentos`.                                                                                                                           |
+| `/pacientes`         | `GET /api/pacientes?q=&page=&page_size=`                                                                   | Tabela com busca (nome/CPF) e paginação. Linha clicável → `/pacientes/[id]`. Pill amarelo `[anonimizado]` quando `anonymizedAt`.                                              |
+| `/pacientes/[id]`    | `GET /api/pacientes/[id]`, `GET /api/pacientes/[id]/registros`, `POST/upload`, `DELETE`, `POST /anonymize` | Detalhe (PII), card de sumário financeiro, lista de registros, abas "Texto"/"Arquivo" no botão de novo registro, botão "Anonimizar (LGPD)" só admin com modal de confirmação. |
 
 ---
 
@@ -847,6 +854,7 @@ postcss.config.js
 ```
 
 Helpers de fetch sugeridos (mas não obrigatórios):
+
 - `lib/api/precos.ts`, `lib/api/procedimentos.ts`, etc. — wrappers que
   fazem `fetch` e narrow do tipo.
 - `lib/format/` — utilitários de moeda/data/bps.
@@ -868,6 +876,7 @@ Pode ser:
    `=== src/app/(dashboard)/precos/page.tsx ===`.
 
 Inclua na entrega:
+
 - Lista de **dependências a adicionar** (ex: `tailwindcss`, `@radix-ui/react-dialog`, `lucide-react`).
 - Comando inicial de **setup** se precisar (ex: `npx tailwindcss init -p`).
 - **Um screenshot** ou descrição rápida de cada tela pronta (ajuda a
@@ -882,5 +891,6 @@ Os endpoints do §5 estão **100% funcionando** contra Supabase local
 testar contra `http://localhost:3000/api/...` enquanto desenvolve.
 
 Login de demo (já seedado por `pnpm seed:demo`):
+
 - E-mail: `admin@clinica-demo.test`
 - Senha: `demo1234`

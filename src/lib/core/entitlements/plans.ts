@@ -67,13 +67,28 @@ export const ALL_MODULES: readonly ModuleId[] = [
 export const COMING_SOON_MODULES: readonly ModuleId[] = ['telemedicina']
 
 const ESSENCIAL: Feature[] = [
-  'agenda', 'pacientes', 'prontuario', 'anamnese', 'prescricao', 'cadastros',
-  'agendamento_publico', 'lembretes_email', 'tarefas',
+  'agenda',
+  'pacientes',
+  'prontuario',
+  'anamnese',
+  'prescricao',
+  'cadastros',
+  'agendamento_publico',
+  'lembretes_email',
+  'tarefas',
 ]
 const PRO: Feature[] = [
   ...ESSENCIAL,
-  'financeiro', 'contas_receber', 'contas_pagar', 'fluxo_caixa', 'repasse',
-  'comissoes', 'relatorios', 'despesas', 'dashboard', 'lembretes_whatsapp',
+  'financeiro',
+  'contas_receber',
+  'contas_pagar',
+  'fluxo_caixa',
+  'repasse',
+  'comissoes',
+  'relatorios',
+  'despesas',
+  'dashboard',
+  'lembretes_whatsapp',
 ]
 const CLINICA: Feature[] = [...PRO, 'multiunidade', 'auditoria', 'bi']
 

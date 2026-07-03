@@ -44,7 +44,9 @@ export async function listPriceHeads(
   const asOf = filter.asOf ?? new Date().toISOString().slice(0, 10)
   let q = supabase
     .from('price_versions')
-    .select('id, procedure_id, plan_id, amount_cents, valid_from, created_at, procedures(tuss_code), health_plans(name)')
+    .select(
+      'id, procedure_id, plan_id, amount_cents, valid_from, created_at, procedures(tuss_code), health_plans(name)',
+    )
     .eq('tenant_id', filter.tenantId)
     .lte('valid_from', asOf)
     .order('valid_from', { ascending: false })

@@ -95,8 +95,7 @@ export async function GET(
     return new Response(new Uint8Array(xlsx), {
       status: 200,
       headers: {
-        'content-type':
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'content-disposition': `attachment; filename="${filenameStem}.xlsx"`,
         'cache-control': 'no-store',
       },

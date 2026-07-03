@@ -111,9 +111,10 @@ export async function getMonthlyPayoutSnapshot(
       status: r.paid_at ? 'pago' : 'fechado',
     }))
     const anyPaid = lines.some((l) => l.paidAt !== null)
-    const within24h = lines.length > 0 && lines[0]!.closedAt
-      ? Date.now() - new Date(lines[0]!.closedAt!).getTime() <= 24 * 3600 * 1000
-      : false
+    const within24h =
+      lines.length > 0 && lines[0]!.closedAt
+        ? Date.now() - new Date(lines[0]!.closedAt!).getTime() <= 24 * 3600 * 1000
+        : false
     return {
       month: args.month,
       isClosed: true,
@@ -227,7 +228,7 @@ async function computeOpenMonthSnapshot(
         const p = planAgg.get(k)!
         return {
           planId: p.planId,
-          planName: p.planId ? planNames.get(p.planId) ?? 'Convênio' : 'Particular',
+          planName: p.planId ? (planNames.get(p.planId) ?? 'Convênio') : 'Particular',
           grossRevenueCents: p.gross,
           commissionCents: p.commission,
           appointmentCount: p.count,
@@ -252,12 +253,7 @@ async function computeOpenMonthSnapshot(
   // excluindo atendimentos estornados. Atribui ao assistant_doctor_id —
   // antes o snapshot aberto zerava este campo (close_monthly_payout também
   // grava 0; ver caveat na migration de fechamento).
-  const liberalAgg = await aggregateLiberalByDoctor(
-    supabase,
-    args.tenantId,
-    fromIso,
-    toIso,
-  )
+  const liberalAgg = await aggregateLiberalByDoctor(supabase, args.tenantId, fromIso, toIso)
 
   // Pagamento fixo por médico (modo 'fixo') via view virtual. Antes o
   // snapshot aberto zerava — agora bate com o que a migration 0126 grava
@@ -370,10 +366,13 @@ export async function closeMonthlyPayout(
   supabase: SupabaseClient<Database>,
   args: { tenantId: string; month: string },
 ): Promise<{ payoutsCount: number; totalValueCents: number; closedAt: string }> {
-  const res = await supabase.rpc('close_monthly_payout' as never, {
-    p_tenant_id: args.tenantId,
-    p_month: args.month,
-  } as never)
+  const res = await supabase.rpc(
+    'close_monthly_payout' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_month: args.month,
+    } as never,
+  )
   if (res.error) throw new Error(`close month: ${res.error.message}`)
   const d = res.data as {
     payouts_count?: number
@@ -394,11 +393,14 @@ export async function reopenMonthlyPayout(
   if (args.reason.trim().length < 20) {
     throw new ValidationError('reason must be at least 20 characters')
   }
-  const res = await supabase.rpc('reopen_monthly_payout' as never, {
-    p_tenant_id: args.tenantId,
-    p_month: args.month,
-    p_reason: args.reason,
-  } as never)
+  const res = await supabase.rpc(
+    'reopen_monthly_payout' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_month: args.month,
+      p_reason: args.reason,
+    } as never,
+  )
   if (res.error) throw new Error(`reopen month: ${res.error.message}`)
   const d = res.data as { snapshot_id?: string; reopened_at?: string }
   return {
@@ -430,13 +432,16 @@ export async function markPayoutPaid(
     .eq('id', args.payoutId)
     .eq('tenant_id', args.tenantId)
   if (upd.error) throw new Error(`mark payout paid: ${upd.error.message}`)
-  await supabase.rpc('log_audit_event' as never, {
-    p_tenant_id: args.tenantId,
-    p_entity: 'monthly_payouts',
-    p_entity_id: args.payoutId,
-    p_field: 'paid_at',
-    p_old: null,
-    p_new: args.paidAt,
-    p_reason: `paid_amount=${args.paidAmountCents};method=${args.paymentMethod}`,
-  } as never)
+  await supabase.rpc(
+    'log_audit_event' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_entity: 'monthly_payouts',
+      p_entity_id: args.payoutId,
+      p_field: 'paid_at',
+      p_old: null,
+      p_new: args.paidAt,
+      p_reason: `paid_amount=${args.paidAmountCents};method=${args.paymentMethod}`,
+    } as never,
+  )
 }

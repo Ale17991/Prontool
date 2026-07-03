@@ -17,15 +17,15 @@
 
 ## Itens de conformidade (marcar `[x]` no aceite real)
 
-1. [x] Cadastro do prescritor completo (CPF, conselho + UF, data de nascimento) — *evidência:* `tests/contract/memed-prescriber-payload.spec.ts` / FR-001..FR-005
-2. [x] Paciente carregado completo no `setPaciente` (nome, CPF, e-mail, celular, nascimento) — *evidência:* `tests/integration/memed-setpaciente-payload.spec.ts` / FR-007
-3. [x] Evento `prescricaoImpressa` capturado e registrado (idempotente + auditado) — *evidência:* `tests/integration/memed-record-issued-and-deleted.spec.ts` / FR-006
-4. [x] Evento `prescricaoExcluida` capturado; `prescription_records` append-only — *evidência:* `tests/contract/prescription-records-append-only.spec.ts` / FR-008
-5. [x] `api_key`/`secret_key` nunca no front (lint + scan de bundle + E2E) — *evidência:* `pnpm lint:memed && pnpm scan:memed-keys` + `tests/e2e/memed-credential-leak-scan.spec.ts` (`pnpm test:e2e:memed`) / FR-013
-6. [x] Credenciais cifradas em repouso; logs mascaram segredos — *evidência:* `tests/contract/memed-credentials-encrypted-at-rest.spec.ts`, `tests/contract/memed-pino-redact.spec.ts` / FR-011, FR-012
-7. [x] Isolamento multi-tenant das tabelas Memed — *evidência:* `tests/contract/memed-tenant-isolation.spec.ts`
-8. [x] RBAC por endpoint conforme spec 026 — *evidência:* `tests/contract/memed-rbac.spec.ts`
-9. [x] Integração feita por profissional qualificado, ciente da responsabilidade legal — *evidência:* aceite institucional no portal Memed (este documento)
+1. [x] Cadastro do prescritor completo (CPF, conselho + UF, data de nascimento) — _evidência:_ `tests/contract/memed-prescriber-payload.spec.ts` / FR-001..FR-005
+2. [x] Paciente carregado completo no `setPaciente` (nome, CPF, e-mail, celular, nascimento) — _evidência:_ `tests/integration/memed-setpaciente-payload.spec.ts` / FR-007
+3. [x] Evento `prescricaoImpressa` capturado e registrado (idempotente + auditado) — _evidência:_ `tests/integration/memed-record-issued-and-deleted.spec.ts` / FR-006
+4. [x] Evento `prescricaoExcluida` capturado; `prescription_records` append-only — _evidência:_ `tests/contract/prescription-records-append-only.spec.ts` / FR-008
+5. [x] `api_key`/`secret_key` nunca no front (lint + scan de bundle + E2E) — _evidência:_ `pnpm lint:memed && pnpm scan:memed-keys` + `tests/e2e/memed-credential-leak-scan.spec.ts` (`pnpm test:e2e:memed`) / FR-013
+6. [x] Credenciais cifradas em repouso; logs mascaram segredos — _evidência:_ `tests/contract/memed-credentials-encrypted-at-rest.spec.ts`, `tests/contract/memed-pino-redact.spec.ts` / FR-011, FR-012
+7. [x] Isolamento multi-tenant das tabelas Memed — _evidência:_ `tests/contract/memed-tenant-isolation.spec.ts`
+8. [x] RBAC por endpoint conforme spec 026 — _evidência:_ `tests/contract/memed-rbac.spec.ts`
+9. [x] Integração feita por profissional qualificado, ciente da responsabilidade legal — _evidência:_ aceite institucional no portal Memed (este documento)
 
 ## Observações
 

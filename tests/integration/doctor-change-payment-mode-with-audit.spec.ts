@@ -87,11 +87,13 @@ describe('Feature 013 — mudança de modalidade com audit', () => {
       .eq('reason', 'Mudança para regime CLT')
       .order('timestamp_utc', { ascending: false })
       .limit(1)
-    const auditRow = (audit ?? [])[0] as unknown as {
-      entity: string
-      field: string
-      reason: string | null
-    } | undefined
+    const auditRow = (audit ?? [])[0] as unknown as
+      | {
+          entity: string
+          field: string
+          reason: string | null
+        }
+      | undefined
     expect(auditRow).toBeDefined()
     expect(auditRow!.field).toBe('version_created')
     expect(auditRow!.reason).toBe('Mudança para regime CLT')

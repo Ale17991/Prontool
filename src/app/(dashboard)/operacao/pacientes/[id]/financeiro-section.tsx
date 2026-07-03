@@ -167,9 +167,7 @@ function Stat({
     <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex items-center gap-2">
         <Icon className="h-3.5 w-3.5 text-slate-400" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       </div>
       <p className={cn('mt-1 text-lg font-black tabular-nums', toneCls)}>{value}</p>
     </div>
@@ -197,24 +195,16 @@ function PaymentRow({
       >
         <div className="flex min-w-0 items-start gap-3">
           <span className="mt-0.5 text-slate-400">
-            {expanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </span>
           <div className="min-w-0">
-            <p className="text-xs text-slate-500">
-              {formatDateTime(record.createdAt)}
-            </p>
+            <p className="text-xs text-slate-500">{formatDateTime(record.createdAt)}</p>
             <p className="text-sm font-bold text-slate-900">
               {record.procedureLabel ?? 'Pagamento avulso'}
             </p>
             <p className="text-[11px] text-slate-500">
               {METHOD_LABEL[record.paymentMethod as PaymentMethod] ?? record.paymentMethod}
-              {record.installmentsCount > 1
-                ? ` · ${record.installmentsCount} parcelas`
-                : ''}
+              {record.installmentsCount > 1 ? ` · ${record.installmentsCount} parcelas` : ''}
               {overdueCount > 0 ? ` · ${overdueCount} atrasada(s)` : ''}
             </p>
           </div>
@@ -230,10 +220,27 @@ function PaymentRow({
       {expanded ? (
         <div className="border-t border-slate-100 px-4 py-3">
           <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 md:grid-cols-4">
-            <span>Pago: <strong className="text-slate-900">{formatCurrency(record.paidAmountCents)}</strong></span>
-            <span>Pendente: <strong className="text-slate-900">{formatCurrency(record.pendingAmountCents)}</strong></span>
-            <span>Atrasado: <strong className={record.overdueAmountCents > 0 ? 'text-destructive' : 'text-slate-900'}>{formatCurrency(record.overdueAmountCents)}</strong></span>
-            <span>Status: <RecordStatusBadge status={record.paymentStatus} /></span>
+            <span>
+              Pago:{' '}
+              <strong className="text-slate-900">{formatCurrency(record.paidAmountCents)}</strong>
+            </span>
+            <span>
+              Pendente:{' '}
+              <strong className="text-slate-900">
+                {formatCurrency(record.pendingAmountCents)}
+              </strong>
+            </span>
+            <span>
+              Atrasado:{' '}
+              <strong
+                className={record.overdueAmountCents > 0 ? 'text-destructive' : 'text-slate-900'}
+              >
+                {formatCurrency(record.overdueAmountCents)}
+              </strong>
+            </span>
+            <span>
+              Status: <RecordStatusBadge status={record.paymentStatus} />
+            </span>
           </div>
           <ul className="mt-3 divide-y divide-slate-100">
             {record.installments.map((inst) => (
@@ -324,9 +331,7 @@ function RecordPaymentDialog({
   onOpenChange: (next: boolean) => void
   onPaid: () => void | Promise<void>
 }) {
-  const [amountReais, setAmountReais] = useState(
-    (installment.amountCents / 100).toFixed(2),
-  )
+  const [amountReais, setAmountReais] = useState((installment.amountCents / 100).toFixed(2))
   const [method, setMethod] = useState<PaymentMethod>('pix')
   const [paidAt, setPaidAt] = useState(() => new Date().toISOString().slice(0, 10))
   const [error, setError] = useState<string | null>(null)
@@ -342,18 +347,15 @@ function RecordPaymentDialog({
     }
     setPending(true)
     try {
-      const res = await fetch(
-        `/api/pagamentos/${paymentRecordId}/parcelas/${installment.id}`,
-        {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            paid_amount_cents: cents,
-            payment_method: method,
-            paid_at: new Date(paidAt).toISOString(),
-          }),
-        },
-      )
+      const res = await fetch(`/api/pagamentos/${paymentRecordId}/parcelas/${installment.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          paid_amount_cents: cents,
+          payment_method: method,
+          paid_at: new Date(paidAt).toISOString(),
+        }),
+      })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
           error?: { message?: string }

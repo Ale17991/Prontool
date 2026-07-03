@@ -16,11 +16,7 @@ interface Props {
   onPendingChange?: (pending: boolean) => void
 }
 
-export function ConfirmAppointmentButton({
-  appointmentId,
-  onSuccess,
-  onPendingChange,
-}: Props) {
+export function ConfirmAppointmentButton({ appointmentId, onSuccess, onPendingChange }: Props) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)

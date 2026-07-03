@@ -199,11 +199,7 @@ export async function createDoctor(
     .single()
 
   if (commissionInsert.error || !commissionInsert.data) {
-    await supabase
-      .from('doctors')
-      .delete()
-      .eq('id', doctor.id)
-      .eq('tenant_id', input.tenantId)
+    await supabase.from('doctors').delete().eq('id', doctor.id).eq('tenant_id', input.tenantId)
     throw new Error(
       `createDoctor commission insert failed: ${commissionInsert.error?.message ?? 'unknown'}`,
     )
@@ -217,10 +213,8 @@ export async function createDoctor(
       doctor_id: doctor.id,
       payment_mode: paymentMode,
       percentage_bps: paymentMode === 'comissionado' ? commissionBps : null,
-      monthly_amount_cents:
-        paymentMode === 'fixo' ? (input.monthlyAmountCents as number) : null,
-      billing_day:
-        paymentMode === 'fixo' ? (input.billingDay as number) : null,
+      monthly_amount_cents: paymentMode === 'fixo' ? (input.monthlyAmountCents as number) : null,
+      billing_day: paymentMode === 'fixo' ? (input.billingDay as number) : null,
       liberal_default_cents:
         paymentMode === 'liberal' ? (input.liberalDefaultCents as number) : null,
       valid_from: input.initialValidFrom,
@@ -235,10 +229,7 @@ export async function createDoctor(
 
   if (ptResult.error || !ptResult.data) {
     // Rollback: remove commission row + doctor row.
-    await supabase
-      .from('doctor_commission_history')
-      .delete()
-      .eq('id', commissionInsert.data.id)
+    await supabase.from('doctor_commission_history').delete().eq('id', commissionInsert.data.id)
     await supabase.from('doctors').delete().eq('id', doctor.id).eq('tenant_id', input.tenantId)
     throw new Error(
       `createDoctor payment_terms insert failed: ${ptResult.error?.message ?? 'unknown'}`,
@@ -257,10 +248,8 @@ export async function createDoctor(
     active: doctor.active,
     createdAt: doctor.created_at,
     paymentMode: doctor.payment_mode,
-    currentPercentageBps:
-      paymentMode === 'comissionado' ? commissionBps : null,
-    currentMonthlyAmountCents:
-      paymentMode === 'fixo' ? (input.monthlyAmountCents as number) : null,
+    currentPercentageBps: paymentMode === 'comissionado' ? commissionBps : null,
+    currentMonthlyAmountCents: paymentMode === 'fixo' ? (input.monthlyAmountCents as number) : null,
     currentBillingDay: paymentMode === 'fixo' ? (input.billingDay as number) : null,
     currentLiberalDefaultCents:
       paymentMode === 'liberal' ? (input.liberalDefaultCents as number) : null,

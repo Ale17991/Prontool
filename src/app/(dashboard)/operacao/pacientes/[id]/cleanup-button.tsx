@@ -22,9 +22,11 @@ export function PatientCleanupButton({ patientId }: { patientId: string }) {
   const [removeSteps, setRemoveSteps] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<
-    { anamneses: number; records: number; steps: number } | null
-  >(null)
+  const [result, setResult] = useState<{
+    anamneses: number
+    records: number
+    steps: number
+  } | null>(null)
 
   const anyChecked = removeAnamneses || removeRecords || removeSteps
 
@@ -94,8 +96,8 @@ export function PatientCleanupButton({ patientId }: { patientId: string }) {
             Limpar dados do paciente
           </DialogTitle>
           <DialogDescription>
-            Remove dados clínicos selecionados via soft-delete (deleted_at). Cada
-            remoção é registrada na trilha de auditoria.
+            Remove dados clínicos selecionados via soft-delete (deleted_at). Cada remoção é
+            registrada na trilha de auditoria.
           </DialogDescription>
         </DialogHeader>
 
@@ -133,8 +135,8 @@ export function PatientCleanupButton({ patientId }: { patientId: string }) {
             />
 
             <div className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-[11px] text-[hsl(var(--warning-foreground))]">
-              Os dados de atendimento e faturamento <strong>NÃO</strong> serão
-              removidos pois são protegidos por lei.
+              Os dados de atendimento e faturamento <strong>NÃO</strong> serão removidos pois são
+              protegidos por lei.
             </div>
 
             {error ? (

@@ -43,13 +43,13 @@ Endpoint que recebe o usuário GHL clicando no Custom Menu (registrado pela feat
 
 ## Resposta
 
-| Status | Body | Quando |
-|---|---|---|
-| 302 | — | Sucesso. Cookie de sessão set, redirect para `redirect_to`. |
-| 400 | `{ error: { code: 'CONTEXT_TOKEN_MISSING' } }` | Query incompleta. |
-| 401 | `{ error: { code: 'INVALID_CONTEXT_TOKEN' \| 'TENANT_NOT_CONNECTED' } }` | JWT inválido ou tenant não conectado. |
-| 403 | `{ error: { code: 'USER_NOT_MAPPED' } }` | Usuário GHL sem usuário Prontool correspondente e auto-provisioning desligado. |
-| 500 | `{ error: { code: 'SSO_CONFIG_MISSING' } }` | Variável `GHL_SSO_JWKS_URL` ausente. |
+| Status | Body                                                                     | Quando                                                                         |
+| ------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| 302    | —                                                                        | Sucesso. Cookie de sessão set, redirect para `redirect_to`.                    |
+| 400    | `{ error: { code: 'CONTEXT_TOKEN_MISSING' } }`                           | Query incompleta.                                                              |
+| 401    | `{ error: { code: 'INVALID_CONTEXT_TOKEN' \| 'TENANT_NOT_CONNECTED' } }` | JWT inválido ou tenant não conectado.                                          |
+| 403    | `{ error: { code: 'USER_NOT_MAPPED' } }`                                 | Usuário GHL sem usuário Prontool correspondente e auto-provisioning desligado. |
+| 500    | `{ error: { code: 'SSO_CONFIG_MISSING' } }`                              | Variável `GHL_SSO_JWKS_URL` ausente.                                           |
 
 Em todas as respostas de erro, **o body NÃO contém o `context_token`** (mesmo redacted) — apenas o `code`.
 

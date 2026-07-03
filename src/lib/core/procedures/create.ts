@@ -116,9 +116,13 @@ export async function createProcedure(
 
   if (error) {
     if (error.code === '23505') {
-      throw new ConflictError('PROCEDURE_DUPLICATE', `Procedure with TUSS ${input.tussCode} already exists in tenant`, {
-        tuss_code: input.tussCode,
-      })
+      throw new ConflictError(
+        'PROCEDURE_DUPLICATE',
+        `Procedure with TUSS ${input.tussCode} already exists in tenant`,
+        {
+          tuss_code: input.tussCode,
+        },
+      )
     }
     if (/tuss/i.test(error.message)) {
       // Quando isUnlisted=true o trigger TUSS pula a validação (migration

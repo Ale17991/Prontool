@@ -38,6 +38,14 @@ export async function resetDatabase(opts: { wipeCatalog?: boolean } = {}): Promi
   }
 
   // Also clear auth users — Supabase's auth schema isn't covered by the RPC.
-  const { data: users } = await sb.auth.admin.listUsers()
-  await Promise.all((users?.users ?? []).map((u) => sb.auth.admin.deleteUser(u.id)))
+  // listUsers pagina (default 50/página): sem laço, só 50 são apagados por
+  // reset e os demais ACUMULAM entre arquivos na suíte completa (centenas de
+  // usuários órfãos) — fonte de contaminação order-dependent. Deletamos a
+  // página 1 repetidamente (que se reenche do próximo lote) até esvaziar.
+  for (;;) {
+    const { data } = await sb.auth.admin.listUsers({ page: 1, perPage: 200 })
+    const users = data?.users ?? []
+    if (users.length === 0) break
+    await Promise.all(users.map((u) => sb.auth.admin.deleteUser(u.id)))
+  }
 }

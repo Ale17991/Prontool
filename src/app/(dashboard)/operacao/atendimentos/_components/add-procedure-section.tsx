@@ -58,7 +58,9 @@ export function AddProcedureSection({
           displayName: string | null
           defaultAmountCents: number | null
         }>
-        setOptions(list.map((p) => ({ id: p.id, tussCode: p.tussCode, displayName: p.displayName })))
+        setOptions(
+          list.map((p) => ({ id: p.id, tussCode: p.tussCode, displayName: p.displayName })),
+        )
       }
     })()
   }, [open, options.length])
@@ -74,10 +76,9 @@ export function AddProcedureSection({
     setLoadingPrice(true)
     try {
       if (planId) {
-        const res = await fetch(
-          `/api/precos/vigente?procedure_id=${id}&plan_id=${planId}`,
-          { cache: 'no-store' },
-        )
+        const res = await fetch(`/api/precos/vigente?procedure_id=${id}&plan_id=${planId}`, {
+          cache: 'no-store',
+        })
         if (res.ok) {
           const b = (await res.json()) as { amountCents: number | null }
           setAmount(centsToReais(b.amountCents))
@@ -88,7 +89,10 @@ export function AddProcedureSection({
         // Particular — usa o valor padrão do procedimento.
         const res = await fetch('/api/procedimentos', { cache: 'no-store' })
         if (res.ok) {
-          const list = (await res.json()) as Array<{ id: string; defaultAmountCents: number | null }>
+          const list = (await res.json()) as Array<{
+            id: string
+            defaultAmountCents: number | null
+          }>
           const found = list.find((p) => p.id === id)
           setAmount(centsToReais(found?.defaultAmountCents ?? null))
         }
@@ -137,7 +141,13 @@ export function AddProcedureSection({
 
   if (!open) {
     return (
-      <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => setOpen(true)}>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="gap-1.5"
+        onClick={() => setOpen(true)}
+      >
         <Plus className="h-3.5 w-3.5" /> Adicionar procedimento
       </Button>
     )

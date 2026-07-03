@@ -13,11 +13,13 @@ A feature **não cria endpoints novos**. Esta página enumera os endpoints exist
 **Tenant**: filtrado por `tenant_id` derivado da sessão.
 
 **Consumo do painel**:
+
 - Chamado client-side via `fetch` quando `selectedAppointmentId` muda.
 - `AbortController` cancela o request anterior se o ID mudar antes da resposta.
 - Resposta usada para popular o conteúdo do Sheet.
 
 **Contrato esperado** (já entregue hoje):
+
 ```jsonc
 {
   // Campos da view appointments_effective + embeds existentes.
@@ -27,6 +29,7 @@ A feature **não cria endpoints novos**. Esta página enumera os endpoints exist
 ```
 
 **Códigos de retorno esperados**:
+
 - `200 OK` → painel renderiza
 - `401 Unauthorized` → painel mostra "Sessão expirada, recarregue a página"
 - `403 Forbidden` → painel mostra mensagem de permissão

@@ -36,7 +36,10 @@ export async function POST(
           error: {
             code: 'INVALID_BODY',
             message: 'Dados inválidos.',
-            fields: parsed.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
+            fields: parsed.error.issues.map((i) => ({
+              field: i.path.join('.'),
+              message: i.message,
+            })),
           },
         },
         { status: 422 },

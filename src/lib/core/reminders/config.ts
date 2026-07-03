@@ -26,10 +26,7 @@ const timeSchema = z.string().regex(/^\d{2}:\d{2}$/, {
 export const ReminderConfigUpdateSchema = z
   .object({
     enabled: z.boolean(),
-    offsetsHours: z
-      .array(z.number().int().min(0).max(168))
-      .min(1)
-      .max(5),
+    offsetsHours: z.array(z.number().int().min(0).max(168)).min(1).max(5),
     sendWeekends: z.boolean(),
     windowStart: timeSchema,
     windowEnd: timeSchema,

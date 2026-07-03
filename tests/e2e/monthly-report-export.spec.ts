@@ -9,11 +9,7 @@
  */
 import { test, expect } from '@playwright/test'
 import { readFileSync, statSync } from 'node:fs'
-import {
-  ensureDemoSeed,
-  loadEnv,
-  loginAsAdmin,
-} from './fixtures'
+import { ensureDemoSeed, loadEnv, loginAsAdmin } from './fixtures'
 
 loadEnv()
 

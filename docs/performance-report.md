@@ -25,11 +25,11 @@ Benchmarks recorded against the success criteria in `specs/001-faturamento-medic
 
 ### Results (date: 2026-04-20)
 
-| Concurrency | Requests | RPS  | p50 (ms) | p95 (ms) | p99 (ms) | Max (ms) | Success | SC-001a |
+| Concurrency | Requests |  RPS | p50 (ms) | p95 (ms) | p99 (ms) | Max (ms) | Success | SC-001a |
 | ----------: | -------: | ---: | -------: | -------: | -------: | -------: | ------: | :-----: |
-|           5 |      ~370 | 12.3 |      283 |      979 |     1928 |     2098 |   100 % |   FAIL  |
-|          10 |      741 | 24.6 |      395 |      606 |      721 |      829 |   100 % |   PASS  |
-|          20 |      645 | 21.5 |      717 |     2416 |     3723 |     3848 |   100 % |   FAIL  |
+|           5 |     ~370 | 12.3 |      283 |      979 |     1928 |     2098 |   100 % |  FAIL   |
+|          10 |      741 | 24.6 |      395 |      606 |      721 |      829 |   100 % |  PASS   |
+|          20 |      645 | 21.5 |      717 |     2416 |     3723 |     3848 |   100 % |  FAIL   |
 
 `success_rate` is 2xx ratio. Zero 5xx across runs.
 

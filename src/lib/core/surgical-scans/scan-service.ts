@@ -79,7 +79,13 @@ export async function registerScan(
     .eq('raw_barcode', raw)
     .maybeSingle()
   if (dup.data) {
-    return { ok: false, status: 'duplicate', matched: false, parsed, reason: 'Material já escaneado neste atendimento.' }
+    return {
+      ok: false,
+      status: 'duplicate',
+      matched: false,
+      parsed,
+      reason: 'Material já escaneado neste atendimento.',
+    }
   }
 
   const expired = isExpired(parsed.expiry ?? null)
@@ -118,12 +124,21 @@ export async function registerManualEntry(
   supabase: SupabaseClient<Database>,
   tenantId: string,
   appointmentId: string,
-  entry: { lot?: string | null; expiry?: string | null; manufacturer?: string | null; description?: string | null },
+  entry: {
+    lot?: string | null
+    expiry?: string | null
+    manufacturer?: string | null
+    description?: string | null
+  },
   scannedBy: string,
 ): Promise<ScanResult> {
   const expired = isExpired(entry.expiry ?? null)
   const status: 'confirmed' | 'expired' = expired ? 'expired' : 'confirmed'
-  const raw = `MANUAL:${entry.manufacturer ?? ''}|${entry.lot ?? ''}|${entry.expiry ?? ''}|${entry.description ?? ''}`.slice(0, 200)
+  const raw =
+    `MANUAL:${entry.manufacturer ?? ''}|${entry.lot ?? ''}|${entry.expiry ?? ''}|${entry.description ?? ''}`.slice(
+      0,
+      200,
+    )
 
   const { error } = await supabase.from('surgical_material_scans' as never).insert({
     tenant_id: tenantId,

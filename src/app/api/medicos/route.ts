@@ -69,20 +69,25 @@ const createSchema = z
     initial_reason: z.string().min(3).max(500),
   })
   .refine(
-    (v) =>
-      v.payment_mode !== 'comissionado' || typeof v.initial_percentage_bps === 'number',
-    { message: 'initial_percentage_bps obrigatório para modalidade Comissionado', path: ['initial_percentage_bps'] },
+    (v) => v.payment_mode !== 'comissionado' || typeof v.initial_percentage_bps === 'number',
+    {
+      message: 'initial_percentage_bps obrigatório para modalidade Comissionado',
+      path: ['initial_percentage_bps'],
+    },
   )
   .refine(
     (v) =>
       v.payment_mode !== 'fixo' ||
       (typeof v.monthly_amount_cents === 'number' && typeof v.billing_day === 'number'),
-    { message: 'monthly_amount_cents e billing_day obrigatórios para Fixo', path: ['monthly_amount_cents'] },
+    {
+      message: 'monthly_amount_cents e billing_day obrigatórios para Fixo',
+      path: ['monthly_amount_cents'],
+    },
   )
-  .refine(
-    (v) => v.payment_mode !== 'liberal' || typeof v.liberal_default_cents === 'number',
-    { message: 'liberal_default_cents obrigatório para Liberal', path: ['liberal_default_cents'] },
-  )
+  .refine((v) => v.payment_mode !== 'liberal' || typeof v.liberal_default_cents === 'number', {
+    message: 'liberal_default_cents obrigatório para Liberal',
+    path: ['liberal_default_cents'],
+  })
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -118,7 +123,9 @@ export async function POST(req: Request): Promise<Response> {
     const parsed = createSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }

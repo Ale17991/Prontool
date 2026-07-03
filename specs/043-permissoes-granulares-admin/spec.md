@@ -10,6 +10,7 @@
 Hoje as permissões são uma matriz **fixa** papel→ações (4 papéis). O admin da clínica não consegue ajustar nada por usuário, e o dono da plataforma tem pouca autonomia operacional sobre as clínicas (não gerencia usuários nem dados da clínica pelo /admin).
 
 Esta feature entrega duas frentes:
+
 1. **Permissões granulares (overrides por usuário)** — o admin da clínica mantém os 4 papéis como base e pode **conceder** ou **revogar** ações específicas por usuário. Permissão efetiva = (ações do papel) + (concedidas) − (revogadas). Aplicada **no servidor**.
 2. **Autonomia de super-admin** — o painel /admin ganha: gerenciar usuários de qualquer clínica, resetar senha, editar dados cadastrais da clínica e entrar na clínica (impersonar) para suporte — sempre isolado por tenant e auditado.
 
@@ -21,7 +22,7 @@ Esta feature entrega duas frentes:
 - Q: Profundidade da impersonação (US5)? → A: Read-only — super-admin vê as telas da clínica como apoio, sem escrever/alterar dados; banner visível + auditoria de início/fim. Escrita fica como evolução futura.
 - Q: (refino, fase de plano) As ações financeiras-críticas podem ter override, dado o Princípio V? → A: NÃO. `price.write`, `commission.write`, `appointment.reverse`, `audit.read`, `audit.export` são PROTEGIDAS (não-overridáveis), honrando o Princípio V. As demais permanecem overridáveis (sensíveis com aviso).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Admin da clínica ajusta permissões por usuário (Priority: P1)
 
@@ -110,7 +111,7 @@ O super-admin entra na clínica em modo **somente-leitura** para enxergar as tel
 - **Ação cross-tenant do super-admin**: toda ação no /admin grava auditoria com o `tenant_id` da clínica alvo (não da plataforma).
 - **Override órfão**: desativar/excluir um usuário não deve deixar overrides ativos reutilizáveis por outro usuário.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -137,14 +138,14 @@ O super-admin entra na clínica em modo **somente-leitura** para enxergar as tel
 - **FR-012**: O isolamento multi-tenant MUST ser preservado: overrides e ações são escopados por `tenant_id`; ações cross-tenant do super-admin validam o escopo antes de qualquer efeito.
 - **FR-013**: A proteção de "último admin ativo" MUST continuar válida em todas as frentes (não rebaixar/desativar o último admin).
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Override de permissão**: vínculo por (tenant, usuário, ação) com efeito CONCEDER/REVOGAR; representa o ajuste fino sobre o papel.
 - **Usuário do tenant**: já existe (papel + status); ganha o conceito de "permissão efetiva" = papel + overrides.
 - **Trilha de auditoria**: já existe (`audit_log`); passa a registrar overrides, ações de gestão de usuário cross-tenant, resets e impersonação.
 - **Sessão de impersonação**: estado temporário do super-admin atuando dentro de uma clínica (início/fim auditados).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

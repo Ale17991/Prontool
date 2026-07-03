@@ -2,12 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/observability/errors'
 import { isValidTooth } from '@/lib/core/dental/teeth'
-import {
-  isValidPerioSite,
-  isValidProbingDepth,
-  isValidRecession,
-  type PerioSite,
-} from './sites'
+import { isValidPerioSite, isValidProbingDepth, isValidRecession, type PerioSite } from './sites'
 
 export interface SaveMeasurementInput {
   toothFdi: number
@@ -61,17 +56,21 @@ export async function savePerioMeasurements(
   const findings = input.findings ?? []
 
   for (const m of measurements) {
-    if (!isValidTooth(m.toothFdi)) throw new ValidationError('Dente FDI inválido', { toothFdi: m.toothFdi })
+    if (!isValidTooth(m.toothFdi))
+      throw new ValidationError('Dente FDI inválido', { toothFdi: m.toothFdi })
     if (!isValidPerioSite(m.site)) throw new ValidationError('Sítio inválido', { site: m.site })
     if (typeof m.probingDepthMm === 'number' && !isValidProbingDepth(m.probingDepthMm)) {
-      throw new ValidationError('Profundidade de sondagem fora da faixa (0–15 mm).', { value: m.probingDepthMm })
+      throw new ValidationError('Profundidade de sondagem fora da faixa (0–15 mm).', {
+        value: m.probingDepthMm,
+      })
     }
     if (typeof m.recessionMm === 'number' && !isValidRecession(m.recessionMm)) {
       throw new ValidationError('Recessão fora da faixa (−5 a +15 mm).', { value: m.recessionMm })
     }
   }
   for (const f of findings) {
-    if (!isValidTooth(f.toothFdi)) throw new ValidationError('Dente FDI inválido', { toothFdi: f.toothFdi })
+    if (!isValidTooth(f.toothFdi))
+      throw new ValidationError('Dente FDI inválido', { toothFdi: f.toothFdi })
     if (typeof f.mobility === 'number' && (f.mobility < 0 || f.mobility > 3)) {
       throw new ValidationError('Mobilidade fora da faixa (0–3).', { value: f.mobility })
     }

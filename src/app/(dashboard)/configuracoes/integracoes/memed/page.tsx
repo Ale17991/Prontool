@@ -39,8 +39,8 @@ export default async function MemedIntegrationPage(): Promise<JSX.Element> {
           Memed — Prescrição digital
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Conecte a conta Memed da clínica para emitir prescrições digitais. As chaves
-          ficam cifradas no servidor e nunca trafegam para o navegador.
+          Conecte a conta Memed da clínica para emitir prescrições digitais. As chaves ficam
+          cifradas no servidor e nunca trafegam para o navegador.
         </p>
       </div>
 

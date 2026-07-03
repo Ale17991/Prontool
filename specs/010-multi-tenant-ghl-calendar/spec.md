@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Seletor de clínica, onboarding, signup, nome da clínica na sidebar, integração GHL 1:1 e filtros avançados no calendário."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Vínculo 1:1 entre clínica e sub-account GHL (Priority: P1)
 
@@ -106,7 +106,7 @@ A agenda é a tela de uso mais intenso do dia a dia. Hoje o calendário oferece 
 - **Usuário troca de clínica enquanto tem um modal/diálogo aberto**: o modal fecha; estado da página anterior é descartado (a sessão de operação pertence à clínica antiga).
 - **Marketplace install para uma conta que ainda não tem nenhum admin do Prontool conhecido**: a clínica é criada e o usuário GHL que iniciou o install é provisionado como admin (auto-provisioning, comportamento já existente da feature 008).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -165,7 +165,7 @@ A agenda é a tela de uso mais intenso do dia a dia. Hoje o calendário oferece 
 - **FR-039**: Toda criação de tenant (signup/onboarding e Marketplace install) **MUST** respeitar Princípio III (isolamento multi-tenant) — RLS continua sendo a única autoridade de visibilidade dos dados.
 - **FR-040**: Qualquer redirecionamento entre `/login`, `/registrar`, `/onboarding`, `/selecionar-clinica` e dashboard **MUST** preservar a navegação intencional (deep-link funcional após login).
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Conta de Usuário (auth)**: representa uma identidade global, sem vínculo intrínseco com clínica. Atributos: e-mail, nome completo (em Perfil), data de criação, data de confirmação de e-mail, data do último acesso. Pode existir sem nenhuma clínica vinculada (estado válido durante onboarding).
 - **Clínica (tenant)**: a unidade fundamental de isolamento. Atributos: nome (obrigatório, exibido na sidebar e documentos), slug (único), status (ativa | suspensa). Relaciona-se com perfil clínico (logo, dados oficiais — feature 009), com vínculos de usuário (user_tenants — feature 009) e com no máximo uma integração GHL ativa (esta feature).
@@ -174,7 +174,7 @@ A agenda é a tela de uso mais intenso do dia a dia. Hoje o calendário oferece 
 - **Tentativa de Conexão Rejeitada (auditoria)**: registro append-only criado quando uma tentativa de conexão GHL viola FR-001 ou FR-002. Atributos: ator, clínica alvo, `location_id`, código da violação, data/hora.
 - **Estado de Filtros do Calendário (URL state, não persistido)**: o conjunto de filtros aplicados ao calendário/lista, codificado em parâmetros de consulta da URL. Atributos: visualização (dia/semana/mês), data de referência, período (de–até), profissional, status, procedimento, paciente.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

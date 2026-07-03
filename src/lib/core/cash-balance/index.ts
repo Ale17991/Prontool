@@ -56,8 +56,7 @@ export async function addCashBalanceAdjustment(
   },
 ): Promise<CashBalanceAdjustmentRow> {
   if (args.amountCents === 0) throw new ValidationError('amount_cents must be != 0')
-  if (args.reason.trim().length < 3)
-    throw new ValidationError('reason must be at least 3 chars')
+  if (args.reason.trim().length < 3) throw new ValidationError('reason must be at least 3 chars')
 
   const ins = await supabase
     .from('tenant_cash_balance_adjustments' as never)
@@ -72,15 +71,18 @@ export async function addCashBalanceAdjustment(
     .single()
   if (ins.error) throw new Error(`add cash balance: ${ins.error.message}`)
 
-  await supabase.rpc('log_audit_event' as never, {
-    p_tenant_id: args.tenantId,
-    p_entity: 'tenant_cash_balance_adjustments',
-    p_entity_id: (ins.data as { id: string }).id,
-    p_field: 'amount_cents',
-    p_old: null,
-    p_new: args.amountCents.toString(),
-    p_reason: args.reason,
-  } as never)
+  await supabase.rpc(
+    'log_audit_event' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_entity: 'tenant_cash_balance_adjustments',
+      p_entity_id: (ins.data as { id: string }).id,
+      p_field: 'amount_cents',
+      p_old: null,
+      p_new: args.amountCents.toString(),
+      p_reason: args.reason,
+    } as never,
+  )
 
   return toDto(ins.data as unknown as DbRow)
 }
@@ -89,10 +91,13 @@ export async function tenantCashBalanceAt(
   supabase: SupabaseClient<Database>,
   args: { tenantId: string; date: string },
 ): Promise<number> {
-  const { data, error } = await supabase.rpc('tenant_cash_balance_at' as never, {
-    p_tenant_id: args.tenantId,
-    p_date: args.date,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'tenant_cash_balance_at' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_date: args.date,
+    } as never,
+  )
   if (error) throw new Error(`cash balance at: ${error.message}`)
   return Number(data ?? 0)
 }

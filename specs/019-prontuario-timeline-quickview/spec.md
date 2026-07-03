@@ -15,7 +15,7 @@
 - Q: Estratégia de atualização da sidebar/timeline após salvar em sheet — optimistic update ou server-confirmed? → A: Server-confirmed via `router.refresh()` (RSC re-render), consistente com o padrão atual do app. Optimistic update fica fora do escopo.
 - Q: Onde ficam as edições estruturadas (endereço, lembretes, plano, plano terapêutico)? → A: Em aba secundária "Cadastro" na coluna direita (ao lado da aba "Clínico"). URL reflete a aba via `?tab=cadastro`. Sidebar ganha botão "Editar" no bloco Identidade como atalho.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Consulta de retorno com contexto sempre visível (Priority: P1)
 
@@ -96,7 +96,7 @@ A clínica pode ter um profissional consultando a ficha em tablet/celular durant
 - **Botão de ação clicado por usuário sem permissão**: o botão não deve aparecer (RBAC client-side), e o endpoint continua validando server-side (defesa em profundidade — comportamento atual).
 - **Mobile: cabeçalho colapsado quando há alergia "grave"**: o cabeçalho compacto deve mostrar um indicador visual (ex.: ícone vermelho) sinalizando que há alergia grave, mesmo sem expandir, para que o profissional não prescreva sem ver.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -158,10 +158,10 @@ A clínica pode ter um profissional consultando a ficha em tablet/celular durant
 
 Esta feature consome entidades existentes e NÃO cria novas. Para referência:
 
-- **TimelineEvent** *(tipo virtual, não persistido)*: união discriminada com `kind ∈ { 'anamnese', 'evolucao', 'texto', 'arquivo', 'vital', 'appointment', 'payment' }`, `occurredAt: string`, `source: ClinicalRecordRow | VitalSignsDTO | AppointmentRow | PaymentRecordDTO`. Construído em runtime pelo nova lib `core/patient-timeline/`.
-- **QuickViewSnapshot** *(tipo virtual, não persistido)*: agrega os dados que a sidebar precisa em uma única estrutura (alergias ativas, diagnósticos ativos, última medição vital, resumo financeiro), montada a partir das fontes existentes sem nova query.
+- **TimelineEvent** _(tipo virtual, não persistido)_: união discriminada com `kind ∈ { 'anamnese', 'evolucao', 'texto', 'arquivo', 'vital', 'appointment', 'payment' }`, `occurredAt: string`, `source: ClinicalRecordRow | VitalSignsDTO | AppointmentRow | PaymentRecordDTO`. Construído em runtime pelo nova lib `core/patient-timeline/`.
+- **QuickViewSnapshot** _(tipo virtual, não persistido)_: agrega os dados que a sidebar precisa em uma única estrutura (alergias ativas, diagnósticos ativos, última medição vital, resumo financeiro), montada a partir das fontes existentes sem nova query.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

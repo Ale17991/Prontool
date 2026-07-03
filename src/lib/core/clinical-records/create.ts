@@ -140,8 +140,10 @@ export async function createEvolutionRecord(
       patient_id: input.patientId,
       title: input.title,
       type: 'evolucao',
-      soap_data: normalized as unknown as Database['public']['Tables']['clinical_records']['Insert']['soap_data'],
-      assessment_cids: cids as unknown as Database['public']['Tables']['clinical_records']['Insert']['assessment_cids'],
+      soap_data:
+        normalized as unknown as Database['public']['Tables']['clinical_records']['Insert']['soap_data'],
+      assessment_cids:
+        cids as unknown as Database['public']['Tables']['clinical_records']['Insert']['assessment_cids'],
       created_by: input.actorUserId,
     })
     .select(

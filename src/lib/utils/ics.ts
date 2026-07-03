@@ -52,9 +52,7 @@ export function generateBookingIcs(input: GenerateBookingIcsInput): string {
 
   const { error, value } = createEvent(event)
   if (error || !value) {
-    throw new Error(
-      `generateBookingIcs failed: ${error?.message ?? 'empty output'}`,
-    )
+    throw new Error(`generateBookingIcs failed: ${error?.message ?? 'empty output'}`)
   }
   return value
 }

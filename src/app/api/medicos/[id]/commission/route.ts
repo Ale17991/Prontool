@@ -22,10 +22,7 @@ const createSchema = z.object({
   reason: z.string().min(3).max(500),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(
       ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],

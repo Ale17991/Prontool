@@ -38,10 +38,7 @@ import {
   type ProcedureLineDraft,
 } from '@/components/atendimentos/procedimentos-editor'
 import { DayBusyHint } from './day-busy-hint'
-import {
-  CreateParticipantsEditor,
-  type CreateParticipant,
-} from './create-participants-editor'
+import { CreateParticipantsEditor, type CreateParticipant } from './create-participants-editor'
 import { QuickCreatePatientDialog } from './quick-create-patient-dialog'
 
 export interface FormOption {
@@ -98,7 +95,7 @@ export function NewAppointmentForm({
   const patientId = patient?.id ?? ''
   const [doctorId, setDoctorId] = useState('')
   // Sem módulo Convênio, ignora qualquer plano herdado do paciente (só particular).
-  const defaultPlanId = hasConvenio ? patient?.planId ?? null : null
+  const defaultPlanId = hasConvenio ? (patient?.planId ?? null) : null
   // Método "Convênio" só quando o módulo está ativo.
   const methodOptions = hasConvenio
     ? METHOD_OPTIONS
@@ -151,9 +148,7 @@ export function NewAppointmentForm({
   const [installmentsCount, setInstallmentsCount] = useState<number>(1)
   const [installmentDates, setInstallmentDates] = useState<string[]>([])
   const [paymentStatus, setPaymentStatus] = useState<'pago' | 'pendente'>('pago')
-  const [paymentPaidAt, setPaymentPaidAt] = useState(() =>
-    new Date().toISOString().slice(0, 10),
-  )
+  const [paymentPaidAt, setPaymentPaidAt] = useState(() => new Date().toISOString().slice(0, 10))
 
   // 016 punch list #4 — split de pagamento em N metodos.
   // Quando ativo, cria N payment_records sobre o mesmo appointment_id,
@@ -162,9 +157,7 @@ export function NewAppointmentForm({
   // para N (≤5) na correcao de pagamentos: clinicas pedem suporte a
   // parcelar entre 3+ metodos (ex.: PIX + cartao + dinheiro).
   const [splitPayment, setSplitPayment] = useState(false)
-  const [splitParts, setSplitParts] = useState<
-    Array<{ method: PaymentMethod; percent: number }>
-  >([
+  const [splitParts, setSplitParts] = useState<Array<{ method: PaymentMethod; percent: number }>>([
     { method: 'pix', percent: 50 },
     { method: 'cartao_credito', percent: 50 },
   ])
@@ -356,11 +349,7 @@ export function NewAppointmentForm({
     }
 
     if (participants.length > 0) {
-      if (
-        participants.some(
-          (p) => p.amountCents <= 0 || !p.participationDegree || !p.doctorId,
-        )
-      ) {
+      if (participants.some((p) => p.amountCents <= 0 || !p.participationDegree || !p.doctorId)) {
         setError('Cada participante precisa de profissional, grau e honorário maior que zero.')
         return
       }
@@ -391,8 +380,7 @@ export function NewAppointmentForm({
       if (!res.ok || !body.appointment_id) {
         if (res.status === 409 || body.error?.code === 'APPOINTMENT_CONFLICT') {
           setError(
-            body.error?.message ??
-              'Conflito de horário com outro atendimento deste profissional.',
+            body.error?.message ?? 'Conflito de horário com outro atendimento deste profissional.',
           )
         } else {
           setError(body.error?.message ?? 'Falha ao registrar atendimento.')
@@ -406,8 +394,7 @@ export function NewAppointmentForm({
         0,
       )
       if (totalCents > 0) {
-        const paidAtIso =
-          paymentStatus === 'pago' ? new Date(paymentPaidAt).toISOString() : null
+        const paidAtIso = paymentStatus === 'pago' ? new Date(paymentPaidAt).toISOString() : null
 
         // Split em N metodos: cria N payment_records distintos (cada
         // um com seu metodo), todos vinculados ao mesmo appointment_id.
@@ -495,10 +482,11 @@ export function NewAppointmentForm({
       // falhar, atendimento ja esta salvo e mostramos warning.
       const action = submitActionRef.current
       if (action === 'confirm') {
-        const confirmRes = await fetch(
-          `/api/atendimentos/${body.appointment_id}/confirmar`,
-          { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' },
-        )
+        const confirmRes = await fetch(`/api/atendimentos/${body.appointment_id}/confirmar`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: '{}',
+        })
         if (!confirmRes.ok) {
           const cb = (await confirmRes.json().catch(() => ({}))) as {
             error?: { message?: string }
@@ -508,10 +496,11 @@ export function NewAppointmentForm({
           )
         }
       } else if (action === 'realize') {
-        const realizeRes = await fetch(
-          `/api/atendimentos/${body.appointment_id}/realizado`,
-          { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' },
-        )
+        const realizeRes = await fetch(`/api/atendimentos/${body.appointment_id}/realizado`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: '{}',
+        })
         if (!realizeRes.ok) {
           const rb = (await realizeRes.json().catch(() => ({}))) as {
             error?: { message?: string }
@@ -556,11 +545,7 @@ export function NewAppointmentForm({
   }
 
   return (
-    <form
-      ref={formRef}
-      onSubmit={onSubmit}
-      className="grid grid-cols-1 gap-4 md:grid-cols-2"
-    >
+    <form ref={formRef} onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="space-y-1.5 md:col-span-2">
         <div className="flex items-center justify-between gap-2">
           <Label htmlFor="patient_id">Paciente</Label>
@@ -643,8 +628,8 @@ export function NewAppointmentForm({
               </div>
             </div>
             <p className="text-[11px] text-slate-500">
-              Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span> ·
-              fim preenchido automaticamente ({slotIntervalMinutes} min); edite se precisar.
+              Duração: <span className="font-bold tabular-nums">{durationMinutes} min</span> · fim
+              preenchido automaticamente ({slotIntervalMinutes} min); edite se precisar.
             </p>
           </>
         ) : (
@@ -719,9 +704,9 @@ export function NewAppointmentForm({
             Adicionar ao plano de tratamento?
           </Label>
           <p className="text-[11px] text-slate-500">
-            Cria uma etapa no plano de tratamento do paciente vinculada a este
-            atendimento. Se já existir uma etapa pendente para o mesmo
-            procedimento, ela será aproveitada automaticamente.
+            Cria uma etapa no plano de tratamento do paciente vinculada a este atendimento. Se já
+            existir uma etapa pendente para o mesmo procedimento, ela será aproveitada
+            automaticamente.
           </p>
         </div>
       </div>
@@ -837,10 +822,7 @@ export function NewAppointmentForm({
           {splitPayment ? (
             <div className="mt-3 space-y-2 rounded-md bg-info-bg/30 p-3">
               {splitParts.map((part, idx) => (
-                <div
-                  key={idx}
-                  className="grid grid-cols-1 gap-2 md:grid-cols-[2fr_1fr_auto]"
-                >
+                <div key={idx} className="grid grid-cols-1 gap-2 md:grid-cols-[2fr_1fr_auto]">
                   <div className="space-y-1">
                     <Label htmlFor={`split_method_${idx}`} className="text-[11px]">
                       Método {idx + 1}
@@ -892,9 +874,7 @@ export function NewAppointmentForm({
                         variant="outline"
                         size="sm"
                         className="h-9 px-2 text-destructive"
-                        onClick={() =>
-                          setSplitParts(splitParts.filter((_, i) => i !== idx))
-                        }
+                        onClick={() => setSplitParts(splitParts.filter((_, i) => i !== idx))}
                         title="Remover método"
                       >
                         ×
@@ -911,8 +891,7 @@ export function NewAppointmentForm({
                       : 'text-[11px] font-semibold text-destructive'
                   }
                 >
-                  Soma:{' '}
-                  {splitParts.reduce((s, p) => s + p.percent, 0)}% / 100%
+                  Soma: {splitParts.reduce((s, p) => s + p.percent, 0)}% / 100%
                 </span>
                 {splitParts.length < MAX_SPLIT_PARTS ? (
                   <Button
@@ -921,10 +900,7 @@ export function NewAppointmentForm({
                     size="sm"
                     className="h-7 text-[11px]"
                     onClick={() =>
-                      setSplitParts([
-                        ...splitParts,
-                        { method: 'dinheiro', percent: 0 },
-                      ])
+                      setSplitParts([...splitParts, { method: 'dinheiro', percent: 0 }])
                     }
                   >
                     + Adicionar método
@@ -978,9 +954,7 @@ export function NewAppointmentForm({
           {conflictWarning}
         </div>
       ) : null}
-      {error ? (
-        <p className="md:col-span-2 text-sm text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="md:col-span-2 text-sm text-destructive">{error}</p> : null}
       {warning ? (
         <p className="md:col-span-2 text-sm text-[hsl(var(--warning-foreground))]">{warning}</p>
       ) : null}
@@ -1061,17 +1035,16 @@ export function NewAppointmentForm({
             <DialogDescription>
               {confirmAction === 'realize' ? (
                 <>
-                  Esta ação <strong>não é reversível</strong>. O atendimento será
-                  criado e marcado como <strong>realizado</strong> imediatamente —
-                  com impacto no plano de tratamento, comissões e financeiro.
-                  Para desfazer depois é necessário <em>estorno financeiro</em>.
+                  Esta ação <strong>não é reversível</strong>. O atendimento será criado e marcado
+                  como <strong>realizado</strong> imediatamente — com impacto no plano de
+                  tratamento, comissões e financeiro. Para desfazer depois é necessário{' '}
+                  <em>estorno financeiro</em>.
                 </>
               ) : (
                 <>
-                  Esta ação <strong>não é reversível</strong>. O atendimento será
-                  criado e marcado como <strong>confirmado</strong> (paciente
-                  avisou que vai comparecer). Para desfazer depois só
-                  cancelando o agendamento.
+                  Esta ação <strong>não é reversível</strong>. O atendimento será criado e marcado
+                  como <strong>confirmado</strong> (paciente avisou que vai comparecer). Para
+                  desfazer depois só cancelando o agendamento.
                 </>
               )}
             </DialogDescription>

@@ -1,6 +1,16 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, Circle, FileText, History, Link2, Percent, Stethoscope, Wallet } from 'lucide-react'
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Circle,
+  FileText,
+  History,
+  Link2,
+  Percent,
+  Stethoscope,
+  Wallet,
+} from 'lucide-react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
@@ -141,7 +151,8 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
       userId: m.userId,
       label: m.fullName ?? m.email,
       email: m.email,
-      linkedToOther: m.linkedDoctor && m.linkedDoctor.id !== doctor.id ? m.linkedDoctor.fullName : null,
+      linkedToOther:
+        m.linkedDoctor && m.linkedDoctor.id !== doctor.id ? m.linkedDoctor.fullName : null,
     }))
   }
 
@@ -220,7 +231,9 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
                   <Badge variant="secondary">Inativo</Badge>
                 )}
               </div>
-              {canWrite ? <EditDoctorName doctorId={doctor.id} currentName={doctor.full_name} /> : null}
+              {canWrite ? (
+                <EditDoctorName doctorId={doctor.id} currentName={doctor.full_name} />
+              ) : null}
             </div>
           </div>
         </CardContent>
@@ -311,10 +324,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
               : 'Nenhuma comissão com vigência atual'
           }
         />
-        <SummaryCard
-          label="Versões no histórico"
-          value={commissions.length.toString()}
-        />
+        <SummaryCard label="Versões no histórico" value={commissions.length.toString()} />
         <SummaryCard
           label="Agendadas (futuras)"
           value={futureCommissions.length.toString()}
@@ -353,9 +363,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
               currentLiberalDefaultCents={currentTerms?.liberal_default_cents ?? null}
             />
           ) : (
-            <p className="text-xs text-slate-500">
-              Somente admin pode alterar modalidade.
-            </p>
+            <p className="text-xs text-slate-500">Somente admin pode alterar modalidade.</p>
           )}
           {paymentTermsHistory.length > 1 ? (
             <details className="text-xs">
@@ -383,10 +391,9 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
           </CardHeader>
           <CardContent>
             <p className="mb-4 text-xs text-slate-500">
-              Para comissionados, este atalho cria uma nova linha no histórico de comissões
-              sem mudar a modalidade. Atendimentos já criados mantêm o percentual congelado
-              no momento da criação — só atendimentos a partir da data de vigência usam o
-              novo valor.
+              Para comissionados, este atalho cria uma nova linha no histórico de comissões sem
+              mudar a modalidade. Atendimentos já criados mantêm o percentual congelado no momento
+              da criação — só atendimentos a partir da data de vigência usam o novo valor.
             </p>
             <NewCommissionForm doctorId={doctor.id} />
           </CardContent>
@@ -415,8 +422,8 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
                         isCurrent
                           ? 'absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary bg-white text-primary shadow-sm'
                           : isFuture
-                          ? 'absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-400 bg-white text-amber-500 shadow-sm'
-                          : 'absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-400 shadow-sm'
+                            ? 'absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-400 bg-white text-amber-500 shadow-sm'
+                            : 'absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-slate-400 shadow-sm'
                       }
                     >
                       {isCurrent ? (

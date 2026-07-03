@@ -20,13 +20,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const bodySchema = z.object({
-  reason: z.enum([
-    'no_show',
-    'paciente_desmarcou',
-    'clinica_desmarcou',
-    'estornado',
-    'outro',
-  ]),
+  reason: z.enum(['no_show', 'paciente_desmarcou', 'clinica_desmarcou', 'estornado', 'outro']),
   notes: z.string().trim().max(500).optional(),
 })
 
@@ -36,15 +30,12 @@ interface RouteContext {
 
 export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
   try {
-    const session = await requireRole(
-      ['admin', 'recepcionista', 'profissional_saude'],
-      {
-        entity: 'appointments',
-        entityId: ctx.params.id,
-        route: '/api/atendimentos/[id]/cancelar',
-        request: req,
-      },
-    )
+    const session = await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
+      entity: 'appointments',
+      entityId: ctx.params.id,
+      route: '/api/atendimentos/[id]/cancelar',
+      request: req,
+    })
 
     const parsed = bodySchema.safeParse(await req.json().catch(() => ({})))
     if (!parsed.success) {

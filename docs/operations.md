@@ -15,13 +15,13 @@ Operational playbooks for the Clinni stack. Read alongside
 
 ### Terminal failure codes from the worker
 
-| Code                         | Meaning                                                                 | Action                                                                             |
-| ---------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `WEBHOOK_PAYLOAD_INVALID`    | Zod extraction rejected the custom fields (required field missing).     | Check the tenant's `tenant_ghl_config` field map vs. the GHL workflow.             |
-| `TUSS_CODE_UNKNOWN`          | Procedure has a TUSS code not present in `tuss_codes`.                  | Run the catalog refresh (see §3). If code is legit-but-retired, tenant must remap. |
-| `TUSS_CODE_RETIRED`          | TUSS code was active at setup but has `valid_to` in the past now.       | Tenant needs to pick a replacement TUSS code before reprocessing.                  |
-| `APPOINTMENT_PRICE_MISSING`  | No `price_versions` row covers (procedure, plan) at appointment time.   | Admin creates the price version (backdate `valid_from` if needed), then reprocess. |
-| `PROCEDURE_INACTIVE`         | Tenant deactivated the procedure after the appointment was scheduled.   | Reactivate the procedure or tell the tenant to cancel on GHL side.                 |
+| Code                        | Meaning                                                               | Action                                                                             |
+| --------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `WEBHOOK_PAYLOAD_INVALID`   | Zod extraction rejected the custom fields (required field missing).   | Check the tenant's `tenant_ghl_config` field map vs. the GHL workflow.             |
+| `TUSS_CODE_UNKNOWN`         | Procedure has a TUSS code not present in `tuss_codes`.                | Run the catalog refresh (see §3). If code is legit-but-retired, tenant must remap. |
+| `TUSS_CODE_RETIRED`         | TUSS code was active at setup but has `valid_to` in the past now.     | Tenant needs to pick a replacement TUSS code before reprocessing.                  |
+| `APPOINTMENT_PRICE_MISSING` | No `price_versions` row covers (procedure, plan) at appointment time. | Admin creates the price version (backdate `valid_from` if needed), then reprocess. |
+| `PROCEDURE_INACTIVE`        | Tenant deactivated the procedure after the appointment was scheduled. | Reactivate the procedure or tell the tenant to cancel on GHL side.                 |
 
 ### Reprocessing
 
@@ -69,6 +69,7 @@ pnpm seed:tuss
 ```
 
 The script:
+
 1. Downloads the pinned commit as a zipball.
 2. Verifies the repo's LICENSE file (aborts on missing or incompatible).
 3. Batches the JSON into `tuss_codes` via `UPSERT`, records the import
@@ -109,10 +110,10 @@ an entry in `alert_status_transitions`; nothing else.
 
 ## 5. On-call cheat sheet
 
-| Situation                                    | First thing to check                                                      |
-| -------------------------------------------- | ------------------------------------------------------------------------- |
-| Flood of `webhook_rejected`                  | Did a TUSS catalog update just run? Table of codes vs. new `valid_to`.    |
-| One tenant silent, no events                 | `signature_failure` alerts? Secret desync since their last GHL save.      |
-| Report totals look wrong                     | Check for reversals in the period; view `appointments_effective`.         |
-| Monthly export takes > 30 s                  | Confirm tenant-month has < 5 000 atendimentos; SC-004 threshold.          |
-| Worker stuck retrying                        | Non-terminal error (5xx from Supabase). QStash will back off automatically; check Supabase status page. |
+| Situation                    | First thing to check                                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Flood of `webhook_rejected`  | Did a TUSS catalog update just run? Table of codes vs. new `valid_to`.                                  |
+| One tenant silent, no events | `signature_failure` alerts? Secret desync since their last GHL save.                                    |
+| Report totals look wrong     | Check for reversals in the period; view `appointments_effective`.                                       |
+| Monthly export takes > 30 s  | Confirm tenant-month has < 5 000 atendimentos; SC-004 threshold.                                        |
+| Worker stuck retrying        | Non-terminal error (5xx from Supabase). QStash will back off automatically; check Supabase status page. |

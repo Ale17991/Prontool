@@ -4,12 +4,12 @@
 
 ## Rotas
 
-| Método | Path | Papéis | Descrição |
-|---|---|---|---|
-| GET | `/api/notificacoes` | admin, financeiro, recepcionista, profissional_saude | Lista notificações do usuário + dispara geração lazy |
-| GET | `/api/notificacoes/unread-count` | qualquer autenticado | Retorna `{ count, has_overdue }` para o badge do sininho |
-| PATCH | `/api/notificacoes/{id}/read` | qualquer autenticado | Marca uma notificação como lida (`is_read=true`, `read_at=now`) |
-| POST | `/api/notificacoes/mark-all-read` | qualquer autenticado | Marca todas as não-lidas do usuário como lidas |
+| Método | Path                              | Papéis                                               | Descrição                                                       |
+| ------ | --------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------- |
+| GET    | `/api/notificacoes`               | admin, financeiro, recepcionista, profissional_saude | Lista notificações do usuário + dispara geração lazy            |
+| GET    | `/api/notificacoes/unread-count`  | qualquer autenticado                                 | Retorna `{ count, has_overdue }` para o badge do sininho        |
+| PATCH  | `/api/notificacoes/{id}/read`     | qualquer autenticado                                 | Marca uma notificação como lida (`is_read=true`, `read_at=now`) |
+| POST   | `/api/notificacoes/mark-all-read` | qualquer autenticado                                 | Marca todas as não-lidas do usuário como lidas                  |
 
 `runtime = 'nodejs'`, `dynamic = 'force-dynamic'`.
 
@@ -18,6 +18,7 @@
 ## GET /api/notificacoes
 
 **Lógica**:
+
 1. `requireRole([...])`
 2. Chama RPC `generate_user_notifications(tenant_id, user_id)` — idempotente, lazy
 3. SELECT das últimas 100 notificações do usuário ordenadas por `created_at DESC`
@@ -75,6 +76,7 @@
 **Response 200**: `{ id, is_read: true, read_at: '...' }`.
 
 **Errors**:
+
 - 401 / 403
 - 404 — `NOTIFICATION_NOT_FOUND` (id não pertence ao usuário; RLS filtra)
 
@@ -92,11 +94,11 @@
 
 ## Testes de contrato exigidos
 
-| Arquivo | Cenários |
-|---|---|
-| `tests/contract/api-notificacoes-rbac.spec.ts` | qualquer papel autenticado acessa; cross-user retorna apenas próprias |
-| `tests/integration/notifications-generation.spec.ts` | 4 categorias × idempotência: 2 chamadas seguidas não duplicam; conflito UNIQUE retorna `inserted:0` na segunda chamada |
-| `tests/integration/notifications-mark-read-flow.spec.ts` | criar notif via RPC → GET → PATCH read → unread_count diminui; mark-all-read marca todas; histórico permanece visível |
+| Arquivo                                                  | Cenários                                                                                                               |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `tests/contract/api-notificacoes-rbac.spec.ts`           | qualquer papel autenticado acessa; cross-user retorna apenas próprias                                                  |
+| `tests/integration/notifications-generation.spec.ts`     | 4 categorias × idempotência: 2 chamadas seguidas não duplicam; conflito UNIQUE retorna `inserted:0` na segunda chamada |
+| `tests/integration/notifications-mark-read-flow.spec.ts` | criar notif via RPC → GET → PATCH read → unread_count diminui; mark-all-read marca todas; histórico permanece visível  |
 
 ### Cenários específicos da geração
 

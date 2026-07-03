@@ -150,7 +150,7 @@ Local: `src/lib/integrations/ghl/oauth/types.ts` (parte do design; código real 
 export const ghlOAuthCredentialsSchema = z.object({
   access_token: z.string().min(20),
   refresh_token: z.string().min(20),
-  expires_at: z.string().datetime(),  // ISO UTC
+  expires_at: z.string().datetime(), // ISO UTC
   scopes: z.array(z.string().min(1)).min(1),
   user_type: z.enum(['Location', 'Company']),
   location_id: z.string().min(1),
@@ -166,21 +166,27 @@ export const ghlConfigV2Schema = z.object({
   location_id: z.string().min(1),
   sub_account_name: z.string().min(1),
   timezone: z.string().nullable(),
-  custom_field_ids: z.object({
-    cpf:                       z.object({ id: z.string(), alias: z.string() }),
-    plano_saude:               z.object({ id: z.string(), alias: z.string() }),
-    profissional_responsavel:  z.object({ id: z.string(), alias: z.string() }),
-    ultimo_atendimento:        z.object({ id: z.string(), alias: z.string() }),
-    diagnosticos_ativos:       z.object({ id: z.string(), alias: z.string() }),
-    alergias:                  z.object({ id: z.string(), alias: z.string() }),
-  }).partial(), // partial até o setup pós-conexão concluir
-  webhook_ids: z.object({
-    ContactCreate:           z.string().optional(),
-    ContactUpdate:           z.string().optional(),
-    OpportunityStatusUpdate: z.string().optional(),
-  }).default({}),
+  custom_field_ids: z
+    .object({
+      cpf: z.object({ id: z.string(), alias: z.string() }),
+      plano_saude: z.object({ id: z.string(), alias: z.string() }),
+      profissional_responsavel: z.object({ id: z.string(), alias: z.string() }),
+      ultimo_atendimento: z.object({ id: z.string(), alias: z.string() }),
+      diagnosticos_ativos: z.object({ id: z.string(), alias: z.string() }),
+      alergias: z.object({ id: z.string(), alias: z.string() }),
+    })
+    .partial(), // partial até o setup pós-conexão concluir
+  webhook_ids: z
+    .object({
+      ContactCreate: z.string().optional(),
+      ContactUpdate: z.string().optional(),
+      OpportunityStatusUpdate: z.string().optional(),
+    })
+    .default({}),
   menu_id: z.string().nullable().default(null),
-  menu_status: z.enum(['registered', 'unsupported', 'failed', 'not_attempted']).default('not_attempted'),
+  menu_status: z
+    .enum(['registered', 'unsupported', 'failed', 'not_attempted'])
+    .default('not_attempted'),
 
   // Back-compat com Feature 002 — pode ser ignorado pelo adapter v2.
   trigger_stage_name: z.string().optional(),
@@ -194,14 +200,14 @@ export type GhlConfigV2 = z.infer<typeof ghlConfigV2Schema>
 
 ### Custom field mapping (referência única)
 
-| Slug interno | Nome visível (GHL) | Tipo (GHL v2) |
-|---|---|---|
-| `cpf` | CPF | `TEXT` |
-| `plano_saude` | Plano de Saúde | `TEXT` |
-| `profissional_responsavel` | Profissional Responsável | `TEXT` |
-| `ultimo_atendimento` | Último Atendimento | `DATE` |
-| `diagnosticos_ativos` | Diagnósticos Ativos | `LARGE_TEXT` |
-| `alergias` | Alergias | `TEXT` |
+| Slug interno               | Nome visível (GHL)       | Tipo (GHL v2) |
+| -------------------------- | ------------------------ | ------------- |
+| `cpf`                      | CPF                      | `TEXT`        |
+| `plano_saude`              | Plano de Saúde           | `TEXT`        |
+| `profissional_responsavel` | Profissional Responsável | `TEXT`        |
+| `ultimo_atendimento`       | Último Atendimento       | `DATE`        |
+| `diagnosticos_ativos`      | Diagnósticos Ativos      | `LARGE_TEXT`  |
+| `alergias`                 | Alergias                 | `TEXT`        |
 
 Em colisão por nome E tipo divergente, o sistema cria `"<Nome visível> (Prontool)"` (Q2: C). O **slug interno** é a chave estável — admin nunca vê.
 
@@ -209,14 +215,14 @@ Em colisão por nome E tipo divergente, o sistema cria `"<Nome visível> (Pronto
 
 Reusa a tabela existente. Esta feature acrescenta os seguintes valores em `event_type` (apenas convenção; a coluna é livre `TEXT`):
 
-| event_type | Quando | actor | valor_anterior / valor_novo |
-|---|---|---|---|
-| `integration.connect` | Após `connect-tenant.ts` ter persistido tokens novos. | usuário admin (manual) ou `system:ghl_marketplace` (install). | `status: null/disconnected` → `connected` |
-| `integration.reconfigure` | Quando admin atualiza config sem refazer OAuth. | admin. | diff em JSON. |
-| `integration.disconnect` | Após `disconnect-tenant.ts`. | admin (manual) ou `system:ghl_marketplace` (uninstall). | `connected/token_expired` → `disconnected` |
-| `integration.refresh_success` | Após refresh bem-sucedido. | `system:ghl_oauth_refresh`. | `expires_at: <antigo>` → `<novo>` |
-| `integration.refresh_failed` | Após refresh definitivo (sem retry). | `system:ghl_oauth_refresh`. | `status: connected` → `token_expired` |
-| `integration.signature_failure` | Webhook chegou com assinatura inválida. | `system:webhook` (sem tenant). | n/a |
+| event_type                      | Quando                                                | actor                                                         | valor_anterior / valor_novo                |
+| ------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------ |
+| `integration.connect`           | Após `connect-tenant.ts` ter persistido tokens novos. | usuário admin (manual) ou `system:ghl_marketplace` (install). | `status: null/disconnected` → `connected`  |
+| `integration.reconfigure`       | Quando admin atualiza config sem refazer OAuth.       | admin.                                                        | diff em JSON.                              |
+| `integration.disconnect`        | Após `disconnect-tenant.ts`.                          | admin (manual) ou `system:ghl_marketplace` (uninstall).       | `connected/token_expired` → `disconnected` |
+| `integration.refresh_success`   | Após refresh bem-sucedido.                            | `system:ghl_oauth_refresh`.                                   | `expires_at: <antigo>` → `<novo>`          |
+| `integration.refresh_failed`    | Após refresh definitivo (sem retry).                  | `system:ghl_oauth_refresh`.                                   | `status: connected` → `token_expired`      |
+| `integration.signature_failure` | Webhook chegou com assinatura inválida.               | `system:webhook` (sem tenant).                                | n/a                                        |
 
 Todos com `tenant_id`, `entidade='tenant_integrations'`, `motivo` textual, `origem_da_requisição` (IP/UA quando manual; `marketplace_install` quando automatizado).
 
@@ -224,22 +230,22 @@ Todos com `tenant_id`, `entidade='tenant_integrations'`, `motivo` textual, `orig
 
 Reusa `alert_type` existente da tabela `alerts`. Esta feature emite:
 
-| type | detail.* mínimo | Quando |
-|---|---|---|
-| `integration_sync_failed` | `provider='ghl'`, `kind`, `error_code`, `tenant_id`, `correlation_id` | Outbound falhou após retries OU refresh falhou. |
-| `signature_failure` (existente) | `provider='ghl'`, `kind='marketplace_install'\|'marketplace_uninstall'\|'event'` | Webhook GHL com assinatura inválida. |
+| type                            | detail.\* mínimo                                                                 | Quando                                          |
+| ------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `integration_sync_failed`       | `provider='ghl'`, `kind`, `error_code`, `tenant_id`, `correlation_id`            | Outbound falhou após retries OU refresh falhou. |
+| `signature_failure` (existente) | `provider='ghl'`, `kind='marketplace_install'\|'marketplace_uninstall'\|'event'` | Webhook GHL com assinatura inválida.            |
 
 ## Variáveis de ambiente (lidas só em `oauth/env.ts`)
 
-| Var | Quem lê | Obrigatória |
-|---|---|---|
-| `GHL_CLIENT_ID` | `oauth/env.ts` | Sim |
-| `GHL_CLIENT_SECRET` | `oauth/env.ts` | Sim |
-| `GHL_REDIRECT_URI` | `oauth/env.ts` | Sim |
-| `GHL_SCOPES` | `oauth/env.ts` | Sim |
-| `GHL_MARKETPLACE_SHARED_SECRET` | `oauth/verify-marketplace-signature.ts` | Sim |
-| `GHL_SSO_JWKS_URL` | `oauth/verify-sso-token.ts` | Sim para US5; opcional caso US5 saia da feature |
-| `PATIENT_DATA_ENCRYPTION_KEY` | core (já existente) | Sim |
+| Var                             | Quem lê                                 | Obrigatória                                     |
+| ------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| `GHL_CLIENT_ID`                 | `oauth/env.ts`                          | Sim                                             |
+| `GHL_CLIENT_SECRET`             | `oauth/env.ts`                          | Sim                                             |
+| `GHL_REDIRECT_URI`              | `oauth/env.ts`                          | Sim                                             |
+| `GHL_SCOPES`                    | `oauth/env.ts`                          | Sim                                             |
+| `GHL_MARKETPLACE_SHARED_SECRET` | `oauth/verify-marketplace-signature.ts` | Sim                                             |
+| `GHL_SSO_JWKS_URL`              | `oauth/verify-sso-token.ts`             | Sim para US5; opcional caso US5 saia da feature |
+| `PATIENT_DATA_ENCRYPTION_KEY`   | core (já existente)                     | Sim                                             |
 
 `pnpm lint:auth` precisa permitir essas leituras **apenas** dentro de `src/lib/integrations/ghl/oauth/**`.
 

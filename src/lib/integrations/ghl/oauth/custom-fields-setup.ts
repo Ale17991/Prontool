@@ -55,10 +55,7 @@ export async function customFieldsSetup(
     existing = await listCustomFields(accessToken, locationId)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    logger.warn(
-      { tenant_id: tenantId, err: message },
-      'ghl-custom-fields-list-failed',
-    )
+    logger.warn({ tenant_id: tenantId, err: message }, 'ghl-custom-fields-list-failed')
     await recordSyncFailure(supabase, tenantId, {
       kind: 'custom_field_setup',
       errorCode: 'LIST_FAILED',
@@ -75,8 +72,7 @@ export async function customFieldsSetup(
       if (decision.action === 'reuse') {
         id = decision.id
       } else {
-        const name =
-          decision.action === 'create_suffixed' ? `${def.name} (Clinni)` : def.name
+        const name = decision.action === 'create_suffixed' ? `${def.name} (Clinni)` : def.name
         id = await createCustomField(accessToken, locationId, {
           name,
           dataType: def.dataType,
@@ -92,10 +88,7 @@ export async function customFieldsSetup(
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      logger.warn(
-        { tenant_id: tenantId, slug, err: message },
-        'ghl-custom-field-setup-failed',
-      )
+      logger.warn({ tenant_id: tenantId, slug, err: message }, 'ghl-custom-field-setup-failed')
       await recordSyncFailure(supabase, tenantId, {
         kind: 'custom_field_setup',
         errorCode: 'SETUP_FAILED',
@@ -139,8 +132,7 @@ function decideCustomField(
   const suffixedName = `${def.name} (Clinni)`.toLowerCase()
   const existingSuffixed = existing.find(
     (e) =>
-      e.name.trim().toLowerCase() === suffixedName &&
-      normalizeType(e.dataType) === def.dataType,
+      e.name.trim().toLowerCase() === suffixedName && normalizeType(e.dataType) === def.dataType,
   )
   if (existingSuffixed) return { action: 'reuse', id: existingSuffixed.id }
   return { action: 'create_suffixed' }
@@ -213,9 +205,10 @@ async function createCustomField(
     const text = await res.text().catch(() => '')
     throw new Error(`GHL create customField ${res.status}: ${text.slice(0, 200)}`)
   }
-  const body = (await res.json().catch(() => null)) as
-    | { id?: string; customField?: { id?: string } }
-    | null
+  const body = (await res.json().catch(() => null)) as {
+    id?: string
+    customField?: { id?: string }
+  } | null
   const id = body?.id ?? body?.customField?.id
   if (!id) throw new Error(`GHL create customField returned no id`)
   return id

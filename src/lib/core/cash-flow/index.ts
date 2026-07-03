@@ -7,10 +7,10 @@ import { tenantCashBalanceAt } from '@/lib/core/cash-balance'
 export type CashFlowScale = 'daily' | 'weekly' | 'monthly'
 
 export interface CashFlowEvent {
-  date: string  // YYYY-MM-DD
+  date: string // YYYY-MM-DD
   type: 'entry' | 'exit'
   description: string
-  amountCents: number  // sempre positivo; type indica direção
+  amountCents: number // sempre positivo; type indica direção
   source: 'installment' | 'expense'
   sourceId: string
   isProjection: boolean
@@ -70,8 +70,9 @@ export async function assembleCashFlow(
     }>) {
       const amount = Number(row.amount_cents)
       const paid = Number(row.paid_amount_cents)
-      const isAnon = row.payment_records?.patients?.anonymized_at !== null
-        && row.payment_records?.patients?.anonymized_at !== undefined
+      const isAnon =
+        row.payment_records?.patients?.anonymized_at !== null &&
+        row.payment_records?.patients?.anonymized_at !== undefined
       if (row.status === 'pago' && row.paid_at) {
         events.push({
           date: row.paid_at.slice(0, 10),

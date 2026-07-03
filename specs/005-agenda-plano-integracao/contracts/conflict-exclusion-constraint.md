@@ -81,7 +81,7 @@ export interface ConflictCheckInput {
   doctorId: string
   startAt: Date
   endAt: Date
-  excludeAppointmentId?: string  // para edição
+  excludeAppointmentId?: string // para edição
 }
 
 export interface ConflictHit {
@@ -107,10 +107,13 @@ Implementação consulta `appointment_slot_locks` JOIN com `appointments` e `pro
 **Auth**: requer sessão (qualquer papel autenticado pode consultar).
 
 **Resposta 200**:
+
 ```json
 { "conflict": false }
 ```
+
 ou
+
 ```json
 {
   "conflict": true,
@@ -127,6 +130,7 @@ ou
 ## Mapeamento de erro 23P01 → HTTP 409
 
 `src/lib/observability/http.ts` (extensão do handler existente):
+
 ```ts
 if (err.code === '23P01' || /APPOINTMENT_CONFLICT/.test(err.message)) {
   return NextResponse.json(

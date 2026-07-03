@@ -21,15 +21,15 @@ Tornar o Prontool utilizável em qualquer viewport entre 360px e 1920px sem regr
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Toca? | Avaliação |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | Não | Feature é puramente visual — não escreve, lê, ou exibe valores históricos de forma diferente. Não cria nem modifica registros financeiros. **PASS**. |
-| **II. Auditabilidade Total de Preços** | Não | Não altera fluxos de mudança de preço, nem toca em `audit_log`. **PASS**. |
-| **III. Isolamento Multi-Tenant** | Não | Sem novas queries, sem mudanças em RLS, sem mudanças em filtros por `tenant_id`. **PASS**. |
-| **IV. Conformidade TUSS/ANS** | Não | Sem toque em catálogo TUSS ou validações ANS. **PASS**. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | Não | Sem mudanças em `requireRole`, em policies, ou em controles UI/API. O drawer mostra exatamente os mesmos itens filtrados por role que a sidebar fixa atual. **PASS**. |
+| Princípio                                    | Toca? | Avaliação                                                                                                                                                             |
+| -------------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável**       | Não   | Feature é puramente visual — não escreve, lê, ou exibe valores históricos de forma diferente. Não cria nem modifica registros financeiros. **PASS**.                  |
+| **II. Auditabilidade Total de Preços**       | Não   | Não altera fluxos de mudança de preço, nem toca em `audit_log`. **PASS**.                                                                                             |
+| **III. Isolamento Multi-Tenant**             | Não   | Sem novas queries, sem mudanças em RLS, sem mudanças em filtros por `tenant_id`. **PASS**.                                                                            |
+| **IV. Conformidade TUSS/ANS**                | Não   | Sem toque em catálogo TUSS ou validações ANS. **PASS**.                                                                                                               |
+| **V. Segurança por Perfil de Acesso (RBAC)** | Não   | Sem mudanças em `requireRole`, em policies, ou em controles UI/API. O drawer mostra exatamente os mesmos itens filtrados por role que a sidebar fixa atual. **PASS**. |
 
 **Resultado**: Todos os 5 gates passam. Sem violations a justificar em Complexity Tracking.
 
@@ -86,5 +86,5 @@ tests/
 > Sem violations à constitution. Tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| (none) | — | — |
+| --------- | ---------- | ------------------------------------ |
+| (none)    | —          | —                                    |

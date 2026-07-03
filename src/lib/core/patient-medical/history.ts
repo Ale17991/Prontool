@@ -1,10 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from '@/lib/observability/errors'
+import { ConflictError, NotFoundError, ValidationError } from '@/lib/observability/errors'
 
 export type HistoryCategory =
   | 'doenca_pregressa'

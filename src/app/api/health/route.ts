@@ -83,9 +83,7 @@ async function checkFunction(
     if (!error) return true
     // 404-style code means the function isn't registered; anything else is
     // a transient failure we don't want to silently mark as "ok".
-    return error.code !== 'PGRST202' && error.code !== '42883'
-      ? true
-      : false
+    return error.code !== 'PGRST202' && error.code !== '42883' ? true : false
   } catch {
     return false
   }

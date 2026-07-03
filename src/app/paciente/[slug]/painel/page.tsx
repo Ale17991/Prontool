@@ -31,11 +31,7 @@ import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PacientePainelPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
+export default async function PacientePainelPage({ params }: { params: { slug: string } }) {
   const supabase = createSupabaseServiceClient()
   const clinic = await resolvePortalClinicBySlug(supabase, params.slug)
   if (!clinic) notFound()
@@ -136,8 +132,8 @@ export default async function PacientePainelPage({
           ) : (
             <Card className="rounded-2xl border-slate-200">
               <CardContent className="p-6 text-center text-sm text-slate-500">
-                Ainda não há informações para exibir. Assim que a equipe da clínica
-                registrar seus dados, eles aparecem aqui.
+                Ainda não há informações para exibir. Assim que a equipe da clínica registrar seus
+                dados, eles aparecem aqui.
               </CardContent>
             </Card>
           )}

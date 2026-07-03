@@ -144,7 +144,12 @@ function MemberRow({
             value={member.role}
             disabled={pending}
             onChange={(e) =>
-              run(async () => notify(await adminSetRoleAction(tenantId, member.userId, e.target.value), 'Papel atualizado.'))
+              run(async () =>
+                notify(
+                  await adminSetRoleAction(tenantId, member.userId, e.target.value),
+                  'Papel atualizado.',
+                ),
+              )
             }
             className="rounded-md border border-slate-200 px-2 py-1 text-xs"
           >
@@ -259,9 +264,25 @@ function CreateUser({
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
       <p className="mb-3 text-sm font-bold text-slate-900">Criar usuário</p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Nome completo" className="h-8 text-xs" />
-        <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@clinica.com" className="h-8 text-xs" />
-        <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha (mín. 8)" type="text" className="h-8 text-xs" />
+        <Input
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Nome completo"
+          className="h-8 text-xs"
+        />
+        <Input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="email@clinica.com"
+          className="h-8 text-xs"
+        />
+        <Input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Senha (mín. 8)"
+          type="text"
+          className="h-8 text-xs"
+        />
         <select
           value={role}
           onChange={(e) => setRole(e.target.value)}

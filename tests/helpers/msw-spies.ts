@@ -93,13 +93,15 @@ export function defaultGhlTokenResponse(): GhlOauthTokenResponse {
 /**
  * Helper para tests: gera uma resposta com `locationId` configurável.
  */
-export function makeGhlTokenResponse(overrides: {
-  locationId?: string
-  companyId?: string
-  userId?: string
-  expiresIn?: number
-  scope?: string
-} = {}): GhlOauthTokenResponse {
+export function makeGhlTokenResponse(
+  overrides: {
+    locationId?: string
+    companyId?: string
+    userId?: string
+    expiresIn?: number
+    scope?: string
+  } = {},
+): GhlOauthTokenResponse {
   const base = defaultGhlTokenResponse().body as Record<string, unknown>
   return {
     status: 200,

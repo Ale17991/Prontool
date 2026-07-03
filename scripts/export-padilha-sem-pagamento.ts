@@ -27,7 +27,11 @@ async function main() {
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY ausente')
 
-  const t = await sb.from('tenants').select('id, name').ilike('name', `%${TENANT_QUERY}%`).maybeSingle()
+  const t = await sb
+    .from('tenants')
+    .select('id, name')
+    .ilike('name', `%${TENANT_QUERY}%`)
+    .maybeSingle()
   if (!t.data) throw new Error(`tenant ~"${TENANT_QUERY}" não encontrado`)
   const tenantId = t.data.id
   console.log(`tenant: ${t.data.name} (${tenantId})`)
@@ -35,7 +39,9 @@ async function main() {
   // 1) Atendimentos ativos com valor > 0.
   const apptRes = await sb
     .from('appointments_effective')
-    .select('id, appointment_at, patient_id, doctor_id, procedure_id, frozen_amount_cents, effective_status')
+    .select(
+      'id, appointment_at, patient_id, doctor_id, procedure_id, frozen_amount_cents, effective_status',
+    )
     .eq('tenant_id', tenantId)
     .gt('frozen_amount_cents', 0)
     .order('appointment_at', { ascending: true })
@@ -71,13 +77,22 @@ async function main() {
       p_patient_ids: chunk,
       p_key: key,
     })
-    for (const r of dec.data ?? []) nameByPatient.set(r.id, r.anonymized_at ? '[anonimizado]' : r.full_name ?? '—')
+    for (const r of dec.data ?? [])
+      nameByPatient.set(r.id, r.anonymized_at ? '[anonimizado]' : (r.full_name ?? '—'))
   }
   const doctorIds = [...new Set(missing.map((a: any) => a.doctor_id).filter(Boolean))]
-  const docRes = await sb.from('doctors').select('id, full_name').eq('tenant_id', tenantId).in('id', doctorIds)
+  const docRes = await sb
+    .from('doctors')
+    .select('id, full_name')
+    .eq('tenant_id', tenantId)
+    .in('id', doctorIds)
   const nameByDoctor = new Map((docRes.data ?? []).map((d: any) => [d.id, d.full_name]))
   const procIds = [...new Set(missing.map((a: any) => a.procedure_id).filter(Boolean))]
-  const procRes = await sb.from('procedures').select('id, display_name').eq('tenant_id', tenantId).in('id', procIds)
+  const procRes = await sb
+    .from('procedures')
+    .select('id, display_name')
+    .eq('tenant_id', tenantId)
+    .in('id', procIds)
   const nameByProc = new Map((procRes.data ?? []).map((p: any) => [p.id, p.display_name]))
 
   // 4) Planilha.

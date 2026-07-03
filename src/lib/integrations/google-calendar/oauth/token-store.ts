@@ -79,22 +79,20 @@ export async function writeGoogleConnection(
 ): Promise<void> {
   const credsEnc = await encryptCredentials(supabase, args.credentials)
   const now = new Date().toISOString()
-  const { error } = await loose(supabase)
-    .from('user_integrations')
-    .upsert(
-      {
-        user_id: args.userId,
-        tenant_id: args.tenantId,
-        provider: PROVIDER,
-        config: args.config,
-        credentials_enc: credsEnc,
-        status: 'connected',
-        enabled: true,
-        connected_at: now,
-        updated_at: now,
-      },
-      { onConflict: 'user_id,tenant_id,provider' },
-    )
+  const { error } = await loose(supabase).from('user_integrations').upsert(
+    {
+      user_id: args.userId,
+      tenant_id: args.tenantId,
+      provider: PROVIDER,
+      config: args.config,
+      credentials_enc: credsEnc,
+      status: 'connected',
+      enabled: true,
+      connected_at: now,
+      updated_at: now,
+    },
+    { onConflict: 'user_id,tenant_id,provider' },
+  )
   if (error) throw new Error(`writeGoogleConnection: ${error.message}`)
 }
 
@@ -106,7 +104,11 @@ export async function writeGoogleTokens(
   const credsEnc = await encryptCredentials(supabase, args.credentials)
   const { error } = await loose(supabase)
     .from('user_integrations')
-    .update({ credentials_enc: credsEnc, status: 'connected', updated_at: new Date().toISOString() })
+    .update({
+      credentials_enc: credsEnc,
+      status: 'connected',
+      updated_at: new Date().toISOString(),
+    })
     .eq('user_id', args.userId)
     .eq('tenant_id', args.tenantId)
     .eq('provider', PROVIDER)

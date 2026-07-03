@@ -113,10 +113,7 @@ export function NewTaxForm() {
         <Label htmlFor="tax-category" className="text-xs">
           Categoria
         </Label>
-        <Select
-          value={category}
-          onValueChange={(v) => setCategory(v as Category)}
-        >
+        <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
           <SelectTrigger id="tax-category">
             <SelectValue />
           </SelectTrigger>

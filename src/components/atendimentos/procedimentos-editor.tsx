@@ -161,8 +161,7 @@ export function ProcedurasEditor({
     // Particular sempre quando: procedimento não coberto / toggle global
     // ativo / checkbox "coberto" desmarcado / paciente sem plano.
     const usePatientPlan = !isUncovered && !globalParticular && pendingCovered
-    const initialPlanId: string | null =
-      usePatientPlan && defaultPlanId ? defaultPlanId : null
+    const initialPlanId: string | null = usePatientPlan && defaultPlanId ? defaultPlanId : null
 
     const newLine: ProcedureLineDraft = {
       procedureId,
@@ -227,11 +226,7 @@ export function ProcedurasEditor({
     )
   }
 
-  async function resolveAndApplyPrice(
-    index: number,
-    procedureId: string,
-    planId: string | null,
-  ) {
+  async function resolveAndApplyPrice(index: number, procedureId: string, planId: string | null) {
     if (!procedureId) return
     const proc = procedures.find((p) => p.id === procedureId)
     if (!proc) return
@@ -290,9 +285,7 @@ export function ProcedurasEditor({
   return (
     <div className="md:col-span-2 space-y-3 rounded-md border border-slate-200 bg-slate-50/40 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Label className="text-sm font-bold text-slate-700">
-          Procedimentos ({value.length})
-        </Label>
+        <Label className="text-sm font-bold text-slate-700">Procedimentos ({value.length})</Label>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
             <input
@@ -385,9 +378,9 @@ export function ProcedurasEditor({
         </div>
 
         <p className="text-[11px] text-slate-500">
-          Selecione um procedimento e clique em <span className="font-semibold">Adicionar</span>.
-          O plano e a observação aplicam-se à próxima linha adicionada (sticky para o
-          plano; observação é zerada após cada inclusão).
+          Selecione um procedimento e clique em <span className="font-semibold">Adicionar</span>. O
+          plano e a observação aplicam-se à próxima linha adicionada (sticky para o plano;
+          observação é zerada após cada inclusão).
         </p>
       </div>
 
@@ -450,9 +443,7 @@ export function ProcedurasEditor({
                       </div>
                     </TableCell>
                     <TableCell className="text-xs text-slate-700">
-                      <p className="line-clamp-2 whitespace-normal break-words">
-                        {description}
-                      </p>
+                      <p className="line-clamp-2 whitespace-normal break-words">{description}</p>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
@@ -530,9 +521,7 @@ export function ProcedurasEditor({
                         inputMode="decimal"
                         placeholder="0,00"
                         value={line.amountReais}
-                        onChange={(e) =>
-                          patchLine(i, { amountReais: e.target.value })
-                        }
+                        onChange={(e) => patchLine(i, { amountReais: e.target.value })}
                         disabled={disabled}
                         className={cn('h-8 text-right tabular-nums')}
                       />
@@ -628,9 +617,7 @@ export interface ValidatedProcedureLine {
  *
  * Retorna null quando alguma linha está inválida OU a lista é vazia.
  */
-export function validateProcedures(
-  lines: ProcedureLineDraft[],
-): ValidatedProcedureLine[] | null {
+export function validateProcedures(lines: ProcedureLineDraft[]): ValidatedProcedureLine[] | null {
   if (lines.length === 0) return null
   const out: ValidatedProcedureLine[] = []
   for (const l of lines) {

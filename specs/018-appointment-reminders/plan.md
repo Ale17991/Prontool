@@ -5,7 +5,7 @@
 
 ## Summary
 
-Motor de lembretes automáticos por email para reduzir no-show. Job recorrente (a cada 15min) seleciona agendamentos dentro da janela da antecedência configurada, valida elegibilidade (tenant habilitado, paciente com email + opt-in, agendamento não estornado, janela de horário permitido) e envia email via Resend (provedor já configurado). Cada envio cria registro append-only em `appointment_reminders` (status sent/failed/skipped_*) com idempotência via UNIQUE `(appointment_id, scheduled_offset_hours, channel)`. Batch limitado a 200/ciclo conforme clarificação Q1. Reenvio manual permitido em qualquer status (Q2). Email contém link para landing pública da clínica quando a feature 017 está habilitada (Q3). Dados de profissional/procedimento refletem estado vigente no momento do envio (Q4).
+Motor de lembretes automáticos por email para reduzir no-show. Job recorrente (a cada 15min) seleciona agendamentos dentro da janela da antecedência configurada, valida elegibilidade (tenant habilitado, paciente com email + opt-in, agendamento não estornado, janela de horário permitido) e envia email via Resend (provedor já configurado). Cada envio cria registro append-only em `appointment_reminders` (status sent/failed/skipped\_\*) com idempotência via UNIQUE `(appointment_id, scheduled_offset_hours, channel)`. Batch limitado a 200/ciclo conforme clarificação Q1. Reenvio manual permitido em qualquer status (Q2). Email contém link para landing pública da clínica quando a feature 017 está habilitada (Q3). Dados de profissional/procedimento refletem estado vigente no momento do envio (Q4).
 
 Reusa pattern de adapter de integrações (`src/lib/integrations/`) para futuramente plugar canais (WhatsApp, SMS) sem refatorar core.
 
@@ -23,19 +23,20 @@ Reusa pattern de adapter de integrações (`src/lib/integrations/`) para futuram
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Aplica? | Como atendemos | Status |
-|-----------|---------|----------------|--------|
-| **I. Imutabilidade financeira** | Indireto | `appointment_reminders` é tabela operacional (não financeira), mas é tratada como **append-only** por consistência arquitetural: nunca `DELETE`, `UPDATE` apenas para transitar `queued→sent/failed` via trigger anti-mutation fora do path autorizado. Não toca `appointments`, `appointment_reversals`, `price_versions` etc. | ✅ PASS |
-| **II. Auditabilidade total** | Sim | Cada envio (sent, failed, skipped_*) chama `log_audit_event` com `tenant_id`, `actor` (system para cron / user para manual), `entity='appointment_reminders'`, `entity_id`, `field`, `new_value=status`, `reason`. Trigger de audit em `appointment_reminders` espelha o padrão existente em `public_booking_doctors` (migration 0093). | ✅ PASS |
+| Princípio                        | Aplica?    | Como atendemos                                                                                                                                                                                                                                                                                                                                                                                | Status                      |
+| -------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| **I. Imutabilidade financeira**  | Indireto   | `appointment_reminders` é tabela operacional (não financeira), mas é tratada como **append-only** por consistência arquitetural: nunca `DELETE`, `UPDATE` apenas para transitar `queued→sent/failed` via trigger anti-mutation fora do path autorizado. Não toca `appointments`, `appointment_reversals`, `price_versions` etc.                                                               | ✅ PASS                     |
+| **II. Auditabilidade total**     | Sim        | Cada envio (sent, failed, skipped\_\*) chama `log_audit_event` com `tenant_id`, `actor` (system para cron / user para manual), `entity='appointment_reminders'`, `entity_id`, `field`, `new_value=status`, `reason`. Trigger de audit em `appointment_reminders` espelha o padrão existente em `public_booking_doctors` (migration 0093).                                                     | ✅ PASS                     |
 | **III. Isolamento multi-tenant** | Sim — GATE | RLS por `tenant_id` em `appointment_reminders` (anon: nenhum acesso; authenticated: leitura por jwt_tenant_id; write apenas via service-role). Cron usa service-role com filtro explícito por `tenant_id` em cada query. **Teste de contrato obrigatório**: cron de tenant A NUNCA seleciona/grava em registros de tenant B. Idempotência também respeita o `tenant_id` na UNIQUE constraint. | ✅ PASS (com gate de teste) |
-| **IV. Conformidade TUSS/ANS** | N/A | Feature não toca catálogo TUSS, códigos de procedimento, faturas, integrações TISS. Procedimento aparece no email apenas como `display_name` (já modelado). | ✅ N/A |
-| **V. RBAC server-side** | Sim | `requireRole(['admin', 'recepcionista'])` na rota `/configuracoes/lembretes` (server action) e na rota de reenvio manual `/api/lembretes/[id]/reenviar`. Cron autenticado via `CRON_SECRET` header (pattern existente em `/api/workers/process-ghl-event`). Profissional de saúde **NÃO** pode editar configuração (FR-006). | ✅ PASS |
+| **IV. Conformidade TUSS/ANS**    | N/A        | Feature não toca catálogo TUSS, códigos de procedimento, faturas, integrações TISS. Procedimento aparece no email apenas como `display_name` (já modelado).                                                                                                                                                                                                                                   | ✅ N/A                      |
+| **V. RBAC server-side**          | Sim        | `requireRole(['admin', 'recepcionista'])` na rota `/configuracoes/lembretes` (server action) e na rota de reenvio manual `/api/lembretes/[id]/reenviar`. Cron autenticado via `CRON_SECRET` header (pattern existente em `/api/workers/process-ghl-event`). Profissional de saúde **NÃO** pode editar configuração (FR-006).                                                                  | ✅ PASS                     |
 
 **Constitutional gates** todos verdes. Nenhuma violação a justificar em "Complexity Tracking".
 
 Compromissos da constituição que afetam plano (não-violações, só requisitos):
+
 - Migration revisada por mantenedor com conhecimento de domínio antes do merge (rule `Restrições de Domínio`).
 - Teste de contrato `tests/contract/reminders-tenant-isolation.spec.ts` é **gate de merge**.
 - Email do paciente em logs: usar `redactor` do Pino para mascarar `*@*` em qualquer campo log.
@@ -120,6 +121,7 @@ tests/
 Ver [research.md](./research.md) — 8 decisões técnicas catalogadas.
 
 Resumo dos pontos cobertos:
+
 1. **Vercel Cron vs scheduler externo** → Vercel Cron (já no projeto via `vercel.json`)
 2. **Batch processing**: `Promise.allSettled` com cap de 200 itens
 3. **Idempotência**: `INSERT ... ON CONFLICT (appointment_id, scheduled_offset_hours, channel) DO NOTHING`
@@ -138,6 +140,7 @@ Resumo dos pontos cobertos:
 Ver [data-model.md](./data-model.md) — 1 tabela nova + 2 ALTERs + state diagram.
 
 Resumo:
+
 - `appointment_reminders` (id, tenant_id, appointment_id, scheduled_offset_hours, channel, status, error, provider_message_id, is_manual, created_at, sent_at)
 - ALTER `tenant_clinic_profile` (+7 colunas de configuração)
 - ALTER `patients` (+1 coluna `reminders_opt_in`)
@@ -148,6 +151,7 @@ Resumo:
 ### Contracts
 
 Ver `contracts/`:
+
 - [cron-send-reminders.contract.md](./contracts/cron-send-reminders.contract.md) — POST `/api/cron/send-reminders`
 - [action-save-config.contract.md](./contracts/action-save-config.contract.md) — Server Action `saveReminderConfig`
 - [api-reenviar-lembrete.contract.md](./contracts/api-reenviar-lembrete.contract.md) — POST `/api/lembretes/[id]/reenviar`
@@ -163,6 +167,7 @@ Rodando `update-agent-context.ps1 -AgentType claude` ao final para registrar as 
 ## Constitution Re-check (post Phase 1)
 
 Após desenhar data-model + contracts:
+
 - **I**: nenhuma mutação destrutiva em tabelas financeiras; reminders separados; trigger anti-mutation reforça append-only. ✅
 - **II**: cada operação (INSERT em reminders, UPDATE de status, INSERT em config, manual resend) tem audit via trigger e/ou chamada explícita a `log_audit_event`. ✅
 - **III**: RLS em `appointment_reminders` filtra por `jwt_tenant_id()`; cron filtra por `tenant_id` explícito em cada SELECT; teste de contrato é gate. UNIQUE composta inclui implicitamente o tenant via FK. ✅

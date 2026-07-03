@@ -60,8 +60,7 @@ export async function GhlOAuthPanel({
     ? 'not_connected'
     : row.enabled === false
       ? 'disconnected'
-      : (((row as unknown as { status?: string }).status ??
-          'connected') as GhlPanelStatus)
+      : (((row as unknown as { status?: string }).status ?? 'connected') as GhlPanelStatus)
 
   const config = (row?.config ?? {}) as Partial<GhlConfigV2>
   const customFields = buildCustomFieldsListing(config.custom_field_ids ?? {})
@@ -92,14 +91,11 @@ export async function GhlOAuthPanel({
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              Homio
-            </h1>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900">Homio</h1>
             {renderStatusBadge(status)}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            CRM e automação de marketing — sincronização bidirecional de contatos
-            via OAuth 2.0.
+            CRM e automação de marketing — sincronização bidirecional de contatos via OAuth 2.0.
           </p>
         </div>
       </div>
@@ -110,9 +106,8 @@ export async function GhlOAuthPanel({
           <div>
             <p className="font-semibold">Reconexão necessária</p>
             <p className="text-xs mt-1">
-              Sua conexão Homio está no formato antigo (proxy compartilhado).
-              Reconecte para migrar para o OAuth 2.0 oficial — pacientes,
-              atendimentos e custom fields são preservados.
+              Sua conexão Homio está no formato antigo (proxy compartilhado). Reconecte para migrar
+              para o OAuth 2.0 oficial — pacientes, atendimentos e custom fields são preservados.
             </p>
             {isAdmin ? (
               <Button asChild size="sm" className="mt-2" variant="default">
@@ -129,9 +124,7 @@ export async function GhlOAuthPanel({
           <div>
             <p className="font-semibold">Integração conectada com sucesso</p>
             {callbackWarnings && callbackWarnings.length > 0 ? (
-              <p className="text-xs mt-1">
-                Avisos: {callbackWarnings.join(', ')}
-              </p>
+              <p className="text-xs mt-1">Avisos: {callbackWarnings.join(', ')}</p>
             ) : null}
           </div>
         </div>
@@ -160,14 +153,13 @@ export async function GhlOAuthPanel({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600">
-              Ao conectar, a sub-account escolhida no Homio receberá os custom
-              fields clínicos do Clinni (CPF, plano, profissional, último
-              atendimento, diagnósticos, alergias) e os webhooks de contato.
+              Ao conectar, a sub-account escolhida no Homio receberá os custom fields clínicos do
+              Clinni (CPF, plano, profissional, último atendimento, diagnósticos, alergias) e os
+              webhooks de contato.
             </p>
             <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-2 text-xs text-[hsl(var(--warning-foreground))]">
-              Cada clínica pode ser conectada a apenas uma conta Homio.
-              Antes de conectar, certifique-se de que a sub-account não está
-              vinculada a outra clínica do Clinni.
+              Cada clínica pode ser conectada a apenas uma conta Homio. Antes de conectar,
+              certifique-se de que a sub-account não está vinculada a outra clínica do Clinni.
             </p>
             {isAdmin ? (
               <Button asChild>
@@ -190,9 +182,8 @@ export async function GhlOAuthPanel({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600">
-              O Clinni não conseguiu renovar o token. Reconecte para gerar um
-              novo par de credenciais sem perder os custom fields nem os
-              webhooks já registrados na sub-account.
+              O Clinni não conseguiu renovar o token. Reconecte para gerar um novo par de
+              credenciais sem perder os custom fields nem os webhooks já registrados na sub-account.
             </p>
             {isAdmin ? (
               <Button asChild variant="default">
@@ -247,8 +238,8 @@ export async function GhlOAuthPanel({
             <CardContent className="space-y-2">
               {customFields.length === 0 ? (
                 <p className="text-xs text-slate-500">
-                  Nenhum field registrado ainda. O setup roda em segundo plano
-                  após a conexão; recarregue em alguns segundos.
+                  Nenhum field registrado ainda. O setup roda em segundo plano após a conexão;
+                  recarregue em alguns segundos.
                 </p>
               ) : (
                 <ul className="space-y-1 text-xs">
@@ -265,15 +256,11 @@ export async function GhlOAuthPanel({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">
-                Webhooks registrados ({webhooks.length}/3)
-              </CardTitle>
+              <CardTitle className="text-sm">Webhooks registrados ({webhooks.length}/3)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {webhooks.length === 0 ? (
-                <p className="text-xs text-slate-500">
-                  Nenhum webhook registrado ainda.
-                </p>
+                <p className="text-xs text-slate-500">Nenhum webhook registrado ainda.</p>
               ) : (
                 <ul className="space-y-1 text-xs">
                   {webhooks.map((w) => (
@@ -291,9 +278,7 @@ export async function GhlOAuthPanel({
             <CardHeader>
               <CardTitle className="text-sm">Custom Menu (SSO)</CardTitle>
             </CardHeader>
-            <CardContent>
-              {renderMenuStatus(config.menu_status ?? 'not_attempted')}
-            </CardContent>
+            <CardContent>{renderMenuStatus(config.menu_status ?? 'not_attempted')}</CardContent>
           </Card>
         </>
       ) : null}
@@ -306,16 +291,11 @@ export async function GhlOAuthPanel({
         </CardHeader>
         <CardContent>
           {syncLog.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              Nenhuma operação registrada ainda.
-            </p>
+            <p className="text-xs text-slate-500">Nenhuma operação registrada ainda.</p>
           ) : (
             <ul className="space-y-1.5 text-xs">
               {syncLog.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="flex items-center justify-between gap-3"
-                >
+                <li key={entry.id} className="flex items-center justify-between gap-3">
                   <span
                     className={
                       entry.status === 'success'
@@ -384,15 +364,15 @@ function renderMenuStatus(
     case 'registered':
       return (
         <p className="text-xs text-success-strong">
-          ✓ Menu registrado na sub-account. O usuário Homio pode abrir o Clinni
-          direto pelo menu da sub-account.
+          ✓ Menu registrado na sub-account. O usuário Homio pode abrir o Clinni direto pelo menu da
+          sub-account.
         </p>
       )
     case 'unsupported':
       return (
         <p className="text-xs text-[hsl(var(--warning-foreground))]">
-          A API atual do Homio não suportou o registro automático do Custom Menu.
-          Configure manualmente apontando para <code>/api/sso/ghl</code>.
+          A API atual do Homio não suportou o registro automático do Custom Menu. Configure
+          manualmente apontando para <code>/api/sso/ghl</code>.
         </p>
       )
     case 'failed':
@@ -403,19 +383,11 @@ function renderMenuStatus(
       )
     case 'not_attempted':
     default:
-      return (
-        <p className="text-xs text-slate-500">Custom menu ainda não foi configurado.</p>
-      )
+      return <p className="text-xs text-slate-500">Custom menu ainda não foi configurado.</p>
   }
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}): JSX.Element {
+function Field({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
   return (
     <div className="flex items-baseline justify-between gap-3 text-sm">
       <span className="text-slate-500">{label}</span>

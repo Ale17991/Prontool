@@ -17,7 +17,10 @@ const ROUTE = '/api/tiss/glosas'
 const bodySchema = z.object({
   guiaId: z.string().uuid(),
   guiaProcedureId: z.string().uuid().nullable().optional(),
-  motivoCode: z.string().trim().regex(/^\d{1,4}$/, 'Motivo deve ser numérico (Tabela 38).'),
+  motivoCode: z
+    .string()
+    .trim()
+    .regex(/^\d{1,4}$/, 'Motivo deve ser numérico (Tabela 38).'),
   motivoText: z.string().trim().min(1).max(500),
   glosadoAmountCents: z.number().int().min(0),
 })
@@ -36,7 +39,10 @@ export async function POST(req: Request): Promise<Response> {
           error: {
             code: 'INVALID_BODY',
             message: 'Dados inválidos.',
-            fields: parsed.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message })),
+            fields: parsed.error.issues.map((i) => ({
+              field: i.path.join('.'),
+              message: i.message,
+            })),
           },
         },
         { status: 422 },

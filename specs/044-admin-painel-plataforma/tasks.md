@@ -1,5 +1,5 @@
 ---
-description: "Task list — Painel /admin (financeiro, uso, auditoria, sistema)"
+description: 'Task list — Painel /admin (financeiro, uso, auditoria, sistema)'
 ---
 
 # Tasks: Painel /admin — financeiro, uso, auditoria e saúde do sistema
@@ -76,7 +76,7 @@ description: "Task list — Painel /admin (financeiro, uso, auditoria, sistema)"
 - [ ] T016 [US3] Fechar gaps de auditoria (research R6): garantir que **mudança de plano/módulo** (`setTenantPlanAction`/`set_tenant_entitlement`) e **reset de senha** (`adminResetPasswordAction`/`adminSendResetEmailAction`) gravem `audit_log`; adicionar o insert mínimo onde faltar.
 - [ ] T017 [US3] `src/app/admin/auditoria/page.tsx` (novo): feed cronológico (ator/clínica/antes-depois/horário) + filtros (tipo/clínica/ator/período) + paginação.
 - [ ] T018 [US3] `src/app/admin/admin-nav.tsx`: adicionar item "Auditoria" → `/admin/auditoria`.
-- [ ] T019 [P] [US3] Teste unit `tests/unit/admin-audit-feed.spec.ts`: mapeamento tipo→entity/field (ex.: "impersonação" → entity session + fields impersonation_*).
+- [ ] T019 [P] [US3] Teste unit `tests/unit/admin-audit-feed.spec.ts`: mapeamento tipo→entity/field (ex.: "impersonação" → entity session + fields impersonation\_\*).
 
 **Checkpoint**: US3 independente.
 
@@ -106,14 +106,17 @@ description: "Task list — Painel /admin (financeiro, uso, auditoria, sistema)"
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
+
 - **Setup (1)** → **Foundational (2)** (migração `0165` + tipos) bloqueia US1 (preços). US2/US3/US4 dependem só do Foundational (leem dados existentes).
 - **US1 (3)** = MVP.
 - **US2/US3/US4 (4–6)** independentes entre si.
 
 ### Acoplamento (sequenciar)
+
 - `src/app/admin/admin-nav.tsx`: T009 (US1), T013 (US2), T018 (US3), T022 (US4) — mesmo arquivo, sequenciar.
 
 ### Paralelizável
+
 - Foundational: T002 antes de T003.
 - Os cores de agregação (T005, T011, T015, T020) são arquivos distintos → paralelizáveis entre si após o Foundational. Testes (T010/T014/T019) idem.
 
@@ -122,16 +125,19 @@ description: "Task list — Painel /admin (financeiro, uso, auditoria, sistema)"
 ## Implementation Strategy
 
 ### MVP (US1 — Financeiro/MRR)
+
 1. Setup + Foundational (tabela de preços).
 2. US1: preços + MRR + status/trials/inadimplentes/churn.
 3. **STOP & VALIDATE** (Cenário A). Deploy/demo.
 
 ### Incremental
+
 US1 → US2 (uso/risco) → US3 (auditoria + fechar gaps) → US4 (sistema) → Polish.
 
 ---
 
 ## Notes
+
 - Tudo super-admin server-side; leitura cross-tenant via service client (padrão /admin).
 - `plan_prices` é a única escrita (auditada). Valores em centavos (BRL).
 - Cada card degrada isolado (FR-003) — painel nunca derruba a página.

@@ -52,9 +52,11 @@ action back to the requester.
 Endpoint: `POST /api/pacientes/<patient_id>/anonymize`
 Access: tenant `admin` role only (enforced by `requireRole`).
 Body:
+
 ```json
 { "reason": "DPO ticket DPO-2026-0317" }
 ```
+
 `reason` is required (≥ 10 chars) and is persisted to `audit_log.reason`
 so the DPO can trace the decision later. The acting user id and tenant
 id are recorded in the same row.
@@ -65,9 +67,11 @@ Endpoint: `POST /api/platform/patients/<patient_id>/anonymize`
 Access: public of tenant auth, but gated on `X-Platform-Operator-Token`
 matching `PLATFORM_OPERATOR_TOKEN` via constant-time comparison.
 Body:
+
 ```json
 { "tenant_id": "<uuid>" }
 ```
+
 Reason is hard-coded to `lgpd-retention-anonymization`; audit row
 records `actor_id=null` with `actor_label='platform-operator'`.
 
@@ -78,17 +82,17 @@ eligible under §2. Do not wire it to any tenant-facing UI.
 
 After either call:
 
-| Row                                     | Before              | After                                      |
-| --------------------------------------- | ------------------- | ------------------------------------------ |
-| `patients.full_name_enc`                | encrypted real name | encrypted `[anonimizado]` placeholder      |
-| `patients.cpf_enc`                      | encrypted CPF       | encrypted `[anonimizado]` placeholder      |
-| `patients.phone_enc` / `email_enc` / `birth_date_enc` | encrypted | `NULL`                               |
-| `patients.anonymized_at`                | `NULL`              | `now()`                                    |
-| `clinical_records.content` (type=texto) | authored text       | `[anonimizado]`                            |
-| `clinical_records.file_name` / `file_url` / `file_size_bytes` | metadata / URL to bucket | `[arquivo-removido]` / `[arquivo-removido]` / `0` |
-| Storage object in `clinical-files`      | present             | removed (best effort)                      |
-| `appointments.*`                        | unchanged           | **unchanged** — `patient_id` stays valid   |
-| `audit_log`                             | —                   | one row with `entity='patients'`, `field='anonymized_at'`, `reason` as above |
+| Row                                                           | Before                   | After                                                                        |
+| ------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------- |
+| `patients.full_name_enc`                                      | encrypted real name      | encrypted `[anonimizado]` placeholder                                        |
+| `patients.cpf_enc`                                            | encrypted CPF            | encrypted `[anonimizado]` placeholder                                        |
+| `patients.phone_enc` / `email_enc` / `birth_date_enc`         | encrypted                | `NULL`                                                                       |
+| `patients.anonymized_at`                                      | `NULL`                   | `now()`                                                                      |
+| `clinical_records.content` (type=texto)                       | authored text            | `[anonimizado]`                                                              |
+| `clinical_records.file_name` / `file_url` / `file_size_bytes` | metadata / URL to bucket | `[arquivo-removido]` / `[arquivo-removido]` / `0`                            |
+| Storage object in `clinical-files`                            | present                  | removed (best effort)                                                        |
+| `appointments.*`                                              | unchanged                | **unchanged** — `patient_id` stays valid                                     |
+| `audit_log`                                                   | —                        | one row with `entity='patients'`, `field='anonymized_at'`, `reason` as above |
 
 `patient_id` is preserved because financial reports (and the append-only
 atendimentos / comissão ledger) reference it. Anonymization erases the
@@ -124,7 +128,7 @@ author, type — even when content is erased).
   `UPDATE` or `DELETE` (enforced by `enforce_append_only` trigger on
   `audit_log`).
 - Contents never include decrypted PII. `old_value` / `new_value` on
-  the patient anonymization row carries the *timestamp*, not the name.
+  the patient anonymization row carries the _timestamp_, not the name.
 
 ## 6. Environment / configuration
 

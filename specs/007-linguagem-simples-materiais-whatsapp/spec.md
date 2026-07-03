@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Três melhorias: materiais opcionais no procedimento, botão WhatsApp e linguagem simplificada."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Registrar materiais utilizados no atendimento (Priority: P1)
 
@@ -76,7 +76,7 @@ A maior parte da comunicação informal entre clínica e paciente acontece por W
 - **Linguagem — mensagens de erro contextuais**: alguns erros precisam de mensagem específica (ex.: "Procedimento não encontrado"). A regra "Algo deu errado. Tente novamente em alguns segundos." vale para erros genéricos não classificados — não para erros de validação que já têm texto próprio.
 - **Linguagem — termos em emails/PDFs**: a regra também se aplica a textos de PDFs gerados (prontuário, comprovante) e emails enviados ao usuário, não apenas à UI web.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -126,11 +126,11 @@ A maior parte da comunicação informal entre clínica e paciente acontece por W
 - **FR-026**: Logs de servidor, telemetria interna e mensagens enviadas para Sentry/Pino PODEM continuar usando termos técnicos (são consumidos por desenvolvedores).
 - **FR-027**: A revisão DEVE cobrir todos os domínios da aplicação, incluindo: páginas dashboard, página de erro global (`error.tsx` / `not-found.tsx`), páginas de configurações, telas de integrações, modais, toasts, validações Zod com mensagens visíveis, alertas em sidebar, badges de status.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **AppointmentMaterial**: representa um insumo/material utilizado em um atendimento clínico. Atributos: identificador único, vínculo com clínica (`tenant_id`), vínculo com atendimento (`appointment_id`), código TUSS (tabela 19), descrição congelada no momento da inserção (para preservar histórico mesmo se o catálogo TUSS mudar), quantidade inteira positiva, autor da inserção (`created_by`), momento da inserção. Relação 1:N com `appointments`. Imutável após criação.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

@@ -15,37 +15,37 @@ describe('T135 — monthly report RBAC', () => {
     await resetDatabase()
   })
 
-  it.each(BLOCKED)('role=%s receives 403 on GET /api/relatorios/mensal and audits denial', async (role) => {
-    const { tenantId } = await seedTenant(`t135-json-${role}`)
-    const user = await seedUser(tenantId, role)
-    const jwt = mintJwt({
-      userId: user.userId,
-      email: user.email,
-      tenantId,
-      role,
-    })
-    const { GET } = await import('@/app/api/relatorios/mensal/route')
-    const res = await GET(
-      new Request(
-        'http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31',
-        {
+  it.each(BLOCKED)(
+    'role=%s receives 403 on GET /api/relatorios/mensal and audits denial',
+    async (role) => {
+      const { tenantId } = await seedTenant(`t135-json-${role}`)
+      const user = await seedUser(tenantId, role)
+      const jwt = mintJwt({
+        userId: user.userId,
+        email: user.email,
+        tenantId,
+        role,
+      })
+      const { GET } = await import('@/app/api/relatorios/mensal/route')
+      const res = await GET(
+        new Request('http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31', {
           method: 'GET',
           headers: { authorization: `Bearer ${jwt}` },
-        },
-      ),
-    )
-    expect(res.status).toBe(403)
+        }),
+      )
+      expect(res.status).toBe(403)
 
-    const sb = serviceClient()
-    const { data: audit } = await sb
-      .from('audit_log')
-      .select('result, entity, actor_id')
-      .eq('tenant_id', tenantId)
-      .eq('actor_id', user.userId)
-      .eq('result', 'denied')
-      .eq('entity', 'reports')
-    expect(audit?.length ?? 0).toBeGreaterThan(0)
-  })
+      const sb = serviceClient()
+      const { data: audit } = await sb
+        .from('audit_log')
+        .select('result, entity, actor_id')
+        .eq('tenant_id', tenantId)
+        .eq('actor_id', user.userId)
+        .eq('result', 'denied')
+        .eq('entity', 'reports')
+      expect(audit?.length ?? 0).toBeGreaterThan(0)
+    },
+  )
 
   it.each(BLOCKED)(
     'role=%s receives 403 on GET /api/relatorios/mensal/export/pdf',
@@ -110,10 +110,10 @@ describe('T135 — monthly report RBAC', () => {
     })
     const { GET } = await import('@/app/api/relatorios/mensal/route')
     const res = await GET(
-      new Request(
-        'http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31',
-        { method: 'GET', headers: { authorization: `Bearer ${jwt}` } },
-      ),
+      new Request('http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31', {
+        method: 'GET',
+        headers: { authorization: `Bearer ${jwt}` },
+      }),
     )
     expect(res.status).toBe(200)
   })
@@ -129,10 +129,10 @@ describe('T135 — monthly report RBAC', () => {
     })
     const { GET } = await import('@/app/api/relatorios/mensal/route')
     const res = await GET(
-      new Request(
-        'http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31',
-        { method: 'GET', headers: { authorization: `Bearer ${jwt}` } },
-      ),
+      new Request('http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31', {
+        method: 'GET',
+        headers: { authorization: `Bearer ${jwt}` },
+      }),
     )
     expect(res.status).toBe(200)
   })

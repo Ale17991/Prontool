@@ -36,11 +36,7 @@ const timeSchema = z.string().regex(/^\d{2}:\d{2}$/, {
   message: 'Hora inválida. Use HH:MM (24h).',
 })
 
-const weekdaySchema = z
-  .number()
-  .int()
-  .min(0)
-  .max(6)
+const weekdaySchema = z.number().int().min(0).max(6)
 
 export const PublicBookingConfigUpdateSchema = z
   .object({
@@ -62,10 +58,7 @@ export const PublishedDoctorUpsertSchema = z
     doctorId: z.string().uuid(),
     displayOrder: z.number().int().min(0).default(0),
     bio: z.string().max(500).nullable(),
-    availableWeekdays: z
-      .array(weekdaySchema)
-      .min(1)
-      .max(7),
+    availableWeekdays: z.array(weekdaySchema).min(1).max(7),
     availableFrom: timeSchema,
     availableUntil: timeSchema,
     lunchBreakFrom: timeSchema.nullable(),
@@ -198,8 +191,7 @@ export async function getPublicBookingConfig(
     doctors: (doctorsRes.data ?? []).map((row) => ({
       doctorId: row.doctor_id,
       // Supabase typegen retorna doctors como objeto via !inner; defensive cast.
-      doctorFullName:
-        (row.doctors as unknown as { full_name: string } | null)?.full_name ?? '—',
+      doctorFullName: (row.doctors as unknown as { full_name: string } | null)?.full_name ?? '—',
       displayOrder: row.display_order,
       bio: row.bio,
       availableWeekdays: row.available_weekdays,
@@ -324,19 +316,17 @@ export async function upsertPublishedProcedure(
   tenantId: string,
   input: PublishedProcedureUpsert,
 ): Promise<void> {
-  const { error } = await supabase
-    .from('public_booking_doctor_procedures')
-    .upsert(
-      {
-        tenant_id: tenantId,
-        doctor_id: input.doctorId,
-        procedure_id: input.procedureId,
-        display_name: input.displayName,
-        duration_minutes: input.durationMinutes,
-        display_order: input.displayOrder,
-      },
-      { onConflict: 'tenant_id,doctor_id,procedure_id' },
-    )
+  const { error } = await supabase.from('public_booking_doctor_procedures').upsert(
+    {
+      tenant_id: tenantId,
+      doctor_id: input.doctorId,
+      procedure_id: input.procedureId,
+      display_name: input.displayName,
+      duration_minutes: input.durationMinutes,
+      display_order: input.displayOrder,
+    },
+    { onConflict: 'tenant_id,doctor_id,procedure_id' },
+  )
   if (error) {
     throw new Error(`upsertPublishedProcedure: ${error.message}`)
   }

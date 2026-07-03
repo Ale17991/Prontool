@@ -37,12 +37,22 @@ export function DashboardSummary({ weightImc, metrics, metricTypes }: Props) {
   const weights = weightImc.filter((p) => p.weightKg !== null)
   if (weights.length > 0) {
     const [prev, cur] = lastTwo(weights)
-    kpis.push({ label: 'Peso', value: cur!.weightKg!, unit: 'kg', delta: prev && prev.weightKg !== null ? cur!.weightKg! - prev.weightKg : null })
+    kpis.push({
+      label: 'Peso',
+      value: cur!.weightKg!,
+      unit: 'kg',
+      delta: prev && prev.weightKg !== null ? cur!.weightKg! - prev.weightKg : null,
+    })
   }
   const bmis = weightImc.filter((p) => p.bmi !== null)
   if (bmis.length > 0) {
     const [prev, cur] = lastTwo(bmis)
-    kpis.push({ label: 'IMC', value: cur!.bmi!, unit: '', delta: prev && prev.bmi !== null ? cur!.bmi! - prev.bmi : null })
+    kpis.push({
+      label: 'IMC',
+      value: cur!.bmi!,
+      unit: '',
+      delta: prev && prev.bmi !== null ? cur!.bmi! - prev.bmi : null,
+    })
   }
   for (const t of metricTypes) {
     const series = metrics[t.metricType] ?? []
@@ -72,7 +82,9 @@ export function DashboardSummary({ weightImc, metrics, metricTypes }: Props) {
             <p className="truncate text-[11px] font-medium text-slate-400">{k.label}</p>
             <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">
               {fmtNum(k.value)}
-              {k.unit ? <span className="ml-0.5 text-xs font-normal text-slate-400">{k.unit}</span> : null}
+              {k.unit ? (
+                <span className="ml-0.5 text-xs font-normal text-slate-400">{k.unit}</span>
+              ) : null}
             </p>
             {k.delta !== null && Math.abs(k.delta) >= 0.05 ? (
               <p className="text-[11px] font-medium text-slate-400">

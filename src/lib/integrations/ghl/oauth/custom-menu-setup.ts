@@ -66,9 +66,10 @@ export async function customMenuSetup(
   }
 
   if (res.ok) {
-    const body = (await res.json().catch(() => null)) as
-      | { id?: string; menu?: { id?: string } }
-      | null
+    const body = (await res.json().catch(() => null)) as {
+      id?: string
+      menu?: { id?: string }
+    } | null
     const menuId = body?.id ?? body?.menu?.id ?? null
     await updateGhlConfig(supabase, tenantId, {
       menu_status: 'registered',
@@ -83,10 +84,7 @@ export async function customMenuSetup(
 
   // 404/403/405 → recurso indisponível — não falha conexão.
   if (res.status === 404 || res.status === 403 || res.status === 405) {
-    logger.info(
-      { tenant_id: tenantId, status: res.status },
-      'ghl-custom-menu-unsupported',
-    )
+    logger.info({ tenant_id: tenantId, status: res.status }, 'ghl-custom-menu-unsupported')
     await updateGhlConfig(supabase, tenantId, { menu_status: 'unsupported' })
     await recordSyncFailure(supabase, tenantId, {
       kind: 'custom_menu_setup',

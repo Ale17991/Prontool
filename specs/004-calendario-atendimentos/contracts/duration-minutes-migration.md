@@ -73,13 +73,13 @@ Em produção: NÃO reverter — coluna NULLABLE não tem custo, e a row em `tus
 
 ## Impacto em consumidores
 
-| Consumer | Impacto |
-|---|---|
-| `appointments_effective` (view) | Sem mudança DDL — `SELECT a.*` propaga `duration_minutes` automaticamente. |
-| `src/lib/db/generated/types.ts` | Regenerar via `pnpm supabase:gen-types` após aplicar a migration. |
+| Consumer                                          | Impacto                                                                                |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `appointments_effective` (view)                   | Sem mudança DDL — `SELECT a.*` propaga `duration_minutes` automaticamente.             |
+| `src/lib/db/generated/types.ts`                   | Regenerar via `pnpm supabase:gen-types` após aplicar a migration.                      |
 | `src/app/api/atendimentos/manual/route.ts` (POST) | Aceitar `duration_minutes?: number` no body Zod (opcional, default 30 quando ausente). |
-| Form "Novo atendimento" | Acrescentar campo "Duração (min)" com default 30. |
-| Form de etapa de tratamento | Não acrescenta `duration_minutes` por enquanto (etapas têm seu próprio fluxo). |
+| Form "Novo atendimento"                           | Acrescentar campo "Duração (min)" com default 30.                                      |
+| Form de etapa de tratamento                       | Não acrescenta `duration_minutes` por enquanto (etapas têm seu próprio fluxo).         |
 
 ## Testes
 

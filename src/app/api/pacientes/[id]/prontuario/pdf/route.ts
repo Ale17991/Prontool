@@ -22,19 +22,16 @@ const querySchema = z.object({
   inline: z.string().optional(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/prontuario/pdf`
   try {
-    const session = await requireRole(
-      ['admin', 'financeiro', 'profissional_saude'],
-      { entity: 'patients', entityId: params.id, route, request: req },
-    )
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
+      entity: 'patients',
+      entityId: params.id,
+      route,
+      request: req,
+    })
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         { error: { code: 'INVALID_QUERY', message: 'from/to inválidos' } },

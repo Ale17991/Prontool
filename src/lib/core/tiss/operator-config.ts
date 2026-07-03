@@ -59,9 +59,10 @@ export async function upsertTissOperatorConfig(
         tiss_version: config.tiss_version,
         contracted_code: config.contracted_code,
         contracted_cnpj: config.contracted_cnpj,
-        contracted_cnes: config.contracted_cnes && config.contracted_cnes.length > 0
-          ? config.contracted_cnes
-          : null,
+        contracted_cnes:
+          config.contracted_cnes && config.contracted_cnes.length > 0
+            ? config.contracted_cnes
+            : null,
         procedure_table_map: config.procedure_table_map,
         active: true,
         created_by_user_id: args.actorUserId,

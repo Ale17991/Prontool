@@ -309,7 +309,7 @@ export async function middleware(req: NextRequest) {
   if (ssoOrigin === 'ghl') {
     res.headers.set(
       'Content-Security-Policy',
-      "frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com",
+      'frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com',
     )
   }
   return res

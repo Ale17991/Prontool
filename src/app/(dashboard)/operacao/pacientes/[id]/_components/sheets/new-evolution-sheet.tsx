@@ -35,15 +35,12 @@ export function NewEvolutionSheet({
 }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full overflow-y-auto sm:max-w-2xl"
-      >
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
         <SheetHeader>
           <SheetTitle>Nova evolução SOAP</SheetTitle>
           <SheetDescription>
-            Registre uma evolução clínica do paciente. Subjetivo e Avaliação
-            são obrigatórios; CIDs podem ser vinculados na seção A.
+            Registre uma evolução clínica do paciente. Subjetivo e Avaliação são obrigatórios; CIDs
+            podem ser vinculados na seção A.
           </SheetDescription>
         </SheetHeader>
         <div className="mt-4">

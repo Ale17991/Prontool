@@ -7,10 +7,7 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function POST(
-  req: Request,
-  context: { params: { mes: string } },
-): Promise<Response> {
+export async function POST(req: Request, context: { params: { mes: string } }): Promise<Response> {
   const route = `/api/financeiro/repasse-medico/${context.params.mes}/close`
   try {
     const session = await requireRole(['admin'], {

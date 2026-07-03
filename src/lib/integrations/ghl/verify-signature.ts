@@ -26,7 +26,8 @@ export function verifyGhlSignature(input: VerifyGhlSignatureInput): void {
   if (!input.timestamp) throw new InvalidSignatureError('Missing X-GHL-Timestamp header')
 
   const tsNumber = Number.parseInt(input.timestamp, 10)
-  if (!Number.isFinite(tsNumber)) throw new InvalidSignatureError('Malformed X-GHL-Timestamp header')
+  if (!Number.isFinite(tsNumber))
+    throw new InvalidSignatureError('Malformed X-GHL-Timestamp header')
   const now = input.nowSeconds ?? Math.floor(Date.now() / 1000)
   if (Math.abs(now - tsNumber) > MAX_DRIFT_SECONDS) {
     throw new InvalidSignatureError('X-GHL-Timestamp outside allowed drift window')

@@ -57,7 +57,12 @@ describe('conflict exclusion (US1)', () => {
     patientId = await seedPatient(tenantId)
   })
 
-  function makeAppointmentArgs(at: string, doctorId: string, commissionId: string, durationMinutes = 30) {
+  function makeAppointmentArgs(
+    at: string,
+    doctorId: string,
+    commissionId: string,
+    durationMinutes = 30,
+  ) {
     return {
       tenantId,
       patientId,
@@ -75,7 +80,12 @@ describe('conflict exclusion (US1)', () => {
 
   // Helper local — seedAppointment do repo nao aceita duration_minutes,
   // entao usamos service client direto.
-  async function insertAppointment(at: string, doctorId: string, commissionId: string, durationMinutes = 30) {
+  async function insertAppointment(
+    at: string,
+    doctorId: string,
+    commissionId: string,
+    durationMinutes = 30,
+  ) {
     const sb = serviceClient()
     const id = randomUUID()
     const { error } = await sb.from('appointments').insert({

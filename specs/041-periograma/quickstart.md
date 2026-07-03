@@ -1,10 +1,12 @@
 # Quickstart — Periograma (Fase 3)
 
 ## Pré-requisitos
+
 - Stack local: `supabase start` (:54321). Aplicar migrations: `pnpm supabase:reset` (⚠️ apaga dados locais — re-seed com `pnpm seed:demo`).
 - Demo: `admin@clinica-demo.test / demo1234`.
 
 ## Fluxo de validação manual
+
 1. Abrir um paciente → aba **Odonto-Space** → sub-seção **Periograma**.
 2. **Criar exame** (botão "Novo exame"). Confirmar que cria em rascunho e que tentar criar outro avisa que já há rascunho.
 3. Na **grade**, preencher profundidade de sondagem e recessão de alguns sítios; marcar sangramento. Conferir:
@@ -18,6 +20,7 @@
 7. Logar com papel **recepcionista** → consegue ver, não consegue editar.
 
 ## Validação automatizada
+
 ```bash
 pnpm typecheck
 pnpm lint:auth
@@ -27,6 +30,7 @@ pnpm test            # inclui unit/perio-calc (CAL e indicadores)
 ```
 
 ## Critérios de aceite (do spec)
+
 - SC-001: exame permanente completo registrado e finalizado em < 10 min.
 - SC-002: indicadores batem com cálculo manual (100% dos casos de teste).
 - SC-003: comparar dois exames e ver variação de PD por sítio em < 1 min.

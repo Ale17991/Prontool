@@ -83,33 +83,47 @@ async function main(): Promise<void> {
   const licenseInfo = await fetchLicenseInfo(REPO)
   if (!licenseInfo.accepted) {
     if (process.env.SEED_TUSS_FORCE !== '1') {
-      console.error(`[seed-tuss] ABORTADO: ${REPO} declara licença "${licenseInfo.name ?? 'NENHUMA'}".`)
-      console.error('[seed-tuss] O conteúdo é dado público da ANS, mas o mirror não declarou licença.')
-      console.error('[seed-tuss] Para prosseguir em DEV/staging, rode com SEED_TUSS_FORCE=1 e documente em docs/data-sources.md antes de produção.')
+      console.error(
+        `[seed-tuss] ABORTADO: ${REPO} declara licença "${licenseInfo.name ?? 'NENHUMA'}".`,
+      )
+      console.error(
+        '[seed-tuss] O conteúdo é dado público da ANS, mas o mirror não declarou licença.',
+      )
+      console.error(
+        '[seed-tuss] Para prosseguir em DEV/staging, rode com SEED_TUSS_FORCE=1 e documente em docs/data-sources.md antes de produção.',
+      )
       process.exit(2)
     }
     console.warn('[seed-tuss] SEED_TUSS_FORCE=1: prosseguindo sem licença declarada.')
   } else {
-    console.info(`[seed-tuss] licença aceita: ${licenseInfo.name} (${licenseInfo.spdx ?? 'sem SPDX'})`)
+    console.info(
+      `[seed-tuss] licença aceita: ${licenseInfo.name} (${licenseInfo.spdx ?? 'sem SPDX'})`,
+    )
   }
 
   const supabase = createSupabaseServiceClient()
   const refSha = await resolveCommitSha(REPO, REPO_REF)
 
   for (const table of tables) {
-    const url = urlOverride ?? `https://raw.githubusercontent.com/${REPO}/${REPO_REF}/${SOURCE_PATH[table]}`
+    const url =
+      urlOverride ?? `https://raw.githubusercontent.com/${REPO}/${REPO_REF}/${SOURCE_PATH[table]}`
     console.info(`[seed-tuss] === tabela ${table} — ${url}`)
 
     const res = await fetch(url)
     if (!res.ok) throw new Error(`failed to download ${url}: HTTP ${res.status}`)
     const raw = await res.text()
-    console.info(`[seed-tuss] baixou ${(raw.length / 1024).toFixed(1)} KB; commit ${refSha.slice(0, 8)}`)
+    console.info(
+      `[seed-tuss] baixou ${(raw.length / 1024).toFixed(1)} KB; commit ${refSha.slice(0, 8)}`,
+    )
 
     const payload = JSON.parse(raw) as SourcePayload
-    if (!Array.isArray(payload.rows)) throw new Error(`payload da tabela ${table} sem \`rows\` array`)
+    if (!Array.isArray(payload.rows))
+      throw new Error(`payload da tabela ${table} sem \`rows\` array`)
     const normalized = normalize(table, payload.rows)
     const hash = createHash('sha256').update(JSON.stringify(normalized)).digest('hex')
-    console.info(`[seed-tuss] parseou ${normalized.length} códigos (content-hash ${hash.slice(0, 12)})`)
+    console.info(
+      `[seed-tuss] parseou ${normalized.length} códigos (content-hash ${hash.slice(0, 12)})`,
+    )
 
     const versionInsert = await supabase
       .from('tuss_catalog_versions')
@@ -139,7 +153,9 @@ async function main(): Promise<void> {
       }))
       const { error } = await supabase.from('tuss_codes').upsert(slice, { onConflict: 'code' })
       if (error) throw new Error(`tuss_codes upsert tabela=${table} offset=${i}: ${error.message}`)
-      console.info(`[seed-tuss] tabela ${table}: upsert ${Math.min(i + BATCH, normalized.length)}/${normalized.length}`)
+      console.info(
+        `[seed-tuss] tabela ${table}: upsert ${Math.min(i + BATCH, normalized.length)}/${normalized.length}`,
+      )
     }
   }
 
@@ -168,7 +184,13 @@ async function fetchLicenseInfo(repo: string): Promise<{
     const spdx = body.license?.spdx_id ?? null
     const name = body.license?.name ?? null
     const permissive = new Set([
-      'MIT', 'Apache-2.0', 'BSD-3-Clause', 'BSD-2-Clause', 'ISC', 'Unlicense', 'CC0-1.0',
+      'MIT',
+      'Apache-2.0',
+      'BSD-3-Clause',
+      'BSD-2-Clause',
+      'ISC',
+      'Unlicense',
+      'CC0-1.0',
     ])
     const accepted = !!spdx && permissive.has(spdx)
     return { accepted, name, spdx }

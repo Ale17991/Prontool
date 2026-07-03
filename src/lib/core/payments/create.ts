@@ -121,9 +121,7 @@ export async function createPaymentRecord(
     .insert(installmentRows)
     .select('id')
   if (installmentInsert.error) {
-    throw new Error(
-      `payment_installments insert failed: ${installmentInsert.error.message}`,
-    )
+    throw new Error(`payment_installments insert failed: ${installmentInsert.error.message}`)
   }
 
   return {

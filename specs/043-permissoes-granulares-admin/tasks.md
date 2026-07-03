@@ -1,5 +1,5 @@
 ---
-description: "Task list — Permissões granulares por usuário + autonomia de super-admin"
+description: 'Task list — Permissões granulares por usuário + autonomia de super-admin'
 ---
 
 # Tasks: Permissões granulares por usuário + autonomia de super-admin
@@ -121,17 +121,20 @@ description: "Task list — Permissões granulares por usuário + autonomia de s
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
+
 - **Setup (1)** → **Foundational (2)** bloqueia tudo (migração + `canUser` + carga de overrides + wiring de autorização).
 - **US1 (3)** depende só do Foundational — é o MVP.
 - **US2/US3/US4/US5 (4–7)** dependem do Foundational; reusam helpers de audit/escopo. Tocam o `clinic-detail.tsx` (sequenciar as seções) e `admin actions` (mesma área — sequenciar).
 - **Polish (8)** ao final.
 
 ### Acoplamento (evitar [P] entre si)
+
 - `src/app/admin/clinicas/[id]/clinic-detail.tsx`: US2 (Usuários), US4 (Dados), US5 (Entrar) — sequenciar.
 - `admin actions`: US2, US3, US4, US5 — mesma área; sequenciar.
 - `requireRole`/guard: T006 (Foundational) e T021 (US5) — sequenciar.
 
 ### Paralelizável
+
 - Foundational: T004, T005 em paralelo (arquivos distintos) após T002/T003.
 - US1: T008 e T012 podem ir em paralelo; T007→T009→T010→T011 em sequência lógica.
 - Testes de integração (T015/T023) em paralelo com UI da própria story.
@@ -141,16 +144,19 @@ description: "Task list — Permissões granulares por usuário + autonomia de s
 ## Implementation Strategy
 
 ### MVP (US1 — overrides)
+
 1. Phase 1 + 2 (autorização + tabela).
 2. Phase 3 (US1): conceder/revogar por usuário, enforce server-side.
 3. **STOP & VALIDATE** (Cenários A/B/C do quickstart). Deploy/demo.
 
 ### Incremental
+
 US1 → US2 (usuários no /admin) → US3 (reset) → US4 (dados clínica) → US5 (impersonar read-only) → Polish. Cada story agrega valor sem quebrar as anteriores.
 
 ---
 
 ## Notes
+
 - Autorização é SEMPRE server-side; UI reflete, não protege (constituição V).
 - Ações protegidas (`price.write`, `commission.write`, `appointment.reverse`, `audit.read/export`) são NÃO-overridáveis.
 - Toda ação cross-tenant valida `superAdminUserId()` + escopo do tenant alvo e audita com o tenant alvo.

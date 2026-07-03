@@ -41,17 +41,17 @@ Não é necessário: badges, contadores, indicadores de novidade — todos fora 
 
 ## Tabela canônica (espelha `data-model.md`)
 
-| # | id | Título | Descrição (1 linha) | Ícone (lucide) | Destino | Visibilidade |
-|---|-----|--------|---------------------|----------------|---------|--------------|
-| 1 | clinica | Clínica | Dados, logo e identidade visual da clínica | Building2 | /configuracoes/clinica | admin |
-| 2 | perfil | Meu Perfil | Seus dados pessoais, avatar e preferências | UserCircle | /configuracoes/perfil | qualquer autenticado |
-| 3 | usuarios | Usuários | Convide e gerencie quem tem acesso à clínica | Users | /configuracoes/usuarios | admin |
-| 4 | procedimentos | Procedimentos | Catálogo de procedimentos e códigos TUSS | ListChecks | /configuracoes/procedimentos | `can('procedure.read')` |
-| 5 | convenios | Convênios | Convênios atendidos e tabelas de preço | DollarSign | /configuracoes/convenios | `can('plan.read')` |
-| 6 | profissionais | Profissionais | Profissionais de saúde e comissões | UserCheck | /configuracoes/profissionais | `can('doctor.read')` |
-| 7 | modelos-anamnese | Modelos de Anamnese | Modelos clínicos reutilizáveis nos atendimentos | ClipboardCheck | /configuracoes/modelos-anamnese | admin + flag `anamnese` |
-| 8 | integracoes | Integrações | Conexões com WhatsApp, GHL e outros sistemas | Plug | /configuracoes/integracoes | admin |
-| 9 | auditoria | Auditoria | Trilha completa de alterações e acessos sensíveis | ScrollText | /configuracoes/auditoria | `can('audit.read')` |
+| #   | id               | Título              | Descrição (1 linha)                               | Ícone (lucide) | Destino                         | Visibilidade            |
+| --- | ---------------- | ------------------- | ------------------------------------------------- | -------------- | ------------------------------- | ----------------------- |
+| 1   | clinica          | Clínica             | Dados, logo e identidade visual da clínica        | Building2      | /configuracoes/clinica          | admin                   |
+| 2   | perfil           | Meu Perfil          | Seus dados pessoais, avatar e preferências        | UserCircle     | /configuracoes/perfil           | qualquer autenticado    |
+| 3   | usuarios         | Usuários            | Convide e gerencie quem tem acesso à clínica      | Users          | /configuracoes/usuarios         | admin                   |
+| 4   | procedimentos    | Procedimentos       | Catálogo de procedimentos e códigos TUSS          | ListChecks     | /configuracoes/procedimentos    | `can('procedure.read')` |
+| 5   | convenios        | Convênios           | Convênios atendidos e tabelas de preço            | DollarSign     | /configuracoes/convenios        | `can('plan.read')`      |
+| 6   | profissionais    | Profissionais       | Profissionais de saúde e comissões                | UserCheck      | /configuracoes/profissionais    | `can('doctor.read')`    |
+| 7   | modelos-anamnese | Modelos de Anamnese | Modelos clínicos reutilizáveis nos atendimentos   | ClipboardCheck | /configuracoes/modelos-anamnese | admin + flag `anamnese` |
+| 8   | integracoes      | Integrações         | Conexões com WhatsApp, GHL e outros sistemas      | Plug           | /configuracoes/integracoes      | admin                   |
+| 9   | auditoria        | Auditoria           | Trilha completa de alterações e acessos sensíveis | ScrollText     | /configuracoes/auditoria        | `can('audit.read')`     |
 
 > Os ícones acima são sugestões alinhadas ao que já é usado em `dashboard-shell.tsx` para os mesmos destinos. Implementador pode trocar contanto que continue sendo um ícone lucide-react e a substituição se justifique visualmente.
 
@@ -61,17 +61,17 @@ Não é necessário: badges, contadores, indicadores de novidade — todos fora 
 
 Para evitar drift entre "antes" e "depois", os predicados de cada card replicam **exatamente** os predicados que estão em `dashboard-shell.tsx` hoje:
 
-| Card | Predicado (TypeScript) |
-|------|------------------------|
-| clinica | `({ role }) => role === 'admin'` |
-| perfil | `() => true` |
-| usuarios | `({ role }) => role === 'admin'` |
-| procedimentos | `({ role }) => can(role, 'procedure.read')` |
-| convenios | `({ role }) => can(role, 'plan.read')` |
-| profissionais | `({ role }) => can(role, 'doctor.read')` |
+| Card             | Predicado (TypeScript)                                    |
+| ---------------- | --------------------------------------------------------- |
+| clinica          | `({ role }) => role === 'admin'`                          |
+| perfil           | `() => true`                                              |
+| usuarios         | `({ role }) => role === 'admin'`                          |
+| procedimentos    | `({ role }) => can(role, 'procedure.read')`               |
+| convenios        | `({ role }) => can(role, 'plan.read')`                    |
+| profissionais    | `({ role }) => can(role, 'doctor.read')`                  |
 | modelos-anamnese | `({ role, flags }) => flags.anamnese && role === 'admin'` |
-| integracoes | `({ role }) => role === 'admin'` |
-| auditoria | `({ role }) => can(role, 'audit.read')` |
+| integracoes      | `({ role }) => role === 'admin'`                          |
+| auditoria        | `({ role }) => can(role, 'audit.read')`                   |
 
 ---
 
@@ -79,12 +79,12 @@ Para evitar drift entre "antes" e "depois", os predicados de cada card replicam 
 
 Para a matriz de tests (R7), o conjunto esperado de cards visíveis por role (com todas as flags `true`):
 
-| Role | Cards visíveis (em ordem) |
-|------|----------------------------|
-| admin | clinica, perfil, usuarios, procedimentos, convenios, profissionais, modelos-anamnese, integracoes, auditoria |
-| financeiro | perfil + (procedimentos/convenios/profissionais conforme `can()`) + (auditoria se `can('audit.read')`) |
-| recepcionista | perfil + (procedimentos/convenios/profissionais conforme `can()`) |
-| profissional_saude | perfil + (procedimentos/convenios/profissionais conforme `can()`) |
+| Role               | Cards visíveis (em ordem)                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| admin              | clinica, perfil, usuarios, procedimentos, convenios, profissionais, modelos-anamnese, integracoes, auditoria |
+| financeiro         | perfil + (procedimentos/convenios/profissionais conforme `can()`) + (auditoria se `can('audit.read')`)       |
+| recepcionista      | perfil + (procedimentos/convenios/profissionais conforme `can()`)                                            |
+| profissional_saude | perfil + (procedimentos/convenios/profissionais conforme `can()`)                                            |
 
 > O conjunto exato para roles não-admin é determinado pela tabela `can()` em `src/lib/auth/rbac.ts`. O teste vai consultar `can()` em vez de hard-coding os valores, para sobreviver a mudanças futuras no RBAC.
 

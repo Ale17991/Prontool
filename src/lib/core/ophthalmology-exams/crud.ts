@@ -1,7 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 
-export interface RefrEye { sphere: string | null; cylinder: string | null; axis: string | null }
+export interface RefrEye {
+  sphere: string | null
+  cylinder: string | null
+  axis: string | null
+}
 
 export interface OphthalExam {
   id: string
@@ -68,11 +72,21 @@ export async function createOphthalExam(
       tenant_id: input.tenantId,
       patient_id: input.patientId,
       doctor_id: input.doctorId ?? null,
-      av_od_sc: t(input.av.odSc), av_od_cc: t(input.av.odCc), av_oe_sc: t(input.av.oeSc), av_oe_cc: t(input.av.oeCc),
-      refr_od_sphere: t(input.refr.od.sphere), refr_od_cylinder: t(input.refr.od.cylinder), refr_od_axis: t(input.refr.od.axis),
-      refr_oe_sphere: t(input.refr.oe.sphere), refr_oe_cylinder: t(input.refr.oe.cylinder), refr_oe_axis: t(input.refr.oe.axis),
-      pio_od: t(input.pio.od), pio_oe: t(input.pio.oe),
-      biomicroscopy: t(input.biomicroscopy), fundoscopy: t(input.fundoscopy), notes: t(input.notes),
+      av_od_sc: t(input.av.odSc),
+      av_od_cc: t(input.av.odCc),
+      av_oe_sc: t(input.av.oeSc),
+      av_oe_cc: t(input.av.oeCc),
+      refr_od_sphere: t(input.refr.od.sphere),
+      refr_od_cylinder: t(input.refr.od.cylinder),
+      refr_od_axis: t(input.refr.od.axis),
+      refr_oe_sphere: t(input.refr.oe.sphere),
+      refr_oe_cylinder: t(input.refr.oe.cylinder),
+      refr_oe_axis: t(input.refr.oe.axis),
+      pio_od: t(input.pio.od),
+      pio_oe: t(input.pio.oe),
+      biomicroscopy: t(input.biomicroscopy),
+      fundoscopy: t(input.fundoscopy),
+      notes: t(input.notes),
       created_by: input.actorUserId,
     } as never)
     .select('id')

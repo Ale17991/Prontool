@@ -144,7 +144,10 @@ export async function recordMeasurement(
     .single()
   if (error || !data) {
     // Backstop do trigger (23514) vira 422 com a mensagem do banco.
-    if (error?.message?.includes('MEASUREMENT_OUT_OF_RANGE') || error?.message?.includes('METRIC_TYPE_')) {
+    if (
+      error?.message?.includes('MEASUREMENT_OUT_OF_RANGE') ||
+      error?.message?.includes('METRIC_TYPE_')
+    ) {
       throw new DomainError('MEASUREMENT_REJECTED', error.message, { status: 422 })
     }
     throw new Error(`recordMeasurement insert failed: ${error?.message}`)
@@ -152,15 +155,18 @@ export async function recordMeasurement(
 
   // Princípio II — auditoria da escrita clínica (best-effort).
   try {
-    await supabase.rpc('log_audit_event' as never, {
-      p_tenant_id: input.tenantId,
-      p_entity: 'patient_measurements',
-      p_entity_id: (data as unknown as DbRow).id,
-      p_field: 'recorded',
-      p_old: null,
-      p_new: `${input.metricType}=${input.value}`,
-      p_reason: `actor=${input.actorUserId}`,
-    } as never)
+    await supabase.rpc(
+      'log_audit_event' as never,
+      {
+        p_tenant_id: input.tenantId,
+        p_entity: 'patient_measurements',
+        p_entity_id: (data as unknown as DbRow).id,
+        p_field: 'recorded',
+        p_old: null,
+        p_new: `${input.metricType}=${input.value}`,
+        p_reason: `actor=${input.actorUserId}`,
+      } as never,
+    )
   } catch {
     // best-effort
   }

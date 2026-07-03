@@ -1,14 +1,20 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { TrendingDown, Activity, CreditCard, CalendarDays, Paperclip, Calculator, Download, Wallet } from 'lucide-react'
+import {
+  TrendingDown,
+  Activity,
+  CreditCard,
+  CalendarDays,
+  Paperclip,
+  Calculator,
+  Download,
+  Wallet,
+} from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { can } from '@/lib/auth/rbac'
 import { listExpenses } from '@/lib/core/expenses/list'
-import {
-  countReceiptsByExpense,
-  listReceiptsForExpense,
-} from '@/lib/core/expenses/list-receipts'
+import { countReceiptsByExpense, listReceiptsForExpense } from '@/lib/core/expenses/list-receipts'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -120,8 +126,8 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Despesas</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {expenses.length} lançamento{expenses.length === 1 ? '' : 's'} ·{' '}
-            {recurringCount} recorrente{recurringCount === 1 ? '' : 's'} · total{' '}
+            {expenses.length} lançamento{expenses.length === 1 ? '' : 's'} · {recurringCount}{' '}
+            recorrente{recurringCount === 1 ? '' : 's'} · total{' '}
             <span className="font-semibold text-slate-800">{formatCurrency(totalAmount)}</span>
           </p>
         </div>
@@ -263,9 +269,7 @@ export default async function DespesasPage({ searchParams }: DespesasPageProps) 
                         <TableCell>
                           <p className="font-medium text-slate-900">{e.description}</p>
                           {e.supplier ? (
-                            <p className="text-[11px] text-slate-500">
-                              Fornecedor: {e.supplier}
-                            </p>
+                            <p className="text-[11px] text-slate-500">Fornecedor: {e.supplier}</p>
                           ) : null}
                           {(e as { tax_name?: string | null }).tax_name ? (
                             <p className="text-[11px] font-semibold text-[#6B21A8]">

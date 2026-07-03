@@ -20,10 +20,7 @@ const upsertSchema = z.object({
   is_default: z.boolean().default(false),
 })
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PUT(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/exam-report-templates/${params.id}`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -35,7 +32,9 @@ export async function PUT(
     const parsed = upsertSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }

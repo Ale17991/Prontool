@@ -27,15 +27,11 @@ export function NewVitalSheet({
 }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full overflow-y-auto sm:max-w-2xl"
-      >
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-2xl">
         <SheetHeader>
           <SheetTitle>Registrar sinais vitais</SheetTitle>
           <SheetDescription>
-            Pressão arterial, frequência cardíaca, peso, altura — IMC é
-            calculado automaticamente.
+            Pressão arterial, frequência cardíaca, peso, altura — IMC é calculado automaticamente.
           </SheetDescription>
         </SheetHeader>
         <div className="mt-4">

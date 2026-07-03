@@ -1,5 +1,5 @@
 ---
-description: "Task list for feature 009 — Configurações da Clínica, Perfil, Equipe e Reorganização da Navegação"
+description: 'Task list for feature 009 — Configurações da Clínica, Perfil, Equipe e Reorganização da Navegação'
 ---
 
 # Tasks: Configurações da Clínica, Perfil, Equipe e Reorganização da Navegação
@@ -26,7 +26,7 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 **Purpose**: garantir ambiente local pronto. Sem dependência de design.
 
-- [X] T001 Verificar pré-requisitos locais executando `supabase start` e `pnpm install` no repositório raiz; confirmar que `pnpm typecheck` e `pnpm lint:auth` rodam limpos antes de começar a feature
+- [x] T001 Verificar pré-requisitos locais executando `supabase start` e `pnpm install` no repositório raiz; confirmar que `pnpm typecheck` e `pnpm lint:auth` rodam limpos antes de começar a feature
 
 ---
 
@@ -36,13 +36,13 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 **⚠️ CRITICAL**: nenhuma story pode iniciar antes desta fase concluir.
 
-- [X] T002 Criar migration `supabase/migrations/0064_clinic_profile_and_team_management.sql` com (a) tabelas `tenant_clinic_profile` e `user_profile` conforme `data-model.md` §1 e §2, (b) ALTER em `user_tenants` adicionando `status`, `disabled_at`, `disabled_by` + índice parcial `user_tenants_active_admin_idx`, (c) função `is_last_active_admin(p_tenant_id, p_user_id)` e trigger `enforce_last_admin` BEFORE UPDATE em `user_tenants`, (d) políticas RLS para as duas tabelas novas, (e) buckets `clinic-logos` e `user-avatars` em `storage.buckets` + policies por path `(storage.foldername(name))[1]`, (f) trigger `touch_updated_at` reusada nas duas tabelas
-- [X] T003 Atualizar a função `auth.jwt_custom_claims_hook` (criada na migration 0019) dentro de `0064_clinic_profile_and_team_management.sql` para projetar `tenant_id`/`role` apenas quando `user_tenants.status = 'active'` (research.md R15) — mantendo `CREATE OR REPLACE FUNCTION` para idempotência
-- [X] T004 Aplicar migrations localmente com `pnpm supabase:reset` e validar que 0064 foi aplicada inspecionando `select * from public.tenant_clinic_profile limit 0;` e `select * from storage.buckets where id in ('clinic-logos','user-avatars');`
-- [X] T005 Regerar tipos TypeScript executando `pnpm supabase:gen-types`, sobrescrevendo `src/lib/db/generated/database.ts` com as definições de `tenant_clinic_profile`, `user_profile` e novas colunas de `user_tenants`
-- [X] T006 [P] Criar helper puro `src/lib/core/clinic-profile/validate-cnpj.ts` exportando `isValidCnpj(input: string): boolean` (algoritmo módulo 11 com pesos `[5,4,3,2,9,8,7,6,5,4,3,2]` e `[6,5,4,3,2,9,8,7,6,5,4,3,2]`) e `formatCnpj(digits: string): string` para máscara `00.000.000/0000-00`
-- [X] T007 [P] Criar helper `src/lib/utils/image-magic-bytes.ts` exportando `sniffImageType(buffer: ArrayBuffer): 'jpg' | 'png' | null` que lê os primeiros 16 bytes e checa as assinaturas JPG (`FF D8 FF`) e PNG (`89 50 4E 47 0D 0A 1A 0A`)
-- [X] T008 [P] Criar helper `src/lib/core/storage/signed-url.ts` exportando `createSignedUrlOrNull(supabase, bucket, path, ttlSeconds)` para reuso por US1, US3 e US4 (encapsula `supabase.storage.from(bucket).createSignedUrl` com tratamento de erro retornando `null`)
+- [x] T002 Criar migration `supabase/migrations/0064_clinic_profile_and_team_management.sql` com (a) tabelas `tenant_clinic_profile` e `user_profile` conforme `data-model.md` §1 e §2, (b) ALTER em `user_tenants` adicionando `status`, `disabled_at`, `disabled_by` + índice parcial `user_tenants_active_admin_idx`, (c) função `is_last_active_admin(p_tenant_id, p_user_id)` e trigger `enforce_last_admin` BEFORE UPDATE em `user_tenants`, (d) políticas RLS para as duas tabelas novas, (e) buckets `clinic-logos` e `user-avatars` em `storage.buckets` + policies por path `(storage.foldername(name))[1]`, (f) trigger `touch_updated_at` reusada nas duas tabelas
+- [x] T003 Atualizar a função `auth.jwt_custom_claims_hook` (criada na migration 0019) dentro de `0064_clinic_profile_and_team_management.sql` para projetar `tenant_id`/`role` apenas quando `user_tenants.status = 'active'` (research.md R15) — mantendo `CREATE OR REPLACE FUNCTION` para idempotência
+- [x] T004 Aplicar migrations localmente com `pnpm supabase:reset` e validar que 0064 foi aplicada inspecionando `select * from public.tenant_clinic_profile limit 0;` e `select * from storage.buckets where id in ('clinic-logos','user-avatars');`
+- [x] T005 Regerar tipos TypeScript executando `pnpm supabase:gen-types`, sobrescrevendo `src/lib/db/generated/database.ts` com as definições de `tenant_clinic_profile`, `user_profile` e novas colunas de `user_tenants`
+- [x] T006 [P] Criar helper puro `src/lib/core/clinic-profile/validate-cnpj.ts` exportando `isValidCnpj(input: string): boolean` (algoritmo módulo 11 com pesos `[5,4,3,2,9,8,7,6,5,4,3,2]` e `[6,5,4,3,2,9,8,7,6,5,4,3,2]`) e `formatCnpj(digits: string): string` para máscara `00.000.000/0000-00`
+- [x] T007 [P] Criar helper `src/lib/utils/image-magic-bytes.ts` exportando `sniffImageType(buffer: ArrayBuffer): 'jpg' | 'png' | null` que lê os primeiros 16 bytes e checa as assinaturas JPG (`FF D8 FF`) e PNG (`89 50 4E 47 0D 0A 1A 0A`)
+- [x] T008 [P] Criar helper `src/lib/core/storage/signed-url.ts` exportando `createSignedUrlOrNull(supabase, bucket, path, ttlSeconds)` para reuso por US1, US3 e US4 (encapsula `supabase.storage.from(bucket).createSignedUrl` com tratamento de erro retornando `null`)
 
 **Checkpoint**: schema, buckets, RLS, trigger e helpers prontos. US1, US2, US3 e US4 podem iniciar (em paralelo se houver capacidade de equipe).
 
@@ -58,27 +58,27 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 - [ ] T009 [DEFERRED→Phase 7] [US1] Contract test `tests/contract/api-configuracoes-clinica.test.ts` cobrindo GET/PUT (sucesso, 401 sem auth, 403 não-admin, 400 cnpj inválido, 200 partial update) e POST/DELETE de logo (200, 400 magic-byte mismatch, 413 > 2 MB) conforme `contracts/clinic-profile.md`
 - [ ] T010 [DEFERRED→Phase 7] [US1] Integration RLS test `tests/integration/clinic-profile-rls.test.ts`
-- [X] T011 [US1] Contract test `tests/contract/api-configuracoes-cep.test.ts`
-- [X] T012 [P] [US1] Unit test `tests/unit/validate-cnpj.spec.ts` (9 testes passando)
+- [x] T011 [US1] Contract test `tests/contract/api-configuracoes-cep.test.ts`
+- [x] T012 [P] [US1] Unit test `tests/unit/validate-cnpj.spec.ts` (9 testes passando)
 
 ### Implementation for User Story 1
 
-- [X] T013 [P] [US1] Implementar `src/lib/core/clinic-profile/read.ts` exportando `getClinicProfile(supabase, tenantId)` que retorna a row de `tenant_clinic_profile` (ou cria via INSERT ... ON CONFLICT DO NOTHING e relê) acompanhada de `signedLogoUrl` (TTL 24 h) via `createSignedUrlOrNull`
-- [X] T014 [P] [US1] Implementar `src/lib/core/clinic-profile/update.ts` exportando `updateClinicProfile(supabase, tenantId, actorId, patch)` que (a) valida com Zod, (b) chama `isValidCnpj` se cnpj presente, (c) faz UPDATE seletivo, (d) gera uma linha em `audit_log` por campo alterado (`entity='tenant_clinic_profile'`, `field=<col>`, `old/new`), (e) retorna o perfil atualizado
-- [X] T015 [P] [US1] Implementar `src/lib/core/clinic-profile/upload-logo.ts` exportando `uploadClinicLogo(supabaseService, tenantId, actorId, file)` que (a) valida `Content-Length` ≤ 2 MB, (b) lê primeiros 16 bytes e chama `sniffImageType`, (c) faz `storage.from('clinic-logos').upload({tenant_id}/logo.{ext}, {upsert:true})`, (d) atualiza `tenant_clinic_profile.logo_path` e `logo_uploaded_at`, (e) audit `entity='tenant_clinic_profile', field='logo'`
-- [X] T016 [US1] Implementar Route Handler `src/app/api/configuracoes/clinica/route.ts` com handlers `GET` (chama `getClinicProfile`) e `PUT` (chama `updateClinicProfile`); ambos protegidos por `requireRole('admin')` e usando `getSession` para `tenantId` e `actorId` (depende de T013, T014)
-- [X] T017 [US1] Implementar Route Handler `src/app/api/configuracoes/clinica/logo/route.ts` com `POST` (multipart, chama `uploadClinicLogo`) e `DELETE` (remove do storage + zera colunas + audit), `requireRole('admin')` (depende de T015)
-- [X] T018 [US1] Implementar Route Handler `src/app/api/configuracoes/cep/[cep]/route.ts` com `GET` que (a) valida `cep` regex `^[0-9]{8}$` (400 caso contrário), (b) faz `fetch('https://viacep.com.br/ws/{cep}/json/', { signal: AbortSignal.timeout(3000) })`, (c) mapeia resposta conforme `contracts/viacep.md`, (d) retorna `200` com `Cache-Control: public, s-maxage=86400, stale-while-revalidate=604800`
-- [X] T019 [P] [US1] Criar Server Component `src/app/(dashboard)/configuracoes/clinica/page.tsx` que verifica `requireRole('admin')`, busca perfil atual via `getClinicProfile`, e renderiza o card title + `<ClinicProfileForm initial={profile} />`
-- [X] T020 [P] [US1] Criar Client Component `src/app/(dashboard)/configuracoes/clinica/clinic-profile-form.tsx` com upload de logo (input file + preview), campos de razão social/CNPJ (máscara via `formatCnpj`, validação `isValidCnpj` em onBlur)/telefone/email/endereço (com debounced ViaCEP lookup quando CEP completar 8 dígitos)/responsável técnico, e botão Salvar disparando `PUT /api/configuracoes/clinica`
-- [X] T021 [P] [US1] Criar componente compartilhado `src/lib/pdf/clinic-header.tsx` (React-PDF) recebendo `{ profile: ClinicProfile | null, signedLogoUrl: string | null }` e renderizando logo (se disponível) + razão social + CNPJ + endereço + responsável técnico; quando `profile` é null, renderiza aviso "Configure os dados da clínica em Configurações > Clínica" (FR-011)
-- [X] T022 [US1] Modificar `src/lib/core/patient-medical/assemble-prontuario.ts` para incluir `clinicProfile` e `signedLogoUrl` no `ProntuarioBundle` (busca via `getClinicProfile` no service-role client)
-- [X] T023 [US1] Modificar `src/lib/core/patient-medical/prontuario-pdf.tsx` substituindo o bloco `{/* Header */}` (linhas 238–246 atuais) pelo `<ClinicHeader profile={bundle.clinicProfile} signedLogoUrl={bundle.signedLogoUrl} />`
-- [X] T024 [US1] Aplicar a mesma substituição de header em `src/lib/core/anamnesis/export-pdf.tsx`, propagando o profile via parâmetro de assemble
-- [X] T025 [US1] Aplicar a mesma substituição de header em `src/lib/core/reports/export-pdf.tsx`, `src/lib/core/reports/export-financial-pdf.tsx` e `src/lib/core/reports/export-by-plan-pdf.tsx`
-- [X] T026 [US1] Criar Server Component `src/app/(dashboard)/_components/sidebar-clinic-logo.tsx` que recebe `clinicLogoUrl` e `clinicName` como props e retorna o markup de logo + nome (com fallback para o ícone Stethoscope quando logo é null)
-- [X] T027 [US1] Modificar `src/app/(dashboard)/layout.tsx` para buscar `clinicProfile` via `getClinicProfile` no SSR e passar `clinicLogoUrl` + `clinicName` como props para `<DashboardShell>` (pode ler do `tenants.name` como fallback)
-- [X] T028 [US1] Modificar o cabeçalho de `src/app/(dashboard)/_components/dashboard-shell.tsx` (atualmente linhas 299–304) para aceitar e renderizar `clinicLogoUrl`/`clinicName` via `<SidebarClinicLogo>` em vez do markup hardcoded "Stethoscope + Prontool"
+- [x] T013 [P] [US1] Implementar `src/lib/core/clinic-profile/read.ts` exportando `getClinicProfile(supabase, tenantId)` que retorna a row de `tenant_clinic_profile` (ou cria via INSERT ... ON CONFLICT DO NOTHING e relê) acompanhada de `signedLogoUrl` (TTL 24 h) via `createSignedUrlOrNull`
+- [x] T014 [P] [US1] Implementar `src/lib/core/clinic-profile/update.ts` exportando `updateClinicProfile(supabase, tenantId, actorId, patch)` que (a) valida com Zod, (b) chama `isValidCnpj` se cnpj presente, (c) faz UPDATE seletivo, (d) gera uma linha em `audit_log` por campo alterado (`entity='tenant_clinic_profile'`, `field=<col>`, `old/new`), (e) retorna o perfil atualizado
+- [x] T015 [P] [US1] Implementar `src/lib/core/clinic-profile/upload-logo.ts` exportando `uploadClinicLogo(supabaseService, tenantId, actorId, file)` que (a) valida `Content-Length` ≤ 2 MB, (b) lê primeiros 16 bytes e chama `sniffImageType`, (c) faz `storage.from('clinic-logos').upload({tenant_id}/logo.{ext}, {upsert:true})`, (d) atualiza `tenant_clinic_profile.logo_path` e `logo_uploaded_at`, (e) audit `entity='tenant_clinic_profile', field='logo'`
+- [x] T016 [US1] Implementar Route Handler `src/app/api/configuracoes/clinica/route.ts` com handlers `GET` (chama `getClinicProfile`) e `PUT` (chama `updateClinicProfile`); ambos protegidos por `requireRole('admin')` e usando `getSession` para `tenantId` e `actorId` (depende de T013, T014)
+- [x] T017 [US1] Implementar Route Handler `src/app/api/configuracoes/clinica/logo/route.ts` com `POST` (multipart, chama `uploadClinicLogo`) e `DELETE` (remove do storage + zera colunas + audit), `requireRole('admin')` (depende de T015)
+- [x] T018 [US1] Implementar Route Handler `src/app/api/configuracoes/cep/[cep]/route.ts` com `GET` que (a) valida `cep` regex `^[0-9]{8}$` (400 caso contrário), (b) faz `fetch('https://viacep.com.br/ws/{cep}/json/', { signal: AbortSignal.timeout(3000) })`, (c) mapeia resposta conforme `contracts/viacep.md`, (d) retorna `200` com `Cache-Control: public, s-maxage=86400, stale-while-revalidate=604800`
+- [x] T019 [P] [US1] Criar Server Component `src/app/(dashboard)/configuracoes/clinica/page.tsx` que verifica `requireRole('admin')`, busca perfil atual via `getClinicProfile`, e renderiza o card title + `<ClinicProfileForm initial={profile} />`
+- [x] T020 [P] [US1] Criar Client Component `src/app/(dashboard)/configuracoes/clinica/clinic-profile-form.tsx` com upload de logo (input file + preview), campos de razão social/CNPJ (máscara via `formatCnpj`, validação `isValidCnpj` em onBlur)/telefone/email/endereço (com debounced ViaCEP lookup quando CEP completar 8 dígitos)/responsável técnico, e botão Salvar disparando `PUT /api/configuracoes/clinica`
+- [x] T021 [P] [US1] Criar componente compartilhado `src/lib/pdf/clinic-header.tsx` (React-PDF) recebendo `{ profile: ClinicProfile | null, signedLogoUrl: string | null }` e renderizando logo (se disponível) + razão social + CNPJ + endereço + responsável técnico; quando `profile` é null, renderiza aviso "Configure os dados da clínica em Configurações > Clínica" (FR-011)
+- [x] T022 [US1] Modificar `src/lib/core/patient-medical/assemble-prontuario.ts` para incluir `clinicProfile` e `signedLogoUrl` no `ProntuarioBundle` (busca via `getClinicProfile` no service-role client)
+- [x] T023 [US1] Modificar `src/lib/core/patient-medical/prontuario-pdf.tsx` substituindo o bloco `{/* Header */}` (linhas 238–246 atuais) pelo `<ClinicHeader profile={bundle.clinicProfile} signedLogoUrl={bundle.signedLogoUrl} />`
+- [x] T024 [US1] Aplicar a mesma substituição de header em `src/lib/core/anamnesis/export-pdf.tsx`, propagando o profile via parâmetro de assemble
+- [x] T025 [US1] Aplicar a mesma substituição de header em `src/lib/core/reports/export-pdf.tsx`, `src/lib/core/reports/export-financial-pdf.tsx` e `src/lib/core/reports/export-by-plan-pdf.tsx`
+- [x] T026 [US1] Criar Server Component `src/app/(dashboard)/_components/sidebar-clinic-logo.tsx` que recebe `clinicLogoUrl` e `clinicName` como props e retorna o markup de logo + nome (com fallback para o ícone Stethoscope quando logo é null)
+- [x] T027 [US1] Modificar `src/app/(dashboard)/layout.tsx` para buscar `clinicProfile` via `getClinicProfile` no SSR e passar `clinicLogoUrl` + `clinicName` como props para `<DashboardShell>` (pode ler do `tenants.name` como fallback)
+- [x] T028 [US1] Modificar o cabeçalho de `src/app/(dashboard)/_components/dashboard-shell.tsx` (atualmente linhas 299–304) para aceitar e renderizar `clinicLogoUrl`/`clinicName` via `<SidebarClinicLogo>` em vez do markup hardcoded "Stethoscope + Prontool"
 
 **Checkpoint**: US1 completa — admin configura clínica, logo entra na sidebar e em todos os PDFs.
 
@@ -97,16 +97,16 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 ### Implementation for User Story 2
 
-- [X] T031 [US2] Reescrever `src/app/(dashboard)/_components/dashboard-shell.tsx`: substituir a estrutura atual `CATEGORIES`/`primaryCategories`/`configCategory` por uma constante `SECTIONS = [{label:'Operação', items:[...]}, {label:'Análise', items:[...]}, {label:'Configurações', items:[...]}]`; remover por completo o bloco `{visibleTabs.length > 0 ? (...) : null}` (linhas 258–270 atuais) e a função `CategoryTab`; cada item de `SECTIONS` vira um `<SidebarLink>` direto; mantém a integração com `clinicLogoUrl`/`clinicName` (US1) e prepara o slot do avatar (US3)
-- [X] T032 [P] [US2] `git mv src/app/(dashboard)/cadastros/procedimentos src/app/(dashboard)/configuracoes/procedimentos` e ajustar imports relativos quebrados
-- [X] T033 [P] [US2] `git mv src/app/(dashboard)/cadastros/planos src/app/(dashboard)/configuracoes/convenios` (também rename de pasta), ajustar imports e renomear referências internas a "Planos" para "Convênios" apenas em rótulos visíveis (não em queries SQL onde a tabela ainda se chama `plans`)
-- [X] T034 [P] [US2] `git mv src/app/(dashboard)/cadastros/profissionais src/app/(dashboard)/configuracoes/profissionais` e ajustar imports
-- [X] T035 [P] [US2] `git mv src/app/(dashboard)/cadastros/anamnese src/app/(dashboard)/configuracoes/modelos-anamnese` e ajustar imports
-- [X] T036 [P] [US2] `git mv src/app/(dashboard)/cadastros/despesas src/app/(dashboard)/analise/despesas` e ajustar imports
-- [X] T037 [US2] Renomear o item de sidebar atual "Atendimentos" para "Agenda" em `dashboard-shell.tsx` (label + href apontando para a página de calendário, que já é o default de `/operacao/atendimentos`); confirmar que a Pendências (DLQ) já está com label correto
-- [X] T038 [US2] Estender `src/middleware.ts` adicionando, **antes** da regra de `/cadastros/medicos` existente, um array de pares `[from, to]` cobrindo `/cadastros/procedimentos→/configuracoes/procedimentos`, `/cadastros/planos→/configuracoes/convenios`, `/cadastros/profissionais→/configuracoes/profissionais`, `/cadastros/anamnese→/configuracoes/modelos-anamnese`, `/cadastros/despesas→/analise/despesas`; loop que faz `NextResponse.redirect(url, 301)` preservando `pathname.replace` para subpaths
-- [X] T039 [US2] Remover `src/app/(dashboard)/cadastros/page.tsx` (e o diretório `cadastros/` inteiro depois dos `git mv` acima); o redirect default `/cadastros` segue para `/configuracoes/clinica` (admin) ou `/configuracoes/perfil` (não-admin) — implementar essa branch role-aware no middleware reusando `await supabase.auth.getUser()` que já roda
-- [X] T040 [US2] Procurar com `grep` referências hardcoded a `/cadastros/` em todo `src/` (links, redirects internos, `next/navigation` calls) e substituir pelos novos paths; documentar no commit qualquer link externo conhecido (e-mails, integrações) que possa ainda apontar para `/cadastros/...` e contar com o 301
+- [x] T031 [US2] Reescrever `src/app/(dashboard)/_components/dashboard-shell.tsx`: substituir a estrutura atual `CATEGORIES`/`primaryCategories`/`configCategory` por uma constante `SECTIONS = [{label:'Operação', items:[...]}, {label:'Análise', items:[...]}, {label:'Configurações', items:[...]}]`; remover por completo o bloco `{visibleTabs.length > 0 ? (...) : null}` (linhas 258–270 atuais) e a função `CategoryTab`; cada item de `SECTIONS` vira um `<SidebarLink>` direto; mantém a integração com `clinicLogoUrl`/`clinicName` (US1) e prepara o slot do avatar (US3)
+- [x] T032 [P] [US2] `git mv src/app/(dashboard)/cadastros/procedimentos src/app/(dashboard)/configuracoes/procedimentos` e ajustar imports relativos quebrados
+- [x] T033 [P] [US2] `git mv src/app/(dashboard)/cadastros/planos src/app/(dashboard)/configuracoes/convenios` (também rename de pasta), ajustar imports e renomear referências internas a "Planos" para "Convênios" apenas em rótulos visíveis (não em queries SQL onde a tabela ainda se chama `plans`)
+- [x] T034 [P] [US2] `git mv src/app/(dashboard)/cadastros/profissionais src/app/(dashboard)/configuracoes/profissionais` e ajustar imports
+- [x] T035 [P] [US2] `git mv src/app/(dashboard)/cadastros/anamnese src/app/(dashboard)/configuracoes/modelos-anamnese` e ajustar imports
+- [x] T036 [P] [US2] `git mv src/app/(dashboard)/cadastros/despesas src/app/(dashboard)/analise/despesas` e ajustar imports
+- [x] T037 [US2] Renomear o item de sidebar atual "Atendimentos" para "Agenda" em `dashboard-shell.tsx` (label + href apontando para a página de calendário, que já é o default de `/operacao/atendimentos`); confirmar que a Pendências (DLQ) já está com label correto
+- [x] T038 [US2] Estender `src/middleware.ts` adicionando, **antes** da regra de `/cadastros/medicos` existente, um array de pares `[from, to]` cobrindo `/cadastros/procedimentos→/configuracoes/procedimentos`, `/cadastros/planos→/configuracoes/convenios`, `/cadastros/profissionais→/configuracoes/profissionais`, `/cadastros/anamnese→/configuracoes/modelos-anamnese`, `/cadastros/despesas→/analise/despesas`; loop que faz `NextResponse.redirect(url, 301)` preservando `pathname.replace` para subpaths
+- [x] T039 [US2] Remover `src/app/(dashboard)/cadastros/page.tsx` (e o diretório `cadastros/` inteiro depois dos `git mv` acima); o redirect default `/cadastros` segue para `/configuracoes/clinica` (admin) ou `/configuracoes/perfil` (não-admin) — implementar essa branch role-aware no middleware reusando `await supabase.auth.getUser()` que já roda
+- [x] T040 [US2] Procurar com `grep` referências hardcoded a `/cadastros/` em todo `src/` (links, redirects internos, `next/navigation` calls) e substituir pelos novos paths; documentar no commit qualquer link externo conhecido (e-mails, integrações) que possa ainda apontar para `/cadastros/...` e contar com o 301
 
 **Checkpoint**: US2 completa — sidebar reorganizada, sem abas, redirects 301 funcionando.
 
@@ -125,19 +125,19 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 ### Implementation for User Story 3
 
-- [X] T043 [P] [US3] Implementar `src/lib/core/user-profile/read.ts` exportando `getUserProfile(supabase, userId, tenantId)` que retorna a row de `user_profile` (cria via upsert se não existir) acrescida de `signedAvatarUrl`
-- [X] T044 [P] [US3] Implementar `src/lib/core/user-profile/update.ts` exportando `updateUserProfile(supabase, userId, patch)` validando Zod (`fullName`, `timezone` ∈ `Intl.supportedValuesOf('timeZone')`), gerando audit log por campo
-- [X] T045 [P] [US3] Implementar `src/lib/core/user-profile/upload-avatar.ts` (mesmo padrão de `upload-logo.ts`: validação de tamanho + magic bytes + upload para `{tenant_id}/{user_id}.{ext}` no bucket `user-avatars` + audit)
-- [X] T046 [P] [US3] Implementar `src/lib/core/user-profile/change-password.ts` exportando `changePassword(supabase, userId, email, currentPassword, newPassword)` que (a) cria client isolado `createClient(url, anon, { auth: { persistSession: false }})`, (b) chama `signInWithPassword` no client isolado para validar `currentPassword`, (c) valida `newPassword` (≥ 8 chars, ≥ 1 letra, ≥ 1 dígito), (d) chama `supabase.auth.updateUser({ password: newPassword })` no client da sessão, (e) audit `entity='user_profile', field='password'` (sem old/new)
-- [X] T047 [US3] Implementar Route Handler `src/app/api/configuracoes/perfil/route.ts` com `GET` e `PUT` (depende de T043, T044) — sem `requireRole` específico, basta sessão autenticada
-- [X] T048 [US3] Implementar Route Handler `src/app/api/configuracoes/perfil/avatar/route.ts` com `POST` e `DELETE` (depende de T045)
-- [X] T049 [US3] Implementar Route Handler `src/app/api/configuracoes/perfil/senha/route.ts` com `POST` (depende de T046)
-- [X] T050 [P] [US3] Criar Server Component `src/app/(dashboard)/configuracoes/perfil/page.tsx` que busca o perfil via `getUserProfile` no SSR e renderiza `<UserProfileForm>` + `<ChangePasswordForm>`
-- [X] T051 [P] [US3] Criar Client Component `src/app/(dashboard)/configuracoes/perfil/user-profile-form.tsx` com campos foto (upload + preview), nome completo, email (somente leitura), seletor de fuso (lista de `Intl.supportedValuesOf('timeZone')` com defaults brasileiros no topo)
-- [X] T052 [P] [US3] Criar Client Component `src/app/(dashboard)/configuracoes/perfil/change-password-form.tsx` com 3 campos (senha atual, nova, confirma) + validação client antes do POST
-- [X] T053 [US3] Modificar `src/app/(dashboard)/layout.tsx` para também buscar `userProfile` (avatar + fullName + timezone) e passar como prop para `<DashboardShell>`
-- [X] T054 [US3] Modificar o footer da sidebar em `dashboard-shell.tsx` (atualmente linhas 336–344) para renderizar `signedAvatarUrl` em `<img>` no lugar das iniciais quando disponível, e mostrar `fullName` quando preenchido (fallback para email)
-- [X] T055 [US3] Criar `src/lib/utils/format-with-timezone.ts` exportando `formatDateTimeInTz(date, tz)` e `formatDateInTz(date, tz)` que aceitam `Date | string` e o IANA tz; criar Context Provider `src/app/(dashboard)/_components/user-tz-context.tsx` que injeta `tz` para Client Components consumirem
+- [x] T043 [P] [US3] Implementar `src/lib/core/user-profile/read.ts` exportando `getUserProfile(supabase, userId, tenantId)` que retorna a row de `user_profile` (cria via upsert se não existir) acrescida de `signedAvatarUrl`
+- [x] T044 [P] [US3] Implementar `src/lib/core/user-profile/update.ts` exportando `updateUserProfile(supabase, userId, patch)` validando Zod (`fullName`, `timezone` ∈ `Intl.supportedValuesOf('timeZone')`), gerando audit log por campo
+- [x] T045 [P] [US3] Implementar `src/lib/core/user-profile/upload-avatar.ts` (mesmo padrão de `upload-logo.ts`: validação de tamanho + magic bytes + upload para `{tenant_id}/{user_id}.{ext}` no bucket `user-avatars` + audit)
+- [x] T046 [P] [US3] Implementar `src/lib/core/user-profile/change-password.ts` exportando `changePassword(supabase, userId, email, currentPassword, newPassword)` que (a) cria client isolado `createClient(url, anon, { auth: { persistSession: false }})`, (b) chama `signInWithPassword` no client isolado para validar `currentPassword`, (c) valida `newPassword` (≥ 8 chars, ≥ 1 letra, ≥ 1 dígito), (d) chama `supabase.auth.updateUser({ password: newPassword })` no client da sessão, (e) audit `entity='user_profile', field='password'` (sem old/new)
+- [x] T047 [US3] Implementar Route Handler `src/app/api/configuracoes/perfil/route.ts` com `GET` e `PUT` (depende de T043, T044) — sem `requireRole` específico, basta sessão autenticada
+- [x] T048 [US3] Implementar Route Handler `src/app/api/configuracoes/perfil/avatar/route.ts` com `POST` e `DELETE` (depende de T045)
+- [x] T049 [US3] Implementar Route Handler `src/app/api/configuracoes/perfil/senha/route.ts` com `POST` (depende de T046)
+- [x] T050 [P] [US3] Criar Server Component `src/app/(dashboard)/configuracoes/perfil/page.tsx` que busca o perfil via `getUserProfile` no SSR e renderiza `<UserProfileForm>` + `<ChangePasswordForm>`
+- [x] T051 [P] [US3] Criar Client Component `src/app/(dashboard)/configuracoes/perfil/user-profile-form.tsx` com campos foto (upload + preview), nome completo, email (somente leitura), seletor de fuso (lista de `Intl.supportedValuesOf('timeZone')` com defaults brasileiros no topo)
+- [x] T052 [P] [US3] Criar Client Component `src/app/(dashboard)/configuracoes/perfil/change-password-form.tsx` com 3 campos (senha atual, nova, confirma) + validação client antes do POST
+- [x] T053 [US3] Modificar `src/app/(dashboard)/layout.tsx` para também buscar `userProfile` (avatar + fullName + timezone) e passar como prop para `<DashboardShell>`
+- [x] T054 [US3] Modificar o footer da sidebar em `dashboard-shell.tsx` (atualmente linhas 336–344) para renderizar `signedAvatarUrl` em `<img>` no lugar das iniciais quando disponível, e mostrar `fullName` quando preenchido (fallback para email)
+- [x] T055 [US3] Criar `src/lib/utils/format-with-timezone.ts` exportando `formatDateTimeInTz(date, tz)` e `formatDateInTz(date, tz)` que aceitam `Date | string` e o IANA tz; criar Context Provider `src/app/(dashboard)/_components/user-tz-context.tsx` que injeta `tz` para Client Components consumirem
 - [ ] T056 [DEFERRED→Phase 7] [US3] Atualizar 2-3 listagens de maior tráfego que mostram autoria ("criado por" / "alterado por") — agenda (`src/app/(dashboard)/operacao/atendimentos/...`), pacientes — para renderizar `<AvatarBadge>` em vez das iniciais quando o autor tem `avatar_path`; criar `src/components/ui/avatar-badge.tsx` para reuso
 
 **Checkpoint**: US3 completa — usuários gerenciam o próprio perfil, foto e fuso aparecem em toda a UI.
@@ -160,21 +160,21 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 ### Implementation for User Story 4
 
-- [X] T062 [P] [US4] Implementar `src/lib/core/team/list.ts` exportando `listTeamMembers(supabaseService, tenantId, requesterId)` que faz JOIN entre `user_tenants` (filtrando pelo tenant) e `auth.admin.listUsers` (paginado, capped em 100) + `user_profile` para cada userId, derivando o status conforme `data-model.md` §3 e marcando `isSelf` para a row do requester
-- [X] T063 [P] [US4] Implementar `src/lib/core/team/invite.ts` exportando `inviteTeamMember(supabaseService, tenantId, actorId, email, role)` que (a) valida unicidade ativa em `user_tenants`, (b) `auth.admin.createUser({ email, email_confirm: false })` tratando 422 como "reuse existente" e relendo o `id`, (c) insert em `user_tenants(user_id, tenant_id, role, status='active')`, (d) `auth.admin.inviteUserByEmail(email, { redirectTo })`, (e) audit `entity='user_tenants', field='invite'`
-- [X] T064 [P] [US4] Implementar `src/lib/core/team/set-role.ts` exportando `setTeamMemberRole(supabaseService, tenantId, actorId, targetUserId, newRole)` com pré-check `is_last_active_admin` (rejeita se ator==alvo e estaria saindo de admin único), UPDATE em `user_tenants`, audit `entity='user_tenants', field='role'`
-- [X] T065 [P] [US4] Implementar `src/lib/core/team/set-status.ts` exportando `setTeamMemberStatus(supabaseService, tenantId, actorId, targetUserId, status)` que (a) rejeita `cannot_disable_self` se ator==alvo e status='disabled', (b) UPDATE seteja `status`, `disabled_at`, `disabled_by`, deixando o trigger `enforce_last_admin` como segunda barreira, (c) audit `entity='user_tenants', field='status'`
-- [X] T066 [P] [US4] Implementar `src/lib/core/team/resend-invite.ts` exportando `resendInvite(supabaseService, tenantId, targetUserId)` que valida o estado pending (`status='active'` + `email_confirmed_at IS NULL`) e chama `auth.admin.inviteUserByEmail` novamente, audit como variação de invite
-- [X] T067 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/route.ts` com `GET` chamando `listTeamMembers`, `requireRole('admin')` (depende de T062)
-- [X] T068 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/convite/route.ts` com `POST` chamando `inviteTeamMember`, `requireRole('admin')` (depende de T063)
-- [X] T069 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/[userId]/route.ts` com `PATCH` chamando `setTeamMemberRole`, `requireRole('admin')` (depende de T064)
-- [X] T070 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/[userId]/status/route.ts` com `PATCH` chamando `setTeamMemberStatus`, `requireRole('admin')` (depende de T065)
-- [X] T071 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/[userId]/reenviar-convite/route.ts` com `POST` chamando `resendInvite`, `requireRole('admin')` (depende de T066)
-- [X] T072 [P] [US4] Criar Server Component `src/app/(dashboard)/configuracoes/usuarios/page.tsx` que verifica `requireRole('admin')`, busca a lista via `listTeamMembers` no SSR e renderiza `<UsersList initial={users}>`
-- [X] T073 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/users-list.tsx` com tabela (Nome / Email / Função / Status / Último acesso / Ações) e botões de ação por linha — abre dialogs filhos
-- [X] T074 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/invite-user-dialog.tsx` (Radix Dialog do shadcn) com inputs email + select de role + submit POST `/api/configuracoes/usuarios/convite`
-- [X] T075 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/change-role-dialog.tsx` com select de novo role + submit PATCH; mostra erro `last_admin` em toast quando o backend retorna 409
-- [X] T076 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/disable-confirm-dialog.tsx` com confirmação textual + submit PATCH status; trata 409 `cannot_disable_self` e `last_admin`
+- [x] T062 [P] [US4] Implementar `src/lib/core/team/list.ts` exportando `listTeamMembers(supabaseService, tenantId, requesterId)` que faz JOIN entre `user_tenants` (filtrando pelo tenant) e `auth.admin.listUsers` (paginado, capped em 100) + `user_profile` para cada userId, derivando o status conforme `data-model.md` §3 e marcando `isSelf` para a row do requester
+- [x] T063 [P] [US4] Implementar `src/lib/core/team/invite.ts` exportando `inviteTeamMember(supabaseService, tenantId, actorId, email, role)` que (a) valida unicidade ativa em `user_tenants`, (b) `auth.admin.createUser({ email, email_confirm: false })` tratando 422 como "reuse existente" e relendo o `id`, (c) insert em `user_tenants(user_id, tenant_id, role, status='active')`, (d) `auth.admin.inviteUserByEmail(email, { redirectTo })`, (e) audit `entity='user_tenants', field='invite'`
+- [x] T064 [P] [US4] Implementar `src/lib/core/team/set-role.ts` exportando `setTeamMemberRole(supabaseService, tenantId, actorId, targetUserId, newRole)` com pré-check `is_last_active_admin` (rejeita se ator==alvo e estaria saindo de admin único), UPDATE em `user_tenants`, audit `entity='user_tenants', field='role'`
+- [x] T065 [P] [US4] Implementar `src/lib/core/team/set-status.ts` exportando `setTeamMemberStatus(supabaseService, tenantId, actorId, targetUserId, status)` que (a) rejeita `cannot_disable_self` se ator==alvo e status='disabled', (b) UPDATE seteja `status`, `disabled_at`, `disabled_by`, deixando o trigger `enforce_last_admin` como segunda barreira, (c) audit `entity='user_tenants', field='status'`
+- [x] T066 [P] [US4] Implementar `src/lib/core/team/resend-invite.ts` exportando `resendInvite(supabaseService, tenantId, targetUserId)` que valida o estado pending (`status='active'` + `email_confirmed_at IS NULL`) e chama `auth.admin.inviteUserByEmail` novamente, audit como variação de invite
+- [x] T067 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/route.ts` com `GET` chamando `listTeamMembers`, `requireRole('admin')` (depende de T062)
+- [x] T068 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/convite/route.ts` com `POST` chamando `inviteTeamMember`, `requireRole('admin')` (depende de T063)
+- [x] T069 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/[userId]/route.ts` com `PATCH` chamando `setTeamMemberRole`, `requireRole('admin')` (depende de T064)
+- [x] T070 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/[userId]/status/route.ts` com `PATCH` chamando `setTeamMemberStatus`, `requireRole('admin')` (depende de T065)
+- [x] T071 [US4] Implementar Route Handler `src/app/api/configuracoes/usuarios/[userId]/reenviar-convite/route.ts` com `POST` chamando `resendInvite`, `requireRole('admin')` (depende de T066)
+- [x] T072 [P] [US4] Criar Server Component `src/app/(dashboard)/configuracoes/usuarios/page.tsx` que verifica `requireRole('admin')`, busca a lista via `listTeamMembers` no SSR e renderiza `<UsersList initial={users}>`
+- [x] T073 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/users-list.tsx` com tabela (Nome / Email / Função / Status / Último acesso / Ações) e botões de ação por linha — abre dialogs filhos
+- [x] T074 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/invite-user-dialog.tsx` (Radix Dialog do shadcn) com inputs email + select de role + submit POST `/api/configuracoes/usuarios/convite`
+- [x] T075 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/change-role-dialog.tsx` com select de novo role + submit PATCH; mostra erro `last_admin` em toast quando o backend retorna 409
+- [x] T076 [P] [US4] Criar Client Component `src/app/(dashboard)/configuracoes/usuarios/disable-confirm-dialog.tsx` com confirmação textual + submit PATCH status; trata 409 `cannot_disable_self` e `last_admin`
 
 **Checkpoint**: US4 completa — admin gerencia toda a equipe pelo painel.
 
@@ -184,12 +184,12 @@ description: "Task list for feature 009 — Configurações da Clínica, Perfil,
 
 **Purpose**: validar que tudo funciona em conjunto e endurecer o que não cabe em uma única story.
 
-- [X] T077 [P] Implementar landing `src/app/(dashboard)/configuracoes/page.tsx` que detecta a role da sessão e faz `redirect()` para `/configuracoes/clinica` (admin) ou `/configuracoes/perfil` (demais) — usado pelo middleware quando a URL antiga `/cadastros` é acessada (T039 + T038)
-- [X] T078 [P] Atualizar `src/lib/auth/rbac.ts` adicionando ações novas se o lint:auth pedir (`team.read`, `team.write`, `clinic-profile.read`, `clinic-profile.write`, `user-profile.write`) — caso contrário, documentar no commit que `requireRole('admin')` direto é suficiente para esses endpoints e nenhuma extensão da matriz é necessária
-- [X] T079 [P] Atualizar `CLAUDE.md` (seção "Active Technologies") consolidando a entrada de feature 009 — já adicionada pelo `update-agent-context.ps1` em Phase 1 do plan; remover linhas duplicadas se houver
-- [X] T080 Executar `pnpm lint:auth` e corrigir qualquer endpoint novo sem `requireRole` ou adapter usando `process.env.*` direto (não deveria haver, mas confirmar)
-- [X] T081 Executar `pnpm typecheck` e resolver erros — esperado: zero
-- [X] T082 Executar `pnpm test` (suíte completa) e validar que os testes adicionados (T009–T012, T029–T030, T041–T042, T057–T061) passam, junto com a regressão das suítes existentes
+- [x] T077 [P] Implementar landing `src/app/(dashboard)/configuracoes/page.tsx` que detecta a role da sessão e faz `redirect()` para `/configuracoes/clinica` (admin) ou `/configuracoes/perfil` (demais) — usado pelo middleware quando a URL antiga `/cadastros` é acessada (T039 + T038)
+- [x] T078 [P] Atualizar `src/lib/auth/rbac.ts` adicionando ações novas se o lint:auth pedir (`team.read`, `team.write`, `clinic-profile.read`, `clinic-profile.write`, `user-profile.write`) — caso contrário, documentar no commit que `requireRole('admin')` direto é suficiente para esses endpoints e nenhuma extensão da matriz é necessária
+- [x] T079 [P] Atualizar `CLAUDE.md` (seção "Active Technologies") consolidando a entrada de feature 009 — já adicionada pelo `update-agent-context.ps1` em Phase 1 do plan; remover linhas duplicadas se houver
+- [x] T080 Executar `pnpm lint:auth` e corrigir qualquer endpoint novo sem `requireRole` ou adapter usando `process.env.*` direto (não deveria haver, mas confirmar)
+- [x] T081 Executar `pnpm typecheck` e resolver erros — esperado: zero
+- [x] T082 Executar `pnpm test` (suíte completa) e validar que os testes adicionados (T009–T012, T029–T030, T041–T042, T057–T061) passam, junto com a regressão das suítes existentes
 - [ ] T083 [DEFERRED→runtime] Validar manualmente o `quickstart.md` ponta a ponta nas 5 stories (incluindo cross-cutting validations §6) e marcar a checklist conforme cada item passa
 - [ ] T084 [DEFERRED→runtime] Inspecionar `audit_log` após o quickstart e confirmar que existem entradas para: update de clinic profile (1 por campo), upload de logo, convite, mudança de role, desativação, reativação, troca de senha — anexar SQL de evidência ao PR
 

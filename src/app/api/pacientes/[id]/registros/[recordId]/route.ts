@@ -30,10 +30,7 @@ export async function DELETE(
       tenantId: session.tenantId,
       recordId: params.recordId,
     })
-    return NextResponse.json(
-      { id: result.id, deleted_at: result.deletedAt },
-      { status: 200 },
-    )
+    return NextResponse.json({ id: result.id, deleted_at: result.deletedAt }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, {
       route: `/api/pacientes/${params.id}/registros/${params.recordId}`,

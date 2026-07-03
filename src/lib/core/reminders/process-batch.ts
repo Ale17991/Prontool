@@ -16,16 +16,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
 import { sendOneReminder } from './send-one'
-import {
-  isWeekend,
-  isWithinWindow,
-  selectDueAppointments,
-} from './select-due'
-import type {
-  EligibleAppointment,
-  ProcessBatchResult,
-  TenantReminderSettings,
-} from './types'
+import { isWeekend, isWithinWindow, selectDueAppointments } from './select-due'
+import type { EligibleAppointment, ProcessBatchResult, TenantReminderSettings } from './types'
 
 const MAX_BATCH = 200
 const MAX_TENANTS_PARALLEL = 5
@@ -58,8 +50,18 @@ export async function processBatch(
     .eq('reminder_enabled', true)
 
   if (tenantsRes.error) {
-    logger.error({ errorCode: (tenantsRes.error as { code?: string }).code }, 'cron-load-tenants-failed')
-    return { processed: 0, sent: 0, failed: 0, skipped: 0, tenantsAffected: 0, durationMs: Date.now() - t0 }
+    logger.error(
+      { errorCode: (tenantsRes.error as { code?: string }).code },
+      'cron-load-tenants-failed',
+    )
+    return {
+      processed: 0,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      tenantsAffected: 0,
+      durationMs: Date.now() - t0,
+    }
   }
 
   const tenants = (tenantsRes.data ?? []) as Array<{
@@ -78,7 +80,14 @@ export async function processBatch(
   }>
 
   if (tenants.length === 0) {
-    return { processed: 0, sent: 0, failed: 0, skipped: 0, tenantsAffected: 0, durationMs: Date.now() - t0 }
+    return {
+      processed: 0,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      tenantsAffected: 0,
+      durationMs: Date.now() - t0,
+    }
   }
 
   // Buffer global compartilhado entre tenants — cap em MAX_BATCH.

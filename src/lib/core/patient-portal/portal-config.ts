@@ -64,9 +64,10 @@ export async function getPatientPortalConfig(
     .eq('tenant_id', tenantId)
     .maybeSingle()
   if (error) throw new Error(`getPatientPortalConfig: ${error.message}`)
-  const row = data as
-    | { patient_portal_enabled: boolean | null; public_booking_slug: string | null }
-    | null
+  const row = data as {
+    patient_portal_enabled: boolean | null
+    public_booking_slug: string | null
+  } | null
   return {
     patientPortalEnabled: row?.patient_portal_enabled ?? false,
     publicBookingSlug: row?.public_booking_slug ?? null,

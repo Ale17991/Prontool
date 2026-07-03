@@ -33,19 +33,21 @@ export async function listPatientDocuments(
     .order('created_at', { ascending: false })
   if (error) throw new Error(`listPatientDocuments failed: ${error.message}`)
 
-  return ((data ?? []) as unknown as Array<{
-    id: string
-    doc_type: PatientDocType
-    title: string
-    body: string
-    cid_code: string | null
-    cid_description: string | null
-    issued_at: string | null
-    delivered_at: string | null
-    created_at: string
-    paper_size: 'A4' | 'A5' | 'LETTER'
-    font_size: number
-  }>).map((r) => ({
+  return (
+    (data ?? []) as unknown as Array<{
+      id: string
+      doc_type: PatientDocType
+      title: string
+      body: string
+      cid_code: string | null
+      cid_description: string | null
+      issued_at: string | null
+      delivered_at: string | null
+      created_at: string
+      paper_size: 'A4' | 'A5' | 'LETTER'
+      font_size: number
+    }>
+  ).map((r) => ({
     id: r.id,
     docType: r.doc_type,
     title: r.title,

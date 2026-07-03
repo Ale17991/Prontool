@@ -37,25 +37,33 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
   await page.getByLabel(/e-mail/i).fill(`smoke.${Date.now()}@test.local`)
   // Plano obrigatório — selecionar Particular (3º item tipicamente; abrir o Select).
   await page.locator('#plan_id').click()
-  await page.getByRole('option', { name: /^particular$/i }).first().click()
+  await page
+    .getByRole('option', { name: /^particular$/i })
+    .first()
+    .click()
   const savePatient = page.getByRole('button', { name: /salvar paciente/i })
   await savePatient.scrollIntoViewIfNeeded()
   await savePatient.click()
   // Dá um respiro pro fetch disparar
   await page.waitForTimeout(500)
-  await page.waitForURL(/\/operacao\/pacientes\/[0-9a-f-]{36}$/, { timeout: 90_000 }).catch((err) => {
-    console.log('[smoke] waitForURL failed, current:', page.url())
-    console.log('[smoke] api activity so far:')
-    for (const l of logs) console.log('   ', l)
-    throw err
-  })
+  await page
+    .waitForURL(/\/operacao\/pacientes\/[0-9a-f-]{36}$/, { timeout: 90_000 })
+    .catch((err) => {
+      console.log('[smoke] waitForURL failed, current:', page.url())
+      console.log('[smoke] api activity so far:')
+      for (const l of logs) console.log('   ', l)
+      throw err
+    })
   const patientUrl = page.url()
   const patientId = patientUrl.split('/').pop()!
   console.log('[smoke] patient created:', patientId)
 
   // ---- Criar modelo de anamnese (usar a tela do builder) ----
   await page.goto('/cadastros/anamnese/novo')
-  await page.getByPlaceholder(/título/i).first().fill(`Template Smoke ${Date.now()}`)
+  await page
+    .getByPlaceholder(/título/i)
+    .first()
+    .fill(`Template Smoke ${Date.now()}`)
 
   // Adicionar um campo texto curto
   await page.getByRole('button', { name: /campo de texto/i }).click()
@@ -122,9 +130,14 @@ test('admin smoke flow: paciente → anamnese aplicada → etapa → ficha', asy
 
   // ---- Hub de convênios → abrir tabela de Unimed ----
   await page.goto('/cadastros/planos')
-  await expect(page.getByRole('heading', { name: /convênios|Tabelas/i }).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: /convênios|Tabelas/i }).first()).toBeVisible({
+    timeout: 15_000,
+  })
   // Click the "Abrir" link on the Unimed row — Unimed é seedado.
-  const unimedRow = page.getByRole('row').filter({ hasText: /Unimed/i }).first()
+  const unimedRow = page
+    .getByRole('row')
+    .filter({ hasText: /Unimed/i })
+    .first()
   await expect(unimedRow).toBeVisible({ timeout: 10_000 })
   await unimedRow.getByRole('link', { name: /abrir/i }).click()
   await page.waitForURL(/\/cadastros\/planos\/[0-9a-f-]{36}$/, { timeout: 30_000 })

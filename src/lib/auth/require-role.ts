@@ -24,7 +24,9 @@ export async function requireRole(
     request?: Request
   },
 ): Promise<ActiveSession> {
-  const session = context.request ? await getSessionFromRequest(context.request) : await getSession()
+  const session = context.request
+    ? await getSessionFromRequest(context.request)
+    : await getSession()
   if (!session) throw new UnauthorizedError('Not authenticated')
 
   if (!allowed.includes(session.role)) {

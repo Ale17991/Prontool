@@ -138,12 +138,10 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
             Voltar
           </Link>
         </Button>
-        <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
-          Novo atendimento
-        </h1>
+        <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">Novo atendimento</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Registre um atendimento realizado manualmente. Valor preenchido automaticamente com
-          base na tabela de preços vigente; edite se for necessário.
+          Registre um atendimento realizado manualmente. Valor preenchido automaticamente com base
+          na tabela de preços vigente; edite se for necessário.
         </p>
       </div>
 

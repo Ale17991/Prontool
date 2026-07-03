@@ -53,9 +53,7 @@ function formatBrasilia(iso: string): string {
   }).format(new Date(iso))
 }
 
-export async function sendOneReminder(
-  input: SendOneInput,
-): Promise<ReminderRecord | null> {
+export async function sendOneReminder(input: SendOneInput): Promise<ReminderRecord | null> {
   const { supabase, eligible, offsetHours, isManual } = input
 
   // 1. INSERT queued. Para cron (is_manual=FALSE) protege idempotência via
@@ -70,7 +68,9 @@ export async function sendOneReminder(
       status: 'queued',
       is_manual: isManual,
     })
-    .select('id, status, created_at, tenant_id, appointment_id, channel, scheduled_offset_hours, is_manual')
+    .select(
+      'id, status, created_at, tenant_id, appointment_id, channel, scheduled_offset_hours, is_manual',
+    )
     .maybeSingle()
 
   if (insertRes.error) {
@@ -90,10 +90,7 @@ export async function sendOneReminder(
   }
 
   if (!insertRes.data) {
-    logger.warn(
-      { appointmentId: eligible.appointmentId, offsetHours },
-      'reminder-insert-no-data',
-    )
+    logger.warn({ appointmentId: eligible.appointmentId, offsetHours }, 'reminder-insert-no-data')
     return null
   }
 
@@ -193,10 +190,7 @@ export async function sendOneReminder(
   }
 }
 
-function mapToRecord(
-  row: unknown,
-  override: Partial<ReminderRecord> = {},
-): ReminderRecord {
+function mapToRecord(row: unknown, override: Partial<ReminderRecord> = {}): ReminderRecord {
   const r = (row ?? {}) as Record<string, unknown>
   return {
     id: (r.id as string) ?? '',

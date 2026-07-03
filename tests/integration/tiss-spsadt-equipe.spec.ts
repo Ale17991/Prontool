@@ -155,8 +155,14 @@ describe('Feature 031 — equipe na Guia de SP/SADT (US3)', () => {
 
   it('2 participantes completos → guia pronta com equipe de 2 membros', async () => {
     const { sb, tenantId, appointmentId, lineId, actorUserId } = await setup('tiss-equipe-ok')
-    const cirurgiao = await seedParticipantDoctor(sb, tenantId, { cpf: '11144477735', cbo: '225125' })
-    const anestesista = await seedParticipantDoctor(sb, tenantId, { cpf: '52998224725', cbo: '225151' })
+    const cirurgiao = await seedParticipantDoctor(sb, tenantId, {
+      cpf: '11144477735',
+      cbo: '225125',
+    })
+    const anestesista = await seedParticipantDoctor(sb, tenantId, {
+      cpf: '52998224725',
+      cbo: '225151',
+    })
     await addParticipant(sb, {
       tenantId,
       appointmentId,
@@ -191,13 +197,17 @@ describe('Feature 031 — equipe na Guia de SP/SADT (US3)', () => {
       .select('executante_snapshot')
       .eq('id', result.guiaId)
       .single()
-    const snap = (guia as { executante_snapshot: { spSadt?: { equipePorSequence?: Record<string, unknown[]> } } })
-      .executante_snapshot
+    const snap = (
+      guia as {
+        executante_snapshot: { spSadt?: { equipePorSequence?: Record<string, unknown[]> } }
+      }
+    ).executante_snapshot
     expect(snap.spSadt?.equipePorSequence?.['1']).toHaveLength(2)
   })
 
   it('participante sem CBO → rascunho com pendência apontando a equipe', async () => {
-    const { sb, tenantId, appointmentId, lineId, actorUserId } = await setup('tiss-equipe-incompleta')
+    const { sb, tenantId, appointmentId, lineId, actorUserId } =
+      await setup('tiss-equipe-incompleta')
     const semCbo = await seedParticipantDoctor(sb, tenantId, { cpf: '11144477735', cbo: null })
     await addParticipant(sb, {
       tenantId,
@@ -217,6 +227,8 @@ describe('Feature 031 — equipe na Guia de SP/SADT (US3)', () => {
       actorLabel: 'test',
     })
     expect(result.status).toBe('rascunho')
-    expect(result.validationErrors.some((e) => /equipe/.test(e.field) && /CBOS/.test(e.field))).toBe(true)
+    expect(
+      result.validationErrors.some((e) => /equipe/.test(e.field) && /CBOS/.test(e.field)),
+    ).toBe(true)
   })
 })

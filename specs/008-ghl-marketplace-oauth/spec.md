@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Integração completa do Prontool com o GoHighLevel Marketplace. Migrar de token fixo por tenant para OAuth 2.0 oficial; auto-provisionar tenant ao instalar o app; auto-criar custom fields; registrar webhooks; sync bidirecional de contatos; nota de atendimento; SSO/custom menu; UI de configuração com status, reconectar e log de sincronização."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Conectar uma sub-account do GHL ao Prontool via OAuth (Priority: P1)
 
@@ -29,6 +29,7 @@ Um administrador de clínica que já usa o Prontool quer conectar a sub-account 
 ### User Story 2 — Instalação via Marketplace cria/atualiza o tenant automaticamente (Priority: P1)
 
 Uma agência ou sub-account encontra o Prontool no Marketplace do GHL e clica em "Instalar". O Prontool recebe o webhook de instalação, e:
+
 - Se ainda não existe um tenant ligado àquela sub-account, **cria** o tenant automaticamente com o nome e timezone da location, e cria o registro em `tenant_integrations` com os tokens cifrados.
 - Se já existe um tenant ligado àquela sub-account (mesmo `location_id`), **atualiza** apenas os tokens cifrados e marca como conectado.
 - Se a agência depois desinstala, o webhook de uninstall marca a integração como desconectada (não apaga dados).
@@ -114,7 +115,7 @@ Para usuários que vivem dentro do GHL, o Prontool aparece como um item de menu 
 - **Múltiplas locations em uma instalação agência-level**: GHL pode entregar `INSTALL` para múltiplas locations em sequência. → Cada `location_id` é tratado independentemente (um tenant por location).
 - **`patient.created` para paciente sem telefone/e-mail** que normalmente seriam usados como identificador no GHL: → Cria contato no GHL apenas com nome + custom fields; mantém vínculo via `external_id`.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -172,7 +173,7 @@ Para usuários que vivem dentro do GHL, o Prontool aparece como um item de menu 
 - **Operational Alert (integration_sync_failed)**: alerta visível à operação para falhas que o usuário-final não percebe (refresh falhou, sync falhou após retry), com `detail.provider='ghl'`.
 - **Audit Entry**: trilha imutável em `audit_log` de connect/disconnect/refresh/sync por tenant.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

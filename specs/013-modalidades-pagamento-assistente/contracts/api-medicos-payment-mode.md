@@ -204,9 +204,9 @@ Retorna o histórico de modalidades/parâmetros do profissional.
 
 Todas as mudanças geram entrada em `audit_log` (Constitution II):
 
-| Ação                                        | entity                       | field           | new_value                                     |
-| ------------------------------------------- | ---------------------------- | --------------- | --------------------------------------------- |
-| Criar profissional com modalidade           | `doctor_payment_terms`       | `version_created` | `{payment_mode, params, valid_from, reason}`  |
-| Mudar modalidade (PATCH `payment_mode_change`) | `doctor_payment_terms`    | `version_created` | `{payment_mode, params, valid_from, reason}`  |
-| (espelho automático)                        | `doctors`                    | `payment_mode_changed` | `{previous_mode, new_mode}`             |
-| Tentativa de mudança por não-admin          | `doctors`                    | `auth_denied`   | `{requested_role: 'admin', actual_role}`      |
+| Ação                                           | entity                 | field                  | new_value                                    |
+| ---------------------------------------------- | ---------------------- | ---------------------- | -------------------------------------------- |
+| Criar profissional com modalidade              | `doctor_payment_terms` | `version_created`      | `{payment_mode, params, valid_from, reason}` |
+| Mudar modalidade (PATCH `payment_mode_change`) | `doctor_payment_terms` | `version_created`      | `{payment_mode, params, valid_from, reason}` |
+| (espelho automático)                           | `doctors`              | `payment_mode_changed` | `{previous_mode, new_mode}`                  |
+| Tentativa de mudança por não-admin             | `doctors`              | `auth_denied`          | `{requested_role: 'admin', actual_role}`     |

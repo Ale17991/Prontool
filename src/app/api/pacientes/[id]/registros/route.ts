@@ -3,10 +3,7 @@ import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listClinicalRecords } from '@/lib/core/clinical-records/list'
-import {
-  createEvolutionRecord,
-  createTextClinicalRecord,
-} from '@/lib/core/clinical-records/create'
+import { createEvolutionRecord, createTextClinicalRecord } from '@/lib/core/clinical-records/create'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -47,10 +44,7 @@ const evolutionSchema = z.object({
 
 const createSchema = z.union([textSchema, evolutionSchema])
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(
       ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],

@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { PatientDocumentRow } from './list'
@@ -20,13 +13,27 @@ const TYPE_LABEL: Record<string, string> = {
 
 const styles = StyleSheet.create({
   page: { padding: 48, fontSize: 11, fontFamily: 'Helvetica', color: '#0f172a', lineHeight: 1.5 },
-  title: { fontSize: 16, fontFamily: 'Helvetica-Bold', textAlign: 'center', marginTop: 8, marginBottom: 16 },
+  title: {
+    fontSize: 16,
+    fontFamily: 'Helvetica-Bold',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
   patient: { fontSize: 11, marginBottom: 12, color: '#334155' },
   body: { fontSize: 11, textAlign: 'justify', marginBottom: 16, whiteSpace: 'pre-wrap' },
   cid: { fontSize: 10, color: '#475569', marginBottom: 16 },
   date: { fontSize: 11, marginTop: 24, textAlign: 'right' },
   sign: { marginTop: 56, alignItems: 'center' },
-  signLine: { borderTopWidth: 1, borderTopColor: '#334155', width: 240, paddingTop: 4, textAlign: 'center', fontSize: 10, color: '#334155' },
+  signLine: {
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+    width: 240,
+    paddingTop: 4,
+    textAlign: 'center',
+    fontSize: 10,
+    color: '#334155',
+  },
 })
 
 function ddmmyyyyLong(iso: string): string {

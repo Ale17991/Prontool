@@ -186,10 +186,14 @@ export async function createCustomMetricType(
   const specialty = (input.specialty ?? 'endocrino').trim()
 
   if (label.length < 2 || label.length > 80) {
-    throw new DomainError('INVALID_METRIC', 'O nome deve ter entre 2 e 80 caracteres.', { status: 422 })
+    throw new DomainError('INVALID_METRIC', 'O nome deve ter entre 2 e 80 caracteres.', {
+      status: 422,
+    })
   }
   if (unit.length < 1 || unit.length > 16) {
-    throw new DomainError('INVALID_METRIC', 'A unidade deve ter entre 1 e 16 caracteres.', { status: 422 })
+    throw new DomainError('INVALID_METRIC', 'A unidade deve ter entre 1 e 16 caracteres.', {
+      status: 422,
+    })
   }
   if (!/^[a-z][a-z0-9_]{1,31}$/.test(specialty)) {
     throw new DomainError('INVALID_METRIC', 'Especialidade inválida.', { status: 422 })
@@ -198,12 +202,16 @@ export async function createCustomMetricType(
     throw new DomainError('INVALID_METRIC', 'Faixa plausível inválida.', { status: 422 })
   }
   if (input.maxPlausible <= input.minPlausible) {
-    throw new DomainError('INVALID_METRIC', 'O máximo plausível deve ser maior que o mínimo.', { status: 422 })
+    throw new DomainError('INVALID_METRIC', 'O máximo plausível deve ser maior que o mínimo.', {
+      status: 422,
+    })
   }
 
   const slug = slugifyMetric(label)
   if (!slug) {
-    throw new DomainError('INVALID_METRIC', 'O nome precisa conter letras ou números.', { status: 422 })
+    throw new DomainError('INVALID_METRIC', 'O nome precisa conter letras ou números.', {
+      status: 422,
+    })
   }
   const metricType = buildCustomMetricKey(input.tenantId, slug)
 

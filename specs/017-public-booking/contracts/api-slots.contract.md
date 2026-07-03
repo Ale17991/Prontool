@@ -13,18 +13,18 @@ GET /api/public/booking/[slug]/slots?doctor_id={uuid}&procedure_id={uuid}&from={
 
 ### Path params
 
-| Param | Tipo | Validação |
-|---|---|---|
+| Param  | Tipo   | Validação                   |
+| ------ | ------ | --------------------------- |
 | `slug` | string | `^[a-z0-9][a-z0-9-]{2,31}$` |
 
 ### Query params (todos obrigatórios)
 
-| Param | Tipo | Validação |
-|---|---|---|
-| `doctor_id` | UUID | RFC 4122 |
-| `procedure_id` | UUID | RFC 4122 |
-| `from` | string `YYYY-MM-DD` | Data válida; ≥ hoje |
-| `to` | string `YYYY-MM-DD` | Data válida; ≥ `from`; ≤ `from + 31 days` (anti-DoS) |
+| Param          | Tipo                | Validação                                            |
+| -------------- | ------------------- | ---------------------------------------------------- |
+| `doctor_id`    | UUID                | RFC 4122                                             |
+| `procedure_id` | UUID                | RFC 4122                                             |
+| `from`         | string `YYYY-MM-DD` | Data válida; ≥ hoje                                  |
+| `to`           | string `YYYY-MM-DD` | Data válida; ≥ `from`; ≤ `from + 31 days` (anti-DoS) |
 
 ### Headers
 

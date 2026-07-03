@@ -34,9 +34,7 @@ export async function POST(
       )
     }
 
-    const files = form
-      .getAll('files')
-      .filter((f): f is File => f instanceof File && f.size > 0)
+    const files = form.getAll('files').filter((f): f is File => f instanceof File && f.size > 0)
     if (files.length === 0) {
       return NextResponse.json(
         { error: { code: 'INVALID_BODY', message: 'campo `files` obrigatorio (1+ arquivos)' } },
@@ -90,10 +88,7 @@ export async function POST(
   }
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(
       ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],

@@ -87,6 +87,7 @@ http://localhost:3000/agendar/clinica-teste
 ```
 
 Fluxo esperado:
+
 1. Página landing mostra logo + nome da clínica + lista de médicos publicados.
 2. Clicar no médico → mostra procedimentos publicados pra ele.
 3. Clicar no procedimento → calendário com slots disponíveis nos próximos 30 dias.
@@ -215,18 +216,18 @@ SELECT cron.schedule(
 
 ## 12. Onde isso vive no código
 
-| Coisa | Path |
-|---|---|
-| Migration | `supabase/migrations/0084_public_booking.sql` |
-| Core domain | `src/lib/core/public-booking/*` |
-| Rotas públicas (UI) | `src/app/agendar/[slug]/*` |
-| Rotas API | `src/app/api/public/booking/*` |
-| UI admin | `src/app/(dashboard)/configuracoes/agendamento-publico/*` |
-| Componentes client | `src/components/public-booking/*` |
-| Email templates | `src/lib/integrations/email/booking-template.ts` |
-| ICS gen | `src/lib/utils/ics.ts` |
-| Spec/plan/contracts | `specs/017-public-booking/*` |
-| Testes de contrato | `tests/contract/public-booking-*.test.ts` |
+| Coisa               | Path                                                      |
+| ------------------- | --------------------------------------------------------- |
+| Migration           | `supabase/migrations/0084_public_booking.sql`             |
+| Core domain         | `src/lib/core/public-booking/*`                           |
+| Rotas públicas (UI) | `src/app/agendar/[slug]/*`                                |
+| Rotas API           | `src/app/api/public/booking/*`                            |
+| UI admin            | `src/app/(dashboard)/configuracoes/agendamento-publico/*` |
+| Componentes client  | `src/components/public-booking/*`                         |
+| Email templates     | `src/lib/integrations/email/booking-template.ts`          |
+| ICS gen             | `src/lib/utils/ics.ts`                                    |
+| Spec/plan/contracts | `specs/017-public-booking/*`                              |
+| Testes de contrato  | `tests/contract/public-booking-*.test.ts`                 |
 
 ---
 

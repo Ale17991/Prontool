@@ -19,10 +19,16 @@ export function loadContract(path: string): OpenApiSpec {
 export function assertPathExists(spec: OpenApiSpec, path: string, method: string): void {
   const p = spec.paths[path]
   if (!p) throw new Error(`contract: path ${path} missing`)
-  if (!(method.toLowerCase() in p)) throw new Error(`contract: ${method.toUpperCase()} ${path} missing`)
+  if (!(method.toLowerCase() in p))
+    throw new Error(`contract: ${method.toUpperCase()} ${path} missing`)
 }
 
-export function assertResponseCodes(spec: OpenApiSpec, path: string, method: string, codes: string[]): void {
+export function assertResponseCodes(
+  spec: OpenApiSpec,
+  path: string,
+  method: string,
+  codes: string[],
+): void {
   const op = (spec.paths[path] as Record<string, { responses?: Record<string, unknown> }>)[
     method.toLowerCase()
   ]

@@ -31,7 +31,8 @@ export async function GET(req: Request): Promise<Response> {
     }
     const planId = sp.get('plan')
     const statusRaw = sp.get('status')
-    const status = statusRaw && STATUS.safeParse(statusRaw).success ? (statusRaw as ReceiptStatus) : 'all'
+    const status =
+      statusRaw && STATUS.safeParse(statusRaw).success ? (statusRaw as ReceiptStatus) : 'all'
 
     const supabase = createSupabaseServiceClient()
     const rows = await listPlanReceivables(supabase, {
@@ -65,7 +66,9 @@ export async function POST(req: Request): Promise<Response> {
     const parsed = postSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }

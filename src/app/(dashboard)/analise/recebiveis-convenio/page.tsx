@@ -21,7 +21,14 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/
 const STATUSES = new Set(['pendente', 'recebido', 'glosado', 'nao_recebido'])
 
 interface PageProps {
-  searchParams: { from?: string; to?: string; plan?: string; status?: string; doctor?: string; q?: string }
+  searchParams: {
+    from?: string
+    to?: string
+    plan?: string
+    status?: string
+    doctor?: string
+    q?: string
+  }
 }
 
 export default async function RecebiveisConvenioPage({ searchParams }: PageProps) {
@@ -37,7 +44,8 @@ export default async function RecebiveisConvenioPage({ searchParams }: PageProps
   const from = searchParams.from && DATE.test(searchParams.from) ? searchParams.from : firstDay
   const to = searchParams.to && DATE.test(searchParams.to) ? searchParams.to : todayStr
   const planFilter = searchParams.plan && searchParams.plan !== 'all' ? searchParams.plan : null
-  const doctorFilter = searchParams.doctor && searchParams.doctor !== 'all' ? searchParams.doctor : null
+  const doctorFilter =
+    searchParams.doctor && searchParams.doctor !== 'all' ? searchParams.doctor : null
   const search = searchParams.q?.trim() || null
   const statusFilter =
     searchParams.status && STATUSES.has(searchParams.status)
@@ -88,22 +96,42 @@ export default async function RecebiveisConvenioPage({ searchParams }: PageProps
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">Recebíveis do convênio</h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">
+          Recebíveis do convênio
+        </h1>
         <p className="mt-1 text-sm text-slate-500">
           Status de recebimento por procedimento de convênio. Selecione e marque em massa.
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <SummaryCard label="Faturado (filtro)" value={formatCurrency(totalCents)} icon={<Wallet className="h-4 w-4" />} />
-        <SummaryCard label="Recebido" value={formatCurrency(recebidoCents)} icon={<CheckCircle2 className="h-4 w-4 text-success-text" />} />
-        <SummaryCard label="Pendente" value={formatCurrency(pendenteCents)} icon={<Clock className="h-4 w-4 text-[hsl(var(--warning-foreground))]" />} />
-        <SummaryCard label="Glosado / não recebido" value={formatCurrency(glosadoCents + naoRecebidoCents)} icon={<XCircle className="h-4 w-4 text-destructive" />} />
+        <SummaryCard
+          label="Faturado (filtro)"
+          value={formatCurrency(totalCents)}
+          icon={<Wallet className="h-4 w-4" />}
+        />
+        <SummaryCard
+          label="Recebido"
+          value={formatCurrency(recebidoCents)}
+          icon={<CheckCircle2 className="h-4 w-4 text-success-text" />}
+        />
+        <SummaryCard
+          label="Pendente"
+          value={formatCurrency(pendenteCents)}
+          icon={<Clock className="h-4 w-4 text-[hsl(var(--warning-foreground))]" />}
+        />
+        <SummaryCard
+          label="Glosado / não recebido"
+          value={formatCurrency(glosadoCents + naoRecebidoCents)}
+          icon={<XCircle className="h-4 w-4 text-destructive" />}
+        />
       </div>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-sm">{rows.length} procedimento{rows.length === 1 ? '' : 's'}</CardTitle>
+          <CardTitle className="text-sm">
+            {rows.length} procedimento{rows.length === 1 ? '' : 's'}
+          </CardTitle>
           <form method="GET" className="flex flex-wrap items-end gap-2">
             <div>
               <label className="block text-[10px] font-bold uppercase text-slate-500">Buscar</label>
@@ -189,7 +217,9 @@ function SummaryCard(props: { label: string; value: string; icon: React.ReactNod
       <CardContent className="flex items-center gap-3 p-4">
         <div className="rounded-lg bg-slate-50 p-2 text-slate-500">{props.icon}</div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{props.label}</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            {props.label}
+          </p>
           <p className="text-base font-bold tabular-nums text-slate-900">{props.value}</p>
         </div>
       </CardContent>

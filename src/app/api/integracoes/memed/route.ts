@@ -42,7 +42,12 @@ export async function POST(req: Request): Promise<Response> {
     const parsed = activateSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Aceite o termo e informe o ambiente para ativar.' } },
+        {
+          error: {
+            code: 'INVALID_BODY',
+            message: 'Aceite o termo e informe o ambiente para ativar.',
+          },
+        },
         { status: 400 },
       )
     }
@@ -56,7 +61,10 @@ export async function POST(req: Request): Promise<Response> {
       ip: clientIp(req),
       userAgent: req.headers.get('user-agent'),
     })
-    return NextResponse.json({ environment: result.environment, connected: result.connected }, { status: 200 })
+    return NextResponse.json(
+      { environment: result.environment, connected: result.connected },
+      { status: 200 },
+    )
   } catch (err) {
     return toHttpResponse(err, { route: ROUTE })
   }

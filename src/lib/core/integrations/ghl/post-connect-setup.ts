@@ -65,23 +65,14 @@ export async function runPostConnectSetup(
       allWarnings.push('webhooks_setup_failed')
     }
   } else {
-    logger.warn(
-      { tenant_id: tenantId },
-      'post-connect-webhooks-skipped-no-base-url',
-    )
+    logger.warn({ tenant_id: tenantId }, 'post-connect-webhooks-skipped-no-base-url')
     allWarnings.push('webhooks_setup_skipped_no_base_url')
   }
 
   // 3. Custom Menu (US5) — best-effort, fallback gracioso. NUNCA bloqueia.
   if (baseUrl) {
     try {
-      const menu = await customMenuSetup(
-        supabase,
-        tenantId,
-        accessToken,
-        locationId,
-        baseUrl,
-      )
+      const menu = await customMenuSetup(supabase, tenantId, accessToken, locationId, baseUrl)
       if (menu.status === 'unsupported') allWarnings.push('custom_menu_unsupported')
       if (menu.status === 'failed') allWarnings.push('custom_menu_failed')
     } catch (err) {

@@ -21,10 +21,7 @@ const ALL_ROLES = ['admin', 'financeiro', 'recepcionista', 'profissional_saude']
 
 const assignSchema = z.object({ tag_id: z.string().uuid() })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/tags`
   try {
     const session = await requireRole(ALL_ROLES, {

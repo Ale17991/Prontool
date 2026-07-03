@@ -18,7 +18,10 @@ test('TUSS list dialog: open, filter, select, close', async ({ page }) => {
   await page.goto('/cadastros/procedimentos')
   await page.waitForLoadState('networkidle')
 
-  await page.getByRole('button', { name: /ver em lista/i }).first().click()
+  await page
+    .getByRole('button', { name: /ver em lista/i })
+    .first()
+    .click()
 
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()

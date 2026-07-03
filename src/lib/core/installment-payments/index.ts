@@ -63,18 +63,18 @@ export async function recordInstallmentPayment(
     .eq('id', input.installmentId)
     .maybeSingle()
   if (sel.error) throw new Error(`installment lookup: ${sel.error.message}`)
-  const row = sel.data as
-    | { amount_cents: number; paid_amount_cents: number; tenant_id: string }
-    | null
+  const row = sel.data as {
+    amount_cents: number
+    paid_amount_cents: number
+    tenant_id: string
+  } | null
   if (!row) throw new NotFoundError('installment', input.installmentId)
   if (row.tenant_id !== input.tenantId) {
     throw new NotFoundError('installment', input.installmentId)
   }
   const pending = Number(row.amount_cents) - Number(row.paid_amount_cents)
   if (input.amountCents > pending) {
-    throw new ValidationError(
-      `amount_cents (${input.amountCents}) exceeds pending (${pending})`,
-    )
+    throw new ValidationError(`amount_cents (${input.amountCents}) exceeds pending (${pending})`)
   }
 
   const ins = await supabase
@@ -115,14 +115,12 @@ export async function reverseInstallmentPayment(
     .eq('id', input.paymentId)
     .maybeSingle()
   if (orig.error) throw new Error(`original lookup: ${orig.error.message}`)
-  const o = orig.data as
-    | {
-        amount_cents: number
-        payment_method: string
-        tenant_id: string
-        installment_id: string
-      }
-    | null
+  const o = orig.data as {
+    amount_cents: number
+    payment_method: string
+    tenant_id: string
+    installment_id: string
+  } | null
   if (!o) throw new NotFoundError('installment_payment', input.paymentId)
   if (o.tenant_id !== input.tenantId || o.installment_id !== input.installmentId) {
     throw new NotFoundError('installment_payment', input.paymentId)

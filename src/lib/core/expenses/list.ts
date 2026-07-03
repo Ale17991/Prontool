@@ -10,10 +10,7 @@ export interface ListExpensesFilter {
   includeDeleted?: boolean
 }
 
-export async function listExpenses(
-  supabase: SupabaseClient<Database>,
-  filter: ListExpensesFilter,
-) {
+export async function listExpenses(supabase: SupabaseClient<Database>, filter: ListExpensesFilter) {
   // Feature 011 — US3: projeta tax (nome) via join leve quando há vínculo.
   let query = supabase
     .from('expenses')

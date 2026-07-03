@@ -33,7 +33,7 @@
 
 - "Webhook", "PDF" and "Excel" are retained in the spec because the user
   explicitly named them as integration and output formats — they describe
-  *what* the feature delivers, not *how* it is built. No framework, language,
+  _what_ the feature delivers, not _how_ it is built. No framework, language,
   storage engine or protocol detail is present.
 - Terms like "snapshot", "idempotente" and "multi-tenant" are used as
   business-process vocabulary (as established in the project constitution),

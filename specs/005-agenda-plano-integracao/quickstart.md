@@ -55,6 +55,7 @@ pnpm tsx scripts/bench-conflict.ts
 ```
 
 Espera-se:
+
 ```
 [bench-conflict] disparando 50 POSTs concorrentes para o mesmo slot...
 [bench-conflict] resultado: 1 sucesso, 49 conflitos (HTTP 409). 0 erros inesperados.

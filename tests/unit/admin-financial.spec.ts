@@ -7,7 +7,13 @@ import { getFinancialSummary } from '@/lib/core/admin/financial-summary'
 // Mock mínimo do supabase: from(table).select() → Promise<{data,error}>.
 function mockSb(opts: {
   prices: Array<{ plan: string; price_cents: number }>
-  ents: Array<{ tenant_id: string; plan: string; status: string | null; trial_ends_at: string | null; updated_at: string | null }>
+  ents: Array<{
+    tenant_id: string
+    plan: string
+    status: string | null
+    trial_ends_at: string | null
+    updated_at: string | null
+  }>
   tenants: Array<{ id: string; name: string }>
 }) {
   return {
@@ -15,7 +21,8 @@ function mockSb(opts: {
       return {
         select() {
           if (table === 'plan_prices') return Promise.resolve({ data: opts.prices, error: null })
-          if (table === 'tenant_entitlements') return Promise.resolve({ data: opts.ents, error: null })
+          if (table === 'tenant_entitlements')
+            return Promise.resolve({ data: opts.ents, error: null })
           if (table === 'tenants') return Promise.resolve({ data: opts.tenants, error: null })
           return Promise.resolve({ data: [], error: null })
         },
@@ -37,7 +44,13 @@ describe('getFinancialSummary (Feature 044)', () => {
       ents: [
         { tenant_id: 'a', plan: 'pro', status: 'active', trial_ends_at: null, updated_at: null },
         { tenant_id: 'b', plan: 'pro', status: 'active', trial_ends_at: null, updated_at: null },
-        { tenant_id: 'c', plan: 'essencial', status: 'active', trial_ends_at: null, updated_at: null },
+        {
+          tenant_id: 'c',
+          plan: 'essencial',
+          status: 'active',
+          trial_ends_at: null,
+          updated_at: null,
+        },
         { tenant_id: 'd', plan: 'legacy', status: 'active', trial_ends_at: null, updated_at: null },
         { tenant_id: 'e', plan: 'clinica', status: 'trial', trial_ends_at: null, updated_at: null },
         { tenant_id: 'f', plan: 'pro', status: 'canceled', trial_ends_at: null, updated_at: null },

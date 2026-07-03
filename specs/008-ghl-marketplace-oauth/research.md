@@ -5,6 +5,7 @@
 **Scope**: resolver decisões abertas antes do design e listar pontos que precisam ser confirmados contra a documentação oficial do GHL Marketplace antes da PR final.
 
 > Convenções:
+>
 > - **STATUS: locked** — decisão final, não bloquear `/speckit.tasks`.
 > - **STATUS: needs-verification-against-official-docs** — default razoável escolhido com base em padrões do GHL e em integrações análogas; precisa confirmar contra a doc oficial do Marketplace antes de mergear a PR final, mas o design abaixo absorve a verificação sem reescrita.
 
@@ -112,14 +113,14 @@ Se a chamada **funcionar**, salva `menu_id` e `menu_status = 'registered'`; em d
 
 **Decision**: Mapeamento Prontool → tipo GHL v2:
 
-| Campo Prontool | Tipo GHL v2 (default) | Alias técnico |
-|---|---|---|
-| CPF | `TEXT` | `prontool_cpf` |
-| Plano de Saúde | `TEXT` | `prontool_plano_saude` |
-| Profissional Responsável | `TEXT` | `prontool_profissional` |
-| Último Atendimento | `DATE` | `prontool_ultimo_atendimento` |
-| Diagnósticos Ativos | `LARGE_TEXT` | `prontool_diagnosticos_ativos` |
-| Alergias | `TEXT` | `prontool_alergias` |
+| Campo Prontool           | Tipo GHL v2 (default) | Alias técnico                  |
+| ------------------------ | --------------------- | ------------------------------ |
+| CPF                      | `TEXT`                | `prontool_cpf`                 |
+| Plano de Saúde           | `TEXT`                | `prontool_plano_saude`         |
+| Profissional Responsável | `TEXT`                | `prontool_profissional`        |
+| Último Atendimento       | `DATE`                | `prontool_ultimo_atendimento`  |
+| Diagnósticos Ativos      | `LARGE_TEXT`          | `prontool_diagnosticos_ativos` |
+| Alergias                 | `TEXT`                | `prontool_alergias`            |
 
 A spec menciona `TEXT_LONG`; a API v2 do GHL na realidade chama `LARGE_TEXT`. Usaremos o nome **técnico** correto (`LARGE_TEXT`) na chamada à API; o nome **visível** continua sendo "Diagnósticos Ativos".
 

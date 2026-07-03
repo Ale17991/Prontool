@@ -17,10 +17,12 @@ export async function GET(
 ): Promise<Response> {
   const route = `/api/pacientes/${params.id}/documentos/${params.docId}/pdf`
   try {
-    const session = await requireRole(
-      ['admin', 'profissional_saude', 'recepcionista'],
-      { entity: 'patient_documents', entityId: params.docId, route, request: req },
-    )
+    const session = await requireRole(['admin', 'profissional_saude', 'recepcionista'], {
+      entity: 'patient_documents',
+      entityId: params.docId,
+      route,
+      request: req,
+    })
     const supabase = createSupabaseServiceClient()
 
     const doc = await getPatientDocument(supabase, {

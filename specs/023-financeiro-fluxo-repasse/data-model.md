@@ -482,12 +482,12 @@ expenses(id) ◄── expenses.superseded_by (self-FK)
 
 ## 10. Tenant Isolation — checklist final
 
-| Fonte | Filtragem aplicada |
-|---|---|
-| Todas as 5 tabelas novas | `tenant_id` NOT NULL + RLS policy SELECT `tenant_id = current_tenant_id()` |
-| `monthly_payouts` (especial) | RLS adicional: profissional_saude só vê próprio `doctor.user_id` |
-| `tenant_cash_balance_adjustments` (especial) | INSERT restrito a admin via RLS WITH CHECK |
-| `monthly_payouts_reopens` (especial) | SELECT restrito a admin |
-| Funções SECURITY DEFINER | Cada uma valida `tenant_id` + role internamente, defesa em camadas além da RLS |
+| Fonte                                        | Filtragem aplicada                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------ |
+| Todas as 5 tabelas novas                     | `tenant_id` NOT NULL + RLS policy SELECT `tenant_id = current_tenant_id()`     |
+| `monthly_payouts` (especial)                 | RLS adicional: profissional_saude só vê próprio `doctor.user_id`               |
+| `tenant_cash_balance_adjustments` (especial) | INSERT restrito a admin via RLS WITH CHECK                                     |
+| `monthly_payouts_reopens` (especial)         | SELECT restrito a admin                                                        |
+| Funções SECURITY DEFINER                     | Cada uma valida `tenant_id` + role internamente, defesa em camadas além da RLS |
 
 ✅ Nenhum vazamento possível. Princípio III preservado.

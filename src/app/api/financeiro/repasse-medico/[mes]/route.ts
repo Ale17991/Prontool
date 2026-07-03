@@ -12,16 +12,14 @@ const paramsSchema = z.object({
   mes: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
 })
 
-export async function GET(
-  req: Request,
-  context: { params: { mes: string } },
-): Promise<Response> {
+export async function GET(req: Request, context: { params: { mes: string } }): Promise<Response> {
   const route = `/api/financeiro/repasse-medico/${context.params.mes}`
   try {
-    const session = await requireRole(
-      ['admin', 'financeiro', 'profissional_saude'],
-      { entity: 'monthly_payouts', route, request: req },
-    )
+    const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
+      entity: 'monthly_payouts',
+      route,
+      request: req,
+    })
     const parsed = paramsSchema.safeParse({ mes: context.params.mes })
     if (!parsed.success) {
       return NextResponse.json(

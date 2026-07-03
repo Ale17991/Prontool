@@ -2,15 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Download,
-  ExternalLink,
-  FileText,
-  Loader2,
-  Paperclip,
-  Plus,
-  Trash2,
-} from 'lucide-react'
+import { Download, ExternalLink, FileText, Loader2, Paperclip, Plus, Trash2 } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 
 const RECEIPT_MAX_BYTES = 10 * 1024 * 1024
@@ -44,7 +36,10 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
   const fileRef = useRef<HTMLInputElement>(null)
   const [receipts, setReceipts] = useState<ReceiptItem[]>(initialReceipts)
   const [pendingUpload, setPendingUpload] = useState(false)
-  const [pendingItem, setPendingItem] = useState<{ id: string; action: 'view' | 'download' | 'remove' } | null>(null)
+  const [pendingItem, setPendingItem] = useState<{
+    id: string
+    action: 'view' | 'download' | 'remove'
+  } | null>(null)
   const [thumbs, setThumbs] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
 
@@ -55,9 +50,7 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
   useEffect(() => {
     let cancelled = false
     async function loadThumbs() {
-      const targets = receipts.filter(
-        (r) => r.content_type.startsWith('image/') && !thumbs[r.id],
-      )
+      const targets = receipts.filter((r) => r.content_type.startsWith('image/') && !thumbs[r.id])
       for (const r of targets) {
         try {
           const res = await fetch(`/api/despesas/${expenseId}/comprovantes/${r.id}/url`)
@@ -107,9 +100,7 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
       }
       if (body.failed?.length) {
         setError(
-          body.failed
-            .map((f) => `${f.file_name}: ${f.error?.message ?? 'falha'}`)
-            .join(' · '),
+          body.failed.map((f) => `${f.file_name}: ${f.error?.message ?? 'falha'}`).join(' · '),
         )
       }
       router.refresh()
@@ -160,16 +151,17 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
   }
 
   async function handleRemove(receipt: ReceiptItem) {
-    if (!confirm(`Remover "${receipt.file_name}"? O arquivo permanece no storage para auditoria.`)) {
+    if (
+      !confirm(`Remover "${receipt.file_name}"? O arquivo permanece no storage para auditoria.`)
+    ) {
       return
     }
     setError(null)
     setPendingItem({ id: receipt.id, action: 'remove' })
     try {
-      const res = await fetch(
-        `/api/despesas/${expenseId}/comprovantes/${receipt.id}`,
-        { method: 'DELETE' },
-      )
+      const res = await fetch(`/api/despesas/${expenseId}/comprovantes/${receipt.id}`, {
+        method: 'DELETE',
+      })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
         setError(body.error?.message ?? 'Falha ao remover.')
@@ -202,11 +194,7 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-slate-50 text-slate-400">
                   {isImage && thumbs[r.id] ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={thumbs[r.id]}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    <img src={thumbs[r.id]} alt="" className="h-full w-full object-cover" />
                   ) : isImage ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : r.content_type === 'application/pdf' ? (
@@ -216,9 +204,7 @@ export function ReceiptList({ expenseId, initialReceipts, canWrite, canDelete }:
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-semibold text-slate-800">
-                    {r.file_name}
-                  </p>
+                  <p className="truncate text-[11px] font-semibold text-slate-800">{r.file_name}</p>
                   <p className="text-[10px] text-slate-500">
                     {formatBytes(r.file_size_bytes)} · {formatDateTime(r.uploaded_at)}
                   </p>

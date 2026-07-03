@@ -31,28 +31,32 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     members,
     auditRes,
   ] = await Promise.all([
-      sb.from('tenants').select('id, name, slug, status').eq('id', id).maybeSingle(),
-      sb.from('tenant_entitlements').select('plan, modules, status, trial_ends_at').eq('tenant_id', id).maybeSingle(),
-      sb.from('user_tenants').select('user_id', { count: 'exact', head: true }).eq('tenant_id', id),
-      sb.from('appointments').select('id', { count: 'exact', head: true }).eq('tenant_id', id),
-      sb
-        .from('audit_log')
-        .select('created_at')
-        .eq('tenant_id', id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      sb.from('tenant_integrations').select('provider, status').eq('tenant_id', id),
-      listTeamMembers(createSupabaseServiceClient(), { tenantId: id, requesterId: '' }).catch(
-        () => [],
-      ),
-      sb
-        .from('audit_log')
-        .select('actor_id, entity, field, old_value, new_value, reason, created_at')
-        .eq('tenant_id', id)
-        .order('created_at', { ascending: false })
-        .limit(25),
-    ])
+    sb.from('tenants').select('id, name, slug, status').eq('id', id).maybeSingle(),
+    sb
+      .from('tenant_entitlements')
+      .select('plan, modules, status, trial_ends_at')
+      .eq('tenant_id', id)
+      .maybeSingle(),
+    sb.from('user_tenants').select('user_id', { count: 'exact', head: true }).eq('tenant_id', id),
+    sb.from('appointments').select('id', { count: 'exact', head: true }).eq('tenant_id', id),
+    sb
+      .from('audit_log')
+      .select('created_at')
+      .eq('tenant_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    sb.from('tenant_integrations').select('provider, status').eq('tenant_id', id),
+    listTeamMembers(createSupabaseServiceClient(), { tenantId: id, requesterId: '' }).catch(
+      () => [],
+    ),
+    sb
+      .from('audit_log')
+      .select('actor_id, entity, field, old_value, new_value, reason, created_at')
+      .eq('tenant_id', id)
+      .order('created_at', { ascending: false })
+      .limit(25),
+  ])
 
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
   if (!tenant) notFound()
@@ -78,8 +82,9 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     trialEndsAt: ent?.trial_ends_at ?? null,
   }
 
-  const integrations = ((integrationsRes.data ?? []) as Array<{ provider: string; status: string | null }>)
-    .map((i) => i.provider)
+  const integrations = (
+    (integrationsRes.data ?? []) as Array<{ provider: string; status: string | null }>
+  ).map((i) => i.provider)
 
   const metrics = {
     userCount: (userCountRes.count as number | null) ?? 0,
@@ -110,7 +115,7 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
       created_at: string
     }>
   ).map((a) => ({
-    actorName: a.actor_id ? nameByUser.get(a.actor_id) ?? 'Sistema/Agência' : 'Sistema',
+    actorName: a.actor_id ? (nameByUser.get(a.actor_id) ?? 'Sistema/Agência') : 'Sistema',
     entity: a.entity,
     field: a.field,
     oldValue: a.old_value,
@@ -146,7 +151,8 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <h3 className="mb-1 text-sm font-bold text-slate-900">Usuários da clínica</h3>
         <p className="mb-3 text-xs text-slate-500">
-          Criar, convidar, trocar papel, ativar/desativar e resetar senha dos usuários desta clínica.
+          Criar, convidar, trocar papel, ativar/desativar e resetar senha dos usuários desta
+          clínica.
         </p>
         <Link
           href={{ pathname: '/admin/usuarios', query: { tenant: tenant.id } }}

@@ -5,21 +5,21 @@
 
 ## Validação dos Success Criteria do spec
 
-| SC | Descrição | Status | Evidência |
-|---|---|---|---|
-| SC-001 | 100% dos 8 hex do designer fielmente nos tokens | ✅ **PASS** | `contracts/tokens.schema.json` + inspeção em `globals.css` |
-| SC-002 | 100% badges de status com cor+ícone+label | ✅ **PASS** | `AppointmentStatusBadge` + 3 callsites migrados (calendar-block, month-view, appointments-history-table) |
-| SC-003 | Estados distinguíveis sob daltonismo | ✅ **DESIGN-PASS** / ⚠ DevTools manual pendente | `visual-validation/colorblind-check.md` — design robusto por construção |
-| SC-004 | 100% pares WCAG AA (20 aleatórios) | ✅ 17 pares calculados PASS / ⚠ amostra ampla manual | `visual-validation/contrast-audit.md` |
-| SC-005 | Sidebar 0 divergência | ✅ **PASS** documental / ⚠ screenshot manual | `visual-validation/divergences.md` §Sidebar |
-| SC-006 | LCP ≥ 100ms menor OU sem FOUT | ⚠ **MANUAL** | `lcp-before.md` + `lcp-after.md` (placeholders) |
-| SC-007 | Nenhum texto < 12px (exceto métrica 11px) | ⚠ **Parcial** | Classes criadas; migração existente fora do escopo (`baselines/small-text-audit.md`) |
-| SC-008 | LCP final em conexão 3G | ⚠ **MANUAL** | `lcp-after.md` |
-| SC-009 | Zero requests a `fonts.googleapis.com` | ✅ **ARCH-PASS** / ⚠ DevTools manual | next/font/google self-hosting confirmado pelo build |
-| SC-010 | Sem `darkMode: ['class']` órfão | ✅ **PASS** | `Grep "darkMode" tailwind.config.ts` retorna zero |
-| SC-011 | 3 famílias cromáticas coexistem sem conflito | ⚠ **REVISÃO HUMANA PENDENTE** | Design pré-validado em `divergences.md` |
-| SC-012 | Dev novo identifica tokens em < 1 min | ✅ **PASS** | `quickstart.md` documenta o catálogo |
-| SC-013 | `prefers-reduced-motion: reduce` respeitado | ✅ **PASS** | `motion-safe:animate-pulse` no `AppointmentStatusBadge` |
+| SC     | Descrição                                       | Status                                               | Evidência                                                                                                |
+| ------ | ----------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| SC-001 | 100% dos 8 hex do designer fielmente nos tokens | ✅ **PASS**                                          | `contracts/tokens.schema.json` + inspeção em `globals.css`                                               |
+| SC-002 | 100% badges de status com cor+ícone+label       | ✅ **PASS**                                          | `AppointmentStatusBadge` + 3 callsites migrados (calendar-block, month-view, appointments-history-table) |
+| SC-003 | Estados distinguíveis sob daltonismo            | ✅ **DESIGN-PASS** / ⚠ DevTools manual pendente      | `visual-validation/colorblind-check.md` — design robusto por construção                                  |
+| SC-004 | 100% pares WCAG AA (20 aleatórios)              | ✅ 17 pares calculados PASS / ⚠ amostra ampla manual | `visual-validation/contrast-audit.md`                                                                    |
+| SC-005 | Sidebar 0 divergência                           | ✅ **PASS** documental / ⚠ screenshot manual         | `visual-validation/divergences.md` §Sidebar                                                              |
+| SC-006 | LCP ≥ 100ms menor OU sem FOUT                   | ⚠ **MANUAL**                                         | `lcp-before.md` + `lcp-after.md` (placeholders)                                                          |
+| SC-007 | Nenhum texto < 12px (exceto métrica 11px)       | ⚠ **Parcial**                                        | Classes criadas; migração existente fora do escopo (`baselines/small-text-audit.md`)                     |
+| SC-008 | LCP final em conexão 3G                         | ⚠ **MANUAL**                                         | `lcp-after.md`                                                                                           |
+| SC-009 | Zero requests a `fonts.googleapis.com`          | ✅ **ARCH-PASS** / ⚠ DevTools manual                 | next/font/google self-hosting confirmado pelo build                                                      |
+| SC-010 | Sem `darkMode: ['class']` órfão                 | ✅ **PASS**                                          | `Grep "darkMode" tailwind.config.ts` retorna zero                                                        |
+| SC-011 | 3 famílias cromáticas coexistem sem conflito    | ⚠ **REVISÃO HUMANA PENDENTE**                        | Design pré-validado em `divergences.md`                                                                  |
+| SC-012 | Dev novo identifica tokens em < 1 min           | ✅ **PASS**                                          | `quickstart.md` documenta o catálogo                                                                     |
+| SC-013 | `prefers-reduced-motion: reduce` respeitado     | ✅ **PASS**                                          | `motion-safe:animate-pulse` no `AppointmentStatusBadge`                                                  |
 
 ## Inventário T067 — resíduos de cor inline em atendimentos
 
@@ -42,6 +42,7 @@ Auditoria `rg "bg-rose-100|bg-sky-50|bg-blue-100|bg-emerald-50"` em `src/app/(da
 ## Atualização do quickstart.md
 
 Quickstart `§5` (roteiro de validação) continua válido como **manual** para o usuário humano executar:
+
 - `§5.1` DevTools: 4 elementos
 - `§5.2` Daltonismo: 3 simulações × 3 telas
 - `§5.3` Reduced-motion: comportamento do badge
@@ -62,6 +63,7 @@ Quickstart `§5` (roteiro de validação) continua válido como **manual** para 
 **Validação humana**: ⚠ pendente em itens listados acima.
 
 Cada uma das 9 phases foi commitada e empurrada para `master`. Histórico:
+
 ```
 c616014 Phase 1 (Setup) — baselines + specs 015/016
 9b5e002 Phase 2 (Foundational) — tokens semantic + sidebar

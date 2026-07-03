@@ -31,10 +31,9 @@ export async function GET(req: Request): Promise<Response> {
       throw new ValidationError('slug é obrigatório', { field: 'slug' })
     }
     if (!isValidSlug(slug)) {
-      throw new ValidationError(
-        'invalid_slug — use apenas a-z, 0-9 e hífen (3 a 60 chars)',
-        { field: 'slug' },
-      )
+      throw new ValidationError('invalid_slug — use apenas a-z, 0-9 e hífen (3 a 60 chars)', {
+        field: 'slug',
+      })
     }
 
     // Busca direta primeiro pra distinguir disponível vs. tomado.

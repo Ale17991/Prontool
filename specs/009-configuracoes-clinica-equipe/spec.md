@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Configurações completas do Prontool: perfil da clínica com logo, perfil do usuário e gerenciamento de equipe, mais reorganização da sidebar (Cadastros vira Configurações, sem abas horizontais)."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Identidade visual e dados oficiais da clínica (Priority: P1)
 
@@ -101,7 +101,7 @@ A administradora precisa controlar quem tem acesso ao Prontool da clínica, com 
 - **Acesso a rota antiga `/cadastros/...` por usuário não autenticado**: o redirecionamento 301 ainda ocorre, e o destino aplica a regra de autenticação normal.
 - **Mudança de fuso horário do usuário enquanto há agenda aberta em outra aba**: a aba aberta continua com o fuso anterior até ser recarregada; o novo fuso passa a valer nas próximas navegações.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -161,7 +161,7 @@ A administradora precisa controlar quem tem acesso ao Prontool da clínica, com 
 - **FR-040**: O sistema DEVE registrar em auditoria, de forma append-only, qualquer alteração em dados sensíveis: dados oficiais da clínica, responsável técnico, mudança de função de usuário, convite, desativação e reativação de usuário, e troca de senha.
 - **FR-041**: O sistema DEVE garantir que a logo da clínica e a foto de perfil só sejam acessíveis por usuários autorizados (mesmo tenant para a logo; o próprio usuário e contextos de exibição autorizados para a foto), bloqueando acesso anônimo direto ao arquivo.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Perfil da Clínica (Tenant)**: representa a identidade oficial do tenant. Atributos: logotipo, razão social/nome fantasia, CNPJ, telefone, e-mail, endereço completo (CEP, logradouro, número, complemento, bairro, cidade, UF), responsável técnico (nome, conselho, número de registro). Há exatamente um perfil por tenant.
 - **Perfil do Usuário**: representa as preferências individuais. Atributos: foto, nome completo, fuso horário preferido. Relaciona-se 1-para-1 com a conta de autenticação.
@@ -169,7 +169,7 @@ A administradora precisa controlar quem tem acesso ao Prontool da clínica, com 
 - **Convite**: estado intermediário do vínculo enquanto o convidado ainda não definiu senha. Atributos: tenant, e-mail, função, data de envio, data de aceite (quando concluído).
 - **Registro de Auditoria** (uso, sem schema novo): entrada append-only descrevendo quem fez, quando, qual entidade afetada, valores anterior e novo (mascarando dados sensíveis quando aplicável).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

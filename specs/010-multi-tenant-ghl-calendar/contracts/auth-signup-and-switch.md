@@ -32,6 +32,7 @@ Cria conta de autenticação e autentica imediatamente. Público (sem auth prév
 ```
 
 **Errors**:
+
 - `400 invalid_field` — Zod fail.
 - `400 weak_password` — política mínima.
 - `409 signup_failed` — mensagem genérica para e-mail duplicado e outros erros do auth.admin (FR-011 — não revela se conta existia).
@@ -50,7 +51,7 @@ Troca a clínica ativa da sessão sem deslogar (R5).
 
 ```ts
 {
-  tenantId: string  // UUID — clínica para a qual switchar
+  tenantId: string // UUID — clínica para a qual switchar
 }
 ```
 
@@ -70,6 +71,7 @@ Troca a clínica ativa da sessão sem deslogar (R5).
 ```
 
 **Errors**:
+
 - `400 invalid_tenant_id`
 - `403 not_a_member`
 - `404 tenant_not_found_or_disabled`
@@ -77,9 +79,9 @@ Troca a clínica ativa da sessão sem deslogar (R5).
 **Client follow-up** (CRÍTICO): após receber 200, fazer:
 
 ```ts
-await supabase.auth.refreshSession()  // dispara o auth_hook com o novo metadata
+await supabase.auth.refreshSession() // dispara o auth_hook com o novo metadata
 router.push('/operacao/atendimentos')
-router.refresh()                        // limpa cache de Server Components
+router.refresh() // limpa cache de Server Components
 ```
 
 Sem o `refreshSession`, o JWT antigo continua circulando até a próxima rotação natural (~1h), e a sidebar segue mostrando a clínica antiga.

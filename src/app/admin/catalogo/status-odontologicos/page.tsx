@@ -15,13 +15,11 @@ export default async function StatusOdontologicosPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-black tracking-tight text-slate-900">
-          Status odontológicos
-        </h2>
+        <h2 className="text-xl font-black tracking-tight text-slate-900">Status odontológicos</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Catálogo global usado pelo odontograma de todas as clínicas. Defina rótulo, cor,
-          escopo (dente ou face) e, opcionalmente, o código TUSS (tabela 22). Desativar um
-          status o esconde de novas marcações sem afetar o histórico.
+          Catálogo global usado pelo odontograma de todas as clínicas. Defina rótulo, cor, escopo
+          (dente ou face) e, opcionalmente, o código TUSS (tabela 22). Desativar um status o esconde
+          de novas marcações sem afetar o histórico.
         </p>
       </div>
       <StatusCatalogTable items={items} />

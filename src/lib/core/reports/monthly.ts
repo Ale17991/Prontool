@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
-import {
-  getTenantTimezone,
-  ymdStartOfDayUtc,
-  ymdNextDayStartUtc,
-} from '@/lib/utils/tenant-tz'
+import { getTenantTimezone, ymdStartOfDayUtc, ymdNextDayStartUtc } from '@/lib/utils/tenant-tz'
 
 /**
  * T139 — Agrega `appointments_effective` em receita-por-plano e
@@ -225,4 +221,3 @@ export function monthlyReportToWire(report: MonthlyReport): {
     },
   }
 }
-

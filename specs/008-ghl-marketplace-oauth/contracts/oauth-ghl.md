@@ -21,12 +21,12 @@ Inicia o fluxo. Admin abre essa URL (botão "Conectar ao GoHighLevel") e é redi
 
 **Resposta**:
 
-| Status | Body | Headers |
-|---|---|---|
-| 302 | (vazio) | `Location: <chooselocation URL>`, `Set-Cookie: ghl_oauth_state=...; HttpOnly; Secure; SameSite=Lax; Path=/api/oauth/ghl; Max-Age=600` |
-| 401 | `{ error: { code: 'UNAUTHENTICATED' } }` | — |
-| 403 | `{ error: { code: 'FORBIDDEN_ROLE' } }` | (registra `audit_log` deny) |
-| 500 | `{ error: { code: 'OAUTH_CONFIG_MISSING' } }` | (uma das `GHL_*` env vars faltando) |
+| Status | Body                                          | Headers                                                                                                                               |
+| ------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 302    | (vazio)                                       | `Location: <chooselocation URL>`, `Set-Cookie: ghl_oauth_state=...; HttpOnly; Secure; SameSite=Lax; Path=/api/oauth/ghl; Max-Age=600` |
+| 401    | `{ error: { code: 'UNAUTHENTICATED' } }`      | —                                                                                                                                     |
+| 403    | `{ error: { code: 'FORBIDDEN_ROLE' } }`       | (registra `audit_log` deny)                                                                                                           |
+| 500    | `{ error: { code: 'OAUTH_CONFIG_MISSING' } }` | (uma das `GHL_*` env vars faltando)                                                                                                   |
 
 **Audit**: nenhum (apenas redirect). Falha 403 registra deny via `audit/deny.ts`.
 
@@ -53,12 +53,12 @@ GHL redireciona o admin de volta com `?code=...&state=...`. **NÃO** exige sess�
 
 **Resposta**:
 
-| Status | Body | Quando |
-|---|---|---|
-| 302 | — | Sucesso (com ou sem warnings). Location aponta para a página de detalhe. |
-| 400 | `{ error: { code: 'CODE_MISSING' \| 'STATE_MISSING' } }` | Query incompleta. |
-| 401 | `{ error: { code: 'STATE_MISMATCH' \| 'STATE_EXPIRED' } }` | Cookie ausente / não bate. |
-| 502 | `{ error: { code: 'CODE_EXCHANGE_FAILED', detail: '<status from GHL>' } }` | GHL retornou 4xx/5xx no `/oauth/token`. Sem persistência. |
+| Status | Body                                                                       | Quando                                                                   |
+| ------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 302    | —                                                                          | Sucesso (com ou sem warnings). Location aponta para a página de detalhe. |
+| 400    | `{ error: { code: 'CODE_MISSING' \| 'STATE_MISSING' } }`                   | Query incompleta.                                                        |
+| 401    | `{ error: { code: 'STATE_MISMATCH' \| 'STATE_EXPIRED' } }`                 | Cookie ausente / não bate.                                               |
+| 502    | `{ error: { code: 'CODE_EXCHANGE_FAILED', detail: '<status from GHL>' } }` | GHL retornou 4xx/5xx no `/oauth/token`. Sem persistência.                |
 
 **Audit**:
 
@@ -87,12 +87,12 @@ Internal-only — usado pela UI quando admin clica explicitamente em "Forçar re
 
 **Resposta**:
 
-| Status | Body |
-|---|---|
-| 200 | `{ ok: true, expires_at: '<ISO>' }` |
-| 401/403 | erro de auth |
-| 404 | `{ error: { code: 'NOT_CONNECTED' } }` (sem linha em tenant_integrations) |
-| 502 | `{ error: { code: 'REFRESH_FAILED', will_require_reconnect: true } }` |
+| Status  | Body                                                                      |
+| ------- | ------------------------------------------------------------------------- |
+| 200     | `{ ok: true, expires_at: '<ISO>' }`                                       |
+| 401/403 | erro de auth                                                              |
+| 404     | `{ error: { code: 'NOT_CONNECTED' } }` (sem linha em tenant_integrations) |
+| 502     | `{ error: { code: 'REFRESH_FAILED', will_require_reconnect: true } }`     |
 
 **Não documentado em UI por enquanto** — só engenheiro chamando via DevTools. Pode ser surfado em UI futura.
 
@@ -100,18 +100,18 @@ Internal-only — usado pela UI quando admin clica explicitamente em "Forçar re
 
 ## Erros (catálogo único)
 
-| code | HTTP | Significado |
-|---|---|---|
-| `UNAUTHENTICATED` | 401 | Sem sessão Prontool. |
-| `FORBIDDEN_ROLE` | 403 | Não-admin. |
-| `OAUTH_CONFIG_MISSING` | 500 | Env var GHL_* ausente. |
-| `STATE_MISSING` | 400 | Query `?state=` ausente. |
-| `STATE_MISMATCH` | 401 | HMAC ou cookie não bate. |
-| `STATE_EXPIRED` | 401 | Cookie de state > 10 min. |
-| `CODE_MISSING` | 400 | Query `?code=` ausente. |
-| `CODE_EXCHANGE_FAILED` | 502 | `/oauth/token` retornou erro. |
-| `REFRESH_FAILED` | 502 | Refresh token inválido/revogado. |
-| `NOT_CONNECTED` | 404 | Sem linha tenant_integrations(provider='ghl'). |
+| code                   | HTTP | Significado                                    |
+| ---------------------- | ---- | ---------------------------------------------- |
+| `UNAUTHENTICATED`      | 401  | Sem sessão Prontool.                           |
+| `FORBIDDEN_ROLE`       | 403  | Não-admin.                                     |
+| `OAUTH_CONFIG_MISSING` | 500  | Env var GHL\_\* ausente.                       |
+| `STATE_MISSING`        | 400  | Query `?state=` ausente.                       |
+| `STATE_MISMATCH`       | 401  | HMAC ou cookie não bate.                       |
+| `STATE_EXPIRED`        | 401  | Cookie de state > 10 min.                      |
+| `CODE_MISSING`         | 400  | Query `?code=` ausente.                        |
+| `CODE_EXCHANGE_FAILED` | 502  | `/oauth/token` retornou erro.                  |
+| `REFRESH_FAILED`       | 502  | Refresh token inválido/revogado.               |
+| `NOT_CONNECTED`        | 404  | Sem linha tenant_integrations(provider='ghl'). |
 
 ## Tests (contract)
 

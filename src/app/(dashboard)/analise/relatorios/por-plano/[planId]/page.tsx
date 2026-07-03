@@ -22,7 +22,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { ReportsSubNav } from '../../reports-sub-nav'
 
@@ -33,8 +40,7 @@ interface PageProps {
   searchParams: { from?: string; to?: string }
 }
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export default async function PorPlanoDetailPage({ params, searchParams }: PageProps) {
   const session = await getSession()
@@ -72,8 +78,7 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
           {detail.plan.name}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Procedimentos realizados no plano · {formatDate(period.from)} a{' '}
-          {formatDate(period.to)}
+          Procedimentos realizados no plano · {formatDate(period.from)} a {formatDate(period.to)}
         </p>
       </div>
 
@@ -88,21 +93,12 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <form
-              method="get"
-              className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]"
-            >
+            <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto]">
               <div className="space-y-1.5">
                 <Label htmlFor="from" className="text-xs">
                   Data início
                 </Label>
-                <Input
-                  id="from"
-                  name="from"
-                  type="date"
-                  defaultValue={period.from}
-                  required
-                />
+                <Input id="from" name="from" type="date" defaultValue={period.from} required />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="to" className="text-xs">
@@ -159,23 +155,13 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
         <SummaryCard
           icon={Award}
           label="Profissional com mais procedimentos"
-          value={
-            detail.topDoctor
-              ? `${detail.topDoctor.doctorName}`
-              : '—'
-          }
-          sub={
-            detail.topDoctor
-              ? `${detail.topDoctor.count} atend.`
-              : 'Sem dados no período'
-          }
+          value={detail.topDoctor ? `${detail.topDoctor.doctorName}` : '—'}
+          sub={detail.topDoctor ? `${detail.topDoctor.count} atend.` : 'Sem dados no período'}
         />
         <SummaryCard
           icon={ShieldCheck}
           label="Procedimento mais realizado"
-          value={
-            detail.topProcedure ? detail.topProcedure.procedureName : '—'
-          }
+          value={detail.topProcedure ? detail.topProcedure.procedureName : '—'}
           sub={
             detail.topProcedure
               ? `TUSS ${detail.topProcedure.tussCode || '—'} · ${detail.topProcedure.count} vezes`
@@ -220,9 +206,7 @@ export default async function PorPlanoDetailPage({ params, searchParams }: PageP
                     </TableCell>
                     <TableCell>
                       <p className="font-medium text-slate-900">{row.procedureName}</p>
-                      <p className="font-mono text-[10px] text-slate-500">
-                        {row.tussCode}
-                      </p>
+                      <p className="font-mono text-[10px] text-slate-500">{row.tussCode}</p>
                     </TableCell>
                     <TableCell className="text-slate-700">{row.doctorName}</TableCell>
                     <TableCell className="text-center text-slate-700 tabular-nums">
@@ -273,9 +257,7 @@ function SummaryCard({
         <div className="mb-3 inline-flex rounded-xl border border-info/30 bg-info-bg p-2.5 text-info-text">
           <Icon className="h-4 w-4" />
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <p
           className={
             highlight

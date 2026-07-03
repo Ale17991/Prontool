@@ -35,9 +35,7 @@ export default async function ContasAReceberPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Contas a Receber
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Contas a Receber</h1>
         <p className="mt-1 text-sm text-slate-500">
           Parcelas pendentes, atrasadas e inadimplentes — registre pagamentos sem sair da página.
         </p>
@@ -73,9 +71,7 @@ export default async function ContasAReceberPage({ searchParams }: PageProps) {
         <CardContent>
           <ReceivablesTable
             rows={result.rows}
-            canMarkBadDebt={
-              session.role === 'admin' || session.role === 'financeiro'
-            }
+            canMarkBadDebt={session.role === 'admin' || session.role === 'financeiro'}
             canReversePayment={session.role === 'admin'}
           />
         </CardContent>

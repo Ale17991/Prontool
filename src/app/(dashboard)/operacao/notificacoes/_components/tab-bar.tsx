@@ -33,10 +33,7 @@ export function TabBar({ active, available }: Props) {
   if (tabs.length <= 1) return null
 
   return (
-    <nav
-      aria-label="Seções de notificações"
-      className="flex gap-1 border-b border-slate-200"
-    >
+    <nav aria-label="Seções de notificações" className="flex gap-1 border-b border-slate-200">
       {tabs.map((t) => {
         const isActive = t.id === active
         return (

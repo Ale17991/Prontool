@@ -1,7 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, KeyRound, MailPlus, Pencil, Send, ShieldCheck, ShieldOff, SlidersHorizontal, Trash2, UserPlus } from 'lucide-react'
+import {
+  AlertCircle,
+  KeyRound,
+  MailPlus,
+  Pencil,
+  Send,
+  ShieldCheck,
+  ShieldOff,
+  SlidersHorizontal,
+  Trash2,
+  UserPlus,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -50,10 +61,9 @@ export function UsersList({ initial }: Props) {
     setGlobalError(null)
     setResending(user.userId)
     try {
-      const res = await fetch(
-        `/api/configuracoes/usuarios/${user.userId}/reenviar-convite`,
-        { method: 'POST' },
-      )
+      const res = await fetch(`/api/configuracoes/usuarios/${user.userId}/reenviar-convite`, {
+        method: 'POST',
+      })
       if (!res.ok && res.status !== 204) {
         const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
         throw new Error(body.error?.message ?? `HTTP ${res.status}`)
@@ -88,7 +98,9 @@ export function UsersList({ initial }: Props) {
     setNotice(null)
     if (
       typeof window !== 'undefined' &&
-      !window.confirm(`Remover ${user.fullName ?? user.email} desta clínica? O acesso será revogado.`)
+      !window.confirm(
+        `Remover ${user.fullName ?? user.email} desta clínica? O acesso será revogado.`,
+      )
     ) {
       return
     }

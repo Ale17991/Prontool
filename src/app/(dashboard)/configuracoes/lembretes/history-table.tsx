@@ -49,10 +49,9 @@ export function HistoryTable({ rows }: HistoryTableProps) {
     setFeedback(null)
     startTransition(async () => {
       try {
-        const res = await fetch(
-          `/api/lembretes/${encodeURIComponent(appointmentId)}/reenviar`,
-          { method: 'POST' },
-        )
+        const res = await fetch(`/api/lembretes/${encodeURIComponent(appointmentId)}/reenviar`, {
+          method: 'POST',
+        })
         const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
         if (!res.ok) {
           const code = (json.error as string) ?? 'UNKNOWN'
@@ -82,8 +81,8 @@ export function HistoryTable({ rows }: HistoryTableProps) {
   if (rows.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-slate-500">
-        Nenhum lembrete enviado ainda. Quando o motor processar a primeira consulta
-        elegível, ela aparecerá aqui.
+        Nenhum lembrete enviado ainda. Quando o motor processar a primeira consulta elegível, ela
+        aparecerá aqui.
       </div>
     )
   }
@@ -121,9 +120,7 @@ export function HistoryTable({ rows }: HistoryTableProps) {
               const badge = statusBadge(r.status)
               return (
                 <tr key={r.id} className="border-b border-border last:border-0">
-                  <td className="px-3 py-2 text-slate-900">
-                    {formatBrasilia(r.appointmentAt)}
-                  </td>
+                  <td className="px-3 py-2 text-slate-900">{formatBrasilia(r.appointmentAt)}</td>
                   <td className="px-3 py-2 text-slate-700">{r.doctorFullName}</td>
                   <td className="px-3 py-2 text-slate-700">{r.procedureName}</td>
                   <td className="px-3 py-2 text-slate-700">

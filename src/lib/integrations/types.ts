@@ -3,12 +3,7 @@ import type { Logger } from 'pino'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 
-export type ProviderId =
-  | 'ghl'
-  | 'hubspot'
-  | 'rdstation'
-  | 'pipedrive'
-  | 'generic_webhook'
+export type ProviderId = 'ghl' | 'hubspot' | 'rdstation' | 'pipedrive' | 'generic_webhook'
 
 export interface PatientSnapshot {
   id: string
@@ -80,14 +75,8 @@ export interface IntegrationAdapter<Config = unknown, Credentials = unknown> {
    * to send back to the caller. Router in /api/webhooks/[provider]/route.ts
    * 404s when this is not implemented.
    */
-  handleInboundWebhook?(
-    supabase: SupabaseClient<Database>,
-    req: Request,
-  ): Promise<Response>
-  handleDomainEvent(
-    ctx: AdapterContext<Config, Credentials>,
-    event: DomainEvent,
-  ): Promise<void>
+  handleInboundWebhook?(supabase: SupabaseClient<Database>, req: Request): Promise<Response>
+  handleDomainEvent(ctx: AdapterContext<Config, Credentials>, event: DomainEvent): Promise<void>
 }
 
 export interface DispatchResult {

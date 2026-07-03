@@ -5,14 +5,17 @@
 **Decision**: Estender a tabela existente `appointment_assistants` (feature 013, migration 0084).
 
 **Rationale**:
+
 - Já é append-only com soft-unlink (`removed_at`/`removed_by`), congela `frozen_amount_cents` (= honorário) e tem triggers de tenant/imutabilidade — exatamente o padrão exigido (Constitution I/II).
 - **Já é somada no repasse**: `src/lib/core/monthly-payouts/index.ts` (`aggregateLiberalByDoctor`) e o RPC `close_monthly_payout` (0126) leem `appointment_assistants` por `assistant_doctor_id`. Relaxar a trava "só liberal" no INSERT faz o honorário de qualquer modalidade entrar no repasse **sem novo código de repasse** (FR-014).
 - Menor superfície de mudança, sem duplicar conceito nem arriscar dupla contagem.
 
 **Alternatives considered**:
-- *Tabela nova `appointment_procedure_participants`*: mais limpa conceitualmente, mas exigiria reescrever o caminho de repasse e a deduplicação/backfill da tabela antiga, com risco de dupla contagem. Rejeitada por custo/risco maior sem ganho proporcional.
+
+- _Tabela nova `appointment_procedure_participants`_: mais limpa conceitualmente, mas exigiria reescrever o caminho de repasse e a deduplicação/backfill da tabela antiga, com risco de dupla contagem. Rejeitada por custo/risco maior sem ganho proporcional.
 
 **Mudanças na tabela** (migration `0128`):
+
 - `+ procedure_id UUID NULL REFERENCES appointment_procedures(id)` — vincula a participação à **linha de procedimento** (NULL = participação a nível de atendimento, compatível com dados legados).
 - `+ participation_degree TEXT NULL` — código do grau (domínio TISS 35).
 - Trigger liberal-only (trigger 3 da 0084) **relaxado**: aceita participante de qualquer `payment_mode` ativo do mesmo tenant.

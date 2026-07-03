@@ -42,7 +42,11 @@ const createSchema = z.object({
 
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_workout_plan', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_workout_plan',
+      route: ROUTE,
+      request: req,
+    })
     const supabase = createSupabaseServiceClient()
     const [active, history] = await Promise.all([
       getActiveWorkoutPlan(supabase, session.tenantId, params.id),
@@ -54,9 +58,16 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_workout_plan', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_workout_plan',
+      route: ROUTE,
+      request: req,
+    })
     const parsed = createSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(

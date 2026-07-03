@@ -96,7 +96,9 @@ export function PatientDocumentsSection({
     if (!id) return
     setError(null)
     try {
-      const res = await fetch(`/api/pacientes/${patientId}/documentos/modelo/${id}`, { cache: 'no-store' })
+      const res = await fetch(`/api/pacientes/${patientId}/documentos/modelo/${id}`, {
+        cache: 'no-store',
+      })
       if (!res.ok) {
         setError('Falha ao aplicar o modelo.')
         return
@@ -158,7 +160,9 @@ export function PatientDocumentsSection({
   async function toggleDelivered(id: string, current: boolean) {
     // Backlog 1/4/2 — alterna entrega ao paciente (otimista).
     setDocs((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, deliveredAt: current ? null : new Date().toISOString() } : d)),
+      prev.map((d) =>
+        d.id === id ? { ...d, deliveredAt: current ? null : new Date().toISOString() } : d,
+      ),
     )
     try {
       const res = await fetch(`/api/pacientes/${patientId}/documentos/${id}`, {
@@ -187,7 +191,13 @@ export function PatientDocumentsSection({
             >
               Modelos
             </a>
-            <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5"
+              onClick={() => setOpen((v) => !v)}
+            >
               <Plus className="h-3.5 w-3.5" /> Emitir
             </Button>
           </div>
@@ -210,7 +220,9 @@ export function PatientDocumentsSection({
                 >
                   <option value="">Selecione um modelo…</option>
                   {templates.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -219,7 +231,9 @@ export function PatientDocumentsSection({
               <div>
                 <Label className="text-[11px] font-bold uppercase text-slate-500">Tipo</Label>
                 <Select value={docType} onValueChange={(v) => setDocType(v as DocType)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="atestado">Atestado</SelectItem>
                     <SelectItem value="declaracao">Declaração</SelectItem>
@@ -245,20 +259,38 @@ export function PatientDocumentsSection({
               />
             </div>
             <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700">
-              <input type="checkbox" checked={withCid} onChange={(e) => setWithCid(e.target.checked)} className="h-4 w-4 rounded border-slate-300" />
+              <input
+                type="checkbox"
+                checked={withCid}
+                onChange={(e) => setWithCid(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300"
+              />
               Incluir CID
             </label>
             {withCid ? (
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-[140px_1fr]">
-                <Input placeholder="CID (ex.: H52.1)" value={cidCode} onChange={(e) => setCidCode(e.target.value)} />
-                <Input placeholder="Descrição do CID (opcional)" value={cidDescription} onChange={(e) => setCidDescription(e.target.value)} />
+                <Input
+                  placeholder="CID (ex.: H52.1)"
+                  value={cidCode}
+                  onChange={(e) => setCidCode(e.target.value)}
+                />
+                <Input
+                  placeholder="Descrição do CID (opcional)"
+                  value={cidDescription}
+                  onChange={(e) => setCidDescription(e.target.value)}
+                />
               </div>
             ) : null}
             <div className="flex flex-wrap items-end gap-3">
               <div>
                 <Label className="text-[11px] font-bold uppercase text-slate-500">Papel</Label>
-                <Select value={paperSize} onValueChange={(v) => setPaperSize(v as 'A4' | 'A5' | 'LETTER')}>
-                  <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                <Select
+                  value={paperSize}
+                  onValueChange={(v) => setPaperSize(v as 'A4' | 'A5' | 'LETTER')}
+                >
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="A4">A4</SelectItem>
                     <SelectItem value="A5">A5</SelectItem>
@@ -316,7 +348,11 @@ export function PatientDocumentsSection({
                   <button
                     type="button"
                     onClick={() => void toggleDelivered(d.id, d.deliveredAt !== null)}
-                    title={d.deliveredAt ? 'Entregue ao paciente — clique para desfazer' : 'Marcar como entregue ao paciente'}
+                    title={
+                      d.deliveredAt
+                        ? 'Entregue ao paciente — clique para desfazer'
+                        : 'Marcar como entregue ao paciente'
+                    }
                     className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${
                       d.deliveredAt
                         ? 'bg-success-bg text-success-text'

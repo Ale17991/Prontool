@@ -85,6 +85,7 @@ Supabase primeiro desbloqueia os env vars que todo mundo precisa.
    se preferir separação) — preencher em `RESEND_FROM`.
 
 Teste fumaça (antes do deploy):
+
 ```bash
 curl -X POST https://api.resend.com/emails \
   -H "Authorization: Bearer $RESEND_API_KEY" \
@@ -115,23 +116,23 @@ curl -X POST https://api.resend.com/emails \
 4. Env vars (Production scope — replicar no Preview se quiser PR
    smoke-testing contra o mesmo Supabase Pro):
 
-   | Var                            | Valor                                  |
-   | ------------------------------ | -------------------------------------- |
-   | `NEXT_PUBLIC_APP_URL`          | `https://app.clinnipro.io`             |
-   | `NEXT_PUBLIC_SUPABASE_URL`     | da seção 1                             |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY`| da seção 1                             |
-   | `SUPABASE_SERVICE_ROLE_KEY`    | da seção 1                             |
-   | `SUPABASE_JWT_SECRET`          | da seção 1                             |
-   | `PATIENT_DATA_ENCRYPTION_KEY`  | hex-64 do GUC da seção 1 (**igual**)   |
-   | `QSTASH_URL`                   | `https://qstash.upstash.io`            |
-   | `QSTASH_TOKEN`                 | da seção 3                             |
-   | `QSTASH_CURRENT_SIGNING_KEY`   | da seção 3                             |
-   | `QSTASH_NEXT_SIGNING_KEY`      | da seção 3                             |
-   | `RESEND_API_KEY`               | da seção 2                             |
-   | `RESEND_FROM`                  | `alertas@clinnipro.io`                 |
-   | `PLATFORM_OPERATOR_TOKEN`      | `openssl rand -hex 32` (novo em prod)  |
-   | `LOG_LEVEL`                    | `info`                                 |
-   | `NEXT_PUBLIC_FEATURE_*`        | `true` para telas que vão ao ar        |
+   | Var                             | Valor                                 |
+   | ------------------------------- | ------------------------------------- |
+   | `NEXT_PUBLIC_APP_URL`           | `https://app.clinnipro.io`            |
+   | `NEXT_PUBLIC_SUPABASE_URL`      | da seção 1                            |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | da seção 1                            |
+   | `SUPABASE_SERVICE_ROLE_KEY`     | da seção 1                            |
+   | `SUPABASE_JWT_SECRET`           | da seção 1                            |
+   | `PATIENT_DATA_ENCRYPTION_KEY`   | hex-64 do GUC da seção 1 (**igual**)  |
+   | `QSTASH_URL`                    | `https://qstash.upstash.io`           |
+   | `QSTASH_TOKEN`                  | da seção 3                            |
+   | `QSTASH_CURRENT_SIGNING_KEY`    | da seção 3                            |
+   | `QSTASH_NEXT_SIGNING_KEY`       | da seção 3                            |
+   | `RESEND_API_KEY`                | da seção 2                            |
+   | `RESEND_FROM`                   | `alertas@clinnipro.io`                |
+   | `PLATFORM_OPERATOR_TOKEN`       | `openssl rand -hex 32` (novo em prod) |
+   | `LOG_LEVEL`                     | `info`                                |
+   | `NEXT_PUBLIC_FEATURE_*`         | `true` para telas que vão ao ar       |
 
 5. Domain: vincule `app.clinnipro.io` (ou o subdomínio definido).
 6. Deploy. Primeiro build deve passar — se não, os culpados costumam ser
@@ -190,6 +191,7 @@ Rodar **manualmente** após o primeiro deploy, na ordem:
 ## 7. Runbook para quando algo rompe
 
 Ver `docs/operations.md` para:
+
 - Rodar manualmente um evento da DLQ (`/alertas/dlq`).
 - Rotacionar `PATIENT_DATA_ENCRYPTION_KEY` (hard — requer re-encriptar).
 - Revogar um token de platform operator.
@@ -197,23 +199,23 @@ Ver `docs/operations.md` para:
 
 ## 8. Status das dependências no repo
 
-| Item                               | Status |
-| ---------------------------------- | ------ |
-| Migrations 0001–0030               | ✅ verdes em local após `supabase db reset` |
-| Constitution suite T057–T060       | ✅ 15/15 local (run em Pro = T155) |
-| Unit + integration (120 testes)    | ✅ |
-| E2E Playwright (T075/T107/T138)    | ✅ |
-| SC-011 patient encryption (T150)   | ✅ |
-| LGPD endpoints                     | ✅ (ver `docs/lgpd.md`) |
-| Observabilidade / trace_id         | ✅ (T099) |
-| Webhook perf p95 < 1 s (SC-004)    | ✅ (ver `docs/performance-report.md`) |
-| TUSS license compliance            | ✅ (ver `docs/data-sources.md`) |
-| Seed TUSS                          | `pnpm seed:tuss` (precisa rodar em prod) |
-| Auth hook custom claims            | ⚠️ precisa habilitar manualmente no dashboard (seção 1.4) |
-| Supabase Pro sa-east-1             | ⚠️ seção 1 |
-| Vercel gru1                        | ⚠️ seção 4 |
-| QStash sa-east-1                   | ⚠️ seção 3 |
-| Resend domínio verificado          | ⚠️ seção 2 |
+| Item                             | Status                                                    |
+| -------------------------------- | --------------------------------------------------------- |
+| Migrations 0001–0030             | ✅ verdes em local após `supabase db reset`               |
+| Constitution suite T057–T060     | ✅ 15/15 local (run em Pro = T155)                        |
+| Unit + integration (120 testes)  | ✅                                                        |
+| E2E Playwright (T075/T107/T138)  | ✅                                                        |
+| SC-011 patient encryption (T150) | ✅                                                        |
+| LGPD endpoints                   | ✅ (ver `docs/lgpd.md`)                                   |
+| Observabilidade / trace_id       | ✅ (T099)                                                 |
+| Webhook perf p95 < 1 s (SC-004)  | ✅ (ver `docs/performance-report.md`)                     |
+| TUSS license compliance          | ✅ (ver `docs/data-sources.md`)                           |
+| Seed TUSS                        | `pnpm seed:tuss` (precisa rodar em prod)                  |
+| Auth hook custom claims          | ⚠️ precisa habilitar manualmente no dashboard (seção 1.4) |
+| Supabase Pro sa-east-1           | ⚠️ seção 1                                                |
+| Vercel gru1                      | ⚠️ seção 4                                                |
+| QStash sa-east-1                 | ⚠️ seção 3                                                |
+| Resend domínio verificado        | ⚠️ seção 2                                                |
 
 ---
 

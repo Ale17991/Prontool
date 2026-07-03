@@ -69,7 +69,10 @@ function parseDescriptions(block: string): Map<string, string> {
       const code = m[1]
       const rawDesc = m[2]
       if (code === undefined || rawDesc === undefined) continue
-      const desc = rawDesc.replace(/[\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
+      const desc = rawDesc
+        .replace(/[\t]+/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
       if (!desc) continue
       for (const key of [code, code.replace(/^0+(?=\d)/, '')]) {
         if (!map.has(key)) map.set(key, desc)

@@ -78,7 +78,9 @@ export function StatusCatalogTable({ items }: { items: DentalStatusDTO[] }) {
                     <span
                       className={cn(
                         'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                        s.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500',
+                        s.isActive
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-100 text-slate-500',
                       )}
                     >
                       {s.isActive ? 'Ativo' : 'Inativo'}
@@ -100,7 +102,11 @@ export function StatusCatalogTable({ items }: { items: DentalStatusDTO[] }) {
                         type="button"
                         disabled={pending || (s.isSystem && s.isActive)}
                         onClick={() => toggleActive(s)}
-                        title={s.isSystem && s.isActive ? 'Status de sistema não pode ser desativado' : ''}
+                        title={
+                          s.isSystem && s.isActive
+                            ? 'Status de sistema não pode ser desativado'
+                            : ''
+                        }
                         className="text-xs font-medium text-slate-600 hover:text-slate-900 disabled:opacity-40"
                       >
                         {s.isActive ? 'Desativar' : 'Ativar'}

@@ -6,7 +6,10 @@ import {
   TussCodeRetiredError,
   WebhookPayloadError,
 } from '@/lib/observability/errors'
-import { extractCustomFields, type ExtractedEvent } from '@/lib/integrations/ghl/extract-custom-fields'
+import {
+  extractCustomFields,
+  type ExtractedEvent,
+} from '@/lib/integrations/ghl/extract-custom-fields'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
 import { resolvePrice } from '@/lib/core/pricing/resolve-price'
 import { resolveCommission } from '@/lib/core/commissions/resolve-commission'

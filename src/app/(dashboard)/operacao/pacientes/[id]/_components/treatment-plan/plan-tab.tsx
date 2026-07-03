@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { SURFACES, surfaceLabel, PERMANENT_TEETH, DECIDUOUS_TEETH, type Surface } from '@/lib/core/dental/teeth'
+import {
+  SURFACES,
+  surfaceLabel,
+  PERMANENT_TEETH,
+  DECIDUOUS_TEETH,
+  type Surface,
+} from '@/lib/core/dental/teeth'
 
 interface PlanItem {
   id: string
@@ -172,7 +178,11 @@ export function PlanTab({ patientId, canWrite }: { patientId: string; canWrite: 
     <div className="space-y-5">
       {/* Progresso */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Itens" value={`${plan.progress.executedItems}/${plan.progress.totalItems}`} hint="executados" />
+        <Stat
+          label="Itens"
+          value={`${plan.progress.executedItems}/${plan.progress.totalItems}`}
+          hint="executados"
+        />
         <Stat label="Orçado" value={brl(plan.progress.plannedValueCents)} />
         <Stat label="Executado" value={brl(plan.progress.executedValueCents)} />
         <Stat
@@ -210,28 +220,54 @@ export function PlanTab({ patientId, canWrite }: { patientId: string; canWrite: 
       {/* Form novo item */}
       {showForm && canWrite ? (
         <div className="grid grid-cols-1 gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-5">
-          <select value={fTooth} onChange={(e) => setFTooth(Number(e.target.value))} className="rounded border px-2 py-1 text-xs">
+          <select
+            value={fTooth}
+            onChange={(e) => setFTooth(Number(e.target.value))}
+            className="rounded border px-2 py-1 text-xs"
+          >
             {ALL_TEETH.map((t) => (
-              <option key={t} value={t}>Dente {t}</option>
+              <option key={t} value={t}>
+                Dente {t}
+              </option>
             ))}
           </select>
-          <select value={fSurface} onChange={(e) => setFSurface(e.target.value)} className="rounded border px-2 py-1 text-xs">
+          <select
+            value={fSurface}
+            onChange={(e) => setFSurface(e.target.value)}
+            className="rounded border px-2 py-1 text-xs"
+          >
             <option value="">Dente inteiro</option>
             {SURFACES.map((s) => (
-              <option key={s} value={s}>{surfaceLabel(s as Surface, fTooth)}</option>
+              <option key={s} value={s}>
+                {surfaceLabel(s as Surface, fTooth)}
+              </option>
             ))}
           </select>
-          <select value={fProcedure} onChange={(e) => setFProcedure(e.target.value)} className="rounded border px-2 py-1 text-xs">
+          <select
+            value={fProcedure}
+            onChange={(e) => setFProcedure(e.target.value)}
+            className="rounded border px-2 py-1 text-xs"
+          >
             <option value="">Procedimento…</option>
             {procedures.map((p) => (
-              <option key={p.id} value={p.id}>{procLabel(p)}</option>
+              <option key={p.id} value={p.id}>
+                {procLabel(p)}
+              </option>
             ))}
           </select>
-          <select value={fDoctor} onChange={(e) => setFDoctor(e.target.value)} className="rounded border px-2 py-1 text-xs">
+          <select
+            value={fDoctor}
+            onChange={(e) => setFDoctor(e.target.value)}
+            className="rounded border px-2 py-1 text-xs"
+          >
             <option value="">Profissional…</option>
-            {doctors.filter((d) => d.active).map((d) => (
-              <option key={d.id} value={d.id}>{d.fullName}</option>
-            ))}
+            {doctors
+              .filter((d) => d.active)
+              .map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.fullName}
+                </option>
+              ))}
           </select>
           <button
             type="button"
@@ -259,7 +295,11 @@ export function PlanTab({ patientId, canWrite }: { patientId: string; canWrite: 
           </thead>
           <tbody className="divide-y divide-slate-100">
             {plan.items.length === 0 ? (
-              <tr><td colSpan={6} className="px-3 py-4 text-center text-slate-400">Nenhum item no plano.</td></tr>
+              <tr>
+                <td colSpan={6} className="px-3 py-4 text-center text-slate-400">
+                  Nenhum item no plano.
+                </td>
+              </tr>
             ) : null}
             {plan.items.map((it) => {
               const b = it.budgetId ? budgetById.get(it.budgetId) : null
@@ -270,29 +310,59 @@ export function PlanTab({ patientId, canWrite }: { patientId: string; canWrite: 
                   {canWrite ? (
                     <td className="px-2 py-2">
                       {selectable ? (
-                        <input type="checkbox" checked={selected.has(it.id)} onChange={() => toggleSel(it.id)} />
+                        <input
+                          type="checkbox"
+                          checked={selected.has(it.id)}
+                          onChange={() => toggleSel(it.id)}
+                        />
                       ) : null}
                     </td>
                   ) : null}
                   <td className="px-3 py-2">
                     {it.toothFdi ? `Dente ${it.toothFdi}` : '—'}
-                    {it.surface ? ` · ${surfaceLabel(it.surface as Surface, it.toothFdi ?? 11)}` : ''}
+                    {it.surface
+                      ? ` · ${surfaceLabel(it.surface as Surface, it.toothFdi ?? 11)}`
+                      : ''}
                   </td>
                   <td className="px-3 py-2">{it.title}</td>
                   <td className="px-3 py-2 text-right">{brl(it.currentPriceCents)}</td>
                   <td className="px-3 py-2">
                     <span className="text-slate-600">{it.status}</span>
-                    {b ? <span className="ml-1 text-slate-400">· {BUDGET_STATUS_LABEL[b.status]}</span> : null}
+                    {b ? (
+                      <span className="ml-1 text-slate-400">· {BUDGET_STATUS_LABEL[b.status]}</span>
+                    ) : null}
                   </td>
                   {canWrite ? (
                     <td className="px-3 py-2 text-right">
                       {canExecute ? (
-                        <button type="button" disabled={busy} onClick={() => post(`/api/pacientes/${patientId}/plano/itens/${it.id}`, { action: 'executar' }, 'PATCH')} className="text-emerald-700 hover:underline">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            post(
+                              `/api/pacientes/${patientId}/plano/itens/${it.id}`,
+                              { action: 'executar' },
+                              'PATCH',
+                            )
+                          }
+                          className="text-emerald-700 hover:underline"
+                        >
                           Executar
                         </button>
                       ) : null}
                       {it.status === 'pendente' && !it.budgetId ? (
-                        <button type="button" disabled={busy} onClick={() => post(`/api/pacientes/${patientId}/plano/itens/${it.id}`, { action: 'cancelar' }, 'PATCH')} className="ml-2 text-slate-400 hover:underline">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            post(
+                              `/api/pacientes/${patientId}/plano/itens/${it.id}`,
+                              { action: 'cancelar' },
+                              'PATCH',
+                            )
+                          }
+                          className="ml-2 text-slate-400 hover:underline"
+                        >
                           Cancelar
                         </button>
                       ) : null}
@@ -310,7 +380,10 @@ export function PlanTab({ patientId, canWrite }: { patientId: string; canWrite: 
         <div className="space-y-2">
           <h4 className="text-sm font-bold text-slate-800">Orçamentos</h4>
           {plan.budgets.map((b) => (
-            <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 p-3">
+            <div
+              key={b.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 p-3"
+            >
               <div>
                 <span className="font-medium text-slate-800">{b.title || 'Orçamento'}</span>
                 <span className="ml-2 text-xs text-slate-500">{BUDGET_STATUS_LABEL[b.status]}</span>
@@ -319,14 +392,60 @@ export function PlanTab({ patientId, canWrite }: { patientId: string; canWrite: 
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <a href={`/api/pacientes/${patientId}/plano/orcamentos/${b.id}/pdf`} target="_blank" rel="noreferrer" className="text-slate-600 hover:underline">PDF</a>
+                <a
+                  href={`/api/pacientes/${patientId}/plano/orcamentos/${b.id}/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-slate-600 hover:underline"
+                >
+                  PDF
+                </a>
                 {canWrite && (b.status === 'proposto' || b.status === 'apresentado') ? (
                   <>
                     {b.status === 'proposto' ? (
-                      <button type="button" disabled={busy} onClick={() => post(`/api/pacientes/${patientId}/plano/orcamentos/${b.id}`, { action: 'apresentar' }, 'PATCH')} className="text-slate-600 hover:underline">Apresentar</button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() =>
+                          post(
+                            `/api/pacientes/${patientId}/plano/orcamentos/${b.id}`,
+                            { action: 'apresentar' },
+                            'PATCH',
+                          )
+                        }
+                        className="text-slate-600 hover:underline"
+                      >
+                        Apresentar
+                      </button>
                     ) : null}
-                    <button type="button" disabled={busy} onClick={() => post(`/api/pacientes/${patientId}/plano/orcamentos/${b.id}`, { action: 'aceitar' }, 'PATCH')} className="text-emerald-700 hover:underline">Aceitar</button>
-                    <button type="button" disabled={busy} onClick={() => post(`/api/pacientes/${patientId}/plano/orcamentos/${b.id}`, { action: 'recusar' }, 'PATCH')} className="text-red-600 hover:underline">Recusar</button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        post(
+                          `/api/pacientes/${patientId}/plano/orcamentos/${b.id}`,
+                          { action: 'aceitar' },
+                          'PATCH',
+                        )
+                      }
+                      className="text-emerald-700 hover:underline"
+                    >
+                      Aceitar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        post(
+                          `/api/pacientes/${patientId}/plano/orcamentos/${b.id}`,
+                          { action: 'recusar' },
+                          'PATCH',
+                        )
+                      }
+                      className="text-red-600 hover:underline"
+                    >
+                      Recusar
+                    </button>
                   </>
                 ) : null}
               </div>

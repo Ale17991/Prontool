@@ -15,7 +15,12 @@ describe('Feature 012 — POST /api/tarefas validation', () => {
     const t = await seedTenant('tarefas-val')
     const admin = await seedUser(t.tenantId, 'admin')
     adminUserId = admin.userId
-    adminJwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId: t.tenantId, role: 'admin' })
+    adminJwt = mintJwt({
+      userId: admin.userId,
+      email: admin.email,
+      tenantId: t.tenantId,
+      role: 'admin',
+    })
   })
 
   async function postBody(body: unknown): Promise<Response> {
@@ -33,18 +38,63 @@ describe('Feature 012 — POST /api/tarefas validation', () => {
   }
 
   it('rejeita title vazio', async () => {
-    expect((await postBody({ title: '', due_date: '2026-12-31', assigned_to: adminUserId, priority: 'normal' })).status).toBe(400)
+    expect(
+      (
+        await postBody({
+          title: '',
+          due_date: '2026-12-31',
+          assigned_to: adminUserId,
+          priority: 'normal',
+        })
+      ).status,
+    ).toBe(400)
   })
   it('rejeita title com 201 chars', async () => {
-    expect((await postBody({ title: 'x'.repeat(201), due_date: '2026-12-31', assigned_to: adminUserId, priority: 'normal' })).status).toBe(400)
+    expect(
+      (
+        await postBody({
+          title: 'x'.repeat(201),
+          due_date: '2026-12-31',
+          assigned_to: adminUserId,
+          priority: 'normal',
+        })
+      ).status,
+    ).toBe(400)
   })
   it('rejeita due_date formato inválido', async () => {
-    expect((await postBody({ title: 'x', due_date: '31/12/2026', assigned_to: adminUserId, priority: 'normal' })).status).toBe(400)
+    expect(
+      (
+        await postBody({
+          title: 'x',
+          due_date: '31/12/2026',
+          assigned_to: adminUserId,
+          priority: 'normal',
+        })
+      ).status,
+    ).toBe(400)
   })
   it('rejeita priority inválida', async () => {
-    expect((await postBody({ title: 'x', due_date: '2026-12-31', assigned_to: adminUserId, priority: 'critica' })).status).toBe(400)
+    expect(
+      (
+        await postBody({
+          title: 'x',
+          due_date: '2026-12-31',
+          assigned_to: adminUserId,
+          priority: 'critica',
+        })
+      ).status,
+    ).toBe(400)
   })
   it('aceita payload válido', async () => {
-    expect((await postBody({ title: 'tarefa válida', due_date: '2026-12-31', assigned_to: adminUserId, priority: 'alta' })).status).toBe(201)
+    expect(
+      (
+        await postBody({
+          title: 'tarefa válida',
+          due_date: '2026-12-31',
+          assigned_to: adminUserId,
+          priority: 'alta',
+        })
+      ).status,
+    ).toBe(201)
   })
 })

@@ -102,9 +102,7 @@ export function DayBusyHint({ doctorId, dateLocal }: { doctorId: string; dateLoc
                 key={i}
                 title={s.label}
                 className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold tabular-nums ${
-                  isBlock
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-slate-200 text-slate-700'
+                  isBlock ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
                 }`}
               >
                 {range}

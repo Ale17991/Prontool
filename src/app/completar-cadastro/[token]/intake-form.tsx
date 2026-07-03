@@ -30,7 +30,8 @@ export function IntakeForm({ token, clinicName }: { token: string; clinicName: s
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          phone, email,
+          phone,
+          email,
           emergencyContactName: ecName,
           emergencyContactPhone: ecPhone,
           address: { cep, street, number, complement, neighborhood, city, state },
@@ -68,7 +69,11 @@ export function IntakeForm({ token, clinicName }: { token: string; clinicName: s
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <Label>Telefone</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(00) 00000-0000" />
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(00) 00000-0000"
+            />
           </div>
           <div>
             <Label>E-mail</Label>
@@ -76,21 +81,52 @@ export function IntakeForm({ token, clinicName }: { token: string; clinicName: s
           </div>
         </div>
 
-        <p className="pt-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">Endereço</p>
+        <p className="pt-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+          Endereço
+        </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div><Label>CEP</Label><Input value={cep} onChange={(e) => setCep(e.target.value)} /></div>
-          <div className="sm:col-span-2"><Label>Rua</Label><Input value={street} onChange={(e) => setStreet(e.target.value)} /></div>
-          <div><Label>Número</Label><Input value={number} onChange={(e) => setNumber(e.target.value)} /></div>
-          <div className="sm:col-span-2"><Label>Complemento</Label><Input value={complement} onChange={(e) => setComplement(e.target.value)} /></div>
-          <div><Label>Bairro</Label><Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} /></div>
-          <div><Label>Cidade</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
-          <div><Label>UF</Label><Input value={state} onChange={(e) => setState(e.target.value)} maxLength={2} /></div>
+          <div>
+            <Label>CEP</Label>
+            <Input value={cep} onChange={(e) => setCep(e.target.value)} />
+          </div>
+          <div className="sm:col-span-2">
+            <Label>Rua</Label>
+            <Input value={street} onChange={(e) => setStreet(e.target.value)} />
+          </div>
+          <div>
+            <Label>Número</Label>
+            <Input value={number} onChange={(e) => setNumber(e.target.value)} />
+          </div>
+          <div className="sm:col-span-2">
+            <Label>Complemento</Label>
+            <Input value={complement} onChange={(e) => setComplement(e.target.value)} />
+          </div>
+          <div>
+            <Label>Bairro</Label>
+            <Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} />
+          </div>
+          <div>
+            <Label>Cidade</Label>
+            <Input value={city} onChange={(e) => setCity(e.target.value)} />
+          </div>
+          <div>
+            <Label>UF</Label>
+            <Input value={state} onChange={(e) => setState(e.target.value)} maxLength={2} />
+          </div>
         </div>
 
-        <p className="pt-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">Contato de emergência</p>
+        <p className="pt-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+          Contato de emergência
+        </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div><Label>Nome</Label><Input value={ecName} onChange={(e) => setEcName(e.target.value)} /></div>
-          <div><Label>Telefone</Label><Input value={ecPhone} onChange={(e) => setEcPhone(e.target.value)} /></div>
+          <div>
+            <Label>Nome</Label>
+            <Input value={ecName} onChange={(e) => setEcName(e.target.value)} />
+          </div>
+          <div>
+            <Label>Telefone</Label>
+            <Input value={ecPhone} onChange={(e) => setEcPhone(e.target.value)} />
+          </div>
         </div>
 
         {error ? <p className="text-sm font-semibold text-destructive">{error}</p> : null}

@@ -41,7 +41,11 @@ export class MemedValidationError extends DomainError {
 /** timeout / 5xx / network — Memed indisponível (HTTP 502). */
 export class MemedUpstreamError extends DomainError {
   constructor(message: string, status: number | null = null) {
-    super('MEMED_UPSTREAM', message, status ? { status: 502, meta: { upstream_status: status } } : { status: 502 })
+    super(
+      'MEMED_UPSTREAM',
+      message,
+      status ? { status: 502, meta: { upstream_status: status } } : { status: 502 },
+    )
   }
 }
 

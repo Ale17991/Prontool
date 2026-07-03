@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Cadastrar honorários e participantes (equipe) por procedimento no atendimento, com grau de participação (padrão TISS, domínio 35) e honorário por participante; participantes de qualquer modalidade (comissionado/fixo/liberal); reflete no repasse e na guia TISS SP/SADT."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Cadastrar a equipe de um procedimento (Priority: P1)
 
@@ -78,7 +78,7 @@ A correção de uma participação (valor errado, profissional errado, grau erra
 - Atendimento estornado → participações não contam no financeiro nem no faturamento; registro histórico mantido.
 - Remover uma participação já removida → operação idempotente/bloqueada.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -98,13 +98,13 @@ A correção de uma participação (valor errado, profissional errado, grau erra
 - **FR-014**: O honorário de uma participação MUST entrar no repasse mensal do profissional **independentemente da sua modalidade** (liberal, fixo ou comissionado) — é receita adicional pelo papel na equipe, somada ao que o profissional já recebe pela sua modalidade. (Decisão do usuário, 2026-06-18.)
 - **FR-015**: A equipe registrada nesta feature MUST conter **apenas os participantes adicionais** (ex.: anestesista, auxiliar, instrumentador). O **executante principal** (médico do atendimento) NÃO vira uma participação com honorário aqui — permanece no fluxo atual (comissão/fixo do atendimento, inalterado), evitando dupla contagem. (Decisão do usuário, 2026-06-18.)
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Participação em procedimento**: representa um profissional participando de uma linha de procedimento de um atendimento. Atributos: clínica, atendimento, linha de procedimento, profissional, grau de participação, honorário (congelado), criado por/quando, removido por/quando (soft-unlink). Substitui/estende o conceito atual de "assistente do atendimento" (que é por atendimento e só liberal).
 - **Grau de participação**: item do catálogo padrão (domínio TISS 35) — ex.: cirurgião, primeiro auxiliar, segundo auxiliar, anestesista, instrumentador. Código + descrição.
 - **Linha de procedimento do atendimento**: já existente; passa a ser o alvo do vínculo da equipe.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

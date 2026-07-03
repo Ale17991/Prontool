@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
-import {
-  CLINIC_LOGO_BUCKET,
-  CLINIC_LOGO_SIGNED_URL_TTL_SECONDS,
-  type ClinicProfile,
-} from './types'
+import { CLINIC_LOGO_BUCKET, CLINIC_LOGO_SIGNED_URL_TTL_SECONDS, type ClinicProfile } from './types'
 
 type Row = Database['public']['Tables']['tenant_clinic_profile']['Row']
 
@@ -165,11 +161,7 @@ async function fetchTenantName(
   tenantId: string,
 ): Promise<string | null> {
   try {
-    const { data } = await supabase
-      .from('tenants')
-      .select('name')
-      .eq('id', tenantId)
-      .maybeSingle()
+    const { data } = await supabase.from('tenants').select('name').eq('id', tenantId).maybeSingle()
     return data?.name ?? null
   } catch {
     return null

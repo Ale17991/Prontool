@@ -79,7 +79,10 @@ export async function setMemedEnvironment(
   if (loadErr) throw new Error(`setMemedEnvironment load failed: ${loadErr.message}`)
   if (!row) throw new MemedNotConnectedError()
 
-  if (environment === 'production' && !(row as { terms_accepted_at: string | null }).terms_accepted_at) {
+  if (
+    environment === 'production' &&
+    !(row as { terms_accepted_at: string | null }).terms_accepted_at
+  ) {
     throw new MemedTermsRequiredError()
   }
   if (environment === 'production' && !isMemedProductionConfigured()) {

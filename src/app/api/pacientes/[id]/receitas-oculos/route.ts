@@ -10,7 +10,13 @@ export const runtime = 'nodejs'
 
 const field = z.string().trim().max(20).nullable().optional()
 const eyeSchema = z.object({
-  sphere: field, cylinder: field, axis: field, addition: field, prism: field, base: field, dnp: field,
+  sphere: field,
+  cylinder: field,
+  axis: field,
+  addition: field,
+  prism: field,
+  base: field,
+  dnp: field,
 })
 const postSchema = z.object({
   od: eyeSchema.default({}),
@@ -19,10 +25,7 @@ const postSchema = z.object({
   notes: z.string().trim().max(2000).nullable().optional(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/receitas-oculos`
   try {
     const session = await requireRole(['admin', 'profissional_saude', 'recepcionista'], {
@@ -32,7 +35,10 @@ export async function GET(
       request: req,
     })
     const supabase = createSupabaseServiceClient()
-    const rows = await listEyeglassRx(supabase, { tenantId: session.tenantId, patientId: params.id })
+    const rows = await listEyeglassRx(supabase, {
+      tenantId: session.tenantId,
+      patientId: params.id,
+    })
     return NextResponse.json({ rows }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route })
@@ -54,11 +60,21 @@ export async function POST(
     const parsed = postSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }
-    const emptyEye = { sphere: null, cylinder: null, axis: null, addition: null, prism: null, base: null, dnp: null }
+    const emptyEye = {
+      sphere: null,
+      cylinder: null,
+      axis: null,
+      addition: null,
+      prism: null,
+      base: null,
+      dnp: null,
+    }
     const supabase = createSupabaseServiceClient()
     const result = await createEyeglassRx(supabase, {
       tenantId: session.tenantId,

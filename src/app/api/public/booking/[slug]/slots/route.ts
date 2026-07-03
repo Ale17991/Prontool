@@ -10,17 +10,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
-import {
-  listAnyDoctorSlots,
-  listPublicBookingSlots,
-} from '@/lib/core/public-booking/list-slots'
+import { listAnyDoctorSlots, listPublicBookingSlots } from '@/lib/core/public-booking/list-slots'
 import { listDoctorsForProcedure } from '@/lib/core/public-booking/list-published'
 import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
-import {
-  checkRateLimit,
-  bumpRateLimit,
-  RATE_LIMITS,
-} from '@/lib/core/public-booking/rate-limit'
+import { checkRateLimit, bumpRateLimit, RATE_LIMITS } from '@/lib/core/public-booking/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -49,16 +42,10 @@ function extractIp(request: NextRequest): string {
   return 'unknown'
 }
 
-export async function GET(
-  request: NextRequest,
-  context: { params: { slug: string } },
-) {
+export async function GET(request: NextRequest, context: { params: { slug: string } }) {
   const slugCheck = SlugSchema.safeParse(context.params.slug)
   if (!slugCheck.success) {
-    return NextResponse.json(
-      { error: 'TENANT_NOT_FOUND_OR_DISABLED' },
-      { status: 404 },
-    )
+    return NextResponse.json({ error: 'TENANT_NOT_FOUND_OR_DISABLED' }, { status: 404 })
   }
 
   const url = new URL(request.url)
@@ -85,10 +72,7 @@ export async function GET(
 
   const tenant = await resolveTenantBySlug(supabase, slugCheck.data)
   if (!tenant) {
-    return NextResponse.json(
-      { error: 'TENANT_NOT_FOUND_OR_DISABLED' },
-      { status: 404 },
-    )
+    return NextResponse.json({ error: 'TENANT_NOT_FOUND_OR_DISABLED' }, { status: 404 })
   }
 
   // Rate limit: 10/min por IP+tenant para action='view_slots'.

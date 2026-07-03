@@ -10,11 +10,12 @@
 A feature toca duas áreas operacionais distintas mas relacionadas pela operação financeira/clínica diária da clínica. Estão consolidadas numa única spec porque a equipe pediu juntas e os usuários afetados são os mesmos (admin, financeiro, recepcionista).
 
 **Estado atual relevante**:
+
 - `expenses` recebeu na sprint anterior 3 colunas `receipt_file_*` para anexar **um** comprovante por despesa (commit `37df456`). Esta feature **expande** o modelo para 1:N (uma despesa pode ter vários comprovantes — nota fiscal + boleto + transferência).
 - `appointments.plan_id` é hoje `NOT NULL` — registrar atendimento particular exige tornar essa FK opcional ou usar plano sentinela. A spec assume que a coluna passa a aceitar `NULL` (decisão de plan).
 - `procedures.default_amount_cents` (particular) e `procedures.covered_by_plan` já existem desde a feature 002 — basta consumir.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Anexar múltiplos comprovantes a uma despesa (Priority: P1)
 
@@ -103,7 +104,7 @@ A recepcionista cadastra um novo atendimento para a paciente Júlia, que não te
 - **Estorno de atendimento particular**: mesmo fluxo do convencional; reversal sem efeito sobre o `plan_id` (que continua NULL).
 - **Migração: 1:1 → 1:N comprovantes**: a entrega precisa absorver o(s) comprovante(s) já anexados pelos usuários da versão anterior — coluna `receipt_file_url` existente vira primeiro item na nova tabela.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -136,7 +137,7 @@ A recepcionista cadastra um novo atendimento para a paciente Júlia, que não te
 - **FR-029**: Atendimentos com `plan_id = NULL` MUST exibir badge "Particular" no detalhe, no calendário, na lista, e no card de etapa do plano de tratamento.
 - **FR-030**: Endpoint de criação de atendimento MUST aceitar `plan_id` nulo e validar que `frozen_amount_cents > 0` foi informado quando `plan_id IS NULL`. O fluxo de validação que hoje exige `price_versions` deve pular a checagem quando `plan_id IS NULL`.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Despesa (`expenses`)**: já existe. Não muda em estrutura nesta feature; apenas perde gradualmente a relevância das colunas single-receipt `receipt_file_*` (que são marcadas legadas e mantidas até backfill da nova entidade).
 - **Comprovante de despesa (novo, `expense_receipts`)**: nova entidade. Atributos: id, tenant_id, expense_id, file_name, storage_path, file_size_bytes, content_type, uploaded_by, uploaded_at, deleted_at (nullable), deleted_by, deleted_reason. UNIQUE não-deletados por (expense_id, file_name) ou path único garantido por suffix.
@@ -144,11 +145,12 @@ A recepcionista cadastra um novo atendimento para a paciente Júlia, que não te
 - **Etapa de plano de tratamento (`treatment_plan_steps`)**: tabela existente. Mudança: `plan_id` já é nullable; sem alteração de schema, apenas a UI passa a usar checkbox em vez de sentinela `__none__`.
 - **Audit log (`audit_log`)**: já existe. Recebe novos `entity = 'expense_receipts'` com eventos `upload` e `soft_delete`.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
 #### Feature 1 — Comprovantes
+
 - **SC-001**: 100% dos uploads de tipo permitido (PDF/JPG/PNG ≤ 10 MB) são bem-sucedidos em condições normais de rede; falhas são reportadas com mensagem específica em ≤ 5 s.
 - **SC-002**: Tentativas de cross-tenant access via URL direta (sem token assinado) recebem 403/404 em 100% dos casos — verificado em teste automatizado.
 - **SC-003**: Despesas com 0 comprovantes não mostram ícone de clipe; despesas com 1+ mostram com contagem exata. Verificado em até 50 ms p95 na renderização da lista.
@@ -156,6 +158,7 @@ A recepcionista cadastra um novo atendimento para a paciente Júlia, que não te
 - **SC-005**: Audit log registra `upload` e `soft_delete` para 100% das operações de comprovante, com nome do arquivo, ator, e timestamp.
 
 #### Feature 2 — Atendimento particular
+
 - **SC-010**: Para pacientes sem plano cadastrado, 100% dos formulários de novo atendimento ou nova etapa abrem com "Particular" pré-marcado.
 - **SC-011**: Em testes automatizados, atendimentos salvos como particular têm `plan_id IS NULL`, badge "Particular" visível em todas as áreas que exibem o atendimento.
 - **SC-012**: O fluxo de criação particular elimina ≥ 1 clique por cadastro em comparação ao fluxo atual (clínica com 40% de particulares: ganho proporcional).

@@ -6,9 +6,7 @@
  * Testa a função pura `buildPrescriberPayload` (sem rede/DB).
  */
 import { describe, it, expect } from 'vitest'
-import {
-  buildPrescriberPayload,
-} from '@/lib/core/integrations/memed/register-prescriber'
+import { buildPrescriberPayload } from '@/lib/core/integrations/memed/register-prescriber'
 import type { DoctorDetail } from '@/lib/core/doctors/get'
 
 const BASE: DoctorDetail = {

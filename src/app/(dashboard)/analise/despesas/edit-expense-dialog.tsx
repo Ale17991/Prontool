@@ -106,8 +106,8 @@ export function EditExpenseDialog({ expense }: EditExpenseDialogProps) {
         <DialogHeader>
           <DialogTitle>Editar despesa</DialogTitle>
           <DialogDescription>
-            A despesa original é mantida (soft-delete) e uma versão corrigida é criada,
-            preservando a trilha de auditoria. Comprovantes são transferidos.
+            A despesa original é mantida (soft-delete) e uma versão corrigida é criada, preservando
+            a trilha de auditoria. Comprovantes são transferidos.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
@@ -141,17 +141,29 @@ export function EditExpenseDialog({ expense }: EditExpenseDialogProps) {
             <Input value={description} onChange={(e) => setDescription(e.target.value)} required />
           </div>
           <div>
-            <Label className="text-[11px] font-bold uppercase text-slate-500">Fornecedor (opcional)</Label>
+            <Label className="text-[11px] font-bold uppercase text-slate-500">
+              Fornecedor (opcional)
+            </Label>
             <Input value={supplier} onChange={(e) => setSupplier(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-[11px] font-bold uppercase text-slate-500">Valor (R$)</Label>
-              <Input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+              <Input
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+              />
             </div>
             <div>
               <Label className="text-[11px] font-bold uppercase text-slate-500">Competência</Label>
-              <Input type="date" value={competenceDate} onChange={(e) => setCompetenceDate(e.target.value)} required />
+              <Input
+                type="date"
+                value={competenceDate}
+                onChange={(e) => setCompetenceDate(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -183,7 +195,12 @@ export function EditExpenseDialog({ expense }: EditExpenseDialogProps) {
           {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
 
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={pending} className="gap-2">

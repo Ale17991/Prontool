@@ -74,8 +74,8 @@ export default async function CancelarPage({
 
       {used ? (
         <div className="rounded-md border border-warning/30 bg-warning/5 p-4 text-sm">
-          Este link já foi utilizado. Se você precisa cancelar novamente, entre
-          em contato com a clínica.
+          Este link já foi utilizado. Se você precisa cancelar novamente, entre em contato com a
+          clínica.
         </div>
       ) : expired ? (
         <div className="rounded-md border border-warning/30 bg-warning/5 p-4 text-sm">
@@ -83,12 +83,10 @@ export default async function CancelarPage({
         </div>
       ) : tooLate ? (
         <div className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
-          <p className="font-semibold text-destructive">
-            Cancelamento online indisponível
-          </p>
+          <p className="font-semibold text-destructive">Cancelamento online indisponível</p>
           <p className="text-slate-700">
-            Cancelamento online disponível até {cancelMinHours}h antes da consulta.
-            Entre em contato com a clínica:
+            Cancelamento online disponível até {cancelMinHours}h antes da consulta. Entre em contato
+            com a clínica:
           </p>
           {tenant.phone && (
             <p className="text-slate-900">

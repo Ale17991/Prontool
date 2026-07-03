@@ -52,13 +52,11 @@ export default async function BloquearHorarioPage({ searchParams }: PageProps) {
       </Link>
 
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Bloquear horário
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Bloquear horário</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Marque um período da agenda como indisponível: reunião, curso, férias,
-          manutenção etc. O bloqueio é visual; ele não impede a criação de
-          atendimentos no mesmo horário, mas avisa que existe sobreposição.
+          Marque um período da agenda como indisponível: reunião, curso, férias, manutenção etc. O
+          bloqueio é visual; ele não impede a criação de atendimentos no mesmo horário, mas avisa
+          que existe sobreposição.
         </p>
       </div>
 

@@ -101,9 +101,7 @@ describe('contract: GET /api/configuracoes/cep/:cep', () => {
   })
 
   it('200 + ok:false (unavailable) quando upstream retorna não-200', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValueOnce(
-      new Response('Internal', { status: 500 }),
-    )
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce(new Response('Internal', { status: 500 }))
     const res = await callRoute('01310100')
     expect(res.status).toBe(200)
     const body = (await res.json()) as { ok: boolean; reason: string }

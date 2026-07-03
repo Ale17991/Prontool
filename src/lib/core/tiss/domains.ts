@@ -38,16 +38,11 @@ export async function listDomain(
  * Feature 031 — grau de participação (domínio TISS 35). Helpers nomeados
  * sobre os genéricos, para o seletor de equipe e a validação de participantes.
  */
-export async function listParticipationDegrees(
-  supabase: Client,
-): Promise<TissDomainEntry[]> {
+export async function listParticipationDegrees(supabase: Client): Promise<TissDomainEntry[]> {
   return listDomain(supabase, '35')
 }
 
-export async function isValidParticipationDegree(
-  supabase: Client,
-  code: string,
-): Promise<boolean> {
+export async function isValidParticipationDegree(supabase: Client, code: string): Promise<boolean> {
   return isValidDomainCode(supabase, '35', code)
 }
 
@@ -64,7 +59,8 @@ export async function isValidDomainCode(
     .eq('code', code)
     .limit(1)
     .maybeSingle()
-  if (error) throw new Error(`[tiss] falha ao validar domínio ${domainNumber}/${code}: ${error.message}`)
+  if (error)
+    throw new Error(`[tiss] falha ao validar domínio ${domainNumber}/${code}: ${error.message}`)
   if (!data) return false
   const today = new Date().toISOString().slice(0, 10)
   return data.valid_to === null || data.valid_to >= today

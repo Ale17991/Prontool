@@ -34,9 +34,7 @@ export async function recordTissAudit(
     entity_id: input.entityId,
     field: input.field,
     old_value: null,
-    new_value: input.detail
-      ? JSON.stringify(maskTissForLog(input.detail))
-      : null,
+    new_value: input.detail ? JSON.stringify(maskTissForLog(input.detail)) : null,
     reason: input.reason,
     ip: input.ip ?? null,
     user_agent: input.userAgent ?? null,

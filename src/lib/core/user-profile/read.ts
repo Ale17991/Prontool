@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
-import {
-  USER_AVATAR_BUCKET,
-  USER_AVATAR_SIGNED_URL_TTL_SECONDS,
-  type UserProfile,
-} from './types'
+import { USER_AVATAR_BUCKET, USER_AVATAR_SIGNED_URL_TTL_SECONDS, type UserProfile } from './types'
 
 type Row = Database['public']['Tables']['user_profile']['Row']
 

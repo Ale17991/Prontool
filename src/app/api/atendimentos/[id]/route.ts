@@ -33,10 +33,7 @@ import { doctorHasPrescriberFields } from '@/lib/core/integrations/memed/registe
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(
       ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],
@@ -71,7 +68,7 @@ export async function GET(
         const dec = ((data ?? []) as DecryptRow[])[0]
         if (dec) {
           patientAnonymized = dec.anonymized_at !== null
-          patientName = patientAnonymized ? '[anonimizado]' : dec.full_name ?? '—'
+          patientName = patientAnonymized ? '[anonimizado]' : (dec.full_name ?? '—')
         }
       } catch {
         // best-effort

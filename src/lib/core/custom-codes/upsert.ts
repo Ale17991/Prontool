@@ -93,11 +93,9 @@ export async function upsertCustomCode(
   }
   if (inserted.error || !inserted.data) {
     if (inserted.error?.code === '23505') {
-      throw new ConflictError(
-        'CUSTOM_CODE_DUPLICATE',
-        `Codigo ${code} ja existe nesta clinica.`,
-        { code },
-      )
+      throw new ConflictError('CUSTOM_CODE_DUPLICATE', `Codigo ${code} ja existe nesta clinica.`, {
+        code,
+      })
     }
     throw new Error(`upsertCustomCode failed: ${inserted.error?.message ?? 'empty response'}`)
   }

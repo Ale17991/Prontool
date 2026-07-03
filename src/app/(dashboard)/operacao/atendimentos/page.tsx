@@ -14,7 +14,14 @@ import {
 } from '@/components/ui/appointment-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { format } from 'date-fns'
 import { formatDateTime } from '@/lib/utils'
 import {
@@ -34,11 +41,7 @@ import { FilterBarBlock } from './filter-bar-block'
 import { AppointmentDetailHost } from './_components/appointment-detail-host'
 import { FlowStatusCell } from './_components/appointment-flow-control'
 import { listAppointmentFlows, type AppointmentFlow } from '@/lib/core/appointment-flow/crud'
-import {
-  deriveRange,
-  parseFiltersFromRecord,
-  type CalendarStatus,
-} from './calendar-filters'
+import { deriveRange, parseFiltersFromRecord, type CalendarStatus } from './calendar-filters'
 import type { DoctorFilterOption } from './calendar/doctor-filter'
 
 export const dynamic = 'force-dynamic'
@@ -120,7 +123,10 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
       calendar_open_time?: string | null
       calendar_close_time?: string | null
     } | null
-    if (typeof row?.calendar_slot_interval_minutes === 'number' && row.calendar_slot_interval_minutes >= 1) {
+    if (
+      typeof row?.calendar_slot_interval_minutes === 'number' &&
+      row.calendar_slot_interval_minutes >= 1
+    ) {
       slotIntervalMinutes = row.calendar_slot_interval_minutes
     }
     dayStartMinute = hhmmToMinutes(row?.calendar_open_time, DEFAULT_DAY_START_MINUTE)
@@ -178,8 +184,8 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
                 <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
                 {appointments.length >= APPOINTMENT_WEEK_ROW_LIMIT ? (
                   <p className="mt-1 text-sm font-medium text-amber-600">
-                    Limite de {APPOINTMENT_WEEK_ROW_LIMIT} atendimentos atingido —
-                    estreite o período para garantir que nada esteja oculto.
+                    Limite de {APPOINTMENT_WEEK_ROW_LIMIT} atendimentos atingido — estreite o
+                    período para garantir que nada esteja oculto.
                   </p>
                 ) : (
                   <p className="mt-1 text-sm text-slate-500">
@@ -299,7 +305,8 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
   // procedimento é substring leve em uma window já paginada (200 rows max).
   const filteredRows = rows.filter((r) => {
     if (filters.procedure) {
-      const haystack = `${r.procedures?.tuss_code ?? ''} ${r.procedures?.display_name ?? ''}`.toLowerCase()
+      const haystack =
+        `${r.procedures?.tuss_code ?? ''} ${r.procedures?.display_name ?? ''}`.toLowerCase()
       if (!haystack.includes(filters.procedure.toLowerCase())) return false
     }
     if (filters.patient) {
@@ -317,9 +324,7 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
     filteredRows.length > 0
       ? await listAppointmentFlows(supabase, {
           tenantId: session.tenantId,
-          appointmentIds: filteredRows
-            .map((r) => r.id)
-            .filter((id): id is string => Boolean(id)),
+          appointmentIds: filteredRows.map((r) => r.id).filter((id): id is string => Boolean(id)),
         }).catch(() => new Map<string, AppointmentFlow>())
       : new Map<string, AppointmentFlow>()
   const DEFAULT_FLOW: AppointmentFlow = {
@@ -336,173 +341,176 @@ export default async function AtendimentosPage({ searchParams }: PageProps) {
 
   return (
     <AppointmentDetailHost role={session.role}>
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
-          {listTruncated ? (
-            <p className="mt-1 text-sm font-medium text-amber-600">
-              Limite de {LIST_MODE_LIMIT} atendimentos atingido — estreite o período
-              para garantir que nada esteja oculto.
-            </p>
-          ) : (
-            <p className="mt-1 text-sm text-slate-500">
-              {filteredRows.length} atendimento{filteredRows.length === 1 ? '' : 's'}
-              {reversedCount > 0 ? (
-                <>
-                  {' '}·{' '}
-                  <span className="font-semibold text-destructive">
-                    {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
-                  </span>
-                </>
-              ) : null}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <ModeToggle mode={mode} />
-          {session.role === 'admin' || session.role === 'recepcionista' ? (
-            <>
-              <Button asChild variant="outline">
-                <Link href="/operacao/atendimentos/bloquear">
-                  <Lock className="mr-2 h-4 w-4" />
-                  Bloquear horário
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href="/operacao/atendimentos/novo">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Novo
-                </Link>
-              </Button>
-            </>
-          ) : null}
-        </div>
-      </div>
-
-      <FilterBarBlock doctors={doctorOptions} />
-
-      <Card>
-        <CardContent className="p-0">
-          {error ? (
-            <p className="px-6 py-8 text-sm text-destructive">Erro ao carregar: {error.message}</p>
-          ) : filteredRows.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-              <Stethoscope className="h-8 w-8 text-slate-300" />
-              <p className="text-sm font-medium text-slate-500">
-                Nenhum atendimento encontrado para os filtros aplicados.
+      <div className="space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900">Atendimentos</h1>
+            {listTruncated ? (
+              <p className="mt-1 text-sm font-medium text-amber-600">
+                Limite de {LIST_MODE_LIMIT} atendimentos atingido — estreite o período para garantir
+                que nada esteja oculto.
               </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Início</TableHead>
-                  <TableHead>Fim</TableHead>
-                  <TableHead>Paciente</TableHead>
-                  <TableHead>Procedimento</TableHead>
-                  <TableHead>Profissional</TableHead>
-                  <TableHead>Alergias</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRows.map((r) => {
-                  const startMs = r.appointment_at ? new Date(r.appointment_at).getTime() : null
-                  const endIso =
-                    startMs !== null
-                      ? new Date(startMs + (r.duration_minutes ?? 30) * 60_000).toISOString()
-                      : null
-                  const allergyN = r.patient_id ? allergyCount.get(r.patient_id) ?? 0 : 0
-                  return (
-                    <TableRow key={r.id ?? Math.random()} className="group">
-                      <TableCell className="font-medium text-slate-700">
-                        {formatDateTime(r.appointment_at)}
-                      </TableCell>
-                      <TableCell className="font-medium text-slate-700">
-                        {endIso ? formatDateTime(endIso).split(' ').pop() : '—'}
-                      </TableCell>
-                      <TableCell className="font-medium text-slate-900">
-                        {r.patient_id ? patientNames.get(r.patient_id) ?? '—' : '—'}
-                      </TableCell>
-                      <TableCell className="text-slate-700">
-                        {r.procedures ? (
-                          <span>
-                            <span className="font-mono text-xs text-slate-500">
-                              {r.procedures.tuss_code}
+            ) : (
+              <p className="mt-1 text-sm text-slate-500">
+                {filteredRows.length} atendimento{filteredRows.length === 1 ? '' : 's'}
+                {reversedCount > 0 ? (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <span className="font-semibold text-destructive">
+                      {reversedCount} cancelado{reversedCount === 1 ? '' : 's'}
+                    </span>
+                  </>
+                ) : null}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <ModeToggle mode={mode} />
+            {session.role === 'admin' || session.role === 'recepcionista' ? (
+              <>
+                <Button asChild variant="outline">
+                  <Link href="/operacao/atendimentos/bloquear">
+                    <Lock className="mr-2 h-4 w-4" />
+                    Bloquear horário
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/operacao/atendimentos/novo">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Novo
+                  </Link>
+                </Button>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        <FilterBarBlock doctors={doctorOptions} />
+
+        <Card>
+          <CardContent className="p-0">
+            {error ? (
+              <p className="px-6 py-8 text-sm text-destructive">
+                Erro ao carregar: {error.message}
+              </p>
+            ) : filteredRows.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+                <Stethoscope className="h-8 w-8 text-slate-300" />
+                <p className="text-sm font-medium text-slate-500">
+                  Nenhum atendimento encontrado para os filtros aplicados.
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Início</TableHead>
+                    <TableHead>Fim</TableHead>
+                    <TableHead>Paciente</TableHead>
+                    <TableHead>Procedimento</TableHead>
+                    <TableHead>Profissional</TableHead>
+                    <TableHead>Alergias</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.map((r) => {
+                    const startMs = r.appointment_at ? new Date(r.appointment_at).getTime() : null
+                    const endIso =
+                      startMs !== null
+                        ? new Date(startMs + (r.duration_minutes ?? 30) * 60_000).toISOString()
+                        : null
+                    const allergyN = r.patient_id ? (allergyCount.get(r.patient_id) ?? 0) : 0
+                    return (
+                      <TableRow key={r.id ?? Math.random()} className="group">
+                        <TableCell className="font-medium text-slate-700">
+                          {formatDateTime(r.appointment_at)}
+                        </TableCell>
+                        <TableCell className="font-medium text-slate-700">
+                          {endIso ? formatDateTime(endIso).split(' ').pop() : '—'}
+                        </TableCell>
+                        <TableCell className="font-medium text-slate-900">
+                          {r.patient_id ? (patientNames.get(r.patient_id) ?? '—') : '—'}
+                        </TableCell>
+                        <TableCell className="text-slate-700">
+                          {r.procedures ? (
+                            <span>
+                              <span className="font-mono text-xs text-slate-500">
+                                {r.procedures.tuss_code}
+                              </span>
+                              {r.procedures.display_name ? (
+                                <span className="ml-2">{r.procedures.display_name}</span>
+                              ) : null}
                             </span>
-                            {r.procedures.display_name ? (
-                              <span className="ml-2">{r.procedures.display_name}</span>
-                            ) : null}
-                          </span>
-                        ) : (
-                          '—'
-                        )}
-                      </TableCell>
-                      <TableCell className="text-slate-700">
-                        {r.doctors?.full_name ?? '—'}
-                      </TableCell>
-                      <TableCell>
-                        {allergyN > 0 ? (
-                          <Badge variant="destructive">
-                            {allergyN === 1 ? '1 alergia' : `${allergyN} alergias`}
-                          </Badge>
-                        ) : (
-                          <span
-                            className="text-[11px] text-slate-400"
-                            title="NKDA — No Known Drug Allergies"
-                          >
-                            Sem alergias
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col items-start gap-1">
-                          {r.id ? (
-                            <FlowStatusCell
-                              appointmentId={r.id}
-                              initial={flowMap.get(r.id) ?? DEFAULT_FLOW}
-                              canManage={canManageFlow}
-                            />
-                          ) : null}
-                          <AppointmentStatusBadge
-                            variant={effectiveStatusToVariant(
-                              r.effective_status === 'agendado' ||
-                                (r.appointment_at &&
-                                  new Date(r.appointment_at).getTime() > Date.now())
-                                ? 'agendado'
-                                : r.effective_status,
-                            )}
-                            size="sm"
-                          />
-                          {r.plan_id === null ? (
-                            <Badge variant="warning" className="text-[10px]">
-                              particular
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell className="text-slate-700">
+                          {r.doctors?.full_name ?? '—'}
+                        </TableCell>
+                        <TableCell>
+                          {allergyN > 0 ? (
+                            <Badge variant="destructive">
+                              {allergyN === 1 ? '1 alergia' : `${allergyN} alergias`}
                             </Badge>
+                          ) : (
+                            <span
+                              className="text-[11px] text-slate-400"
+                              title="NKDA — No Known Drug Allergies"
+                            >
+                              Sem alergias
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col items-start gap-1">
+                            {r.id ? (
+                              <FlowStatusCell
+                                appointmentId={r.id}
+                                initial={flowMap.get(r.id) ?? DEFAULT_FLOW}
+                                canManage={canManageFlow}
+                              />
+                            ) : null}
+                            <AppointmentStatusBadge
+                              variant={effectiveStatusToVariant(
+                                r.effective_status === 'agendado' ||
+                                  (r.appointment_at &&
+                                    new Date(r.appointment_at).getTime() > Date.now())
+                                  ? 'agendado'
+                                  : r.effective_status,
+                              )}
+                              size="sm"
+                            />
+                            {r.plan_id === null ? (
+                              <Badge variant="warning" className="text-[10px]">
+                                particular
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {r.id ? (
+                            <Link
+                              href={`/operacao/atendimentos/${r.id}`}
+                              data-appointment-id={r.id}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
+                            >
+                              Abrir <ChevronRight className="h-3 w-3" />
+                            </Link>
                           ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {r.id ? (
-                          <Link
-                            href={`/operacao/atendimentos/${r.id}`}
-                            data-appointment-id={r.id}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
-                          >
-                            Abrir <ChevronRight className="h-3 w-3" />
-                          </Link>
-                        ) : null}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </AppointmentDetailHost>
   )
 }

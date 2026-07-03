@@ -106,7 +106,9 @@ export function ClinicDetail({
   const router = useRouter()
   const [plan, setPlan] = useState<Plan>(row.plan)
   const [modules, setModules] = useState<Set<ModuleId>>(
-    new Set(row.modules.filter((m): m is ModuleId => (ALL_MODULES as readonly string[]).includes(m))),
+    new Set(
+      row.modules.filter((m): m is ModuleId => (ALL_MODULES as readonly string[]).includes(m)),
+    ),
   )
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; msg: string } | null>(null)
   const [pending, startTransition] = useTransition()
@@ -116,7 +118,9 @@ export function ClinicDetail({
   const [resetSending, setResetSending] = useState<string | null>(null)
   const [userNotice, setUserNotice] = useState<string | null>(null)
   const [billing, setBilling] = useState<BillingStatus>(row.billingStatus)
-  const [trialEnds, setTrialEnds] = useState<string>(row.trialEndsAt ? row.trialEndsAt.slice(0, 10) : '')
+  const [trialEnds, setTrialEnds] = useState<string>(
+    row.trialEndsAt ? row.trialEndsAt.slice(0, 10) : '',
+  )
   const [billingPending, startBillingTransition] = useTransition()
   const [billingFeedback, setBillingFeedback] = useState<string | null>(null)
 
@@ -128,7 +132,7 @@ export function ClinicDetail({
         status: billing,
         trialEndsAt: billing === 'trial' ? trialEnds || null : null,
       })
-      setBillingFeedback(res.ok ? 'Cobrança salva.' : res.error ?? 'Erro ao salvar.')
+      setBillingFeedback(res.ok ? 'Cobrança salva.' : (res.error ?? 'Erro ao salvar.'))
       if (res.ok) router.refresh()
     })
   }
@@ -163,13 +167,18 @@ export function ClinicDetail({
     ]
       .filter(Boolean)
       .join('\n')
-    if (typeof window !== 'undefined' && !window.confirm(`Confirmar mudanças na clínica?\n\n${summary}`)) {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(`Confirmar mudanças na clínica?\n\n${summary}`)
+    ) {
       return
     }
     startTransition(async () => {
       const res = await setTenantPlanAction({ tenantId: row.tenantId, plan, modules: [...modules] })
       setFeedback(
-        res.ok ? { kind: 'ok', msg: 'Salvo.' } : { kind: 'error', msg: res.error ?? 'Erro ao salvar.' },
+        res.ok
+          ? { kind: 'ok', msg: 'Salvo.' }
+          : { kind: 'error', msg: res.error ?? 'Erro ao salvar.' },
       )
       if (res.ok) router.refresh()
     })
@@ -244,7 +253,9 @@ export function ClinicDetail({
             <span
               className={cn(
                 'rounded-md px-2 py-0.5 text-[11px] font-semibold',
-                status === 'active' ? 'bg-success-bg text-success-text' : 'bg-amber-100 text-amber-700',
+                status === 'active'
+                  ? 'bg-success-bg text-success-text'
+                  : 'bg-amber-100 text-amber-700',
               )}
             >
               {status === 'active' ? 'Ativa' : 'Suspensa'}
@@ -254,7 +265,11 @@ export function ClinicDetail({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={enter} disabled={entering}>
-            {entering ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <LogIn className="mr-1.5 h-4 w-4" />}
+            {entering ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <LogIn className="mr-1.5 h-4 w-4" />
+            )}
             Entrar na clínica
           </Button>
           <Button
@@ -278,11 +293,17 @@ export function ClinicDetail({
       {/* Visão geral (métricas) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard icon={Users} label="Usuários" value={String(metrics.userCount)} />
-        <MetricCard icon={CalendarDays} label="Atendimentos" value={String(metrics.appointmentCount)} />
+        <MetricCard
+          icon={CalendarDays}
+          label="Atendimentos"
+          value={String(metrics.appointmentCount)}
+        />
         <MetricCard
           icon={Activity}
           label="Última atividade"
-          value={metrics.lastActivity ? new Date(metrics.lastActivity).toLocaleDateString('pt-BR') : '—'}
+          value={
+            metrics.lastActivity ? new Date(metrics.lastActivity).toLocaleDateString('pt-BR') : '—'
+          }
         />
         <MetricCard
           icon={Plug}
@@ -323,7 +344,9 @@ export function ClinicDetail({
                     title={comingSoon ? 'Em breve — módulo ainda não disponível' : undefined}
                     className={cn(
                       'flex items-center gap-1.5 text-xs font-medium',
-                      comingSoon ? 'cursor-not-allowed text-slate-400' : 'cursor-pointer text-slate-600',
+                      comingSoon
+                        ? 'cursor-not-allowed text-slate-400'
+                        : 'cursor-pointer text-slate-600',
                     )}
                   >
                     <input
@@ -347,7 +370,11 @@ export function ClinicDetail({
 
           <div className="flex items-center gap-3">
             <Button size="sm" onClick={save} disabled={pending}>
-              {pending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+              {pending ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="mr-1.5 h-3.5 w-3.5" />
+              )}
               Salvar
             </Button>
             {feedback ? (
@@ -397,7 +424,11 @@ export function ClinicDetail({
             </label>
           ) : null}
           <Button size="sm" onClick={saveBilling} disabled={billingPending}>
-            {billingPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
+            {billingPending ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="mr-1.5 h-3.5 w-3.5" />
+            )}
             Salvar cobrança
           </Button>
           {billingFeedback ? (
@@ -410,7 +441,9 @@ export function ClinicDetail({
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <h3 className="text-sm font-bold text-slate-900">Usuários ({users.length})</h3>
         {userNotice ? (
-          <p className="mt-2 rounded-md bg-slate-50 px-3 py-1.5 text-xs text-slate-600">{userNotice}</p>
+          <p className="mt-2 rounded-md bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
+            {userNotice}
+          </p>
         ) : null}
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
@@ -485,9 +518,7 @@ export function ClinicDetail({
               >
                 <span className="whitespace-nowrap text-slate-400">{fmtWhen(a.createdAt)}</span>
                 <span className="font-semibold text-slate-700">{a.actorName}</span>
-                <span className="text-slate-500">
-                  {describeAudit(a)}
-                </span>
+                <span className="text-slate-500">{describeAudit(a)}</span>
               </li>
             ))}
           </ul>
@@ -499,15 +530,15 @@ export function ClinicDetail({
 
 function fmtWhen(iso: string): string {
   const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+  return Number.isNaN(d.getTime())
+    ? '—'
+    : d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 function describeAudit(a: AuditEntry): string {
   const ent = a.entity.replace(/_/g, ' ')
   const change =
-    a.oldValue !== null || a.newValue !== null
-      ? ` ${a.oldValue ?? '∅'} → ${a.newValue ?? '∅'}`
-      : ''
+    a.oldValue !== null || a.newValue !== null ? ` ${a.oldValue ?? '∅'} → ${a.newValue ?? '∅'}` : ''
   return `${a.field ?? 'alterou'} em ${ent}${change}`
 }
 

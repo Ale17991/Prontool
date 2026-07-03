@@ -50,10 +50,10 @@ Ordenação: conectados primeiro, depois alfabético por `label`.
 
 ### Errors
 
-| Status | Code |
-|--------|------|
-| 401 | `UNAUTHENTICATED` |
-| 403 | `FORBIDDEN` |
+| Status | Code              |
+| ------ | ----------------- |
+| 401    | `UNAUTHENTICATED` |
+| 403    | `FORBIDDEN`       |
 
 ---
 
@@ -68,8 +68,12 @@ Status detalhado de um provider.
   "provider": "ghl",
   "label": "GoHighLevel",
   "connected": false,
-  "config_schema": { /* JSON Schema de configSchema para montar form dinâmico */ },
-  "credentials_schema": { /* idem p/ credentialsSchema */ }
+  "config_schema": {
+    /* JSON Schema de configSchema para montar form dinâmico */
+  },
+  "credentials_schema": {
+    /* idem p/ credentialsSchema */
+  }
 }
 ```
 
@@ -94,8 +98,12 @@ Status detalhado de um provider.
     "operations_pat": "***",
     "inbound_webhook_secret": "***"
   },
-  "config_schema": { /* … */ },
-  "credentials_schema": { /* … */ }
+  "config_schema": {
+    /* … */
+  },
+  "credentials_schema": {
+    /* … */
+  }
 }
 ```
 
@@ -103,11 +111,11 @@ Status detalhado de um provider.
 
 ### Errors
 
-| Status | Code |
-|--------|------|
-| 401 | `UNAUTHENTICATED` |
-| 403 | `FORBIDDEN` |
-| 404 | `PROVIDER_NOT_FOUND` (provider não está no registry) |
+| Status | Code                                                 |
+| ------ | ---------------------------------------------------- |
+| 401    | `UNAUTHENTICATED`                                    |
+| 403    | `FORBIDDEN`                                          |
+| 404    | `PROVIDER_NOT_FOUND` (provider não está no registry) |
 
 ---
 
@@ -187,13 +195,13 @@ Provider `generic_webhook` exemplo:
 
 ### Errors
 
-| Status | Code |
-|--------|------|
-| 400 | `INVALID_BODY` (schema fail) |
-| 401 | `UNAUTHENTICATED` |
-| 403 | `FORBIDDEN` |
-| 404 | `PROVIDER_NOT_FOUND` |
-| 500 | `INTERNAL_ERROR` |
+| Status | Code                         |
+| ------ | ---------------------------- |
+| 400    | `INVALID_BODY` (schema fail) |
+| 401    | `UNAUTHENTICATED`            |
+| 403    | `FORBIDDEN`                  |
+| 404    | `PROVIDER_NOT_FOUND`         |
+| 500    | `INTERNAL_ERROR`             |
 
 ### Side effects
 
@@ -233,12 +241,12 @@ Desconecta o provider para o tenant. Remove a linha fisicamente. Histórico de p
 
 ### Errors
 
-| Status | Code |
-|--------|------|
-| 400 | `INVALID_BODY` (reason ausente) |
-| 401 | `UNAUTHENTICATED` |
-| 403 | `FORBIDDEN` |
-| 404 | `PROVIDER_NOT_FOUND` |
+| Status | Code                            |
+| ------ | ------------------------------- |
+| 400    | `INVALID_BODY` (reason ausente) |
+| 401    | `UNAUTHENTICATED`               |
+| 403    | `FORBIDDEN`                     |
+| 404    | `PROVIDER_NOT_FOUND`            |
 
 ### Side effects
 

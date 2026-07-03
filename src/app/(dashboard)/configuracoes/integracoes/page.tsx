@@ -64,9 +64,7 @@ export default async function IntegracoesListPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 px-6 py-12 text-center">
             <Plug className="h-8 w-8 text-slate-300" />
-            <p className="text-sm font-medium text-slate-500">
-              Nenhum provider registrado ainda.
-            </p>
+            <p className="text-sm font-medium text-slate-500">Nenhum provider registrado ainda.</p>
           </CardContent>
         </Card>
       ) : (

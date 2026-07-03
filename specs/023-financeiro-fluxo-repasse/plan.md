@@ -21,15 +21,15 @@ Construir 4-5 páginas operacionais (`/analise/contas-a-receber`, `/analise/cont
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Status | Notas |
-|---|---|---|
+| Princípio                              | Status  | Notas                                                                                                                                                                                                                               |
+| -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **I. Integridade Financeira Imutável** | ✅ PASS | 5 tabelas novas são append-only via trigger DB (FR-037, FR-043, FR-044). Reajustes versionam (Q1). Parcial via tabela append-only (Q2). Mês fechado imutável exceto janela 24h controlada (Q4). Saldo via ajustes append-only (Q5). |
-| **II. Auditabilidade Total** | ✅ PASS | FR-042 cobre todas. Cada SECURITY DEFINER chama `log_audit_event(...)`. Justificativas obrigatórias em reabertura (≥20 chars) e reversão (≥10 chars). |
-| **III. Isolamento Multi-Tenant** | ✅ PASS | Todas as tabelas com `tenant_id` NOT NULL + RLS. RLS adicional em `monthly_payouts` filtra `doctor.user_id` para `profissional_saude`. |
-| **IV. Conformidade TUSS/ANS** | ✅ PASS | N/A direta — consome `appointments_effective` que já respeita TUSS. |
-| **V. RBAC** | ✅ PASS | FR-001/009/019/027 documentam papéis. Server-side via `requireRole(...)`. Defesa em camadas no repasse individual. |
+| **II. Auditabilidade Total**           | ✅ PASS | FR-042 cobre todas. Cada SECURITY DEFINER chama `log_audit_event(...)`. Justificativas obrigatórias em reabertura (≥20 chars) e reversão (≥10 chars).                                                                               |
+| **III. Isolamento Multi-Tenant**       | ✅ PASS | Todas as tabelas com `tenant_id` NOT NULL + RLS. RLS adicional em `monthly_payouts` filtra `doctor.user_id` para `profissional_saude`.                                                                                              |
+| **IV. Conformidade TUSS/ANS**          | ✅ PASS | N/A direta — consome `appointments_effective` que já respeita TUSS.                                                                                                                                                                 |
+| **V. RBAC**                            | ✅ PASS | FR-001/009/019/027 documentam papéis. Server-side via `requireRole(...)`. Defesa em camadas no repasse individual.                                                                                                                  |
 
 **Domínio adicional**: LGPD (FR-045), UTC (lib `tenant-tz` já existe), cents (zero float), migrations reversíveis em dev.
 
@@ -114,18 +114,18 @@ Itens que `research.md` resolverá:
 Sem violações da constituição; Complexity Tracking vazio.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |
 
 ## Constitution Check — Re-evaluation pós-Phase 1 (2026-05-20)
 
-| Princípio | Status pós-design | Notas adicionais |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | ✅ PASS | `data-model.md` documenta 5 tabelas novas, todas com trigger `enforce_append_only_columns`. Único cache que sofre UPDATE é `payment_installments.paid_amount_cents` — derivado, justificado em R1, semanticamente correto (espelha pagamentos append-only). `monthly_payouts` tem whitelist explícita (`closed_at, closed_by, paid_at, paid_amount_cents, payment_method, payment_note`). |
-| **II. Auditabilidade Total** | ✅ PASS | Cada RPC SECURITY DEFINER chama `log_audit_event(...)` antes do RETURN. Justificativas obrigatórias em reabertura (≥20 chars) e reversão (≥10 chars). `monthly_payouts_reopens` preserva snapshot JSONB do estado antes da reabertura — forense avançado. |
-| **III. Isolamento Multi-Tenant** | ✅ PASS | `data-model.md` §10 lista checklist completa: RLS em todas as 5 tabelas; RLS dupla em `monthly_payouts` (tenant + doctor.user_id) para profissional_saude; RPCs validam tenant + role internamente. |
-| **IV. Conformidade TUSS/ANS** | ✅ PASS | N/A — feature consome `appointments_effective` (que já respeita TUSS) sem tocar catálogo. |
-| **V. RBAC** | ✅ PASS | Cada endpoint em `contracts/http-api.md` documenta `Auth:` com papéis permitidos. Server-side via `requireRole(...)`. Lint check existente (`scripts/check-require-role.mjs`) garante 100% de cobertura. |
-| **LGPD** | ✅ PASS | FR-045 documentado em http-api; payloads de audit usam IDs (não nomes). Anonimização do paciente preservada em contas a receber. |
+| Princípio                              | Status pós-design | Notas adicionais                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável** | ✅ PASS           | `data-model.md` documenta 5 tabelas novas, todas com trigger `enforce_append_only_columns`. Único cache que sofre UPDATE é `payment_installments.paid_amount_cents` — derivado, justificado em R1, semanticamente correto (espelha pagamentos append-only). `monthly_payouts` tem whitelist explícita (`closed_at, closed_by, paid_at, paid_amount_cents, payment_method, payment_note`). |
+| **II. Auditabilidade Total**           | ✅ PASS           | Cada RPC SECURITY DEFINER chama `log_audit_event(...)` antes do RETURN. Justificativas obrigatórias em reabertura (≥20 chars) e reversão (≥10 chars). `monthly_payouts_reopens` preserva snapshot JSONB do estado antes da reabertura — forense avançado.                                                                                                                                 |
+| **III. Isolamento Multi-Tenant**       | ✅ PASS           | `data-model.md` §10 lista checklist completa: RLS em todas as 5 tabelas; RLS dupla em `monthly_payouts` (tenant + doctor.user_id) para profissional_saude; RPCs validam tenant + role internamente.                                                                                                                                                                                       |
+| **IV. Conformidade TUSS/ANS**          | ✅ PASS           | N/A — feature consome `appointments_effective` (que já respeita TUSS) sem tocar catálogo.                                                                                                                                                                                                                                                                                                 |
+| **V. RBAC**                            | ✅ PASS           | Cada endpoint em `contracts/http-api.md` documenta `Auth:` com papéis permitidos. Server-side via `requireRole(...)`. Lint check existente (`scripts/check-require-role.mjs`) garante 100% de cobertura.                                                                                                                                                                                  |
+| **LGPD**                               | ✅ PASS           | FR-045 documentado em http-api; payloads de audit usam IDs (não nomes). Anonimização do paciente preservada em contas a receber.                                                                                                                                                                                                                                                          |
 
 **Verdict pós-design**: ✅ GATE PASSED novamente. Design respeita constitutição em todas as 6 superfícies. Phase 1 completa. Pronta para `/speckit.tasks`.

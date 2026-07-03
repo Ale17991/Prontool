@@ -34,11 +34,12 @@ const querySchema = z.object({
   include: z
     .string()
     .optional()
-    .transform((v) =>
-      (v ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean) as Array<'plan' | 'tags'>,
+    .transform(
+      (v) =>
+        (v ?? '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean) as Array<'plan' | 'tags'>,
     ),
 })
 
@@ -52,10 +53,7 @@ const cpfOptional = z
     const digits = v.replace(/\D/g, '')
     return digits.length === 0 ? null : digits
   })
-  .refine(
-    (s) => s === null || s.length === 11,
-    'CPF deve ter 11 dígitos quando preenchido.',
-  )
+  .refine((s) => s === null || s.length === 11, 'CPF deve ter 11 dígitos quando preenchido.')
 
 const addressSchema = z
   .object({

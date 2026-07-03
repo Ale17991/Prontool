@@ -2,14 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  CheckCircle2,
-  Loader2,
-  Plus,
-  Stethoscope,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { CheckCircle2, Loader2, Plus, Stethoscope, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,10 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
-import type {
-  DiagnosisStatus,
-  PatientDiagnosisDTO,
-} from '@/lib/core/patient-medical/diagnoses'
+import type { DiagnosisStatus, PatientDiagnosisDTO } from '@/lib/core/patient-medical/diagnoses'
 
 interface Cid10Item {
   code: string
@@ -128,9 +118,7 @@ export function DiagnosticsSection({
         ) : null}
 
         {diagnoses.length === 0 ? (
-          <p className="px-2 pb-2 text-sm text-slate-500">
-            Nenhum diagnóstico cadastrado.
-          </p>
+          <p className="px-2 pb-2 text-sm text-slate-500">Nenhum diagnóstico cadastrado.</p>
         ) : (
           <Table>
             <TableHeader>
@@ -186,14 +174,11 @@ function DiagnosisRow({
     setError(null)
     setPending('status')
     try {
-      const res = await fetch(
-        `/api/pacientes/${patientId}/diagnosticos/${diagnosis.id}`,
-        {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ status }),
-        },
-      )
+      const res = await fetch(`/api/pacientes/${patientId}/diagnosticos/${diagnosis.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
           error?: { message?: string }
@@ -215,10 +200,9 @@ function DiagnosisRow({
     setError(null)
     setPending('delete')
     try {
-      const res = await fetch(
-        `/api/pacientes/${patientId}/diagnosticos/${diagnosis.id}`,
-        { method: 'DELETE' },
-      )
+      const res = await fetch(`/api/pacientes/${patientId}/diagnosticos/${diagnosis.id}`, {
+        method: 'DELETE',
+      })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
           error?: { message?: string }
@@ -247,9 +231,7 @@ function DiagnosisRow({
           </p>
         ) : null}
       </TableCell>
-      <TableCell className="text-xs text-slate-500">
-        {formatDate(diagnosis.diagnosedAt)}
-      </TableCell>
+      <TableCell className="text-xs text-slate-500">{formatDate(diagnosis.diagnosedAt)}</TableCell>
       <TableCell>
         {editingStatus && canWrite ? (
           <Select
@@ -270,9 +252,7 @@ function DiagnosisRow({
             {STATUS_LABEL[diagnosis.status]}
           </Badge>
         )}
-        {error ? (
-          <p className="mt-1 text-[10px] font-semibold text-destructive">{error}</p>
-        ) : null}
+        {error ? <p className="mt-1 text-[10px] font-semibold text-destructive">{error}</p> : null}
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-1">
@@ -329,9 +309,7 @@ function NewDiagnosisForm({
   const [searching, setSearching] = useState(false)
   const [selected, setSelected] = useState<Cid10Item | null>(null)
   const [notes, setNotes] = useState('')
-  const [diagnosedAt, setDiagnosedAt] = useState(
-    new Date().toISOString().slice(0, 10),
-  )
+  const [diagnosedAt, setDiagnosedAt] = useState(new Date().toISOString().slice(0, 10))
   const [status, setStatus] = useState<DiagnosisStatus>('ativo')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -397,7 +375,10 @@ function NewDiagnosisForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+    <form
+      onSubmit={onSubmit}
+      className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-3"
+    >
       <div>
         <Label className="text-[11px] font-bold uppercase text-slate-500">CID-10</Label>
         {selected ? (
@@ -431,9 +412,7 @@ function NewDiagnosisForm({
                 {searching ? (
                   <p className="px-3 py-2 text-xs text-slate-500">Buscando…</p>
                 ) : cidResults.length === 0 ? (
-                  <p className="px-3 py-2 text-xs text-slate-500">
-                    Nenhum CID encontrado.
-                  </p>
+                  <p className="px-3 py-2 text-xs text-slate-500">Nenhum CID encontrado.</p>
                 ) : (
                   cidResults.map((c) => (
                     <button

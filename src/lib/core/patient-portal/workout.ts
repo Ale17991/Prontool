@@ -121,7 +121,9 @@ export async function listWorkoutPlanSummaries(
     .eq('patient_id', patientId)
     .order('created_at', { ascending: false })
   if (error) throw new Error(`listWorkoutPlanSummaries: ${error.message}`)
-  return ((data ?? []) as Array<{ id: string; title: string; active: boolean; created_at: string }>).map((r) => ({
+  return (
+    (data ?? []) as Array<{ id: string; title: string; active: boolean; created_at: string }>
+  ).map((r) => ({
     id: r.id,
     title: r.title,
     active: r.active,
@@ -129,7 +131,10 @@ export async function listWorkoutPlanSummaries(
   }))
 }
 
-async function hydratePlan(supabase: SupabaseClient<Database>, planRow: { id: string; title: string; notes: string | null; active: boolean; created_at: string }): Promise<WorkoutPlan> {
+async function hydratePlan(
+  supabase: SupabaseClient<Database>,
+  planRow: { id: string; title: string; notes: string | null; active: boolean; created_at: string },
+): Promise<WorkoutPlan> {
   const sb = loose(supabase)
   const sessRes = await sb
     .from('workout_sessions')
@@ -144,7 +149,16 @@ async function hydratePlan(supabase: SupabaseClient<Database>, planRow: { id: st
       .select('name, sets, reps, load_kg, rest_seconds, notes, position')
       .eq('session_id', s.id)
       .order('position', { ascending: true })
-    const exercises = ((exRes.data ?? []) as Array<{ name: string; sets: number | null; reps: string | null; load_kg: number | null; rest_seconds: number | null; notes: string | null }>).map((e) => ({
+    const exercises = (
+      (exRes.data ?? []) as Array<{
+        name: string
+        sets: number | null
+        reps: string | null
+        load_kg: number | null
+        rest_seconds: number | null
+        notes: string | null
+      }>
+    ).map((e) => ({
       name: e.name,
       sets: e.sets,
       reps: e.reps,
@@ -154,7 +168,14 @@ async function hydratePlan(supabase: SupabaseClient<Database>, planRow: { id: st
     }))
     out.push({ name: s.name, focus: s.focus, exercises })
   }
-  return { id: planRow.id, title: planRow.title, notes: planRow.notes, active: planRow.active, createdAt: planRow.created_at, sessions: out }
+  return {
+    id: planRow.id,
+    title: planRow.title,
+    notes: planRow.notes,
+    active: planRow.active,
+    createdAt: planRow.created_at,
+    sessions: out,
+  }
 }
 
 export async function getActiveWorkoutPlan(
@@ -170,7 +191,16 @@ export async function getActiveWorkoutPlan(
     .eq('active', true)
     .maybeSingle()
   if (!data) return null
-  return hydratePlan(supabase, data as { id: string; title: string; notes: string | null; active: boolean; created_at: string })
+  return hydratePlan(
+    supabase,
+    data as {
+      id: string
+      title: string
+      notes: string | null
+      active: boolean
+      created_at: string
+    },
+  )
 }
 
 export async function getWorkoutPlan(
@@ -185,5 +215,14 @@ export async function getWorkoutPlan(
     .eq('id', planId)
     .maybeSingle()
   if (!data) return null
-  return hydratePlan(supabase, data as { id: string; title: string; notes: string | null; active: boolean; created_at: string })
+  return hydratePlan(
+    supabase,
+    data as {
+      id: string
+      title: string
+      notes: string | null
+      active: boolean
+      created_at: string
+    },
+  )
 }

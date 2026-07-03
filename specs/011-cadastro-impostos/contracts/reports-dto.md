@@ -4,11 +4,11 @@
 
 ## Funções afetadas
 
-| Função | Arquivo | Mudança |
-|---|---|---|
-| `buildFinancialReport` | `src/lib/core/reports/financial-report.ts` | Adiciona `taxTotals` ao DTO; separa categoria `impostos` em `expensesByCategory` |
-| `buildByPlan` (summary + detail) | `src/lib/core/reports/by-plan.ts` | Adiciona `taxFromPlanCents` por plano; novo total `totalTaxFromPlanCents` |
-| `exportFinancialExcel` / `exportByPlanExcel` | mesmos paths `-excel.ts` | Replica as novas linhas no Excel/PDF |
+| Função                                       | Arquivo                                    | Mudança                                                                          |
+| -------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------- |
+| `buildFinancialReport`                       | `src/lib/core/reports/financial-report.ts` | Adiciona `taxTotals` ao DTO; separa categoria `impostos` em `expensesByCategory` |
+| `buildByPlan` (summary + detail)             | `src/lib/core/reports/by-plan.ts`          | Adiciona `taxFromPlanCents` por plano; novo total `totalTaxFromPlanCents`        |
+| `exportFinancialExcel` / `exportByPlanExcel` | mesmos paths `-excel.ts`                   | Replica as novas linhas no Excel/PDF                                             |
 
 ---
 
@@ -20,9 +20,9 @@
 interface FinancialReport {
   // ... campos existentes
   taxTotals: {
-    fromPlansCents: number      // ∑ por plano: round(grossRevenue * tax_rate_bps / 10000)
-    fromExpensesCents: number   // ∑ expenses.amount_cents WHERE category='impostos'
-    totalCents: number          // fromPlansCents + fromExpensesCents
+    fromPlansCents: number // ∑ por plano: round(grossRevenue * tax_rate_bps / 10000)
+    fromExpensesCents: number // ∑ expenses.amount_cents WHERE category='impostos'
+    totalCents: number // fromPlansCents + fromExpensesCents
   }
 }
 ```
@@ -53,24 +53,23 @@ const plansRes = await supabase
   .from('health_plans')
   .select('id, tax_rate_bps')
   .eq('tenant_id', tenantId)
-  .in('id', revenueByPlan.map(r => r.planId).filter(Boolean))
+  .in('id', revenueByPlan.map((r) => r.planId).filter(Boolean))
 const planTaxMap = new Map<string, number>(
-  (plansRes.data ?? []).map(p => [p.id, p.tax_rate_bps ?? 0])
+  (plansRes.data ?? []).map((p) => [p.id, p.tax_rate_bps ?? 0]),
 )
 
 let taxFromPlansCents = 0
 for (const row of revenueByPlan) {
   const bps = planTaxMap.get(row.planId) ?? 0
-  const tax = Math.round(row.grossRevenueCents * bps / 10000)
+  const tax = Math.round((row.grossRevenueCents * bps) / 10000)
   // expomos no row (campo novo) — opcional, ver §UI abaixo
-  ;(row as RevenueByPlanRow & { taxRateBps: number; taxFromPlanCents: number })
-    .taxRateBps = bps
-  ;(row as RevenueByPlanRow & { taxRateBps: number; taxFromPlanCents: number })
-    .taxFromPlanCents = tax
+  ;(row as RevenueByPlanRow & { taxRateBps: number; taxFromPlanCents: number }).taxRateBps = bps
+  ;(row as RevenueByPlanRow & { taxRateBps: number; taxFromPlanCents: number }).taxFromPlanCents =
+    tax
   taxFromPlansCents += tax
 }
 
-const taxExpensesRow = expensesByCategory.find(c => c.category === 'impostos')
+const taxExpensesRow = expensesByCategory.find((c) => c.category === 'impostos')
 const taxFromExpensesCents = taxExpensesRow?.totalCents ?? 0
 
 const taxTotals = {
@@ -98,9 +97,9 @@ interface RevenueByPlanRow {
   grossRevenueCents: number
   marketSharePct: number
   // NOVOS:
-  taxRateBps: number             // alíquota corrente do plano (0 se "não cobra")
-  taxFromPlanCents: number       // round(grossRevenueCents * taxRateBps / 10000)
-  netOfPlanTaxCents: number      // grossRevenueCents - taxFromPlanCents (conveniência UI)
+  taxRateBps: number // alíquota corrente do plano (0 se "não cobra")
+  taxFromPlanCents: number // round(grossRevenueCents * taxRateBps / 10000)
+  netOfPlanTaxCents: number // grossRevenueCents - taxFromPlanCents (conveniência UI)
 }
 ```
 
@@ -163,6 +162,7 @@ Componente novo (Server Component) que recebe `taxTotals` e renderiza:
 ## 4) Excel/PDF exports
 
 `exportFinancialExcel` e `exportByPlanExcel` recebem o mesmo DTO ampliado e adicionam:
+
 - **Aba "Impostos"** com tabela de impostos por plano e impostos da clínica.
 - Coluna "Imposto do convênio" inserida entre Bruto e Líquido em cada plano.
 - Linha "Total impostos" no rodapé do resumo financeiro.
@@ -181,13 +181,13 @@ PDF (se houver): mesma estrutura visual.
 
 ## Testes exigidos
 
-| Arquivo | Cenários |
-|---|---|
-| `tests/integration/reports-with-taxes.test.ts` | Cria plano com `tax_rate_bps=650` + 1 atendimento R$ 100; espera `taxFromPlanCents=650` |
-| `tests/integration/reports-zero-rate-plan.test.ts` | Plano com `tax_rate_bps=0` ⇒ `taxFromPlanCents=0`, `operatingProfit` inalterado |
+| Arquivo                                                 | Cenários                                                                                            |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `tests/integration/reports-with-taxes.test.ts`          | Cria plano com `tax_rate_bps=650` + 1 atendimento R$ 100; espera `taxFromPlanCents=650`             |
+| `tests/integration/reports-zero-rate-plan.test.ts`      | Plano com `tax_rate_bps=0` ⇒ `taxFromPlanCents=0`, `operatingProfit` inalterado                     |
 | `tests/integration/reports-multi-plan-rounding.test.ts` | 3 planos com bps diferentes em R$ 333; verifica soma dos arredondamentos ≤ 1 centavo de divergência |
-| `tests/integration/financial-report-tax-card.test.ts` | `taxTotals.totalCents = fromPlansCents + fromExpensesCents` |
-| `tests/integration/by-plan-detail-tax.test.ts` | `PlanDetail.totals.netOfPlanTaxCents === totalRevenueCents - taxFromPlanCents` |
+| `tests/integration/financial-report-tax-card.test.ts`   | `taxTotals.totalCents = fromPlansCents + fromExpensesCents`                                         |
+| `tests/integration/by-plan-detail-tax.test.ts`          | `PlanDetail.totals.netOfPlanTaxCents === totalRevenueCents - taxFromPlanCents`                      |
 
 ---
 

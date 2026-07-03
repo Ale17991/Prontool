@@ -1,7 +1,12 @@
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { ClinicsList, type ClinicListRow } from './clinics-list'
 import { CreateClinicDialog } from './create-clinic-dialog'
-import { ALL_MODULES, buildEntitlements, type ModuleId, type Plan } from '@/lib/core/entitlements/plans'
+import {
+  ALL_MODULES,
+  buildEntitlements,
+  type ModuleId,
+  type Plan,
+} from '@/lib/core/entitlements/plans'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,16 +14,24 @@ export const dynamic = 'force-dynamic'
 export default async function AdminClinicasPage() {
   const sb: any = createSupabaseServiceClient()
   const [tenantsRes, entRes, userLinksRes, integrationsRes] = await Promise.all([
-    sb.from('tenants').select('id, name, slug, status, created_at').order('name', { ascending: true }),
+    sb
+      .from('tenants')
+      .select('id, name, slug, status, created_at')
+      .order('name', { ascending: true }),
     sb.from('tenant_entitlements').select('tenant_id, plan, status, modules'),
     sb.from('user_tenants').select('tenant_id, status'),
     sb.from('tenant_integrations').select('tenant_id, provider'),
   ])
 
   const entByTenant = new Map(
-    ((entRes.data ?? []) as Array<{ tenant_id: string; plan: string; status: string; modules: string[] | null }>).map(
-      (e) => [e.tenant_id, e],
-    ),
+    (
+      (entRes.data ?? []) as Array<{
+        tenant_id: string
+        plan: string
+        status: string
+        modules: string[] | null
+      }>
+    ).map((e) => [e.tenant_id, e]),
   )
 
   const usersByTenant = new Map<string, number>()

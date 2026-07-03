@@ -127,10 +127,7 @@ async function postOauthToken(
     }
     const excerpt = await readBodyExcerpt(res)
     if (res.status >= 500 && allowRetryOn5xx && attempt === 1) {
-      logger.warn(
-        { status: res.status, attempt },
-        'ghl-oauth-token-5xx-retrying',
-      )
+      logger.warn({ status: res.status, attempt }, 'ghl-oauth-token-5xx-retrying')
       await sleep(backoffMs(attempt))
       continue
     }

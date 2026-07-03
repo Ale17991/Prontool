@@ -94,7 +94,12 @@ async function setupExportedGuia() {
   await sb
     .from('tiss_domain_tables')
     .upsert(
-      { domain_number: '38', code: '1707', description: 'Glosa de teste', valid_from: '2000-01-01' },
+      {
+        domain_number: '38',
+        code: '1707',
+        description: 'Glosa de teste',
+        valid_from: '2000-01-01',
+      },
       { onConflict: 'domain_number,code,valid_from' },
     )
     .throwOnError()
@@ -168,11 +173,7 @@ describe('Feature 029 — glosa e reapresentação (US5)', () => {
     })
     expect(result.guiaStatus).toBe('parcial')
 
-    const { data: guia } = await sb
-      .from('tiss_guias')
-      .select('status')
-      .eq('id', guiaId)
-      .single()
+    const { data: guia } = await sb.from('tiss_guias').select('status').eq('id', guiaId).single()
     expect(guia?.status).toBe('parcial')
 
     // Reapresentação cria nova guia vinculada.

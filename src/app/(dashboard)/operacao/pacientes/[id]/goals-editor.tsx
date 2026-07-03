@@ -35,7 +35,10 @@ export function GoalsEditor({
 }) {
   const base = `/api/pacientes/${patientId}/metas`
   const options = useMemo(
-    () => [...EXTRA_METRICS, ...metricTypes.map((t) => ({ metricType: t.metricType, label: t.label }))],
+    () => [
+      ...EXTRA_METRICS,
+      ...metricTypes.map((t) => ({ metricType: t.metricType, label: t.label })),
+    ],
     [metricTypes],
   )
   const labelOf = useMemo(() => new Map(options.map((o) => [o.metricType, o.label])), [options])
@@ -128,7 +131,9 @@ export function GoalsEditor({
       {canWrite ? (
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           <div className="space-y-1">
-            <Label htmlFor="goal_metric" className="text-[11px]">Métrica</Label>
+            <Label htmlFor="goal_metric" className="text-[11px]">
+              Métrica
+            </Label>
             <select
               id="goal_metric"
               className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm"
@@ -136,12 +141,16 @@ export function GoalsEditor({
               onChange={(e) => setMetricType(e.target.value)}
             >
               {options.map((o) => (
-                <option key={o.metricType} value={o.metricType}>{o.label}</option>
+                <option key={o.metricType} value={o.metricType}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="goal_dir" className="text-[11px]">Direção</Label>
+            <Label htmlFor="goal_dir" className="text-[11px]">
+              Direção
+            </Label>
             <select
               id="goal_dir"
               className="flex h-9 w-full rounded-md border border-input bg-background px-2 text-sm shadow-sm"
@@ -153,16 +162,30 @@ export function GoalsEditor({
             </select>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="goal_target" className="text-[11px]">Alvo</Label>
-            <Input id="goal_target" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} />
+            <Label htmlFor="goal_target" className="text-[11px]">
+              Alvo
+            </Label>
+            <Input
+              id="goal_target"
+              inputMode="decimal"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+            />
           </div>
           <div className="flex items-end">
-            <Button size="sm" onClick={save} disabled={pending || target.trim() === ''} className="w-full gap-1.5">
+            <Button
+              size="sm"
+              onClick={save}
+              disabled={pending || target.trim() === ''}
+              className="w-full gap-1.5"
+            >
               {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
               Definir meta
             </Button>
           </div>
-          {error ? <p className="col-span-2 text-xs text-destructive md:col-span-4">{error}</p> : null}
+          {error ? (
+            <p className="col-span-2 text-xs text-destructive md:col-span-4">{error}</p>
+          ) : null}
         </div>
       ) : null}
     </div>

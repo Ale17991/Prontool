@@ -5,8 +5,7 @@ let receiverSingleton: Receiver | null = null
 
 export function isQstashSigningConfigured(): boolean {
   return (
-    Boolean(process.env.QSTASH_CURRENT_SIGNING_KEY) &&
-    Boolean(process.env.QSTASH_NEXT_SIGNING_KEY)
+    Boolean(process.env.QSTASH_CURRENT_SIGNING_KEY) && Boolean(process.env.QSTASH_NEXT_SIGNING_KEY)
   )
 }
 

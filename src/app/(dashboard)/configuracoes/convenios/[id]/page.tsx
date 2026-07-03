@@ -210,17 +210,14 @@ export default async function PlanoDetailPage({ params }: PageProps) {
           )}
         </div>
         <p className="mt-1 text-sm text-slate-500">
-          Convênio cadastrado em {formatDate(plan.created_at)}. Alterações de preço criam
-          uma nova versão (append-only) — atendimentos passados preservam o valor congelado
-          na data em que ocorreram.
+          Convênio cadastrado em {formatDate(plan.created_at)}. Alterações de preço criam uma nova
+          versão (append-only) — atendimentos passados preservam o valor congelado na data em que
+          ocorreram.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <SummaryCard
-          label="Procedimentos com preço"
-          value={heads.length.toString()}
-        />
+        <SummaryCard label="Procedimentos com preço" value={heads.length.toString()} />
         <SummaryCard
           label="Ticket médio"
           value={
@@ -234,9 +231,7 @@ export default async function PlanoDetailPage({ params }: PageProps) {
         <SummaryCard
           label="Maior valor vigente"
           value={
-            heads.length > 0
-              ? formatCurrency(Math.max(...heads.map((h) => h.amountCents)))
-              : '—'
+            heads.length > 0 ? formatCurrency(Math.max(...heads.map((h) => h.amountCents))) : '—'
           }
         />
       </div>

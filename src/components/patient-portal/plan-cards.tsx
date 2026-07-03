@@ -30,7 +30,12 @@ export function WorkoutCard({ plan }: { plan: WorkoutPlan }) {
                 <li key={k} className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="text-slate-600">{e.name}</span>
                   <span className="shrink-0 font-medium tabular-nums text-slate-500">
-                    {[e.sets && e.reps ? `${e.sets} × ${e.reps}` : e.reps ?? (e.sets ? `${e.sets}×` : ''), e.loadKg ? `${e.loadKg}kg` : '']
+                    {[
+                      e.sets && e.reps
+                        ? `${e.sets} × ${e.reps}`
+                        : (e.reps ?? (e.sets ? `${e.sets}×` : '')),
+                      e.loadKg ? `${e.loadKg}kg` : '',
+                    ]
                       .filter(Boolean)
                       .join(' · ')}
                   </span>
@@ -60,7 +65,9 @@ export function DietCard({ plan }: { plan: DietPlan }) {
           <div key={i} className="rounded-xl border border-slate-100 p-3">
             <p className="flex items-baseline justify-between text-sm font-semibold text-slate-800">
               {m.name}
-              {m.timeLabel ? <span className="text-xs font-normal text-slate-400">{m.timeLabel}</span> : null}
+              {m.timeLabel ? (
+                <span className="text-xs font-normal text-slate-400">{m.timeLabel}</span>
+              ) : null}
             </p>
             <ul className="mt-1 space-y-0.5">
               {m.items.map((it, k) => (

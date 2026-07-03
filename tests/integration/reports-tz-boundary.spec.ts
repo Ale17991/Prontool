@@ -63,6 +63,7 @@ describe('reports: TZ boundary em São Paulo (Camada 3 T1)', () => {
       commissionId,
       amountCents: 10000,
       commissionBps: 4000,
+      completed: true,
       at: '2026-02-01T01:30:00.000Z',
     })
 
@@ -105,6 +106,7 @@ describe('reports: TZ boundary em São Paulo (Camada 3 T1)', () => {
       commissionId,
       amountCents: 5000,
       commissionBps: 4000,
+      completed: true,
       at: '2026-01-01T01:30:00.000Z',
     })
 
@@ -146,6 +148,7 @@ describe('reports: TZ boundary em São Paulo (Camada 3 T1)', () => {
       commissionId,
       amountCents: 20000,
       commissionBps: 4000,
+      completed: true,
       at: '2026-01-15T17:00:00.000Z', // 14:00 BRT do 15/01
     })
 

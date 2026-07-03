@@ -46,7 +46,9 @@ function makeSelfSignedPfxBase64(): string {
   cert.setSubject(attrs)
   cert.setIssuer(attrs)
   cert.sign(keys.privateKey, forge.md.sha256.create())
-  const p12 = forge.pkcs12.toPkcs12Asn1(keys.privateKey, [cert], PFX_PASSWORD, { algorithm: '3des' })
+  const p12 = forge.pkcs12.toPkcs12Asn1(keys.privateKey, [cert], PFX_PASSWORD, {
+    algorithm: '3des',
+  })
   return forge.util.encode64(forge.asn1.toDer(p12).getBytes())
 }
 

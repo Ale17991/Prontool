@@ -18,10 +18,13 @@ export async function removeAssistant(
   supabase: SupabaseClient<Database>,
   input: RemoveAssistantInput,
 ): Promise<void> {
-  const { error } = await supabase.rpc('remove_appointment_assistant' as never, {
-    p_id: input.assistantRowId,
-    p_actor: input.actorUserId,
-  } as never)
+  const { error } = await supabase.rpc(
+    'remove_appointment_assistant' as never,
+    {
+      p_id: input.assistantRowId,
+      p_actor: input.actorUserId,
+    } as never,
+  )
   if (error) {
     const msg = error.message ?? ''
     if (/ASSISTANT_NOT_FOUND/.test(msg)) {

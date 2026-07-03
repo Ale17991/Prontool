@@ -50,10 +50,7 @@ describe('T121 — doctor/commission endpoints are gated to admin', () => {
     expect(audit?.length ?? 0).toBeGreaterThan(0)
 
     // And no doctor row was created.
-    const { data: doctors } = await sb
-      .from('doctors')
-      .select('id')
-      .eq('tenant_id', tenantId)
+    const { data: doctors } = await sb.from('doctors').select('id').eq('tenant_id', tenantId)
     expect(doctors ?? []).toHaveLength(0)
   })
 

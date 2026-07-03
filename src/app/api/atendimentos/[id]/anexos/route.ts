@@ -13,10 +13,7 @@ export const runtime = 'nodejs'
 
 const ROLES = ['admin', 'recepcionista', 'profissional_saude'] as const
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/atendimentos/${params.id}/anexos`
   try {
     const session = await requireRole([...ROLES], {

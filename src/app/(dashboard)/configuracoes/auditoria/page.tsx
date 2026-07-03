@@ -9,7 +9,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatDateTime } from '@/lib/utils'
 import { entityToLabel } from '@/lib/utils/audit-labels'
 
@@ -99,8 +106,8 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Auditoria</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Trilha append-only de mudanças financeiras e acessos. Os campos exportados
-            preservam o formato original conforme FR-019.
+            Trilha append-only de mudanças financeiras e acessos. Os campos exportados preservam o
+            formato original conforme FR-019.
           </p>
         </div>
         <div className="flex gap-2">
@@ -129,7 +136,10 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="get" className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] md:items-end">
+          <form
+            method="get"
+            className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] md:items-end"
+          >
             <div className="space-y-1.5">
               <Label htmlFor="entity" className="text-xs">
                 Entidade

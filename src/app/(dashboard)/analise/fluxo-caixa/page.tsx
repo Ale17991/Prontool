@@ -46,9 +46,7 @@ export default async function FluxoCaixaPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Fluxo de Caixa
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Fluxo de Caixa</h1>
         <p className="mt-1 text-sm text-slate-500">
           Entradas e saídas previstas + realizadas, com saldo acumulado.
         </p>

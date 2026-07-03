@@ -1,5 +1,5 @@
 ---
-description: "Task list for feature 007 — materiais opcionais, atalho WhatsApp e linguagem simples"
+description: 'Task list for feature 007 — materiais opcionais, atalho WhatsApp e linguagem simples'
 ---
 
 # Tasks: Materiais opcionais, atalho WhatsApp e linguagem simples
@@ -20,6 +20,7 @@ description: "Task list for feature 007 — materiais opcionais, atalho WhatsApp
 ## Path Conventions
 
 Repositório Next.js monolito:
+
 - Source: `src/app/`, `src/lib/`, `src/components/`
 - Tests: `tests/contract/`, `tests/integration/`, `tests/unit/`
 - DB migrations: `supabase/migrations/`
@@ -53,10 +54,10 @@ Repositório Next.js monolito:
 
 ### DB Migration & Generated Types
 
-- [X] T010 [US1] Criar migration `supabase/migrations/0061_appointment_materials.sql` contendo: tabela `appointment_materials` (PK, FKs, CHECKs `quantity > 0`, `length(tuss_description) BETWEEN 1 AND 500`), 2 índices (`appointment_id`; `tenant_id, created_at DESC`), `ENABLE ROW LEVEL SECURITY`, policy `appointment_materials_tenant_isolation` USING/WITH CHECK `tenant_id = current_tenant_id()`. Schema completo em `data-model.md` §"Tabela: public.appointment_materials".
-- [X] T011 [US1] Acrescentar a `0061_appointment_materials.sql` os 4 triggers: (1) `enforce_appointment_materials_mutation` BEFORE UPDATE/DELETE — RAISE EXCEPTION exceto para roles `service_role`/`postgres`/`supabase_admin`; (2) `check_material_tenant_consistency` BEFORE INSERT — valida que `NEW.tenant_id = (SELECT tenant_id FROM appointments WHERE id = NEW.appointment_id)`; (3) `check_material_tuss_table` BEFORE INSERT — valida `tuss_code` existe em `tuss_codes` com `tuss_table='19'` AND `valid_to IS NULL`; (4) `audit_appointment_materials` AFTER INSERT — INSERT em `audit_log` (entity_type `appointment_material`, event_type `appointment_material.created`, payload JSONB com snapshot). Funções e triggers detalhados em `data-model.md`.
-- [X] T012 [US1] Acrescentar a `0061_appointment_materials.sql` a função RPC `create_appointment_with_materials(p_appointment jsonb, p_materials jsonb) RETURNS jsonb` SECURITY INVOKER com `GRANT EXECUTE TO authenticated`. Implementação completa em `data-model.md` §"Function: create_appointment_with_materials".
-- [X] T013 [US1] Acrescentar a `0061_appointment_materials.sql` a função RPC `attach_materials_to_appointment(p_appointment_id uuid, p_materials jsonb) RETURNS jsonb` SECURITY INVOKER com `GRANT EXECUTE TO authenticated`. Validar `APPOINTMENT_NOT_FOUND` e `APPOINTMENT_REVERSED`. Implementação em `data-model.md` §"Function: attach_materials_to_appointment".
+- [x] T010 [US1] Criar migration `supabase/migrations/0061_appointment_materials.sql` contendo: tabela `appointment_materials` (PK, FKs, CHECKs `quantity > 0`, `length(tuss_description) BETWEEN 1 AND 500`), 2 índices (`appointment_id`; `tenant_id, created_at DESC`), `ENABLE ROW LEVEL SECURITY`, policy `appointment_materials_tenant_isolation` USING/WITH CHECK `tenant_id = current_tenant_id()`. Schema completo em `data-model.md` §"Tabela: public.appointment_materials".
+- [x] T011 [US1] Acrescentar a `0061_appointment_materials.sql` os 4 triggers: (1) `enforce_appointment_materials_mutation` BEFORE UPDATE/DELETE — RAISE EXCEPTION exceto para roles `service_role`/`postgres`/`supabase_admin`; (2) `check_material_tenant_consistency` BEFORE INSERT — valida que `NEW.tenant_id = (SELECT tenant_id FROM appointments WHERE id = NEW.appointment_id)`; (3) `check_material_tuss_table` BEFORE INSERT — valida `tuss_code` existe em `tuss_codes` com `tuss_table='19'` AND `valid_to IS NULL`; (4) `audit_appointment_materials` AFTER INSERT — INSERT em `audit_log` (entity_type `appointment_material`, event_type `appointment_material.created`, payload JSONB com snapshot). Funções e triggers detalhados em `data-model.md`.
+- [x] T012 [US1] Acrescentar a `0061_appointment_materials.sql` a função RPC `create_appointment_with_materials(p_appointment jsonb, p_materials jsonb) RETURNS jsonb` SECURITY INVOKER com `GRANT EXECUTE TO authenticated`. Implementação completa em `data-model.md` §"Function: create_appointment_with_materials".
+- [x] T013 [US1] Acrescentar a `0061_appointment_materials.sql` a função RPC `attach_materials_to_appointment(p_appointment_id uuid, p_materials jsonb) RETURNS jsonb` SECURITY INVOKER com `GRANT EXECUTE TO authenticated`. Validar `APPOINTMENT_NOT_FOUND` e `APPOINTMENT_REVERSED`. Implementação em `data-model.md` §"Function: attach_materials_to_appointment".
 - [ ] T014 [US1] Aplicar a migration localmente: `pnpm supabase:reset` e confirmar que rodou sem erro. Rodar `pnpm supabase:gen-types` para regenerar `src/lib/db/generated/types.ts` com a nova tabela e RPCs.
 
 ### Tests for User Story 1 — escrever ANTES da implementação
@@ -74,34 +75,34 @@ Repositório Next.js monolito:
 
 ### Service Layer
 
-- [X] T030 [US1] Criar `src/lib/core/appointments/materials/list.ts` exportando `async function listMaterials(supabase, { appointmentId }): Promise<Material[]>` que faz `SELECT id, tuss_code, tuss_description, quantity, created_at, created_by FROM appointment_materials WHERE appointment_id = ? ORDER BY created_at ASC`. Tipos baseados em `Database` de `src/lib/db/types.ts`.
-- [X] T031 [US1] Criar `src/lib/core/appointments/materials/attach.ts` exportando `async function attachMaterials(supabase, { appointmentId, materials }): Promise<{ appointment_id, materials }>` que (a) chama `supabase.rpc('attach_materials_to_appointment', { p_appointment_id, p_materials })`, (b) mapeia erros do RPC: `APPOINTMENT_NOT_FOUND` → `NotFoundError`, `APPOINTMENT_REVERSED` → `DomainError('APPOINTMENT_REVERSED', ..., { status: 409 })`, `MATERIAL_TUSS_INVALID` (do trigger) → `DomainError('MATERIAL_TUSS_INVALID', ..., { status: 400 })`. Usar `DomainError`/`NotFoundError` de `src/lib/observability/errors.ts`.
-- [X] T032 [US1] Criar `src/lib/core/appointments/materials/index.ts` que reexporta `attachMaterials` e `listMaterials` para imports limpos.
-- [X] T033 [US1] Modificar `src/lib/core/appointments/create-manual.ts`: adicionar campo opcional `materiais?: Array<{tuss_code: string; tuss_description: string; quantity: number}>` em `CreateManualAppointmentInput`. Dentro da função, **antes** do INSERT principal, se `input.materiais && input.materiais.length > 0` então (a) pré-validar TUSS codes via `SELECT code FROM tuss_codes WHERE code IN (...) AND tuss_table='19' AND valid_to IS NULL` — códigos faltantes → `throw new DomainError('MATERIAL_TUSS_INVALID', ...)`. Substituir o INSERT direto por chamada `supabase.rpc('create_appointment_with_materials', { p_appointment: baseRow, p_materials: input.materiais })` retornando `appointment_id` e `materials_count`. Quando `materiais` ausente ou vazio, manter o caminho atual de INSERT direto sem mudanças. Acrescentar campo `materialsCount?: number` em `CreateManualAppointmentResult`.
+- [x] T030 [US1] Criar `src/lib/core/appointments/materials/list.ts` exportando `async function listMaterials(supabase, { appointmentId }): Promise<Material[]>` que faz `SELECT id, tuss_code, tuss_description, quantity, created_at, created_by FROM appointment_materials WHERE appointment_id = ? ORDER BY created_at ASC`. Tipos baseados em `Database` de `src/lib/db/types.ts`.
+- [x] T031 [US1] Criar `src/lib/core/appointments/materials/attach.ts` exportando `async function attachMaterials(supabase, { appointmentId, materials }): Promise<{ appointment_id, materials }>` que (a) chama `supabase.rpc('attach_materials_to_appointment', { p_appointment_id, p_materials })`, (b) mapeia erros do RPC: `APPOINTMENT_NOT_FOUND` → `NotFoundError`, `APPOINTMENT_REVERSED` → `DomainError('APPOINTMENT_REVERSED', ..., { status: 409 })`, `MATERIAL_TUSS_INVALID` (do trigger) → `DomainError('MATERIAL_TUSS_INVALID', ..., { status: 400 })`. Usar `DomainError`/`NotFoundError` de `src/lib/observability/errors.ts`.
+- [x] T032 [US1] Criar `src/lib/core/appointments/materials/index.ts` que reexporta `attachMaterials` e `listMaterials` para imports limpos.
+- [x] T033 [US1] Modificar `src/lib/core/appointments/create-manual.ts`: adicionar campo opcional `materiais?: Array<{tuss_code: string; tuss_description: string; quantity: number}>` em `CreateManualAppointmentInput`. Dentro da função, **antes** do INSERT principal, se `input.materiais && input.materiais.length > 0` então (a) pré-validar TUSS codes via `SELECT code FROM tuss_codes WHERE code IN (...) AND tuss_table='19' AND valid_to IS NULL` — códigos faltantes → `throw new DomainError('MATERIAL_TUSS_INVALID', ...)`. Substituir o INSERT direto por chamada `supabase.rpc('create_appointment_with_materials', { p_appointment: baseRow, p_materials: input.materiais })` retornando `appointment_id` e `materials_count`. Quando `materiais` ausente ou vazio, manter o caminho atual de INSERT direto sem mudanças. Acrescentar campo `materialsCount?: number` em `CreateManualAppointmentResult`.
 - [ ] T034 [US1] Modificar `src/lib/core/treatment-steps/create-with-appointment.ts`: aceitar `materiais?: Array<...>` no input e propagar para `createAppointmentManually`. Se a feature de finalização de etapa usar outro caminho de criação de appointment, ajustar análogo (verificar `update-status.ts` ou similar; a etapa só vira appointment quando finalizada). **DEFERRED — requer análise mais profunda do fluxo de finalização de etapa, que envolve RPC dedicada `create_step_with_appointment` em `0055`. Será implementado em PR de follow-up.**
 
 ### REST Handlers
 
-- [X] T040 [US1] Criar `src/app/api/atendimentos/[id]/materiais/route.ts` com handlers `POST` e `GET`. Ambos chamam `requireRole(['admin', 'recepcionista', 'profissional_saude'], { entity: 'appointment_materials', route: ..., request: req })`. POST valida body com Zod (schema em `contracts/appointment-materials-api.md`), chama `attachMaterials`, retorna 201. GET chama `listMaterials`, retorna 200. Erros via `toHttpResponse(e)` de `src/lib/observability/http.ts`. Marcar `export const dynamic = 'force-dynamic'` e `export const runtime = 'nodejs'` (alinhado ao padrão dos outros endpoints).
-- [X] T041 [US1] Modificar `src/app/api/atendimentos/manual/route.ts`: estender o `bodySchema` Zod adicionando `materiais: z.array(z.object({tuss_code: z.string().min(1).max(20), tuss_description: z.string().min(1).max(500), quantity: z.number().int().positive().default(1)})).max(50).optional()`. Passar `materiais` para `createAppointmentManually`. Quando o resultado tem `materialsCount`, incluir no JSON da resposta. Resposta atual permanece backward-compatible quando `materiais` não enviado.
+- [x] T040 [US1] Criar `src/app/api/atendimentos/[id]/materiais/route.ts` com handlers `POST` e `GET`. Ambos chamam `requireRole(['admin', 'recepcionista', 'profissional_saude'], { entity: 'appointment_materials', route: ..., request: req })`. POST valida body com Zod (schema em `contracts/appointment-materials-api.md`), chama `attachMaterials`, retorna 201. GET chama `listMaterials`, retorna 200. Erros via `toHttpResponse(e)` de `src/lib/observability/http.ts`. Marcar `export const dynamic = 'force-dynamic'` e `export const runtime = 'nodejs'` (alinhado ao padrão dos outros endpoints).
+- [x] T041 [US1] Modificar `src/app/api/atendimentos/manual/route.ts`: estender o `bodySchema` Zod adicionando `materiais: z.array(z.object({tuss_code: z.string().min(1).max(20), tuss_description: z.string().min(1).max(500), quantity: z.number().int().positive().default(1)})).max(50).optional()`. Passar `materiais` para `createAppointmentManually`. Quando o resultado tem `materialsCount`, incluir no JSON da resposta. Resposta atual permanece backward-compatible quando `materiais` não enviado.
 
 ### UI Components
 
-- [X] T050 [US1] Criar `src/components/atendimentos/materiais-editor.tsx` (client component) com props `{ value: MaterialDraft[]; onChange: (next: MaterialDraft[]) => void; disabled?: boolean }`. UI: seção colapsável com header "Materiais utilizados (opcional)" + chevron toggle (estado local `expanded`, default `false`). Quando expandido: lista de materiais já adicionados (cada linha mostra TUSS table badge + código + descrição + input numérico de quantity + botão X) + botão "+ Adicionar material" que abre `<TussTypeahead table="19" ...>` em modo inline (popover). Usar componentes existentes: `<Button>`, `<Input>`, `<TussTypeahead>` de `src/components/tuss/tuss-typeahead.tsx`. Tipos: `MaterialDraft = { tussCode: string; tussDescription: string; quantity: number }`. Validar quantity > 0 inline (mensagem "Quantidade deve ser um número inteiro maior que zero" abaixo do input se inválido). Permitir duplicatas (mesmo código adicionado múltiplas vezes — gera linhas separadas).
-- [X] T051 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/novo/new-appointment-form.tsx`: importar `<MateriaisEditor>`. Adicionar estado `const [materiais, setMateriais] = useState<MaterialDraft[]>([])`. Renderizar o componente abaixo da seleção de procedimento. No handler de submit, incluir `materiais` no payload do `POST /api/atendimentos/manual` apenas se `materiais.length > 0`.
+- [x] T050 [US1] Criar `src/components/atendimentos/materiais-editor.tsx` (client component) com props `{ value: MaterialDraft[]; onChange: (next: MaterialDraft[]) => void; disabled?: boolean }`. UI: seção colapsável com header "Materiais utilizados (opcional)" + chevron toggle (estado local `expanded`, default `false`). Quando expandido: lista de materiais já adicionados (cada linha mostra TUSS table badge + código + descrição + input numérico de quantity + botão X) + botão "+ Adicionar material" que abre `<TussTypeahead table="19" ...>` em modo inline (popover). Usar componentes existentes: `<Button>`, `<Input>`, `<TussTypeahead>` de `src/components/tuss/tuss-typeahead.tsx`. Tipos: `MaterialDraft = { tussCode: string; tussDescription: string; quantity: number }`. Validar quantity > 0 inline (mensagem "Quantidade deve ser um número inteiro maior que zero" abaixo do input se inválido). Permitir duplicatas (mesmo código adicionado múltiplas vezes — gera linhas separadas).
+- [x] T051 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/novo/new-appointment-form.tsx`: importar `<MateriaisEditor>`. Adicionar estado `const [materiais, setMateriais] = useState<MaterialDraft[]>([])`. Renderizar o componente abaixo da seleção de procedimento. No handler de submit, incluir `materiais` no payload do `POST /api/atendimentos/manual` apenas se `materiais.length > 0`.
 - [ ] T052 [US1] Modificar `src/app/(dashboard)/operacao/pacientes/[id]/treatment-steps-section.tsx` (e/ou o componente de finalização de etapa que vive ali): adicionar `<MateriaisEditor>` no fluxo de finalização. **DEFERRED com T034 — depende da implementação do branch da RPC `create_step_with_appointment` aceitar `materiais`. Será PR de follow-up.**
 
 ### UI Visualization
 
-- [X] T060 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`: server-side, fetch dos materiais via `listMaterials(supabase, { appointmentId: id })`. Renderizar sub-bloco "Materiais utilizados" listando código + descrição + quantidade quando array não vazio. Quando vazio, **não renderizar** o título nem o card vazio (FR-010). Estilo consistente com sub-blocos atuais (Card simples).
+- [x] T060 [US1] Modificar `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`: server-side, fetch dos materiais via `listMaterials(supabase, { appointmentId: id })`. Renderizar sub-bloco "Materiais utilizados" listando código + descrição + quantidade quando array não vazio. Quando vazio, **não renderizar** o título nem o card vazio (FR-010). Estilo consistente com sub-blocos atuais (Card simples).
 - [ ] T061 [US1] Modificar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx` (timeline do paciente / lista de atendimentos do paciente, onde for que o card do atendimento é renderizado — se for via componente subordinado em `_components` ou similar, ajustar lá): incluir os materiais por atendimento. Pode ser via 1 query agregada (`SELECT ... FROM appointment_materials WHERE appointment_id = ANY(...)`) ou via N queries por atendimento (preferível agregada para performance). **DEFERRED — visualização principal já está em T060; timeline visualization é secondary nice-to-have, fica para PR de follow-up.**
 - [ ] T062 [US1] Modificar `src/lib/core/patient-medical/assemble-prontuario.ts`: ao montar o objeto de prontuário, agregar materiais por atendimento. Adicionar tipo `materials: Array<{ tussCode: string; tussDescription: string; quantity: number }>` em cada item de atendimento. **DEFERRED — PDF integration fica para PR de follow-up; tabela appointment_materials pronta no banco.**
 - [ ] T063 [US1] Modificar `src/lib/core/patient-medical/prontuario-pdf.tsx`: renderizar bloco de materiais por atendimento quando existir. Estilo coerente com o restante do PDF (lista bullets, fonte secundária). Não renderizar quando `materials.length === 0`. **DEFERRED — junto com T062.**
 
 ### Validation pass
 
-- [X] T070 [US1] Rodar `pnpm typecheck` — **PASS**, zero erros (mesmo sem `pnpm supabase:gen-types` rodado, graças aos casts `as never` deliberados em `materials/list.ts`, `materials/attach.ts` e `create-manual.ts`).
-- [X] T071 [US1] Rodar `pnpm lint:auth` — **PASS**, 69 handlers analisados, todos com `requireRole`. Adapters sem env direto.
+- [x] T070 [US1] Rodar `pnpm typecheck` — **PASS**, zero erros (mesmo sem `pnpm supabase:gen-types` rodado, graças aos casts `as never` deliberados em `materials/list.ts`, `materials/attach.ts` e `create-manual.ts`).
+- [x] T071 [US1] Rodar `pnpm lint:auth` — **PASS**, 69 handlers analisados, todos com `requireRole`. Adapters sem env direto.
 - [ ] T072 [US1] Rodar `pnpm test tests/contract/appointment-materials-*.spec.ts tests/integration/appointment-materials-*.spec.ts tests/unit/material-input-validation.spec.ts` — todos verdes. **DEFERRED — testes de contract/integration de materials precisam migration 0061 aplicada + fixtures TUSS tabela 19; ficam para PR de follow-up junto com T020–T027.**
 - [ ] T073 [US1] Smoke manual de US1: seguir Fluxos 1, 2, 3 e 4.1–4.4 do `quickstart.md`. **PENDENTE para o usuário rodar localmente após `pnpm supabase:reset`.**
 
@@ -119,37 +120,37 @@ Repositório Next.js monolito:
 
 ### Helper Layer
 
-- [X] T080 [US2] Criar `src/lib/utils/audit-labels.ts` exportando `eventTypeToLabel(eventType: string): string` com mapa: `appointment.created → "Atendimento criado"`, `appointment.reversed → "Cancelamento de atendimento"`, `appointment.realized → "Atendimento confirmado"`, `appointment_material.created → "Material adicionado"`, `patient.created → "Paciente cadastrado"`, `integration.connect → "Integração conectada"`, `integration.reconfigure → "Integração reconfigurada"`, `integration.disconnect → "Integração desconectada"`, `integration_sync_failed → "Falha de sincronização de integração"` (e quaisquer outros encontrados em `audit_log`). Fallback retorna o `eventType` literal. Inclui também `entityToLabel()` e `GENERIC_ERROR_MESSAGE`.
-- [X] T081 [P] [US2] Unit test em `tests/unit/audit-labels.spec.ts`: cada event type conhecido mapeia para a string esperada; tipo desconhecido cai no fallback.
+- [x] T080 [US2] Criar `src/lib/utils/audit-labels.ts` exportando `eventTypeToLabel(eventType: string): string` com mapa: `appointment.created → "Atendimento criado"`, `appointment.reversed → "Cancelamento de atendimento"`, `appointment.realized → "Atendimento confirmado"`, `appointment_material.created → "Material adicionado"`, `patient.created → "Paciente cadastrado"`, `integration.connect → "Integração conectada"`, `integration.reconfigure → "Integração reconfigurada"`, `integration.disconnect → "Integração desconectada"`, `integration_sync_failed → "Falha de sincronização de integração"` (e quaisquer outros encontrados em `audit_log`). Fallback retorna o `eventType` literal. Inclui também `entityToLabel()` e `GENERIC_ERROR_MESSAGE`.
+- [x] T081 [P] [US2] Unit test em `tests/unit/audit-labels.spec.ts`: cada event type conhecido mapeia para a string esperada; tipo desconhecido cai no fallback.
 
 ### File-by-file rewrites (UI)
 
-- [X] T090 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`: "Estornado" → "Cancelado" no badge; "Marcar como realizado" → "Confirmar atendimento" + "Registrar reversão" → "Cancelar atendimento" + "NKDA — sem alergias" → "Sem alergias conhecidas".
-- [X] T091 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/page.tsx`: filtro "Estornados" → "Cancelados"; contador "X estornado" → "X cancelado"; badge "estornado" → "cancelado"; tooltip NKDA atualizado.
-- [X] T092 [P] [US2] Reversal/realized forms: `reversal-form.tsx` → "Motivo do cancelamento" + "Cancelar atendimento"; `mark-realized-form.tsx` → "Confirmar atendimento".
-- [X] T093 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`: SummaryCard "Estornados" → "Cancelados"; badge "Estornado" → "Cancelado".
-- [X] T094 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/medical-history-section.tsx`: "Sem alergias registradas (NKDA)" → "Sem alergias conhecidas" (com tooltip NKDA preservado).
-- [X] T095 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/treatment-steps-section.tsx`: botão "Concluir" → "Finalizar".
-- [X] T096 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/error.tsx`: "Erro inesperado" → "Algo deu errado. Tente novamente em alguns segundos."; removido digest visível; texto "consulte os runtime logs ... pelo digest abaixo" reescrito.
-- [X] T097 [P] [US2] `src/app/(dashboard)/operacao/pacientes/page.tsx` — strings já amigáveis; admin-only diagnostic FailuresOnlyView mantém termos técnicos por design (escopo admin-developer per spec assumption).
-- [X] T098 [P] [US2] Editar `src/app/(dashboard)/operacao/alertas/page.tsx`: "Evento na DLQ" → "Pendência de integração"; "Webhook rejeitado" → "Evento rejeitado pela integração".
-- [X] T099 [P] [US2] Editar `src/app/(dashboard)/operacao/dlq/page.tsx`: h1 "Fila de erros" → "Pendências"; texto descritivo ajustado.
+- [x] T090 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/[id]/page.tsx`: "Estornado" → "Cancelado" no badge; "Marcar como realizado" → "Confirmar atendimento" + "Registrar reversão" → "Cancelar atendimento" + "NKDA — sem alergias" → "Sem alergias conhecidas".
+- [x] T091 [P] [US2] Editar `src/app/(dashboard)/operacao/atendimentos/page.tsx`: filtro "Estornados" → "Cancelados"; contador "X estornado" → "X cancelado"; badge "estornado" → "cancelado"; tooltip NKDA atualizado.
+- [x] T092 [P] [US2] Reversal/realized forms: `reversal-form.tsx` → "Motivo do cancelamento" + "Cancelar atendimento"; `mark-realized-form.tsx` → "Confirmar atendimento".
+- [x] T093 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`: SummaryCard "Estornados" → "Cancelados"; badge "Estornado" → "Cancelado".
+- [x] T094 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/medical-history-section.tsx`: "Sem alergias registradas (NKDA)" → "Sem alergias conhecidas" (com tooltip NKDA preservado).
+- [x] T095 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/[id]/treatment-steps-section.tsx`: botão "Concluir" → "Finalizar".
+- [x] T096 [P] [US2] Editar `src/app/(dashboard)/operacao/pacientes/error.tsx`: "Erro inesperado" → "Algo deu errado. Tente novamente em alguns segundos."; removido digest visível; texto "consulte os runtime logs ... pelo digest abaixo" reescrito.
+- [x] T097 [P] [US2] `src/app/(dashboard)/operacao/pacientes/page.tsx` — strings já amigáveis; admin-only diagnostic FailuresOnlyView mantém termos técnicos por design (escopo admin-developer per spec assumption).
+- [x] T098 [P] [US2] Editar `src/app/(dashboard)/operacao/alertas/page.tsx`: "Evento na DLQ" → "Pendência de integração"; "Webhook rejeitado" → "Evento rejeitado pela integração".
+- [x] T099 [P] [US2] Editar `src/app/(dashboard)/operacao/dlq/page.tsx`: h1 "Fila de erros" → "Pendências"; texto descritivo ajustado.
 - [ ] T100 [P] [US2] `src/app/(dashboard)/operacao/dlq/reprocess-button.tsx` — sem strings problemáticas detectadas no grep; **NO-OP**.
-- [X] T101 [P] [US2] Editar `src/app/(dashboard)/_components/dashboard-shell.tsx`: sidebar item "Fila de erros" → "Pendências".
+- [x] T101 [P] [US2] Editar `src/app/(dashboard)/_components/dashboard-shell.tsx`: sidebar item "Fila de erros" → "Pendências".
 - [ ] T102 [P] [US2] `src/app/error.tsx` raiz não existe — Next.js usa fallback default. **NO-OP** (não há arquivo a editar).
 - [ ] T103 [P] [US2] `src/app/not-found.tsx` raiz e variações em (dashboard) não existem — **NO-OP**.
 - [ ] T104 [P] [US2] `src/lib/core/patient-medical/assemble-prontuario.ts` — não tem strings PT-BR para usuário (só código). **NO-OP**.
-- [X] T105 [P] [US2] Editar `src/lib/core/patient-medical/prontuario-pdf.tsx`: "Sem alergias registradas (NKDA)" → "Sem alergias conhecidas".
-- [X] T106 [P] [US2] Editar `src/lib/core/reports/export-financial-excel.ts`: rótulo "Tenant" → "Clínica".
-- [X] T107 [P] [US2] Editar `src/lib/core/reports/export-by-plan-excel.ts`: rótulo "Tenant" → "Clínica".
-- [X] T108 [P] [US2] Editar `src/lib/core/reports/export-excel.ts`: "Tenant" → "Clínica" + "Estornos" → "Cancelamentos". Adicionado também `src/lib/core/reports/export-pdf.tsx`: "Estornos" → "Cancelamentos".
-- [X] T109 [US2] `src/app/(dashboard)/analise/auditoria/page.tsx`: integrado `entityToLabel()` para renderizar coluna `entity` traduzida. Banco mantém termos técnicos.
-- [X] T110 [US2] **EXTRA**: `src/lib/observability/http.ts`: mensagem genérica de fallback 500 trocada de "Internal server error" para "Algo deu errado. Tente novamente em alguns segundos." (FR-021).
+- [x] T105 [P] [US2] Editar `src/lib/core/patient-medical/prontuario-pdf.tsx`: "Sem alergias registradas (NKDA)" → "Sem alergias conhecidas".
+- [x] T106 [P] [US2] Editar `src/lib/core/reports/export-financial-excel.ts`: rótulo "Tenant" → "Clínica".
+- [x] T107 [P] [US2] Editar `src/lib/core/reports/export-by-plan-excel.ts`: rótulo "Tenant" → "Clínica".
+- [x] T108 [P] [US2] Editar `src/lib/core/reports/export-excel.ts`: "Tenant" → "Clínica" + "Estornos" → "Cancelamentos". Adicionado também `src/lib/core/reports/export-pdf.tsx`: "Estornos" → "Cancelamentos".
+- [x] T109 [US2] `src/app/(dashboard)/analise/auditoria/page.tsx`: integrado `entityToLabel()` para renderizar coluna `entity` traduzida. Banco mantém termos técnicos.
+- [x] T110 [US2] **EXTRA**: `src/lib/observability/http.ts`: mensagem genérica de fallback 500 trocada de "Internal server error" para "Algo deu errado. Tente novamente em alguns segundos." (FR-021).
 
 ### Validation pass
 
-- [X] T120 [US2] Rodar `pnpm typecheck` — **PASS** após edição final.
-- [X] T121 [US2] Smoke grep — zero hits para `Estorn|Reverter|Reversao|Reversão|Revertido|Marcar como realizado|Concluir etapa` em `src/` (fora de nomes de tabela `appointment_reversals`, função `reverse.ts`, comentários sobre o campo `reversal_id` etc — todos esperados).
+- [x] T120 [US2] Rodar `pnpm typecheck` — **PASS** após edição final.
+- [x] T121 [US2] Smoke grep — zero hits para `Estorn|Reverter|Reversao|Reversão|Revertido|Marcar como realizado|Concluir etapa` em `src/` (fora de nomes de tabela `appointment_reversals`, função `reverse.ts`, comentários sobre o campo `reversal_id` etc — todos esperados).
 - [ ] T122 [US2] Rodar `pnpm test` — **PENDENTE para o usuário** (suite completa demora; helpers novos passaram em T080+T130).
 - [ ] T123 [US2] Smoke manual de US2: Fluxos 6.1–6.9 do `quickstart.md`. **PENDENTE para o usuário.**
 
@@ -165,17 +166,17 @@ Repositório Next.js monolito:
 
 ### Helper Layer
 
-- [X] T130 [US3] Criar `src/lib/utils/whatsapp.ts` exportando `formatPhoneForWhatsApp(raw: string | null | undefined): string | null`. Lógica: (a) return null se raw null/undefined/string vazia após trim; (b) limpar — remover tudo que não é dígito ou `+` inicial; (c) se string limpa começa com `+`, devolve sem o `+`; (d) caso contrário, prefixa `55`; (e) se a string final tem < 8 ou > 15 dígitos, return null. Função pura, sem side effects.
-- [X] T131 [P] [US3] Unit test em `tests/unit/whatsapp.spec.ts`: cobrir entradas — `null`, `undefined`, `''`, `'(11) 98765-4321' → '5511987654321'`, `'11987654321' → '5511987654321'`, `'+1 (415) 555-1234' → '14155551234'`, `'+5511987654321' → '5511987654321'`, `'abc' → null`, `'123' → null` (curto demais), `'1234567890123456' → null` (longo demais).
+- [x] T130 [US3] Criar `src/lib/utils/whatsapp.ts` exportando `formatPhoneForWhatsApp(raw: string | null | undefined): string | null`. Lógica: (a) return null se raw null/undefined/string vazia após trim; (b) limpar — remover tudo que não é dígito ou `+` inicial; (c) se string limpa começa com `+`, devolve sem o `+`; (d) caso contrário, prefixa `55`; (e) se a string final tem < 8 ou > 15 dígitos, return null. Função pura, sem side effects.
+- [x] T131 [P] [US3] Unit test em `tests/unit/whatsapp.spec.ts`: cobrir entradas — `null`, `undefined`, `''`, `'(11) 98765-4321' → '5511987654321'`, `'11987654321' → '5511987654321'`, `'+1 (415) 555-1234' → '14155551234'`, `'+5511987654321' → '5511987654321'`, `'abc' → null`, `'123' → null` (curto demais), `'1234567890123456' → null` (longo demais).
 
 ### UI Layer
 
-- [X] T140 [US3] Modificar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`: importar `buildWhatsAppUrl` de `@/lib/utils/whatsapp` + `<MessageCircle>` de `lucide-react`. Definido `<WhatsAppButton phone={...}>` inline; usa `title=` HTML nativo em vez de Tooltip primitive shadcn (não existe em `src/components/ui/`). Botão verde quando válido, cinza desabilitado com tooltip "Sem telefone cadastrado" caso contrário. Posicionado ao lado do `<ContactChip Phone>`.
+- [x] T140 [US3] Modificar `src/app/(dashboard)/operacao/pacientes/[id]/page.tsx`: importar `buildWhatsAppUrl` de `@/lib/utils/whatsapp` + `<MessageCircle>` de `lucide-react`. Definido `<WhatsAppButton phone={...}>` inline; usa `title=` HTML nativo em vez de Tooltip primitive shadcn (não existe em `src/components/ui/`). Botão verde quando válido, cinza desabilitado com tooltip "Sem telefone cadastrado" caso contrário. Posicionado ao lado do `<ContactChip Phone>`.
 
 ### Validation pass
 
-- [X] T150 [US3] Rodar `pnpm typecheck` — **PASS**.
-- [X] T151 [US3] Rodar `pnpm test tests/unit/whatsapp.spec.ts` — **PASS**, 7 tests verdes em 1.87s.
+- [x] T150 [US3] Rodar `pnpm typecheck` — **PASS**.
+- [x] T151 [US3] Rodar `pnpm test tests/unit/whatsapp.spec.ts` — **PASS**, 7 tests verdes em 1.87s.
 - [ ] T152 [US3] Smoke manual de US3: Fluxos 5.1, 5.2 e 5.3 do `quickstart.md`.
 
 **Checkpoint**: US3 completa. Todas as 3 user stories independentemente entregues.
@@ -186,12 +187,12 @@ Repositório Next.js monolito:
 
 **Purpose**: Finalização, gates de qualidade do projeto e validação holística.
 
-- [X] T200 [P] CLAUDE.md § "Recent Changes" reescrito com resumo humano-legível da feature 007 (3 entregas em 1 PR).
+- [x] T200 [P] CLAUDE.md § "Recent Changes" reescrito com resumo humano-legível da feature 007 (3 entregas em 1 PR).
 - [ ] T201 [P] `pnpm supabase:gen-types` — **PENDENTE para o usuário** (precisa Supabase local rodando). Casts `as never` em `materials/list.ts` e `materials/attach.ts` mantem typecheck verde até regen.
-- [X] T202 Gates do projeto que rodaram: `pnpm typecheck` ✅, `pnpm lint:auth` ✅ (69 handlers), `pnpm test` em helpers novos (whatsapp + audit-labels) ✅ 17/17 verdes. Suite completa de `test:integration`/`test:contract` requer Supabase local — pendente para usuário.
+- [x] T202 Gates do projeto que rodaram: `pnpm typecheck` ✅, `pnpm lint:auth` ✅ (69 handlers), `pnpm test` em helpers novos (whatsapp + audit-labels) ✅ 17/17 verdes. Suite completa de `test:integration`/`test:contract` requer Supabase local — pendente para usuário.
 - [ ] T203 Quickstart.md inteiro — **PENDENTE para o usuário** (smoke manual em browser).
-- [X] T204 Diff vs. master revisado: zero TODO/FIXME novos introduzidos; um `console.error` intencional em `pacientes/error.tsx` (digest preservado em logs do servidor). Sem código comentado nem imports não utilizados.
-- [X] T205 Diff de migrations confirma: **apenas `0061_appointment_materials.sql` adicionada** (US1). Zero mudanças de schema para US2/US3. ✅
+- [x] T204 Diff vs. master revisado: zero TODO/FIXME novos introduzidos; um `console.error` intencional em `pacientes/error.tsx` (digest preservado em logs do servidor). Sem código comentado nem imports não utilizados.
+- [x] T205 Diff de migrations confirma: **apenas `0061_appointment_materials.sql` adicionada** (US1). Zero mudanças de schema para US2/US3. ✅
 
 ---
 
@@ -287,6 +288,7 @@ pnpm test tests/unit/material-input-validation.spec.ts
 ### Single PR (alternativa — escolha do usuário)
 
 Como o usuário pediu as 3 features juntas, é viável entregar em 1 PR único:
+
 - Reduz overhead de revisão (3 PRs separados gerariam ruído de imports cruzados).
 - Risco de regressão isolado por phase (US1 e US2/US3 não compartilham arquivos).
 - Após Phase 6 (T202 verde), abrir 1 PR com escopo claro nos 3 commits.
@@ -294,6 +296,7 @@ Como o usuário pediu as 3 features juntas, é viável entregar em 1 PR único:
 ### Parallel Team Strategy
 
 Com 2-3 devs após Phase 1:
+
 - Dev 1: US1 (T010–T073) — tem mais peso técnico (DB + service + UI + tests)
 - Dev 2: US2 (T080–T123) — find-and-replace + helper
 - Dev 3: US3 (T130–T152) — pequeno, pode fazer Polish (Phase 6) também

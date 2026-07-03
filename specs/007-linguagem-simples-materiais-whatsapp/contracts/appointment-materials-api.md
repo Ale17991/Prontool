@@ -29,11 +29,16 @@ Cookie: sb-...
 
 ```ts
 const bodySchema = z.object({
-  materiais: z.array(z.object({
-    tuss_code: z.string().min(1).max(20),
-    tuss_description: z.string().min(1).max(500),
-    quantity: z.number().int().positive().default(1),
-  })).min(1).max(50),
+  materiais: z
+    .array(
+      z.object({
+        tuss_code: z.string().min(1).max(20),
+        tuss_description: z.string().min(1).max(500),
+        quantity: z.number().int().positive().default(1),
+      }),
+    )
+    .min(1)
+    .max(50),
 })
 ```
 
@@ -77,7 +82,12 @@ const bodySchema = z.object({
 ou
 
 ```json
-{ "error": { "code": "MATERIAL_TUSS_INVALID", "message": "Código TUSS não pertence à tabela de materiais ou não está vigente." } }
+{
+  "error": {
+    "code": "MATERIAL_TUSS_INVALID",
+    "message": "Código TUSS não pertence à tabela de materiais ou não está vigente."
+  }
+}
 ```
 
 #### `401 Unauthorized` / `403 Forbidden`
@@ -97,7 +107,12 @@ Atendimento `id` não existe ou não pertence ao tenant.
 Atendimento já foi cancelado (existe row em `appointment_reversals`). Não aceita novos materiais.
 
 ```json
-{ "error": { "code": "APPOINTMENT_REVERSED", "message": "Atendimento já cancelado — não aceita novos materiais." } }
+{
+  "error": {
+    "code": "APPOINTMENT_REVERSED",
+    "message": "Atendimento já cancelado — não aceita novos materiais."
+  }
+}
 ```
 
 #### `500 Internal Server Error`
@@ -105,7 +120,9 @@ Atendimento já foi cancelado (existe row em `appointment_reversals`). Não acei
 Erro genérico (DB indisponível, etc.). Resposta não inclui `digest`.
 
 ```json
-{ "error": { "code": "INTERNAL", "message": "Algo deu errado. Tente novamente em alguns segundos." } }
+{
+  "error": { "code": "INTERNAL", "message": "Algo deu errado. Tente novamente em alguns segundos." }
+}
 ```
 
 ### Side effects
@@ -178,16 +195,21 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const bodySchema = z.object({
-  materiais: z.array(z.object({
-    tuss_code: z.string().min(1).max(20),
-    tuss_description: z.string().min(1).max(500),
-    quantity: z.number().int().positive().default(1),
-  })).min(1).max(50),
+  materiais: z
+    .array(
+      z.object({
+        tuss_code: z.string().min(1).max(20),
+        tuss_description: z.string().min(1).max(500),
+        quantity: z.number().int().positive().default(1),
+      }),
+    )
+    .min(1)
+    .max(50),
 })
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ): Promise<Response> {
   try {
     const session = await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
@@ -198,7 +220,9 @@ export async function POST(
     const parsed = bodySchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }
@@ -213,10 +237,7 @@ export async function POST(
   }
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
       entity: 'appointment_materials',
@@ -233,6 +254,7 @@ export async function GET(
 ```
 
 Service layer (`src/lib/core/appointments/materials/`):
+
 - `attach.ts` — chama RPC `attach_materials_to_appointment`. Mapeia erros do RPC (`APPOINTMENT_NOT_FOUND`, `APPOINTMENT_REVERSED`, `MATERIAL_TUSS_INVALID`) para `DomainError` apropriados.
 - `list.ts` — faz `SELECT` simples; retorna array tipado.
 

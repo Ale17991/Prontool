@@ -110,11 +110,10 @@ export async function checkConflict(
     })
     type DecryptRow = { id: string; full_name: string | null; anonymized_at: string | null }
     const dec = ((rpc.data ?? []) as DecryptRow[])[0]
-    if (dec) patientName = dec.anonymized_at ? '[anonimizado]' : dec.full_name ?? '—'
+    if (dec) patientName = dec.anonymized_at ? '[anonimizado]' : (dec.full_name ?? '—')
   }
 
-  const procedureLabel =
-    apt.procedures?.display_name?.trim() || apt.procedures?.tuss_code || '—'
+  const procedureLabel = apt.procedures?.display_name?.trim() || apt.procedures?.tuss_code || '—'
 
   return {
     appointmentId: hit.appointment_id,
@@ -126,11 +125,6 @@ export async function checkConflict(
   }
 }
 
-export function intervalsOverlap(
-  aStart: Date,
-  aEnd: Date,
-  bStart: Date,
-  bEnd: Date,
-): boolean {
+export function intervalsOverlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date): boolean {
   return aStart.getTime() < bEnd.getTime() && aEnd.getTime() > bStart.getTime()
 }

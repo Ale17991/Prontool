@@ -83,8 +83,7 @@ export function LinkUserPanel({
               const blocked = Boolean(o.linkedToOther) && o.userId !== currentUserId
               return (
                 <option key={o.userId} value={o.userId} disabled={blocked}>
-                  {o.label} ({o.email})
-                  {blocked ? ` — já vinculado a ${o.linkedToOther}` : ''}
+                  {o.label} ({o.email}){blocked ? ` — já vinculado a ${o.linkedToOther}` : ''}
                 </option>
               )
             })}

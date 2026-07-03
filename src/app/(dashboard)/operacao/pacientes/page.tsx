@@ -10,7 +10,14 @@ import type { PatientTag } from '@/lib/core/patient-tags/service'
 import type { Database } from '@/lib/db/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { TagBadge } from '@/components/patient-tags/tag-badge'
 import { formatDate } from '@/lib/utils'
 import { PatientQuickFind } from './patient-quick-find'
@@ -143,49 +150,49 @@ export default async function PacientesPage({ searchParams }: PageProps) {
                 {items.map((p) => {
                   const tags = tagsByPatient.get(p.id) ?? []
                   return (
-                  <TableRow key={p.id} className="group">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                          <User className="h-4 w-4" />
+                    <TableRow key={p.id} className="group">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-slate-900">
+                            {p.anonymizedAt ? '[anonimizado]' : p.fullName || '—'}
+                          </span>
                         </div>
-                        <span className="font-bold text-slate-900">
-                          {p.anonymizedAt ? '[anonimizado]' : p.fullName || '—'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {tags.length === 0 ? (
-                        <span className="text-xs text-slate-300">—</span>
-                      ) : (
-                        <div className="flex flex-wrap gap-1">
-                          {tags.map((t) => (
-                            <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
-                          ))}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-slate-600">
-                      {p.anonymizedAt ? '—' : p.cpf || '—'}
-                    </TableCell>
-                    <TableCell className="text-slate-700">{p.phone || '—'}</TableCell>
-                    <TableCell className="text-slate-700">{formatDate(p.createdAt)}</TableCell>
-                    <TableCell>
-                      {p.anonymizedAt ? (
-                        <Badge variant="secondary">Anonimizado</Badge>
-                      ) : (
-                        <Badge variant="success">Ativo</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link
-                        href={`/operacao/pacientes/${p.id}`}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        Abrir <ChevronRight className="h-3 w-3" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>
+                        {tags.length === 0 ? (
+                          <span className="text-xs text-slate-300">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {tags.map((t) => (
+                              <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                            ))}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-slate-600">
+                        {p.anonymizedAt ? '—' : p.cpf || '—'}
+                      </TableCell>
+                      <TableCell className="text-slate-700">{p.phone || '—'}</TableCell>
+                      <TableCell className="text-slate-700">{formatDate(p.createdAt)}</TableCell>
+                      <TableCell>
+                        {p.anonymizedAt ? (
+                          <Badge variant="secondary">Anonimizado</Badge>
+                        ) : (
+                          <Badge variant="success">Ativo</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/operacao/pacientes/${p.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          Abrir <ChevronRight className="h-3 w-3" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
               </TableBody>

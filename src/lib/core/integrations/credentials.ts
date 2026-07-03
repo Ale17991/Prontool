@@ -26,7 +26,9 @@ export async function decryptCredentials<C>(
     key,
   })
   if (error || data === null || data === undefined) {
-    throw new Error(`dec_text_with_key failed for ${row.provider}: ${error?.message ?? 'null plaintext'}`)
+    throw new Error(
+      `dec_text_with_key failed for ${row.provider}: ${error?.message ?? 'null plaintext'}`,
+    )
   }
   let parsed: unknown
   try {

@@ -21,7 +21,7 @@ Amarrar áreas/dados de nicho a **módulos de especialidade** no sistema de enti
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável** — ✅ Não toca registros financeiros. A migração altera apenas `tenant_entitlements.modules` (configuração mutável, não histórico financeiro). Nenhum `UPDATE/DELETE` em preço/fatura/atendimento.
 - **II. Auditabilidade de Preços** — ✅ Não altera preço/procedimento/convênio. As mudanças de módulo via `/admin` continuam usando o caminho existente (`set_tenant_entitlement`); a migração de backfill é registrada como migração versionada.
@@ -88,6 +88,6 @@ tests/
 
 > Sem violações constitucionais que exijam justificativa. Um item de follow-up consciente (não bloqueante):
 
-| Item | Decisão | Follow-up |
-|------|---------|-----------|
+| Item                                          | Decisão                                                 | Follow-up                                                                                                                                                                       |
+| --------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Enforcement de entitlement em nível de API/DB | Fora de escopo nesta fase (spec: foco é esconder na UI) | Defesa em profundidade (retornar 404/403 nas rotas de módulo desligado) fica como feature futura; sem risco de segurança porque RBAC e isolamento por tenant permanecem ativos. |

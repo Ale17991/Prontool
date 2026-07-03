@@ -57,7 +57,9 @@ export function ExamRequestsSection({
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/pacientes/${patientId}/solicitacoes-exame`, { cache: 'no-store' })
+      const res = await fetch(`/api/pacientes/${patientId}/solicitacoes-exame`, {
+        cache: 'no-store',
+      })
       if (res.ok) {
         const body = (await res.json()) as { rows: ExamRequestRow[] }
         setRows(body.rows)
@@ -100,9 +102,7 @@ export function ExamRequestsSection({
   }, [query])
 
   function addItem(item: ExamItem) {
-    setItems((prev) =>
-      prev.some((p) => p.code && p.code === item.code) ? prev : [...prev, item],
-    )
+    setItems((prev) => (prev.some((p) => p.code && p.code === item.code) ? prev : [...prev, item]))
     setQuery('')
     setResults([])
   }
@@ -231,7 +231,13 @@ export function ExamRequestsSection({
                   placeholder="Ex.: Tomografia de coerência óptica"
                 />
               </div>
-              <Button type="button" size="sm" variant="outline" className="h-9" onClick={addFreeText}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-9"
+                onClick={addFreeText}
+              >
                 Adicionar
               </Button>
             </div>

@@ -50,7 +50,11 @@ export async function withGoogleAuth(
     }
   } catch (err) {
     if (err instanceof GoogleTokenError && err.permanent) {
-      await markGoogleExpired(supabase, { userId, tenantId, expectedUpdatedAt: conn.row.updated_at })
+      await markGoogleExpired(supabase, {
+        userId,
+        tenantId,
+        expectedUpdatedAt: conn.row.updated_at,
+      })
       return { kind: 'needs_reconnect' }
     }
     throw err

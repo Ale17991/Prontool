@@ -52,18 +52,18 @@ vez de competir de frente com os verticalizados em cada nicho.
 Valores **por profissional de saúde/mês** salvo indicação. Recepção/admin geralmente não são
 cobrados.
 
-| Player | Dono/Grupo | Modelo | Entrada | Topo | TISS | Telemedicina | Observações |
-|---|---|---|---|---|---|---|---|
-| **iClinic** | Afya | Por profissional, 4 tiers | Starter **R$ 99** | Premium **R$ 299** | a partir do **Plus (R$ 129)** | ilimitada só no Premium; add-on R$ 35/10 consultas | Sem fidelidade, sem taxa de instalação. Pro (R$ 169) traz financeiro/repasse/estoque |
-| **Feegow** | Docplanner (Doctoralia) | Free + por profissional | Free (até 100 pacientes) → **Plus R$ 129** | Pro **R$ 149** | sim | sim | Plano gratuito é isca de aquisição |
-| **Amplimed** | Independente | Por profissional **+ módulos add-on** | **R$ 89–99** | varia (add-ons dobram/triplicam) | **add-on** | **add-on** | Modelo "núcleo + módulos" — o mais próximo do Clinni |
-| **Clínica nas Nuvens** | Independente | **Plano único (flat)** | **R$ 499/mês** (até 3 prof.) | extra por profissional | incluso | incluso | Contrato 12 meses; tudo incluído |
-| **Shosp** | Independente | Free + 2 tiers | Free (5 usuários) → **Fellowship R$ 149** | Excellence **R$ 229** | a partir do Fellowship | sim | Usuários ilimitados; taxa de setup; 15% desconto anual |
-| **Ninsaúde Apolo** | Independente | Por profissional | **~R$ 79** (ref. 2019; provável reajuste) | — | — | sim | 2 meses grátis no anual |
-| **HiDoctor** (Centralx) | Independente (30+ anos) | Por profissional, rampa promo | R$ 89,90 (6 meses) → R$ 110 → **R$ 195** padrão | — | — | — | Marca tradicional/instalada; rampa de preço cresce após 12 meses |
-| **ProDoctor** | Independente | Por profissional/uso | sob consulta (R$ 50–5.000 conforme porte) | — | — | — | **60 mil+ profissionais** — base instalada gigante, marca consolidada |
-| **Doctoralia Pro** | Docplanner | Marketplace + agenda | R$ 200–600 | Premium ~R$ 599 | n/a | n/a | **Captação de pacientes**, não gestão — concorrente parcial |
-| **Iter / Estetia (nicho estética)** | Independentes | Por clínica | **R$ 39–149** | até R$ 597 | n/a | n/a | Verticalizados em estética |
+| Player                              | Dono/Grupo              | Modelo                                | Entrada                                         | Topo                             | TISS                          | Telemedicina                                       | Observações                                                                          |
+| ----------------------------------- | ----------------------- | ------------------------------------- | ----------------------------------------------- | -------------------------------- | ----------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **iClinic**                         | Afya                    | Por profissional, 4 tiers             | Starter **R$ 99**                               | Premium **R$ 299**               | a partir do **Plus (R$ 129)** | ilimitada só no Premium; add-on R$ 35/10 consultas | Sem fidelidade, sem taxa de instalação. Pro (R$ 169) traz financeiro/repasse/estoque |
+| **Feegow**                          | Docplanner (Doctoralia) | Free + por profissional               | Free (até 100 pacientes) → **Plus R$ 129**      | Pro **R$ 149**                   | sim                           | sim                                                | Plano gratuito é isca de aquisição                                                   |
+| **Amplimed**                        | Independente            | Por profissional **+ módulos add-on** | **R$ 89–99**                                    | varia (add-ons dobram/triplicam) | **add-on**                    | **add-on**                                         | Modelo "núcleo + módulos" — o mais próximo do Clinni                                 |
+| **Clínica nas Nuvens**              | Independente            | **Plano único (flat)**                | **R$ 499/mês** (até 3 prof.)                    | extra por profissional           | incluso                       | incluso                                            | Contrato 12 meses; tudo incluído                                                     |
+| **Shosp**                           | Independente            | Free + 2 tiers                        | Free (5 usuários) → **Fellowship R$ 149**       | Excellence **R$ 229**            | a partir do Fellowship        | sim                                                | Usuários ilimitados; taxa de setup; 15% desconto anual                               |
+| **Ninsaúde Apolo**                  | Independente            | Por profissional                      | **~R$ 79** (ref. 2019; provável reajuste)       | —                                | —                             | sim                                                | 2 meses grátis no anual                                                              |
+| **HiDoctor** (Centralx)             | Independente (30+ anos) | Por profissional, rampa promo         | R$ 89,90 (6 meses) → R$ 110 → **R$ 195** padrão | —                                | —                             | —                                                  | Marca tradicional/instalada; rampa de preço cresce após 12 meses                     |
+| **ProDoctor**                       | Independente            | Por profissional/uso                  | sob consulta (R$ 50–5.000 conforme porte)       | —                                | —                             | —                                                  | **60 mil+ profissionais** — base instalada gigante, marca consolidada                |
+| **Doctoralia Pro**                  | Docplanner              | Marketplace + agenda                  | R$ 200–600                                      | Premium ~R$ 599                  | n/a                           | n/a                                                | **Captação de pacientes**, não gestão — concorrente parcial                          |
+| **Iter / Estetia (nicho estética)** | Independentes           | Por clínica                           | **R$ 39–149**                                   | até R$ 597                       | n/a                           | n/a                                                | Verticalizados em estética                                                           |
 
 ### 1.2 Anatomia das camadas de preço (por profissional/mês)
 
@@ -97,14 +97,14 @@ cobrados.
 O Clinni é profissão-neutro, então compete em cada vertical contra um especialista. Mapear o
 preço e o modelo de cobrança de cada nicho é essencial para empacotar e posicionar:
 
-| Vertical | Players de referência | Faixa de preço | Modelo de cobrança | Sensibilidade a preço |
-|---|---|---|---|---|
-| **Médico / multiespecialidade** | iClinic, Feegow, Amplimed, HiDoctor, ProDoctor | R$ 89–299/prof | **Por profissional** | Média; valoriza TISS, prontuário, financeiro |
-| **Odontologia** | Simples Dental (R$ 137–321), Clinicorp (R$ 150+), Dental Office (R$ 40 mobile) | R$ 137–349/**clínica** | **Por clínica** + add-ons pagos (NF, score, etc.) | Média-alta; valoriza orçamento, contratos, comissão, ortodontia |
-| **Estética** | Iter (R$ 39+), Estetia (R$ 149–597), Belasis | R$ 39–597 | Por clínica | **Alta** — piso muito baixo; valoriza fotos antes/depois, pacotes, WhatsApp |
-| **Psicologia / terapia** | Clínica Ágil (R$ 199/3 usuários), ElloTools (R$ 49,90), PsicoManager, Psicoplanner | R$ 49–199 | Por bundle de usuários | **Muito alta** — consultório solo, margem apertada; valoriza teleatendimento, evolução por IA |
-| **Fisioterapia / Pilates** | ZenFisio (R$ 79/179/439), Clinora (R$ 49,90/usuário), Simples Agenda (R$ 39,90) | R$ 39–439 | Por usuário ou por clínica | Alta; valoriza sessões/pacotes, evolução, multiagenda |
-| **Veterinária** | SimplesVet (base + **módulos**: fiscal R$ 153, internação R$ 136), Vetus (R$ 200–250) | R$ 200–250 + módulos | Por clínica + **add-ons** | Média; valoriza estoque, vacinas, internação, fiscal |
+| Vertical                        | Players de referência                                                                 | Faixa de preço         | Modelo de cobrança                                | Sensibilidade a preço                                                                         |
+| ------------------------------- | ------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Médico / multiespecialidade** | iClinic, Feegow, Amplimed, HiDoctor, ProDoctor                                        | R$ 89–299/prof         | **Por profissional**                              | Média; valoriza TISS, prontuário, financeiro                                                  |
+| **Odontologia**                 | Simples Dental (R$ 137–321), Clinicorp (R$ 150+), Dental Office (R$ 40 mobile)        | R$ 137–349/**clínica** | **Por clínica** + add-ons pagos (NF, score, etc.) | Média-alta; valoriza orçamento, contratos, comissão, ortodontia                               |
+| **Estética**                    | Iter (R$ 39+), Estetia (R$ 149–597), Belasis                                          | R$ 39–597              | Por clínica                                       | **Alta** — piso muito baixo; valoriza fotos antes/depois, pacotes, WhatsApp                   |
+| **Psicologia / terapia**        | Clínica Ágil (R$ 199/3 usuários), ElloTools (R$ 49,90), PsicoManager, Psicoplanner    | R$ 49–199              | Por bundle de usuários                            | **Muito alta** — consultório solo, margem apertada; valoriza teleatendimento, evolução por IA |
+| **Fisioterapia / Pilates**      | ZenFisio (R$ 79/179/439), Clinora (R$ 49,90/usuário), Simples Agenda (R$ 39,90)       | R$ 39–439              | Por usuário ou por clínica                        | Alta; valoriza sessões/pacotes, evolução, multiagenda                                         |
+| **Veterinária**                 | SimplesVet (base + **módulos**: fiscal R$ 153, internação R$ 136), Vetus (R$ 200–250) | R$ 200–250 + módulos   | Por clínica + **add-ons**                         | Média; valoriza estoque, vacinas, internação, fiscal                                          |
 
 **Conclusões por vertical:**
 
@@ -133,15 +133,15 @@ preço e o modelo de cobrança de cada nicho é essencial para empacotar e posic
 A base de código já está organizada em áreas funcionais (seções da sidebar + feature flags +
 specs). Esta é a matéria-prima do empacotamento:
 
-| Área | Capacidades (specs) | Natureza | Onde monetiza |
-|---|---|---|---|
-| **Núcleo / Operação** | Agenda/atendimentos (004,005,025), Pacientes (009), Prontuário + timeline + anamnese + sinais vitais (019), Tarefas (012), Agendamento público (017), Lembretes (018) | Table-stakes | Plano base |
-| **Prescrição digital (Memed)** | Memed integração + conformidade (026, 027) | Diferencial; **grátis para o médico** | Núcleo (custo zero) ou Pro |
-| **Financeiro & Repasse** | Contas a pagar/receber, fluxo de caixa, despesas, impostos (011), repasse médico (023), comissões, relatórios, dashboard | Alto valor de gestão | Tier intermediário |
-| **Faturamento TISS / Convênios** | Config por operadora, guias, lotes, glosas, XML assinado ICP-Brasil (029) | **Regulado (RN 501/2022), alto valor** | **Módulo avulso premium** |
-| **Portal do Paciente** | Login CPF+nascimento, medições, acompanhamento (030, planejado) | Experiência/retenção do paciente | Módulo avulso |
-| **Integrações / CRM** | Homio Marketplace OAuth, webhooks, captação (002, 008, 010) | Marketing/captação | Módulo avulso ou topo |
-| **Multiunidade / Multi-tenant** | Multi-clínica, claims, tenant ativo (010) | Escala | Tier topo |
+| Área                             | Capacidades (specs)                                                                                                                                                   | Natureza                               | Onde monetiza              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------- |
+| **Núcleo / Operação**            | Agenda/atendimentos (004,005,025), Pacientes (009), Prontuário + timeline + anamnese + sinais vitais (019), Tarefas (012), Agendamento público (017), Lembretes (018) | Table-stakes                           | Plano base                 |
+| **Prescrição digital (Memed)**   | Memed integração + conformidade (026, 027)                                                                                                                            | Diferencial; **grátis para o médico**  | Núcleo (custo zero) ou Pro |
+| **Financeiro & Repasse**         | Contas a pagar/receber, fluxo de caixa, despesas, impostos (011), repasse médico (023), comissões, relatórios, dashboard                                              | Alto valor de gestão                   | Tier intermediário         |
+| **Faturamento TISS / Convênios** | Config por operadora, guias, lotes, glosas, XML assinado ICP-Brasil (029)                                                                                             | **Regulado (RN 501/2022), alto valor** | **Módulo avulso premium**  |
+| **Portal do Paciente**           | Login CPF+nascimento, medições, acompanhamento (030, planejado)                                                                                                       | Experiência/retenção do paciente       | Módulo avulso              |
+| **Integrações / CRM**            | Homio Marketplace OAuth, webhooks, captação (002, 008, 010)                                                                                                           | Marketing/captação                     | Módulo avulso ou topo      |
+| **Multiunidade / Multi-tenant**  | Multi-clínica, claims, tenant ativo (010)                                                                                                                             | Escala                                 | Tier topo                  |
 
 **Insight de empacotamento:** o Clinni já tem feature flags (`despesas`, `anamnese`,
 `relatorios`, `comissoes`) e RBAC por papel — a infraestrutura técnica de "ligar/desligar
@@ -175,37 +175,37 @@ do iClinic Premium (R$ 299). A modularidade é o diferencial: o cliente paga só
 
 ### 4.1 Três planos base (por profissional/mês)
 
-| | **Clinni Essencial** | **Clinni Pro** ⭐ | **Clinni Clínica** |
-|---|---|---|---|
-| **Preço mensal** | **R$ 99**/prof | **R$ 169**/prof | **R$ 259**/prof |
-| **Preço anual** (~16% off / 2 meses grátis) | R$ 990/ano | R$ 1.690/ano | R$ 2.590/ano |
-| **Alvo** | Consultório solo / início | Clínica em crescimento | Multiespecialidade / rede |
-| Agenda + atendimentos | ✅ | ✅ | ✅ |
-| Pacientes + Prontuário + Anamnese | ✅ | ✅ | ✅ |
-| Prescrição digital (Memed) | ✅ | ✅ | ✅ |
-| Agendamento público | ✅ | ✅ | ✅ |
-| Lembretes (e-mail) | ✅ | ✅ | ✅ |
-| Lembretes/Confirmação **WhatsApp** | — | ✅ | ✅ |
-| Tarefas e notificações | ✅ | ✅ | ✅ |
-| **Financeiro completo** (contas, fluxo de caixa, despesas, impostos) | — | ✅ | ✅ |
-| **Repasse médico + Comissões** | — | ✅ | ✅ |
-| Relatórios + Dashboard | básico | completo | completo + BI |
-| **Multiunidade** (multi-clínica) | — | — | ✅ |
-| Auditoria / logs avançados | — | — | ✅ |
-| Suporte | padrão | prioritário | dedicado |
+|                                                                      | **Clinni Essencial**      | **Clinni Pro** ⭐      | **Clinni Clínica**        |
+| -------------------------------------------------------------------- | ------------------------- | ---------------------- | ------------------------- |
+| **Preço mensal**                                                     | **R$ 99**/prof            | **R$ 169**/prof        | **R$ 259**/prof           |
+| **Preço anual** (~16% off / 2 meses grátis)                          | R$ 990/ano                | R$ 1.690/ano           | R$ 2.590/ano              |
+| **Alvo**                                                             | Consultório solo / início | Clínica em crescimento | Multiespecialidade / rede |
+| Agenda + atendimentos                                                | ✅                        | ✅                     | ✅                        |
+| Pacientes + Prontuário + Anamnese                                    | ✅                        | ✅                     | ✅                        |
+| Prescrição digital (Memed)                                           | ✅                        | ✅                     | ✅                        |
+| Agendamento público                                                  | ✅                        | ✅                     | ✅                        |
+| Lembretes (e-mail)                                                   | ✅                        | ✅                     | ✅                        |
+| Lembretes/Confirmação **WhatsApp**                                   | —                         | ✅                     | ✅                        |
+| Tarefas e notificações                                               | ✅                        | ✅                     | ✅                        |
+| **Financeiro completo** (contas, fluxo de caixa, despesas, impostos) | —                         | ✅                     | ✅                        |
+| **Repasse médico + Comissões**                                       | —                         | ✅                     | ✅                        |
+| Relatórios + Dashboard                                               | básico                    | completo               | completo + BI             |
+| **Multiunidade** (multi-clínica)                                     | —                         | —                      | ✅                        |
+| Auditoria / logs avançados                                           | —                         | —                      | ✅                        |
+| Suporte                                                              | padrão                    | prioritário            | dedicado                  |
 
 ⭐ **Pro é o plano-âncora** (o que a maioria deve escolher). O salto Essencial→Pro é justificado
 por financeiro + repasse + WhatsApp — o coração da gestão de uma clínica com mais de um sócio.
 
 ### 4.2 Módulos à la carte (somados a qualquer plano)
 
-| Módulo | Preço sugerido | Requisito | Justificativa de preço |
-|---|---|---|---|
-| **Faturamento TISS / Convênios** | **R$ 89/prof** ou **R$ 199/clínica** (flat) | Pro+ | Regulado (RN 501/2022), XML assinado ICP-Brasil, alto valor, substitui faturista. Mercado já paywalla. |
-| **Portal do Paciente** | **R$ 79/clínica** | qualquer | Diferencial de retenção; custo por clínica, não por prof. |
-| **Telemedicina** | **R$ 39/prof** (pacote) ou por uso | qualquer | Padrão de mercado (iClinic R$ 35/10 consultas). |
-| **Integrações / CRM (Homio)** | **a partir de R$ 156/clínica** ou **incluso no Clínica** | Pro+ | Captação/marketing; valor de receita incremental para a clínica. |
-| **Certificado / assinatura ICP-Brasil A1** | repasse de custo + R$ 0 de markup | TISS/Memed | Não monetizar — reduzir atrito de adoção do TISS. |
+| Módulo                                     | Preço sugerido                                           | Requisito  | Justificativa de preço                                                                                 |
+| ------------------------------------------ | -------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| **Faturamento TISS / Convênios**           | **R$ 89/prof** ou **R$ 199/clínica** (flat)              | Pro+       | Regulado (RN 501/2022), XML assinado ICP-Brasil, alto valor, substitui faturista. Mercado já paywalla. |
+| **Portal do Paciente**                     | **R$ 79/clínica**                                        | qualquer   | Diferencial de retenção; custo por clínica, não por prof.                                              |
+| **Telemedicina**                           | **R$ 39/prof** (pacote) ou por uso                       | qualquer   | Padrão de mercado (iClinic R$ 35/10 consultas).                                                        |
+| **Integrações / CRM (Homio)**              | **a partir de R$ 156/clínica** ou **incluso no Clínica** | Pro+       | Captação/marketing; valor de receita incremental para a clínica.                                       |
+| **Certificado / assinatura ICP-Brasil A1** | repasse de custo + R$ 0 de markup                        | TISS/Memed | Não monetizar — reduzir atrito de adoção do TISS.                                                      |
 
 > **Prescrição Memed fica no núcleo** (custo zero — a Memed é gratuita para o prescritor) como
 > diferencial competitivo: o iClinic só dá prescrição eletrônica a partir do Starter, e
@@ -239,15 +239,15 @@ por financeiro + repasse + WhatsApp — o coração da gestão de uma clínica c
 
 ### 5.2 Indicadores a instrumentar (sugestão de metas iniciais)
 
-| Métrica | Definição | Meta de referência |
-|---|---|---|
-| ARPA | Receita média por conta/mês | ≥ R$ 600 (Pro + 1 módulo) |
-| Mix de plano | % em Pro (âncora) | ≥ 55% |
-| Anexação de módulo | % de contas com ≥ 1 add-on | ≥ 35% (TISS sendo o líder) |
-| Trial→pago | conversão | ≥ 25% |
-| Churn mensal | logo churn | ≤ 2,5% |
-| LTV/CAC | razão | ≥ 3× |
-| % receita anual | base em contrato anual | ≥ 40% |
+| Métrica            | Definição                   | Meta de referência         |
+| ------------------ | --------------------------- | -------------------------- |
+| ARPA               | Receita média por conta/mês | ≥ R$ 600 (Pro + 1 módulo)  |
+| Mix de plano       | % em Pro (âncora)           | ≥ 55%                      |
+| Anexação de módulo | % de contas com ≥ 1 add-on  | ≥ 35% (TISS sendo o líder) |
+| Trial→pago         | conversão                   | ≥ 25%                      |
+| Churn mensal       | logo churn                  | ≤ 2,5%                     |
+| LTV/CAC            | razão                       | ≥ 3×                       |
+| % receita anual    | base em contrato anual      | ≥ 40%                      |
 
 > CAC/LTV exatos dependem do canal de aquisição (a landing usa CTA WhatsApp, sem funil pago
 > ainda). Recomenda-se medir desde o primeiro mês para calibrar os preços acima.

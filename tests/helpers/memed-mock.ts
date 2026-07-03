@@ -47,7 +47,13 @@ export function mockMemed(opts: MockMemedOptions = {}): { token: string } {
     ),
     http.get(`${STAGING_BASE}/especialidades`, () =>
       HttpResponse.json(
-        { data: specialties.map((s) => ({ id: s.id, type: 'especialidades', attributes: { nome: s.nome } })) },
+        {
+          data: specialties.map((s) => ({
+            id: s.id,
+            type: 'especialidades',
+            attributes: { nome: s.nome },
+          })),
+        },
         { status: 200 },
       ),
     ),
@@ -107,7 +113,13 @@ export async function seedMemedPrescriber(
 export async function setDoctorPrescriberFields(
   doctorId: string,
   tenantId: string,
-  opts: { cpf?: string; councilName?: string; councilNumber?: string; councilState?: string; birthDate?: string } = {},
+  opts: {
+    cpf?: string
+    councilName?: string
+    councilNumber?: string
+    councilState?: string
+    birthDate?: string
+  } = {},
 ): Promise<void> {
   const sb = serviceClient()
   await sb

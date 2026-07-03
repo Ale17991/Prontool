@@ -62,11 +62,7 @@ describe('Feature 012 — cadastro manual com vínculo a doctor', () => {
 
     // Confirma DB: doctors.user_id setado
     const sb = serviceClient()
-    const { data: d } = await sb
-      .from('doctors')
-      .select('user_id')
-      .eq('id', doctorId)
-      .single()
+    const { data: d } = await sb.from('doctors').select('user_id').eq('id', doctorId).single()
     expect((d as { user_id: string | null }).user_id).toBe(body.user_id)
 
     // Audit

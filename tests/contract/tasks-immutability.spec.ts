@@ -7,11 +7,7 @@
  * status/notes/priority/completed_* permanecem mutáveis (com audit).
  */
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  rlsClient,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
@@ -93,7 +89,10 @@ describe('Feature 012 — tasks immutability', () => {
 
   it('DELETE físico é rejeitado por enforce_append_only', async () => {
     const sb = rlsClient(adminJwt)
-    const { error } = await sb.from('tasks' as never).delete().eq('id', taskId)
+    const { error } = await sb
+      .from('tasks' as never)
+      .delete()
+      .eq('id', taskId)
     expect(error).not.toBeNull()
     const sbSvc = serviceClient()
     const { data } = await sbSvc

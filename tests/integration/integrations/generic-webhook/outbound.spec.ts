@@ -116,10 +116,12 @@ describe('Polish — generic_webhook + multi-adapter fan-out', () => {
     let ghlCalled = 0
     let genericCalled = 0
     mswServer.use(
-      http.post(`${OPS_URL}/functions/v1/create-contact`, () => {
+      // GHL v2 (feature 008): o adapter posta direto na API do LeadConnector
+      // via withGhlAuth — não mais no proxy OPS_URL/functions/v1/create-contact.
+      http.post('https://services.leadconnectorhq.com/contacts/', () => {
         ghlCalled++
         // GHL fails — must NOT prevent generic_webhook from succeeding
-        return HttpResponse.json({ error: 'proxy down' }, { status: 502 })
+        return HttpResponse.json({ error: 'ghl down' }, { status: 502 })
       }),
       http.post(GENERIC_URL, () => {
         genericCalled++
@@ -140,8 +142,9 @@ describe('Polish — generic_webhook + multi-adapter fan-out', () => {
     const body = (await res.json()) as {
       integrationsDispatched: Array<{ provider: string; ok: boolean; detail: string }>
     }
-    // Both adapters were invoked
-    expect(ghlCalled).toBe(1)
+    // Both adapters were invoked. O adapter GHL v2 re-tenta 1x em 5xx
+    // (fetchWithRetry) → 2 hits; o que importa é que foi chamado e falhou.
+    expect(ghlCalled).toBeGreaterThanOrEqual(1)
     expect(genericCalled).toBe(1)
     // Exactly one failure, one success
     expect(body.integrationsDispatched).toHaveLength(2)

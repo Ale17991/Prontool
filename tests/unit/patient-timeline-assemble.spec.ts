@@ -4,10 +4,7 @@
  * de paciente anonimizado, deleted_at em clinical_records, limit.
  */
 import { describe, it, expect } from 'vitest'
-import {
-  assembleTimelineEvents,
-  collectAuthorUserIds,
-} from '@/lib/core/patient-timeline/assemble'
+import { assembleTimelineEvents, collectAuthorUserIds } from '@/lib/core/patient-timeline/assemble'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
 import type { VitalSignsDTO } from '@/lib/core/patient-medical/vital-signs'
 import type { PaymentRecordDTO } from '@/lib/core/payments/list'
@@ -29,24 +26,26 @@ function makeClinical(
     fileName: type === 'arquivo' ? 'x.pdf' : null,
     fileUrl: null,
     fileSizeBytes: null,
-    anamnesisData: type === 'anamnese'
-      ? {
-          template_id: 't1',
-          template_version: 1,
-          template_title: 'Padrão',
-          fields: [],
-          responses: {},
-        }
-      : null,
-    soapData: type === 'evolucao'
-      ? {
-          subjective: 'queixa',
-          objective: null,
-          assessment: 'avaliação',
-          plan: null,
-          assessment_cids: [],
-        }
-      : null,
+    anamnesisData:
+      type === 'anamnese'
+        ? {
+            template_id: 't1',
+            template_version: 1,
+            template_title: 'Padrão',
+            fields: [],
+            responses: {},
+          }
+        : null,
+    soapData:
+      type === 'evolucao'
+        ? {
+            subjective: 'queixa',
+            objective: null,
+            assessment: 'avaliação',
+            plan: null,
+            assessment_cids: [],
+          }
+        : null,
     createdBy,
     createdAt,
     deletedAt,
@@ -109,11 +108,7 @@ describe('assembleTimelineEvents', () => {
       payments: [],
       isAnonymized: false,
     })
-    expect(events.map((e) => e.id)).toEqual([
-      'clinical:c2',
-      'clinical:c3',
-      'clinical:c1',
-    ])
+    expect(events.map((e) => e.id)).toEqual(['clinical:c2', 'clinical:c3', 'clinical:c1'])
   })
 
   it('aplica tiebreak por kind quando occurredAt é igual', () => {
@@ -130,12 +125,7 @@ describe('assembleTimelineEvents', () => {
       isAnonymized: false,
     })
     // ordem: evolucao(7), anamnese(6), vital(5), texto(2)
-    expect(events.map((e) => e.kind)).toEqual([
-      'evolucao',
-      'anamnese',
-      'vital',
-      'texto',
-    ])
+    expect(events.map((e) => e.kind)).toEqual(['evolucao', 'anamnese', 'vital', 'texto'])
   })
 
   it('paciente anonimizado: retorna apenas appointment + payment', () => {
@@ -175,7 +165,9 @@ describe('assembleTimelineEvents', () => {
   it('respeita limit cortando os eventos mais antigos', () => {
     const records: ClinicalRecordRow[] = []
     for (let i = 0; i < 10; i++) {
-      records.push(makeClinical(`c${i}`, 'texto', `2026-05-${(i + 1).toString().padStart(2, '0')}T10:00:00Z`))
+      records.push(
+        makeClinical(`c${i}`, 'texto', `2026-05-${(i + 1).toString().padStart(2, '0')}T10:00:00Z`),
+      )
     }
     const events = assembleTimelineEvents({
       clinicalRecords: records,
@@ -210,7 +202,13 @@ describe('assembleTimelineEvents', () => {
       clinicalRecords: [],
       vitalSigns: [],
       appointments: [
-        { id: 'a1', appointmentAt: null, frozenAmountCents: null, netAmountCents: null, effectiveStatus: null },
+        {
+          id: 'a1',
+          appointmentAt: null,
+          frozenAmountCents: null,
+          netAmountCents: null,
+          effectiveStatus: null,
+        },
       ],
       payments: [],
       isAnonymized: false,
@@ -229,7 +227,13 @@ describe('collectAuthorUserIds', () => {
       ],
       vitalSigns: [makeVital('v1', '2026-05-04T10:00:00Z', 'user-c')],
       appointments: [
-        { id: 'a1', appointmentAt: '2026-05-05T10:00:00Z', frozenAmountCents: null, netAmountCents: null, effectiveStatus: null },
+        {
+          id: 'a1',
+          appointmentAt: '2026-05-05T10:00:00Z',
+          frozenAmountCents: null,
+          netAmountCents: null,
+          effectiveStatus: null,
+        },
       ],
       payments: [],
       isAnonymized: false,

@@ -30,7 +30,10 @@ export interface ReceivableRow {
 }
 
 const STATUS_META: Record<ReceiptStatus, { label: string; cls: string }> = {
-  pendente: { label: 'Pendente', cls: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]' },
+  pendente: {
+    label: 'Pendente',
+    cls: 'bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+  },
   recebido: { label: 'Recebido', cls: 'bg-success-bg text-success-text' },
   glosado: { label: 'Glosado', cls: 'bg-destructive/10 text-destructive' },
   nao_recebido: { label: 'Não recebido', cls: 'bg-slate-100 text-slate-600' },
@@ -117,7 +120,12 @@ export function ReceivablesTable({
           <TableRow>
             {canManage ? (
               <TableHead className="w-8">
-                <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Selecionar tudo" />
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  aria-label="Selecionar tudo"
+                />
               </TableHead>
             ) : null}
             <TableHead>Data</TableHead>
@@ -131,7 +139,10 @@ export function ReceivablesTable({
         </TableHeader>
         <TableBody>
           {rows.map((r) => (
-            <TableRow key={r.procedureLineId} data-state={selected.has(r.procedureLineId) ? 'selected' : undefined}>
+            <TableRow
+              key={r.procedureLineId}
+              data-state={selected.has(r.procedureLineId) ? 'selected' : undefined}
+            >
               {canManage ? (
                 <TableCell>
                   <input

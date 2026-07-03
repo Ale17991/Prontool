@@ -10,28 +10,35 @@
 ```typescript
 export async function saveReminderConfig(input: ReminderConfigUpdate): Promise<
   | { ok: true }
-  | { ok: false; error: 'UNAUTHORIZED' | 'INVALID_PAYLOAD'; details?: Array<{ field: string; message: string }> }
+  | {
+      ok: false
+      error: 'UNAUTHORIZED' | 'INVALID_PAYLOAD'
+      details?: Array<{ field: string; message: string }>
+    }
 >
 ```
 
 ## Input schema (Zod)
 
 ```typescript
-export const ReminderConfigUpdateSchema = z.object({
-  enabled: z.boolean(),
-  offsets: z.array(z.number().int().min(0).max(168)).min(1).max(5),
-  sendWeekends: z.boolean(),
-  windowStart: z.string().regex(/^\d{2}:\d{2}$/),  // HH:MM
-  windowEnd: z.string().regex(/^\d{2}:\d{2}$/),
-  templateSubject: z.string().max(200).nullable(),
-  templateBody: z.string().max(10000).nullable(),
-}).refine(
-  (v) => v.windowEnd > v.windowStart,
-  { message: 'Janela inválida: fim deve ser maior que início', path: ['windowEnd'] }
-).refine(
-  (v) => !v.enabled || v.offsets.length >= 1,
-  { message: 'Para habilitar, defina ao menos uma antecedência', path: ['enabled'] }
-)
+export const ReminderConfigUpdateSchema = z
+  .object({
+    enabled: z.boolean(),
+    offsets: z.array(z.number().int().min(0).max(168)).min(1).max(5),
+    sendWeekends: z.boolean(),
+    windowStart: z.string().regex(/^\d{2}:\d{2}$/), // HH:MM
+    windowEnd: z.string().regex(/^\d{2}:\d{2}$/),
+    templateSubject: z.string().max(200).nullable(),
+    templateBody: z.string().max(10000).nullable(),
+  })
+  .refine((v) => v.windowEnd > v.windowStart, {
+    message: 'Janela inválida: fim deve ser maior que início',
+    path: ['windowEnd'],
+  })
+  .refine((v) => !v.enabled || v.offsets.length >= 1, {
+    message: 'Para habilitar, defina ao menos uma antecedência',
+    path: ['enabled'],
+  })
 ```
 
 ## Flow

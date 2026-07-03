@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Adicionar visualização em calendário nos atendimentos, melhorar typeahead TUSS, completar catálogo odontológico e adicionar navegação de volta. Incluir filtro de profissionais no calendário."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Visualização em calendário dos atendimentos com filtro por profissional (Priority: P1)
 
@@ -90,11 +90,12 @@ A administradora suspeita que o catálogo TUSS Tabela 22 importado (5.851 códig
 - **Botão Voltar no detalhe quando o atendimento veio de uma busca/filtro específico**: sempre volta para `/operacao/atendimentos` sem preservar filtros (decisão consciente — comportamento previsível em vez de mágica).
 - **Conflito de fuso horário**: `appointment_at` é armazenado em UTC; a renderização usa o fuso da clínica (Brasil). Atendimento criado às 23:30 local não pode aparecer no dia seguinte.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 #### Calendário (US1)
+
 - **FR-001**: Sistema MUST oferecer alternância entre as visualizações "Lista" e "Calendário" na página `/operacao/atendimentos`, preservando os filtros de período e status já existentes.
 - **FR-002**: Sistema MUST renderizar a visualização Calendário em modo Semana por padrão, com colunas de domingo a sábado e linhas de hora de 07:00 a 22:00 em granularidade de 1 hora.
 - **FR-003**: Sistema MUST exibir uma linha horizontal vermelha indicando a hora atual, posicionada apenas na coluna do dia corrente, atualizada a cada minuto.
@@ -110,6 +111,7 @@ A administradora suspeita que o catálogo TUSS Tabela 22 importado (5.851 códig
 - **FR-013**: Sistema MUST tratar atendimentos sobrepostos no mesmo slot dispondo blocos lado a lado proporcionalmente, com fallback "+N mais" quando ultrapassar limite de legibilidade.
 
 #### Typeahead TUSS (US2)
+
 - **FR-020**: Todos os typeaheads de código TUSS do sistema MUST renderizar dropdown com largura suficiente para acomodar o texto completo do procedimento (até um máximo razoável da viewport).
 - **FR-021**: Nomes que ultrapassem a largura disponível MUST quebrar em até 2 linhas; reticências/truncamento são proibidos.
 - **FR-022**: Cada formulário com typeahead TUSS MUST oferecer botão "Ver em lista" que abre uma visualização tabular do catálogo, com colunas: Código TUSS, Nome completo, Tabela (badge identificando 22/19/20).
@@ -118,21 +120,23 @@ A administradora suspeita que o catálogo TUSS Tabela 22 importado (5.851 códig
 - **FR-025**: Selecionar uma linha em "Ver em lista" MUST aplicar a seleção ao formulário de origem e fechar a visualização.
 
 #### Catálogo odontológico (US4)
+
 - **FR-030**: Sistema MUST executar reconciliação entre o catálogo `tuss_codes` local e a versão oficial mais recente publicada pela ANS (Padrão TISS Componente de Conteúdo) para a Tabela 22, gerando relatório de diferenças com contagem por prefixo (81–88).
 - **FR-031**: Quando a reconciliação identificar códigos oficiais ausentes, Sistema MUST adicioná-los via migration ou seed, registrando a versão fonte em `tuss_catalog_versions`.
 - **FR-032**: O relatório MUST explicitar quando um prefixo esperado (ex.: 88) não existe na fonte oficial, distinguindo "ausência confirmada como esperada" de "lacuna real".
 
 #### Navegação (US3)
+
 - **FR-040**: Páginas `/operacao/atendimentos/[id]` e `/operacao/atendimentos/novo` MUST exibir botão "Voltar" no topo, visualmente claro (não apenas link textual discreto), que navega de volta para `/operacao/atendimentos`.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Atendimento (`appointments`)**: representação de um atendimento clínico realizado. Atributos relevantes para esta feature: identificador, paciente, profissional (`doctor_id`), procedimento, data/hora de início (`appointment_at`), **duração em minutos (`duration_minutes`, novo, default 30)**, status efetivo (ativo/estornado), valor congelado.
 - **Profissional (`doctors`)**: profissional de saúde da clínica. Atributos relevantes: identificador, nome completo, status ativo/inativo. Usado pelo filtro do calendário.
 - **Catálogo TUSS (`tuss_codes`)**: catálogo de códigos TUSS publicados pela ANS. Atributos: código, descrição, tabela (22 procedimentos / 19 materiais / 20 medicamentos), vigência. Usado pelos typeaheads e pela reconciliação odonto.
 - **Versão do catálogo TUSS (`tuss_catalog_versions`)**: identifica origem e momento de cada importação do catálogo, para rastreabilidade da reconciliação odonto.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

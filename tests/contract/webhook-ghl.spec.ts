@@ -28,7 +28,17 @@ interface OpenApiOperation {
   requestBody?: { content?: Record<string, { schema?: unknown }> }
   responses?: Record<
     string,
-    { content?: Record<string, { schema?: { required?: string[]; properties?: Record<string, { type?: string; format?: string }> } }> }
+    {
+      content?: Record<
+        string,
+        {
+          schema?: {
+            required?: string[]
+            properties?: Record<string, { type?: string; format?: string }>
+          }
+        }
+      >
+    }
   >
 }
 

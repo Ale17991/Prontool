@@ -34,9 +34,7 @@ export function NewExpenseForm() {
   const [description, setDescription] = useState('')
   const [supplier, setSupplier] = useState('')
   const [amount, setAmount] = useState('')
-  const [competenceDate, setCompetenceDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  )
+  const [competenceDate, setCompetenceDate] = useState(new Date().toISOString().slice(0, 10))
   const [recurring, setRecurring] = useState(false)
   const [frequency, setFrequency] = useState('mensal')
   // Feature 011 — US3: vínculo a imposto cadastrado.
@@ -63,9 +61,7 @@ export function NewExpenseForm() {
         if (!cancelled) setTaxOptions(list)
       } catch (err) {
         if (!cancelled) {
-          setTaxLoadError(
-            err instanceof Error ? err.message : 'Falha ao carregar impostos.',
-          )
+          setTaxLoadError(err instanceof Error ? err.message : 'Falha ao carregar impostos.')
         }
       }
     })()
@@ -222,8 +218,8 @@ export function NewExpenseForm() {
             </p>
           ) : null}
           <p className="mt-1 text-[11px] text-slate-500">
-            Categoria será forçada para &quot;Impostos&quot; e a despesa entrará no
-            relatório separada das despesas operacionais.
+            Categoria será forçada para &quot;Impostos&quot; e a despesa entrará no relatório
+            separada das despesas operacionais.
           </p>
         </div>
       ) : (
@@ -248,7 +244,10 @@ export function NewExpenseForm() {
       )}
 
       <div>
-        <Label htmlFor="expense-description" className="text-[11px] font-bold uppercase text-slate-500">
+        <Label
+          htmlFor="expense-description"
+          className="text-[11px] font-bold uppercase text-slate-500"
+        >
           Descrição
         </Label>
         <Input
@@ -261,7 +260,10 @@ export function NewExpenseForm() {
       </div>
 
       <div>
-        <Label htmlFor="expense-supplier" className="text-[11px] font-bold uppercase text-slate-500">
+        <Label
+          htmlFor="expense-supplier"
+          className="text-[11px] font-bold uppercase text-slate-500"
+        >
           Fornecedor (opcional)
         </Label>
         <Input
@@ -274,7 +276,10 @@ export function NewExpenseForm() {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="expense-amount" className="text-[11px] font-bold uppercase text-slate-500">
+          <Label
+            htmlFor="expense-amount"
+            className="text-[11px] font-bold uppercase text-slate-500"
+          >
             Valor (R$)
           </Label>
           <Input
@@ -339,9 +344,7 @@ export function NewExpenseForm() {
               >
                 <Paperclip className="h-3.5 w-3.5 shrink-0 text-slate-500" />
                 <span className="flex-1 truncate text-slate-700">{f.name}</span>
-                <span className="shrink-0 text-slate-400">
-                  {(f.size / 1024).toFixed(0)} KB
-                </span>
+                <span className="shrink-0 text-slate-400">{(f.size / 1024).toFixed(0)} KB</span>
                 <button
                   type="button"
                   onClick={() => {

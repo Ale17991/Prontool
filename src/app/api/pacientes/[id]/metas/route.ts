@@ -26,7 +26,11 @@ const setSchema = z.object({
 
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_metric_goals', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_metric_goals',
+      route: ROUTE,
+      request: req,
+    })
     const supabase = createSupabaseServiceClient()
     const goals = await listGoals(supabase, session.tenantId, params.id)
     return NextResponse.json({ goals }, { status: 200 })
@@ -35,9 +39,16 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_metric_goals', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_metric_goals',
+      route: ROUTE,
+      request: req,
+    })
     const parsed = setSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
@@ -60,12 +71,22 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
-    const session = await requireRole(ROLES, { entity: 'patient_metric_goals', route: ROUTE, request: req })
+    const session = await requireRole(ROLES, {
+      entity: 'patient_metric_goals',
+      route: ROUTE,
+      request: req,
+    })
     const metricType = new URL(req.url).searchParams.get('metricType')
     if (!metricType) {
-      return NextResponse.json({ error: { code: 'INVALID_BODY', message: 'metricType obrigatório.' } }, { status: 422 })
+      return NextResponse.json(
+        { error: { code: 'INVALID_BODY', message: 'metricType obrigatório.' } },
+        { status: 422 },
+      )
     }
     const supabase = createSupabaseServiceClient()
     await deactivateGoal(supabase, { tenantId: session.tenantId, patientId: params.id, metricType })

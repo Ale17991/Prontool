@@ -34,13 +34,13 @@
 
 **Mapping** to internal shape:
 
-| ViaCEP field | Internal | Transform |
-|--------------|----------|-----------|
-| `cep` | `address.cep` | strip `-` |
-| `logradouro` | `address.street` | trim |
-| `bairro` | `address.neighborhood` | trim |
-| `localidade` | `address.city` | trim |
-| `uf` | `address.uf` | uppercase |
+| ViaCEP field | Internal               | Transform |
+| ------------ | ---------------------- | --------- |
+| `cep`        | `address.cep`          | strip `-` |
+| `logradouro` | `address.street`       | trim      |
+| `bairro`     | `address.neighborhood` | trim      |
+| `localidade` | `address.city`         | trim      |
+| `uf`         | `address.uf`           | uppercase |
 
 `complemento` is **discarded** — internal field is user-input only.
 
@@ -55,13 +55,13 @@ ViaCEP returns HTTP 200 with body `{ "erro": true }`.
 
 ## Failure modes
 
-| Scenario | Detection | Mapped response |
-|----------|-----------|-----------------|
-| Network unreachable | `fetch` throws | `{ ok: false, reason: 'unavailable' }` |
-| Timeout (>3s) | `AbortSignal` fires | `{ ok: false, reason: 'timeout' }` |
-| Non-200 status | `res.ok === false` | `{ ok: false, reason: 'unavailable' }` |
-| Invalid JSON | `await res.json()` throws | `{ ok: false, reason: 'unavailable' }` |
-| `{ erro: true }` body | check field | `{ ok: false, reason: 'not_found' }` |
+| Scenario              | Detection                 | Mapped response                        |
+| --------------------- | ------------------------- | -------------------------------------- |
+| Network unreachable   | `fetch` throws            | `{ ok: false, reason: 'unavailable' }` |
+| Timeout (>3s)         | `AbortSignal` fires       | `{ ok: false, reason: 'timeout' }`     |
+| Non-200 status        | `res.ok === false`        | `{ ok: false, reason: 'unavailable' }` |
+| Invalid JSON          | `await res.json()` throws | `{ ok: false, reason: 'unavailable' }` |
+| `{ erro: true }` body | check field               | `{ ok: false, reason: 'not_found' }`   |
 
 The internal endpoint **never** returns 5xx for ViaCEP failures — the front continues with manual entry (FR-007 + edge case "CEP indisponível"). Status is always `200 OK` with `ok: false` payload, except for client errors (400 `invalid_cep`).
 

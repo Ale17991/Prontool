@@ -49,6 +49,7 @@ pnpm typecheck
 ```
 
 Casos-chave a cobrir:
+
 - **Tenant isolation**: paciente do tenant B não retorna marcações do tenant A (RPC + RLS).
 - **RBAC**: `recepcionista` não consegue POST de marcação; não super-admin não acessa catálogo admin.
 - **Append-only**: UPDATE/DELETE em `dental_chart_entries` falha (42501).

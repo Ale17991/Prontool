@@ -112,13 +112,21 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
   }
   for (const g of guias) {
     if (g.health_plan_id !== healthPlanId) {
-      throw new ConflictError('TISS_LOTE_MIXED_OPERATOR', 'Um lote só pode conter guias de uma única operadora.')
+      throw new ConflictError(
+        'TISS_LOTE_MIXED_OPERATOR',
+        'Um lote só pode conter guias de uma única operadora.',
+      )
     }
     if (g.status !== 'pronta') {
-      throw new ValidationError(`Guia ${g.guia_number_prestador} não está pronta (status ${g.status}).`)
+      throw new ValidationError(
+        `Guia ${g.guia_number_prestador} não está pronta (status ${g.status}).`,
+      )
     }
     if (g.lote_id) {
-      throw new ConflictError('TISS_GUIA_ALREADY_IN_LOTE', `Guia ${g.guia_number_prestador} já está em um lote.`)
+      throw new ConflictError(
+        'TISS_GUIA_ALREADY_IN_LOTE',
+        `Guia ${g.guia_number_prestador} já está em um lote.`,
+      )
     }
   }
   // O XSD restringe `guiasTISS` a UM tipo de guia por lote (choice). Exige
@@ -147,7 +155,9 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
     .maybeSingle()
   if (certErr) throw new Error(`createLote read certificate: ${certErr.message}`)
   if (!cert) {
-    throw new ValidationError('Nenhum certificado ICP-Brasil A1 ativo — cadastre um para assinar o lote.')
+    throw new ValidationError(
+      'Nenhum certificado ICP-Brasil A1 ativo — cadastre um para assinar o lote.',
+    )
   }
   const [pfxBase64, pfxPassword] = await Promise.all([
     decText(supabase, cert.pfx_enc as unknown as string),
@@ -160,7 +170,9 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
   const consultaModels: ConsultaGuiaModel[] = []
   const spSadtModels: SpSadtGuiaModel[] = []
   for (const g of guias) {
-    const benef = JSON.parse(await decText(supabase, g.beneficiary_snapshot_enc as unknown as string)) as {
+    const benef = JSON.parse(
+      await decText(supabase, g.beneficiary_snapshot_enc as unknown as string),
+    ) as {
       nome: string | null
       carteira: string | null
     }
@@ -178,7 +190,9 @@ export async function createLote(args: CreateLoteArgs): Promise<CreateLoteResult
     if (loteType === 'sp_sadt') {
       const { data: rawLines } = await supabase
         .from('tiss_guia_procedures')
-        .select('sequence, tuss_table, procedure_code, description, quantity, unit_amount_cents, total_amount_cents')
+        .select(
+          'sequence, tuss_table, procedure_code, description, quantity, unit_amount_cents, total_amount_cents',
+        )
         .eq('guia_id', g.id)
         .order('sequence', { ascending: true })
       const procLines = (rawLines ?? []) as unknown as Array<{

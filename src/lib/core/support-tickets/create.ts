@@ -55,9 +55,7 @@ export async function createSupportTicket(
     .single()
 
   if (insertRes.error || !insertRes.data) {
-    throw new Error(
-      `createSupportTicket insert: ${insertRes.error?.message ?? 'no data returned'}`,
-    )
+    throw new Error(`createSupportTicket insert: ${insertRes.error?.message ?? 'no data returned'}`)
   }
 
   const ticketId = (insertRes.data as { id: string }).id

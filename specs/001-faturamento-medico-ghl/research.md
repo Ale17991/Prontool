@@ -16,6 +16,7 @@ alternatives so future readers understand why the chosen path exists.
 Express é removido.
 
 **Rationale**:
+
 - Vercel hospeda Next.js nativamente; Express rodando na Vercel usa o mesmo
   runtime Node.js — dois frameworks no mesmo processo não entregam valor.
 - Route Handlers dão file-based routing type-safe, compartilham middleware
@@ -29,6 +30,7 @@ Express é removido.
   desde que server-side.
 
 **Alternatives considered**:
+
 - **Express em Render/Fly.io** (fora da Vercel): dobra o deploy pipeline,
   adiciona latência cross-region DB→backend→Vercel, exige sincronização de
   env vars em dois ambientes. Rejeitado.
@@ -51,6 +53,7 @@ simplificação. Revert é trivial se stakeholders insistirem.
 **Decision**: **Upstash QStash**.
 
 **Rationale**:
+
 - Modelo HTTP-native: QStash recebe um evento via HTTP POST, enfileira, e
   entrega via HTTP POST para um callback URL — casa perfeitamente com
   Vercel serverless (não precisa de worker long-running).
@@ -62,6 +65,7 @@ simplificação. Revert é trivial se stakeholders insistirem.
 - Pricing previsível (pay-per-message).
 
 **Alternatives considered**:
+
 - **Inngest**: mais recursos (step functions, fan-out), mas SDK
   proprietário que abstrai demais o controle de retry e DLQ. Rejeitado.
 - **Trigger.dev**: similar ao Inngest, curva de aprendizado maior.
@@ -84,6 +88,7 @@ especificar fornecedor. QStash atende plenamente.
 **Decision**: **exceljs**.
 
 **Rationale**:
+
 - `xlsx` (SheetJS Community) tem CVEs abertos (CVE-2023-30533 "prototype
   pollution", CVE-2024-22363 "regex DoS") e a partir da v0.20.x é
   distribuído apenas via CDN próprio da SheetJS — deixou de estar no
@@ -95,6 +100,7 @@ especificar fornecedor. QStash atende plenamente.
   ambos.
 
 **Alternatives considered**:
+
 - `xlsx-populate`: maduro mas menos features; sem streaming.
 - SheetJS Pro (comercial): custo; não justificado.
 
@@ -109,12 +115,14 @@ segurança > familiaridade.
 **Decision**: **@react-pdf/renderer** (conforme sugerido pelo usuário).
 
 **Rationale**:
+
 - Runtime Node.js puro; compatível com Vercel serverless.
 - Declarativo via componentes React → alinhado com o restante do stack.
 - Cold start aceitável (~300 ms adicionais na primeira execução); reports
   de até 5 k linhas cabem no timeout de 60 s.
 
 **Alternatives considered**:
+
 - **Puppeteer/Playwright headless Chrome**: bundle size ~200 MB, cold
   start de 3–5 s em serverless, custo de memória alto. Rejeitado.
 - **pdfkit**: API imperativa, menos ergonômica. Rejeitado.
@@ -132,11 +140,13 @@ com hash do conteúdo) para disparar alerta quando divergência for detectada
 (FR — "Divergência no catálogo TUSS global" em Edge Cases do spec).
 
 **Rationale**:
+
 - Repositório é o que o usuário indicou.
 - Ingestão controlada por operador da plataforma atende Principle IV
   (catálogo não editável por tenant).
 
 **FOLLOW-UP TODO (bloqueia Phase 2 / tasks)**:
+
 - **Validar** licença de `charlesfgarcia/tabelas-ans` antes da primeira
   importação — GitHub público não implica direito de redistribuição; a
   TUSS é publicada pela ANS e pode ter condições.
@@ -146,6 +156,7 @@ com hash do conteúdo) para disparar alerta quando divergência for detectada
   oficial da ANS ou API do padrão TISS (protocolado com ANS).
 
 **Alternatives considered**:
+
 - **Scraping direto da ANS**: frágil, risco de bloqueio.
 - **Importação manual via UI**: não escala e afronta Principle IV
   (requer operador central).
@@ -172,6 +183,7 @@ com hash do conteúdo) para disparar alerta quando divergência for detectada
 
 **Service-role usage**: chave `SUPABASE_SERVICE_ROLE_KEY` é usada em
 **dois pontos apenas**:
+
 - Webhook ingestion endpoint (`/api/webhooks/ghl`): insere no
   `raw_webhook_events` dentro de uma transação que abre com
   `SET LOCAL app.tenant_id = <derivado do secret>` e usa policies que
@@ -185,6 +197,7 @@ rigoroso; service-role bypass é contido ao canal mínimo necessário para
 funcionalidade de ingestão.
 
 **Alternatives considered**:
+
 - **Schema-per-tenant**: inviável para 10+ clínicas (explosão de DDL).
 - **Aplicação-side filtering sem RLS**: rejeita Principle III diretamente
   (camada única).
@@ -232,6 +245,7 @@ por sessão (`current_setting('app.actor_id')`, `current_setting('app.ip')`,
 de qualquer INSERT, usando `SET LOCAL`.
 
 **Rationale**:
+
 - Trigger não pode ser bypassed por bug na aplicação — Principle II
   prevê auditabilidade total.
 - Campos obrigatórios (ator, timestamp UTC, tenant, entidade, campo,
@@ -239,12 +253,14 @@ de qualquer INSERT, usando `SET LOCAL`.
   trigger a partir dos valores OLD/NEW.
 
 **Campos especiais**:
+
 - Tentativas de acesso **negadas** (RBAC, optimistic concurrency failure)
   não passam por INSERT no domínio → gravadas via chamada explícita do
   Route Handler ao helper `audit.deny()` que insere em `audit_log` sem
   valor anterior/novo, com `result='denied'` e motivo detalhado.
 
 **Alternatives considered**:
+
 - Application-level audit apenas: deixa brecha se alguém esquecer de
   chamar. Rejeitado.
 - CDC (logical replication) para tabela externa de auditoria: complexa
@@ -275,6 +291,7 @@ de qualquer INSERT, usando `SET LOCAL`.
   mesmo se a verificação de chain head falhar (belt-and-suspenders).
 
 **Rationale**:
+
 - Compatível com modelo append-only (nunca atualiza linha; apenas insere
   nova versão).
 - Clearer UX: admin sabe que precisa ver o que o colega fez antes de
@@ -282,6 +299,7 @@ de qualquer INSERT, usando `SET LOCAL`.
 - 409 registrado na trilha de auditoria via `audit.deny()` (FR-005b).
 
 **Alternatives considered**:
+
 - `updated_at`-baseado: `price_versions` é append-only, não tem
   `updated_at` semanticamente. Rejeitado.
 - Lock pessimista: exige serviço stateful (Redis distributed lock) ou
@@ -294,6 +312,7 @@ de qualquer INSERT, usando `SET LOCAL`.
 **Decision**: **Resend**.
 
 **Rationale**:
+
 - API Node SDK simples, integração Vercel first-class.
 - Domínio verificável via DNS DKIM/SPF.
 - Pricing previsível (10 k e-mails/mês no free tier, suficiente para v1).
@@ -302,6 +321,7 @@ de qualquer INSERT, usando `SET LOCAL`.
   sensíveis no corpo do e-mail (FR-037).
 
 **Alternatives considered**:
+
 - **Postmark**: similar, US-only data center, sem SDK tão moderno.
 - **AWS SES**: IAM complexo, setup SNS para bounces.
 - **Supabase Email Sending**: apenas para autenticação, não permite
@@ -333,6 +353,7 @@ a 100% sob qualquer cenário de reentrega.
 ## R12. Testing stack
 
 **Decision**:
+
 - **Vitest** para unit + integration (rápido, ESM-native, compatível com
   TypeScript 5).
 - **Playwright** para E2E (fluxos admin).
@@ -370,6 +391,7 @@ Logging: `pino` com redaction list contendo
 SC-013.
 
 **Alternatives considered**:
+
 - **Supabase Vault (pgsodium)**: alinhado, mas API ainda em beta em
   algumas regiões. Revisitar quando GA.
 - **Aplicação-side (Node crypto)**: mais flexível mas mistura camadas; a
@@ -380,6 +402,7 @@ SC-013.
 ## R14. Configuração por tenant (custom fields GHL, etapa-gatilho)
 
 **Decision**: Tabela `tenant_ghl_config` com colunas:
+
 - `tenant_id` (FK)
 - `webhook_secret` (criptografado)
 - `trigger_stage_name` (texto exato vindo do GHL)
@@ -398,21 +421,21 @@ clínica. Preenchidos durante onboarding por operador da plataforma.
 
 Todos os `NEEDS CLARIFICATION` pendentes foram resolvidos:
 
-| Questão | Resolução |
-|---------|-----------|
-| Next.js vs Express | R1 — Next.js unificado |
-| Fila para webhook híbrido | R2 — Upstash QStash |
-| xlsx vs exceljs | R3 — exceljs |
-| TUSS import source | R5 — `charlesfgarcia/tabelas-ans` com follow-up de licença |
-| Multi-tenant mecanismo | R6 — RLS + JWT claims + contract tests |
-| Append-only enforcement | R7 — GRANT + trigger |
-| Audit implementation | R8 — DB trigger |
-| Optimistic concurrency model | R9 — chain head token + UNIQUE |
-| E-mail provider | R10 — Resend |
-| Idempotência | R11 — UNIQUE em raw_webhook_events + em appointments |
-| Testing stack | R12 — Vitest + Playwright + Supabase local |
-| Encryption em paciente | R13 — pgcrypto coluna + pino redaction |
-| Config por tenant | R14 — tabela `tenant_ghl_config` |
+| Questão                      | Resolução                                                  |
+| ---------------------------- | ---------------------------------------------------------- |
+| Next.js vs Express           | R1 — Next.js unificado                                     |
+| Fila para webhook híbrido    | R2 — Upstash QStash                                        |
+| xlsx vs exceljs              | R3 — exceljs                                               |
+| TUSS import source           | R5 — `charlesfgarcia/tabelas-ans` com follow-up de licença |
+| Multi-tenant mecanismo       | R6 — RLS + JWT claims + contract tests                     |
+| Append-only enforcement      | R7 — GRANT + trigger                                       |
+| Audit implementation         | R8 — DB trigger                                            |
+| Optimistic concurrency model | R9 — chain head token + UNIQUE                             |
+| E-mail provider              | R10 — Resend                                               |
+| Idempotência                 | R11 — UNIQUE em raw_webhook_events + em appointments       |
+| Testing stack                | R12 — Vitest + Playwright + Supabase local                 |
+| Encryption em paciente       | R13 — pgcrypto coluna + pino redaction                     |
+| Config por tenant            | R14 — tabela `tenant_ghl_config`                           |
 
 ## Deferred items (não bloqueantes para Phase 2)
 

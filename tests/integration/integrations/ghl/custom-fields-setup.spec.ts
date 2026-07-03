@@ -23,14 +23,16 @@ interface RemoteField {
 
 function setupListResponse(locationId: string, fields: RemoteField[]): void {
   mswServer.use(
-    http.get(
-      `https://services.leadconnectorhq.com/locations/${locationId}/customFields`,
-      () => HttpResponse.json({ customFields: fields }, { status: 200 }),
+    http.get(`https://services.leadconnectorhq.com/locations/${locationId}/customFields`, () =>
+      HttpResponse.json({ customFields: fields }, { status: 200 }),
     ),
   )
 }
 
-function setupCreateResponseFactory(): { createCalls: Array<{ name: string; dataType: string }>; setup: (locationId: string) => void } {
+function setupCreateResponseFactory(): {
+  createCalls: Array<{ name: string; dataType: string }>
+  setup: (locationId: string) => void
+} {
   const createCalls: Array<{ name: string; dataType: string }> = []
   return {
     createCalls,
@@ -113,7 +115,10 @@ describe('US3 — customFieldsSetup', () => {
       .eq('tenant_id', tenantId)
       .eq('provider', 'ghl')
       .single()
-    const cfIds = (persisted.data?.config as Record<string, unknown>)?.custom_field_ids as Record<string, { id: string }>
+    const cfIds = (persisted.data?.config as Record<string, unknown>)?.custom_field_ids as Record<
+      string,
+      { id: string }
+    >
     expect(Object.keys(cfIds ?? {}).length).toBe(6)
   })
 

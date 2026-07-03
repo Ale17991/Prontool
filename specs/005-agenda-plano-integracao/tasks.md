@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for feature 005 — integracao agenda x plano + conflito de horario"
+description: 'Task list for feature 005 — integracao agenda x plano + conflito de horario'
 ---
 
 # Tasks: Integração agenda ↔ plano de tratamento + validação de conflito de horário

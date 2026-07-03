@@ -31,7 +31,10 @@ async function main() {
     console.error(`plano inválido: ${plan} (use: ${PLANS.join(' | ')})`)
     process.exit(1)
   }
-  const modules = (flag('modules') ?? '').split(',').map((m) => m.trim()).filter(Boolean)
+  const modules = (flag('modules') ?? '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean)
   const invalid = modules.filter((m) => !MODULES.includes(m))
   if (invalid.length) {
     console.error(`módulo(s) inválido(s): ${invalid.join(', ')} (use: ${MODULES.join(' | ')})`)
@@ -43,16 +46,28 @@ async function main() {
   let tenantId = target
   if (!UUID_RE.test(target)) {
     const r = await sb.from('tenants').select('id, name').eq('slug', target).maybeSingle()
-    if (!r.data) { console.error(`tenant com slug "${target}" não encontrado`); process.exit(1) }
+    if (!r.data) {
+      console.error(`tenant com slug "${target}" não encontrado`)
+      process.exit(1)
+    }
     tenantId = r.data.id
     console.log(`tenant: ${r.data.name} (${tenantId})`)
   }
 
   const { data, error } = await sb.rpc('set_tenant_entitlement', {
-    p_tenant_id: tenantId, p_plan: plan, p_modules: modules, p_status: status,
+    p_tenant_id: tenantId,
+    p_plan: plan,
+    p_modules: modules,
+    p_status: status,
   })
-  if (error) { console.error('falhou:', error.message); process.exit(1) }
+  if (error) {
+    console.error('falhou:', error.message)
+    process.exit(1)
+  }
   console.log('✅ entitlement definido:', JSON.stringify(data))
 }
 
-main().catch((e) => { console.error(e); process.exit(1) })
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})

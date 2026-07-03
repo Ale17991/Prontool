@@ -14,7 +14,14 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
 export interface LocalProcedureOption {
@@ -43,14 +50,9 @@ export interface LocalProcedureOption {
  *   - Sempre defensivo contra tussCode null/undefined (nunca renderiza "null").
  */
 export function formatProcedureLabel(o: LocalProcedureOption): string {
-  const code =
-    typeof o.tussCode === 'string' && o.tussCode.trim().length > 0
-      ? o.tussCode
-      : null
+  const code = typeof o.tussCode === 'string' && o.tussCode.trim().length > 0 ? o.tussCode : null
   const name =
-    typeof o.displayName === 'string' && o.displayName.trim().length > 0
-      ? o.displayName
-      : null
+    typeof o.displayName === 'string' && o.displayName.trim().length > 0 ? o.displayName : null
   if (code && name) return `${code} — ${name}`
   if (code) return code
   if (name) return name
@@ -282,8 +284,8 @@ export function LocalProcedureTypeahead({
           <div className="flex items-center justify-between text-xs text-slate-500">
             <p>
               Página <span className="font-bold text-slate-800">{page}</span> de{' '}
-              <span className="font-bold text-slate-800">{totalPages}</span> ·{' '}
-              {listFiltered.length} resultado{listFiltered.length === 1 ? '' : 's'}
+              <span className="font-bold text-slate-800">{totalPages}</span> · {listFiltered.length}{' '}
+              resultado{listFiltered.length === 1 ? '' : 's'}
             </p>
             <div className="flex gap-1">
               <Button

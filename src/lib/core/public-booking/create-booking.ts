@@ -76,11 +76,7 @@ export async function createPublicBooking(
   // publicam o procedimento.
   let resolvedDoctorId = input.doctorId
   if (input.doctorId === 'any') {
-    const candidates = await listDoctorsForProcedure(
-      supabase,
-      tenant.tenantId,
-      input.procedureId,
-    )
+    const candidates = await listDoctorsForProcedure(supabase, tenant.tenantId, input.procedureId)
     if (candidates.length === 0) {
       return { ok: false, error: 'DOCTOR_PROCEDURE_NOT_PUBLISHED' }
     }
@@ -205,17 +201,20 @@ export async function createPublicBooking(
     // 7. Audit log adicional com actor_label='public_booking' para diferenciar.
     //    Não bloqueia se falhar (audit trigger primário já registrou).
     try {
-      await supabase.rpc('log_audit_event' as never, {
-        p_tenant_id: tenant.tenantId,
-        p_entity: 'appointments',
-        p_entity_id: result.appointmentId,
-        p_field: 'public_booking_created',
-        p_old: null,
-        p_new: procedureDisplayName,
-        p_reason: `slug=${input.slug};ip_hash=${input.ipHash};ua=${
-          input.userAgent?.slice(0, 80) ?? ''
-        }`,
-      } as never)
+      await supabase.rpc(
+        'log_audit_event' as never,
+        {
+          p_tenant_id: tenant.tenantId,
+          p_entity: 'appointments',
+          p_entity_id: result.appointmentId,
+          p_field: 'public_booking_created',
+          p_old: null,
+          p_new: procedureDisplayName,
+          p_reason: `slug=${input.slug};ip_hash=${input.ipHash};ua=${
+            input.userAgent?.slice(0, 80) ?? ''
+          }`,
+        } as never,
+      )
     } catch {
       // best-effort
     }
@@ -256,14 +255,12 @@ export async function createPublicBooking(
 
     // 8. Gera token + persiste hash.
     const token = generateCancelToken()
-    const tokenInsert = await supabase
-      .from('public_booking_tokens')
-      .insert({
-        tenant_id: tenant.tenantId,
-        appointment_id: result.appointmentId,
-        token_hash: token.hash,
-        action: 'cancel',
-      } as never)
+    const tokenInsert = await supabase.from('public_booking_tokens').insert({
+      tenant_id: tenant.tenantId,
+      appointment_id: result.appointmentId,
+      token_hash: token.hash,
+      action: 'cancel',
+    } as never)
     if (tokenInsert.error) {
       return {
         ok: false,
@@ -274,8 +271,7 @@ export async function createPublicBooking(
 
     // 9. Pós-commit (fire-and-forget): email paciente + email admin + bell.
     //    Erros logados internamente; não falham a request.
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
     const cancelUrl = `${appUrl}/agendar/${input.slug}/cancelar/${token.raw}`
     const dashboardUrl = `${appUrl}/operacao/atendimentos/${result.appointmentId}`
 

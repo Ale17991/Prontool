@@ -1,5 +1,5 @@
 ---
-description: "Task list for feature 014-sidebar-config-hub"
+description: 'Task list for feature 014-sidebar-config-hub'
 ---
 
 # Tasks: Sidebar enxuta + Configurações como hub
@@ -14,6 +14,7 @@ description: "Task list for feature 014-sidebar-config-hub"
 ## Path Conventions
 
 Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do repo `C:\My project\`:
+
 - UI/páginas: `src/app/(dashboard)/...`
 - Componentes compartilhados: `src/app/(dashboard)/_components/...`
 - Testes: `tests/unit/`, `tests/integration/` (vitest)
@@ -24,7 +25,7 @@ Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do 
 
 **Purpose**: Sanity check do ambiente antes de mexer em código.
 
-- [X] T001 Verificar baseline limpa: `pnpm typecheck && pnpm test` rodam sem erro em `014-sidebar-config-hub` antes de qualquer mudança; capturar tempo de baseline do `pnpm test` para comparar depois.
+- [x] T001 Verificar baseline limpa: `pnpm typecheck && pnpm test` rodam sem erro em `014-sidebar-config-hub` antes de qualquer mudança; capturar tempo de baseline do `pnpm test` para comparar depois.
 
 ---
 
@@ -48,15 +49,15 @@ Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do 
 
 > Escrever primeiro; devem **FALHAR** antes da implementação em T005.
 
-- [X] T002 [P] [US1] Criar `tests/unit/dashboard-shell-sections.test.ts` cobrindo a matriz role × itens visíveis pós-feature: admin → 7 itens (Agenda, Pacientes, Tarefas, Relatórios, Comissões, Despesas, Configurações); profissional_saude com flags mínimas → subconjunto correto; nenhum role vê Notificações/Alertas/Pendências/Auditoria na sidebar.
+- [x] T002 [P] [US1] Criar `tests/unit/dashboard-shell-sections.test.ts` cobrindo a matriz role × itens visíveis pós-feature: admin → 7 itens (Agenda, Pacientes, Tarefas, Relatórios, Comissões, Despesas, Configurações); profissional_saude com flags mínimas → subconjunto correto; nenhum role vê Notificações/Alertas/Pendências/Auditoria na sidebar.
 
 ### Implementation for User Story 1
 
-- [X] T003 [US1] Atualizar `SECTIONS` em `src/app/(dashboard)/_components/dashboard-shell.tsx`: (a) remover de `operacao` os itens "Notificações" (`/operacao/notificacoes`), "Alertas do sistema" (`/operacao/alertas`), "Pendências" (`/operacao/dlq`); (b) remover de `analise` o item "Auditoria" (`/analise/auditoria`); (c) substituir todos os itens da seção `configuracoes` por um único item `{ href: '/configuracoes', label: 'Configurações', icon: Settings, show: () => true }`.
-- [X] T004 [US1] Em `src/app/(dashboard)/_components/dashboard-shell.tsx`, no componente `SidebarInner`, adicionar separador visual (`<div className="my-3 border-t border-white/5" />` ou equivalente Tailwind) antes da seção `configuracoes` para criar o "espaço" descrito no FR-001.
-- [X] T005 [US1] Importar o ícone `Settings` de `lucide-react` em `dashboard-shell.tsx` (e remover imports de ícones agora não usados na sidebar — `AlertTriangle`, `Building2`, `DollarSign`, `ListChecks`, `Plug`, `UserCheck`, `UserCircle`, `Users` em Configurações, `ScrollText` se não usado mais; verificar com `pnpm typecheck` que nada quebra).
-- [X] T006 [US1] Rodar `pnpm test tests/unit/dashboard-shell-sections.test.ts` e confirmar que passa (era T002 → falhando → agora verde).
-- [X] T007 [US1] Smoke test manual: login com admin + 1 role não-admin no dev (`pnpm dev`); confirmar visualmente a sidebar (≥md) e o drawer (<md) seguindo `quickstart.md §2`.
+- [x] T003 [US1] Atualizar `SECTIONS` em `src/app/(dashboard)/_components/dashboard-shell.tsx`: (a) remover de `operacao` os itens "Notificações" (`/operacao/notificacoes`), "Alertas do sistema" (`/operacao/alertas`), "Pendências" (`/operacao/dlq`); (b) remover de `analise` o item "Auditoria" (`/analise/auditoria`); (c) substituir todos os itens da seção `configuracoes` por um único item `{ href: '/configuracoes', label: 'Configurações', icon: Settings, show: () => true }`.
+- [x] T004 [US1] Em `src/app/(dashboard)/_components/dashboard-shell.tsx`, no componente `SidebarInner`, adicionar separador visual (`<div className="my-3 border-t border-white/5" />` ou equivalente Tailwind) antes da seção `configuracoes` para criar o "espaço" descrito no FR-001.
+- [x] T005 [US1] Importar o ícone `Settings` de `lucide-react` em `dashboard-shell.tsx` (e remover imports de ícones agora não usados na sidebar — `AlertTriangle`, `Building2`, `DollarSign`, `ListChecks`, `Plug`, `UserCheck`, `UserCircle`, `Users` em Configurações, `ScrollText` se não usado mais; verificar com `pnpm typecheck` que nada quebra).
+- [x] T006 [US1] Rodar `pnpm test tests/unit/dashboard-shell-sections.test.ts` e confirmar que passa (era T002 → falhando → agora verde).
+- [x] T007 [US1] Smoke test manual: login com admin + 1 role não-admin no dev (`pnpm dev`); confirmar visualmente a sidebar (≥md) e o drawer (<md) seguindo `quickstart.md §2`.
 
 **Checkpoint**: US1 é entregável independentemente — sidebar nova já está em produção; o botão "Configurações" continua levando à página `/configuracoes` (que ainda tem o redirect role-based antigo, sem hub). Sem regressão funcional.
 
@@ -72,19 +73,19 @@ Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do 
 
 > Escrever primeiro; devem **FALHAR** antes da implementação em T012–T016.
 
-- [X] T008 [P] [US2] Criar `tests/integration/notificacoes-tabs.test.ts`: para cada role × `searchParams.tab`, verificar (a) quais abas aparecem na tab bar (`alert.read` controla aba "alertas"; `dlq.read` controla "dlq"); (b) `?tab=alertas` sem permissão cai em notificacoes (silencioso); (c) admin acessa todas as três abas; (d) HTML renderizado **não** contém marcações de sub-seções proibidas.
-- [X] T009 [P] [US2] Criar `tests/integration/legacy-route-redirects.test.ts`: para `/operacao/alertas` e `/operacao/dlq`, verificar status 308 e `Location` apontando para `/operacao/notificacoes?tab=alertas` / `?tab=dlq`, com e sem query string adicional preservada (ex.: `?severity=warning` → `Location: ...&severity=warning`).
+- [x] T008 [P] [US2] Criar `tests/integration/notificacoes-tabs.test.ts`: para cada role × `searchParams.tab`, verificar (a) quais abas aparecem na tab bar (`alert.read` controla aba "alertas"; `dlq.read` controla "dlq"); (b) `?tab=alertas` sem permissão cai em notificacoes (silencioso); (c) admin acessa todas as três abas; (d) HTML renderizado **não** contém marcações de sub-seções proibidas.
+- [x] T009 [P] [US2] Criar `tests/integration/legacy-route-redirects.test.ts`: para `/operacao/alertas` e `/operacao/dlq`, verificar status 308 e `Location` apontando para `/operacao/notificacoes?tab=alertas` / `?tab=dlq`, com e sem query string adicional preservada (ex.: `?severity=warning` → `Location: ...&severity=warning`).
 
 ### Implementation for User Story 2
 
-- [X] T010 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-bar.tsx` — Server Component que recebe `{ active, available }` (lista de `'notificacoes' | 'alertas' | 'dlq'`) e renderiza `<nav aria-label="Seções de notificações">` com `<Link>` para cada aba na ordem fixa (notificacoes → alertas → dlq), com `aria-current="page"` na ativa. Ver `contracts/notifications-tabs.md`.
-- [X] T011 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-notificacoes.tsx` — Server Component que extrai o render de notificações pessoais atualmente inline em `page.tsx`: chama `generateUserNotifications` + `listNotifications`, renderiza `Card` com `MarkAllButton` e `NotificationItem`s. Recebe `tenantId` e `userId` como props.
-- [X] T012 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-alertas.tsx` — Server Component com o conteúdo de `src/app/(dashboard)/operacao/alertas/page.tsx` extraído (lista de alerts + `ResolveButton`). Recebe `tenantId`. Mover (sem alterar lógica) os componentes locais de `/operacao/alertas/` que ainda forem necessários para dentro de `_components/` da página de notificações.
-- [X] T013 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-dlq.tsx` — Server Component com o conteúdo de `src/app/(dashboard)/operacao/dlq/page.tsx` extraído (lista DLQ + `ReprocessButton`). Recebe `tenantId`. Mover os componentes locais necessários.
-- [X] T014 [US2] Reescrever `src/app/(dashboard)/operacao/notificacoes/page.tsx`: (a) carregar `session` via `getSession()`; (b) calcular `permitidas` a partir de `can(role, 'alert.read')` e `can(role, 'dlq.read')` (sempre incluir `'notificacoes'` como primeiro); (c) resolver `active` = `permitidas.includes(searchParams.tab as string)` ? `searchParams.tab` : `'notificacoes'`; (d) renderizar `<TabBar active={active} available={permitidas} />` seguido do componente da aba ativa. Depende de T010–T013.
-- [X] T015 [US2] Reescrever `src/app/(dashboard)/operacao/alertas/page.tsx` para um Server Component de **uma função** que usa `permanentRedirect()` de `next/navigation` para `/operacao/notificacoes?tab=alertas[&<query preservada>]`. Apagar componentes filhos não mais referenciados (eles foram movidos em T012).
-- [X] T016 [US2] Reescrever `src/app/(dashboard)/operacao/dlq/page.tsx` analogamente: `permanentRedirect()` para `/operacao/notificacoes?tab=dlq[&<query preservada>]`. Apagar componentes filhos movidos em T013.
-- [X] T017 [US2] Rodar `pnpm test tests/integration/notificacoes-tabs.test.ts tests/integration/legacy-route-redirects.test.ts` e confirmar que ambas as suítes ficam verdes. Rodar também `pnpm typecheck` para garantir que os imports cruzados ficaram corretos após a mudança.
+- [x] T010 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-bar.tsx` — Server Component que recebe `{ active, available }` (lista de `'notificacoes' | 'alertas' | 'dlq'`) e renderiza `<nav aria-label="Seções de notificações">` com `<Link>` para cada aba na ordem fixa (notificacoes → alertas → dlq), com `aria-current="page"` na ativa. Ver `contracts/notifications-tabs.md`.
+- [x] T011 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-notificacoes.tsx` — Server Component que extrai o render de notificações pessoais atualmente inline em `page.tsx`: chama `generateUserNotifications` + `listNotifications`, renderiza `Card` com `MarkAllButton` e `NotificationItem`s. Recebe `tenantId` e `userId` como props.
+- [x] T012 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-alertas.tsx` — Server Component com o conteúdo de `src/app/(dashboard)/operacao/alertas/page.tsx` extraído (lista de alerts + `ResolveButton`). Recebe `tenantId`. Mover (sem alterar lógica) os componentes locais de `/operacao/alertas/` que ainda forem necessários para dentro de `_components/` da página de notificações.
+- [x] T013 [P] [US2] Criar `src/app/(dashboard)/operacao/notificacoes/_components/tab-dlq.tsx` — Server Component com o conteúdo de `src/app/(dashboard)/operacao/dlq/page.tsx` extraído (lista DLQ + `ReprocessButton`). Recebe `tenantId`. Mover os componentes locais necessários.
+- [x] T014 [US2] Reescrever `src/app/(dashboard)/operacao/notificacoes/page.tsx`: (a) carregar `session` via `getSession()`; (b) calcular `permitidas` a partir de `can(role, 'alert.read')` e `can(role, 'dlq.read')` (sempre incluir `'notificacoes'` como primeiro); (c) resolver `active` = `permitidas.includes(searchParams.tab as string)` ? `searchParams.tab` : `'notificacoes'`; (d) renderizar `<TabBar active={active} available={permitidas} />` seguido do componente da aba ativa. Depende de T010–T013.
+- [x] T015 [US2] Reescrever `src/app/(dashboard)/operacao/alertas/page.tsx` para um Server Component de **uma função** que usa `permanentRedirect()` de `next/navigation` para `/operacao/notificacoes?tab=alertas[&<query preservada>]`. Apagar componentes filhos não mais referenciados (eles foram movidos em T012).
+- [x] T016 [US2] Reescrever `src/app/(dashboard)/operacao/dlq/page.tsx` analogamente: `permanentRedirect()` para `/operacao/notificacoes?tab=dlq[&<query preservada>]`. Apagar componentes filhos movidos em T013.
+- [x] T017 [US2] Rodar `pnpm test tests/integration/notificacoes-tabs.test.ts tests/integration/legacy-route-redirects.test.ts` e confirmar que ambas as suítes ficam verdes. Rodar também `pnpm typecheck` para garantir que os imports cruzados ficaram corretos após a mudança.
 
 **Checkpoint**: US2 entregável. MVP (US1 + US2) está pronto — sidebar enxuta, sininho → página unificada com tabs RBAC-filtered, rotas legadas redirecionando.
 
@@ -100,18 +101,18 @@ Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do 
 
 > Escrever primeiro; devem **FALHAR** antes da implementação.
 
-- [X] T018 [P] [US3] Criar `tests/integration/configuracoes-hub.test.ts` cobrindo: (a) INV-1 `HUB_CARDS.length === 9`; (b) INV-2 `HUB_CARDS[8].id === 'auditoria'`; (c) INV-3 admin com flags todas-true → 9 cards renderizados; (d) INV-4 profissional_saude com flags todas-false → apenas card `perfil`; (e) INV-5 IDs únicos; (f) ordem renderizada espelha a ordem do array; (g) HTML não contém cards filtrados (não há `display: none`).
-- [X] T019 [P] [US3] Estender `tests/integration/legacy-route-redirects.test.ts` (criado em T009) ou criar arquivo paralelo cobrindo `/analise/auditoria` → 308 → `/configuracoes/auditoria` com e sem query string preservada.
+- [x] T018 [P] [US3] Criar `tests/integration/configuracoes-hub.test.ts` cobrindo: (a) INV-1 `HUB_CARDS.length === 9`; (b) INV-2 `HUB_CARDS[8].id === 'auditoria'`; (c) INV-3 admin com flags todas-true → 9 cards renderizados; (d) INV-4 profissional_saude com flags todas-false → apenas card `perfil`; (e) INV-5 IDs únicos; (f) ordem renderizada espelha a ordem do array; (g) HTML não contém cards filtrados (não há `display: none`).
+- [x] T019 [P] [US3] Estender `tests/integration/legacy-route-redirects.test.ts` (criado em T009) ou criar arquivo paralelo cobrindo `/analise/auditoria` → 308 → `/configuracoes/auditoria` com e sem query string preservada.
 
 ### Implementation for User Story 3
 
-- [X] T020 [P] [US3] Criar `src/app/(dashboard)/configuracoes/_cards.ts` (server-only) exportando `HUB_CARDS: readonly HubCardDef[]` com os 9 cards da tabela em `contracts/hub-cards.md` (ordem fixa, ícones lucide, descrições ≤80 chars, predicados que espelham os predicados atuais de `dashboard-shell.tsx`). Tipo `HubCardDef` definido no mesmo arquivo, exportado.
-- [X] T021 [P] [US3] Criar `src/app/(dashboard)/configuracoes/_components/hub-card.tsx` (Server Component): recebe `{ card: HubCardDef }`, renderiza `<Link href={card.href}>` envolvendo um `<Card>` shadcn com ícone (`aria-hidden`), `<h2>` do título e `<p>` da descrição. Hover/focus ring.
-- [X] T022 [US3] Reescrever `src/app/(dashboard)/configuracoes/page.tsx`: (a) `getSession()` + `listFeatureFlags()`; (b) filtrar `HUB_CARDS` por `card.show({ role, flags })`; (c) renderizar grid `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4` com `<HubCard>` para cada card visível; (d) heading curto no topo ("Configurações"). **Remover** o redirect role-based antigo. Depende de T020, T021.
-- [X] T023 [US3] `git mv src/app/(dashboard)/analise/auditoria src/app/(dashboard)/configuracoes/auditoria` — mover o diretório inteiro (page.tsx + componentes filhos, se houver). Atualizar imports internos que apontem para caminhos relativos quebrados.
-- [X] T024 [US3] Criar novo `src/app/(dashboard)/analise/auditoria/page.tsx` como Server Component de uma função que chama `permanentRedirect()` de `next/navigation` para `/configuracoes/auditoria[?<query preservada>]`.
-- [X] T025 [US3] Atualizar referências internas a `/analise/auditoria` no codebase (busca por string nesse path em `src/app/`, `src/lib/`, `src/components/`) para `/configuracoes/auditoria` — exceto o próprio redirect criado em T024. Verificar com `pnpm grep` ou Grep tool.
-- [X] T026 [US3] Rodar `pnpm test tests/integration/configuracoes-hub.test.ts tests/integration/legacy-route-redirects.test.ts` e confirmar verde. Rodar `pnpm typecheck`.
+- [x] T020 [P] [US3] Criar `src/app/(dashboard)/configuracoes/_cards.ts` (server-only) exportando `HUB_CARDS: readonly HubCardDef[]` com os 9 cards da tabela em `contracts/hub-cards.md` (ordem fixa, ícones lucide, descrições ≤80 chars, predicados que espelham os predicados atuais de `dashboard-shell.tsx`). Tipo `HubCardDef` definido no mesmo arquivo, exportado.
+- [x] T021 [P] [US3] Criar `src/app/(dashboard)/configuracoes/_components/hub-card.tsx` (Server Component): recebe `{ card: HubCardDef }`, renderiza `<Link href={card.href}>` envolvendo um `<Card>` shadcn com ícone (`aria-hidden`), `<h2>` do título e `<p>` da descrição. Hover/focus ring.
+- [x] T022 [US3] Reescrever `src/app/(dashboard)/configuracoes/page.tsx`: (a) `getSession()` + `listFeatureFlags()`; (b) filtrar `HUB_CARDS` por `card.show({ role, flags })`; (c) renderizar grid `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4` com `<HubCard>` para cada card visível; (d) heading curto no topo ("Configurações"). **Remover** o redirect role-based antigo. Depende de T020, T021.
+- [x] T023 [US3] `git mv src/app/(dashboard)/analise/auditoria src/app/(dashboard)/configuracoes/auditoria` — mover o diretório inteiro (page.tsx + componentes filhos, se houver). Atualizar imports internos que apontem para caminhos relativos quebrados.
+- [x] T024 [US3] Criar novo `src/app/(dashboard)/analise/auditoria/page.tsx` como Server Component de uma função que chama `permanentRedirect()` de `next/navigation` para `/configuracoes/auditoria[?<query preservada>]`.
+- [x] T025 [US3] Atualizar referências internas a `/analise/auditoria` no codebase (busca por string nesse path em `src/app/`, `src/lib/`, `src/components/`) para `/configuracoes/auditoria` — exceto o próprio redirect criado em T024. Verificar com `pnpm grep` ou Grep tool.
+- [x] T026 [US3] Rodar `pnpm test tests/integration/configuracoes-hub.test.ts tests/integration/legacy-route-redirects.test.ts` e confirmar verde. Rodar `pnpm typecheck`.
 
 **Checkpoint**: US3 entregável. Hub está no ar; auditoria mora em `/configuracoes/auditoria`; rota antiga redireciona.
 
@@ -127,8 +128,8 @@ Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do 
 
 ### Verification for User Story 4
 
-- [X] T027 [US4] Executar `quickstart.md §5` manualmente: rodar `Invoke-WebRequest -Method HEAD <url> -MaximumRedirection 0` (PowerShell) ou `curl -I <url>` (Bash) para cada uma das URLs legadas (`/analise/auditoria`, `/operacao/alertas`, `/operacao/dlq`), com e sem query string. Documentar resultados (status + Location header) na descrição do PR.
-- [X] T028 [US4] Para cada URL acima, validar como usuário **sem** a permissão correspondente — confirmar que o destino aplica o mesmo tratamento de negação de hoje (não é o redirect que vaza acesso).
+- [x] T027 [US4] Executar `quickstart.md §5` manualmente: rodar `Invoke-WebRequest -Method HEAD <url> -MaximumRedirection 0` (PowerShell) ou `curl -I <url>` (Bash) para cada uma das URLs legadas (`/analise/auditoria`, `/operacao/alertas`, `/operacao/dlq`), com e sem query string. Documentar resultados (status + Location header) na descrição do PR.
+- [x] T028 [US4] Para cada URL acima, validar como usuário **sem** a permissão correspondente — confirmar que o destino aplica o mesmo tratamento de negação de hoje (não é o redirect que vaza acesso).
 
 **Checkpoint**: US4 entregável. Todas as URLs antigas respondem; nenhum 404; nenhum vazamento de RBAC.
 
@@ -138,11 +139,11 @@ Projeto **web monolítico Next.js** (App Router). Caminhos relativos à raiz do 
 
 **Purpose**: Verificações finais, limpeza, e abertura de PR.
 
-- [X] T029 [P] Rodar suite completa: `pnpm typecheck && pnpm test && pnpm lint:auth`. Capturar tempo total de `pnpm test` e comparar com baseline de T001 — não deve haver regressão >10%.
-- [X] T030 [P] Buscar imports não usados após movimentações (T005, T012, T013, T015, T016, T023): `pnpm lint` ou Grep manual por `lucide-react` imports em arquivos tocados; remover os que sobraram.
-- [X] T031 Executar `quickstart.md` completo (seções §2–§7) no dev local com pelo menos 2 roles distintos; capturar screenshot da sidebar e do hub `/configuracoes` para anexar à descrição do PR.
-- [X] T032 Atualizar a entrada de auditoria em qualquer documentação interna que referencie `/analise/auditoria` (CLAUDE.md, READMEs em `docs/` se existirem); se nada referenciar, marcar como N/A.
-- [X] T033 Abrir PR contra `master` com título no padrão "feat(014): sidebar enxuta + configuracoes hub" e descrição linkando para `specs/014-sidebar-config-hub/spec.md`, `plan.md`, e os resultados de T027–T028.
+- [x] T029 [P] Rodar suite completa: `pnpm typecheck && pnpm test && pnpm lint:auth`. Capturar tempo total de `pnpm test` e comparar com baseline de T001 — não deve haver regressão >10%.
+- [x] T030 [P] Buscar imports não usados após movimentações (T005, T012, T013, T015, T016, T023): `pnpm lint` ou Grep manual por `lucide-react` imports em arquivos tocados; remover os que sobraram.
+- [x] T031 Executar `quickstart.md` completo (seções §2–§7) no dev local com pelo menos 2 roles distintos; capturar screenshot da sidebar e do hub `/configuracoes` para anexar à descrição do PR.
+- [x] T032 Atualizar a entrada de auditoria em qualquer documentação interna que referencie `/analise/auditoria` (CLAUDE.md, READMEs em `docs/` se existirem); se nada referenciar, marcar como N/A.
+- [x] T033 Abrir PR contra `master` com título no padrão "feat(014): sidebar enxuta + configuracoes hub" e descrição linkando para `specs/014-sidebar-config-hub/spec.md`, `plan.md`, e os resultados de T027–T028.
 
 ---
 
@@ -200,17 +201,18 @@ Task: "Criar tab-dlq.tsx em src/app/(dashboard)/operacao/notificacoes/_component
 
 ### Incremental Delivery
 
-| Increment | Conteúdo | Entregável |
-|-----------|----------|------------|
-| 1 | Setup + US1 | Sidebar enxuta |
-| 2 | + US2 | Sininho/Tabs (MVP completo) |
-| 3 | + US3 | Hub `/configuracoes` + Auditoria movida |
-| 4 | + US4 | Verificação completa de rotas legadas |
-| 5 | + Polish | PR pronto para merge |
+| Increment | Conteúdo    | Entregável                              |
+| --------- | ----------- | --------------------------------------- |
+| 1         | Setup + US1 | Sidebar enxuta                          |
+| 2         | + US2       | Sininho/Tabs (MVP completo)             |
+| 3         | + US3       | Hub `/configuracoes` + Auditoria movida |
+| 4         | + US4       | Verificação completa de rotas legadas   |
+| 5         | + Polish    | PR pronto para merge                    |
 
 ### Parallel Team Strategy
 
 Com 3 devs disponíveis após T001:
+
 - Dev A: US1 (Phase 3) — 1 dia
 - Dev B: US2 (Phase 4) — 1.5 dias (tem 7 sub-tasks)
 - Dev C: US3 (Phase 5) — 1.5 dias

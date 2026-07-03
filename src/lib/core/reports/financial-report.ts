@@ -168,13 +168,7 @@ export async function buildFinancialReport(
 
   const [current, previousAppointments, expenses, previousExpenses] = await Promise.all([
     fetchAppointments(supabase, input.tenantId, input.from, input.to, tz),
-    fetchAppointmentsTotals(
-      supabase,
-      input.tenantId,
-      previousPeriod.from,
-      previousPeriod.to,
-      tz,
-    ),
+    fetchAppointmentsTotals(supabase, input.tenantId, previousPeriod.from, previousPeriod.to, tz),
     fetchExpenses(supabase, input.tenantId, input.from, input.to),
     fetchExpenses(supabase, input.tenantId, previousPeriod.from, previousPeriod.to),
   ])
@@ -236,9 +230,7 @@ export async function buildFinancialReport(
   )
   const commissionsCents = active.reduce(
     (acc, r) =>
-      commissionedDoctorIds.has(r.doctor_id)
-        ? acc + (r.net_commission_cents ?? 0)
-        : acc,
+      commissionedDoctorIds.has(r.doctor_id) ? acc + (r.net_commission_cents ?? 0) : acc,
     0,
   )
   const netRevenueCents = grossRevenueCents - commissionsCents
@@ -248,9 +240,7 @@ export async function buildFinancialReport(
   // representando o "imposto da clínica" — não há dupla contagem.
   const operatingProfitCents = netRevenueCents - totalExpensesCents - taxFromPlansCents
   const operatingMarginPct =
-    grossRevenueCents > 0
-      ? Math.round((operatingProfitCents / grossRevenueCents) * 1000) / 10
-      : 0
+    grossRevenueCents > 0 ? Math.round((operatingProfitCents / grossRevenueCents) * 1000) / 10 : 0
 
   // Previous period: mesmo cálculo, mantendo paridade do KPI de margem.
   const previousNetRevenue =
@@ -345,8 +335,7 @@ async function computeTaxFromPlansForPeriod(
       .gte('appointment_at', fromTs)
       .lt('appointment_at', toExclusiveTs)
       .range(offset, offset + PAGE_SIZE - 1)
-    if (error)
-      throw new Error(`computeTaxFromPlansForPeriod ids failed: ${error.message}`)
+    if (error) throw new Error(`computeTaxFromPlansForPeriod ids failed: ${error.message}`)
     const page = (data ?? []) as Array<{ id: string; effective_status: string | null }>
     for (const r of page) if (r.effective_status === 'ativo') activeIds.push(r.id)
     if (page.length < PAGE_SIZE) break
@@ -357,10 +346,7 @@ async function computeTaxFromPlansForPeriod(
   for (const l of lines) {
     if (!l.plan_id) continue
     const qty = l.quantity || 1
-    planRevenue.set(
-      l.plan_id,
-      (planRevenue.get(l.plan_id) ?? 0) + l.line_amount_cents * qty,
-    )
+    planRevenue.set(l.plan_id, (planRevenue.get(l.plan_id) ?? 0) + l.line_amount_cents * qty)
   }
   if (planRevenue.size === 0) return 0
   const planTaxMap = await fetchPlanTaxRates(supabase, tenantId, Array.from(planRevenue.keys()))
@@ -473,10 +459,7 @@ type RawRevenueByPlanRow = Omit<
 
 function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RawRevenueByPlanRow[] {
   // Receita = line_amount_cents (UNITARIO) * quantity. Migration 0081.
-  const totalGross = lines.reduce(
-    (acc, l) => acc + l.line_amount_cents * (l.quantity || 1),
-    0,
-  )
+  const totalGross = lines.reduce((acc, l) => acc + l.line_amount_cents * (l.quantity || 1), 0)
   const map = new Map<string, RawRevenueByPlanRow>()
   // Para appointmentCount por plano: contamos atendimentos distintos que
   // contem AO MENOS uma linha sob esse plano.
@@ -691,10 +674,7 @@ function aggregateDailyRevenue(
   return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date))
 }
 
-export function computePreviousPeriod(
-  from: string,
-  to: string,
-): { from: string; to: string } {
+export function computePreviousPeriod(from: string, to: string): { from: string; to: string } {
   // Same length of days, immediately preceding the current period.
   const fromDate = new Date(`${from}T00:00:00Z`)
   const toDate = new Date(`${to}T00:00:00Z`)
@@ -724,7 +704,6 @@ function dateRangeYmd(from: string, to: string): string[] {
   }
   return out
 }
-
 
 function toYmd(d: Date): string {
   const y = d.getUTCFullYear()

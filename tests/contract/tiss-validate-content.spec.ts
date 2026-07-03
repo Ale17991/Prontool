@@ -55,20 +55,28 @@ describe('TISS — validação de conteúdo da Guia de Consulta (US2)', () => {
 
   it('conselho não mapeado → pendência citando a sigla', () => {
     const errs = validateConsultaContent(
-      completo({ profissional: { ...completo().profissional, conselhoCodigo: null, conselhoRaw: 'XYZ' } }),
+      completo({
+        profissional: { ...completo().profissional, conselhoCodigo: null, conselhoRaw: 'XYZ' },
+      }),
     )
     const e = errs.find((x) => x.field === 'profissionalExecutante.conselho')
     expect(e?.message).toContain('XYZ')
   })
 
   it('PJ sem nome do profissional → pendência', () => {
-    const errs = validateConsultaContent(completo({ contratadoIsPJ: true, profissional: { ...completo().profissional, nome: null } }))
+    const errs = validateConsultaContent(
+      completo({ contratadoIsPJ: true, profissional: { ...completo().profissional, nome: null } }),
+    )
     expect(errs.some((e) => e.field === 'profissionalExecutante.nome')).toBe(true)
   })
 
   it('TUSS fora de vigência → pendência no procedimento', () => {
     const errs = validateConsultaContent(
-      completo({ procedimentos: [{ tabela: '22', codigo: '10101012', valorCents: 25000, tussVigente: false }] }),
+      completo({
+        procedimentos: [
+          { tabela: '22', codigo: '10101012', valorCents: 25000, tussVigente: false },
+        ],
+      }),
     )
     expect(errs.some((e) => e.field === 'procedimento[0].codigoProcedimento')).toBe(true)
   })

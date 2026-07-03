@@ -16,11 +16,11 @@
 
 Tabelas confirmadas (read-only no backfill):
 
-| Módulo | Sinal de "uso real" | Tabela(s) |
-|--------|---------------------|-----------|
+| Módulo     | Sinal de "uso real"                                                       | Tabela(s)                                                                                 |
+| ---------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `convenio` | ≥1 procedimento de atendimento com convênio **OU** TISS configurado/usado | `appointment_procedures.plan_id IS NOT NULL`; `tenant_tiss_operator_config`; `tiss_guias` |
-| `odonto` | ≥1 registro odontológico | `dental_chart_entries`; `perio_exams` |
-| `oftalmo` | ≥1 exame oftalmológico | `ophthalmology_exams` |
+| `odonto`   | ≥1 registro odontológico                                                  | `dental_chart_entries`; `perio_exams`                                                     |
+| `oftalmo`  | ≥1 exame oftalmológico                                                    | `ophthalmology_exams`                                                                     |
 
 - **Decision**: Backfill por `EXISTS (... WHERE tenant_id = t.tenant_id)` para cada sinal. Mera existência de `health_plans` **NÃO** conta (clarificação Q1).
 - **Rationale**: Evita super-ativação por convênios cadastrados mas nunca usados.
@@ -28,6 +28,7 @@ Tabelas confirmadas (read-only no backfill):
 ## R4. Escopo "esconder tudo de convênio"
 
 Pontos de gating do `convenio` (off ⇒ esconder):
+
 1. Sidebar: itens "Faturamento TISS" e "Recebíveis Convênio" (`sidebar-sections.ts`).
 2. Configurações: card "Convênios" (`_cards.ts`); a página de integração TISS (`/configuracoes/integracoes/tiss`) — gate na origem (card/sub-rota).
 3. Atendimento: seletor convênio×particular / seleção de `plan_id` em `new-appointment-form.tsx` e `_components/add-procedure-section.tsx`. Off ⇒ atendimento tratado como particular (sem seletor).

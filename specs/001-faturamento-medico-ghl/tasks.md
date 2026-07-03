@@ -1,5 +1,5 @@
 ---
-description: "Task list for Faturamento Médico GHL/Homio feature implementation"
+description: 'Task list for Faturamento Médico GHL/Homio feature implementation'
 ---
 
 # Tasks: Faturamento Médico Integrado ao GHL/Homio
@@ -362,9 +362,9 @@ description: "Task list for Faturamento Médico GHL/Homio feature implementation
 - [x] T171 Implement `src/lib/core/patients/anonymize.ts` — replaces `full_name_enc`, `cpf_enc`, `phone_enc`, `email_enc`, `birth_date_enc` with deterministic tokens (e.g., `enc_text('ANONYMIZED:'||patient_id)`), sets `anonymized_at=now()`, records an `audit_log` row with `result='success'`, `reason='lgpd-retention-anonymization'`, and `actor_label='platform-operator'`; atendimentos permanecem vinculados ao mesmo `patient_id` (implementa FR-010c)
 - [x] T172 [P] Implement platform-operator-only endpoint `src/app/api/platform/patients/[id]/anonymize/route.ts` — guard: requires request header `X-Platform-Operator-Token` matching env `PLATFORM_OPERATOR_TOKEN`; any tenant user receives 403; calls T171
 - [x] T173 [P] Integration test `tests/integration/patient-anonymize-preserves-appointments.spec.ts` — seeds patient with 3 atendimentos; invokes anonymize; asserts (a) patient row decrypted fields return the anonymization token, (b) each atendimento still references the same `patient_id` with unchanged `frozen_amount_cents`, (c) `appointments_effective` view still computes correct net values, (d) `audit_log` contains the expected anonymization row
-- [x] T155 Run the full constitution compliance suite (T057–T060) one more time against the production-like config (Supabase Pro staging); all must pass — *local run verde (15/15); re-run em Supabase Pro está documentado em `docs/deploy.md` §1.7 como passo do operador*
-- [x] T156 Run `quickstart.md` end-to-end on a clean machine; record any drift and update the doc — *drift corrigido: `127.0.0.1` em vez de `localhost:54321`, scripts via `pnpm seed:*`, CRM correto no simulator, remoção de endpoint `/api/_debug/jwt` inexistente, inclusão de `playwright install chromium`*
-- [x] T157 [P] Provision production infra: Supabase project in sa-east-1, Vercel project linked to repo with region `gru1`, QStash queue in sa-east-1, Resend domain verified — checklist completion documented in `docs/deploy.md` — *checklist escrito; provisionamento real é account-gated (👤 operador)*
+- [x] T155 Run the full constitution compliance suite (T057–T060) one more time against the production-like config (Supabase Pro staging); all must pass — _local run verde (15/15); re-run em Supabase Pro está documentado em `docs/deploy.md` §1.7 como passo do operador_
+- [x] T156 Run `quickstart.md` end-to-end on a clean machine; record any drift and update the doc — _drift corrigido: `127.0.0.1` em vez de `localhost:54321`, scripts via `pnpm seed:_`, CRM correto no simulator, remoção de endpoint `/api/\_debug/jwt`inexistente, inclusão de`playwright install chromium`\*
+- [x] T157 [P] Provision production infra: Supabase project in sa-east-1, Vercel project linked to repo with region `gru1`, QStash queue in sa-east-1, Resend domain verified — checklist completion documented in `docs/deploy.md` — _checklist escrito; provisionamento real é account-gated (👤 operador)_
 
 ---
 

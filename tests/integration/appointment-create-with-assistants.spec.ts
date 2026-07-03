@@ -113,17 +113,15 @@ describe('Feature 013 — atendimento com assistentes (E2E)', () => {
     // O atendimento criado no teste anterior tinha frozen=35000 para liberalA (default original).
     // Agora mudamos o default no payment_terms_history para 99999.
     const sb = serviceClient()
-    await sb
-      .from('doctor_payment_terms_history' as never)
-      .insert({
-        tenant_id: tenantId,
-        doctor_id: liberalAId,
-        payment_mode: 'liberal',
-        liberal_default_cents: 99999,
-        valid_from: new Date().toISOString().slice(0, 10),
-        reason: 'aumento de tabela',
-        created_by: adminUserId,
-      } as never)
+    await sb.from('doctor_payment_terms_history' as never).insert({
+      tenant_id: tenantId,
+      doctor_id: liberalAId,
+      payment_mode: 'liberal',
+      liberal_default_cents: 99999,
+      valid_from: new Date().toISOString().slice(0, 10),
+      reason: 'aumento de tabela',
+      created_by: adminUserId,
+    } as never)
     // O frozen_amount_cents do assistant antigo NÃO mudou.
     const { data } = await sb
       .from('appointment_assistants' as never)

@@ -5,13 +5,14 @@ TypeScript que casam com o que as rotas Route Handlers do Next.js devolvem
 (JSON serializado).
 
 > **Convenção geral**
+>
 > - Todas as rotas exigem `Authorization: Bearer <jwt>` exceto `/api/webhooks/*`
 >   (validação de assinatura GHL) e `/api/workers/*` (validação de assinatura QStash).
 > - Resposta de erro padrão (quando o handler chama `toHttpResponse`):
 >   ```ts
 >   interface ErrorResponse {
 >     error: {
->       code: string             // ex: 'FORBIDDEN', 'NOT_FOUND', 'INVALID_BODY'
+>       code: string // ex: 'FORBIDDEN', 'NOT_FOUND', 'INVALID_BODY'
 >       message: string
 >       meta?: Record<string, unknown>
 >     }
@@ -36,14 +37,14 @@ type TenantRole = 'admin' | 'financeiro' | 'recepcionista' | 'profissional_saude
 
 Matriz resumida (campo `role` da sessão controla o que aparece na UI):
 
-| Ação                                         | admin | financeiro | recepcionista | profissional_saude |
-|----------------------------------------------|:-----:|:----------:|:-------------:|:------------------:|
-| Ler atendimentos / preços / procedures / plans / médicos | ✅ | ✅ | ✅ | ✅ (só atendimentos) |
-| Reverter atendimento                         |  ✅   |     ✅     |       ❌       |          ❌          |
-| Criar/alterar preço, procedimento, plano, médico |  ✅   |     ❌     |       ❌       |          ❌          |
-| Ler/exportar auditoria                       |  ✅   |     ❌     |       ❌       |          ❌          |
-| Ler/resolver alertas, ler/reprocessar DLQ    |  ✅   |     ✅     |       ❌       |          ❌          |
-| Gerar relatório mensal                       |  ✅   |     ✅     |       ❌       |          ❌          |
+| Ação                                                     | admin | financeiro | recepcionista |  profissional_saude  |
+| -------------------------------------------------------- | :---: | :--------: | :-----------: | :------------------: |
+| Ler atendimentos / preços / procedures / plans / médicos |  ✅   |     ✅     |      ✅       | ✅ (só atendimentos) |
+| Reverter atendimento                                     |  ✅   |     ✅     |      ❌       |          ❌          |
+| Criar/alterar preço, procedimento, plano, médico         |  ✅   |     ❌     |      ❌       |          ❌          |
+| Ler/exportar auditoria                                   |  ✅   |     ❌     |      ❌       |          ❌          |
+| Ler/resolver alertas, ler/reprocessar DLQ                |  ✅   |     ✅     |      ❌       |          ❌          |
+| Gerar relatório mensal                                   |  ✅   |     ✅     |      ❌       |          ❌          |
 
 Quando o usuário não tem permissão, o backend devolve **403** e grava uma
 linha em `audit_log` com `result='denied'`.
@@ -54,9 +55,9 @@ linha em `audit_log` com `result='denied'`.
 
 ```ts
 interface ActiveSession {
-  userId: string                       // uuid
+  userId: string // uuid
   email: string | null
-  tenantId: string                     // uuid
+  tenantId: string // uuid
   role: TenantRole
 }
 ```
@@ -75,16 +76,16 @@ Lista os atendimentos efetivos do tenant.
 
 ```ts
 interface AppointmentEffective {
-  id: string                                     // uuid
-  appointment_at: string                         // ISO timestamp
-  patient_id: string                             // uuid
-  doctor_id: string                              // uuid
-  procedure_id: string                           // uuid
-  plan_id: string                                // uuid
+  id: string // uuid
+  appointment_at: string // ISO timestamp
+  patient_id: string // uuid
+  doctor_id: string // uuid
+  procedure_id: string // uuid
+  plan_id: string // uuid
   frozen_amount_cents: number
   frozen_commission_bps: number
   effective_status: 'ativo' | 'estornado'
-  net_amount_cents: number                       // = frozen + reversal (0 se estornado)
+  net_amount_cents: number // = frozen + reversal (0 se estornado)
   net_commission_cents: number
   reversal_id: string | null
   reversed_at: string | null
@@ -92,11 +93,11 @@ interface AppointmentEffective {
 
 // Query string
 interface ListAppointmentsQuery {
-  from?: string        // 'YYYY-MM-DD' inclusive
-  to?: string          // 'YYYY-MM-DD' inclusive
+  from?: string // 'YYYY-MM-DD' inclusive
+  to?: string // 'YYYY-MM-DD' inclusive
   doctor_id?: string
   plan_id?: string
-  status?: 'ativo' | 'estornado' | 'todos'   // default 'todos'
+  status?: 'ativo' | 'estornado' | 'todos' // default 'todos'
 }
 
 type ListAppointmentsResponse = AppointmentEffective[]
@@ -107,7 +108,7 @@ type ListAppointmentsResponse = AppointmentEffective[]
 ```ts
 interface GetAppointmentResponse {
   appointment: AppointmentEffective
-  audit: AuditRow[]      // ver tipo em "Auditoria" abaixo
+  audit: AuditRow[] // ver tipo em "Auditoria" abaixo
 }
 ```
 
@@ -117,18 +118,19 @@ interface GetAppointmentResponse {
 
 ```ts
 interface ReverseAppointmentRequest {
-  reason: string         // mínimo 3 caracteres
+  reason: string // mínimo 3 caracteres
 }
 
 interface ReverseAppointmentResponse {
-  id: string                       // uuid do registro de reversão
+  id: string // uuid do registro de reversão
   appointment_id: string
-  reversal_amount_cents: number    // sempre negativo
+  reversal_amount_cents: number // sempre negativo
   reason: string
 }
 ```
 
 Códigos de erro relevantes:
+
 - `403` — papel não autorizado
 - `404` — atendimento não encontrado no tenant
 - `409` — `code: 'APPOINTMENT_ALREADY_REVERSED'` (já houve reversão)
@@ -149,7 +151,7 @@ interface Alert {
   id: string
   type: AlertType
   status: AlertStatus
-  detail: Record<string, unknown>      // chaves variam por tipo; safe pra render como JSON
+  detail: Record<string, unknown> // chaves variam por tipo; safe pra render como JSON
   subject_ref: Record<string, unknown> | null
   email_sent_to: string[]
   email_last_sent_at: string | null
@@ -221,19 +223,19 @@ Erro `409` com `code: 'NOT_IN_DLQ'` se o evento não está mais com status DLQ.
 
 ```ts
 interface PriceHead {
-  id: string                       // uuid da versão "head"
+  id: string // uuid da versão "head"
   procedureId: string
   procedureTussCode: string
   planId: string
   planName: string
   amountCents: number
-  validFrom: string                // 'YYYY-MM-DD'
+  validFrom: string // 'YYYY-MM-DD'
 }
 
 interface ListPricesQuery {
   procedure_id?: string
   plan_id?: string
-  as_of?: string                   // default = hoje
+  as_of?: string // default = hoje
 }
 
 type ListPricesResponse = PriceHead[]
@@ -252,9 +254,9 @@ interface CreatePriceVersionRequest {
   procedure_id: string
   plan_id: string
   amount_cents: number
-  valid_from: string                       // 'YYYY-MM-DD'
-  reason: string                           // mín. 3 caracteres
-  expected_head_id: string | null          // null = primeira versão da chain
+  valid_from: string // 'YYYY-MM-DD'
+  reason: string // mín. 3 caracteres
+  expected_head_id: string | null // null = primeira versão da chain
 }
 
 interface PriceVersion {
@@ -268,7 +270,7 @@ interface PriceVersion {
   previous_version_id: string | null
 }
 
-type CreatePriceVersionResponse = PriceVersion         // 201
+type CreatePriceVersionResponse = PriceVersion // 201
 ```
 
 **409 Conflict** (chain head mudou desde o load do form OU mesmo `valid_from`
@@ -278,7 +280,7 @@ já existe):
 interface PriceVersionConflictResponse {
   code: 'PRICE_VERSION_CONFLICT'
   message: string
-  current_head_id: string | null   // versão real do banco — recarregar form
+  current_head_id: string | null // versão real do banco — recarregar form
 }
 ```
 
@@ -295,13 +297,13 @@ interface PriceVersionWithMeta {
   plan_id: string
   amount_cents: number
   valid_from: string
-  created_at: string                  // ISO timestamp
-  created_by: string                  // uuid
+  created_at: string // ISO timestamp
+  created_by: string // uuid
   reason: string
   previous_version_id: string | null
 }
 
-type GetPriceHistoryResponse = PriceVersionWithMeta[]   // ordem desc por valid_from, created_at
+type GetPriceHistoryResponse = PriceVersionWithMeta[] // ordem desc por valid_from, created_at
 ```
 
 ---
@@ -321,14 +323,14 @@ papel autenticado.
 
 ```ts
 interface TussSearchResult {
-  code: string                              // ex: '10101012'
-  description: string                       // ex: 'Consulta em consultório'
+  code: string // ex: '10101012'
+  description: string // ex: 'Consulta em consultório'
   terminologyChapter: string | null
 }
 
 interface SearchTussQuery {
-  q?: string                                // busca livre; vazio = primeiros N
-  limit?: number                            // 1..200, default 50
+  q?: string // busca livre; vazio = primeiros N
+  limit?: number // 1..200, default 50
 }
 
 type SearchTussResponse = TussSearchResult[]
@@ -344,14 +346,14 @@ em consultório"`, click salva `code` no form do procedimento.
 interface Procedure {
   id: string
   tussCode: string
-  tussDescription: string | null      // resolvido do catálogo global
+  tussDescription: string | null // resolvido do catálogo global
   displayName: string | null
   active: boolean
   createdAt: string
 }
 
 interface ListProceduresQuery {
-  include_inactive?: boolean          // default false
+  include_inactive?: boolean // default false
 }
 
 type ListProceduresResponse = Procedure[]
@@ -379,6 +381,7 @@ interface ProcedureCreatedResponse {
 ```
 
 Erros:
+
 - `400` `code: 'TUSS_CODE_INVALID'` — código não existe no catálogo ou está
   retirado (`meta.code` traz o código que falhou).
 - `409` `code: 'PROCEDURE_DUPLICATE'` — já existe procedimento com esse TUSS
@@ -428,7 +431,7 @@ type ListPlansResponse = HealthPlan[]
 
 ```ts
 interface CreatePlanRequest {
-  name: string                  // mínimo 1 caractere
+  name: string // mínimo 1 caractere
 }
 
 interface CreatePlanResponse {
@@ -475,7 +478,7 @@ interface AuditRow {
   actor_id: string | null
   actor_label: string | null
   timestamp_utc: string
-  entity: string                  // ex: 'price_versions', 'appointments', 'procedures'
+  entity: string // ex: 'price_versions', 'appointments', 'procedures'
   entity_id: string | null
   field: string | null
   old_value: string | null
@@ -488,16 +491,16 @@ interface AuditRow {
 
 interface ListAuditQuery {
   entity?: string
-  from?: string                   // ISO timestamp
+  from?: string // ISO timestamp
   to?: string
   result?: AuditResult
-  cursor?: string | null          // passar o `next_cursor` da página anterior
-  limit?: number                  // 1..500, default 100
+  cursor?: string | null // passar o `next_cursor` da página anterior
+  limit?: number // 1..500, default 100
 }
 
 interface ListAuditResponse {
   entries: AuditRow[]
-  next_cursor: string | null      // null quando não há mais páginas
+  next_cursor: string | null // null quando não há mais páginas
 }
 ```
 
@@ -508,7 +511,7 @@ campos sem transformação (FR-019).
 
 ```ts
 interface ExportAuditQuery {
-  format: 'csv' | 'json'          // obrigatório
+  format: 'csv' | 'json' // obrigatório
   entity?: string
   from?: string
   to?: string
@@ -540,11 +543,13 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
 ## Telas a construir (mapeamento sugerido)
 
 ### `/atendimentos` (T093 — JÁ FEITO COMO MOCK)
+
 - `GET /api/atendimentos?from=&to=&status=`
 - Linha clicável → `/atendimentos/{id}`
 - Filtros: data inicial, data final, status (ativo/estornado/todos)
 
 ### `/atendimentos/{id}` (T094 — MOCK FEITO)
+
 - `GET /api/atendimentos/{id}` (devolve appointment + audit)
 - Botão "Reverter" visível só se `session.role` ∈ {admin, financeiro}
   e `appointment.effective_status === 'ativo'`
@@ -553,17 +558,20 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
   - Após sucesso, refresh da página
 
 ### `/alertas` (T095 — MOCK FEITO)
+
 - `GET /api/alertas?status=`
 - Filtros: status (aberto/resolvido/todos), tipo opcional
 - Botão "Resolver" só admin → `POST /api/alertas/{id}/resolve`
 
 ### `/dlq` (T096 — MOCK FEITO)
+
 - `GET /api/alertas/dlq`
 - Mostrar `failure_reason` em destaque, `payload` resumido (`event_id`,
   `event_type`, `contact.id`)
 - Botão "Reprocessar" só admin → `POST /api/alertas/dlq/{id}/reprocess`
 
 ### `/precos` (T114)
+
 - `GET /api/precos?procedure_id=&plan_id=&as_of=`
 - Filtros: procedimento (dropdown carregado de `GET /api/procedimentos`),
   plano (dropdown carregado de `GET /api/planos`), data de referência
@@ -572,6 +580,7 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
 - Linha clicável → `/precos/{id}` (passa o `head.id`)
 
 ### `/precos/{id}` (T115)
+
 - `GET /api/precos/versions/{id}/history`
 - Painel superior: head atual (primeiro item da lista)
 - Form "Editar" carrega `expected_head_id = head.id` num campo escondido
@@ -583,6 +592,7 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
   `amount_cents`, `reason`, `created_at`, `created_by`
 
 ### `/precos/novo` (T116)
+
 - Dropdowns de procedimento e plano (carregados como acima)
 - Campos `amount_cents`, `valid_from`, `reason`
 - Submit → `POST /api/precos/versions` com `expected_head_id: null`
@@ -590,6 +600,7 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
     com `current_head_id`. Tratar como "Use a tela de edição".
 
 ### `/procedimentos` (T166)
+
 - `GET /api/procedimentos?include_inactive=...`
 - Filtro: incluir inativos
 - Form de criação inline (admin-only) → `POST /api/procedimentos`
@@ -599,6 +610,7 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
 - Recepcionista enxerga read-only (sem botões/inputs de edição)
 
 ### `/planos` (T167)
+
 - `GET /api/planos?include_inactive=...`
 - Form de criação (admin-only) → `POST /api/planos`
   - 409 `HEALTH_PLAN_DUPLICATE` → "Já existe plano com esse nome"
@@ -606,6 +618,7 @@ Não precisam de UI, mas o front pode usar pra demos / debugging:
 - Recepcionista read-only
 
 ### `/auditoria` (T170)
+
 - `GET /api/auditoria?entity=&from=&to=&result=&cursor=&limit=`
 - Tabela paginada (button "Carregar mais" usa `next_cursor`)
 - Filtros: entidade (dropdown fixo: `price_versions`, `procedures`,

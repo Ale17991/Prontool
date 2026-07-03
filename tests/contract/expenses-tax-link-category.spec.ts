@@ -64,11 +64,7 @@ describe('Feature 011 — POST /api/despesas com tax_id normaliza category=impos
 
     // Confirma persistência
     const sb = serviceClient()
-    const { data } = await sb
-      .from('expenses')
-      .select('category, tax_id')
-      .eq('id', body.id)
-      .single()
+    const { data } = await sb.from('expenses').select('category, tax_id').eq('id', body.id).single()
     expect(data?.category).toBe('impostos')
     expect((data as { tax_id?: string | null } | null)?.tax_id).toBe(taxId)
   })

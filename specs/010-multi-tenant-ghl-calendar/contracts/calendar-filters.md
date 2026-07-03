@@ -13,16 +13,16 @@ US4 é majoritariamente UI. Este contrato documenta:
 
 A página `/operacao/atendimentos` lê filtros e estado de visualização da query string.
 
-| Param | Valores aceitos | Default | Notas |
-|-------|----------------|---------|-------|
-| `view` | `dia` \| `semana` \| `mes` | `semana` | persiste a visualização |
-| `date` | `YYYY-MM-DD` | hoje | data de referência (centro da view) |
-| `from` | `YYYY-MM-DD` | derivado de `view`+`date` | início do período custom (quando setado, sobrepõe o derivado) |
-| `to` | `YYYY-MM-DD` | derivado de `view`+`date` | fim do período custom |
-| `doctor` | UUID | (todos) | filtra por profissional |
-| `status` | `agendado` \| `realizado` \| `cancelado` | (todos) | filtra por status efetivo |
-| `procedure` | substring (≤ 60 chars) | — | match em nome do procedimento |
-| `patient` | substring (≤ 60 chars) | — | match em nome do paciente |
+| Param       | Valores aceitos                          | Default                   | Notas                                                         |
+| ----------- | ---------------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| `view`      | `dia` \| `semana` \| `mes`               | `semana`                  | persiste a visualização                                       |
+| `date`      | `YYYY-MM-DD`                             | hoje                      | data de referência (centro da view)                           |
+| `from`      | `YYYY-MM-DD`                             | derivado de `view`+`date` | início do período custom (quando setado, sobrepõe o derivado) |
+| `to`        | `YYYY-MM-DD`                             | derivado de `view`+`date` | fim do período custom                                         |
+| `doctor`    | UUID                                     | (todos)                   | filtra por profissional                                       |
+| `status`    | `agendado` \| `realizado` \| `cancelado` | (todos)                   | filtra por status efetivo                                     |
+| `procedure` | substring (≤ 60 chars)                   | —                         | match em nome do procedimento                                 |
+| `patient`   | substring (≤ 60 chars)                   | —                         | match em nome do paciente                                     |
 
 **Exemplos**:
 
@@ -41,15 +41,15 @@ A página `/operacao/atendimentos` lê filtros e estado de visualização da que
 
 O endpoint atual já aceita `from`, `to`, `doctor`. Esta feature acrescenta (de modo backward-compatible — todos opcionais):
 
-| Param | Tipo | Notas |
-|-------|------|-------|
-| `from` | `YYYY-MM-DD` | (já existe) |
-| `to` | `YYYY-MM-DD` | (já existe) |
-| `doctor` | UUID | (já existe) |
-| `status` | `agendado` \| `realizado` \| `cancelado` | NOVO — filtra por status efetivo |
-| `procedure` | string | NOVO — `ilike '%${procedure}%'` em `procedures.name` |
-| `patient` | string | NOVO — match contra nome decriptado (uses RPC existente que já decifra) |
-| `limit` | number ≤ 1000 | default 200; Mês usa 1000 |
+| Param       | Tipo                                     | Notas                                                                   |
+| ----------- | ---------------------------------------- | ----------------------------------------------------------------------- |
+| `from`      | `YYYY-MM-DD`                             | (já existe)                                                             |
+| `to`        | `YYYY-MM-DD`                             | (já existe)                                                             |
+| `doctor`    | UUID                                     | (já existe)                                                             |
+| `status`    | `agendado` \| `realizado` \| `cancelado` | NOVO — filtra por status efetivo                                        |
+| `procedure` | string                                   | NOVO — `ilike '%${procedure}%'` em `procedures.name`                    |
+| `patient`   | string                                   | NOVO — match contra nome decriptado (uses RPC existente que já decifra) |
+| `limit`     | number ≤ 1000                            | default 200; Mês usa 1000                                               |
 
 **Response shape**: inalterada (lista de `Appointment` DTO).
 
@@ -127,12 +127,12 @@ Visível quando há QUALQUER filtro além do default. Click → `router.replace(
 
 ```ts
 export function useCalendarFilters(): {
-  filters: CalendarFilters;
-  setFilter<K extends keyof CalendarFilters>(key: K, value: CalendarFilters[K] | null): void;
-  setRange(from: Date, to: Date): void;
-  clear(): void;
-  asQuery(): string;          // serializa para query string (debug/testing)
-  range: { from: Date; to: Date };  // sempre derivado
+  filters: CalendarFilters
+  setFilter<K extends keyof CalendarFilters>(key: K, value: CalendarFilters[K] | null): void
+  setRange(from: Date, to: Date): void
+  clear(): void
+  asQuery(): string // serializa para query string (debug/testing)
+  range: { from: Date; to: Date } // sempre derivado
 }
 ```
 

@@ -7,7 +7,12 @@
  */
 import { test, expect } from '@playwright/test'
 import { loginAsAdmin } from './fixtures'
-import { seedMemedFixture, stubMemedSdk, openPrescription, type MemedE2eFixture } from './memed-helpers'
+import {
+  seedMemedFixture,
+  stubMemedSdk,
+  openPrescription,
+  type MemedE2eFixture,
+} from './memed-helpers'
 
 const ITERATIONS = 20
 // SC-008: p95 ≤ 3s vale no build de produção (CI, `pnpm start`). Em dev mode
@@ -27,7 +32,9 @@ function percentile(sorted: number[], p: number): number {
   return sorted[Math.max(0, idx)]!
 }
 
-test('clique em Prescrever → iframe carregado com paciente: p95 ≤ 3s (20 iterações)', async ({ page }) => {
+test('clique em Prescrever → iframe carregado com paciente: p95 ≤ 3s (20 iterações)', async ({
+  page,
+}) => {
   test.setTimeout(10 * 60_000)
   await stubMemedSdk(page)
   await loginAsAdmin(page)

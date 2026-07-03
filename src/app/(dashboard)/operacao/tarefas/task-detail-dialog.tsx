@@ -5,12 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2, Pencil, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -137,8 +132,7 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
   if (!task) return null
 
   const isOverdue = task.is_overdue
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString('pt-BR')
+  const formatDate = (iso: string) => new Date(iso).toLocaleString('pt-BR')
   const formatDateOnly = (yyyymmdd: string) =>
     new Date(yyyymmdd + 'T00:00:00').toLocaleDateString('pt-BR')
 
@@ -146,16 +140,16 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
     <Dialog open={!!task} onOpenChange={(o) => !o && close()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="pr-6">
-            {editing ? 'Editar tarefa' : task.title}
-          </DialogTitle>
+          <DialogTitle className="pr-6">{editing ? 'Editar tarefa' : task.title}</DialogTitle>
         </DialogHeader>
 
         {editing && isAdmin ? (
           /* ----- MODO EDIÇÃO (admin) ----- */
           <form onSubmit={onSubmitEdit} className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="ed-title" className="text-xs">Título</Label>
+              <Label htmlFor="ed-title" className="text-xs">
+                Título
+              </Label>
               <Input
                 id="ed-title"
                 required
@@ -166,7 +160,9 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ed-notes" className="text-xs">Observações</Label>
+              <Label htmlFor="ed-notes" className="text-xs">
+                Observações
+              </Label>
               <Textarea
                 id="ed-notes"
                 maxLength={1000}
@@ -177,7 +173,9 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="ed-due" className="text-xs">Data limite</Label>
+                <Label htmlFor="ed-due" className="text-xs">
+                  Data limite
+                </Label>
                 <Input
                   id="ed-due"
                   required
@@ -187,7 +185,9 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ed-priority" className="text-xs">Prioridade</Label>
+                <Label htmlFor="ed-priority" className="text-xs">
+                  Prioridade
+                </Label>
                 <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
                   <SelectTrigger id="ed-priority">
                     <SelectValue />
@@ -202,7 +202,9 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ed-assigned" className="text-xs">Responsável</Label>
+              <Label htmlFor="ed-assigned" className="text-xs">
+                Responsável
+              </Label>
               <Select value={assignedTo} onValueChange={setAssignedTo}>
                 <SelectTrigger id="ed-assigned">
                   <SelectValue placeholder="Selecione…" />
@@ -264,9 +266,7 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                   Observações
                 </p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
-                  {task.notes}
-                </p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{task.notes}</p>
               </div>
             ) : null}
 
@@ -278,15 +278,9 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
                 value={formatDateOnly(task.due_date)}
                 emphasis={isOverdue ? 'rose' : undefined}
               />
-              <DetailRow
-                label="Criado em"
-                value={formatDate(task.created_at)}
-              />
+              <DetailRow label="Criado em" value={formatDate(task.created_at)} />
               {task.completed_at ? (
-                <DetailRow
-                  label="Concluído em"
-                  value={formatDate(task.completed_at)}
-                />
+                <DetailRow label="Concluído em" value={formatDate(task.completed_at)} />
               ) : null}
             </div>
 
@@ -305,9 +299,7 @@ export function TaskDetailDialog({ task, isAdmin, members, onClose }: Props) {
                   onClick={onToggleStatus}
                   disabled={pending}
                 >
-                  {pending ? (
-                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  ) : null}
+                  {pending ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
                   {task.status === 'pendente' ? 'Concluir' : 'Reabrir'}
                 </Button>
                 {isAdmin ? (
@@ -360,9 +352,7 @@ function DetailRow({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-        {label}
-      </p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
       <p
         className={cn(
           'mt-0.5 font-semibold tabular-nums',

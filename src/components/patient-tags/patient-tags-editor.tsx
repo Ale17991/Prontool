@@ -94,10 +94,9 @@ export function PatientTagsEditor({ patientId, value, onChange }: PatientTagsEdi
   async function unassign(tag: PatientTag) {
     const previous = value
     onChange(value.filter((t) => t.id !== tag.id))
-    const res = await fetch(
-      `/api/pacientes/${patientId}/tags?tag_id=${tag.id}`,
-      { method: 'DELETE' },
-    )
+    const res = await fetch(`/api/pacientes/${patientId}/tags?tag_id=${tag.id}`, {
+      method: 'DELETE',
+    })
     if (!res.ok) {
       onChange(previous)
       setErrorMsg('Falha ao remover tag.')
@@ -112,16 +111,12 @@ export function PatientTagsEditor({ patientId, value, onChange }: PatientTagsEdi
       body: JSON.stringify({ name, color }),
     })
     if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null
+      const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null
       setErrorMsg(body?.error?.message ?? 'Falha ao criar tag.')
       return
     }
     const body = (await res.json()) as { tag: PatientTag }
-    setCatalog((prev) =>
-      [...prev, body.tag].sort((a, b) => a.name.localeCompare(b.name)),
-    )
+    setCatalog((prev) => [...prev, body.tag].sort((a, b) => a.name.localeCompare(b.name)))
     setMode('list')
     await assign(body.tag)
   }
@@ -134,9 +129,7 @@ export function PatientTagsEditor({ patientId, value, onChange }: PatientTagsEdi
       body: JSON.stringify({ name, color }),
     })
     if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null
+      const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null
       setErrorMsg(body?.error?.message ?? 'Falha ao atualizar tag.')
       return
     }
@@ -154,7 +147,9 @@ export function PatientTagsEditor({ patientId, value, onChange }: PatientTagsEdi
   }
 
   async function removeFromCatalog(tag: PatientTag) {
-    if (!confirm(`Excluir a tag "${tag.name}" do catálogo? Ela será removida de todos os pacientes.`)) {
+    if (
+      !confirm(`Excluir a tag "${tag.name}" do catálogo? Ela será removida de todos os pacientes.`)
+    ) {
       return
     }
     setErrorMsg(null)
@@ -172,12 +167,7 @@ export function PatientTagsEditor({ patientId, value, onChange }: PatientTagsEdi
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {value.map((tag) => (
-        <TagBadge
-          key={tag.id}
-          name={tag.name}
-          color={tag.color}
-          onRemove={() => unassign(tag)}
-        />
+        <TagBadge key={tag.id} name={tag.name} color={tag.color} onRemove={() => unassign(tag)} />
       ))}
 
       <Popover
@@ -270,18 +260,12 @@ function ListMode({
   error,
 }: ListModeProps) {
   const term = search.trim().toLowerCase()
-  const filtered = term
-    ? catalog.filter((t) => t.name.toLowerCase().includes(term))
-    : catalog
+  const filtered = term ? catalog.filter((t) => t.name.toLowerCase().includes(term)) : catalog
   const exactMatch = catalog.some((t) => t.name.toLowerCase() === term)
 
   return (
     <Command shouldFilter={false}>
-      <CommandInput
-        placeholder="Buscar ou criar tag..."
-        value={search}
-        onValueChange={setSearch}
-      />
+      <CommandInput placeholder="Buscar ou criar tag..." value={search} onValueChange={setSearch} />
       <CommandList>
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
@@ -290,9 +274,7 @@ function ListMode({
           </div>
         ) : filtered.length === 0 ? (
           <CommandEmpty className="py-4 text-center text-xs text-slate-500">
-            {catalog.length === 0
-              ? 'Nenhuma tag cadastrada ainda.'
-              : 'Nenhuma tag encontrada.'}
+            {catalog.length === 0 ? 'Nenhuma tag cadastrada ainda.' : 'Nenhuma tag encontrada.'}
           </CommandEmpty>
         ) : (
           <CommandGroup heading="Catálogo">
@@ -313,9 +295,7 @@ function ListMode({
                     )}
                   />
                   <span className="flex-1 truncate text-xs">{t.name}</span>
-                  {isAssigned ? (
-                    <Check className="h-3.5 w-3.5 text-primary" />
-                  ) : null}
+                  {isAssigned ? <Check className="h-3.5 w-3.5 text-primary" /> : null}
                   <span className="ml-1 hidden gap-0.5 group-hover/item:flex">
                     <button
                       type="button"
@@ -370,9 +350,7 @@ function ListMode({
         ) : null}
       </CommandList>
       {error ? (
-        <p className="border-t border-slate-100 px-3 py-2 text-[11px] text-destructive">
-          {error}
-        </p>
+        <p className="border-t border-slate-100 px-3 py-2 text-[11px] text-destructive">{error}</p>
       ) : null}
     </Command>
   )
@@ -408,9 +386,7 @@ function TagForm({ title, initialName, initialColor, onCancel, onSubmit, error }
     <form onSubmit={handleSubmit} className="space-y-3 p-3">
       <div className="flex items-center gap-2">
         <TagIcon className="h-3.5 w-3.5 text-slate-400" />
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-          {title}
-        </h4>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">{title}</h4>
       </div>
       <div className="space-y-1">
         <label className="text-[11px] font-semibold text-slate-500">Nome</label>
@@ -468,9 +444,7 @@ function TagForm({ title, initialName, initialColor, onCancel, onSubmit, error }
           </Button>
         </div>
       </div>
-      {error ? (
-        <p className="text-[11px] text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="text-[11px] text-destructive">{error}</p> : null}
     </form>
   )
 }

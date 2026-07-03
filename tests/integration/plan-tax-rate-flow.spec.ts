@@ -26,11 +26,7 @@ describe('Feature 011 — fluxo de alíquota do convênio (US2)', () => {
 
   it('default = 0 (convênio não cobra imposto)', async () => {
     const sb = serviceClient()
-    const { data } = await sb
-      .from('health_plans')
-      .select('tax_rate_bps')
-      .eq('id', planId)
-      .single()
+    const { data } = await sb.from('health_plans').select('tax_rate_bps').eq('id', planId).single()
     expect((data as { tax_rate_bps?: number } | null)?.tax_rate_bps).toBe(0)
   })
 
@@ -57,11 +53,7 @@ describe('Feature 011 — fluxo de alíquota do convênio (US2)', () => {
 
     // Confirma persistência
     const sb = serviceClient()
-    const { data } = await sb
-      .from('health_plans')
-      .select('tax_rate_bps')
-      .eq('id', planId)
-      .single()
+    const { data } = await sb.from('health_plans').select('tax_rate_bps').eq('id', planId).single()
     expect((data as { tax_rate_bps?: number } | null)?.tax_rate_bps).toBe(650)
   })
 
@@ -85,12 +77,12 @@ describe('Feature 011 — fluxo de alíquota do convênio (US2)', () => {
 
   it('core lib updatePlanTaxRate rejeita range inválido', async () => {
     const sb = serviceClient()
-    await expect(
-      updatePlanTaxRate(sb, { tenantId, planId, taxRateBps: -1 }),
-    ).rejects.toThrow(/inválido/)
-    await expect(
-      updatePlanTaxRate(sb, { tenantId, planId, taxRateBps: 10001 }),
-    ).rejects.toThrow(/inválido/)
+    await expect(updatePlanTaxRate(sb, { tenantId, planId, taxRateBps: -1 })).rejects.toThrow(
+      /inválido/,
+    )
+    await expect(updatePlanTaxRate(sb, { tenantId, planId, taxRateBps: 10001 })).rejects.toThrow(
+      /inválido/,
+    )
   })
 
   it('PATCH com `active` continua funcionando (backward compat)', async () => {

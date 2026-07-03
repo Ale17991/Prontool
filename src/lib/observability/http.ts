@@ -4,7 +4,10 @@ import { logger } from './logger'
 
 export function toHttpResponse(err: unknown, context: Record<string, unknown> = {}): NextResponse {
   if (err instanceof DomainError) {
-    logger.warn({ ...context, code: err.code, meta: err.meta, message: err.message }, 'domain-error')
+    logger.warn(
+      { ...context, code: err.code, meta: err.meta, message: err.message },
+      'domain-error',
+    )
     return NextResponse.json(
       { error: { code: err.code, message: err.message, ...(err.meta ? { meta: err.meta } : {}) } },
       { status: err.statusHint ?? 400 },

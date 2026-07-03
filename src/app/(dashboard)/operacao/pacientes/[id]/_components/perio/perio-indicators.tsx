@@ -6,9 +6,20 @@ import type { PerioIndicators } from '@/lib/core/dental/perio/sites'
 export function PerioIndicatorsPanel({ indicators }: { indicators: PerioIndicators }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <Stat label="Sangramento (BOP)" value={`${indicators.bopPct}%`} hint={`${indicators.sitesBleeding}/${indicators.sitesMeasured} sítios`} />
-      <Stat label="Bolsas ≥4mm" value={String(indicators.pocketsGe4)} hint={`${indicators.pocketsGe4Pct}%`} />
-      <Stat label="CAL médio" value={indicators.calAvgMm === null ? '—' : `${indicators.calAvgMm} mm`} />
+      <Stat
+        label="Sangramento (BOP)"
+        value={`${indicators.bopPct}%`}
+        hint={`${indicators.sitesBleeding}/${indicators.sitesMeasured} sítios`}
+      />
+      <Stat
+        label="Bolsas ≥4mm"
+        value={String(indicators.pocketsGe4)}
+        hint={`${indicators.pocketsGe4Pct}%`}
+      />
+      <Stat
+        label="CAL médio"
+        value={indicators.calAvgMm === null ? '—' : `${indicators.calAvgMm} mm`}
+      />
       <Stat label="Sítios medidos" value={String(indicators.sitesMeasured)} />
     </div>
   )

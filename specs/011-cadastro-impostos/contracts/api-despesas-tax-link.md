@@ -5,6 +5,7 @@
 ## Mudança
 
 Adiciona `tax_id?: string | null` ao body schema do `POST /api/despesas`. Quando informado:
+
 - O servidor força `category = 'impostos'` (sobrescreve se vier diferente; loga warn).
 - Valida que `tax_id` referencia um imposto **ativo** do mesmo tenant.
 
@@ -12,8 +13,16 @@ Adiciona `tax_id?: string | null` ao body schema do `POST /api/despesas`. Quando
 
 ```ts
 const createSchema = z.object({
-  category: z.enum(['aluguel', 'equipamentos', 'materiais', 'pessoal',
-                    'servicos', 'impostos', 'manutencao', 'outros']),
+  category: z.enum([
+    'aluguel',
+    'equipamentos',
+    'materiais',
+    'pessoal',
+    'servicos',
+    'impostos',
+    'manutencao',
+    'outros',
+  ]),
   description: z.string().min(2).max(500),
   supplier: z.string().max(200).optional().nullable(),
   amount_cents: z.number().int().positive(),
@@ -72,13 +81,13 @@ const expense = await createExpense(supabase, { ..., taxId: parsed.tax_id ?? nul
 
 ### Errors
 
-| Status | Code | Quando |
-|---|---|---|
-| 400 | `INVALID_BODY` | Zod fail |
-| 400 | `TAX_NOT_FOUND_OR_INACTIVE` | tax_id não existe ou está inativo/deletado |
-| 400 | `CHECK_VIOLATION` | (defensivo) DB CHECK falhou — não deveria acontecer porque a app força category=impostos |
-| 401 | `UNAUTHENTICATED` | sem sessão |
-| 403 | `FORBIDDEN` | papel != admin/financeiro |
+| Status | Code                        | Quando                                                                                   |
+| ------ | --------------------------- | ---------------------------------------------------------------------------------------- |
+| 400    | `INVALID_BODY`              | Zod fail                                                                                 |
+| 400    | `TAX_NOT_FOUND_OR_INACTIVE` | tax_id não existe ou está inativo/deletado                                               |
+| 400    | `CHECK_VIOLATION`           | (defensivo) DB CHECK falhou — não deveria acontecer porque a app força category=impostos |
+| 401    | `UNAUTHENTICATED`           | sem sessão                                                                               |
+| 403    | `FORBIDDEN`                 | papel != admin/financeiro                                                                |
 
 ---
 
@@ -103,14 +112,14 @@ Filtro por categoria já existente continua valendo: `?category=impostos` lista 
 
 ## Testes de contrato exigidos
 
-| Arquivo | Cenários |
-|---|---|
-| `tests/contract/expenses-tax-link-category.test.ts` | POST com tax_id e category='aluguel' ⇒ servidor força impostos (200, category normalizada) |
-| `tests/contract/expenses-tax-link-validation.test.ts` | tax_id inválido (uuid inexistente) ⇒ 400 `TAX_NOT_FOUND_OR_INACTIVE` |
-| `tests/contract/expenses-tax-link-inactive.test.ts` | tax_id de imposto desativado ⇒ 400 |
-| `tests/contract/expenses-tax-link-cross-tenant.test.ts` | tax_id de outro tenant ⇒ 400 (RLS bloqueia leitura → caem em not-found) |
-| `tests/contract/expenses-tax-link-db-check.test.ts` | (SQL) `INSERT expenses SET tax_id=X, category='aluguel'` ⇒ CHECK violation |
-| `tests/contract/expenses-tax-link-immutability.test.ts` | UPDATE expenses SET tax_id=Y ⇒ exception (trigger) |
+| Arquivo                                                 | Cenários                                                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `tests/contract/expenses-tax-link-category.test.ts`     | POST com tax_id e category='aluguel' ⇒ servidor força impostos (200, category normalizada) |
+| `tests/contract/expenses-tax-link-validation.test.ts`   | tax_id inválido (uuid inexistente) ⇒ 400 `TAX_NOT_FOUND_OR_INACTIVE`                       |
+| `tests/contract/expenses-tax-link-inactive.test.ts`     | tax_id de imposto desativado ⇒ 400                                                         |
+| `tests/contract/expenses-tax-link-cross-tenant.test.ts` | tax_id de outro tenant ⇒ 400 (RLS bloqueia leitura → caem em not-found)                    |
+| `tests/contract/expenses-tax-link-db-check.test.ts`     | (SQL) `INSERT expenses SET tax_id=X, category='aluguel'` ⇒ CHECK violation                 |
+| `tests/contract/expenses-tax-link-immutability.test.ts` | UPDATE expenses SET tax_id=Y ⇒ exception (trigger)                                         |
 
 ---
 

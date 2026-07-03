@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for feature 006 — comprovantes 1:N + atendimento particular"
+description: 'Task list for feature 006 — comprovantes 1:N + atendimento particular'
 ---
 
 # Tasks: Múltiplos comprovantes em despesas + atendimento particular

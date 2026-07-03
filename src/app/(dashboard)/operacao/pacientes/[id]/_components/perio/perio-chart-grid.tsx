@@ -48,16 +48,35 @@ const EMPTY_CELL: SiteCell = {
   plaque: false,
 }
 
-export function PerioChartGrid({ dentition, measurements, findings, readOnly, onSite, onFinding }: Props) {
+export function PerioChartGrid({
+  dentition,
+  measurements,
+  findings,
+  readOnly,
+  onSite,
+  onFinding,
+}: Props) {
   const quadrants = quadrantLayout(dentition)
   // Arcadas: superior (quadrantes 1,2) e inferior (4,3) — ordem de quadrantLayout.
-  const upper = quadrants.filter((q) => q.quadrant === 1 || q.quadrant === 2 || q.quadrant === 5 || q.quadrant === 6)
-  const lower = quadrants.filter((q) => q.quadrant === 3 || q.quadrant === 4 || q.quadrant === 7 || q.quadrant === 8)
+  const upper = quadrants.filter(
+    (q) => q.quadrant === 1 || q.quadrant === 2 || q.quadrant === 5 || q.quadrant === 6,
+  )
+  const lower = quadrants.filter(
+    (q) => q.quadrant === 3 || q.quadrant === 4 || q.quadrant === 7 || q.quadrant === 8,
+  )
 
   return (
     <div className="space-y-4">
-      <Arch label="Arcada superior" quadrants={upper} {...{ measurements, findings, readOnly, onSite, onFinding }} />
-      <Arch label="Arcada inferior" quadrants={lower} {...{ measurements, findings, readOnly, onSite, onFinding }} />
+      <Arch
+        label="Arcada superior"
+        quadrants={upper}
+        {...{ measurements, findings, readOnly, onSite, onFinding }}
+      />
+      <Arch
+        label="Arcada inferior"
+        quadrants={lower}
+        {...{ measurements, findings, readOnly, onSite, onFinding }}
+      />
     </div>
   )
 }
@@ -83,7 +102,9 @@ function Arch({
           <ToothCard
             key={t}
             toothFdi={t}
-            finding={findings[t] ?? { mobility: null, furcation: null, isMissing: false, isImplant: false }}
+            finding={
+              findings[t] ?? { mobility: null, furcation: null, isMissing: false, isImplant: false }
+            }
             measurements={measurements}
             readOnly={readOnly}
             onSite={onSite}
@@ -108,7 +129,12 @@ function ToothCard({
 } & Omit<Props, 'dentition' | 'findings'>) {
   const disabled = readOnly || finding.isMissing
   return (
-    <div className={cn('w-[148px] rounded-lg border border-slate-200 p-2', finding.isMissing && 'bg-slate-50 opacity-70')}>
+    <div
+      className={cn(
+        'w-[148px] rounded-lg border border-slate-200 p-2',
+        finding.isMissing && 'bg-slate-50 opacity-70',
+      )}
+    >
       <div className="mb-1 flex items-center justify-between">
         <span className="text-sm font-bold text-slate-800">{toothFdi}</span>
         <div className="flex gap-1 text-[10px]">
@@ -116,7 +142,10 @@ function ToothCard({
             type="button"
             disabled={readOnly}
             onClick={() => onFinding(toothFdi, { isMissing: !finding.isMissing })}
-            className={cn('rounded px-1 py-0.5', finding.isMissing ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-500')}
+            className={cn(
+              'rounded px-1 py-0.5',
+              finding.isMissing ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-500',
+            )}
             title="Ausente"
           >
             Aus
@@ -125,7 +154,10 @@ function ToothCard({
             type="button"
             disabled={readOnly}
             onClick={() => onFinding(toothFdi, { isImplant: !finding.isImplant })}
-            className={cn('rounded px-1 py-0.5', finding.isImplant ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-500')}
+            className={cn(
+              'rounded px-1 py-0.5',
+              finding.isImplant ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-500',
+            )}
             title="Implante"
           >
             Impl
@@ -142,12 +174,18 @@ function ToothCard({
           <select
             value={finding.mobility ?? ''}
             disabled={readOnly || finding.isMissing}
-            onChange={(e) => onFinding(toothFdi, { mobility: e.target.value === '' ? null : Number(e.target.value) })}
+            onChange={(e) =>
+              onFinding(toothFdi, {
+                mobility: e.target.value === '' ? null : Number(e.target.value),
+              })
+            }
             className="rounded border px-0.5"
           >
             <option value="">–</option>
             {[0, 1, 2, 3].map((g) => (
-              <option key={g} value={g}>{g}</option>
+              <option key={g} value={g}>
+                {g}
+              </option>
             ))}
           </select>
         </label>
@@ -156,7 +194,11 @@ function ToothCard({
           <select
             value={finding.furcation ?? ''}
             disabled={readOnly || finding.isMissing}
-            onChange={(e) => onFinding(toothFdi, { furcation: e.target.value === '' ? null : Number(e.target.value) })}
+            onChange={(e) =>
+              onFinding(toothFdi, {
+                furcation: e.target.value === '' ? null : Number(e.target.value),
+              })
+            }
             className="rounded border px-0.5"
           >
             <option value="">–</option>
@@ -193,7 +235,11 @@ function SiteRow({
           const cell = measurements[siteKey(toothFdi, s)] ?? EMPTY_CELL
           const cal = calcCal(cell.probingDepthMm, cell.recessionMm)
           return (
-            <div key={s} className="flex flex-col items-center gap-0.5" title={`${siteLabel(s)}${cal !== null ? ` · CAL ${cal}` : ''}`}>
+            <div
+              key={s}
+              className="flex flex-col items-center gap-0.5"
+              title={`${siteLabel(s)}${cal !== null ? ` · CAL ${cal}` : ''}`}
+            >
               <input
                 type="number"
                 inputMode="numeric"
@@ -201,7 +247,11 @@ function SiteRow({
                 max={15}
                 disabled={disabled}
                 value={cell.probingDepthMm ?? ''}
-                onChange={(e) => onSite(toothFdi, s, { probingDepthMm: e.target.value === '' ? null : Number(e.target.value) })}
+                onChange={(e) =>
+                  onSite(toothFdi, s, {
+                    probingDepthMm: e.target.value === '' ? null : Number(e.target.value),
+                  })
+                }
                 className="w-9 rounded border border-slate-200 px-0.5 py-0.5 text-center text-[11px]"
                 placeholder="PS"
               />
@@ -212,7 +262,11 @@ function SiteRow({
                 max={15}
                 disabled={disabled}
                 value={cell.recessionMm ?? ''}
-                onChange={(e) => onSite(toothFdi, s, { recessionMm: e.target.value === '' ? null : Number(e.target.value) })}
+                onChange={(e) =>
+                  onSite(toothFdi, s, {
+                    recessionMm: e.target.value === '' ? null : Number(e.target.value),
+                  })
+                }
                 className="w-9 rounded border border-slate-200 px-0.5 py-0.5 text-center text-[11px] text-slate-500"
                 placeholder="Rec"
               />

@@ -36,13 +36,13 @@ Rode: `pnpm dev` → http://localhost:3000.
 
 Ao mergear esta feature, o registry em `src/lib/integrations/registry.ts` expõe:
 
-| Provider | Status | Inbound webhook | Outbound |
-|----------|--------|-----------------|----------|
-| `ghl`              | **Shipped** | ✅ `/api/webhooks/ghl` | ✅ `create-contact`, `create-note` |
-| `generic_webhook`  | **Shipped** | — | ✅ POST JSON para URL configurada |
-| `hubspot`          | *placeholder dir, não implementado* | — | — |
-| `rdstation`        | *placeholder dir, não implementado* | — | — |
-| `pipedrive`        | *placeholder dir, não implementado* | — | — |
+| Provider          | Status                              | Inbound webhook        | Outbound                           |
+| ----------------- | ----------------------------------- | ---------------------- | ---------------------------------- |
+| `ghl`             | **Shipped**                         | ✅ `/api/webhooks/ghl` | ✅ `create-contact`, `create-note` |
+| `generic_webhook` | **Shipped**                         | —                      | ✅ POST JSON para URL configurada  |
+| `hubspot`         | _placeholder dir, não implementado_ | —                      | —                                  |
+| `rdstation`       | _placeholder dir, não implementado_ | —                      | —                                  |
+| `pipedrive`       | _placeholder dir, não implementado_ | —                      | —                                  |
 
 Novos providers seguem o checklist em [contracts/integration-adapter.md](./contracts/integration-adapter.md).
 
@@ -144,13 +144,13 @@ pnpm playwright test tests/e2e/standalone-no-integrations-ui.spec.ts
 
 ## Troubleshooting
 
-| Sintoma | Causa provável | Fix |
-|---------|----------------|-----|
-| `PATIENT_DATA_ENCRYPTION_KEY is required` | Env faltando | `.env.local` |
-| `RLS policy denies` ao conectar | Não logado como admin | Logar como admin |
-| Tenant standalone mostra "GHL" na UI | Client component renderiza antes do server bootstrap | `dynamic='force-dynamic'` no layout |
-| `PROVIDER_NOT_FOUND` 404 em endpoint existente | ProviderId não está no registry | Conferir `registry.ts` |
-| Adapter timeout todo request | `handleDomainEvent` sem `AbortSignal.timeout` | Adicionar timeout ao `fetch` |
+| Sintoma                                        | Causa provável                                       | Fix                                 |
+| ---------------------------------------------- | ---------------------------------------------------- | ----------------------------------- |
+| `PATIENT_DATA_ENCRYPTION_KEY is required`      | Env faltando                                         | `.env.local`                        |
+| `RLS policy denies` ao conectar                | Não logado como admin                                | Logar como admin                    |
+| Tenant standalone mostra "GHL" na UI           | Client component renderiza antes do server bootstrap | `dynamic='force-dynamic'` no layout |
+| `PROVIDER_NOT_FOUND` 404 em endpoint existente | ProviderId não está no registry                      | Conferir `registry.ts`              |
+| Adapter timeout todo request                   | `handleDomainEvent` sem `AbortSignal.timeout`        | Adicionar timeout ao `fetch`        |
 
 ## Links úteis
 

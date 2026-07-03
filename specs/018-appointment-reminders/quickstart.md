@@ -33,6 +33,7 @@ pnpm test:unit          # 17+ tests devem passar
 ```
 
 Inspecionar:
+
 - Tabela `appointment_reminders` existe: `psql -c '\d appointment_reminders' postgres://...`
 - 7 novas colunas em `tenant_clinic_profile`: `psql -c '\d tenant_clinic_profile' | grep reminder_`
 

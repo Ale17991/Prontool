@@ -15,10 +15,7 @@ const querySchema = z.object({
 })
 
 /** Histórico append-only por posição (US3/FR-016). */
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/odontograma/historico`
   try {
     const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
@@ -34,7 +31,13 @@ export async function GET(
     })
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_QUERY', message: 'Parâmetros inválidos', issues: parsed.error.issues } },
+        {
+          error: {
+            code: 'INVALID_QUERY',
+            message: 'Parâmetros inválidos',
+            issues: parsed.error.issues,
+          },
+        },
         { status: 400 },
       )
     }

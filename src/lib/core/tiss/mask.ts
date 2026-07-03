@@ -7,7 +7,8 @@
  */
 
 /** Chaves cujo VALOR deve ser totalmente redatado (segredo/PII). */
-const SENSITIVE_KEY = /(pfx|password|senha|secret|api[_-]?key|card[_-]?number|carteira|cpf|beneficiary|full_name|_enc$)/i
+const SENSITIVE_KEY =
+  /(pfx|password|senha|secret|api[_-]?key|card[_-]?number|carteira|cpf|beneficiary|full_name|_enc$)/i
 
 /** Mascara um valor textual preservando só extremidades para correlação. */
 export function maskValue(value: string): string {

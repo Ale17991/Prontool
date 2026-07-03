@@ -1,7 +1,4 @@
-export {
-  listCustomTables,
-  type CustomProcedureTable,
-} from './list'
+export { listCustomTables, type CustomProcedureTable } from './list'
 
 export {
   upsertCustomTable,

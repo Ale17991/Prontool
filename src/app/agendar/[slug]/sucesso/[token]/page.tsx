@@ -25,11 +25,7 @@ function formatBrasilia(iso: string): string {
   }).format(new Date(iso))
 }
 
-export default async function SucessoPage({
-  params,
-}: {
-  params: { slug: string; token: string }
-}) {
+export default async function SucessoPage({ params }: { params: { slug: string; token: string } }) {
   const supabase = createSupabaseServiceClient()
   const tenant = await resolveTenantBySlug(supabase, params.slug)
   if (!tenant) notFound()
@@ -97,9 +93,7 @@ export default async function SucessoPage({
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-success/30 bg-success-bg p-6 text-center">
-        <h1 className="text-2xl font-bold text-success-strong">
-          Agendamento confirmado!
-        </h1>
+        <h1 className="text-2xl font-bold text-success-strong">Agendamento confirmado!</h1>
         <p className="mt-2 text-sm text-success-text">
           Você receberá um email de confirmação em instantes.
         </p>

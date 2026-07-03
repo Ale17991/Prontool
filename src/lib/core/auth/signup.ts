@@ -81,10 +81,7 @@ export async function signupAccount(
   // logamos apenas no logger por enquanto. Quando o usuário criar o
   // primeiro tenant via onboarding, o audit de tenant.create cobre
   // a transição vinda do signup).
-  logger.info(
-    { user_id: userId, email, ip: context.ip ?? null },
-    'signup-account-created',
-  )
+  logger.info({ user_id: userId, email, ip: context.ip ?? null }, 'signup-account-created')
 
   return { userId }
 }

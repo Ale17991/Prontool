@@ -3,11 +3,7 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resolve } from 'node:path'
-import {
-  loadContract,
-  assertPathExists,
-  type OpenApiSpec,
-} from '@/tests/helpers/contract-runner'
+import { loadContract, assertPathExists, type OpenApiSpec } from '@/tests/helpers/contract-runner'
 
 const CONTRACT_PATH = resolve(
   process.cwd(),

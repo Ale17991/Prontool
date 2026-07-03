@@ -96,9 +96,7 @@ async function sendPatientEmail(input: SendBookingConfirmationsInput): Promise<v
     to: input.patientEmail,
     subject: `Agendamento confirmado — ${input.tenantDisplayName}`,
     html,
-    attachments: icsContent
-      ? [{ filename: 'consulta.ics', content: icsContent }]
-      : undefined,
+    attachments: icsContent ? [{ filename: 'consulta.ics', content: icsContent }] : undefined,
   })
 }
 
@@ -129,9 +127,7 @@ async function sendAdminEmails(input: SendBookingConfirmationsInput): Promise<vo
   )
 }
 
-async function createBellNotifications(
-  input: SendBookingConfirmationsInput,
-): Promise<void> {
+async function createBellNotifications(input: SendBookingConfirmationsInput): Promise<void> {
   const admins = await listAdmins(input.supabase, input.tenantId)
   if (admins.length === 0) return
 
@@ -147,12 +143,10 @@ async function createBellNotifications(
   }))
 
   // ON CONFLICT DO NOTHING via reference_key UNIQUE (já existente).
-  const { error } = await input.supabase
-    .from('notifications')
-    .upsert(rows as never, {
-      onConflict: 'tenant_id,user_id,type,reference_key',
-      ignoreDuplicates: true,
-    })
+  const { error } = await input.supabase.from('notifications').upsert(rows as never, {
+    onConflict: 'tenant_id,user_id,type,reference_key',
+    ignoreDuplicates: true,
+  })
   if (error) {
     logger.warn(
       { err: error, tenantId: input.tenantId, appointmentId: input.appointmentId },

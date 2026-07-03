@@ -21,15 +21,12 @@ export async function POST(
 ): Promise<Response> {
   const route = `/api/financeiro/contas-a-receber/${context.params.installmentId}/payment`
   try {
-    const session = await requireRole(
-      ['admin', 'financeiro', 'recepcionista'],
-      {
-        entity: 'installment_payments',
-        entityId: context.params.installmentId,
-        route,
-        request: req,
-      },
-    )
+    const session = await requireRole(['admin', 'financeiro', 'recepcionista'], {
+      entity: 'installment_payments',
+      entityId: context.params.installmentId,
+      route,
+      request: req,
+    })
     const json = (await req.json()) as unknown
     const parsed = bodySchema.safeParse(json)
     if (!parsed.success) {

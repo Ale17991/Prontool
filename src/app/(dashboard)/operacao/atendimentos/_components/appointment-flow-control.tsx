@@ -65,7 +65,10 @@ function useMinuteTick(active: boolean): number {
 }
 
 /** Tempo de espera/permanência derivado do fluxo, formatado para exibição. */
-function flowTimes(flow: AppointmentFlow, nowMs: number): { waiting: string | null; stay: string | null } {
+function flowTimes(
+  flow: AppointmentFlow,
+  nowMs: number,
+): { waiting: string | null; stay: string | null } {
   if (!flow.arrivedAt) return { waiting: null, stay: null }
   const waitEnd = flow.consultStartedAt
     ? new Date(flow.consultStartedAt).getTime()
@@ -78,7 +81,10 @@ function flowTimes(flow: AppointmentFlow, nowMs: number): { waiting: string | nu
   return { waiting, stay }
 }
 
-async function postStatus(appointmentId: string, status: FlowStatus): Promise<AppointmentFlow | null> {
+async function postStatus(
+  appointmentId: string,
+  status: FlowStatus,
+): Promise<AppointmentFlow | null> {
   const res = await fetch(`/api/atendimentos/${appointmentId}/fluxo`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -260,7 +266,9 @@ export function FlowStatusCell({
         ) : null}
       </span>
       {flow.status === 'aguardando' && waiting ? (
-        <span className="whitespace-nowrap text-[10px] font-semibold text-amber-600">{waiting}</span>
+        <span className="whitespace-nowrap text-[10px] font-semibold text-amber-600">
+          {waiting}
+        </span>
       ) : null}
     </div>
   )

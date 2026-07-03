@@ -21,11 +21,11 @@ Nenhuma tabela de domínio (`tenants`, `tenant_integrations`, `user_tenants`, `a
 
 Persistência da "última clínica usada" por usuário. 1:1 com `auth.users`.
 
-| Coluna | Tipo | Constraint | Notas |
-|--------|------|------------|-------|
-| `user_id` | UUID | PRIMARY KEY, FK `auth.users(id)` ON DELETE CASCADE | |
-| `tenant_id` | UUID | NOT NULL, FK `tenants(id)` ON DELETE CASCADE | quando o tenant é apagado, a row some — o user fica sem ativa |
-| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | atualizado em cada switch ou login que resolve um tenant |
+| Coluna       | Tipo        | Constraint                                         | Notas                                                         |
+| ------------ | ----------- | -------------------------------------------------- | ------------------------------------------------------------- |
+| `user_id`    | UUID        | PRIMARY KEY, FK `auth.users(id)` ON DELETE CASCADE |                                                               |
+| `tenant_id`  | UUID        | NOT NULL, FK `tenants(id)` ON DELETE CASCADE       | quando o tenant é apagado, a row some — o user fica sem ativa |
+| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now()                             | atualizado em cada switch ou login que resolve um tenant      |
 
 **RLS**:
 
@@ -103,6 +103,7 @@ GRANT EXECUTE ON FUNCTION public.create_first_tenant(UUID, TEXT, TEXT, TEXT, TEX
 ```
 
 **Failure modes**:
+
 - Slug colide → `unique_violation` (caller resolve).
 - Telefone/CNPJ inválidos: a RPC não valida formato (front-end já validou); apenas normaliza.
 
@@ -178,15 +179,15 @@ Mantém a estrutura corrigida em 0022 (jsonb text-accessors + claims em app_meta
 
 ### 4. Tables UNCHANGED but USED heavily
 
-| Tabela | Como esta feature usa |
-|--------|------------------------|
-| `auth.users` | signup cria; switch atualiza `user_metadata.active_tenant_id` |
-| `tenants` | onboarding cria (nome digitado vira `name`); sidebar lê `name` |
-| `user_tenants` | onboarding insere admin; switch valida vínculo ativo |
-| `tenant_integrations` | US1 lê para preflight binding; PK + UNIQUE INDEX já existentes garantem 1:1 |
-| `tenant_clinic_profile` | onboarding insere lazy (CNPJ/phone); leitura permanece da feature 009 |
-| `audit_log` | signup, onboarding (criação tenant), switch, GHL rejection — todos auditados |
-| `appointments` | calendário Mês lê com filtros from/to já suportados |
+| Tabela                  | Como esta feature usa                                                        |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `auth.users`            | signup cria; switch atualiza `user_metadata.active_tenant_id`                |
+| `tenants`               | onboarding cria (nome digitado vira `name`); sidebar lê `name`               |
+| `user_tenants`          | onboarding insere admin; switch valida vínculo ativo                         |
+| `tenant_integrations`   | US1 lê para preflight binding; PK + UNIQUE INDEX já existentes garantem 1:1  |
+| `tenant_clinic_profile` | onboarding insere lazy (CNPJ/phone); leitura permanece da feature 009        |
+| `audit_log`             | signup, onboarding (criação tenant), switch, GHL rejection — todos auditados |
+| `appointments`          | calendário Mês lê com filtros from/to já suportados                          |
 
 ---
 
@@ -194,13 +195,13 @@ Mantém a estrutura corrigida em 0022 (jsonb text-accessors + claims em app_meta
 
 Eventos novos (todos no shape existente de `audit_log`):
 
-| Evento | `entity` | `entity_id` | `field` | `old_value` / `new_value` | `result` |
-|--------|----------|-------------|---------|---------------------------|----------|
-| Signup | `auth_user` | `<userId>` | `signup` | `null` / `{ email }` | `success` |
-| Onboarding (criação de tenant) | `tenants` | `<tenantId>` | `create` | `null` / `{ name, slug }` | `success` |
-| Switch de tenant | `session` | `<userId>` | `tenant_switch` | `<tenant_anterior>` / `<novo>` | `success` |
-| Tentativa GHL rejeitada (FR-001) | `tenant_integrations` | `<tenantId>` | `connect.rejected:ghl_tenant_already_connected` | `null` / `{ location_id }` | `conflict` |
-| Tentativa GHL rejeitada (FR-002) | `tenant_integrations` | `<tenantId ou null>` | `connect.rejected:ghl_location_already_bound` | `null` / `{ location_id, current_owner_tenant_id }` | `conflict` |
+| Evento                           | `entity`              | `entity_id`          | `field`                                         | `old_value` / `new_value`                           | `result`   |
+| -------------------------------- | --------------------- | -------------------- | ----------------------------------------------- | --------------------------------------------------- | ---------- |
+| Signup                           | `auth_user`           | `<userId>`           | `signup`                                        | `null` / `{ email }`                                | `success`  |
+| Onboarding (criação de tenant)   | `tenants`             | `<tenantId>`         | `create`                                        | `null` / `{ name, slug }`                           | `success`  |
+| Switch de tenant                 | `session`             | `<userId>`           | `tenant_switch`                                 | `<tenant_anterior>` / `<novo>`                      | `success`  |
+| Tentativa GHL rejeitada (FR-001) | `tenant_integrations` | `<tenantId>`         | `connect.rejected:ghl_tenant_already_connected` | `null` / `{ location_id }`                          | `conflict` |
+| Tentativa GHL rejeitada (FR-002) | `tenant_integrations` | `<tenantId ou null>` | `connect.rejected:ghl_location_already_bound`   | `null` / `{ location_id, current_owner_tenant_id }` | `conflict` |
 
 Todas com `actor_id`, `ip`, `user_agent` quando disponíveis.
 

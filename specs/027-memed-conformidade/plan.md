@@ -17,28 +17,29 @@ O trabalho aqui é majoritariamente em **tests/** e **scripts/**, com poucos arq
 
 **Language/Version**: TypeScript 5.4 sobre Node.js 20 LTS (mesma stack do app)
 **Primary Dependencies**:
+
 - Vitest 1.6 (já presente) — runner de testes unit/integration/contract
 - `@supabase/supabase-js` 2.45 (já presente) — para asserts contra Supabase local em testes
 - Pino 9 (já presente) — para validar que máscara de credencial está aplicada
 - ESLint 8 com `eslint-plugin-custom-rules` (a criar) — regra customizada `no-memed-secrets-in-frontend`
 - Playwright (a adicionar — ~30MB, dev only) — para testes E2E que inspecionam tráfego do iframe
-**Storage**: nenhuma migração nova. Lê apenas: `tenant_memed_config`, `memed_prescribers`, `prescription_records`, `audit_log` — criadas pelo spec 026.
-**Testing**:
+  **Storage**: nenhuma migração nova. Lê apenas: `tenant_memed_config`, `memed_prescribers`, `prescription_records`, `audit_log` — criadas pelo spec 026.
+  **Testing**:
 - Contract tests (Vitest + supabase local)
 - Integration tests (Vitest + msw para mock da Memed)
 - E2E tests (Playwright apontando para `pnpm dev` rodando localmente)
 - Lint custom rule (eslint plugin local em `tools/eslint-rules/`)
-**Target Platform**: CI no GitHub Actions (Ubuntu 22.04) + dev local (Windows/Mac)
-**Project Type**: web (Next.js 14.2 App Router + Supabase) — verificação adiciona apenas test infra
-**Performance Goals**:
+  **Target Platform**: CI no GitHub Actions (Ubuntu 22.04) + dev local (Windows/Mac)
+  **Project Type**: web (Next.js 14.2 App Router + Supabase) — verificação adiciona apenas test infra
+  **Performance Goals**:
 - CI da suíte completa de conformidade ≤ 4 min (paralelizada)
 - Scan de credencial no bundle ≤ 30 s
 - E2E Playwright para os 9 critérios ≤ 90 s
-**Constraints**:
+  **Constraints**:
 - Não introduzir dependência runtime — toda nova dep é `devDependency`
 - Não modificar produção sem que o spec 026 esteja entregando o que esta spec audita
 - Testes E2E NÃO devem chamar Memed real; usar mock conforme contrato em `contracts/memed-mock.md`
-**Scale/Scope**:
+  **Scale/Scope**:
 - 9 critérios = 9 user stories
 - ~15 testes de contrato/integração novos
 - ~5 testes E2E
@@ -47,7 +48,7 @@ O trabalho aqui é majoritariamente em **tests/** e **scripts/**, com poucos arq
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 A constituição vigente (`v1.0.0`, ratificada em 2026-04-16) define 5 princípios. Avaliação contra cada um:
 

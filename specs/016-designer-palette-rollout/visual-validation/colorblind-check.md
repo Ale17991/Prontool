@@ -8,19 +8,20 @@
 
 Cada variante do `AppointmentStatusBadge` combina **3 dimensões** de diferenciação, garantindo distinção mesmo sob simulação de daltonismo:
 
-| Variante | Cor | Ícone | Padrão visual |
-|---|---|---|---|
-| Agendado | azul claro | `Calendar` | sólido |
-| Confirmado | verde suave | `Check` | sólido |
-| Concluído | verde suave 60% | `CheckCheck` | sólido + transparência |
-| Em atendimento | amber | `Clock` | sólido + **ponto pulsante** |
-| No-show | cinza | `UserX` | **listrado** |
-| Cancelado | cinza | `X` | **tracejado** |
-| Estornado | vermelho suave | `RotateCcw` | sólido + strikethrough no chip do month view |
+| Variante       | Cor             | Ícone        | Padrão visual                                |
+| -------------- | --------------- | ------------ | -------------------------------------------- |
+| Agendado       | azul claro      | `Calendar`   | sólido                                       |
+| Confirmado     | verde suave     | `Check`      | sólido                                       |
+| Concluído      | verde suave 60% | `CheckCheck` | sólido + transparência                       |
+| Em atendimento | amber           | `Clock`      | sólido + **ponto pulsante**                  |
+| No-show        | cinza           | `UserX`      | **listrado**                                 |
+| Cancelado      | cinza           | `X`          | **tracejado**                                |
+| Estornado      | vermelho suave  | `RotateCcw`  | sólido + strikethrough no chip do month view |
 
 ### Cinza listrado (no_show) vs. cinza tracejado (cancelado)
 
 Estes dois estados são os mais cromaticamente próximos. Sob daltonismo total (acromatopsia), eles **devem** continuar distinguíveis por:
+
 - `no_show` tem `repeating-linear-gradient` (listrado diagonal) — padrão visual permanente.
 - `cancelado` tem `border-dashed` — borda tracejada permanente.
 
@@ -29,6 +30,7 @@ A diferença de padrão é geométrica, não cromática. Funciona em acromatopsi
 ### Verde suave (confirmado) vs. verde suave 60% (concluído)
 
 Ambos usam `--success-bg`. Distinção:
+
 - `confirmado` = opacidade 100% + ícone `Check`
 - `concluido` = opacidade 60% + ícone `CheckCheck` (duplo check, distinto visualmente)
 

@@ -25,9 +25,7 @@ export interface UpdatePatientIdentityInput {
 }
 
 // Mapeia cada campo de entrada à coluna cifrada correspondente.
-const ENC_COLUMNS: ReadonlyArray<
-  [keyof UpdatePatientIdentityInput['fields'], string]
-> = [
+const ENC_COLUMNS: ReadonlyArray<[keyof UpdatePatientIdentityInput['fields'], string]> = [
   ['phone', 'phone_enc'],
   ['email', 'email_enc'],
   ['socialName', 'social_name_enc'],

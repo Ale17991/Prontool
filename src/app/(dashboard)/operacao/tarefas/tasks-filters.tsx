@@ -53,7 +53,10 @@ export function TasksFilters({
 
       {isAdmin ? (
         <div className="space-y-1">
-          <Label htmlFor="f-assigned" className="text-[10px] uppercase tracking-widest text-slate-500">
+          <Label
+            htmlFor="f-assigned"
+            className="text-[10px] uppercase tracking-widest text-slate-500"
+          >
             Responsável
           </Label>
           <Select name="assigned_to" defaultValue={currentAssignedTo ?? ''}>

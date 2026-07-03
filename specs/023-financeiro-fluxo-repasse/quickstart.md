@@ -18,11 +18,13 @@ Login como `admin@prontool.local`.
 ### Cenário 1 — Contas a Receber (US1)
 
 **Setup**:
+
 - Cadastrar paciente "Maria Teste" com plano Unimed.
 - Registrar 3 atendimentos: ontem (paga), há 70 dias (atrasada crítica), há 5 dias (pendente).
 - Os atendimentos geraram 3 parcelas via fluxo financeiro existente.
 
 **Validar**:
+
 - [ ] Abrir `/analise/contas-a-receber` — lista 3 parcelas ordenadas por vencimento.
 - [ ] A parcela há 70 dias atrás aparece com badge vermelho "Atraso crítico".
 - [ ] Filtro "Atrasadas" → só vencidas.
@@ -36,10 +38,12 @@ Login como `admin@prontool.local`.
 ### Cenário 2 — Contas a Pagar (US2)
 
 **Setup**:
+
 - Cadastrar despesa "Aluguel" categoria aluguel, R$ 5.000, recorrente mensal, competence_date = início do mês.
 - Cadastrar despesa "Material X" não-recorrente, R$ 300, vencimento daqui a 10 dias.
 
 **Validar**:
+
 - [ ] Abrir `/analise/contas-a-pagar` — vê aluguel atual + 3 projeções futuras (próximos 3 meses) + Material X.
 - [ ] Projeções têm label "Projeção (recorrente)" e não são editáveis individualmente.
 - [ ] Marcar "Material X" como paga → modal pede data + método. Salva.
@@ -52,11 +56,13 @@ Login como `admin@prontool.local`.
 ### Cenário 3 — Fluxo de Caixa (US3)
 
 **Setup**:
+
 - 10 parcelas pendentes nos próximos 30 dias (entradas).
 - 5 despesas previstas nos próximos 30 dias (saídas).
 - Saldo inicial não configurado (default = R$ 0).
 
 **Validar**:
+
 - [ ] Abrir `/analise/fluxo-caixa` — gráfico mostra curva de saldo.
 - [ ] Como saldo inicial é 0 e entradas/saídas se balanceiam, valida que curva oscila.
 - [ ] Trocar escala "Diária → Semanal → Mensal" — agregação acontece sem refetch.
@@ -68,6 +74,7 @@ Login como `admin@prontool.local`.
 ### Cenário 4 — Saldo de Caixa (FR-021)
 
 **Validar**:
+
 - [ ] Ir em `/configuracoes/clinica` → card "Saldo de caixa" no final.
 - [ ] Saldo atual = 0.
 - [ ] Clicar "Adicionar ajuste" → modal: effective_from = hoje, amount_cents = R$ 50.000, reason = "Aporte inicial do sócio".
@@ -81,11 +88,13 @@ Login como `admin@prontool.local`.
 ### Cenário 5 — Repasse Médico — Fechar (US4)
 
 **Setup**:
+
 - 3 médicos: Dr. A (comissionado 60%), Dr. B (fixo R$ 5.000/mês), Dr. C (liberal).
 - 30 atendimentos no mês 2026-04 distribuídos.
 - 1 atendimento estornado.
 
 **Validar**:
+
 - [ ] Login como admin. Abrir `/analise/repasse-medico/2026-04`.
 - [ ] Cada médico aparece com gross + commission + fixed + liberal calculados ao vivo.
 - [ ] Estorno está refletido (`gross_revenue_cents` exclui estornado).
@@ -98,6 +107,7 @@ Login como `admin@prontool.local`.
 **Pré-requisito**: cenário 5 executado.
 
 **Validar**:
+
 - [ ] Estornar outro atendimento de 2026-04 (mês fechado).
 - [ ] Verificar via SQL: nova linha em `monthly_payouts_adjustments` com `applied_month = '2026-05'`, `delta_cents` negativo.
 - [ ] Abrir `/analise/repasse-medico/2026-05` (ainda aberto) — médico afetado mostra "Ajustes: -R$ X" no card.
@@ -107,6 +117,7 @@ Login como `admin@prontool.local`.
 **Pré-requisito**: cenário 5 executado, NENHUM repasse marcado como pago.
 
 **Validar**:
+
 - [ ] Imediatamente após fechar: botão "Reabrir mês" disponível.
 - [ ] Clicar → modal pede motivo. Escrever "Esqueci de incluir atendimento atrasado" (≥20 chars).
 - [ ] Salvar → mês volta a "aberto", cálculos voltam a ser ao vivo.
@@ -117,6 +128,7 @@ Login como `admin@prontool.local`.
 ### Cenário 8 — Repasse Médico — Médico vê só o próprio (FR-035)
 
 **Validar**:
+
 - [ ] Vincular `doctors.user_id` de Dr. A a um auth.users com role `profissional_saude`.
 - [ ] Login como Dr. A → abrir `/analise/repasse-medico/2026-04`.
 - [ ] Vê apenas a própria linha + detalhamento dos atendimentos do mês com valor bruto + comissão + percentual (FR-036).
@@ -126,6 +138,7 @@ Login como `admin@prontool.local`.
 ### Cenário 9 — RBAC e tenant isolation (FR-027/28/29)
 
 **Validar**:
+
 - [ ] Login como `recepcionista` → vê contas-a-receber OK, mas contas-a-pagar/repasse/fluxo retornam 403 ou redirect.
 - [ ] Tentar acessar `/api/financeiro/repasse-medico/2026-04` direto com cookie de outro tenant → 403/404.
 - [ ] Profissional_saude tenta `POST /repasse-medico/2026-04/close` → 403.
@@ -133,6 +146,7 @@ Login como `admin@prontool.local`.
 ### Cenário 10 — LGPD: paciente anonimizado em contas a receber (FR-045)
 
 **Validar**:
+
 - [ ] Anonimizar um paciente com parcela pendente.
 - [ ] `/analise/contas-a-receber` mostra "[anonimizado]" no campo paciente, mas o valor pendente continua visível.
 - [ ] Modal de pagamento ainda permite registrar (entrada pertence ao tenant, não ao PII).

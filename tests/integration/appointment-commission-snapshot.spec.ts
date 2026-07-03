@@ -6,10 +6,7 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest'
 import { randomUUID } from 'node:crypto'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import {
   seedTenant,
   seedTussCode,

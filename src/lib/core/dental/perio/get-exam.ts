@@ -75,7 +75,8 @@ export async function perioIndicators(
     bopPct: Number(row.bop_pct ?? 0),
     pocketsGe4: row.pockets_ge4 ?? 0,
     pocketsGe4Pct: Number(row.pockets_ge4_pct ?? 0),
-    calAvgMm: row.cal_avg_mm === null || row.cal_avg_mm === undefined ? null : Number(row.cal_avg_mm),
+    calAvgMm:
+      row.cal_avg_mm === null || row.cal_avg_mm === undefined ? null : Number(row.cal_avg_mm),
   }
 }
 

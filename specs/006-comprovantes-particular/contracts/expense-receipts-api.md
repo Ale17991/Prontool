@@ -9,14 +9,17 @@ Upload de um comprovante. Suporta múltiplos arquivos por chamada (campo `files[
 **Auth**: `requireRole(['admin', 'financeiro'])`.
 
 **Body** (multipart/form-data):
+
 - `files`: 1+ `File`. PDF/JPG/JPEG/PNG. ≤ 10 MB cada.
 
 **Validações**:
+
 - `expense_id` existe no tenant atual e não está soft-deleted.
 - Cada arquivo: tipo permitido, tamanho ≤ 10 MB.
 - Path único: se já existe arquivo com mesmo `file_name` na despesa, sufixo `-N` é aplicado.
 
 **Resposta 201**:
+
 ```json
 {
   "expense_id": "uuid",
@@ -34,6 +37,7 @@ Upload de um comprovante. Suporta múltiplos arquivos por chamada (campo `files[
 ```
 
 **Erros**:
+
 - 400 `INVALID_BODY` — campo `file` ausente ou tipo inválido.
 - 404 `EXPENSE_NOT_FOUND` — despesa não existe ou cross-tenant.
 - 409 `EXPENSE_DELETED` — despesa soft-deleted.
@@ -51,6 +55,7 @@ Lista comprovantes não-deletados de uma despesa.
 **Auth**: `requireRole(['admin', 'financeiro', 'recepcionista', 'profissional_saude'])`.
 
 **Resposta 200**:
+
 ```json
 {
   "receipts": [
@@ -78,6 +83,7 @@ Retorna URL assinada de 60 s para visualização/download.
 **Auth**: `requireRole(['admin', 'financeiro', 'recepcionista', 'profissional_saude'])`.
 
 **Resposta 200**:
+
 ```json
 {
   "url": "https://supabase.../signed?token=...",
@@ -87,6 +93,7 @@ Retorna URL assinada de 60 s para visualização/download.
 ```
 
 **Erros**:
+
 - 404 — receipt não existe ou está soft-deleted.
 
 ---
@@ -98,6 +105,7 @@ Soft-delete. Storage **não é tocado**.
 **Auth**: `requireRole(['admin'])`.
 
 **Body** (opcional):
+
 ```json
 { "reason": "subido por engano" }
 ```
@@ -105,10 +113,12 @@ Soft-delete. Storage **não é tocado**.
 **Resposta 204** (sem body).
 
 **Erros**:
+
 - 404 — receipt não existe.
 - 409 `RECEIPT_ALREADY_DELETED` — já estava deletado.
 
 **Side-effects**:
+
 - UPDATE `expense_receipts SET deleted_at = now(), deleted_by = $session, deleted_reason = $reason`.
 - Trigger AFTER UPDATE → audit_log entry.
 - Storage binário inalterado.

@@ -25,10 +25,7 @@ const postSchema = z.object({
   notes: txt,
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/exames-oftalmo`
   try {
     const session = await requireRole(['admin', 'profissional_saude', 'recepcionista'], {
@@ -38,7 +35,10 @@ export async function GET(
       request: req,
     })
     const supabase = createSupabaseServiceClient()
-    const rows = await listOphthalExams(supabase, { tenantId: session.tenantId, patientId: params.id })
+    const rows = await listOphthalExams(supabase, {
+      tenantId: session.tenantId,
+      patientId: params.id,
+    })
     return NextResponse.json({ rows }, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route })
@@ -60,7 +60,9 @@ export async function POST(
     const parsed = postSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }

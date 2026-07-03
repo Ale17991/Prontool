@@ -49,10 +49,14 @@ export async function getPrescriberToken(
     throw new MemedPrescriberNotRegisteredError()
   }
 
-  const res = await memedFetch<MemedUsuarioResponse>(connection.environment, connection.credentials, {
-    method: 'GET',
-    path: `/sinapse-prescricao/usuarios/${encodeURIComponent(prescriber.external_id)}`,
-  })
+  const res = await memedFetch<MemedUsuarioResponse>(
+    connection.environment,
+    connection.credentials,
+    {
+      method: 'GET',
+      path: `/sinapse-prescricao/usuarios/${encodeURIComponent(prescriber.external_id)}`,
+    },
+  )
 
   const token = res?.data?.attributes?.token
   if (!token || typeof token !== 'string') {

@@ -56,11 +56,13 @@ Já existente. Retorna `TussHit[]`. Componente normaliza para `TussListItem`.
 ## Integração com typeaheads existentes
 
 Cada formulário com typeahead TUSS ganha um botão "Ver em lista" ao lado do trigger do popover de busca. Ao clicar, abre `<TussListDialog>` passando:
+
 - `table` (do estado do form)
 - `initialQuery` (último termo digitado)
 - `onSelect` que aplica a seleção (mesmo handler do popover)
 
 Locais a integrar:
+
 1. `/cadastros/procedimentos` (formulário "Novo procedimento")
 2. `/operacao/atendimentos/novo` (formulário "Novo atendimento") — atual usa `<Select>`; trocar por typeahead + "Ver em lista".
 3. `/operacao/pacientes/[id]` (formulário "Nova etapa" do plano de tratamento) — atual usa lista filtrada inline; substituir pelo typeahead compartilhado.

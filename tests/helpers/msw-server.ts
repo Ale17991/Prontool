@@ -24,7 +24,10 @@ interface QstashRequestBody {
 
 export const mswServer = setupServer(
   http.post('https://api.resend.com/emails', async ({ request }) => {
-    const body = (await request.clone().json().catch(() => ({}))) as ResendRequestBody
+    const body = (await request
+      .clone()
+      .json()
+      .catch(() => ({}))) as ResendRequestBody
     const call = {
       to: body.to,
       subject: body.subject,
@@ -37,7 +40,10 @@ export const mswServer = setupServer(
   }),
 
   http.post('https://qstash.upstash.io/v2/publish/*', async ({ request }) => {
-    const body = await request.clone().json().catch(() => null)
+    const body = await request
+      .clone()
+      .json()
+      .catch(() => null)
     qstashSpy.record({ url: request.url, body })
     return HttpResponse.json({ messageId: `qstash_mock_${Date.now()}` }, { status: 200 })
   }),

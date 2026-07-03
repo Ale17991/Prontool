@@ -19,12 +19,18 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const actorId = await superAdminUserId()
     if (!actorId) {
-      return NextResponse.json({ error: { code: 'FORBIDDEN', message: 'Não autorizado.' } }, { status: 403 })
+      return NextResponse.json(
+        { error: { code: 'FORBIDDEN', message: 'Não autorizado.' } },
+        { status: 403 },
+      )
     }
     const body = (await req.json().catch(() => null)) as { tenantId?: string } | null
     const tenantId = body?.tenantId
     if (!tenantId) {
-      return NextResponse.json({ error: { code: 'INVALID_BODY', message: 'tenantId obrigatório.' } }, { status: 400 })
+      return NextResponse.json(
+        { error: { code: 'INVALID_BODY', message: 'tenantId obrigatório.' } },
+        { status: 400 },
+      )
     }
 
     const sb = createSupabaseServiceClient()

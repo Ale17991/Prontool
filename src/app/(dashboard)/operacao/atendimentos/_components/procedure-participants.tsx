@@ -156,10 +156,9 @@ function ProcedureBlock({
     }
     setBusy(true)
     try {
-      const res = await fetch(
-        `/api/atendimentos/${appointmentId}/participantes/${participantId}`,
-        { method: 'DELETE' },
-      )
+      const res = await fetch(`/api/atendimentos/${appointmentId}/participantes/${participantId}`, {
+        method: 'DELETE',
+      })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       await onChanged()
     } catch {
@@ -176,7 +175,9 @@ function ProcedureBlock({
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-[11px] text-slate-500">Nenhum participante adicional neste procedimento.</p>
+        <p className="text-[11px] text-slate-500">
+          Nenhum participante adicional neste procedimento.
+        </p>
       ) : (
         <ul className="space-y-1.5">
           {rows.map((p) => (
@@ -185,7 +186,9 @@ function ProcedureBlock({
               className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5"
             >
               <span className="flex-1 text-sm font-semibold text-slate-800">{p.doctorName}</span>
-              <span className="text-xs text-slate-500">{p.degreeLabel ?? p.participationDegree ?? '—'}</span>
+              <span className="text-xs text-slate-500">
+                {p.degreeLabel ?? p.participationDegree ?? '—'}
+              </span>
               <span className="text-xs font-medium text-slate-700">
                 {p.amountCents !== null ? formatCurrency(p.amountCents) : '—'}
               </span>
@@ -250,7 +253,11 @@ function ProcedureBlock({
             />
           </div>
           <Button type="button" size="sm" onClick={add} disabled={busy} className="h-8 px-3">
-            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            {busy ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Plus className="h-3.5 w-3.5" />
+            )}
             <span className="ml-1">Adicionar</span>
           </Button>
         </div>

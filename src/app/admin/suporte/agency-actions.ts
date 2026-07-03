@@ -69,7 +69,10 @@ export async function setAgencySuperAction(
       return { ok: false, error: 'Não pode rebaixar o último admin geral.' }
     }
   }
-  const { error } = await sb.from('platform_admins').update({ is_super: isSuper }).eq('user_id', userId)
+  const { error } = await sb
+    .from('platform_admins')
+    .update({ is_super: isSuper })
+    .eq('user_id', userId)
   if (error) return { ok: false, error: error.message }
   revalidatePath(PATH)
   return { ok: true }

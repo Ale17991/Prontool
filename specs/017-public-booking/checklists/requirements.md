@@ -12,6 +12,7 @@
 - [x] All mandatory sections completed
 
 > **Notas**:
+>
 > - O input do usuário continha detalhes arquiteturais (Next.js, Turnstile, Resend, RPC SECURITY DEFINER, etc.). Esses foram **deliberadamente traduzidos** em capacidades observáveis nos requirements (ex.: FR-016 fala em "captcha que respeite LGPD, server-side", sem prescrever Turnstile). A escolha de provedor fica para o plano.
 > - Termos como "appointment", "schedule_block", "tenant" aparecem porque são vocabulário de domínio já estabelecido no projeto (CLAUDE.md), não jargão técnico arbitrário.
 > - Assumptions explicita que provedor de captcha e domínio são "informed defaults" que podem ser revisados no plano.
@@ -28,6 +29,7 @@
 - [x] Dependencies and assumptions identified
 
 > **Notas**:
+>
 > - 38 FRs cobrem: acesso público (1-4), config admin (5-7), fluxo paciente (8-12), disponibilidade (13-15), segurança (16-21), confirmação (22-24), cancelamento (25-30), auditoria/compliance (31-35), invariantes (36-38).
 > - 12 SCs todos quantitativos ou observáveis (tempo, %, contagem, evento binário verificável).
 > - 17 edge cases mapeados, cada um com handling determinístico.
@@ -41,6 +43,7 @@
 - [x] No implementation details leak into specification
 
 > **Mapeamento US → FR**:
+>
 > - **US1 (paciente agenda)** ↔ FR-001..002, FR-008..012, FR-013..015
 > - **US2 (admin configura)** ↔ FR-003..007
 > - **US3 (proteção)** ↔ FR-016..021

@@ -3,7 +3,10 @@ import { toHttpResponse } from '@/lib/observability/http'
 import { logger } from '@/lib/observability/logger'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { exchangeCode, fetchAccountEmail } from '@/lib/integrations/google-calendar/oauth/client'
-import { verifyStateCookie, STATE_COOKIE_NAME } from '@/lib/integrations/google-calendar/oauth/state'
+import {
+  verifyStateCookie,
+  STATE_COOKIE_NAME,
+} from '@/lib/integrations/google-calendar/oauth/state'
 import { writeGoogleConnection } from '@/lib/integrations/google-calendar/oauth/token-store'
 import { googleCalendarConfigSchema } from '@/lib/integrations/google-calendar/oauth/types'
 
@@ -20,7 +23,8 @@ const SETTINGS_PATH = '/configuracoes/google-agenda'
 function redirect(to: string, clearCookie = true): Response {
   const headers: Record<string, string> = { Location: to, 'Cache-Control': 'no-store' }
   if (clearCookie) {
-    headers['Set-Cookie'] = `${STATE_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/api/oauth/google-calendar; Max-Age=0`
+    headers['Set-Cookie'] =
+      `${STATE_COOKIE_NAME}=; HttpOnly; Secure; SameSite=Lax; Path=/api/oauth/google-calendar; Max-Age=0`
   }
   return new Response(null, { status: 302, headers })
 }
@@ -56,7 +60,10 @@ export async function GET(req: Request): Promise<Response> {
 
     return redirect(`${SETTINGS_PATH}?connected=1`)
   } catch (err) {
-    logger.error({ err: err instanceof Error ? err.message : String(err) }, 'google-calendar-callback-failed')
+    logger.error(
+      { err: err instanceof Error ? err.message : String(err) },
+      'google-calendar-callback-failed',
+    )
     return redirect(`${SETTINGS_PATH}?error=connect_failed`)
   }
 }

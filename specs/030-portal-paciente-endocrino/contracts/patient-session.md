@@ -15,10 +15,12 @@
 patient_portal_verify_login(p_slug TEXT, p_cpf TEXT, p_birthdate TEXT, p_key TEXT)
   RETURNS TABLE (patient_id UUID, tenant_id UUID, full_name TEXT)   -- vazio se não casar
 ```
+
 - `SECURITY DEFINER`, grant só `service_role`. Resolve clínica por slug; acha paciente por CPF (decifra); confere nascimento (só dígitos); exclui anonimizado.
 - O caller (`/api/paciente/login`) trata vazio como falha **genérica** e nunca diferencia "CPF não existe" de "nascimento errado".
 
 ## Invariantes de segurança (testáveis)
+
 1. Sessão de um paciente **nunca** lê dados de outro paciente nem de outra clínica.
 2. Falhas de login são indistinguíveis (mesma resposta para CPF inexistente vs. nascimento errado).
 3. Após N falhas, novas tentativas são bloqueadas (rate-limit) com 429.

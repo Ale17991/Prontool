@@ -12,6 +12,7 @@
 - [x] All mandatory sections completed
 
 > **Notas**:
+>
 > - O spec contém hex codes literais (ex.: `#0E3C5B`, `#2563EB`). Hex é vocabulário de design, não de implementação — é a forma como o **designer** comunica cor, equivalente a "azul-petróleo profundo". Mantido.
 > - `shadcn/ui` é citado em FR-029 como restrição de compatibilidade (não como nova prescrição). Decisão arquitetural pré-existente do projeto, registrada para preservar a garantia de que tokens propagam automaticamente.
 > - Referências a "Tailwind config", `globals.css` e similares foram **mantidas fora dos requirements** — só aparecem em Assumptions/notas explicativas ou em metáforas neutras ("config" sem prefixo).
@@ -28,6 +29,7 @@
 - [x] Dependencies and assumptions identified
 
 > **Notas**:
+>
 > - FR-022 (mapping de estados do badge) foi parcialmente **inferido** a partir do input truncado. A inferência está documentada em Assumptions e em Edge Cases, com flag explícita para o usuário revisar antes de `/speckit-plan`. Optou-se por **não** usar `[NEEDS CLARIFICATION]` porque a inferência é razoável e o usuário pode ajustar facilmente sem bloquear o spec.
 > - Hex codes em SC-001 são testáveis por inspeção direta — não são "implementation details" porque o usuário forneceu hex como source-of-truth.
 > - Escopo do que está **fora**: dark mode, white-label por tenant, auditoria de cliques, novos testes funcionais, mudanças em DB, badges genéricos do sistema (cobertos parcialmente pela inferência). Boundaries claros.
@@ -40,6 +42,7 @@
 - [x] No implementation details leak into specification
 
 > **Mapeamento US → FR**:
+>
 > - **US1 (identidade do designer)** ↔ FR-001..003, FR-012..014
 > - **US2 (status de consulta)** ↔ FR-021..026
 > - **US3 (tokens semânticos)** ↔ FR-004..011, FR-029

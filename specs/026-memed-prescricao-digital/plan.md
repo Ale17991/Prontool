@@ -21,16 +21,16 @@ Habilitar prescrição digital da Memed dentro do fluxo de atendimento/prontuár
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Avaliação | Como o plano atende |
-|-----------|-----------|---------------------|
-| **I. Integridade Financeira Imutável** | ✅ N/A direto + aplicado por analogia | Prescrição não é registro financeiro. Ainda assim, `prescription_records` é **append-only**: emissão insere; exclusão NÃO apaga linha — registra `deleted_at`/status via caminho guardado por trigger (anti-`DELETE`, anti-`UPDATE` exceto a transição emitida→excluída). |
-| **II. Auditabilidade Total** | ✅ | Habilitar prescritor, emitir e excluir prescrição emitem `log_audit_event` (ator, timestamp UTC, tenant, entidade, origem). Conteúdo clínico **não** é copiado — só metadados de rastreabilidade (FR-019). |
-| **III. Isolamento Multi-Tenant** | ✅ | Tabelas novas com `tenant_id` + RLS; credenciais por tenant em `tenant_integrations`; o endpoint de token valida tenant/escopo do profissional; PKs UUID. Teste de contrato de vazamento entre tenants. |
-| **IV. Conformidade TUSS/ANS** | ✅ N/A | Prescrição de medicamento não usa catálogo TUSS (TUSS é faturamento de procedimento). Sem interação com o catálogo TUSS. |
-| **V. Segurança por Perfil (RBAC)** | ✅ | Conectar/desconectar conta e habilitar prescritor = `admin`; emitir/registrar prescrição = `profissional_saude` (dono do atendimento); token proxy é self-scoped ao profissional logado. `requireRole` server-side em todos os handlers; negações logadas. |
-| **Domínio/LGPD/Segredos** | ✅ | Credenciais cifradas em `tenant_integrations.credentials_enc` (não em env versionado); chaves Memed só server-side (token via proxy); PII de paciente decifrada via RPC só no servidor e entregue ao browser do usuário autorizado; logs com PII mascarada; timestamps UTC. |
+| Princípio                              | Avaliação                             | Como o plano atende                                                                                                                                                                                                                                                         |
+| -------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável** | ✅ N/A direto + aplicado por analogia | Prescrição não é registro financeiro. Ainda assim, `prescription_records` é **append-only**: emissão insere; exclusão NÃO apaga linha — registra `deleted_at`/status via caminho guardado por trigger (anti-`DELETE`, anti-`UPDATE` exceto a transição emitida→excluída).   |
+| **II. Auditabilidade Total**           | ✅                                    | Habilitar prescritor, emitir e excluir prescrição emitem `log_audit_event` (ator, timestamp UTC, tenant, entidade, origem). Conteúdo clínico **não** é copiado — só metadados de rastreabilidade (FR-019).                                                                  |
+| **III. Isolamento Multi-Tenant**       | ✅                                    | Tabelas novas com `tenant_id` + RLS; credenciais por tenant em `tenant_integrations`; o endpoint de token valida tenant/escopo do profissional; PKs UUID. Teste de contrato de vazamento entre tenants.                                                                     |
+| **IV. Conformidade TUSS/ANS**          | ✅ N/A                                | Prescrição de medicamento não usa catálogo TUSS (TUSS é faturamento de procedimento). Sem interação com o catálogo TUSS.                                                                                                                                                    |
+| **V. Segurança por Perfil (RBAC)**     | ✅                                    | Conectar/desconectar conta e habilitar prescritor = `admin`; emitir/registrar prescrição = `profissional_saude` (dono do atendimento); token proxy é self-scoped ao profissional logado. `requireRole` server-side em todos os handlers; negações logadas.                  |
+| **Domínio/LGPD/Segredos**              | ✅                                    | Credenciais cifradas em `tenant_integrations.credentials_enc` (não em env versionado); chaves Memed só server-side (token via proxy); PII de paciente decifrada via RPC só no servidor e entregue ao browser do usuário autorizado; logs com PII mascarada; timestamps UTC. |
 
 **Resultado**: Sem violações. "Complexity Tracking" vazio.
 

@@ -55,10 +55,7 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json(result, { status: 201 })
   } catch (err) {
     if (err instanceof TissInvalidCertificateError) {
-      return NextResponse.json(
-        { error: { code: err.code, message: err.message } },
-        { status: 400 },
-      )
+      return NextResponse.json({ error: { code: err.code, message: err.message } }, { status: 400 })
     }
     return toHttpResponse(err, { route: ROUTE })
   }

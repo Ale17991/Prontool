@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { DomainError, NotFoundError } from '@/lib/observability/errors'
-import type {
-  ConflictWarning,
-  CreateScheduleBlockInput,
-  CreateScheduleBlockResult,
-} from './types'
+import type { ConflictWarning, CreateScheduleBlockInput, CreateScheduleBlockResult } from './types'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/
@@ -38,11 +34,9 @@ export async function createScheduleBlock(
   let endTime: string | null = null
   if (input.allDay) {
     if (input.startTime || input.endTime) {
-      throw new DomainError(
-        'INVALID_TIMES',
-        'Bloqueio de dia inteiro não deve ter horários.',
-        { status: 400 },
-      )
+      throw new DomainError('INVALID_TIMES', 'Bloqueio de dia inteiro não deve ter horários.', {
+        status: 400,
+      })
     }
   } else {
     const s = input.startTime?.trim() ?? ''
@@ -55,11 +49,9 @@ export async function createScheduleBlock(
       )
     }
     if (e <= s) {
-      throw new DomainError(
-        'INVALID_TIMES',
-        'Horário de fim deve ser depois do início.',
-        { status: 400 },
-      )
+      throw new DomainError('INVALID_TIMES', 'Horário de fim deve ser depois do início.', {
+        status: 400,
+      })
     }
     startTime = s
     endTime = e
@@ -127,9 +119,7 @@ async function detectAppointmentConflicts(
   // a verificacao real continua sendo client + slot_locks ao agendar.
   const dayStartIso = `${args.blockDate}T00:00:00.000Z`
   const dayEndIso = nextDayIso(args.blockDate)
-  const fromIso = args.allDay
-    ? dayStartIso
-    : `${args.blockDate}T${args.startTime}:00.000Z`
+  const fromIso = args.allDay ? dayStartIso : `${args.blockDate}T${args.startTime}:00.000Z`
   const toIso = args.allDay ? dayEndIso : `${args.blockDate}T${args.endTime}:00.000Z`
 
   const res = await supabase

@@ -24,10 +24,7 @@ const createSchema = z.object({
   status: z.enum(['ativo', 'em_acompanhamento', 'resolvido']).optional(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/diagnosticos`
   try {
     const session = await requireRole(

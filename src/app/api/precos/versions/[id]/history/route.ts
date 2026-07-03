@@ -12,10 +12,7 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(['admin', 'financeiro', 'recepcionista'], {
       entity: 'price_versions',

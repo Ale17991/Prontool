@@ -54,10 +54,8 @@ function bmiClassification(bmi: number | null): {
   className: string
 } | null {
   if (bmi === null) return null
-  if (bmi < 18.5)
-    return { label: 'Abaixo do peso', className: 'bg-info-bg text-info-text' }
-  if (bmi < 25)
-    return { label: 'Normal', className: 'bg-success-bg text-success-text' }
+  if (bmi < 18.5) return { label: 'Abaixo do peso', className: 'bg-info-bg text-info-text' }
+  if (bmi < 25) return { label: 'Normal', className: 'bg-success-bg text-success-text' }
   if (bmi < 30)
     return {
       label: 'Sobrepeso',
@@ -171,11 +169,7 @@ export function VitalSignsSection({
               <VitalCard
                 icon={Thermometer}
                 label="Temp"
-                value={
-                  last.temperatureCelsius !== null
-                    ? last.temperatureCelsius.toFixed(1)
-                    : '—'
-                }
+                value={last.temperatureCelsius !== null ? last.temperatureCelsius.toFixed(1) : '—'}
                 unit="°C"
               />
               <VitalCard
@@ -187,11 +181,7 @@ export function VitalSignsSection({
               <VitalCard
                 icon={Scale}
                 label="Peso"
-                value={
-                  last.weightGrams !== null
-                    ? (last.weightGrams / 1000).toFixed(1)
-                    : '—'
-                }
+                value={last.weightGrams !== null ? (last.weightGrams / 1000).toFixed(1) : '—'}
                 unit="kg"
               />
               <VitalCard
@@ -287,23 +277,15 @@ export function VitalSignsSection({
                               ? `${v.systolicBp}/${v.diastolicBp}`
                               : '—'}
                           </TableCell>
-                          <TableCell className="text-xs">
-                            {v.heartRate ?? '—'}
-                          </TableCell>
+                          <TableCell className="text-xs">{v.heartRate ?? '—'}</TableCell>
                           <TableCell className="text-xs">
                             {v.temperatureCelsius?.toFixed(1) ?? '—'}
                           </TableCell>
+                          <TableCell className="text-xs">{v.oxygenSaturation ?? '—'}</TableCell>
                           <TableCell className="text-xs">
-                            {v.oxygenSaturation ?? '—'}
+                            {v.weightGrams !== null ? (v.weightGrams / 1000).toFixed(1) : '—'}
                           </TableCell>
-                          <TableCell className="text-xs">
-                            {v.weightGrams !== null
-                              ? (v.weightGrams / 1000).toFixed(1)
-                              : '—'}
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {v.bmi?.toFixed(1) ?? '—'}
-                          </TableCell>
+                          <TableCell className="text-xs">{v.bmi?.toFixed(1) ?? '—'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -313,9 +295,7 @@ export function VitalSignsSection({
             ) : null}
           </>
         ) : (
-          <p className="text-sm text-slate-500">
-            Nenhum registro de sinais vitais ainda.
-          </p>
+          <p className="text-sm text-slate-500">Nenhum registro de sinais vitais ainda.</p>
         )}
       </CardContent>
     </Card>
@@ -337,13 +317,10 @@ function VitalCard({
     <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex items-center gap-2">
         <Icon className="h-3.5 w-3.5 text-slate-400" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       </div>
       <p className="mt-1 text-lg font-black tabular-nums text-slate-900">
-        {value}{' '}
-        <span className="text-[10px] font-normal text-slate-500">{unit}</span>
+        {value} <span className="text-[10px] font-normal text-slate-500">{unit}</span>
       </p>
     </div>
   )
@@ -353,9 +330,7 @@ function BmiCard({ bmi }: { bmi: number | null }) {
   const cls = bmiClassification(bmi)
   return (
     <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-        IMC
-      </p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">IMC</p>
       <p className="mt-1 text-lg font-black tabular-nums text-slate-900">
         {bmi?.toFixed(1) ?? '—'}
       </p>

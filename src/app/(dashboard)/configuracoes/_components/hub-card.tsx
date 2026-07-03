@@ -26,17 +26,13 @@ export function HubCard({ card }: Props) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-bold tracking-tight text-slate-900">
-            {card.title}
-          </h2>
+          <h2 className="text-sm font-bold tracking-tight text-slate-900">{card.title}</h2>
           <ChevronRight
             className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
             aria-hidden="true"
           />
         </div>
-        <p className="mt-1 line-clamp-2 text-xs text-slate-500">
-          {card.description}
-        </p>
+        <p className="mt-1 line-clamp-2 text-xs text-slate-500">{card.description}</p>
       </div>
     </Link>
   )

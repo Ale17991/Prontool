@@ -11,11 +11,7 @@ import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { cancelByToken } from '@/lib/core/public-booking/cancel-booking'
 import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
-import {
-  bumpRateLimit,
-  checkRateLimit,
-  RATE_LIMITS,
-} from '@/lib/core/public-booking/rate-limit'
+import { bumpRateLimit, checkRateLimit, RATE_LIMITS } from '@/lib/core/public-booking/rate-limit'
 import { hashToken } from '@/lib/core/public-booking/tokens'
 
 export const dynamic = 'force-dynamic'
@@ -36,10 +32,7 @@ function extractIp(request: NextRequest): string {
   return 'unknown'
 }
 
-export async function POST(
-  request: NextRequest,
-  context: { params: { token: string } },
-) {
+export async function POST(request: NextRequest, context: { params: { token: string } }) {
   const tokenCheck = TokenSchema.safeParse(context.params.token)
   if (!tokenCheck.success) {
     return NextResponse.json({ error: 'TOKEN_NOT_VALID' }, { status: 410 })

@@ -3,10 +3,7 @@
  * Segundo DELETE devolve 409 (já removido).
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedPatient } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 

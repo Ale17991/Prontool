@@ -39,7 +39,7 @@ function statusToVariant(s: 'ativo' | 'agendado' | 'estornado') {
   return 'concluido' as const // 'ativo' do banco mapeia visualmente para "Concluído"
 }
 
-<AppointmentStatusBadge variant={statusToVariant(appointment.effectiveStatus)} />
+;<AppointmentStatusBadge variant={statusToVariant(appointment.effectiveStatus)} />
 ```
 
 Variantes disponíveis no componente (ver `contracts/appointment-status-badge.contract.md` para mapping canônico):
@@ -84,16 +84,17 @@ Roteiro mínimo para cada feature/PR que toque UI durante e após 016:
 
 Abrir uma página do dashboard e verificar (Computed style):
 
-| Elemento | Valor esperado |
-|---|---|
-| Sidebar `background-color` | `rgb(14, 60, 91)` (= `#0E3C5B`) |
-| Botão primário "Salvar" `background-color` | `rgb(37, 99, 235)` (= `#2563EB`) |
-| Badge "Agendado" `background-color` | `rgb(203, 230, 248)` (= `#CBE6F8`) |
-| Badge "Concluído" `color` | `rgb(5, 73, 75)` (= `#05494B`) |
+| Elemento                                   | Valor esperado                     |
+| ------------------------------------------ | ---------------------------------- |
+| Sidebar `background-color`                 | `rgb(14, 60, 91)` (= `#0E3C5B`)    |
+| Botão primário "Salvar" `background-color` | `rgb(37, 99, 235)` (= `#2563EB`)   |
+| Badge "Agendado" `background-color`        | `rgb(203, 230, 248)` (= `#CBE6F8`) |
+| Badge "Concluído" `color`                  | `rgb(5, 73, 75)` (= `#05494B`)     |
 
 ### 5.2 Simulação de daltonismo
 
 Chrome DevTools → Rendering panel → "Emulate vision deficiencies":
+
 1. Selecionar **Deuteranopia**; abrir agenda; verificar que os 7 estados continuam distinguíveis.
 2. Selecionar **Protanopia**; mesma verificação.
 3. Selecionar **Achromatopsia** (visão acromática); estado deve continuar identificável por ícone + label + padrão visual.
@@ -101,18 +102,21 @@ Chrome DevTools → Rendering panel → "Emulate vision deficiencies":
 ### 5.3 Reduced motion
 
 Chrome DevTools → Rendering panel → "Emulate CSS media feature `prefers-reduced-motion`" → `reduce`:
+
 - Abrir uma consulta em "Em atendimento"; ponto indicador deve aparecer **estático** (sem pulsação).
 - Voltar para `no-preference`; pulsação retorna.
 
 ### 5.4 Network — fontes externas
 
 DevTools → Network → filtrar por `fonts.googleapis.com`:
+
 - Recarregar dashboard com `Disable cache` ativo.
 - **Zero** requisições esperadas para esse domínio.
 
 ### 5.5 LCP em 3G emulado
 
 DevTools → Lighthouse → Mobile + Slow 3G:
+
 - Rodar em `/login` e `/` (dashboard).
 - LCP deve ser ≥ 100ms menor que a baseline (capturada antes da migração de fonte) **ou** Lighthouse não reportar FOUT.
 
@@ -120,14 +124,14 @@ DevTools → Lighthouse → Mobile + Slow 3G:
 
 ## 6. Onde isso vive no código
 
-| Coisa | Path |
-|---|---|
-| Tokens CSS | `src/app/globals.css` |
-| Tailwind extension (tokens consumíveis como utility classes) | `tailwind.config.ts` |
-| Migração de fonte | `src/app/layout.tsx` |
-| Componente de status | `src/components/ui/appointment-status-badge.tsx` |
-| Sidebar | `src/app/(dashboard)/_components/dashboard-shell.tsx` |
-| Spec, plano, contratos | `specs/016-designer-palette-rollout/` |
+| Coisa                                                        | Path                                                  |
+| ------------------------------------------------------------ | ----------------------------------------------------- |
+| Tokens CSS                                                   | `src/app/globals.css`                                 |
+| Tailwind extension (tokens consumíveis como utility classes) | `tailwind.config.ts`                                  |
+| Migração de fonte                                            | `src/app/layout.tsx`                                  |
+| Componente de status                                         | `src/components/ui/appointment-status-badge.tsx`      |
+| Sidebar                                                      | `src/app/(dashboard)/_components/dashboard-shell.tsx` |
+| Spec, plano, contratos                                       | `specs/016-designer-palette-rollout/`                 |
 
 ---
 

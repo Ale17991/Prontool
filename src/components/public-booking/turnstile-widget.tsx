@@ -35,11 +35,7 @@ interface TurnstileWidgetProps {
  * Em ambiente sem `NEXT_PUBLIC_TURNSTILE_SITE_KEY` configurado, NÃO renderiza
  * nada (dev). O server-side `verifyTurnstile` faz bypass equivalente.
  */
-export function TurnstileWidget({
-  onToken,
-  onExpired,
-  onError,
-}: TurnstileWidgetProps) {
+export function TurnstileWidget({ onToken, onExpired, onError }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const widgetIdRef = useRef<string | null>(null)
   const [bypass, setBypass] = useState(false)
@@ -58,8 +54,7 @@ export function TurnstileWidget({
     if (!document.getElementById(SCRIPT_ID)) {
       const s = document.createElement('script')
       s.id = SCRIPT_ID
-      s.src =
-        'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad'
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad'
       s.async = true
       s.defer = true
       document.head.appendChild(s)
@@ -95,11 +90,7 @@ export function TurnstileWidget({
   }, [siteKey])
 
   if (bypass) {
-    return (
-      <p className="text-xs text-slate-400">
-        Captcha desativado em desenvolvimento.
-      </p>
-    )
+    return <p className="text-xs text-slate-400">Captcha desativado em desenvolvimento.</p>
   }
 
   return <div ref={containerRef} />

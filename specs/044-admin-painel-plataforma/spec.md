@@ -17,7 +17,7 @@ Hoje o dono da plataforma enxerga as clínicas uma a uma (plano, status, usuári
 - Q: Plano Legado entra no MRR? → A: Sim — Legado tem preço próprio configurável e entra no MRR como os demais (R$ 0 se for cortesia).
 - Q: Dias sem atividade para marcar "em risco"? → A: 14 dias (padrão; ajustável na UI).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Visão financeira / MRR (Priority: P1)
 
@@ -94,7 +94,7 @@ O dono da plataforma vê num só lugar **o que está quebrado agora**: alertas a
 - **Tenant sem integrações (US4)**: simplesmente não aparece na lista de falhas (standalone).
 - **Performance**: as agregações usam contagens eficientes e janelas de tempo limitadas; o painel nunca pode derrubar o /admin por timeout — degrada para "indisponível" naquele card.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -125,7 +125,7 @@ O dono da plataforma vê num só lugar **o que está quebrado agora**: alertas a
 
 - **FR-012**: O sistema MUST consolidar **alertas abertos**, **integrações falhando**, **fila de erros (DLQ)** e **status de lembretes/crons** num painel único.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Preço de plano**: valor mensal (centavos, BRL) por plano — fonte do MRR (nova config, a definir).
 - **Resumo financeiro**: agregação derivada (MRR total/por plano, contagens por status, trials a vencer, inadimplentes, churn).
@@ -133,7 +133,7 @@ O dono da plataforma vê num só lugar **o que está quebrado agora**: alertas a
 - **Evento de auditoria**: registro existente (`audit_log`) — ator, tenant, entidade/campo, antes/depois, motivo, horário.
 - **Item de saúde do sistema**: alerta / falha de integração / item de DLQ / status de lembrete-cron (todos já existentes).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

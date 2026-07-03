@@ -1,11 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 
-export type ReceivableStatus =
-  | 'pendente'
-  | 'atrasado'
-  | 'parcial'
-  | 'inadimplencia'
+export type ReceivableStatus = 'pendente' | 'atrasado' | 'parcial' | 'inadimplencia'
 
 export interface ReceivableRow {
   installmentId: string
@@ -112,8 +108,9 @@ export async function listReceivables(
     const paid = Number(r.paid_amount_cents)
     const pending = amount - paid
     const days = diffDaysFromToday(r.due_date)
-    const isAnonymized = r.payment_records?.patients?.anonymized_at !== null
-      && r.payment_records?.patients?.anonymized_at !== undefined
+    const isAnonymized =
+      r.payment_records?.patients?.anonymized_at !== null &&
+      r.payment_records?.patients?.anonymized_at !== undefined
     return {
       installmentId: r.id,
       paymentRecordId: r.payment_record_id,
@@ -156,13 +153,16 @@ export async function markInstallmentAsBadDebt(
     .eq('id', args.installmentId)
     .eq('tenant_id', args.tenantId)
   if (upd.error) throw new Error(`mark bad debt: ${upd.error.message}`)
-  await supabase.rpc('log_audit_event' as never, {
-    p_tenant_id: args.tenantId,
-    p_entity: 'payment_installments',
-    p_entity_id: args.installmentId,
-    p_field: 'status',
-    p_old: null,
-    p_new: 'inadimplencia',
-    p_reason: args.reason ?? 'admin/financeiro marcou como inadimplência',
-  } as never)
+  await supabase.rpc(
+    'log_audit_event' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_entity: 'payment_installments',
+      p_entity_id: args.installmentId,
+      p_field: 'status',
+      p_old: null,
+      p_new: 'inadimplencia',
+      p_reason: args.reason ?? 'admin/financeiro marcou como inadimplência',
+    } as never,
+  )
 }

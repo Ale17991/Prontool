@@ -76,7 +76,5 @@ test('webhook posts land as appointments on /atendimentos', async ({ page, reque
   await expect(page.locator('h1', { hasText: 'Atendimentos' })).toBeVisible({
     timeout: 30_000,
   })
-  await expect(page.locator('body')).toContainText(
-    new RegExp(`${after.count} atendimento`),
-  )
+  await expect(page.locator('body')).toContainText(new RegExp(`${after.count} atendimento`))
 })

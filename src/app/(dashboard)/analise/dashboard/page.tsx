@@ -79,9 +79,7 @@ export default async function DashboardFinanceiroPage() {
     cashFlow.buckets.length > 0
       ? cashFlow.buckets[cashFlow.buckets.length - 1]!.balanceAfterCents
       : cashFlow.startingBalanceCents
-  const balanceWillGoNegative = cashFlow.buckets.some(
-    (b) => b.balanceAfterCents < 0,
-  )
+  const balanceWillGoNegative = cashFlow.buckets.some((b) => b.balanceAfterCents < 0)
   const overduePayables = payables.rows.filter((r) => r.status === 'vencida')
 
   const alerts: Array<{ icon: typeof AlertTriangle; label: string; href: string }> = []
@@ -115,8 +113,7 @@ export default async function DashboardFinanceiroPage() {
           Dashboard Financeiro
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Visão consolidada do dia-a-dia: a receber, a pagar, saldo projetado e
-          repasses do mês.
+          Visão consolidada do dia-a-dia: a receber, a pagar, saldo projetado e repasses do mês.
         </p>
       </div>
 
@@ -193,9 +190,7 @@ export default async function DashboardFinanceiroPage() {
           </CardHeader>
           <CardContent>
             {receivables.rows.length === 0 ? (
-              <p className="py-4 text-center text-xs text-slate-500">
-                Sem parcelas pendentes.
-              </p>
+              <p className="py-4 text-center text-xs text-slate-500">Sem parcelas pendentes.</p>
             ) : (
               <ul className="space-y-1.5">
                 {receivables.rows.slice(0, 5).map((r) => (
@@ -204,7 +199,7 @@ export default async function DashboardFinanceiroPage() {
                     className="flex items-center justify-between gap-2 text-xs"
                   >
                     <span className="truncate text-slate-600">
-                      {r.patientIsAnonymized ? '[anonimizado]' : r.patientName ?? '—'}
+                      {r.patientIsAnonymized ? '[anonimizado]' : (r.patientName ?? '—')}
                     </span>
                     <span className="whitespace-nowrap font-mono text-[11px] text-slate-500">
                       {r.dueDate}
@@ -228,19 +223,14 @@ export default async function DashboardFinanceiroPage() {
           </CardHeader>
           <CardContent>
             {payables.rows.length === 0 ? (
-              <p className="py-4 text-center text-xs text-slate-500">
-                Sem despesas previstas.
-              </p>
+              <p className="py-4 text-center text-xs text-slate-500">Sem despesas previstas.</p>
             ) : (
               <ul className="space-y-1.5">
                 {payables.rows
                   .filter((r) => r.status !== 'paga')
                   .slice(0, 5)
                   .map((r) => (
-                    <li
-                      key={r.id}
-                      className="flex items-center justify-between gap-2 text-xs"
-                    >
+                    <li key={r.id} className="flex items-center justify-between gap-2 text-xs">
                       <span className="truncate text-slate-600">{r.description}</span>
                       <span className="whitespace-nowrap font-mono text-[11px] text-slate-500">
                         {r.competenceDate}
@@ -272,11 +262,21 @@ export default async function DashboardFinanceiroPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              <MiniStat label="Recebido" value={formatCurrency(planReceivables.totals.recebido)} cls="text-success-text" />
-              <MiniStat label="Pendente" value={formatCurrency(planReceivables.totals.pendente)} cls="text-[hsl(var(--warning-foreground))]" />
+              <MiniStat
+                label="Recebido"
+                value={formatCurrency(planReceivables.totals.recebido)}
+                cls="text-success-text"
+              />
+              <MiniStat
+                label="Pendente"
+                value={formatCurrency(planReceivables.totals.pendente)}
+                cls="text-[hsl(var(--warning-foreground))]"
+              />
               <MiniStat
                 label="Glosado / não receb."
-                value={formatCurrency(planReceivables.totals.glosado + planReceivables.totals.naoRecebido)}
+                value={formatCurrency(
+                  planReceivables.totals.glosado + planReceivables.totals.naoRecebido,
+                )}
                 cls="text-destructive"
               />
             </div>
@@ -344,9 +344,7 @@ function KpiCard({
   return (
     <Link href={href} className="group">
       <Card
-        className={cn(
-          'h-full transition-shadow hover:shadow-md group-hover:border-primary/30',
-        )}
+        className={cn('h-full transition-shadow hover:shadow-md group-hover:border-primary/30')}
       >
         <CardContent className="p-5">
           <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
@@ -355,9 +353,7 @@ function KpiCard({
           <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
             {label}
           </p>
-          <p className={cn('text-xl font-black tracking-tight', colorClass)}>
-            {value}
-          </p>
+          <p className={cn('text-xl font-black tracking-tight', colorClass)}>{value}</p>
           {sub ? <p className="mt-1 text-xs text-slate-500">{sub}</p> : null}
         </CardContent>
       </Card>

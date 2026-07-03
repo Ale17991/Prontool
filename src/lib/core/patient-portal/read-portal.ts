@@ -2,10 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { listVitalSigns } from '@/lib/core/patient-medical/vital-signs'
 import { listMeasurements, type MeasurementDTO } from './measurements'
-import {
-  listEnabledMetricTypesForTenant,
-  type PatientMetricType,
-} from './metric-types'
+import { listEnabledMetricTypesForTenant, type PatientMetricType } from './metric-types'
 import { listCareNotes, type CareNote } from './care-notes'
 import { listGoals, type PatientGoal } from './goals'
 import { getActiveWorkoutPlan, type WorkoutPlan } from './workout'
@@ -61,19 +58,29 @@ export async function buildPatientPortalBundle(
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required for the patient portal')
 
-  const [firstName, vitals, metricsRaw, metricTypesRaw, appointments, careNotes, goals, workout, diet, ent] =
-    await Promise.all([
-      resolvePatientFirstName(supabase, args, key),
-      listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
-      listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
-      listEnabledMetricTypesForTenant(supabase, args.tenantId, { specialty: 'endocrino' }),
-      listPortalAppointments(supabase, args),
-      listCareNotes(supabase, args.tenantId, args.patientId),
-      listGoals(supabase, args.tenantId, args.patientId),
-      getActiveWorkoutPlan(supabase, args.tenantId, args.patientId),
-      getActiveDietPlan(supabase, args.tenantId, args.patientId),
-      getTenantEntitlements(supabase, args.tenantId),
-    ])
+  const [
+    firstName,
+    vitals,
+    metricsRaw,
+    metricTypesRaw,
+    appointments,
+    careNotes,
+    goals,
+    workout,
+    diet,
+    ent,
+  ] = await Promise.all([
+    resolvePatientFirstName(supabase, args, key),
+    listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
+    listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
+    listEnabledMetricTypesForTenant(supabase, args.tenantId, { specialty: 'endocrino' }),
+    listPortalAppointments(supabase, args),
+    listCareNotes(supabase, args.tenantId, args.patientId),
+    listGoals(supabase, args.tenantId, args.patientId),
+    getActiveWorkoutPlan(supabase, args.tenantId, args.patientId),
+    getActiveDietPlan(supabase, args.tenantId, args.patientId),
+    getTenantEntitlements(supabase, args.tenantId),
+  ])
 
   // Módulo Endócrino off ⇒ esconde as métricas metabólicas (peso/IMC seguem,
   // pois vêm de vital_signs e não são endócrino-específicos).
@@ -92,7 +99,17 @@ export async function buildPatientPortalBundle(
     }))
     .reverse()
 
-  return { patient: { firstName }, weightImc, metrics, metricTypes, appointments, careNotes, goals, workout, diet }
+  return {
+    patient: { firstName },
+    weightImc,
+    metrics,
+    metricTypes,
+    appointments,
+    careNotes,
+    goals,
+    workout,
+    diet,
+  }
 }
 
 /**
@@ -141,13 +158,15 @@ async function listPortalAppointments(
     .limit(100)
   if (error) throw new Error(`listPortalAppointments failed: ${error.message}`)
 
-  const rows = ((data ?? []) as unknown as Array<{
-    id: string | null
-    appointment_at: string | null
-    doctor_id: string | null
-    procedure_id: string | null
-    effective_status: string | null
-  }>).filter((r) => r.id && r.appointment_at && r.effective_status !== 'cancelado')
+  const rows = (
+    (data ?? []) as unknown as Array<{
+      id: string | null
+      appointment_at: string | null
+      doctor_id: string | null
+      procedure_id: string | null
+      effective_status: string | null
+    }>
+  ).filter((r) => r.id && r.appointment_at && r.effective_status !== 'cancelado')
 
   const doctorIds = [...new Set(rows.map((r) => r.doctor_id).filter(Boolean))] as string[]
   const procedureIds = [...new Set(rows.map((r) => r.procedure_id).filter(Boolean))] as string[]

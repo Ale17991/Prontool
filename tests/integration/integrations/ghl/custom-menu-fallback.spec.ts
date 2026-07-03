@@ -34,8 +34,9 @@ describe('US5 — customMenuSetup', () => {
   it('GHL retorna 404 → menu_status=unsupported (não bloqueia)', async () => {
     const tenantId = await seedRow('us5-menu-404', 'loc_us5_404')
     mswServer.use(
-      http.post('https://services.leadconnectorhq.com/custom-menus/', () =>
-        new HttpResponse('not found', { status: 404 }),
+      http.post(
+        'https://services.leadconnectorhq.com/custom-menus/',
+        () => new HttpResponse('not found', { status: 404 }),
       ),
     )
     const result = await customMenuSetup(
@@ -91,8 +92,9 @@ describe('US5 — customMenuSetup', () => {
   it('GHL retorna 5xx → menu_status=failed (não bloqueia)', async () => {
     const tenantId = await seedRow('us5-menu-5xx', 'loc_us5_5xx')
     mswServer.use(
-      http.post('https://services.leadconnectorhq.com/custom-menus/', () =>
-        new HttpResponse('upstream', { status: 502 }),
+      http.post(
+        'https://services.leadconnectorhq.com/custom-menus/',
+        () => new HttpResponse('upstream', { status: 502 }),
       ),
     )
     const result = await customMenuSetup(
@@ -121,9 +123,7 @@ describe('US5 — /api/sso/ghl', () => {
 
   it('Token malformado → 401 INVALID_CONTEXT_TOKEN', async () => {
     const { GET } = await import('@/app/api/sso/ghl/route')
-    const res = await GET(
-      new Request('http://localhost/api/sso/ghl?context_token=not-a-jwt'),
-    )
+    const res = await GET(new Request('http://localhost/api/sso/ghl?context_token=not-a-jwt'))
     expect(res.status).toBe(401)
     const body = (await res.json()) as { error: { code: string } }
     expect(body.error.code).toBe('INVALID_CONTEXT_TOKEN')

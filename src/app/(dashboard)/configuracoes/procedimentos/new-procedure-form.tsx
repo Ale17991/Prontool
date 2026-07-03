@@ -6,11 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import {
-  TussTableBadge,
-  type TussTable,
-  TUSS_TABLES,
-} from './tuss-table-badge'
+import { TussTableBadge, type TussTable, TUSS_TABLES } from './tuss-table-badge'
 import { TussTypeahead, type TussTypeaheadValue } from '@/components/tuss/tuss-typeahead'
 
 export interface CustomTableOption {
@@ -121,9 +117,7 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
         }
         throw new Error(payload.error?.message ?? `HTTP ${res.status}`)
       }
-      const label = isUnlisted
-        ? customCode.trim() || displayName.trim()
-        : selected?.code
+      const label = isUnlisted ? customCode.trim() || displayName.trim() : selected?.code
       setSuccess(`Procedimento ${label} cadastrado.`)
       setSelected(null)
       setDisplayName('')
@@ -154,8 +148,8 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
         <span>
           <span className="font-semibold text-slate-900">Procedimento não listado</span>
           <span className="block text-slate-500">
-            Marque para cadastrar um procedimento local sem código TUSS oficial
-            (ex.: pacote negociado com convênio). O nome de exibição é obrigatório.
+            Marque para cadastrar um procedimento local sem código TUSS oficial (ex.: pacote
+            negociado com convênio). O nome de exibição é obrigatório.
           </span>
         </span>
       </label>
@@ -174,8 +168,8 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
               maxLength={50}
             />
             <p className="text-[10px] text-slate-500">
-              Código livre da clínica. Se já existir, será reutilizado. Deixe em branco
-              para criar procedimento sem código.
+              Código livre da clínica. Se já existir, será reutilizado. Deixe em branco para criar
+              procedimento sem código.
             </p>
           </div>
 
@@ -231,8 +225,8 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
             ) : null}
 
             <p className="text-[10px] text-slate-500">
-              Agrupa procedimentos personalizados em categorias da clínica. Pode reutilizar
-              tabelas já criadas ou criar uma nova aqui.
+              Agrupa procedimentos personalizados em categorias da clínica. Pode reutilizar tabelas
+              já criadas ou criar uma nova aqui.
             </p>
           </div>
         </>
@@ -242,7 +236,11 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
         <>
           <div className="space-y-1.5">
             <Label className="text-xs">Tipo de item</Label>
-            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipo de item TUSS">
+            <div
+              className="grid grid-cols-3 gap-2"
+              role="radiogroup"
+              aria-label="Tipo de item TUSS"
+            >
               {TUSS_TABLES.map((opt) => {
                 const active = tussTable === opt.value
                 return (
@@ -298,9 +296,7 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
       <div className="space-y-1.5">
         <Label htmlFor="display-name" className="text-xs">
           Nome de exibição{' '}
-          <span className="text-slate-400">
-            {isUnlisted ? '(obrigatório)' : '(opcional)'}
-          </span>
+          <span className="text-slate-400">{isUnlisted ? '(obrigatório)' : '(opcional)'}</span>
         </Label>
         <Input
           id="display-name"
@@ -338,15 +334,17 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
         <span>
           <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
           <span className="block text-slate-500">
-            Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas
-            de preço por convênio e usa o valor particular acima no plano de tratamento.
+            Quando desmarcado, este procedimento é sempre particular — não aparece nas tabelas de
+            preço por convênio e usa o valor particular acima no plano de tratamento.
           </span>
         </span>
       </label>
 
       <Button
         type="submit"
-        disabled={pending || (!isUnlisted && !selected) || (isUnlisted && displayName.trim().length === 0)}
+        disabled={
+          pending || (!isUnlisted && !selected) || (isUnlisted && displayName.trim().length === 0)
+        }
         className="w-full"
       >
         {pending ? 'Salvando…' : 'Cadastrar procedimento'}

@@ -9,15 +9,21 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const querySchema = z.object({
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   category: z.string().optional(),
   supplier: z.string().optional(),
   status: z.enum(['a_vencer', 'vencida', 'paga', 'all']).optional(),
   include_projections: z
     .union([z.string(), z.boolean()])
     .optional()
-    .transform((v) => v === undefined ? true : (v === true || v === 'true')),
+    .transform((v) => (v === undefined ? true : v === true || v === 'true')),
 })
 
 export async function GET(req: Request): Promise<Response> {
@@ -28,9 +34,7 @@ export async function GET(req: Request): Promise<Response> {
       route,
       request: req,
     })
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(new URL(req.url).searchParams),
-    )
+    const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams))
     if (!parsed.success) {
       return NextResponse.json(
         { error: { code: 'INVALID_QUERY', message: 'Filtros inválidos' } },

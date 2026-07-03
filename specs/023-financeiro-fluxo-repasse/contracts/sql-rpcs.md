@@ -103,6 +103,7 @@ Já documentado em `data-model.md`. Recebe via `TG_ARGV[0]` o array de colunas p
 ### `refresh_installment_paid_cache()` (trigger)
 
 AFTER INSERT em `installment_payments`. Recalcula:
+
 - `payment_installments.paid_amount_cents` = SUM
 - `payment_installments.paid_at` = MAX
 - `payment_installments.status` derivado (pendente/parcial/pago/atrasado)

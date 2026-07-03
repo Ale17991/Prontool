@@ -31,7 +31,9 @@ export function ChangeStatusDialog({ target, onOpenChange, onSuccess }: Props) {
         onSuccess()
         return
       }
-      const body = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } }
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: { code?: string; message?: string }
+      }
       const code = body.error?.code
       if (code === 'CANNOT_DISABLE_SELF') setError('Você não pode desativar a si mesmo')
       else if (code === 'LAST_ADMIN') setError('Não é possível desativar a única admin ativa')
@@ -60,7 +62,12 @@ export function ChangeStatusDialog({ target, onOpenChange, onSuccess }: Props) {
           </p>
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={busy}
+            >
               Cancelar
             </Button>
             <Button

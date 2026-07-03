@@ -53,9 +53,7 @@ export default async function MedicoPlanoPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Médico × convênio
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Médico × convênio</h1>
         <p className="mt-1 text-sm text-slate-500">
           Faturamento de cada profissional por convênio —{' '}
           <span className="font-semibold">{formatDate(period.from)}</span> a{' '}

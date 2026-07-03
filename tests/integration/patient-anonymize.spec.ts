@@ -4,10 +4,7 @@
  * call → 409. Apenas admin pode disparar.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
@@ -77,7 +74,9 @@ describe('POST /api/pacientes/[id]/anonymize — LGPD', () => {
       }),
       { params: { id: patientId } },
     )
-    const detailBody = (await detail.json()) as { patient: { fullName: string; anonymizedAt: string | null } }
+    const detailBody = (await detail.json()) as {
+      patient: { fullName: string; anonymizedAt: string | null }
+    }
     expect(detailBody.patient.fullName).toBe('[anonimizado]')
     expect(detailBody.patient.anonymizedAt).toBeTruthy()
 

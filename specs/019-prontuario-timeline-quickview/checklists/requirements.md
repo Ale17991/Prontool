@@ -36,10 +36,12 @@
 Reviewed against template criteria. Findings:
 
 **Content Quality — PASS**
+
 - A spec referencia nomes de componentes (`SoapView`, `AnamneseView`, `NewEvolutionForm`) e tabelas (`clinical_records`, `vital_signs`) apenas em contexto de **preservação de contrato** ("MUST continuar usando", "MUST não alterar"), não como prescrição de implementação. Isso é apropriado para uma feature UX-only sobre código existente — o stakeholder técnico precisa saber que NÃO toca esses pontos. Foi mantido por reduzir ambiguidade sem virar prescrição.
 - Algumas FRs (FR-019, FR-021) mencionam "sheets" como padrão de UI, que beira HOW; mantido porque o termo é a unidade de contrato de UX (não uma escolha de lib) — a alternativa seria perífrase "painel sobreposto" que tornaria a leitura mais frouxa.
 
 **Requirement Completeness — PASS**
+
 - Zero markers [NEEDS CLARIFICATION].
 - 31 FRs, todas com forma "X MUST Y" e verificáveis em cenário.
 - 8 success criteria, todos com métrica explícita (tempo, %, fps, contagem).
@@ -48,6 +50,7 @@ Reviewed against template criteria. Findings:
 - 10 itens out-of-scope explícitos protegem o escopo.
 
 **Feature Readiness — PASS**
+
 - Cada US tem Acceptance Scenarios em formato Given/When/Then.
 - Cada US tem Independent Test descrevendo como verificar isolada.
 - US1 sozinha entrega valor (sidebar+timeline básica), US2 incrementa (sheets), US3 polui (filtros), US4 mobile.
@@ -68,6 +71,7 @@ Spec aprovada na primeira iteração. Pronta para `/speckit.plan` (ou opcionalme
 5. **Edições estruturadas** → aba secundária "Cadastro" na coluna direita com URL `?tab=cadastro`. Impacto: FR-001 atualizado, FR-023 reescrita, FR-023a adicionada.
 
 **Validação pós-clarify**:
+
 - [x] Clarifications section presente com exatamente 5 bullets (1 por pergunta).
 - [x] Nenhuma marca [NEEDS CLARIFICATION] remanescente.
 - [x] Sem contradições entre seções (FRs reescritas removem texto obsoleto).

@@ -48,7 +48,11 @@ describe('Polish — inbound webhook via dynamic router', () => {
     const { POST } = await import('@/app/api/webhooks/ghl/route')
     const res = await POST(buildSignedWebhookRequest(payload))
     expect(res.status).toBe(200)
-    const body = (await res.json()) as { received: boolean; duplicate: boolean; raw_event_id: string }
+    const body = (await res.json()) as {
+      received: boolean
+      duplicate: boolean
+      raw_event_id: string
+    }
     expect(body.received).toBe(true)
     expect(body.raw_event_id).toBeTruthy()
   })

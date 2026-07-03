@@ -57,9 +57,8 @@ export async function PATCH(
 
     const supabase = createSupabaseServiceClient()
     try {
-      let finalState:
-        | { id: string; name: string; active: boolean; tax_rate_bps?: number }
-        | null = null
+      let finalState: { id: string; name: string; active: boolean; tax_rate_bps?: number } | null =
+        null
 
       if (parsed.data.active !== undefined) {
         finalState = await updatePlanActive(supabase, {

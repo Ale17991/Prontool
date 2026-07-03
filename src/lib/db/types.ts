@@ -2,12 +2,7 @@ export type { Database, Json } from './generated/types'
 
 export type TenantRole = 'admin' | 'financeiro' | 'recepcionista' | 'profissional_saude'
 
-export type WebhookProcessingStatus =
-  | 'pending'
-  | 'processing'
-  | 'done'
-  | 'dlq'
-  | 'reprocessed'
+export type WebhookProcessingStatus = 'pending' | 'processing' | 'done' | 'dlq' | 'reprocessed'
 
 export type AppointmentEffectiveStatus = 'ativo' | 'estornado'
 

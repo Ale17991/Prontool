@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   graphql_public: {
@@ -67,18 +61,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "alert_status_transitions_alert_id_fkey"
-            columns: ["alert_id"]
+            foreignKeyName: 'alert_status_transitions_alert_id_fkey'
+            columns: ['alert_id']
             isOneToOne: false
-            referencedRelation: "alerts"
-            referencedColumns: ["id"]
+            referencedRelation: 'alerts'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "alert_status_transitions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'alert_status_transitions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -124,11 +118,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "alerts_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'alerts_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -171,18 +165,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "anamnesis_templates_previous_version_id_fkey"
-            columns: ["previous_version_id"]
+            foreignKeyName: 'anamnesis_templates_previous_version_id_fkey'
+            columns: ['previous_version_id']
             isOneToOne: false
-            referencedRelation: "anamnesis_templates"
-            referencedColumns: ["id"]
+            referencedRelation: 'anamnesis_templates'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "anamnesis_templates_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'anamnesis_templates_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -228,46 +222,46 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_assistants_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_assistants_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_assistants_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_assistants_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_assistants_assistant_doctor_id_fkey"
-            columns: ["assistant_doctor_id"]
+            foreignKeyName: 'appointment_assistants_assistant_doctor_id_fkey'
+            columns: ['assistant_doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_assistants_assistant_doctor_id_fkey"
-            columns: ["assistant_doctor_id"]
+            foreignKeyName: 'appointment_assistants_assistant_doctor_id_fkey'
+            columns: ['assistant_doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "appointment_assistants_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'appointment_assistants_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "appointment_procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointment_procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_assistants_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_assistants_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -310,25 +304,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_calendar_sync_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_calendar_sync_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_calendar_sync_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_calendar_sync_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_calendar_sync_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_calendar_sync_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -362,25 +356,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_cancellations_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_cancellations_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_cancellations_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_cancellations_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_cancellations_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_cancellations_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -414,25 +408,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_completions_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_completions_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_completions_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_completions_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_completions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_completions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -463,25 +457,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_confirmations_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_confirmations_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_confirmations_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_confirmations_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_confirmations_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_confirmations_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -518,32 +512,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_materials_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_materials_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_materials_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_materials_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_materials_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_materials_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_materials_tuss_code_fkey"
-            columns: ["tuss_code"]
+            foreignKeyName: 'appointment_materials_tuss_code_fkey'
+            columns: ['tuss_code']
             isOneToOne: false
-            referencedRelation: "tuss_codes"
-            referencedColumns: ["code"]
+            referencedRelation: 'tuss_codes'
+            referencedColumns: ['code']
           },
         ]
       }
@@ -598,53 +592,53 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_procedures_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_procedures_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_procedures_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_procedures_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_procedures_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'appointment_procedures_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_procedures_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'appointment_procedures_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_procedures_source_price_version_id_fkey"
-            columns: ["source_price_version_id"]
+            foreignKeyName: 'appointment_procedures_source_price_version_id_fkey'
+            columns: ['source_price_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_procedures_source_price_version_id_fkey"
-            columns: ["source_price_version_id"]
+            foreignKeyName: 'appointment_procedures_source_price_version_id_fkey'
+            columns: ['source_price_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions_with_vigencia"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions_with_vigencia'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_procedures_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_procedures_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -690,25 +684,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_reminders_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_reminders_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_reminders_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_reminders_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_reminders_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_reminders_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -742,25 +736,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_reversals_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_reversals_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_reversals_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_reversals_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_reversals_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_reversals_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -788,39 +782,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointment_slot_locks_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_slot_locks_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: true
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_slot_locks_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'appointment_slot_locks_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: true
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_slot_locks_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'appointment_slot_locks_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointment_slot_locks_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'appointment_slot_locks_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "appointment_slot_locks_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointment_slot_locks_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -884,81 +878,81 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointments_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'appointments_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'appointments_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "appointments_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'appointments_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'appointments_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'appointments_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_commission_history_id_fkey"
-            columns: ["source_commission_history_id"]
+            foreignKeyName: 'appointments_source_commission_history_id_fkey'
+            columns: ['source_commission_history_id']
             isOneToOne: false
-            referencedRelation: "doctor_commission_history"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctor_commission_history'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_price_version_id_fkey"
-            columns: ["source_price_version_id"]
+            foreignKeyName: 'appointments_source_price_version_id_fkey'
+            columns: ['source_price_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_price_version_id_fkey"
-            columns: ["source_price_version_id"]
+            foreignKeyName: 'appointments_source_price_version_id_fkey'
+            columns: ['source_price_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions_with_vigencia"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions_with_vigencia'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_raw_event_fk"
-            columns: ["source_raw_event_id"]
+            foreignKeyName: 'appointments_source_raw_event_fk'
+            columns: ['source_raw_event_id']
             isOneToOne: false
-            referencedRelation: "dlq_events"
-            referencedColumns: ["id"]
+            referencedRelation: 'dlq_events'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_raw_event_fk"
-            columns: ["source_raw_event_id"]
+            foreignKeyName: 'appointments_source_raw_event_fk'
+            columns: ['source_raw_event_id']
             isOneToOne: false
-            referencedRelation: "raw_webhook_events"
-            referencedColumns: ["id"]
+            referencedRelation: 'raw_webhook_events'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1013,11 +1007,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "audit_log_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'audit_log_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1099,18 +1093,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "clinical_records_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'clinical_records_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "clinical_records_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'clinical_records_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1150,11 +1144,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "custom_procedure_codes_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'custom_procedure_codes_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1191,11 +1185,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "custom_procedure_tables_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'custom_procedure_tables_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1241,39 +1235,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "dental_chart_entries_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'dental_chart_entries_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "dental_chart_entries_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'dental_chart_entries_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "dental_chart_entries_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'dental_chart_entries_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "dental_chart_entries_status_id_fkey"
-            columns: ["status_id"]
+            foreignKeyName: 'dental_chart_entries_status_id_fkey'
+            columns: ['status_id']
             isOneToOne: false
-            referencedRelation: "dental_status_catalog"
-            referencedColumns: ["id"]
+            referencedRelation: 'dental_status_catalog'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "dental_chart_entries_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'dental_chart_entries_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1328,11 +1322,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "dental_status_catalog_tuss_code_id_fkey"
-            columns: ["tuss_code_id"]
+            foreignKeyName: 'dental_status_catalog_tuss_code_id_fkey'
+            columns: ['tuss_code_id']
             isOneToOne: false
-            referencedRelation: "tuss_codes"
-            referencedColumns: ["id"]
+            referencedRelation: 'tuss_codes'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1369,18 +1363,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "diet_meal_items_meal_id_fkey"
-            columns: ["meal_id"]
+            foreignKeyName: 'diet_meal_items_meal_id_fkey'
+            columns: ['meal_id']
             isOneToOne: false
-            referencedRelation: "diet_meals"
-            referencedColumns: ["id"]
+            referencedRelation: 'diet_meals'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "diet_meal_items_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'diet_meal_items_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1417,18 +1411,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "diet_meals_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'diet_meals_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "diet_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'diet_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "diet_meals_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'diet_meals_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1468,18 +1462,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "diet_plans_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'diet_plans_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "diet_plans_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'diet_plans_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1516,25 +1510,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "doctor_commission_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_commission_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "doctor_commission_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_commission_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "doctor_commission_history_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'doctor_commission_history_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1547,7 +1541,7 @@ export type Database = {
           id: string
           liberal_default_cents: number | null
           monthly_amount_cents: number | null
-          payment_mode: Database["public"]["Enums"]["payment_mode"]
+          payment_mode: Database['public']['Enums']['payment_mode']
           percentage_bps: number | null
           reason: string
           tenant_id: string
@@ -1561,7 +1555,7 @@ export type Database = {
           id?: string
           liberal_default_cents?: number | null
           monthly_amount_cents?: number | null
-          payment_mode: Database["public"]["Enums"]["payment_mode"]
+          payment_mode: Database['public']['Enums']['payment_mode']
           percentage_bps?: number | null
           reason: string
           tenant_id: string
@@ -1575,7 +1569,7 @@ export type Database = {
           id?: string
           liberal_default_cents?: number | null
           monthly_amount_cents?: number | null
-          payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          payment_mode?: Database['public']['Enums']['payment_mode']
           percentage_bps?: number | null
           reason?: string
           tenant_id?: string
@@ -1583,25 +1577,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_payment_terms_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_payment_terms_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "doctor_payment_terms_history_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'doctor_payment_terms_history_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1620,7 +1614,7 @@ export type Database = {
           external_identifier: string | null
           full_name: string
           id: string
-          payment_mode: Database["public"]["Enums"]["payment_mode"]
+          payment_mode: Database['public']['Enums']['payment_mode']
           role: string
           specialty: string | null
           tenant_id: string
@@ -1640,7 +1634,7 @@ export type Database = {
           external_identifier?: string | null
           full_name: string
           id?: string
-          payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          payment_mode?: Database['public']['Enums']['payment_mode']
           role?: string
           specialty?: string | null
           tenant_id: string
@@ -1660,7 +1654,7 @@ export type Database = {
           external_identifier?: string | null
           full_name?: string
           id?: string
-          payment_mode?: Database["public"]["Enums"]["payment_mode"]
+          payment_mode?: Database['public']['Enums']['payment_mode']
           role?: string
           specialty?: string | null
           tenant_id?: string
@@ -1668,11 +1662,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "doctors_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'doctors_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1721,18 +1715,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expense_receipts_expense_id_fkey"
-            columns: ["expense_id"]
+            foreignKeyName: 'expense_receipts_expense_id_fkey'
+            columns: ['expense_id']
             isOneToOne: false
-            referencedRelation: "expenses"
-            referencedColumns: ["id"]
+            referencedRelation: 'expenses'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expense_receipts_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'expense_receipts_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1814,25 +1808,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expenses_superseded_by_fkey"
-            columns: ["superseded_by"]
+            foreignKeyName: 'expenses_superseded_by_fkey'
+            columns: ['superseded_by']
             isOneToOne: false
-            referencedRelation: "expenses"
-            referencedColumns: ["id"]
+            referencedRelation: 'expenses'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expenses_tax_id_fkey"
-            columns: ["tax_id"]
+            foreignKeyName: 'expenses_tax_id_fkey'
+            columns: ['tax_id']
             isOneToOne: false
-            referencedRelation: "taxes"
-            referencedColumns: ["id"]
+            referencedRelation: 'taxes'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "expenses_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'expenses_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1866,11 +1860,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "health_plans_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'health_plans_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1910,18 +1904,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "installment_payments_installment_id_fkey"
-            columns: ["installment_id"]
+            foreignKeyName: 'installment_payments_installment_id_fkey'
+            columns: ['installment_id']
             isOneToOne: false
-            referencedRelation: "payment_installments"
-            referencedColumns: ["id"]
+            referencedRelation: 'payment_installments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "installment_payments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'installment_payments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1961,11 +1955,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "integration_sync_log_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'integration_sync_log_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2011,25 +2005,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "memed_prescribers_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'memed_prescribers_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "memed_prescribers_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'memed_prescribers_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "memed_prescribers_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'memed_prescribers_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2096,25 +2090,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "monthly_payouts_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'monthly_payouts_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "monthly_payouts_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'monthly_payouts_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "monthly_payouts_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'monthly_payouts_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2154,39 +2148,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "monthly_payouts_adjustments_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'monthly_payouts_adjustments_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "monthly_payouts_adjustments_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'monthly_payouts_adjustments_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "monthly_payouts_adjustments_original_appointment_id_fkey"
-            columns: ["original_appointment_id"]
+            foreignKeyName: 'monthly_payouts_adjustments_original_appointment_id_fkey'
+            columns: ['original_appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "monthly_payouts_adjustments_original_appointment_id_fkey"
-            columns: ["original_appointment_id"]
+            foreignKeyName: 'monthly_payouts_adjustments_original_appointment_id_fkey'
+            columns: ['original_appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "monthly_payouts_adjustments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'monthly_payouts_adjustments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2223,11 +2217,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "monthly_payouts_reopens_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'monthly_payouts_reopens_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2276,11 +2270,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'notifications_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2320,18 +2314,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_allergies_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_allergies_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_allergies_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_allergies_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2362,18 +2356,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_care_notes_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_care_notes_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_care_notes_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_care_notes_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2419,18 +2413,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_diagnoses_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_diagnoses_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_diagnoses_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_diagnoses_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2470,25 +2464,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_health_plan_cards_health_plan_id_fkey"
-            columns: ["health_plan_id"]
+            foreignKeyName: 'patient_health_plan_cards_health_plan_id_fkey'
+            columns: ['health_plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_health_plan_cards_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_health_plan_cards_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_health_plan_cards_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_health_plan_cards_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2531,18 +2525,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_history_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_history_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_history_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_history_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2585,25 +2579,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_measurements_metric_type_fkey"
-            columns: ["metric_type"]
+            foreignKeyName: 'patient_measurements_metric_type_fkey'
+            columns: ['metric_type']
             isOneToOne: false
-            referencedRelation: "patient_metric_types"
-            referencedColumns: ["metric_type"]
+            referencedRelation: 'patient_metric_types'
+            referencedColumns: ['metric_type']
           },
           {
-            foreignKeyName: "patient_measurements_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_measurements_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_measurements_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_measurements_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2646,18 +2640,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_metric_goals_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_metric_goals_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_metric_goals_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_metric_goals_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2700,11 +2694,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_metric_types_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_metric_types_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2738,18 +2732,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_portal_access_log_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_portal_access_log_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_portal_access_log_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_portal_access_log_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2780,25 +2774,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_tag_assignments_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'patient_tag_assignments_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_tag_assignments_tag_id_fkey"
-            columns: ["tag_id"]
+            foreignKeyName: 'patient_tag_assignments_tag_id_fkey'
+            columns: ['tag_id']
             isOneToOne: false
-            referencedRelation: "patient_tags"
-            referencedColumns: ["id"]
+            referencedRelation: 'patient_tags'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patient_tag_assignments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_tag_assignments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2832,11 +2826,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patient_tags_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patient_tags_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2951,18 +2945,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "patients_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'patients_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "patients_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'patients_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3008,18 +3002,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "payment_installments_payment_record_id_fkey"
-            columns: ["payment_record_id"]
+            foreignKeyName: 'payment_installments_payment_record_id_fkey'
+            columns: ['payment_record_id']
             isOneToOne: false
-            referencedRelation: "payment_records"
-            referencedColumns: ["id"]
+            referencedRelation: 'payment_records'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "payment_installments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'payment_installments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3074,39 +3068,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "payment_records_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'payment_records_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "payment_records_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'payment_records_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "payment_records_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'payment_records_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "payment_records_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'payment_records_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "payment_records_treatment_step_id_fkey"
-            columns: ["treatment_step_id"]
+            foreignKeyName: 'payment_records_treatment_step_id_fkey'
+            columns: ['treatment_step_id']
             isOneToOne: false
-            referencedRelation: "treatment_plan_steps"
-            referencedColumns: ["id"]
+            referencedRelation: 'treatment_plan_steps'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3155,39 +3149,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "plan_procedure_receipts_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'plan_procedure_receipts_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "plan_procedure_receipts_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'plan_procedure_receipts_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "plan_procedure_receipts_appointment_procedure_id_fkey"
-            columns: ["appointment_procedure_id"]
+            foreignKeyName: 'plan_procedure_receipts_appointment_procedure_id_fkey'
+            columns: ['appointment_procedure_id']
             isOneToOne: true
-            referencedRelation: "appointment_procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointment_procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "plan_procedure_receipts_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'plan_procedure_receipts_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "plan_procedure_receipts_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'plan_procedure_receipts_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3209,11 +3203,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "platform_admin_tenants_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'platform_admin_tenants_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3280,46 +3274,46 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "prescription_records_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'prescription_records_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "prescription_records_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'prescription_records_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "prescription_records_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'prescription_records_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "prescription_records_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'prescription_records_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "prescription_records_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'prescription_records_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "prescription_records_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'prescription_records_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3362,39 +3356,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "price_versions_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'price_versions_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_previous_version_id_fkey"
-            columns: ["previous_version_id"]
+            foreignKeyName: 'price_versions_previous_version_id_fkey'
+            columns: ['previous_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_previous_version_id_fkey"
-            columns: ["previous_version_id"]
+            foreignKeyName: 'price_versions_previous_version_id_fkey'
+            columns: ['previous_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions_with_vigencia"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions_with_vigencia'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'price_versions_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'price_versions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3449,32 +3443,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "procedures_custom_code_id_fkey"
-            columns: ["custom_code_id"]
+            foreignKeyName: 'procedures_custom_code_id_fkey'
+            columns: ['custom_code_id']
             isOneToOne: false
-            referencedRelation: "custom_procedure_codes"
-            referencedColumns: ["id"]
+            referencedRelation: 'custom_procedure_codes'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "procedures_custom_table_id_fkey"
-            columns: ["custom_table_id"]
+            foreignKeyName: 'procedures_custom_table_id_fkey'
+            columns: ['custom_table_id']
             isOneToOne: false
-            referencedRelation: "custom_procedure_tables"
-            referencedColumns: ["id"]
+            referencedRelation: 'custom_procedure_tables'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "procedures_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'procedures_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "procedures_tuss_code_fkey"
-            columns: ["tuss_code"]
+            foreignKeyName: 'procedures_tuss_code_fkey'
+            columns: ['tuss_code']
             isOneToOne: false
-            referencedRelation: "tuss_codes"
-            referencedColumns: ["code"]
+            referencedRelation: 'tuss_codes'
+            referencedColumns: ['code']
           },
         ]
       }
@@ -3508,18 +3502,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "public_booking_doctor_procedures_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'public_booking_doctor_procedures_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "public_booking_doctor_procedures_tenant_id_doctor_id_fkey"
-            columns: ["tenant_id", "doctor_id"]
+            foreignKeyName: 'public_booking_doctor_procedures_tenant_id_doctor_id_fkey'
+            columns: ['tenant_id', 'doctor_id']
             isOneToOne: false
-            referencedRelation: "public_booking_doctors"
-            referencedColumns: ["tenant_id", "doctor_id"]
+            referencedRelation: 'public_booking_doctors'
+            referencedColumns: ['tenant_id', 'doctor_id']
           },
         ]
       }
@@ -3565,25 +3559,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "public_booking_doctors_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'public_booking_doctors_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "public_booking_doctors_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'public_booking_doctors_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "public_booking_doctors_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'public_booking_doctors_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3611,11 +3605,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "public_booking_rate_limits_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'public_booking_rate_limits_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3652,25 +3646,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "public_booking_tokens_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'public_booking_tokens_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "public_booking_tokens_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'public_booking_tokens_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "public_booking_tokens_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'public_booking_tokens_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3710,11 +3704,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "raw_webhook_events_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'raw_webhook_events_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3766,25 +3760,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "schedule_blocks_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'schedule_blocks_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "schedule_blocks_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'schedule_blocks_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "schedule_blocks_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'schedule_blocks_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3833,11 +3827,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "support_tickets_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'support_tickets_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3895,11 +3889,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tasks_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tasks_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3945,11 +3939,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "taxes_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'taxes_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -3983,11 +3977,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_cash_balance_adjustments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_cash_balance_adjustments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4111,11 +4105,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_clinic_profile_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_clinic_profile_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: true
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4149,11 +4143,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_entitlements_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_entitlements_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: true
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4205,11 +4199,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_ghl_config_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_ghl_config_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: true
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4258,11 +4252,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_integrations_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_integrations_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4305,11 +4299,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_memed_config_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_memed_config_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: true
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4334,18 +4328,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_patient_metric_settings_metric_type_fkey"
-            columns: ["metric_type"]
+            foreignKeyName: 'tenant_patient_metric_settings_metric_type_fkey'
+            columns: ['metric_type']
             isOneToOne: false
-            referencedRelation: "patient_metric_types"
-            referencedColumns: ["metric_type"]
+            referencedRelation: 'patient_metric_types'
+            referencedColumns: ['metric_type']
           },
           {
-            foreignKeyName: "tenant_patient_metric_settings_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_patient_metric_settings_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4370,11 +4364,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_portal_sections_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_portal_sections_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4417,11 +4411,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_tiss_certificates_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_tiss_certificates_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4473,18 +4467,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_tiss_operator_config_health_plan_id_fkey"
-            columns: ["health_plan_id"]
+            foreignKeyName: 'tenant_tiss_operator_config_health_plan_id_fkey'
+            columns: ['health_plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tenant_tiss_operator_config_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tenant_tiss_operator_config_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4584,25 +4578,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tiss_glosas_guia_id_fkey"
-            columns: ["guia_id"]
+            foreignKeyName: 'tiss_glosas_guia_id_fkey'
+            columns: ['guia_id']
             isOneToOne: false
-            referencedRelation: "tiss_guias"
-            referencedColumns: ["id"]
+            referencedRelation: 'tiss_guias'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_glosas_guia_procedure_id_fkey"
-            columns: ["guia_procedure_id"]
+            foreignKeyName: 'tiss_glosas_guia_procedure_id_fkey'
+            columns: ['guia_procedure_id']
             isOneToOne: false
-            referencedRelation: "tiss_guia_procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'tiss_guia_procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_glosas_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tiss_glosas_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4657,25 +4651,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tiss_guia_procedures_guia_id_fkey"
-            columns: ["guia_id"]
+            foreignKeyName: 'tiss_guia_procedures_guia_id_fkey'
+            columns: ['guia_id']
             isOneToOne: false
-            referencedRelation: "tiss_guias"
-            referencedColumns: ["id"]
+            referencedRelation: 'tiss_guias'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guia_procedures_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tiss_guia_procedures_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guia_procedures_tuss_code_id_fkey"
-            columns: ["tuss_code_id"]
+            foreignKeyName: 'tiss_guia_procedures_tuss_code_id_fkey'
+            columns: ['tuss_code_id']
             isOneToOne: false
-            referencedRelation: "tuss_codes"
-            referencedColumns: ["id"]
+            referencedRelation: 'tuss_codes'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4745,53 +4739,53 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tiss_guias_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'tiss_guias_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guias_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'tiss_guias_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guias_health_plan_id_fkey"
-            columns: ["health_plan_id"]
+            foreignKeyName: 'tiss_guias_health_plan_id_fkey'
+            columns: ['health_plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guias_lote_id_fkey"
-            columns: ["lote_id"]
+            foreignKeyName: 'tiss_guias_lote_id_fkey'
+            columns: ['lote_id']
             isOneToOne: false
-            referencedRelation: "tiss_lotes"
-            referencedColumns: ["id"]
+            referencedRelation: 'tiss_lotes'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guias_supersedes_guia_id_fkey"
-            columns: ["supersedes_guia_id"]
+            foreignKeyName: 'tiss_guias_supersedes_guia_id_fkey'
+            columns: ['supersedes_guia_id']
             isOneToOne: false
-            referencedRelation: "tiss_guias"
-            referencedColumns: ["id"]
+            referencedRelation: 'tiss_guias'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guias_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tiss_guias_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_guias_tuss_catalog_version_id_fkey"
-            columns: ["tuss_catalog_version_id"]
+            foreignKeyName: 'tiss_guias_tuss_catalog_version_id_fkey'
+            columns: ['tuss_catalog_version_id']
             isOneToOne: false
-            referencedRelation: "tuss_catalog_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'tuss_catalog_versions'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4828,18 +4822,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tiss_lote_payments_lote_id_fkey"
-            columns: ["lote_id"]
+            foreignKeyName: 'tiss_lote_payments_lote_id_fkey'
+            columns: ['lote_id']
             isOneToOne: false
-            referencedRelation: "tiss_lotes"
-            referencedColumns: ["id"]
+            referencedRelation: 'tiss_lotes'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_lote_payments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tiss_lote_payments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4894,25 +4888,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tiss_lotes_certificate_id_fkey"
-            columns: ["certificate_id"]
+            foreignKeyName: 'tiss_lotes_certificate_id_fkey'
+            columns: ['certificate_id']
             isOneToOne: false
-            referencedRelation: "tenant_tiss_certificates"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenant_tiss_certificates'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_lotes_health_plan_id_fkey"
-            columns: ["health_plan_id"]
+            foreignKeyName: 'tiss_lotes_health_plan_id_fkey'
+            columns: ['health_plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "tiss_lotes_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'tiss_lotes_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -4964,18 +4958,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "perio_exams_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'perio_exams_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "perio_exams_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'perio_exams_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5024,11 +5018,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "perio_site_measurements_exam_id_fkey"
-            columns: ["exam_id"]
+            foreignKeyName: 'perio_site_measurements_exam_id_fkey'
+            columns: ['exam_id']
             isOneToOne: false
-            referencedRelation: "perio_exams"
-            referencedColumns: ["id"]
+            referencedRelation: 'perio_exams'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5071,11 +5065,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "perio_tooth_findings_exam_id_fkey"
-            columns: ["exam_id"]
+            foreignKeyName: 'perio_tooth_findings_exam_id_fkey'
+            columns: ['exam_id']
             isOneToOne: false
-            referencedRelation: "perio_exams"
-            referencedColumns: ["id"]
+            referencedRelation: 'perio_exams'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5124,18 +5118,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "treatment_budgets_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'treatment_budgets_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_budgets_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'treatment_budgets_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5205,67 +5199,67 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "treatment_plan_steps_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'treatment_plan_steps_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'treatment_plan_steps_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_budget_fk"
-            columns: ["budget_id"]
+            foreignKeyName: 'treatment_plan_steps_budget_fk'
+            columns: ['budget_id']
             isOneToOne: false
-            referencedRelation: "treatment_budgets"
-            referencedColumns: ["id"]
+            referencedRelation: 'treatment_budgets'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'treatment_plan_steps_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'treatment_plan_steps_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'treatment_plan_steps_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'treatment_plan_steps_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'treatment_plan_steps_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "treatment_plan_steps_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'treatment_plan_steps_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5341,11 +5335,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tuss_codes_source_catalog_version_id_fkey"
-            columns: ["source_catalog_version_id"]
+            foreignKeyName: 'tuss_codes_source_catalog_version_id_fkey'
+            columns: ['source_catalog_version_id']
             isOneToOne: false
-            referencedRelation: "tuss_catalog_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'tuss_catalog_versions'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5367,11 +5361,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_active_tenant_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'user_active_tenant_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5417,11 +5411,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_integrations_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'user_integrations_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5488,11 +5482,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_tenants_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'user_tenants_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5556,32 +5550,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vital_signs_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'vital_signs_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vital_signs_appointment_id_fkey"
-            columns: ["appointment_id"]
+            foreignKeyName: 'vital_signs_appointment_id_fkey'
+            columns: ['appointment_id']
             isOneToOne: false
-            referencedRelation: "appointments_effective"
-            referencedColumns: ["id"]
+            referencedRelation: 'appointments_effective'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vital_signs_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'vital_signs_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "vital_signs_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'vital_signs_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5618,25 +5612,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "webhook_event_transitions_raw_event_id_fkey"
-            columns: ["raw_event_id"]
+            foreignKeyName: 'webhook_event_transitions_raw_event_id_fkey'
+            columns: ['raw_event_id']
             isOneToOne: false
-            referencedRelation: "dlq_events"
-            referencedColumns: ["id"]
+            referencedRelation: 'dlq_events'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "webhook_event_transitions_raw_event_id_fkey"
-            columns: ["raw_event_id"]
+            foreignKeyName: 'webhook_event_transitions_raw_event_id_fkey'
+            columns: ['raw_event_id']
             isOneToOne: false
-            referencedRelation: "raw_webhook_events"
-            referencedColumns: ["id"]
+            referencedRelation: 'raw_webhook_events'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "webhook_event_transitions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'webhook_event_transitions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5682,18 +5676,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "workout_exercises_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: 'workout_exercises_session_id_fkey'
+            columns: ['session_id']
             isOneToOne: false
-            referencedRelation: "workout_sessions"
-            referencedColumns: ["id"]
+            referencedRelation: 'workout_sessions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "workout_exercises_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'workout_exercises_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5733,18 +5727,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "workout_plans_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'workout_plans_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "workout_plans_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'workout_plans_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5778,18 +5772,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "workout_sessions_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'workout_sessions_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "workout_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'workout_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "workout_sessions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'workout_sessions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5829,81 +5823,81 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "appointments_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'appointments_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'appointments_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "appointments_patient_id_fkey"
-            columns: ["patient_id"]
+            foreignKeyName: 'appointments_patient_id_fkey'
+            columns: ['patient_id']
             isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedRelation: 'patients'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'appointments_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'appointments_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_commission_history_id_fkey"
-            columns: ["source_commission_history_id"]
+            foreignKeyName: 'appointments_source_commission_history_id_fkey'
+            columns: ['source_commission_history_id']
             isOneToOne: false
-            referencedRelation: "doctor_commission_history"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctor_commission_history'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_price_version_id_fkey"
-            columns: ["source_price_version_id"]
+            foreignKeyName: 'appointments_source_price_version_id_fkey'
+            columns: ['source_price_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_price_version_id_fkey"
-            columns: ["source_price_version_id"]
+            foreignKeyName: 'appointments_source_price_version_id_fkey'
+            columns: ['source_price_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions_with_vigencia"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions_with_vigencia'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_raw_event_fk"
-            columns: ["source_raw_event_id"]
+            foreignKeyName: 'appointments_source_raw_event_fk'
+            columns: ['source_raw_event_id']
             isOneToOne: false
-            referencedRelation: "dlq_events"
-            referencedColumns: ["id"]
+            referencedRelation: 'dlq_events'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_source_raw_event_fk"
-            columns: ["source_raw_event_id"]
+            foreignKeyName: 'appointments_source_raw_event_fk'
+            columns: ['source_raw_event_id']
             isOneToOne: false
-            referencedRelation: "raw_webhook_events"
-            referencedColumns: ["id"]
+            referencedRelation: 'raw_webhook_events'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "appointments_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'appointments_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5946,11 +5940,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "raw_webhook_events_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'raw_webhook_events_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5964,25 +5958,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "doctor_commission_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_commission_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "doctor_commission_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_commission_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "doctor_commission_history_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'doctor_commission_history_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -5993,32 +5987,32 @@ export type Database = {
           doctor_id: string | null
           liberal_default_cents: number | null
           monthly_amount_cents: number | null
-          payment_mode: Database["public"]["Enums"]["payment_mode"] | null
+          payment_mode: Database['public']['Enums']['payment_mode'] | null
           percentage_bps: number | null
           tenant_id: string | null
           valid_from: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_payment_terms_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
+            referencedRelation: 'doctors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "doctor_payment_terms_history_doctor_id_fkey"
-            columns: ["doctor_id"]
+            foreignKeyName: 'doctor_payment_terms_history_doctor_id_fkey'
+            columns: ['doctor_id']
             isOneToOne: false
-            referencedRelation: "monthly_fixed_pay_lines"
-            referencedColumns: ["doctor_id"]
+            referencedRelation: 'monthly_fixed_pay_lines'
+            referencedColumns: ['doctor_id']
           },
           {
-            foreignKeyName: "doctor_payment_terms_history_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'doctor_payment_terms_history_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6034,11 +6028,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "doctors_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'doctors_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6058,39 +6052,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "price_versions_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'price_versions_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "health_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'health_plans'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_previous_version_id_fkey"
-            columns: ["previous_version_id"]
+            foreignKeyName: 'price_versions_previous_version_id_fkey'
+            columns: ['previous_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_previous_version_id_fkey"
-            columns: ["previous_version_id"]
+            foreignKeyName: 'price_versions_previous_version_id_fkey'
+            columns: ['previous_version_id']
             isOneToOne: false
-            referencedRelation: "price_versions_with_vigencia"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_versions_with_vigencia'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_procedure_id_fkey"
-            columns: ["procedure_id"]
+            foreignKeyName: 'price_versions_procedure_id_fkey'
+            columns: ['procedure_id']
             isOneToOne: false
-            referencedRelation: "procedures"
-            referencedColumns: ["id"]
+            referencedRelation: 'procedures'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "price_versions_tenant_id_fkey"
-            columns: ["tenant_id"]
+            foreignKeyName: 'price_versions_tenant_id_fkey'
+            columns: ['tenant_id']
             isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+            referencedRelation: 'tenants'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6390,7 +6384,7 @@ export type Database = {
           p_doctor_id: string
           p_liberal_default_cents: number
           p_monthly_amount_cents: number
-          p_payment_mode: Database["public"]["Enums"]["payment_mode"]
+          p_payment_mode: Database['public']['Enums']['payment_mode']
           p_percentage_bps: number
           p_reason: string
           p_tenant_id: string
@@ -6425,8 +6419,8 @@ export type Database = {
           updated_at: string
         }
         SetofOptions: {
-          from: "*"
-          to: "tenant_entitlements"
+          from: '*'
+          to: 'tenant_entitlements'
           isOneToOne: true
           isSetofReturn: false
         }
@@ -6441,7 +6435,7 @@ export type Database = {
       }
     }
     Enums: {
-      payment_mode: "comissionado" | "fixo" | "liberal"
+      payment_mode: 'comissionado' | 'fixo' | 'liberal'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6460,7 +6454,7 @@ export type Database = {
           owner: string | null
           owner_id: string | null
           public: boolean | null
-          type: Database["storage"]["Enums"]["buckettype"]
+          type: Database['storage']['Enums']['buckettype']
           updated_at: string | null
         }
         Insert: {
@@ -6473,7 +6467,7 @@ export type Database = {
           owner?: string | null
           owner_id?: string | null
           public?: boolean | null
-          type?: Database["storage"]["Enums"]["buckettype"]
+          type?: Database['storage']['Enums']['buckettype']
           updated_at?: string | null
         }
         Update: {
@@ -6486,7 +6480,7 @@ export type Database = {
           owner?: string | null
           owner_id?: string | null
           public?: boolean | null
-          type?: Database["storage"]["Enums"]["buckettype"]
+          type?: Database['storage']['Enums']['buckettype']
           updated_at?: string | null
         }
         Relationships: []
@@ -6498,7 +6492,7 @@ export type Database = {
           format: string
           id: string
           name: string
-          type: Database["storage"]["Enums"]["buckettype"]
+          type: Database['storage']['Enums']['buckettype']
           updated_at: string
         }
         Insert: {
@@ -6507,7 +6501,7 @@ export type Database = {
           format?: string
           id?: string
           name: string
-          type?: Database["storage"]["Enums"]["buckettype"]
+          type?: Database['storage']['Enums']['buckettype']
           updated_at?: string
         }
         Update: {
@@ -6516,7 +6510,7 @@ export type Database = {
           format?: string
           id?: string
           name?: string
-          type?: Database["storage"]["Enums"]["buckettype"]
+          type?: Database['storage']['Enums']['buckettype']
           updated_at?: string
         }
         Relationships: []
@@ -6525,19 +6519,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          type: Database["storage"]["Enums"]["buckettype"]
+          type: Database['storage']['Enums']['buckettype']
           updated_at: string
         }
         Insert: {
           created_at?: string
           id: string
-          type?: Database["storage"]["Enums"]["buckettype"]
+          type?: Database['storage']['Enums']['buckettype']
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
-          type?: Database["storage"]["Enums"]["buckettype"]
+          type?: Database['storage']['Enums']['buckettype']
           updated_at?: string
         }
         Relationships: []
@@ -6572,11 +6566,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "iceberg_namespaces_catalog_id_fkey"
-            columns: ["catalog_id"]
+            foreignKeyName: 'iceberg_namespaces_catalog_id_fkey'
+            columns: ['catalog_id']
             isOneToOne: false
-            referencedRelation: "buckets_analytics"
-            referencedColumns: ["id"]
+            referencedRelation: 'buckets_analytics'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6622,18 +6616,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "iceberg_tables_catalog_id_fkey"
-            columns: ["catalog_id"]
+            foreignKeyName: 'iceberg_tables_catalog_id_fkey'
+            columns: ['catalog_id']
             isOneToOne: false
-            referencedRelation: "buckets_analytics"
-            referencedColumns: ["id"]
+            referencedRelation: 'buckets_analytics'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "iceberg_tables_namespace_id_fkey"
-            columns: ["namespace_id"]
+            foreignKeyName: 'iceberg_tables_namespace_id_fkey'
+            columns: ['namespace_id']
             isOneToOne: false
-            referencedRelation: "iceberg_namespaces"
-            referencedColumns: ["id"]
+            referencedRelation: 'iceberg_namespaces'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6703,11 +6697,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "objects_bucketId_fkey"
-            columns: ["bucket_id"]
+            foreignKeyName: 'objects_bucketId_fkey'
+            columns: ['bucket_id']
             isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
+            referencedRelation: 'buckets'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6750,11 +6744,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
-            columns: ["bucket_id"]
+            foreignKeyName: 's3_multipart_uploads_bucket_id_fkey'
+            columns: ['bucket_id']
             isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
+            referencedRelation: 'buckets'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6797,18 +6791,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
-            columns: ["bucket_id"]
+            foreignKeyName: 's3_multipart_uploads_parts_bucket_id_fkey'
+            columns: ['bucket_id']
             isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
+            referencedRelation: 'buckets'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
-            columns: ["upload_id"]
+            foreignKeyName: 's3_multipart_uploads_parts_upload_id_fkey'
+            columns: ['upload_id']
             isOneToOne: false
-            referencedRelation: "s3_multipart_uploads"
-            referencedColumns: ["id"]
+            referencedRelation: 's3_multipart_uploads'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6848,11 +6842,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vector_indexes_bucket_id_fkey"
-            columns: ["bucket_id"]
+            foreignKeyName: 'vector_indexes_bucket_id_fkey'
+            columns: ['bucket_id']
             isOneToOne: false
-            referencedRelation: "buckets_vectors"
-            referencedColumns: ["id"]
+            referencedRelation: 'buckets_vectors'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -6986,7 +6980,7 @@ export type Database = {
       }
     }
     Enums: {
-      buckettype: "STANDARD" | "ANALYTICS" | "VECTOR"
+      buckettype: 'STANDARD' | 'ANALYTICS' | 'VECTOR'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6994,33 +6988,31 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -7029,23 +7021,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -7054,23 +7046,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -7079,36 +7071,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -7117,13 +7109,12 @@ export const Constants = {
   },
   public: {
     Enums: {
-      payment_mode: ["comissionado", "fixo", "liberal"],
+      payment_mode: ['comissionado', 'fixo', 'liberal'],
     },
   },
   storage: {
     Enums: {
-      buckettype: ["STANDARD", "ANALYTICS", "VECTOR"],
+      buckettype: ['STANDARD', 'ANALYTICS', 'VECTOR'],
     },
   },
 } as const
-

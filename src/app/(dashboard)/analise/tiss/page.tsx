@@ -51,9 +51,7 @@ export default async function TissPanelPage() {
       .limit(300),
     supabase
       .from('tiss_lotes' as never)
-      .select(
-        'id, lote_number, status, health_plan_id, xml_hash_md5, signed_at, created_at',
-      )
+      .select('id, lote_number, status, health_plan_id, xml_hash_md5, signed_at, created_at')
       .eq('tenant_id', session.tenantId)
       .order('created_at', { ascending: false })
       .limit(100),
@@ -132,16 +130,12 @@ export default async function TissPanelPage() {
           Faturamento TISS
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Agrupe as guias prontas por convênio em lotes, assine e baixe o XML para enviar
-          ao portal da operadora.
+          Agrupe as guias prontas por convênio em lotes, assine e baixe o XML para enviar ao portal
+          da operadora.
         </p>
       </div>
 
-      <TissPanel
-        prontaByPlan={Array.from(prontaByPlan.values())}
-        guias={guias}
-        lotes={lotes}
-      />
+      <TissPanel prontaByPlan={Array.from(prontaByPlan.values())} guias={guias} lotes={lotes} />
     </div>
   )
 }

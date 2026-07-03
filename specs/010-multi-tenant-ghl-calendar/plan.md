@@ -28,15 +28,15 @@ Cross-cutting (FR-038): `auth_hook_custom_claims` ganha uma leitura adicional �
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Aplicabilidade | Status | Justificativa |
-|-----------|----------------|--------|---------------|
-| I. Integridade Financeira Imutável | **N/A** | ✅ Pass | Nenhuma alteração em preços, faturas, atendimentos ou estornos. Tenants criados via signup começam vazios. |
-| II. Auditabilidade Total | **Aplica** | ✅ Pass | Eventos auditados: signup (`auth_user.signup`), criação de tenant (`tenant.create` via onboarding ou marketplace), switch de tenant (`session.tenant_switch`), tentativas de violação GHL 1:1 (`integration.connect.rejected:ghl` com motivo). Schema `audit_log` já comporta. |
-| III. Isolamento Multi-Tenant | **Aplica** | ✅ Pass | RLS continua autoritativo. Switch de tenant usa `user_metadata.active_tenant_id` + JWT refresh — o JWT novo carrega o tenant_id novo, RLS naturalmente bloqueia leituras do tenant antigo. `user_active_tenant` carrega `(user_id, tenant_id)` com FK ON DELETE CASCADE em ambos. Signup cria tenant **isolado** — RLS impede que o novo admin veja qualquer dado de outras clínicas. Calendar filters apenas adicionam predicados ao WHERE — nenhum bypass de RLS. |
-| IV. Conformidade TUSS/ANS | **N/A** | ✅ Pass | Nada de catálogo TUSS. |
-| V. RBAC | **Aplica** | ✅ Pass | Signup auto-promove o criador a admin do tenant que ele acabou de criar — análogo ao "owner" pattern; é a única forma sã de bootstrap. Switch de tenant **mantém** a role definida em `user_tenants` para o tenant alvo (lookup pela `auth_hook` reescreve o claim `role`). Calendar filters respeitam policies de leitura existentes (recepcionista pode filtrar mas não vê dados que já não veria). |
+| Principle                          | Aplicabilidade | Status  | Justificativa                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------------------- | -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Integridade Financeira Imutável | **N/A**        | ✅ Pass | Nenhuma alteração em preços, faturas, atendimentos ou estornos. Tenants criados via signup começam vazios.                                                                                                                                                                                                                                                                                                                                                          |
+| II. Auditabilidade Total           | **Aplica**     | ✅ Pass | Eventos auditados: signup (`auth_user.signup`), criação de tenant (`tenant.create` via onboarding ou marketplace), switch de tenant (`session.tenant_switch`), tentativas de violação GHL 1:1 (`integration.connect.rejected:ghl` com motivo). Schema `audit_log` já comporta.                                                                                                                                                                                      |
+| III. Isolamento Multi-Tenant       | **Aplica**     | ✅ Pass | RLS continua autoritativo. Switch de tenant usa `user_metadata.active_tenant_id` + JWT refresh — o JWT novo carrega o tenant_id novo, RLS naturalmente bloqueia leituras do tenant antigo. `user_active_tenant` carrega `(user_id, tenant_id)` com FK ON DELETE CASCADE em ambos. Signup cria tenant **isolado** — RLS impede que o novo admin veja qualquer dado de outras clínicas. Calendar filters apenas adicionam predicados ao WHERE — nenhum bypass de RLS. |
+| IV. Conformidade TUSS/ANS          | **N/A**        | ✅ Pass | Nada de catálogo TUSS.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| V. RBAC                            | **Aplica**     | ✅ Pass | Signup auto-promove o criador a admin do tenant que ele acabou de criar — análogo ao "owner" pattern; é a única forma sã de bootstrap. Switch de tenant **mantém** a role definida em `user_tenants` para o tenant alvo (lookup pela `auth_hook` reescreve o claim `role`). Calendar filters respeitam policies de leitura existentes (recepcionista pode filtrar mas não vê dados que já não veria).                                                               |
 
 **Gate decision**: PASS. Sem entradas em Complexity Tracking.
 
@@ -131,5 +131,5 @@ tests/
 > Sem violações. Tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |

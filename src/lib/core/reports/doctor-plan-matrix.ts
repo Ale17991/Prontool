@@ -1,10 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  getTenantTimezone,
-  ymdStartOfDayUtc,
-  ymdNextDayStartUtc,
-} from '@/lib/utils/tenant-tz'
+import { getTenantTimezone, ymdStartOfDayUtc, ymdNextDayStartUtc } from '@/lib/utils/tenant-tz'
 import {
   fetchActiveAppointments,
   fetchProcedureLines,
@@ -127,7 +123,7 @@ export function aggregateDoctorPlanMatrix(input: AggregateInput): DoctorPlanMatr
     const doctorId = appt.doctor_id
     const planId = l.plan_id ?? PARTICULAR_PLAN_ID
     const planName =
-      l.plan_id === null ? PARTICULAR_PLAN_NAME : l.health_plans?.name ?? 'Convênio'
+      l.plan_id === null ? PARTICULAR_PLAN_NAME : (l.health_plans?.name ?? 'Convênio')
 
     const qty = l.quantity || 1
     const lineTotal = l.line_amount_cents * qty
@@ -209,9 +205,7 @@ export function rollupByDoctor(cells: DoctorPlanCell[]): DoctorRollup[] {
     r.byPlan.sort((a, b) => b.grossCents - a.grossCents)
   }
   return Array.from(map.values()).sort(
-    (a, b) =>
-      b.grossCents - a.grossCents ||
-      a.doctorName.localeCompare(b.doctorName, 'pt-BR'),
+    (a, b) => b.grossCents - a.grossCents || a.doctorName.localeCompare(b.doctorName, 'pt-BR'),
   )
 }
 
@@ -235,8 +229,7 @@ export function rollupByPlan(cells: DoctorPlanCell[]): PlanRollup[] {
     map.set(c.planId, r)
   }
   return Array.from(map.values()).sort(
-    (a, b) =>
-      b.grossCents - a.grossCents || a.planName.localeCompare(b.planName, 'pt-BR'),
+    (a, b) => b.grossCents - a.grossCents || a.planName.localeCompare(b.planName, 'pt-BR'),
   )
 }
 

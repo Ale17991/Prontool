@@ -61,7 +61,10 @@ export function EnablePrescriberPanel({
     return (
       <p className="text-sm text-slate-600">
         Conecte a clínica à Memed em{' '}
-        <Link href="/configuracoes/integracoes/memed" className="font-semibold text-primary hover:underline">
+        <Link
+          href="/configuracoes/integracoes/memed"
+          className="font-semibold text-primary hover:underline"
+        >
           Integrações → Memed
         </Link>{' '}
         para habilitar prescritores.
@@ -101,7 +104,12 @@ export function EnablePrescriberPanel({
 
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
-      <Button onClick={handleEnable} disabled={submitting || !hasRequiredFields} size="sm" className="gap-2">
+      <Button
+        onClick={handleEnable}
+        disabled={submitting || !hasRequiredFields}
+        size="sm"
+        className="gap-2"
+      >
         {initialStatus === 'registered' ? <CheckCircle2 className="h-4 w-4" /> : null}
         {submitting
           ? 'Enviando…'

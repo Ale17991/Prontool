@@ -45,12 +45,10 @@ export default async function HorariosPage({
           >
             ← Voltar
           </a>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Sem preferência de profissional
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900">Sem preferência de profissional</h1>
           <p className="text-sm text-slate-600">
-            Escolha o procedimento e o horário. O profissional com melhor
-            disponibilidade na semana será atribuído automaticamente.
+            Escolha o procedimento e o horário. O profissional com melhor disponibilidade na semana
+            será atribuído automaticamente.
           </p>
         </header>
 

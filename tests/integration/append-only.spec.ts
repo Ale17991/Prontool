@@ -50,7 +50,10 @@ describe('Principle I — append-only enforcement', () => {
 
   it('price_versions UPDATE via authenticated role is rejected', async () => {
     const sb = rlsClient(adminJwt)
-    const { error } = await sb.from('price_versions').update({ amount_cents: 99999 }).eq('id', priceId)
+    const { error } = await sb
+      .from('price_versions')
+      .update({ amount_cents: 99999 })
+      .eq('id', priceId)
     expect(error).not.toBeNull()
     expect(error?.message.toLowerCase()).toMatch(/append-only|forbidden|permission|violates/)
   })

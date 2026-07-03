@@ -28,13 +28,17 @@ async function main() {
   }
   if (!pa.data) {
     console.log('❌ NÃO está em platform_admins → guard /admin retorna 404 (notFound).')
-    console.log('   → inserir: INSERT INTO platform_admins (user_id, is_super) VALUES (<id>, true);')
+    console.log(
+      '   → inserir: INSERT INTO platform_admins (user_id, is_super) VALUES (<id>, true);',
+    )
     return
   }
   console.log(`platform_admins: presente. is_super = ${pa.data.is_super}`)
-  console.log(pa.data.is_super === true
-    ? '✅ é super-admin — /admin deveria abrir. Se ainda 404, é sessão/token (deslogar e logar).'
-    : '⚠️ is_super=false (suporte) → NÃO acessa /admin (gestão). Precisa is_super=true.')
+  console.log(
+    pa.data.is_super === true
+      ? '✅ é super-admin — /admin deveria abrir. Se ainda 404, é sessão/token (deslogar e logar).'
+      : '⚠️ is_super=false (suporte) → NÃO acessa /admin (gestão). Precisa is_super=true.',
+  )
 
   // Conta total de platform_admins (sanity).
   const all = await sb.from('platform_admins').select('user_id, is_super')
@@ -42,4 +46,7 @@ async function main() {
   for (const r of all.data ?? []) console.log(`  - ${r.user_id} is_super=${r.is_super}`)
 }
 
-main().catch((e) => { console.error('FATAL', e.message); process.exit(1) })
+main().catch((e) => {
+  console.error('FATAL', e.message)
+  process.exit(1)
+})

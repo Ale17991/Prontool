@@ -27,7 +27,7 @@ const EVENT_LABELS: Record<string, string> = {
   'integration.connect': 'Integração conectada',
   'integration.reconfigure': 'Integração reconfigurada',
   'integration.disconnect': 'Integração desconectada',
-  'integration_sync_failed': 'Falha de sincronização de integração',
+  integration_sync_failed: 'Falha de sincronização de integração',
   // expenses / receipts
   'expense.created': 'Despesa registrada',
   'expense.deleted': 'Despesa removida',

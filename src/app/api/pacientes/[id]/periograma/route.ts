@@ -10,17 +10,18 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const createSchema = z.object({
-  examDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  examDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
   dentition: z.enum(['permanent', 'deciduous']).optional(),
   appointmentId: z.string().uuid().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
 })
 
 /** Lista os exames periodontais do paciente (+ id do rascunho aberto). */
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/periograma`
   try {
     const session = await requireRole(
@@ -28,7 +29,10 @@ export async function GET(
       { entity: 'perio_exams', entityId: params.id, route, request: req },
     )
     const supabase = createSupabaseServiceClient()
-    const data = await listPerioExams(supabase, { tenantId: session.tenantId, patientId: params.id })
+    const data = await listPerioExams(supabase, {
+      tenantId: session.tenantId,
+      patientId: params.id,
+    })
     return NextResponse.json(data, { status: 200 })
   } catch (err) {
     return toHttpResponse(err, { route })
@@ -51,7 +55,9 @@ export async function POST(
     const parsed = createSchema.safeParse(await req.json().catch(() => ({})))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }

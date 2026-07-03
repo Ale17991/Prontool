@@ -69,9 +69,7 @@ export function MarkRealizedForm({ appointmentId, onSuccess, onPendingChange }: 
           maxLength={500}
         />
       </div>
-      {error ? (
-        <p className="text-sm font-semibold text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="text-sm font-semibold text-destructive">{error}</p> : null}
       <div className="flex justify-end">
         <Button type="submit" disabled={pending} className="gap-2">
           {pending ? (

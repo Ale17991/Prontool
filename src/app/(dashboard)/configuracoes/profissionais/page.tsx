@@ -7,7 +7,14 @@ import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { formatBps, formatCurrency, formatDate } from '@/lib/utils'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
 import type { Database } from '@/lib/db/types'
@@ -100,8 +107,8 @@ export default async function ProfissionaisPage() {
         <h1 className="text-2xl font-black tracking-tight text-slate-900">Profissionais</h1>
         <p className="mt-1 text-sm text-slate-500">
           {doctors.length} profissiona{doctors.length === 1 ? 'l' : 'is'} · {activeCount} ativo
-          {activeCount === 1 ? '' : 's'} · comissões congeladas por atendimento
-          (mudanças não afetam atendimentos anteriores)
+          {activeCount === 1 ? '' : 's'} · comissões congeladas por atendimento (mudanças não afetam
+          atendimentos anteriores)
         </p>
       </div>
 
@@ -180,9 +187,7 @@ export default async function ProfissionaisPage() {
                           {d.role === 'profissional' ? '—' : d.role}
                         </TableCell>
                         <TableCell className="font-mono text-xs text-slate-700">
-                          {conselho ? (
-                            <span className="font-bold">{conselho} </span>
-                          ) : null}
+                          {conselho ? <span className="font-bold">{conselho} </span> : null}
                           {registro}
                         </TableCell>
                         <TableCell>
@@ -236,9 +241,7 @@ export default async function ProfissionaisPage() {
 function renderValue(mode: PaymentMode, head: PaymentTermsHead | undefined) {
   if (!head) return <Badge variant="secondary">sem vigência</Badge>
   if (mode === 'comissionado') {
-    return (
-      <span className="font-bold text-slate-900">{formatBps(head.percentage_bps ?? 0)}</span>
-    )
+    return <span className="font-bold text-slate-900">{formatBps(head.percentage_bps ?? 0)}</span>
   }
   if (mode === 'fixo') {
     return (

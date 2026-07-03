@@ -2,10 +2,7 @@
  * Cross-tenant: admin do tenant A não vê registros do tenant B.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedPatient } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
@@ -20,7 +17,12 @@ describe('clinical_records — isolamento por tenant', () => {
     const patientA = await seedPatient(a.tenantId)
     const patientB = await seedPatient(b.tenantId)
     const adminA = await seedUser(a.tenantId, 'admin')
-    const jwtA = mintJwt({ userId: adminA.userId, email: adminA.email, tenantId: a.tenantId, role: 'admin' })
+    const jwtA = mintJwt({
+      userId: adminA.userId,
+      email: adminA.email,
+      tenantId: a.tenantId,
+      role: 'admin',
+    })
 
     // Cria registro no tenant B via service-role (bypass)
     const sb = serviceClient()

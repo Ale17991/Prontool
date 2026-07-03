@@ -126,7 +126,7 @@ export function UserProfileForm({ initial }: Props) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                profile.email?.slice(0, 1) ?? '?'
+                (profile.email?.slice(0, 1) ?? '?')
               )}
             </div>
             <div className="flex flex-col gap-2">

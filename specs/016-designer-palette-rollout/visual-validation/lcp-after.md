@@ -22,6 +22,7 @@ fonts.googleapis.com requests: 0 esperado, ??? medido
 ## Após captura
 
 Comparar com `baselines/lcp-before.md`. **SC-006** requer:
+
 - LCP ≥ 100ms menor que baseline, **OU**
 - Ausência confirmada de FOUT (FOIT também aceitável se < 100ms)
 
@@ -30,5 +31,6 @@ Comparar com `baselines/lcp-before.md`. **SC-006** requer:
 ## Validação automática durante build
 
 `pnpm build` rodou com sucesso após a migração — next/font fetch + cache + serve funcionou. Output relevante:
+
 - Routes compiled e dimensionados (login = 4.49 kB, dashboard = ~87 kB shared).
 - Sem warnings de fonte.

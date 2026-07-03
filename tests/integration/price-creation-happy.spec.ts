@@ -7,10 +7,7 @@
  * (T079) so the read-side comparison works once v2 is created.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import {
   seedTenant,
   seedUser,

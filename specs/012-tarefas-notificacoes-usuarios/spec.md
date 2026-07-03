@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Três funcionalidades em uma fatia coordenada: (1) Cadastro de tarefas em Operação com responsável, prioridade, status e data limite; (2) Notificações persistidas (renomeando 'Alertas') com 4 tipos — atendimentos de hoje, tarefas no prazo/atrasadas, aniversariantes do mês — sininho na topbar com badge e página dedicada; (3) Cadastro manual de usuário em /configuracoes/usuarios (senha inicial definida pelo admin, sem fluxo de convite por email), com vínculo opcional a um profissional existente (tabela doctors)."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Gerenciar tarefas operacionais por responsável (Priority: P1)
 
@@ -86,7 +86,7 @@ O admin precisa criar um login para alguém que já trabalha na clínica sem dep
 - **Desvincular usuário do profissional**: fluxo separado (futuro), não coberto nesta entrega.
 - **Tenant sem profissionais cadastrados**: checkbox "Vincular a profissional" desabilitado + tooltip "Cadastre um profissional primeiro".
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -141,7 +141,7 @@ O admin precisa criar um login para alguém que já trabalha na clínica sem dep
 - **Usuário do tenant (user_tenants, já existente)**: sem alteração de schema. Vínculo a tenant + função + status.
 - **auth.users (gerenciado pelo Supabase Auth)**: novo registro criado pelo fluxo de cadastro manual, com email confirmado.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

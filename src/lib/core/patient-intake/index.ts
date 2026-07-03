@@ -57,9 +57,12 @@ export async function resolveIntakeToken(
     .select('tenant_id, patient_id, expires_at, used_at')
     .eq('token', token)
     .maybeSingle()
-  const row = data as
-    | { tenant_id: string; patient_id: string; expires_at: string; used_at: string | null }
-    | null
+  const row = data as {
+    tenant_id: string
+    patient_id: string
+    expires_at: string
+    used_at: string | null
+  } | null
   if (!row || row.used_at) return null
   if (new Date(row.expires_at).getTime() < Date.now()) return null
 

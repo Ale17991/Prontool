@@ -72,7 +72,14 @@ export function PatientIntakeLink({ patientId, canEdit }: { patientId: string; c
           </div>
         ) : null}
         {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
-        <Button type="button" size="sm" variant="outline" onClick={generate} disabled={pending} className="gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={generate}
+          disabled={pending}
+          className="gap-2"
+        >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
           {link ? 'Gerar novo link' : 'Gerar link'}
         </Button>

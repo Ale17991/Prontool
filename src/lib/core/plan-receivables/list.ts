@@ -36,11 +36,7 @@ const MAX_APPTS = 3000
 
 /** Normaliza para busca: minúsculas, sem acento, sem espaços nas pontas. */
 function normalizeForSearch(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim()
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 }
 
 /**
@@ -154,11 +150,14 @@ export async function listPlanReceivables(
   if (input.encryptionKey) {
     const patientIds = Array.from(new Set(scopedAppts.map((a) => a.patient_id)))
     if (patientIds.length > 0) {
-      const r = await supabase.rpc('decrypt_patient_names_for_ids' as never, {
-        p_tenant_id: input.tenantId,
-        p_patient_ids: patientIds,
-        p_key: input.encryptionKey,
-      } as never)
+      const r = await supabase.rpc(
+        'decrypt_patient_names_for_ids' as never,
+        {
+          p_tenant_id: input.tenantId,
+          p_patient_ids: patientIds,
+          p_key: input.encryptionKey,
+        } as never,
+      )
       for (const p of (r.data ?? []) as Array<{
         id: string
         full_name: string | null

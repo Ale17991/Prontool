@@ -84,7 +84,9 @@ export function CreateClinicDialog() {
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <Label className="text-[11px] font-bold uppercase text-slate-500">Nome da clínica</Label>
+            <Label className="text-[11px] font-bold uppercase text-slate-500">
+              Nome da clínica
+            </Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </div>
           <div>

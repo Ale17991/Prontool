@@ -49,7 +49,9 @@ describe('Feature 011 — DB CHECK expenses_tax_link_requires_impostos_category'
     } as never)
 
     expect(error).not.toBeNull()
-    expect(error?.message ?? '').toMatch(/expenses_tax_link_requires_impostos_category|violates check/i)
+    expect(error?.message ?? '').toMatch(
+      /expenses_tax_link_requires_impostos_category|violates check/i,
+    )
   })
 
   it('INSERT expenses com tax_id + category=impostos → sucesso', async () => {

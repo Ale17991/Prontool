@@ -54,9 +54,7 @@ export function IdentityEditor({
   const [socialName, setSocialName] = useState(identity.socialName ?? '')
   const [motherName, setMotherName] = useState(identity.motherName ?? '')
   const [rg, setRg] = useState(identity.rg ?? '')
-  const [insuranceCardNumber, setInsuranceCardNumber] = useState(
-    identity.insuranceCardNumber ?? '',
-  )
+  const [insuranceCardNumber, setInsuranceCardNumber] = useState(identity.insuranceCardNumber ?? '')
   const [emergencyContactName, setEmergencyContactName] = useState(
     identity.emergencyContactName ?? '',
   )
@@ -184,8 +182,8 @@ export function IdentityEditor({
           </dl>
         ) : (
           <p className="text-xs italic text-slate-400">
-            Sexo, nome social, nome da mãe, RG, carteirinha, contato de emergência e
-            responsável ainda não informados.
+            Sexo, nome social, nome da mãe, RG, carteirinha, contato de emergência e responsável
+            ainda não informados.
           </p>
         )}
       </div>

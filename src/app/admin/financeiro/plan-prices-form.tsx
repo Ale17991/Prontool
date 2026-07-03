@@ -52,7 +52,9 @@ export function PlanPricesForm({ prices }: { prices: PlanPrices }) {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {PLANS.map((p) => (
           <div key={p}>
-            <Label className="text-[11px] font-bold uppercase text-slate-500">{PLAN_LABEL[p]}</Label>
+            <Label className="text-[11px] font-bold uppercase text-slate-500">
+              {PLAN_LABEL[p]}
+            </Label>
             <div className="flex items-center gap-1">
               <span className="text-xs text-slate-400">R$</span>
               <Input
@@ -71,7 +73,9 @@ export function PlanPricesForm({ prices }: { prices: PlanPrices }) {
           Salvar preços
         </Button>
         {msg ? (
-          <span className={`text-xs font-semibold ${msg.kind === 'ok' ? 'text-success-text' : 'text-destructive'}`}>
+          <span
+            className={`text-xs font-semibold ${msg.kind === 'ok' ? 'text-success-text' : 'text-destructive'}`}
+          >
             {msg.text}
           </span>
         ) : null}

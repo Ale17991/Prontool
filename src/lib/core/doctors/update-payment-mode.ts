@@ -69,18 +69,21 @@ export async function updateDoctorPaymentMode(
       break
   }
 
-  const { data, error } = await supabase.rpc('record_payment_terms_change' as never, {
-    p_tenant_id: input.tenantId,
-    p_doctor_id: input.doctorId,
-    p_payment_mode: input.paymentMode,
-    p_percentage_bps: input.percentageBps ?? null,
-    p_monthly_amount_cents: input.monthlyAmountCents ?? null,
-    p_billing_day: input.billingDay ?? null,
-    p_liberal_default_cents: input.liberalDefaultCents ?? null,
-    p_valid_from: input.validFrom,
-    p_reason: input.reason.trim(),
-    p_actor: input.actorUserId,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'record_payment_terms_change' as never,
+    {
+      p_tenant_id: input.tenantId,
+      p_doctor_id: input.doctorId,
+      p_payment_mode: input.paymentMode,
+      p_percentage_bps: input.percentageBps ?? null,
+      p_monthly_amount_cents: input.monthlyAmountCents ?? null,
+      p_billing_day: input.billingDay ?? null,
+      p_liberal_default_cents: input.liberalDefaultCents ?? null,
+      p_valid_from: input.validFrom,
+      p_reason: input.reason.trim(),
+      p_actor: input.actorUserId,
+    } as never,
+  )
 
   if (error) {
     if (/VALID_FROM_FUTURE/.test(error.message)) {

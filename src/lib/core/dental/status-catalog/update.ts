@@ -78,7 +78,9 @@ export async function updateStatus(
   if (error) {
     if (error.code === '42501') {
       // Trigger guard: code imutável / is_system protegido.
-      throw new ValidationError('Operação não permitida sobre este status (código ou status de sistema).')
+      throw new ValidationError(
+        'Operação não permitida sobre este status (código ou status de sistema).',
+      )
     }
     if (error.code === '23514') {
       throw new ValidationError('Valores inválidos para o status (cor ou escopo).')

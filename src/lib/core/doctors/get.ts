@@ -78,9 +78,7 @@ export async function getDoctor(
 
   const { data: headRaw } = await supabase
     .from('doctor_payment_terms_current' as never)
-    .select(
-      'percentage_bps, monthly_amount_cents, billing_day, liberal_default_cents, valid_from',
-    )
+    .select('percentage_bps, monthly_amount_cents, billing_day, liberal_default_cents, valid_from')
     .eq('tenant_id', args.tenantId)
     .eq('doctor_id', args.doctorId)
     .maybeSingle()

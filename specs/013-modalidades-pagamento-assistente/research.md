@@ -169,13 +169,13 @@ WHERE pt.payment_mode = 'fixo'
 ```json
 {
   "month": "2026-05",
-  "gross_revenue_cents":     150000_00,
-  "commissions_cents":         42000_00,
-  "fixed_payments_cents":      24000_00,
-  "liberal_payments_cents":     3200_00,
-  "taxes_cents":               12000_00,
-  "operating_expenses_cents":  18500_00,
-  "net_profit_cents":          50300_00
+  "gross_revenue_cents": 150000_00,
+  "commissions_cents": 42000_00,
+  "fixed_payments_cents": 24000_00,
+  "liberal_payments_cents": 3200_00,
+  "taxes_cents": 12000_00,
+  "operating_expenses_cents": 18500_00,
+  "net_profit_cents": 50300_00
 }
 ```
 

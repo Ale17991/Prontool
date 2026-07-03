@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for 017 Public Booking"
+description: 'Task list for 017 Public Booking'
 ---
 
 # Tasks: Link público de agendamento online
@@ -67,7 +66,7 @@ description: "Task list for 017 Public Booking"
 - [x] T024 [US2] `actions.ts`: 5 server actions com `authorize()` helper que valida session + `can(role, 'public_booking.config')`; cada action retorna `{ok, error?}`. revalidatePath após mutações
 - [x] T025 [US2] `page.tsx` (server component): lê config + lista doctors ativos + procedures ativos (não-deleted); passa para client form com `baseUrl` derivado de `NEXT_PUBLIC_APP_URL`
 - [x] T026 [US2] `public-booking-form.tsx` (client): toggle + slug com validação inline + 3 inputs numéricos com clamp + card de profissionais publicados com `AddDoctorPicker` + `DoctorBlock` aninhado (bio textarea, weekdays toggles, 4 time inputs) + procedimentos aninhados com `AddProcedureRow` e `ProcedureRow`
-- [x] T027 [US2] UX: URL pública construída em tempo real + botão "Copiar link" (clipboard API) + "Ver prévia" (target=_blank). Feedback inline (success-strong / destructive)
+- [x] T027 [US2] UX: URL pública construída em tempo real + botão "Copiar link" (clipboard API) + "Ver prévia" (target=\_blank). Feedback inline (success-strong / destructive)
 - [x] T028 [US2] Card "Agendamento online" adicionado em `_cards.ts` com `CalendarPlus` icon, visível para roles com action `public_booking.config` (admin + recepcionista). Nova action adicionada em `rbac.ts`
 - [~] T029 [US2] Tests adiados — Phase 5
 - [x] T030 [US2] `pnpm typecheck` exit 0; `pnpm build` PASS, rota `/configuracoes/agendamento-publico` = 6.73 kB
@@ -212,7 +211,7 @@ description: "Task list for 017 Public Booking"
 - [x] T105 [US4] Logic de release: INSERT em appointment_reversals com `reversal_amount_cents = -frozen_amount_cents` + reason `public_booking_cancel:ipHash` + created_by=admin do tenant. Trigger libera slot_lock automaticamente
 - [x] T106 [US4] `/api/public/booking/cancel/[token]/route.ts`: rate-limit 5/h por IP+tenant resolvido via token hash + delega para cancelByToken
 - [x] T107 [US4] `/agendar/[slug]/cancelar/[token]/page.tsx` (server): lookup read-only do token, branches: used / expired / tooLate / form
-- [x] T108 [US4] `CancelForm` (client): POST `/api/public/booking/cancel/[token]` + handling de erros estruturados (TOKEN_*, CANCEL_WINDOW_EXPIRED com clinicPhone, RATE_LIMITED)
+- [x] T108 [US4] `CancelForm` (client): POST `/api/public/booking/cancel/[token]` + handling de erros estruturados (TOKEN\_\*, CANCEL_WINDOW_EXPIRED com clinicPhone, RATE_LIMITED)
 - [x] T109 [US4] Tela de sucesso inline (state-driven): mensagem + CTA "Agendar novamente"
 - [~] T110 [US4] `sendCancellationConfirmationEmail` adiado — bell notification atende o use case principal (admins notificados)
 - [x] T111 [US4] Bell notification: UPSERT em `notifications` para cada admin com reference_key=`{appointmentId}:cancelled` (idempotente)
@@ -240,7 +239,7 @@ description: "Task list for 017 Public Booking"
 - [~] T124 Checklists requirements adiado — validações principais já feitas via 17 unit tests + typecheck + build
 - [~] T125 CLAUDE.md update — sem mudanças técnicas relevantes (stack idêntica ao manifesto da 017)
 - [x] T126 `pnpm typecheck` exit 0; `pnpm test` (4 specs, 17 tests) PASS
-- [x] T127 `pnpm build` PASS — todas as rotas /agendar/* + /api/public/booking/* criadas
+- [x] T127 `pnpm build` PASS — todas as rotas /agendar/_ + /api/public/booking/_ criadas
 - [x] T128 Commit + push + merge master
 
 **Checkpoint**: feature 017 fechada. Pronto para review constitucional + merge.
@@ -311,6 +310,7 @@ Dev B: US5 (.ics + email) — files totalmente distintos
 ### MVP commercializável (entrega Phase 5)
 
 **Após Setup + Foundational + US2 + US1 + US3** (T001..T079): feature **pronta para uso comercial**.
+
 - Paciente agenda online
 - Admin configura
 - Captcha + rate limit + isolation
@@ -325,18 +325,19 @@ Dev B: US5 (.ics + email) — files totalmente distintos
 ### Atalho pra demo de venda
 
 Setup + Foundational + US2 + US1 (sem US3 ainda):
+
 - **5 dev-days** com paciente conseguindo agendar
 - **NÃO** rodar em produção sem US3 — vetor de ataque
 - Bom o suficiente para **demo de venda** privada com clientes que vocês controlam
 
 ### Ordem cirúrgica recomendada (decisões diárias)
 
-| Semana | Tarefas | Marco |
-|---|---|---|
-| 1 | Setup + Foundational + US2 | Admin configura, link público abre mas vazio |
-| 2 | US1 + começa US3 tests | Paciente agenda; testes de segurança começam |
-| 3 | US3 implementação + US5 | Captcha funciona, email com .ics chega; **MVP comercial** |
-| 4 | US4 + Polish | Cancel via link + LGPD política + validação final |
+| Semana | Tarefas                    | Marco                                                     |
+| ------ | -------------------------- | --------------------------------------------------------- |
+| 1      | Setup + Foundational + US2 | Admin configura, link público abre mas vazio              |
+| 2      | US1 + começa US3 tests     | Paciente agenda; testes de segurança começam              |
+| 3      | US3 implementação + US5    | Captcha funciona, email com .ics chega; **MVP comercial** |
+| 4      | US4 + Polish               | Cancel via link + LGPD política + validação final         |
 
 ---
 

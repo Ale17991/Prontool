@@ -51,7 +51,8 @@ const sheetVariants = cva(
 )
 
 interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+  extends
+    React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
 export const SheetContent = React.forwardRef<
@@ -75,31 +76,16 @@ export const SheetContent = React.forwardRef<
 ))
 SheetContent.displayName = DialogPrimitive.Content.displayName
 
-export function SheetHeader({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function SheetHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn(
-        'flex flex-col space-y-2 text-center sm:text-left',
-        className,
-      )}
-      {...props}
-    />
+    <div className={cn('flex flex-col space-y-2 text-center sm:text-left', className)} {...props} />
   )
 }
 
-export function SheetFooter({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function SheetFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
-        className,
-      )}
+      className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
       {...props}
     />
   )

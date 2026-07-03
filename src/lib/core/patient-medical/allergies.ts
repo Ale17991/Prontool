@@ -1,10 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from '@/lib/observability/errors'
+import { ConflictError, NotFoundError, ValidationError } from '@/lib/observability/errors'
 
 export type AllergySeverity = 'leve' | 'moderada' | 'grave'
 
@@ -37,7 +33,9 @@ export async function listAllergies(
 ): Promise<PatientAllergyDTO[]> {
   let q = supabase
     .from('patient_allergies')
-    .select('id, tenant_id, patient_id, substance, severity, notes, reported_at, reported_by, deleted_at')
+    .select(
+      'id, tenant_id, patient_id, substance, severity, notes, reported_at, reported_by, deleted_at',
+    )
     .eq('tenant_id', args.tenantId)
     .eq('patient_id', args.patientId)
     .order('reported_at', { ascending: false })

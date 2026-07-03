@@ -38,6 +38,7 @@ pnpm test:memed-conformidade
 ## 3. Rodar peças individualmente
 
 ### Lint (FR-013)
+
 ```bash
 pnpm lint -- src/app src/components
 # Falha com "no-memed-secrets-in-frontend" se algum arquivo do front
@@ -45,12 +46,14 @@ pnpm lint -- src/app src/components
 ```
 
 Para testar a regra propositalmente: criar arquivo temporário
+
 ```ts
 // src/components/teste.tsx (apagar depois)
-const k = process.env.MEMED_API_KEY  // deve quebrar lint
+const k = process.env.MEMED_API_KEY // deve quebrar lint
 ```
 
 ### Contract tests (FRs 001-009)
+
 ```bash
 pnpm test -- tests/contract/memed-
 ```
@@ -58,6 +61,7 @@ pnpm test -- tests/contract/memed-
 Roda contra Supabase local. Cada teste é independente; reseta tabela alvo antes.
 
 ### Integration tests (FRs 004-007, 014)
+
 ```bash
 # Sobe mock Memed em background
 pnpm tsx tests/mocks/memed-mock-server.ts --port 4001 &
@@ -65,6 +69,7 @@ MEMED_BASE_URL=http://localhost:4001 pnpm test -- tests/integration/memed-
 ```
 
 ### Build scan (FR-013 parte 2)
+
 ```bash
 pnpm build
 pnpm scan:memed-keys
@@ -72,6 +77,7 @@ pnpm scan:memed-keys
 ```
 
 ### E2E (FRs 010, 015, 016)
+
 ```bash
 # Sobe app + mock em terminal 1
 pnpm tsx tests/mocks/memed-mock-server.ts --port 4001 &
@@ -83,6 +89,7 @@ pnpm e2e:memed
 ```
 
 ### Verificação do registro de aceite (FR-017)
+
 ```bash
 pnpm verify:memed-acceptance
 # Script simples: confirma que docs/legal/memed-acceptance-record.md
@@ -91,15 +98,15 @@ pnpm verify:memed-acceptance
 
 ## 4. Como interpretar falha
 
-| Falha | Significado | O que fazer |
-|---|---|---|
-| Lint quebrou em `no-memed-secrets-in-frontend` | Alguém adicionou ref a chave Memed em código de front | Mover para backend; o front recebe só `token` do prescritor |
-| `memed-prescriber-payload.spec.ts` falhou | Mock retornou 422 = falta campo | Verificar `register-prescriber.ts` no spec 026; algum campo está vazio no payload |
-| `memed-prescription-records-append-only.spec.ts` falhou | DELETE/UPDATE forbidden trigger não está ativo | Revisar migration do spec 026 — trigger anti-DELETE no `prescription_records` |
-| `scan:memed-keys` encontrou match | Bundle JS contém credencial | Ofuscado? Inline? Achar arquivo via output do scan, refatorar |
-| E2E `memed-credential-leak-scan` falhou | Em runtime, alguma response HTTP carrega chave | Falha grave — investigar logs do mock/backend; provavelmente erro de proxy vazando upstream |
-| E2E `memed-feature-toggle-respected` falhou | CSS externo está sobrepondo iframe ou UI não respeita toggle | Revisar wrapper React do iframe; remover CSS conflitante |
-| `verify:memed-acceptance` falhou | Doc legal está faltando, desatualizado ou sem item marcado | Atualizar `docs/legal/memed-acceptance-record.md` com aceite assinado |
+| Falha                                                   | Significado                                                  | O que fazer                                                                                 |
+| ------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Lint quebrou em `no-memed-secrets-in-frontend`          | Alguém adicionou ref a chave Memed em código de front        | Mover para backend; o front recebe só `token` do prescritor                                 |
+| `memed-prescriber-payload.spec.ts` falhou               | Mock retornou 422 = falta campo                              | Verificar `register-prescriber.ts` no spec 026; algum campo está vazio no payload           |
+| `memed-prescription-records-append-only.spec.ts` falhou | DELETE/UPDATE forbidden trigger não está ativo               | Revisar migration do spec 026 — trigger anti-DELETE no `prescription_records`               |
+| `scan:memed-keys` encontrou match                       | Bundle JS contém credencial                                  | Ofuscado? Inline? Achar arquivo via output do scan, refatorar                               |
+| E2E `memed-credential-leak-scan` falhou                 | Em runtime, alguma response HTTP carrega chave               | Falha grave — investigar logs do mock/backend; provavelmente erro de proxy vazando upstream |
+| E2E `memed-feature-toggle-respected` falhou             | CSS externo está sobrepondo iframe ou UI não respeita toggle | Revisar wrapper React do iframe; remover CSS conflitante                                    |
+| `verify:memed-acceptance` falhou                        | Doc legal está faltando, desatualizado ou sem item marcado   | Atualizar `docs/legal/memed-acceptance-record.md` com aceite assinado                       |
 
 ## 5. Promover para produção
 

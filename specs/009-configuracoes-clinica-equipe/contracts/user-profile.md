@@ -45,6 +45,7 @@ Updates name and timezone. Email is **NOT** editable here; the field is rejected
 **Response 200**: same shape as GET.
 
 **Errors**:
+
 - `400 invalid_timezone` — not a recognized IANA TZ.
 - `400 unsupported_field` — body contains `email`.
 - `401`.
@@ -58,6 +59,7 @@ Updates name and timezone. Email is **NOT** editable here; the field is rejected
 Uploads or replaces avatar. Multipart form (`field: avatar`).
 
 **Constraints**:
+
 - `Content-Length` ≤ 2 MB.
 - Magic bytes JPG or PNG.
 - Path: `{tenant_id}/{user_id}.{jpg|png}` (overwrites previous).
@@ -100,6 +102,7 @@ Changes the user's password.
 ```
 
 **Server flow**:
+
 1. Validate `newPassword` strength.
 2. Reauthenticate via isolated `signInWithPassword({ email, password: currentPassword })` — if it fails, return `400 invalid_current_password`.
 3. Call `supabase.auth.updateUser({ password: newPassword })` on the active session.
@@ -108,6 +111,7 @@ Changes the user's password.
 **Response 204**.
 
 **Errors**:
+
 - `400 invalid_current_password`
 - `400 weak_password` — payload includes `details: { reason: 'too_short' | 'missing_letter' | 'missing_digit' }`
 - `400 password_mismatch` — IF the front sends a confirm field and they differ (server is also defensive).

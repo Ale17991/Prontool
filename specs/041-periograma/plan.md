@@ -23,7 +23,7 @@ Abordagem técnica: reusar integralmente os padrões do módulo odonto. Migratio
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável (NON-NEGOTIABLE)**: Sem valores financeiros nesta feature. Princípio aplicado por analogia: o exame **finalizado** é imutável (trigger congela `perio_exams` + bloqueia escrita nas medições/achados quando o exame não está em rascunho — padrão de `treatment_budgets`, 0160). Correção = novo exame. ✅ PASS
 - **II. Auditabilidade Total (NON-NEGOTIABLE)**: Criação e finalização do exame disparam `log_audit_event` (ator, tenant, entidade, transição de estado). ✅ PASS

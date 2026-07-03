@@ -133,33 +133,38 @@ export async function aggregateLiberalByPeriod(
     .eq('period_from', args.from)
     .eq('period_to', args.to)
   const paidById = new Map<string, number>()
-  for (const p of (paidRaw ?? []) as unknown as Array<{ doctor_id: string; amount_cents: number }>) {
+  for (const p of (paidRaw ?? []) as unknown as Array<{
+    doctor_id: string
+    amount_cents: number
+  }>) {
     paidById.set(p.doctor_id, (paidById.get(p.doctor_id) ?? 0) + Number(p.amount_cents ?? 0))
   }
 
   // Inclui liberais + quem teve participação no período.
   const ids = new Set<string>([...liberalIds, ...participations.keys()])
 
-  return Array.from(ids)
-    .map((id) => {
-      const isLiberal = liberalIds.has(id)
-      // Comissão do executante só conta para liberais (comissionado/fixo é pago
-      // no repasse mensal). Participação conta para todos.
-      const commission = isLiberal ? commissionById.get(id) ?? 0 : 0
-      const participation = participations.get(id) ?? 0
-      return {
-        doctorId: id,
-        doctorName: nameById.get(id) ?? '—',
-        commissionCents: commission,
-        participationCents: participation,
-        totalCents: commission + participation,
-        paidCents: paidById.get(id) ?? 0,
-      }
-    })
-    // Todo liberal aparece (mesmo R$ 0 — pode receber valor manual);
-    // não-liberais só se tiveram participação/pagamento no período.
-    .filter((r) => liberalIds.has(r.doctorId) || r.totalCents > 0 || r.paidCents > 0)
-    .sort((a, b) => a.doctorName.localeCompare(b.doctorName))
+  return (
+    Array.from(ids)
+      .map((id) => {
+        const isLiberal = liberalIds.has(id)
+        // Comissão do executante só conta para liberais (comissionado/fixo é pago
+        // no repasse mensal). Participação conta para todos.
+        const commission = isLiberal ? (commissionById.get(id) ?? 0) : 0
+        const participation = participations.get(id) ?? 0
+        return {
+          doctorId: id,
+          doctorName: nameById.get(id) ?? '—',
+          commissionCents: commission,
+          participationCents: participation,
+          totalCents: commission + participation,
+          paidCents: paidById.get(id) ?? 0,
+        }
+      })
+      // Todo liberal aparece (mesmo R$ 0 — pode receber valor manual);
+      // não-liberais só se tiveram participação/pagamento no período.
+      .filter((r) => liberalIds.has(r.doctorId) || r.totalCents > 0 || r.paidCents > 0)
+      .sort((a, b) => a.doctorName.localeCompare(b.doctorName))
+  )
 }
 
 /** Registra uma quitação de honorários de um profissional para um período. */

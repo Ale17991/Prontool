@@ -8,11 +8,7 @@ import type { IntegrationAdapter, AdapterContext, DomainEvent } from '../types'
  * Clinni team having to ship a dedicated provider.
  */
 
-const eventTypes = z.enum([
-  'patient.created',
-  'appointment.created',
-  'appointment.reversed',
-])
+const eventTypes = z.enum(['patient.created', 'appointment.created', 'appointment.reversed'])
 
 export const genericWebhookConfigSchema = z.object({
   outbound_url: z.string().url(),

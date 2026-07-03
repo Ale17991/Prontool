@@ -89,10 +89,7 @@ export async function POST(
   }
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
       entity: 'appointment_materials',

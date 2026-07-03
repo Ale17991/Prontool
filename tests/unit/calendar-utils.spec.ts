@@ -115,9 +115,7 @@ describe('calendar utils', () => {
     })
 
     it('overflows when more than MAX_LANES overlap', () => {
-      const blocks = Array.from({ length: MAX_LANES + 2 }, (_, i) =>
-        block(`b${i}`, 10, 12),
-      )
+      const blocks = Array.from({ length: MAX_LANES + 2 }, (_, i) => block(`b${i}`, 10, 12))
       const r = assignLanes(blocks)
       expect(r.visible).toHaveLength(MAX_LANES)
       expect(r.overflow).toHaveLength(2)

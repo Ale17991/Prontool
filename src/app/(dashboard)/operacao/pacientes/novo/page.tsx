@@ -82,9 +82,7 @@ export default async function NovoPacientePage() {
         >
           <ChevronLeft className="h-3 w-3" /> Voltar aos pacientes
         </Link>
-        <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900">
-          Novo paciente
-        </h1>
+        <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-900">Novo paciente</h1>
         <p className="mt-1 text-sm text-slate-500">
           {hasIntegrations
             ? 'PII criptografada localmente. O contato é mirrorado para as integrações ativas em melhor-esforço — se alguma estiver indisponível, o paciente é salvo mesmo assim e um alerta operacional é aberto.'
@@ -94,10 +92,7 @@ export default async function NovoPacientePage() {
 
       <Card>
         <CardContent className="pt-6">
-          <NewPatientPageClient
-            healthPlans={healthPlans}
-            templates={templates}
-          />
+          <NewPatientPageClient healthPlans={healthPlans} templates={templates} />
         </CardContent>
       </Card>
     </div>

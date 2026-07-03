@@ -16,12 +16,7 @@ interface Props {
   onPendingChange?: (pending: boolean) => void
 }
 
-export function ReversalForm({
-  appointmentId,
-  onSuccess,
-  onDirtyChange,
-  onPendingChange,
-}: Props) {
+export function ReversalForm({ appointmentId, onSuccess, onDirtyChange, onPendingChange }: Props) {
   const router = useRouter()
   const [reason, setReason] = useState('')
   const [pending, setPending] = useState(false)

@@ -14,7 +14,10 @@ export const runtime = 'nodejs'
 
 const bodySchema = z.object({
   effective_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  amount_cents: z.number().int().refine((v) => v !== 0, 'amount_cents must be != 0'),
+  amount_cents: z
+    .number()
+    .int()
+    .refine((v) => v !== 0, 'amount_cents must be != 0'),
   reason: z.string().min(3).max(500),
 })
 

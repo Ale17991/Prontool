@@ -72,9 +72,7 @@ export function NewPatientPageClient({ healthPlans, templates }: Props) {
               templates.map((t) => (
                 <SelectItem key={t.id} value={t.id}>
                   {t.title}
-                  <span className="ml-1 text-[10px] text-slate-400">
-                    v{t.version}
-                  </span>
+                  <span className="ml-1 text-[10px] text-slate-400">v{t.version}</span>
                 </SelectItem>
               ))
             )}
@@ -86,10 +84,7 @@ export function NewPatientPageClient({ healthPlans, templates }: Props) {
       </div>
 
       {template ? (
-        <NewPatientWithAnamneseForm
-          template={template}
-          healthPlans={healthPlans}
-        />
+        <NewPatientWithAnamneseForm template={template} healthPlans={healthPlans} />
       ) : (
         <NewPatientForm healthPlans={healthPlans} />
       )}
