@@ -33,15 +33,15 @@ export interface AppointmentStatusBadgeProps {
 
 ## Mapeamento canônico (sincronizado com `data-model.md` §3)
 
-| `variant` | Label | Ícone | Fundo | Texto | Padrão | Animação |
-|---|---|---|---|---|---|---|
-| `agendado` | "Agendado" | `Calendar` | `--info-bg` | `--info-text` | sólido | nenhuma |
-| `confirmado` | "Confirmado" | `Check` | `--success-bg` | `--success-text` | sólido | nenhuma |
-| `concluido` | "Concluído" | `CheckCheck` | `--success-bg` (60% opacidade) | `--success-text` | sólido | nenhuma |
-| `em_atendimento` | "Em atendimento" | `Clock` | `--warning` | `--warning-foreground` | sólido | `motion-safe:animate-pulse` no ponto indicador |
-| `no_show` | "Não compareceu" | `UserX` | `--muted` | `--muted-foreground` | listrado (CSS `repeating-linear-gradient`) | nenhuma |
-| `cancelado` | "Cancelado" | `X` | `--muted` | `--muted-foreground` | borda tracejada (`border-dashed`) | nenhuma |
-| `estornado` | "Estornado" | `RotateCcw` | `--alert` (com baixa saturação no fundo) | `--alert-foreground` | sólido | nenhuma |
+| `variant`        | Label            | Ícone        | Fundo                                    | Texto                  | Padrão                                     | Animação                                       |
+| ---------------- | ---------------- | ------------ | ---------------------------------------- | ---------------------- | ------------------------------------------ | ---------------------------------------------- |
+| `agendado`       | "Agendado"       | `Calendar`   | `--info-bg`                              | `--info-text`          | sólido                                     | nenhuma                                        |
+| `confirmado`     | "Confirmado"     | `Check`      | `--success-bg`                           | `--success-text`       | sólido                                     | nenhuma                                        |
+| `concluido`      | "Concluído"      | `CheckCheck` | `--success-bg` (60% opacidade)           | `--success-text`       | sólido                                     | nenhuma                                        |
+| `em_atendimento` | "Em atendimento" | `Clock`      | `--warning`                              | `--warning-foreground` | sólido                                     | `motion-safe:animate-pulse` no ponto indicador |
+| `no_show`        | "Não compareceu" | `UserX`      | `--muted`                                | `--muted-foreground`   | listrado (CSS `repeating-linear-gradient`) | nenhuma                                        |
+| `cancelado`      | "Cancelado"      | `X`          | `--muted`                                | `--muted-foreground`   | borda tracejada (`border-dashed`)          | nenhuma                                        |
+| `estornado`      | "Estornado"      | `RotateCcw`  | `--alert` (com baixa saturação no fundo) | `--alert-foreground`   | sólido                                     | nenhuma                                        |
 
 ---
 
@@ -51,11 +51,16 @@ Os call-sites convertem `effectiveStatus` (do banco) → `variant` (do component
 
 ```ts
 // Em cada callsite (ex.: calendar-block.tsx)
-function statusToVariant(effectiveStatus: 'ativo' | 'agendado' | 'estornado'): AppointmentStatusVariant {
+function statusToVariant(
+  effectiveStatus: 'ativo' | 'agendado' | 'estornado',
+): AppointmentStatusVariant {
   switch (effectiveStatus) {
-    case 'agendado':  return 'agendado'
-    case 'ativo':     return 'concluido' // ver research.md §3
-    case 'estornado': return 'estornado'
+    case 'agendado':
+      return 'agendado'
+    case 'ativo':
+      return 'concluido' // ver research.md §3
+    case 'estornado':
+      return 'estornado'
   }
 }
 ```

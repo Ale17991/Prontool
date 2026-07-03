@@ -20,7 +20,10 @@ export async function POST(): Promise<Response> {
   try {
     const actorId = await superAdminUserId()
     if (!actorId) {
-      return NextResponse.json({ error: { code: 'FORBIDDEN', message: 'Não autorizado.' } }, { status: 403 })
+      return NextResponse.json(
+        { error: { code: 'FORBIDDEN', message: 'Não autorizado.' } },
+        { status: 403 },
+      )
     }
 
     const raw = cookies().get(IMPERSONATION_COOKIE)?.value ?? ''

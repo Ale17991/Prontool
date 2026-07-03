@@ -76,10 +76,25 @@ export function TissOperatorForm({
         )}
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Registro ANS da operadora" value={ans} onChange={setAns} placeholder="6 dígitos" />
+        <Field
+          label="Registro ANS da operadora"
+          value={ans}
+          onChange={setAns}
+          placeholder="6 dígitos"
+        />
         <Field label="Código do contratado na operadora" value={code} onChange={setCode} />
-        <Field label="CNPJ do contratado" value={cnpj} onChange={setCnpj} placeholder="00.000.000/0001-00" />
-        <Field label="CNES (opcional)" value={cnes} onChange={setCnes} placeholder="9999999 se não houver" />
+        <Field
+          label="CNPJ do contratado"
+          value={cnpj}
+          onChange={setCnpj}
+          placeholder="00.000.000/0001-00"
+        />
+        <Field
+          label="CNES (opcional)"
+          value={cnes}
+          onChange={setCnes}
+          placeholder="9999999 se não houver"
+        />
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       <div className="mt-3 flex items-center gap-3">

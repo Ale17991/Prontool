@@ -70,9 +70,7 @@ export function MetabolicMetricsSection({
   // Mostra o card do gráfico já a partir de 1 medição (o próprio gráfico exibe
   // o valor + aviso de que a linha aparece na 2ª). Antes exigia 2 e a métrica
   // simplesmente sumia, dando a impressão de que o gráfico "não tinha função".
-  const chartsWithData = metricTypes.filter(
-    (t) => (measurements[t.metricType] ?? []).length >= 1,
-  )
+  const chartsWithData = metricTypes.filter((t) => (measurements[t.metricType] ?? []).length >= 1)
 
   return (
     <Card>
@@ -108,9 +106,7 @@ export function MetabolicMetricsSection({
         ) : null}
 
         {recent.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            Nenhuma medição metabólica registrada ainda.
-          </p>
+          <p className="text-sm text-slate-500">Nenhuma medição metabólica registrada ainda.</p>
         ) : (
           <>
             {chartsWithData.length > 0 ? (
@@ -164,8 +160,7 @@ export function MetabolicMetricsSection({
                 </Table>
               </div>
               <p className="mt-1.5 text-[11px] text-slate-400">
-                Registros são definitivos (trilha clínica) — para corrigir, lance
-                uma nova medição.
+                Registros são definitivos (trilha clínica) — para corrigir, lance uma nova medição.
               </p>
             </div>
           </>
@@ -250,9 +245,7 @@ function NewMeasurementForm({
         </select>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="mm_value">
-          Valor {selected ? `(${selected.unit})` : ''}
-        </Label>
+        <Label htmlFor="mm_value">Valor {selected ? `(${selected.unit})` : ''}</Label>
         <Input
           id="mm_value"
           inputMode="decimal"
@@ -277,11 +270,7 @@ function NewMeasurementForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="mm_notes">Observações</Label>
-        <Input
-          id="mm_notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
+        <Input id="mm_notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
       {error ? (
         <p className="col-span-2 md:col-span-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">

@@ -29,15 +29,15 @@ Nenhum requisito financeiro (Princípio I) é tocado; nada de TUSS/ANS (Princíp
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Aplicabilidade | Status | Justificativa |
-|-----------|----------------|--------|---------------|
-| I. Integridade Financeira Imutável | **N/A** | ✅ Pass | Feature não toca preços, faturas, atendimentos ou estornos. Nenhum `UPDATE`/`DELETE` em tabela financeira. |
-| II. Auditabilidade Total | **Aplica** | ✅ Pass | Cada mutação relevante (clinic profile, role change, convite, desativação, reativação, troca de senha) escreve em `audit_log` no mesmo handler, com `actor_id`, `entity`, `field`, `old/new`, `reason`, `ip`, `user_agent`. Senha **NÃO** é logada — apenas o evento `user_profile.password.changed` com timestamp. |
-| III. Isolamento Multi-Tenant | **Aplica** | ✅ Pass | `tenant_clinic_profile` carrega `tenant_id` PRIMARY KEY, RLS `USING/WITH CHECK (tenant_id = jwt_tenant_id())`. `user_profile` é por `user_id` mas a leitura cross-user dentro do mesmo tenant é restrita à exibição de avatar (policy específica). Buckets `clinic-logos` e `user-avatars` aplicam RLS via `(storage.foldername(name))[1] = jwt_tenant_id()::text`. |
-| IV. Conformidade TUSS/ANS | **N/A** | ✅ Pass | Nenhuma cobrança ou catálogo TUSS afetado. |
-| V. RBAC | **Aplica** | ✅ Pass | `/configuracoes/clinica` e `/configuracoes/usuarios/*` exigem `role === 'admin'` via `requireRole`. `/configuracoes/perfil` aceita qualquer role autenticado. Mudança de papel exige admin do mesmo tenant. Trigger DB `enforce_last_admin` impede admin único de se desativar/rebaixar. |
+| Principle                          | Aplicabilidade | Status  | Justificativa                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------------------- | -------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Integridade Financeira Imutável | **N/A**        | ✅ Pass | Feature não toca preços, faturas, atendimentos ou estornos. Nenhum `UPDATE`/`DELETE` em tabela financeira.                                                                                                                                                                                                                                                          |
+| II. Auditabilidade Total           | **Aplica**     | ✅ Pass | Cada mutação relevante (clinic profile, role change, convite, desativação, reativação, troca de senha) escreve em `audit_log` no mesmo handler, com `actor_id`, `entity`, `field`, `old/new`, `reason`, `ip`, `user_agent`. Senha **NÃO** é logada — apenas o evento `user_profile.password.changed` com timestamp.                                                 |
+| III. Isolamento Multi-Tenant       | **Aplica**     | ✅ Pass | `tenant_clinic_profile` carrega `tenant_id` PRIMARY KEY, RLS `USING/WITH CHECK (tenant_id = jwt_tenant_id())`. `user_profile` é por `user_id` mas a leitura cross-user dentro do mesmo tenant é restrita à exibição de avatar (policy específica). Buckets `clinic-logos` e `user-avatars` aplicam RLS via `(storage.foldername(name))[1] = jwt_tenant_id()::text`. |
+| IV. Conformidade TUSS/ANS          | **N/A**        | ✅ Pass | Nenhuma cobrança ou catálogo TUSS afetado.                                                                                                                                                                                                                                                                                                                          |
+| V. RBAC                            | **Aplica**     | ✅ Pass | `/configuracoes/clinica` e `/configuracoes/usuarios/*` exigem `role === 'admin'` via `requireRole`. `/configuracoes/perfil` aceita qualquer role autenticado. Mudança de papel exige admin do mesmo tenant. Trigger DB `enforce_last_admin` impede admin único de se desativar/rebaixar.                                                                            |
 
 **Gate decision**: PASS. Nenhuma violação a justificar em Complexity Tracking.
 
@@ -149,5 +149,5 @@ tests/
 > Sem violações. Tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |

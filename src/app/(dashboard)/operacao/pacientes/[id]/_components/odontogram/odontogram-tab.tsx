@@ -219,7 +219,9 @@ export function OdontogramTab({ patientId, canWrite, appointmentId }: Props) {
               onClick={() => setDentition(d)}
               className={cn(
                 'px-3 py-1 font-medium transition',
-                dentition === d ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 hover:bg-slate-50',
+                dentition === d
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-white text-slate-600 hover:bg-slate-50',
               )}
             >
               {d === 'permanent' ? 'Permanentes' : 'Decíduos'}
@@ -248,8 +250,8 @@ export function OdontogramTab({ patientId, canWrite, appointmentId }: Props) {
             />
           </div>
           <p className="text-[11px] text-slate-500">
-            Selecione um status e clique no dente (ou na face) para aplicar.
-            “Sem registro” limpa a marcação.
+            Selecione um status e clique no dente (ou na face) para aplicar. “Sem registro” limpa a
+            marcação.
           </p>
         </div>
       ) : (

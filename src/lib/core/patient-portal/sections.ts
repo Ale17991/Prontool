@@ -46,17 +46,107 @@ export interface PortalSectionDef {
 }
 
 export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
-  { key: 'metas', label: 'Minhas metas', description: 'Metas de saúde definidas pela equipe (peso, glicemia, etc.) com progresso.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 5 },
-  { key: 'atendimentos', label: 'Meus atendimentos', description: 'Histórico de consultas e atendimentos.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 10 },
-  { key: 'metricas', label: 'Minha evolução', description: 'Peso, IMC e métricas de acompanhamento, com tendência.', defaultEnabled: true, sensitivity: 'baixa', implemented: true, order: 20 },
-  { key: 'orientacoes', label: 'Orientações', description: 'Orientações e plano de cuidado escritos pela equipe.', defaultEnabled: false, sensitivity: 'media', implemented: true, order: 30 },
-  { key: 'prescricoes', label: 'Prescrições', description: 'Receitas e prescrições digitais.', defaultEnabled: false, sensitivity: 'media', implemented: false, order: 40 },
-  { key: 'documentos', label: 'Documentos', description: 'Atestados, laudos e declarações.', defaultEnabled: false, sensitivity: 'media', implemented: false, order: 50 },
-  { key: 'exames', label: 'Resultados de exames', description: 'Resultados com interpretação (nunca o valor cru isolado).', defaultEnabled: false, sensitivity: 'alta', implemented: false, order: 60 },
-  { key: 'vacinas', label: 'Vacinas', description: 'Carteira de vacinação.', defaultEnabled: false, sensitivity: 'baixa', implemented: false, order: 70 },
-  { key: 'faturas', label: 'Faturas', description: 'Pagamentos e faturas da clínica.', defaultEnabled: false, sensitivity: 'baixa', implemented: false, order: 80 },
-  { key: 'treino', label: 'Rotina de treino', description: 'Treino prescrito pelo profissional.', defaultEnabled: false, sensitivity: 'baixa', requiredModule: 'treino', implemented: true, order: 90 },
-  { key: 'dieta', label: 'Plano alimentar', description: 'Dieta prescrita pelo nutricionista.', defaultEnabled: false, sensitivity: 'media', requiredModule: 'dieta', implemented: true, order: 100 },
+  {
+    key: 'metas',
+    label: 'Minhas metas',
+    description: 'Metas de saúde definidas pela equipe (peso, glicemia, etc.) com progresso.',
+    defaultEnabled: true,
+    sensitivity: 'baixa',
+    implemented: true,
+    order: 5,
+  },
+  {
+    key: 'atendimentos',
+    label: 'Meus atendimentos',
+    description: 'Histórico de consultas e atendimentos.',
+    defaultEnabled: true,
+    sensitivity: 'baixa',
+    implemented: true,
+    order: 10,
+  },
+  {
+    key: 'metricas',
+    label: 'Minha evolução',
+    description: 'Peso, IMC e métricas de acompanhamento, com tendência.',
+    defaultEnabled: true,
+    sensitivity: 'baixa',
+    implemented: true,
+    order: 20,
+  },
+  {
+    key: 'orientacoes',
+    label: 'Orientações',
+    description: 'Orientações e plano de cuidado escritos pela equipe.',
+    defaultEnabled: false,
+    sensitivity: 'media',
+    implemented: true,
+    order: 30,
+  },
+  {
+    key: 'prescricoes',
+    label: 'Prescrições',
+    description: 'Receitas e prescrições digitais.',
+    defaultEnabled: false,
+    sensitivity: 'media',
+    implemented: false,
+    order: 40,
+  },
+  {
+    key: 'documentos',
+    label: 'Documentos',
+    description: 'Atestados, laudos e declarações.',
+    defaultEnabled: false,
+    sensitivity: 'media',
+    implemented: false,
+    order: 50,
+  },
+  {
+    key: 'exames',
+    label: 'Resultados de exames',
+    description: 'Resultados com interpretação (nunca o valor cru isolado).',
+    defaultEnabled: false,
+    sensitivity: 'alta',
+    implemented: false,
+    order: 60,
+  },
+  {
+    key: 'vacinas',
+    label: 'Vacinas',
+    description: 'Carteira de vacinação.',
+    defaultEnabled: false,
+    sensitivity: 'baixa',
+    implemented: false,
+    order: 70,
+  },
+  {
+    key: 'faturas',
+    label: 'Faturas',
+    description: 'Pagamentos e faturas da clínica.',
+    defaultEnabled: false,
+    sensitivity: 'baixa',
+    implemented: false,
+    order: 80,
+  },
+  {
+    key: 'treino',
+    label: 'Rotina de treino',
+    description: 'Treino prescrito pelo profissional.',
+    defaultEnabled: false,
+    sensitivity: 'baixa',
+    requiredModule: 'treino',
+    implemented: true,
+    order: 90,
+  },
+  {
+    key: 'dieta',
+    label: 'Plano alimentar',
+    description: 'Dieta prescrita pelo nutricionista.',
+    defaultEnabled: false,
+    sensitivity: 'media',
+    requiredModule: 'dieta',
+    implemented: true,
+    order: 100,
+  },
 ]
 
 const BY_KEY = new Map<string, PortalSectionDef>(PORTAL_SECTIONS.map((s) => [s.key, s]))
@@ -126,7 +216,10 @@ export async function setPortalSection(
   // O gate de plano (módulo) é aplicado no resolver; aqui só guardamos o override.
   const { error } = await (supabase as unknown as SupabaseClient)
     .from('tenant_portal_sections')
-    .upsert({ tenant_id: tenantId, section_key: sectionKey, enabled }, { onConflict: 'tenant_id,section_key' })
+    .upsert(
+      { tenant_id: tenantId, section_key: sectionKey, enabled },
+      { onConflict: 'tenant_id,section_key' },
+    )
   if (error) throw new Error(`setPortalSection: ${error.message}`)
 }
 

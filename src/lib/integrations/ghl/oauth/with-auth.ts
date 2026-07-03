@@ -5,10 +5,7 @@ import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
 import { recordSimpleIntegrationEvent } from '@/lib/core/audit/integration-events'
 import { recordSyncFailure } from '@/lib/core/integrations/ghl/sync-log'
 import { getIntegrationConfig } from '@/lib/core/integrations/config'
-import {
-  RefreshError,
-  refreshTokens,
-} from './client'
+import { RefreshError, refreshTokens } from './client'
 import { commitRefreshedTokens } from './refresh-lock'
 import { decryptCredentials } from '@/lib/core/integrations/credentials'
 import {
@@ -194,11 +191,7 @@ async function refreshAndPersist(
     // Outro worker persistiu — relê e devolve.
     const refreshedRow = await getIntegrationConfig(supabase, tenantId, 'ghl')
     if (!refreshedRow || !refreshedRow.enabled) return { kind: 'not_connected' }
-    const persisted = await decryptCredentials(
-      supabase,
-      refreshedRow,
-      ghlOAuthCredentialsSchema,
-    )
+    const persisted = await decryptCredentials(supabase, refreshedRow, ghlOAuthCredentialsSchema)
     return {
       kind: 'connected',
       accessToken: persisted.access_token,

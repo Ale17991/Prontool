@@ -35,7 +35,9 @@ export async function getPriceHistory(
 
   const chain = await supabase
     .from('price_versions')
-    .select('id, procedure_id, plan_id, amount_cents, valid_from, created_at, created_by, reason, previous_version_id')
+    .select(
+      'id, procedure_id, plan_id, amount_cents, valid_from, created_at, created_by, reason, previous_version_id',
+    )
     .eq('tenant_id', args.tenantId)
     .eq('procedure_id', seed.data.procedure_id)
     .eq('plan_id', seed.data.plan_id)

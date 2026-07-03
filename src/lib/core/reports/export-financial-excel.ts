@@ -143,8 +143,7 @@ export async function renderFinancialReportExcel(
     metric: 'Total despesas',
     current: report.totals.totalExpensesCents / 100,
     previous: report.previous.totalExpensesCents / 100,
-    pct:
-      report.comparison.expensesPct === null ? '' : report.comparison.expensesPct / 100,
+    pct: report.comparison.expensesPct === null ? '' : report.comparison.expensesPct / 100,
   })
   cmp.addRow({
     metric: 'Lucro operacional',

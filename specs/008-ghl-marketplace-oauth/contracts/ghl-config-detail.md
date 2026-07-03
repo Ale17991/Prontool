@@ -39,12 +39,12 @@ API que alimenta a página `/configuracoes/integracoes/ghl` com o estado complet
 
 **Status mapping**:
 
-| Linha em DB | `status` no body |
-|---|---|
-| Sem linha | `not_connected` |
-| `enabled=true AND status='connected'` | `connected` |
-| `enabled=true AND status='token_expired'` | `token_expired` |
-| `enabled=false AND status='disconnected'` | `disconnected` |
+| Linha em DB                               | `status` no body |
+| ----------------------------------------- | ---------------- |
+| Sem linha                                 | `not_connected`  |
+| `enabled=true AND status='connected'`     | `connected`      |
+| `enabled=true AND status='token_expired'` | `token_expired`  |
+| `enabled=false AND status='disconnected'` | `disconnected`   |
 
 ---
 
@@ -68,13 +68,13 @@ Desconectar manualmente.
    - `integration_sync_log(kind='disconnect')`.
 3. Responde 200 `{ ok: true }`.
 
-| Status | Body |
-|---|---|
-| 200 | `{ ok: true }` |
-| 401 | `{ error: { code: 'UNAUTHENTICATED' } }` |
-| 403 | `{ error: { code: 'FORBIDDEN_ROLE' } }` |
-| 404 | `{ error: { code: 'NOT_CONNECTED' } }` |
-| 502 | `{ error: { code: 'PARTIAL_CLEANUP', detail: { hooks_remaining: [...] } } }` (somente se `enabled=false` foi gravado mas cleanup do GHL falhou; UI tolera e mostra warning) |
+| Status | Body                                                                                                                                                                        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 200    | `{ ok: true }`                                                                                                                                                              |
+| 401    | `{ error: { code: 'UNAUTHENTICATED' } }`                                                                                                                                    |
+| 403    | `{ error: { code: 'FORBIDDEN_ROLE' } }`                                                                                                                                     |
+| 404    | `{ error: { code: 'NOT_CONNECTED' } }`                                                                                                                                      |
+| 502    | `{ error: { code: 'PARTIAL_CLEANUP', detail: { hooks_remaining: [...] } } }` (somente se `enabled=false` foi gravado mas cleanup do GHL falhou; UI tolera e mostra warning) |
 
 ---
 
@@ -86,12 +86,12 @@ Manter para back-compat com o caminho legado `/api/configuracoes/integracoes/[pr
 
 **Body**: subset de `GhlConfigV2` sem credenciais. Campos OAuth (`location_id`, `sub_account_name`, `custom_field_ids`, `webhook_ids`, `menu_id`) **ignorados** se enviados — esses só mudam via `connect-tenant.ts`.
 
-| Status | Body |
-|---|---|
-| 200 | `{ ok: true, config: <sanitized> }` |
-| 400 | `{ error: { code: 'INVALID_BODY' } }` |
-| 401/403 | erro de auth |
-| 404 | `{ error: { code: 'NOT_CONNECTED' } }` |
+| Status  | Body                                   |
+| ------- | -------------------------------------- |
+| 200     | `{ ok: true, config: <sanitized> }`    |
+| 400     | `{ error: { code: 'INVALID_BODY' } }`  |
+| 401/403 | erro de auth                           |
+| 404     | `{ error: { code: 'NOT_CONNECTED' } }` |
 
 **Audit**: `integration.reconfigure` com diff.
 
@@ -132,10 +132,10 @@ Retorna últimas 10 entradas de `integration_sync_log` para o tenant da sessão.
 
 **Construção de `summary`**: derivado server-side de `detail` JSONB (que tem `patient_name`, `appointment_id`, etc.) — **nunca** contém PII bruta sem mascarar. CPF mascarado tipo `***.456.789-**`. Telefone idem.
 
-| Status | Body |
-|---|---|
-| 200 | `{ items: [...] }` (até 10 entradas, mais recentes primeiro) |
-| 401 | `{ error: { code: 'UNAUTHENTICATED' } }` |
+| Status | Body                                                         |
+| ------ | ------------------------------------------------------------ |
+| 200    | `{ items: [...] }` (até 10 entradas, mais recentes primeiro) |
+| 401    | `{ error: { code: 'UNAUTHENTICATED' } }`                     |
 
 ---
 

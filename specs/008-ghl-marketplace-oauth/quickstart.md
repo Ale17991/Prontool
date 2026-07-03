@@ -202,13 +202,13 @@ Não há job de migração em massa em v1 — cada admin reconecta na primeira o
 
 ## 7. Troubleshooting
 
-| Sintoma | Causa provável | Como resolver |
-|---|---|---|
-| `OAUTH_CONFIG_MISSING` em `/authorize` | Falta `GHL_CLIENT_ID/SECRET/REDIRECT_URI/SCOPES` em `.env.local` | Confirmar e `pnpm dev` again. |
-| `STATE_MISMATCH` no callback | Cookie SameSite bloqueado por extensão / browser. Túnel ngrok vs localhost diferem (cookie HostOnly) | Usar a URL do ngrok consistentemente para iniciar e finalizar o flow. |
-| `INVALID_SIGNATURE` em `/install` | Body sendo modificado por proxy / charset diferente | Garantir que `BODY` no curl é byte-idêntico ao que o handler recebe. Se necessário, log raw body antes do verify para comparar. |
-| Custom fields setup falha em loop | `LARGE_TEXT` rejeitado pela API atual | Verificar tipo aceito (research item 6) e ajustar em `custom-fields-setup.ts`. |
-| Tokens cifrados aparecem em log | Bug de redaction | Inspecionar `pino` formatter; nunca logar o objeto `creds` direto. |
+| Sintoma                                | Causa provável                                                                                       | Como resolver                                                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `OAUTH_CONFIG_MISSING` em `/authorize` | Falta `GHL_CLIENT_ID/SECRET/REDIRECT_URI/SCOPES` em `.env.local`                                     | Confirmar e `pnpm dev` again.                                                                                                   |
+| `STATE_MISMATCH` no callback           | Cookie SameSite bloqueado por extensão / browser. Túnel ngrok vs localhost diferem (cookie HostOnly) | Usar a URL do ngrok consistentemente para iniciar e finalizar o flow.                                                           |
+| `INVALID_SIGNATURE` em `/install`      | Body sendo modificado por proxy / charset diferente                                                  | Garantir que `BODY` no curl é byte-idêntico ao que o handler recebe. Se necessário, log raw body antes do verify para comparar. |
+| Custom fields setup falha em loop      | `LARGE_TEXT` rejeitado pela API atual                                                                | Verificar tipo aceito (research item 6) e ajustar em `custom-fields-setup.ts`.                                                  |
+| Tokens cifrados aparecem em log        | Bug de redaction                                                                                     | Inspecionar `pino` formatter; nunca logar o objeto `creds` direto.                                                              |
 
 ---
 

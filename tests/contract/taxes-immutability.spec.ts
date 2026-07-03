@@ -7,11 +7,7 @@
  * rate_bps, description, is_active, deleted_at PERMANECEM mutáveis (com audit).
  */
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  rlsClient,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
@@ -116,7 +112,10 @@ describe('Feature 011 — taxes immutability', () => {
 
   it('DELETE físico é rejeitado por enforce_append_only', async () => {
     const sb = rlsClient(adminJwt)
-    const { error } = await sb.from('taxes' as never).delete().eq('id', taxId)
+    const { error } = await sb
+      .from('taxes' as never)
+      .delete()
+      .eq('id', taxId)
     // DELETE foi REVOKED para authenticated; pode falhar como permission denied
     // antes mesmo do trigger. Ambos cenários são aceitáveis — o importante é
     // que nada seja efetivamente deletado.

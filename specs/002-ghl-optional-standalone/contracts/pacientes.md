@@ -16,7 +16,11 @@ z.object({
   cpf: cpfDigits,
   phone: z.string().trim().max(40).optional().nullable(),
   email: z.string().trim().email().max(200).optional().nullable(),
-  birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  birth_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
   plan_id: z.string().uuid().optional().nullable(),
 })
 ```
@@ -27,9 +31,7 @@ z.object({
 {
   "patient_id": "3b1c3c88-4e76-4f1c-95e8-8e33b9ab1d09",
   "ghl_contact_id": null,
-  "integrations_dispatched": [
-    { "provider": "ghl", "ok": true, "detail": "contact_created" }
-  ]
+  "integrations_dispatched": [{ "provider": "ghl", "ok": true, "detail": "contact_created" }]
 }
 ```
 

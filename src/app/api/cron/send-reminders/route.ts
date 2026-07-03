@@ -40,10 +40,7 @@ export async function POST(request: NextRequest) {
     logger.info(result, 'cron-reminders-done')
     return NextResponse.json(result, { status: 200 })
   } catch (err) {
-    logger.error(
-      { errorCode: err instanceof Error ? err.name : 'unknown' },
-      'cron-reminders-fatal',
-    )
+    logger.error({ errorCode: err instanceof Error ? err.name : 'unknown' }, 'cron-reminders-fatal')
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 })
   }
 }

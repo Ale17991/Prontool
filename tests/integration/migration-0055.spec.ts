@@ -14,17 +14,17 @@ import { serviceClient } from '@/tests/helpers/supabase-test-client'
 
 describe('migration 0055 — schema contract', () => {
   it('btree_gist extension is installed', async () => {
-    const { data, error } = await serviceClient().rpc('exec_sql' as never, {
-      sql: "SELECT extname FROM pg_extension WHERE extname='btree_gist'",
-    } as never)
+    const { data, error } = await serviceClient().rpc(
+      'exec_sql' as never,
+      {
+        sql: "SELECT extname FROM pg_extension WHERE extname='btree_gist'",
+      } as never,
+    )
     // Fallback: se RPC indisponivel, infere via insert teste em slot_locks.
     // O simples fato de a tabela appointment_slot_locks existir com EXCLUDE
     // ja prova que btree_gist foi necessaria pra criar o tipo.
     if (error) {
-      const probe = await serviceClient()
-        .from('appointment_slot_locks')
-        .select('id')
-        .limit(0)
+      const probe = await serviceClient().from('appointment_slot_locks').select('id').limit(0)
       expect(probe.error).toBeNull()
       return
     }

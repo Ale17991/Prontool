@@ -22,7 +22,12 @@ describe('Feature 011 — tenant isolation /api/impostos', () => {
     tenantB = (await seedTenant('imp-iso-b')).tenantId
     const adminA = await seedUser(tenantA, 'admin')
     const adminB = await seedUser(tenantB, 'admin')
-    adminAjwt = mintJwt({ userId: adminA.userId, email: adminA.email, tenantId: tenantA, role: 'admin' })
+    adminAjwt = mintJwt({
+      userId: adminA.userId,
+      email: adminA.email,
+      tenantId: tenantA,
+      role: 'admin',
+    })
 
     // Seed imposto APENAS no tenant B.
     const sb = serviceClient()

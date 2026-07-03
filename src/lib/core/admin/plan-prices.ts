@@ -61,7 +61,13 @@ export async function setPlanPrice(
   if (error) throw new Error(`setPlanPrice failed: ${error.message}`)
 
   logger.info(
-    { event: 'plan_price.changed', actor_id: actorId, plan, old_cents: oldCents, new_cents: priceCents },
+    {
+      event: 'plan_price.changed',
+      actor_id: actorId,
+      plan,
+      old_cents: oldCents,
+      new_cents: priceCents,
+    },
     'plan-price-changed',
   )
 }

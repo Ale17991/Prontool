@@ -18,7 +18,8 @@ const badgeVariants = cva(
         default: 'border-transparent bg-primary text-primary-foreground',
         secondary: 'border-transparent bg-slate-100 text-slate-700',
         success: 'border-transparent bg-success-bg text-success-text',
-        warning: 'border-transparent bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+        warning:
+          'border-transparent bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
         destructive: 'border-transparent bg-[hsl(var(--alert)/0.1)] text-[hsl(var(--alert))]',
         info: 'border-transparent bg-info-bg text-info-text',
         outline: 'text-foreground',
@@ -31,7 +32,8 @@ const badgeVariants = cva(
         fixo: 'border-transparent bg-[#FFF7ED] text-[#9A3412]',
         liberal: 'border-transparent bg-info-bg text-info-text',
         agendado: 'border-transparent bg-info-bg text-info-text',
-        pendente: 'border-transparent bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
+        pendente:
+          'border-transparent bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
         cancelado: 'border-transparent bg-slate-100 text-slate-600',
       },
     },
@@ -40,8 +42,7 @@ const badgeVariants = cva(
 )
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
 export function Badge({ className, variant, ...props }: BadgeProps) {
   return <div className={cn(badgeVariants({ variant }), className)} {...props} />

@@ -231,9 +231,11 @@ describe.skip('US2 — /api/configuracoes/integracoes/[provider] (GHL) — legac
       tenantId,
       role: 'recepcionista',
     })
-    const { GET: getDetail, POST, DELETE } = await import(
-      '@/app/api/configuracoes/integracoes/[provider]/route'
-    )
+    const {
+      GET: getDetail,
+      POST,
+      DELETE,
+    } = await import('@/app/api/configuracoes/integracoes/[provider]/route')
     const { GET: getList } = await import('@/app/api/configuracoes/integracoes/route')
 
     const listRes = await getList(

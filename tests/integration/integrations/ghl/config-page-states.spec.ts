@@ -115,9 +115,7 @@ describe('US4 — /api/configuracoes/integracoes/ghl + sync-log', () => {
 
   it('GET sem sessão → 401', async () => {
     const { GET } = await import('@/app/api/configuracoes/integracoes/ghl/route')
-    const res = await GET(
-      new Request('http://localhost/api/configuracoes/integracoes/ghl'),
-    )
+    const res = await GET(new Request('http://localhost/api/configuracoes/integracoes/ghl'))
     expect(res.status).toBe(401)
   })
 

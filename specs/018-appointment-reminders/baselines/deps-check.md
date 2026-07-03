@@ -18,6 +18,7 @@ Spec/plan/research mencionavam `date-fns-tz` "já presente" mas é falso premise
 ### Decisão
 
 Usar `Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', ... })` para formatar horários em TZ da clínica. Pattern já usado em:
+
 - `src/components/public-booking/slot-picker.tsx`
 - `src/components/public-booking/patient-form.tsx`
 - `src/lib/integrations/email/booking-template.ts` (feature 017)

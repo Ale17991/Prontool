@@ -5,11 +5,11 @@
 
 ## Rotas
 
-| Método | Path | Papéis | Descrição |
-|---|---|---|---|
-| GET | `/api/tarefas` | admin, financeiro, recepcionista, profissional_saude | Lista tarefas (admin todas; outros só suas) com filtros |
-| POST | `/api/tarefas` | admin, financeiro, recepcionista, profissional_saude | Cria tarefa (não-admin força `assigned_to=session.userId`) |
-| PATCH | `/api/tarefas/{id}` | admin, financeiro, recepcionista, profissional_saude | Concluir/reabrir, editar notas/prioridade, soft-delete (admin only) |
+| Método | Path                | Papéis                                               | Descrição                                                           |
+| ------ | ------------------- | ---------------------------------------------------- | ------------------------------------------------------------------- |
+| GET    | `/api/tarefas`      | admin, financeiro, recepcionista, profissional_saude | Lista tarefas (admin todas; outros só suas) com filtros             |
+| POST   | `/api/tarefas`      | admin, financeiro, recepcionista, profissional_saude | Cria tarefa (não-admin força `assigned_to=session.userId`)          |
+| PATCH  | `/api/tarefas/{id}` | admin, financeiro, recepcionista, profissional_saude | Concluir/reabrir, editar notas/prioridade, soft-delete (admin only) |
 
 `runtime = 'nodejs'`, `dynamic = 'force-dynamic'`.
 
@@ -78,12 +78,12 @@ const createTaskSchema = z.object({
 
 **Errors**
 
-| Status | Code | Quando |
-|---|---|---|
-| 400 | `INVALID_BODY` | Zod fail |
-| 401 | `UNAUTHENTICATED` | sem sessão |
-| 403 | `FORBIDDEN` | papel não autenticado (não deveria acontecer com 4 papéis aceitos) |
-| 404 | `USER_NOT_FOUND` | `assigned_to` não pertence ao tenant |
+| Status | Code              | Quando                                                             |
+| ------ | ----------------- | ------------------------------------------------------------------ |
+| 400    | `INVALID_BODY`    | Zod fail                                                           |
+| 401    | `UNAUTHENTICATED` | sem sessão                                                         |
+| 403    | `FORBIDDEN`       | papel não autenticado (não deveria acontecer com 4 papéis aceitos) |
+| 404    | `USER_NOT_FOUND`  | `assigned_to` não pertence ao tenant                               |
 
 **Side effects**: 1 row em `audit_log` (`entity='tasks'`, `field='created'`).
 
@@ -94,15 +94,18 @@ const createTaskSchema = z.object({
 **Body schema (Zod)** — todos opcionais; pelo menos 1 obrigatório
 
 ```ts
-const patchTaskSchema = z.object({
-  status: z.enum(['pendente', 'concluida']).optional(),
-  notes: z.string().trim().max(1000).nullable().optional(),
-  priority: z.enum(['baixa', 'normal', 'alta', 'urgente']).optional(),
-  soft_delete: z.literal(true).optional(),  // admin only — aciona deleted_at = now()
-}).refine((d) => Object.keys(d).length > 0, { message: 'pelo menos um campo' })
+const patchTaskSchema = z
+  .object({
+    status: z.enum(['pendente', 'concluida']).optional(),
+    notes: z.string().trim().max(1000).nullable().optional(),
+    priority: z.enum(['baixa', 'normal', 'alta', 'urgente']).optional(),
+    soft_delete: z.literal(true).optional(), // admin only — aciona deleted_at = now()
+  })
+  .refine((d) => Object.keys(d).length > 0, { message: 'pelo menos um campo' })
 ```
 
 **Lógica**:
+
 - `status='concluida'`: handler injeta `completed_at=now()`, `completed_by=session.userId`.
 - `status='pendente'`: handler injeta `completed_at=NULL`, `completed_by=NULL` (reabertura).
 - `soft_delete=true`: **admin only**; injeta `deleted_at=now()`, `deleted_by=session.userId`.
@@ -111,12 +114,12 @@ const patchTaskSchema = z.object({
 
 **Errors**
 
-| Status | Code | Quando |
-|---|---|---|
-| 400 | `INVALID_BODY` | Zod fail |
-| 401 | `UNAUTHENTICATED` | sem sessão |
-| 403 | `FORBIDDEN` | papel != admin tentando soft_delete |
-| 404 | `TASK_NOT_FOUND` | id não existe ou cross-tenant ou RLS oculta (não responsável) |
+| Status | Code              | Quando                                                        |
+| ------ | ----------------- | ------------------------------------------------------------- |
+| 400    | `INVALID_BODY`    | Zod fail                                                      |
+| 401    | `UNAUTHENTICATED` | sem sessão                                                    |
+| 403    | `FORBIDDEN`       | papel != admin tentando soft_delete                           |
+| 404    | `TASK_NOT_FOUND`  | id não existe ou cross-tenant ou RLS oculta (não responsável) |
 
 **Side effects**: linha(s) em `audit_log` via trigger `audit_tasks_change`.
 
@@ -124,10 +127,10 @@ const patchTaskSchema = z.object({
 
 ## Testes de contrato exigidos
 
-| Arquivo | Cenários |
-|---|---|
-| `tests/contract/api-tarefas-rbac.spec.ts` | 4 papéis × 3 ações; admin pode criar para qualquer; não-admin tem `assigned_to` forçado |
-| `tests/contract/api-tarefas-tenant-isolation.spec.ts` | tenant A não vê/altera task de tenant B → 404 |
-| `tests/contract/api-tarefas-validation.spec.ts` | Zod boundary (title 0/201 chars, due_date inválida, priority inválida) |
-| `tests/contract/tasks-immutability.spec.ts` | UPDATE title/due_date/assigned_to bloqueado pelo trigger; status/notes permitido |
-| `tests/integration/tasks-crud.spec.ts` | Fluxo CRUD completo (admin + recepcionista) + audit_log com 4 reasons (created/completed/reopened/soft-deleted) |
+| Arquivo                                               | Cenários                                                                                                        |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `tests/contract/api-tarefas-rbac.spec.ts`             | 4 papéis × 3 ações; admin pode criar para qualquer; não-admin tem `assigned_to` forçado                         |
+| `tests/contract/api-tarefas-tenant-isolation.spec.ts` | tenant A não vê/altera task de tenant B → 404                                                                   |
+| `tests/contract/api-tarefas-validation.spec.ts`       | Zod boundary (title 0/201 chars, due_date inválida, priority inválida)                                          |
+| `tests/contract/tasks-immutability.spec.ts`           | UPDATE title/due_date/assigned_to bloqueado pelo trigger; status/notes permitido                                |
+| `tests/integration/tasks-crud.spec.ts`                | Fluxo CRUD completo (admin + recepcionista) + audit_log com 4 reasons (created/completed/reopened/soft-deleted) |

@@ -209,7 +209,9 @@ export async function reapresentarGuia(args: ReapresentarArgs): Promise<Reaprese
   // Clona as linhas de procedimento.
   const { data: lines } = await supabase
     .from('tiss_guia_procedures')
-    .select('sequence, tuss_table, procedure_code, description, quantity, unit_amount_cents, total_amount_cents, tuss_code_id')
+    .select(
+      'sequence, tuss_table, procedure_code, description, quantity, unit_amount_cents, total_amount_cents, tuss_code_id',
+    )
     .eq('guia_id', orig.id)
     .order('sequence', { ascending: true })
   const rows = (lines ?? []).map((l) => ({

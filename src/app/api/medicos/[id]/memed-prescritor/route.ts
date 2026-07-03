@@ -43,7 +43,10 @@ export async function POST(
       ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
       userAgent: req.headers.get('user-agent'),
     })
-    return NextResponse.json({ status: result.status, external_id: result.externalId }, { status: 200 })
+    return NextResponse.json(
+      { status: result.status, external_id: result.externalId },
+      { status: 200 },
+    )
   } catch (err) {
     return toHttpResponse(err, { route })
   }

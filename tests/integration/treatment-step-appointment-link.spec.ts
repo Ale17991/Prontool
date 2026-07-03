@@ -102,8 +102,16 @@ describe('treatment step <-> appointment link (US2)', () => {
 
   it('(c) marcar etapa como concluida cria appointment_completion + view fica ativo', async () => {
     const sb = serviceClient()
-    const price = await sb.from('price_versions').select('id, amount_cents').eq('procedure_id', procedureId).single()
-    const commission = await sb.from('doctor_commission_history').select('id, percentage_bps').eq('doctor_id', doctorId).single()
+    const price = await sb
+      .from('price_versions')
+      .select('id, amount_cents')
+      .eq('procedure_id', procedureId)
+      .single()
+    const commission = await sb
+      .from('doctor_commission_history')
+      .select('id, percentage_bps')
+      .eq('doctor_id', doctorId)
+      .single()
 
     const rpc = await sb.rpc('create_step_with_appointment', {
       p_tenant_id: tenantId,
@@ -129,7 +137,11 @@ describe('treatment step <-> appointment link (US2)', () => {
     // Marca a etapa como concluida
     const upd = await sb
       .from('treatment_plan_steps')
-      .update({ status: 'concluido', completed_at: new Date().toISOString(), completed_by: createdBy })
+      .update({
+        status: 'concluido',
+        completed_at: new Date().toISOString(),
+        completed_by: createdBy,
+      })
       .eq('id', row.step_id)
     expect(upd.error).toBeNull()
 
@@ -152,8 +164,16 @@ describe('treatment step <-> appointment link (US2)', () => {
 
   it('(e) mark_appointment_realized -> sync step.status=concluido', async () => {
     const sb = serviceClient()
-    const price = await sb.from('price_versions').select('id, amount_cents').eq('procedure_id', procedureId).single()
-    const commission = await sb.from('doctor_commission_history').select('id, percentage_bps').eq('doctor_id', doctorId).single()
+    const price = await sb
+      .from('price_versions')
+      .select('id, amount_cents')
+      .eq('procedure_id', procedureId)
+      .single()
+    const commission = await sb
+      .from('doctor_commission_history')
+      .select('id, percentage_bps')
+      .eq('doctor_id', doctorId)
+      .single()
 
     const rpc = await sb.rpc('create_step_with_appointment', {
       p_tenant_id: tenantId,
@@ -196,8 +216,16 @@ describe('treatment step <-> appointment link (US2)', () => {
 
   it('(f) estornar appointment -> sync step.status=cancelado + libera slot', async () => {
     const sb = serviceClient()
-    const price = await sb.from('price_versions').select('id, amount_cents').eq('procedure_id', procedureId).single()
-    const commission = await sb.from('doctor_commission_history').select('id, percentage_bps').eq('doctor_id', doctorId).single()
+    const price = await sb
+      .from('price_versions')
+      .select('id, amount_cents')
+      .eq('procedure_id', procedureId)
+      .single()
+    const commission = await sb
+      .from('doctor_commission_history')
+      .select('id, percentage_bps')
+      .eq('doctor_id', doctorId)
+      .single()
 
     const rpc = await sb.rpc('create_step_with_appointment', {
       p_tenant_id: tenantId,
@@ -232,7 +260,11 @@ describe('treatment step <-> appointment link (US2)', () => {
     expect(reversal.error).toBeNull()
 
     // Step ficou cancelado
-    const step = await sb.from('treatment_plan_steps').select('status').eq('id', row.step_id).single()
+    const step = await sb
+      .from('treatment_plan_steps')
+      .select('status')
+      .eq('id', row.step_id)
+      .single()
     expect(step.data?.status).toBe('cancelado')
 
     // Slot lock liberado

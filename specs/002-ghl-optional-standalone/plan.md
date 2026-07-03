@@ -37,15 +37,15 @@ Ordem de entrega:
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Aplicação nesta feature | Status |
-|-----------|-------------------------|--------|
-| **I. Integridade Financeira Imutável** | Atendimentos manuais seguem INSERT append-only em `appointments`; estornos via rota existente. Event bus **observa** criação (após commit), nunca muta histórico. | ✅ PASS |
+| Princípio                              | Aplicação nesta feature                                                                                                                                                                                                                                                | Status  |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| **I. Integridade Financeira Imutável** | Atendimentos manuais seguem INSERT append-only em `appointments`; estornos via rota existente. Event bus **observa** criação (após commit), nunca muta histórico.                                                                                                      | ✅ PASS |
 | **II. Auditabilidade Total de Preços** | Eventos `integration.connect`/`disconnect`/`reconfigure` em `audit_log` (provider-agnóstico, com campo `provider` no payload). Falhas de sync vão para `alerts` com `provider` no `detail`. Override de preço em atendimento manual gera `appointment.price_override`. | ✅ PASS |
-| **III. Isolamento Multi-Tenant** | `tenant_integrations` tem RLS `tenant_id = current_tenant_id()` e `admin` write. Dispatcher sempre filtra por `tenant_id` da sessão ao fan-out. Adapter recebe `AdapterContext { tenantId, config, credentials }` — não tem acesso a outros tenants. | ✅ PASS |
-| **IV. Conformidade TUSS/ANS** | Fluxo manual valida via `resolvePrice` → `TussCodeRetiredError`. Adapters inbound (webhook → atendimento) continuam passando pelo mesmo validador. | ✅ PASS |
-| **V. RBAC** | `admin` only para `/api/configuracoes/integracoes/[provider]`. `admin`+`recepcionista` para `/api/atendimentos/manual`. Negações em `audit_log`. | ✅ PASS |
+| **III. Isolamento Multi-Tenant**       | `tenant_integrations` tem RLS `tenant_id = current_tenant_id()` e `admin` write. Dispatcher sempre filtra por `tenant_id` da sessão ao fan-out. Adapter recebe `AdapterContext { tenantId, config, credentials }` — não tem acesso a outros tenants.                   | ✅ PASS |
+| **IV. Conformidade TUSS/ANS**          | Fluxo manual valida via `resolvePrice` → `TussCodeRetiredError`. Adapters inbound (webhook → atendimento) continuam passando pelo mesmo validador.                                                                                                                     | ✅ PASS |
+| **V. RBAC**                            | `admin` only para `/api/configuracoes/integracoes/[provider]`. `admin`+`recepcionista` para `/api/atendimentos/manual`. Negações em `audit_log`.                                                                                                                       | ✅ PASS |
 
 **Resultado**: GATE PASS. Nenhuma violação. Complexity Tracking abaixo fica vazio.
 
@@ -158,5 +158,5 @@ tests/
 > Nenhuma violação da constituição a justificar. A abstração do adapter registry é um **design principle**, não um desvio — ela simplifica o core ao invés de complicá-lo.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| —         | —          | —                                   |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |

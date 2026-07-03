@@ -20,15 +20,21 @@ const bodySchema = z.object({
   observacoes: z.string().trim().max(500).optional(),
 
   // ✨ NOVO
-  materiais: z.array(z.object({
-    tuss_code: z.string().min(1).max(20),
-    tuss_description: z.string().min(1).max(500),
-    quantity: z.number().int().positive().default(1),
-  })).max(50).optional(),
+  materiais: z
+    .array(
+      z.object({
+        tuss_code: z.string().min(1).max(20),
+        tuss_description: z.string().min(1).max(500),
+        quantity: z.number().int().positive().default(1),
+      }),
+    )
+    .max(50)
+    .optional(),
 })
 ```
 
 Diferenças vs. `/api/atendimentos/[id]/materiais`:
+
 - Aqui `materiais` é **opcional** (atendimento sem materiais é o caminho mais comum).
 - Não tem `min(1)` — array vazio é tratado como "sem materiais" (mesmo comportamento de ausência).
 
@@ -39,6 +45,7 @@ Diferenças vs. `/api/atendimentos/[id]/materiais`:
 ### Caminho A — sem materiais (caso comum)
 
 `materiais` ausente, `null` ou `[]`. Handler segue o caminho atual:
+
 1. `requireRole(['admin', 'recepcionista'])`.
 2. Validação Zod.
 3. `createAppointmentManually(supabase, input)` — INSERT direto na `appointments`.
@@ -48,6 +55,7 @@ Diferenças vs. `/api/atendimentos/[id]/materiais`:
 ### Caminho B — com materiais
 
 `materiais` é array com ≥ 1 item:
+
 1. `requireRole(['admin', 'recepcionista'])`.
 2. Validação Zod (incluindo cada material).
 3. **Pré-validação dos códigos TUSS no service** — verificar que cada `tuss_code` pertence à tabela 19 e está vigente. Falha → `400 MATERIAL_TUSS_INVALID` antes de tocar o banco. (Defesa redundante ao trigger SQL — feedback mais rápido ao cliente.)
@@ -81,6 +89,7 @@ A nova chave `materials_count` é adicionada **apenas quando `materiais` foi env
 Códigos existentes (`PATIENT_NOT_FOUND`, `PROCEDURE_NOT_FOUND`, `TUSS_CODE_UNKNOWN`, `APPOINTMENT_CONFLICT`, etc.) inalterados.
 
 Códigos novos quando `materiais` enviado:
+
 - `400 MATERIAL_TUSS_INVALID` — algum `tuss_code` enviado não pertence à tabela 19 ou não está vigente.
 - `400 MATERIAL_QUANTITY_INVALID` — quantity ≤ 0 (já capturado pelo Zod, mas service revalida como defesa).
 
@@ -89,6 +98,7 @@ Códigos novos quando `materiais` enviado:
 ## Atomicidade
 
 Garantida pelo RPC SQL (ver `data-model.md`). Cenários cobertos:
+
 - Falha no INSERT do appointment (FK, conflict, trigger) → nenhum material persiste.
 - Falha no INSERT de qualquer material (TUSS inválido, quantity zero, tenant mismatch) → appointment não persiste.
 - Falha de rede/timeout no meio → PostgreSQL desfaz a transação implícita.

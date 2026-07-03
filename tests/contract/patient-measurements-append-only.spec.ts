@@ -58,10 +58,7 @@ describe('Feature 030 — patient_measurements append-only + coerência', () => 
 
   it('DELETE é rejeitado mesmo via service-role (trigger)', async () => {
     const sb = serviceClient()
-    const { error } = await sb
-      .from('patient_measurements')
-      .delete()
-      .eq('id', measurementId)
+    const { error } = await sb.from('patient_measurements').delete().eq('id', measurementId)
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/DELETE not allowed/i)
   })

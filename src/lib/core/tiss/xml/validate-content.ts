@@ -80,17 +80,7 @@ const TABELA_VALIDOS = new Set(['18', '19', '20', '22', '90', '98', '00'])
 // dm_caraterAtendimento (dom. 23): 1 eletivo, 2 urgência/emergência.
 const CARATER_VALIDOS = new Set(['1', '2'])
 // dm_tipoAtendimento (dom. 50) — subconjunto enumerado no XSD 04.03.00.
-const TIPO_ATENDIMENTO_VALIDOS = new Set([
-  '01',
-  '02',
-  '03',
-  '04',
-  '08',
-  '09',
-  '10',
-  '13',
-  '23',
-])
+const TIPO_ATENDIMENTO_VALIDOS = new Set(['01', '02', '03', '04', '08', '09', '10', '13', '23'])
 
 function presente(v: string | null | undefined): boolean {
   return typeof v === 'string' && v.trim().length > 0
@@ -110,10 +100,16 @@ export function validateConsultaContent(draft: GuiaConsultaDraft): ValidationErr
     add('numeroGuiaPrestador', 'Número da guia no prestador é obrigatório.')
   }
   if (!presente(draft.numeroCarteira)) {
-    add('numeroCarteira', 'Número da carteira do beneficiário é obrigatório (cadastre a carteira da operadora).')
+    add(
+      'numeroCarteira',
+      'Número da carteira do beneficiário é obrigatório (cadastre a carteira da operadora).',
+    )
   }
   if (!presente(draft.contractedCode)) {
-    add('contratadoExecutante', 'Código do contratado na operadora é obrigatório (configuração TISS).')
+    add(
+      'contratadoExecutante',
+      'Código do contratado na operadora é obrigatório (configuração TISS).',
+    )
   }
   if (!presente(draft.cnes)) {
     add('CNES', "CNES é obrigatório (use '9999999' se não houver).")
@@ -122,7 +118,10 @@ export function validateConsultaContent(draft: GuiaConsultaDraft): ValidationErr
   // Profissional executante.
   const p = draft.profissional
   if (draft.contratadoIsPJ && !presente(p.nome)) {
-    add('profissionalExecutante.nome', 'Nome do profissional é obrigatório quando o contratado é pessoa jurídica.')
+    add(
+      'profissionalExecutante.nome',
+      'Nome do profissional é obrigatório quando o contratado é pessoa jurídica.',
+    )
   }
   if (!presente(p.conselhoCodigo)) {
     add(
@@ -144,13 +143,19 @@ export function validateConsultaContent(draft: GuiaConsultaDraft): ValidationErr
     )
   }
   if (!presente(p.cbo)) {
-    add('profissionalExecutante.CBOS', 'CBO do profissional é obrigatório (cadastre o CBO do médico).')
+    add(
+      'profissionalExecutante.CBOS',
+      'CBO do profissional é obrigatório (cadastre o CBO do médico).',
+    )
   } else if (!/^\d{6}$/.test(p.cbo!.trim())) {
     add('profissionalExecutante.CBOS', 'CBO deve ter 6 dígitos (domínio TISS 24).')
   }
 
   // Domínios de atendimento.
-  if (!presente(draft.indicacaoAcidente) || !INDICACAO_ACIDENTE_VALIDOS.has(draft.indicacaoAcidente!)) {
+  if (
+    !presente(draft.indicacaoAcidente) ||
+    !INDICACAO_ACIDENTE_VALIDOS.has(draft.indicacaoAcidente!)
+  ) {
     add('indicacaoAcidente', 'Indicação de acidente inválida (domínio 36: 0, 1, 2 ou 9).')
   }
   if (!presente(draft.regimeAtendimento) || !REGIME_VALIDOS.has(draft.regimeAtendimento!)) {
@@ -201,7 +206,10 @@ function validateEquipe(
   equipe.forEach((m, j) => {
     const mat = `${at}.equipe[${j}]`
     if (!presente(m.cpf) || !/^\d{11}$/.test(m.cpf!.trim())) {
-      add(`${mat}.cpfContratado`, `Participante ${m.nome ?? j + 1}: CPF ausente ou inválido (11 dígitos).`)
+      add(
+        `${mat}.cpfContratado`,
+        `Participante ${m.nome ?? j + 1}: CPF ausente ou inválido (11 dígitos).`,
+      )
     }
     if (!presente(m.nome)) {
       add(`${mat}.nomeProf`, 'Nome do participante é obrigatório.')
@@ -215,12 +223,17 @@ function validateEquipe(
       )
     }
     if (!presente(m.numeroConselho)) {
-      add(`${mat}.numeroConselhoProfissional`, 'Número de inscrição no conselho do participante é obrigatório.')
+      add(
+        `${mat}.numeroConselhoProfissional`,
+        'Número de inscrição no conselho do participante é obrigatório.',
+      )
     }
     if (!presente(m.ufCodigo)) {
       add(
         `${mat}.UF`,
-        m.ufRaw ? `UF "${m.ufRaw}" do participante não reconhecida (domínio TISS 59).` : 'UF do participante é obrigatória.',
+        m.ufRaw
+          ? `UF "${m.ufRaw}" do participante não reconhecida (domínio TISS 59).`
+          : 'UF do participante é obrigatória.',
       )
     }
     if (!presente(m.cbo)) {
@@ -267,13 +280,19 @@ export function validateSpSadtContent(draft: GuiaSpSadtDraft): ValidationError[]
     add('numeroGuiaPrestador', 'Número da guia no prestador é obrigatório.')
   }
   if (!presente(draft.numeroCarteira)) {
-    add('numeroCarteira', 'Número da carteira do beneficiário é obrigatório (cadastre a carteira da operadora).')
+    add(
+      'numeroCarteira',
+      'Número da carteira do beneficiário é obrigatório (cadastre a carteira da operadora).',
+    )
   }
   if (!presente(draft.contractedCode)) {
     add('contratado', 'Código do contratado na operadora é obrigatório (configuração TISS).')
   }
   if (!presente(draft.nomeContratado)) {
-    add('nomeContratadoSolicitante', 'Nome do contratado é obrigatório (preencha a razão social da clínica nas configurações).')
+    add(
+      'nomeContratadoSolicitante',
+      'Nome do contratado é obrigatório (preencha a razão social da clínica nas configurações).',
+    )
   }
   if (!presente(draft.cnes)) {
     add('CNES', "CNES é obrigatório (use '9999999' se não houver).")
@@ -281,7 +300,10 @@ export function validateSpSadtContent(draft: GuiaSpSadtDraft): ValidationError[]
 
   const p = draft.profissional
   if (draft.contratadoIsPJ && !presente(p.nome)) {
-    add('profissionalSolicitante.nome', 'Nome do profissional é obrigatório quando o contratado é pessoa jurídica.')
+    add(
+      'profissionalSolicitante.nome',
+      'Nome do profissional é obrigatório quando o contratado é pessoa jurídica.',
+    )
   }
   if (!presente(p.conselhoCodigo)) {
     add(
@@ -297,22 +319,33 @@ export function validateSpSadtContent(draft: GuiaSpSadtDraft): ValidationError[]
   if (!presente(p.ufCodigo)) {
     add(
       'profissionalSolicitante.UF',
-      p.ufRaw ? `UF do conselho "${p.ufRaw}" não reconhecida (domínio TISS 59).` : 'UF do conselho é obrigatória.',
+      p.ufRaw
+        ? `UF do conselho "${p.ufRaw}" não reconhecida (domínio TISS 59).`
+        : 'UF do conselho é obrigatória.',
     )
   }
   if (!presente(p.cbo)) {
-    add('profissionalSolicitante.CBOS', 'CBO do profissional é obrigatório (cadastre o CBO do médico).')
+    add(
+      'profissionalSolicitante.CBOS',
+      'CBO do profissional é obrigatório (cadastre o CBO do médico).',
+    )
   } else if (!/^\d{6}$/.test(p.cbo!.trim())) {
     add('profissionalSolicitante.CBOS', 'CBO deve ter 6 dígitos (domínio TISS 24).')
   }
 
   if (!presente(draft.caraterAtendimento) || !CARATER_VALIDOS.has(draft.caraterAtendimento!)) {
-    add('caraterAtendimento', 'Caráter do atendimento inválido (domínio 23: 1 eletivo ou 2 urgência).')
+    add(
+      'caraterAtendimento',
+      'Caráter do atendimento inválido (domínio 23: 1 eletivo ou 2 urgência).',
+    )
   }
   if (!presente(draft.tipoAtendimento) || !TIPO_ATENDIMENTO_VALIDOS.has(draft.tipoAtendimento!)) {
     add('tipoAtendimento', 'Tipo de atendimento inválido (domínio 50).')
   }
-  if (!presente(draft.indicacaoAcidente) || !INDICACAO_ACIDENTE_VALIDOS.has(draft.indicacaoAcidente!)) {
+  if (
+    !presente(draft.indicacaoAcidente) ||
+    !INDICACAO_ACIDENTE_VALIDOS.has(draft.indicacaoAcidente!)
+  ) {
     add('indicacaoAcidente', 'Indicação de acidente inválida (domínio 36: 0, 1, 2 ou 9).')
   }
   if (!presente(draft.regimeAtendimento) || !REGIME_VALIDOS.has(draft.regimeAtendimento!)) {

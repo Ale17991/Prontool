@@ -4,10 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle, ChevronDown, ChevronUp, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PatientQuickView } from './patient-quick-view'
-import type {
-  QuickViewSnapshot,
-  SheetKind,
-} from '@/lib/core/patient-timeline'
+import type { QuickViewSnapshot, SheetKind } from '@/lib/core/patient-timeline'
 
 interface Props {
   patientId: string
@@ -67,9 +64,7 @@ export function MobileQuickViewHeader({
             {identity.isAnonymized ? '[anonimizado]' : identity.fullName || '—'}
           </p>
           <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">
-            {identity.ageYears !== null
-              ? `${identity.ageYears} anos`
-              : 'Detalhes do paciente'}
+            {identity.ageYears !== null ? `${identity.ageYears} anos` : 'Detalhes do paciente'}
           </p>
         </div>
         {hasGraveAllergy && !identity.isAnonymized ? (
@@ -83,11 +78,7 @@ export function MobileQuickViewHeader({
           </span>
         ) : null}
         <span className="shrink-0 text-slate-400">
-          {expanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </span>
       </button>
 

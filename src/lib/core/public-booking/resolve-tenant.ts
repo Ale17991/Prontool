@@ -24,16 +24,17 @@ export async function resolveTenantBySlug(
   if (error) {
     throw new Error(`resolveTenantBySlug failed: ${error.message}`)
   }
-  const rows = (data as unknown as Array<{
-    tenant_id: string
-    display_name: string
-    logo_path: string | null
-    phone: string | null
-    address_line: string | null
-    min_hours_advance: number
-    max_days_advance: number
-    cancel_min_hours: number
-  }> | null) ?? []
+  const rows =
+    (data as unknown as Array<{
+      tenant_id: string
+      display_name: string
+      logo_path: string | null
+      phone: string | null
+      address_line: string | null
+      min_hours_advance: number
+      max_days_advance: number
+      cancel_min_hours: number
+    }> | null) ?? []
   const row = rows[0]
   if (!row) return null
   return {

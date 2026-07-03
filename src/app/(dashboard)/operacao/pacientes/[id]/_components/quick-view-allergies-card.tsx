@@ -16,10 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import type {
-  AllergySeverity,
-  PatientAllergyDTO,
-} from '@/lib/core/patient-medical/allergies'
+import type { AllergySeverity, PatientAllergyDTO } from '@/lib/core/patient-medical/allergies'
 
 interface Props {
   patientId: string
@@ -52,19 +49,13 @@ export function QuickViewAllergiesCard({ patientId, initial, canWrite }: Props) 
   }
 
   return (
-    <Card
-      className={cn(
-        hasGrave ? 'border-destructive/40 bg-destructive/5' : '',
-      )}
-    >
+    <Card className={cn(hasGrave ? 'border-destructive/40 bg-destructive/5' : '')}>
       <CardContent className="space-y-2 p-3">
         <div className="flex items-center gap-1.5">
           <AlertTriangle
             className={cn(
               'h-3.5 w-3.5',
-              hasGrave
-                ? 'text-destructive'
-                : 'text-[hsl(var(--alert))]',
+              hasGrave ? 'text-destructive' : 'text-[hsl(var(--alert))]',
             )}
           />
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
@@ -77,11 +68,7 @@ export function QuickViewAllergiesCard({ patientId, initial, canWrite }: Props) 
               aria-label={showForm ? 'Cancelar' : 'Adicionar alergia'}
               className="ml-auto inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100"
             >
-              {showForm ? (
-                <X className="h-3 w-3" />
-              ) : (
-                <Plus className="h-3 w-3" />
-              )}
+              {showForm ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
             </button>
           ) : null}
         </div>
@@ -97,9 +84,7 @@ export function QuickViewAllergiesCard({ patientId, initial, canWrite }: Props) 
         ) : null}
 
         {allergies.length === 0 ? (
-          <p className="text-[11px] text-slate-500">
-            Sem alergias conhecidas.
-          </p>
+          <p className="text-[11px] text-slate-500">Sem alergias conhecidas.</p>
         ) : (
           <ul className="space-y-1">
             {allergies.map((a) => (
@@ -135,10 +120,9 @@ function AllergyChip({
     if (!confirm(`Remover alergia: ${allergy.substance}?`)) return
     setPending(true)
     try {
-      const res = await fetch(
-        `/api/pacientes/${patientId}/alergias/${allergy.id}`,
-        { method: 'DELETE' },
-      )
+      const res = await fetch(`/api/pacientes/${patientId}/alergias/${allergy.id}`, {
+        method: 'DELETE',
+      })
       if (res.ok) await onDeleted()
     } finally {
       setPending(false)
@@ -165,11 +149,7 @@ function AllergyChip({
           aria-label={`Remover ${allergy.substance}`}
           className="ml-auto inline-flex h-4 w-4 shrink-0 items-center justify-center rounded text-current opacity-60 hover:opacity-100"
         >
-          {pending ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <X className="h-3 w-3" />
-          )}
+          {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
         </button>
       ) : null}
     </li>
@@ -243,10 +223,7 @@ function NewAllergyForm({
       </div>
       <div className="space-y-1">
         <Label className="text-[10px]">Severidade</Label>
-        <Select
-          value={severity}
-          onValueChange={(v) => setSeverity(v as AllergySeverity)}
-        >
+        <Select value={severity} onValueChange={(v) => setSeverity(v as AllergySeverity)}>
           <SelectTrigger className="h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -273,17 +250,8 @@ function NewAllergyForm({
           {error}
         </p>
       ) : null}
-      <Button
-        type="submit"
-        size="sm"
-        disabled={pending}
-        className="h-7 w-full gap-1.5 text-[11px]"
-      >
-        {pending ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : (
-          <Plus className="h-3 w-3" />
-        )}
+      <Button type="submit" size="sm" disabled={pending} className="h-7 w-full gap-1.5 text-[11px]">
+        {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
         Adicionar
       </Button>
     </form>

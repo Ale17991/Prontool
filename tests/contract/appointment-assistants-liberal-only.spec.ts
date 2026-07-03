@@ -65,29 +65,35 @@ describe('Feature 013 — check_assistant_doctor_is_liberal', () => {
       commissionId: (comm as unknown as { id: string }).id,
       amountCents: 20000,
       commissionBps: 3000,
+      completed: true, // equipe só existe em atendimento realizado ('ativo')
     })
   })
 
-  it('Anexar comissionado como assistente é REJEITADO com ASSISTANT_NOT_LIBERAL', async () => {
+  // Feature 031 (migration 0128) RELAXOU a trava "só liberal": participante
+  // pode ser de qualquer payment_mode (comissionado/fixo/liberal), desde que
+  // médico ATIVO do tenant. Os casos abaixo, antes rejeitados, agora são aceitos.
+  it('Anexar comissionado como assistente é ACEITO (feature 031 relaxou liberal-only)', async () => {
     const sb = serviceClient()
-    const { error } = await sb.rpc('attach_assistant_to_appointment', {
+    const { data, error } = await sb.rpc('attach_assistant_to_appointment', {
       p_appointment_id: appointmentId,
       p_assistant_doctor_id: comissionadoId,
       p_amount_cents: 35000,
       p_actor: actorId,
     } as never)
-    expect(error?.message).toMatch(/ASSISTANT_NOT_LIBERAL/)
+    expect(error).toBeNull()
+    expect(data).toBeTruthy()
   })
 
-  it('Anexar fixo como assistente é REJEITADO com ASSISTANT_NOT_LIBERAL', async () => {
+  it('Anexar fixo como assistente é ACEITO (feature 031 relaxou liberal-only)', async () => {
     const sb = serviceClient()
-    const { error } = await sb.rpc('attach_assistant_to_appointment', {
+    const { data, error } = await sb.rpc('attach_assistant_to_appointment', {
       p_appointment_id: appointmentId,
       p_assistant_doctor_id: fixoId,
       p_amount_cents: 35000,
       p_actor: actorId,
     } as never)
-    expect(error?.message).toMatch(/ASSISTANT_NOT_LIBERAL/)
+    expect(error).toBeNull()
+    expect(data).toBeTruthy()
   })
 
   it('Anexar liberal como assistente é ACEITO', async () => {

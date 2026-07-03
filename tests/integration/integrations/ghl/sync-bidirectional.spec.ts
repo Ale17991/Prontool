@@ -137,11 +137,7 @@ describe('US3 — sync bidirecional via adapter v2', () => {
     expect(capturedBody.customFields.find((f: any) => f.id === 'cf_cpf')).toBeDefined()
 
     // ghl_contact_id persistido.
-    const updated = await sb
-      .from('patients')
-      .select('ghl_contact_id')
-      .eq('id', patientId)
-      .single()
+    const updated = await sb.from('patients').select('ghl_contact_id').eq('id', patientId).single()
     expect(updated.data?.ghl_contact_id).toBe('ghl_contact_us3_ok')
 
     // Sync log success.
@@ -149,7 +145,9 @@ describe('US3 — sync bidirecional via adapter v2', () => {
       .from('integration_sync_log')
       .select('kind, status')
       .eq('tenant_id', tenantId)
-    expect(log.data?.some((r) => r.kind === 'outbound_contact' && r.status === 'success')).toBe(true)
+    expect(log.data?.some((r) => r.kind === 'outbound_contact' && r.status === 'success')).toBe(
+      true,
+    )
   })
 
   it('appointment.created → POST /contacts/{id}/notes com formato esperado', async () => {

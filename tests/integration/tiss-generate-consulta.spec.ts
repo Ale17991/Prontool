@@ -33,10 +33,7 @@ import { validateTissXml } from '@/lib/core/tiss/validate'
 const TUSS_CODE = '10101012'
 const AMOUNT = 25000
 
-async function seedDecryptablePatient(
-  sb: SupabaseClient,
-  tenantId: string,
-): Promise<string> {
+async function seedDecryptablePatient(sb: SupabaseClient, tenantId: string): Promise<string> {
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY as string
   const enc = async (plain: string) => {
     const { data } = await sb.rpc('enc_text_with_key', { plain, key })

@@ -85,7 +85,8 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
       }
       const code = body.error?.code
       if (code === 'USER_ALREADY_ACTIVE') setError('Esse e-mail já está vinculado à clínica.')
-      else if (code === 'DOCTOR_ALREADY_LINKED') setError('Este profissional já tem login vinculado.')
+      else if (code === 'DOCTOR_ALREADY_LINKED')
+        setError('Este profissional já tem login vinculado.')
       else if (code === 'DOCTOR_NOT_FOUND') setError('Profissional não encontrado nesta clínica.')
       else setError(body.error?.message ?? `HTTP ${res.status}`)
     } catch (err) {
@@ -103,27 +104,62 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <Label htmlFor="m-name" className="text-xs">Nome completo</Label>
-            <Input id="m-name" required value={fullName} onChange={(e) => setFullName(e.target.value)} autoFocus />
+            <Label htmlFor="m-name" className="text-xs">
+              Nome completo
+            </Label>
+            <Input
+              id="m-name"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              autoFocus
+            />
           </div>
           <div>
-            <Label htmlFor="m-email" className="text-xs">E-mail</Label>
-            <Input id="m-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Label htmlFor="m-email" className="text-xs">
+              E-mail
+            </Label>
+            <Input
+              id="m-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
             <p className="mt-0.5 text-[10px] text-slate-500">Será o login do usuário.</p>
           </div>
           <div>
-            <Label htmlFor="m-pwd" className="text-xs">Senha inicial</Label>
-            <Input id="m-pwd" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Label htmlFor="m-pwd" className="text-xs">
+              Senha inicial
+            </Label>
+            <Input
+              id="m-pwd"
+              type="password"
+              required
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
             <p className="mt-0.5 text-[10px] text-slate-500">
-              Mínimo 8 caracteres. Comunique ao usuário para trocar depois em &quot;Meu Perfil&quot;.
+              Mínimo 8 caracteres. Comunique ao usuário para trocar depois em &quot;Meu
+              Perfil&quot;.
             </p>
           </div>
           <div>
-            <Label htmlFor="m-phone" className="text-xs">Telefone (opcional)</Label>
-            <Input id="m-phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} />
+            <Label htmlFor="m-phone" className="text-xs">
+              Telefone (opcional)
+            </Label>
+            <Input
+              id="m-phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              maxLength={40}
+            />
           </div>
           <div>
-            <Label htmlFor="m-role" className="text-xs">Função</Label>
+            <Label htmlFor="m-role" className="text-xs">
+              Função
+            </Label>
             <select
               id="m-role"
               value={role}
@@ -148,14 +184,17 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
             <span>
               <span className="font-semibold text-slate-900">Vincular a profissional</span>
               <span className="block text-slate-500">
-                Associa o login a um profissional cadastrado (para comissões e relatórios &quot;meus atendimentos&quot;).
+                Associa o login a um profissional cadastrado (para comissões e relatórios &quot;meus
+                atendimentos&quot;).
               </span>
             </span>
           </label>
 
           {linkDoctor ? (
             <div>
-              <Label htmlFor="m-doctor" className="text-xs">Profissional vinculado</Label>
+              <Label htmlFor="m-doctor" className="text-xs">
+                Profissional vinculado
+              </Label>
               <select
                 id="m-doctor"
                 value={doctorId}
@@ -171,7 +210,8 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
               </select>
               {doctors.length === 0 ? (
                 <p className="mt-0.5 text-[10px] text-[hsl(var(--warning-foreground))]">
-                  Nenhum profissional disponível (todos já têm login vinculado ou não há profissionais cadastrados).
+                  Nenhum profissional disponível (todos já têm login vinculado ou não há
+                  profissionais cadastrados).
                 </p>
               ) : null}
             </div>
@@ -184,7 +224,12 @@ export function ManualUserDialog({ open, onOpenChange, onSuccess }: Props) {
           ) : null}
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={pending || (linkDoctor && !doctorId)}>

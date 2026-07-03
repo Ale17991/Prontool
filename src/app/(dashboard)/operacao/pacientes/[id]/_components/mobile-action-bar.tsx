@@ -2,10 +2,7 @@
 
 import { Heart, NotebookPen, Printer, Stethoscope } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type {
-  QuickViewPermissions,
-  SheetKind,
-} from '@/lib/core/patient-timeline'
+import type { QuickViewPermissions, SheetKind } from '@/lib/core/patient-timeline'
 
 interface Props {
   permissions: QuickViewPermissions
@@ -19,32 +16,33 @@ interface Props {
  * home indicator.
  */
 export function MobileActionBar({ permissions, onOpenSheet, onPrint }: Props) {
-  const actions: Array<{ icon: typeof Heart; label: string; onClick: () => void; show: boolean }> = [
-    {
-      icon: NotebookPen,
-      label: 'Evolução',
-      onClick: () => onOpenSheet('new-evolution'),
-      show: permissions.canCreateEvolution,
-    },
-    {
-      icon: Stethoscope,
-      label: 'Diagnóstico',
-      onClick: () => onOpenSheet('new-diagnosis'),
-      show: permissions.canCreateDiagnosis,
-    },
-    {
-      icon: Heart,
-      label: 'Vital',
-      onClick: () => onOpenSheet('new-vital'),
-      show: permissions.canCreateVital,
-    },
-    {
-      icon: Printer,
-      label: 'Imprimir',
-      onClick: onPrint,
-      show: permissions.canPrint,
-    },
-  ]
+  const actions: Array<{ icon: typeof Heart; label: string; onClick: () => void; show: boolean }> =
+    [
+      {
+        icon: NotebookPen,
+        label: 'Evolução',
+        onClick: () => onOpenSheet('new-evolution'),
+        show: permissions.canCreateEvolution,
+      },
+      {
+        icon: Stethoscope,
+        label: 'Diagnóstico',
+        onClick: () => onOpenSheet('new-diagnosis'),
+        show: permissions.canCreateDiagnosis,
+      },
+      {
+        icon: Heart,
+        label: 'Vital',
+        onClick: () => onOpenSheet('new-vital'),
+        show: permissions.canCreateVital,
+      },
+      {
+        icon: Printer,
+        label: 'Imprimir',
+        onClick: onPrint,
+        show: permissions.canPrint,
+      },
+    ]
 
   const visible = actions.filter((a) => a.show)
   if (visible.length === 0) return null

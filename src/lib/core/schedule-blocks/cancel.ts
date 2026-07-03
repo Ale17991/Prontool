@@ -34,11 +34,9 @@ export async function cancelScheduleBlock(
     return
   }
   if (input.restrictToDoctorId && row.doctor_id !== input.restrictToDoctorId) {
-    throw new DomainError(
-      'FORBIDDEN',
-      'Você só pode cancelar bloqueios da sua própria agenda.',
-      { status: 403 },
-    )
+    throw new DomainError('FORBIDDEN', 'Você só pode cancelar bloqueios da sua própria agenda.', {
+      status: 403,
+    })
   }
 
   const upd = await supabase

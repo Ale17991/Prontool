@@ -1,6 +1,5 @@
 ---
-
-description: "Task list for 016 Designer Palette Rollout"
+description: 'Task list for 016 Designer Palette Rollout'
 ---
 
 # Tasks: Rollout da Paleta Híbrida do Designer
@@ -99,7 +98,7 @@ description: "Task list for 016 Designer Palette Rollout"
 
 **Independent Test**: inspeção em `globals.css`: cada token semântico existe com seu foreground; `--accent` ≠ `--secondary` visualmente; cada par cor/foreground tem contraste ≥ 4.5:1.
 
-> **Nota**: a *criação* dos tokens já aconteceu na Phase 2 (Foundational). Esta phase faz a **auditoria/validação** prometida pela US3.
+> **Nota**: a _criação_ dos tokens já aconteceu na Phase 2 (Foundational). Esta phase faz a **auditoria/validação** prometida pela US3.
 
 - [x] T030 [US3] Validar contraste com cálculo programático WCAG; 17 pares verificados em `visual-validation/contrast-audit.md` — todos PASS; amostra de 20 pares aleatórios marcada como pendência manual em DevTools (axe)
 - [~] T031 [US3] Inspeção visual de `--accent` distinto de `--secondary` em shadcn — **manual, pendente**
@@ -273,6 +272,7 @@ Por se tratar de UI pura sem risco de regressão de domínio, recomenda-se entre
 ### Atalho mínimo viável (se prazo apertar)
 
 Se houver pressão para entregar só o essencial:
+
 - **MVP absoluto**: Setup + Foundational + **US2** (status badge) = mais impacto visual com menor superfície tocada.
 - US5 (sidebar) é o segundo mais visível.
 - US3, US4, US6 podem aguardar follow-up.

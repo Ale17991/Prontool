@@ -30,7 +30,7 @@
 
 ---
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Identidade visual do designer aplicada ao produto (Priority: P1)
 
@@ -151,7 +151,7 @@ Um médico abre o sistema em conexão lenta no consultório. Hoje, Inter é baix
 - **White-label futuro por tenant**: a estrutura por CSS variables HSL precisa continuar permitindo override por tenant, mesmo que o feature não implemente isso agora.
 - **Fim de truncamento do input do usuário**: a Feature 6 do input foi entregue parcial (terminou em `text #05494` na linha de "Concluído"). Estados restantes do badge (em atendimento, no-show, cancelado, estornado) foram inferidos por extensão lógica da paleta do designer e do mapping do spec 015 — **inferência confirmada pelo usuário em 2026-05-18 (Clarifications)**, FR-022 fica como está.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -216,7 +216,7 @@ Um médico abre o sistema em conexão lenta no consultório. Hoje, Inter é baix
 - **FR-029**: Componentes shadcn/ui que consomem tokens MUST refletir automaticamente os novos valores, sem fork de componente.
 - **FR-030**: O sistema MUST passar typecheck após cada conjunto de mudanças.
 
-### Key Entities *(conceitos do design system)*
+### Key Entities _(conceitos do design system)_
 
 - **Paleta Híbrida do Designer**: O conjunto de oito hex codes em três famílias (azul institucional, verde accent, Blue 600 CTA), com papéis distintos. Fonte autoritativa de cor.
 - **Catálogo de Tokens Semânticos**: Conjunto de variáveis cromáticas nomeadas com função (success/warning/info/alert + variantes `*-bg`/`*-text`), além de primary/secondary/accent/destructive/muted/border/ring. Cada uma com foreground correspondente.
@@ -225,7 +225,7 @@ Um médico abre o sistema em conexão lenta no consultório. Hoje, Inter é baix
 - **Identidade Tipográfica**: Inter como fonte primária com features OpenType (`cv11`, `ss01`) e mecanismo de carregamento não bloqueante.
 - **Badge de Status de Atendimento**: Representação visual unificada do ciclo de vida de uma consulta — cor + ícone + label + padrão visual — cobrindo os sete estados de FR-022.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

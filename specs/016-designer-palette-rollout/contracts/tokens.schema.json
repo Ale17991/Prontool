@@ -14,7 +14,11 @@
         "--card-foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
         "--popover": { "format": "hsl-triple", "value": "0 0% 100%" },
         "--popover-foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
-        "--primary": { "format": "hsl-triple", "value": "217 91% 60%", "note": "Blue 600 — preserved as CTA per FR-003" },
+        "--primary": {
+          "format": "hsl-triple",
+          "value": "217 91% 60%",
+          "note": "Blue 600 — preserved as CTA per FR-003"
+        },
         "--primary-foreground": { "format": "hsl-triple", "value": "210 40% 98%" },
         "--secondary": { "format": "hsl-triple", "value": "210 40% 96%" },
         "--secondary-foreground": { "format": "hsl-triple", "value": "222 47% 11%" },
@@ -51,16 +55,36 @@
       "type": "object",
       "description": "New semantic tokens introduced in 016 (success/warning/info/alert + soft variants).",
       "properties": {
-        "--success": { "format": "hsl-triple", "value": "182 72% 40%", "hex_equivalent": "#1CABB0" },
+        "--success": {
+          "format": "hsl-triple",
+          "value": "182 72% 40%",
+          "hex_equivalent": "#1CABB0"
+        },
         "--success-foreground": { "format": "hsl-triple", "value": "0 0% 100%" },
-        "--success-bg": { "format": "hsl-triple", "value": "180 22% 84%", "hex_equivalent": "#CBE1E1" },
-        "--success-text": { "format": "hsl-triple", "value": "182 86% 16%", "hex_equivalent": "#05494B" },
+        "--success-bg": {
+          "format": "hsl-triple",
+          "value": "180 22% 84%",
+          "hex_equivalent": "#CBE1E1"
+        },
+        "--success-text": {
+          "format": "hsl-triple",
+          "value": "182 86% 16%",
+          "hex_equivalent": "#05494B"
+        },
         "--warning": { "format": "hsl-triple", "value": "38 92% 50%", "hex_equivalent": "#F59E0B" },
         "--warning-foreground": { "format": "hsl-triple", "value": "26 83% 14%" },
         "--info": { "format": "hsl-triple", "value": "204 49% 56%", "hex_equivalent": "#569AC6" },
         "--info-foreground": { "format": "hsl-triple", "value": "0 0% 100%" },
-        "--info-bg": { "format": "hsl-triple", "value": "204 80% 88%", "hex_equivalent": "#CBE6F8" },
-        "--info-text": { "format": "hsl-triple", "value": "205 73% 21%", "hex_equivalent": "#0E3C5B" },
+        "--info-bg": {
+          "format": "hsl-triple",
+          "value": "204 80% 88%",
+          "hex_equivalent": "#CBE6F8"
+        },
+        "--info-text": {
+          "format": "hsl-triple",
+          "value": "205 73% 21%",
+          "hex_equivalent": "#0E3C5B"
+        },
         "--alert": { "format": "hsl-triple", "value": "0 84% 60%", "hex_equivalent": "#DC2626" },
         "--alert-foreground": { "format": "hsl-triple", "value": "0 0% 100%" }
       }

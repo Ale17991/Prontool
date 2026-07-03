@@ -20,7 +20,15 @@ const FIELDS: Array<{ key: EyeField; label: string }> = [
   { key: 'dnp', label: 'DNP' },
 ]
 
-const emptyEye = (): Eye => ({ sphere: '', cylinder: '', axis: '', addition: '', prism: '', base: '', dnp: '' })
+const emptyEye = (): Eye => ({
+  sphere: '',
+  cylinder: '',
+  axis: '',
+  addition: '',
+  prism: '',
+  base: '',
+  dnp: '',
+})
 
 interface RxRow {
   id: string
@@ -30,7 +38,13 @@ interface RxRow {
   createdAt: string
 }
 
-export function EyeglassRxSection({ patientId, canWrite }: { patientId: string; canWrite: boolean }) {
+export function EyeglassRxSection({
+  patientId,
+  canWrite,
+}: {
+  patientId: string
+  canWrite: boolean
+}) {
   const [rows, setRows] = useState<RxRow[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -64,14 +78,23 @@ export function EyeglassRxSection({ patientId, canWrite }: { patientId: string; 
       const res = await fetch(`/api/pacientes/${patientId}/receitas-oculos`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ od, oe, reading_distance: readingDistance || null, notes: notes || null }),
+        body: JSON.stringify({
+          od,
+          oe,
+          reading_distance: readingDistance || null,
+          notes: notes || null,
+        }),
       })
       if (!res.ok) {
         const b = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
         setError(b.error?.message ?? 'Falha ao emitir.')
         return
       }
-      setOd(emptyEye()); setOe(emptyEye()); setReadingDistance(''); setNotes(''); setOpen(false)
+      setOd(emptyEye())
+      setOe(emptyEye())
+      setReadingDistance('')
+      setNotes('')
+      setOpen(false)
       await load()
     } finally {
       setPending(false)
@@ -103,7 +126,13 @@ export function EyeglassRxSection({ patientId, canWrite }: { patientId: string; 
           Receita de óculos
         </CardTitle>
         {canWrite ? (
-          <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5"
+            onClick={() => setOpen((v) => !v)}
+          >
             <Plus className="h-3.5 w-3.5" /> Emitir
           </Button>
         ) : null}
@@ -112,21 +141,37 @@ export function EyeglassRxSection({ patientId, canWrite }: { patientId: string; 
         {open && canWrite ? (
           <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50/50 p-3">
             <div>
-              <p className="mb-1 text-[11px] font-bold uppercase text-slate-500">OD — olho direito</p>
+              <p className="mb-1 text-[11px] font-bold uppercase text-slate-500">
+                OD — olho direito
+              </p>
               {eyeInputs(od, setOd)}
             </div>
             <div>
-              <p className="mb-1 text-[11px] font-bold uppercase text-slate-500">OE — olho esquerdo</p>
+              <p className="mb-1 text-[11px] font-bold uppercase text-slate-500">
+                OE — olho esquerdo
+              </p>
               {eyeInputs(oe, setOe)}
             </div>
             <div className="flex flex-wrap gap-3">
               <div className="w-48">
-                <Label className="text-[11px] font-bold uppercase text-slate-500">Distância de leitura</Label>
-                <Input value={readingDistance} onChange={(e) => setReadingDistance(e.target.value)} className="h-8 text-xs" />
+                <Label className="text-[11px] font-bold uppercase text-slate-500">
+                  Distância de leitura
+                </Label>
+                <Input
+                  value={readingDistance}
+                  onChange={(e) => setReadingDistance(e.target.value)}
+                  className="h-8 text-xs"
+                />
               </div>
               <div className="flex-1 min-w-[200px]">
-                <Label className="text-[11px] font-bold uppercase text-slate-500">Observações</Label>
-                <Input value={notes} onChange={(e) => setNotes(e.target.value)} className="h-8 text-xs" />
+                <Label className="text-[11px] font-bold uppercase text-slate-500">
+                  Observações
+                </Label>
+                <Input
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="h-8 text-xs"
+                />
               </div>
             </div>
             {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
@@ -143,10 +188,15 @@ export function EyeglassRxSection({ patientId, canWrite }: { patientId: string; 
         ) : (
           <ul className="space-y-1.5">
             {rows.map((r) => (
-              <li key={r.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs">
+              <li
+                key={r.id}
+                className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs"
+              >
                 <span className="flex-1 text-slate-700">
-                  OD {r.od.sphere || '—'}/{r.od.cylinder || '—'}{r.od.axis ? ` x${r.od.axis}` : ''}
-                  {'  ·  '}OE {r.oe.sphere || '—'}/{r.oe.cylinder || '—'}{r.oe.axis ? ` x${r.oe.axis}` : ''}
+                  OD {r.od.sphere || '—'}/{r.od.cylinder || '—'}
+                  {r.od.axis ? ` x${r.od.axis}` : ''}
+                  {'  ·  '}OE {r.oe.sphere || '—'}/{r.oe.cylinder || '—'}
+                  {r.oe.axis ? ` x${r.oe.axis}` : ''}
                 </span>
                 <span className="whitespace-nowrap text-slate-400">{formatDate(r.createdAt)}</span>
                 <a

@@ -24,25 +24,26 @@ Abordagem técnica deliberadamente conservadora — restrições derivadas do in
 **Project Type**: web (Next.js App Router monorepo single-package).
 **Performance Goals**: Painel visível com loading em <300ms (SC-001); dados carregados em <2s para 95% dos casos (SC-002); agenda subjacente atualiza em <2s pós-ação (SC-003).
 **Constraints**:
+
 - Proibido usar intercepting/parallel routes (`@modal/(.)[id]` ou similar).
 - Proibido importar `createSupabaseServiceClient` em arquivos sob `_components/` ou outros que possam virar chunk compartilhado.
 - Não introduzir nova dependência de runtime.
 - Página standalone `[id]/page.tsx` permanece intocada.
-**Scale/Scope**:
+  **Scale/Scope**:
 - ~600 linhas de conteúdo de detalhe (já existe na page standalone) — não duplicar; vamos extrair o JSX de renderização para um Client Component novo que recebe dados via props (fetched client-side).
 - Painel aberto 10–30× por sessão típica de recepção.
 - 1 painel aberto por vez (não há multi-painel).
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Status | Justificativa |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | ✅ N/A | Feature é UI; não persiste, não altera registros financeiros. |
-| **II. Auditabilidade Total de Preços** | ✅ N/A | Não muda preços nem catálogos. Ações de status (confirmar/cancelar/estornar) já são auditadas pelos endpoints existentes — feature só roteia para os mesmos endpoints. |
-| **III. Isolamento Multi-Tenant** | ✅ Pass | Painel consome `GET /api/atendimentos/[id]` que já aplica `requireRole + tenant filter`. Nenhum query novo ao banco. RLS continua a defesa primária. |
-| **IV. Conformidade TUSS/ANS** | ✅ N/A | Feature não toca em catálogo TUSS nem em integrações ANS/TISS. |
+| Princípio                                    | Status  | Justificativa                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável**       | ✅ N/A  | Feature é UI; não persiste, não altera registros financeiros.                                                                                                                                                                                                                                  |
+| **II. Auditabilidade Total de Preços**       | ✅ N/A  | Não muda preços nem catálogos. Ações de status (confirmar/cancelar/estornar) já são auditadas pelos endpoints existentes — feature só roteia para os mesmos endpoints.                                                                                                                         |
+| **III. Isolamento Multi-Tenant**             | ✅ Pass | Painel consome `GET /api/atendimentos/[id]` que já aplica `requireRole + tenant filter`. Nenhum query novo ao banco. RLS continua a defesa primária.                                                                                                                                           |
+| **IV. Conformidade TUSS/ANS**                | ✅ N/A  | Feature não toca em catálogo TUSS nem em integrações ANS/TISS.                                                                                                                                                                                                                                 |
 | **V. Segurança por Perfil de Acesso (RBAC)** | ✅ Pass | FR-012 manda respeitar permissões. Painel oculta botões via UI **apenas como UX** — a autorização real continua server-side nos endpoints `/api/atendimentos/[id]/{confirmar,cancelar,realizado,reversal}` (todos chamam `requireRole`). Lint:auth já valida que essas rotas estão protegidas. |
 
 **Sem violações. Complexity Tracking vazio.**
@@ -97,4 +98,4 @@ tests/
 
 ## Complexity Tracking
 
-> *Nenhuma violação da Constituição — seção intencionalmente vazia.*
+> _Nenhuma violação da Constituição — seção intencionalmente vazia._

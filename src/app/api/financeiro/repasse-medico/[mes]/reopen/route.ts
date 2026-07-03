@@ -12,10 +12,7 @@ const bodySchema = z.object({
   reason: z.string().min(20).max(500),
 })
 
-export async function POST(
-  req: Request,
-  context: { params: { mes: string } },
-): Promise<Response> {
+export async function POST(req: Request, context: { params: { mes: string } }): Promise<Response> {
   const route = `/api/financeiro/repasse-medico/${context.params.mes}/reopen`
   try {
     const session = await requireRole(['admin'], {

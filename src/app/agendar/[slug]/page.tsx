@@ -13,11 +13,7 @@ import { DoctorList } from '@/components/public-booking/doctor-list'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AgendarSlugPage({
-  params,
-}: {
-  params: { slug: string }
-}) {
+export default async function AgendarSlugPage({ params }: { params: { slug: string } }) {
   const supabase = createSupabaseServiceClient()
   const tenant = await resolveTenantBySlug(supabase, params.slug)
   if (!tenant) notFound()
@@ -27,21 +23,13 @@ export default async function AgendarSlugPage({
   return (
     <div className="space-y-6">
       <header className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-          {tenant.displayName}
-        </h1>
-        {tenant.addressLine && (
-          <p className="text-sm text-slate-500">{tenant.addressLine}</p>
-        )}
-        {tenant.phone && (
-          <p className="text-sm text-slate-500">Contato: {tenant.phone}</p>
-        )}
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">{tenant.displayName}</h1>
+        {tenant.addressLine && <p className="text-sm text-slate-500">{tenant.addressLine}</p>}
+        {tenant.phone && <p className="text-sm text-slate-500">Contato: {tenant.phone}</p>}
       </header>
 
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
-          Escolha um profissional
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-slate-900">Escolha um profissional</h2>
         {doctors.length === 0 ? (
           <p className="text-sm text-slate-500">
             Nenhum profissional disponível no momento. Entre em contato com a clínica.
@@ -52,9 +40,7 @@ export default async function AgendarSlugPage({
               href={`/agendar/${params.slug}/horarios?doctor_id=any`}
               className="mb-3 block rounded-md border border-dashed border-primary/40 bg-primary/5 p-4 transition hover:border-primary hover:bg-primary/10"
             >
-              <div className="font-semibold text-slate-900">
-                Sem preferência de profissional
-              </div>
+              <div className="font-semibold text-slate-900">Sem preferência de profissional</div>
               <p className="mt-1 text-sm text-slate-600">
                 Atenderei com quem tiver melhor disponibilidade.
               </p>

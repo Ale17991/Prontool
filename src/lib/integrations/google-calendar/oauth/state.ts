@@ -32,11 +32,10 @@ export class StateExpiredError extends Error {
   }
 }
 
-export function createStateCookie(args: {
-  userId: string
-  tenantId: string
-  nowMs?: number
-}): { cookieValue: string; nonce: string } {
+export function createStateCookie(args: { userId: string; tenantId: string; nowMs?: number }): {
+  cookieValue: string
+  nonce: string
+} {
   const nonce = randomUUID()
   const payload: GoogleOAuthStatePayload = {
     userId: args.userId,

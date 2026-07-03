@@ -110,9 +110,7 @@ export default async function RepasseMesPage({ params }: PageProps) {
           <p className="text-2xl font-black tracking-tight text-slate-900">
             {formatCurrency(snapshot.totalDueCents)}
           </p>
-          <p className="mt-1 text-xs text-slate-500">
-            {snapshot.payouts.length} médico(s)
-          </p>
+          <p className="mt-1 text-xs text-slate-500">{snapshot.payouts.length} médico(s)</p>
         </CardContent>
       </Card>
 
@@ -130,9 +128,7 @@ export default async function RepasseMesPage({ params }: PageProps) {
             canCloseMonth={canManage && !snapshot.isClosed}
             canReopenMonth={canManage && snapshot.isClosed && snapshot.canReopen}
             canReopenReason={snapshot.canReopenReason}
-            canMarkPaid={
-              session.role === 'admin' || session.role === 'financeiro'
-            }
+            canMarkPaid={session.role === 'admin' || session.role === 'financeiro'}
             isOwnViewOnly={session.role === 'profissional_saude'}
           />
         </CardContent>

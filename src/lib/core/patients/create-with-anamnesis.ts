@@ -47,9 +47,7 @@ export async function createPatientWithAnamnesis(
   if (tpl.error) throw new Error(`template lookup: ${tpl.error.message}`)
   if (!tpl.data) throw new NotFoundError('anamnesis_template', input.templateId)
   if (!tpl.data.active) {
-    throw new ValidationError(
-      'Modelo de anamnese inativo — escolha outro ou crie sem modelo.',
-    )
+    throw new ValidationError('Modelo de anamnese inativo — escolha outro ou crie sem modelo.')
   }
 
   const fields = tpl.data.fields as unknown as Array<{
@@ -68,8 +66,7 @@ export async function createPatientWithAnamnesis(
   // CPF opcional em fase de testes. Quando preenchido, exige 11 digitos +
   // dedup; quando vazio, segue sem CPF.
   const cpfDigitsRaw = (cpfRaw ?? '').replace(/\D/g, '')
-  const cpfDigits: string | null =
-    cpfDigitsRaw.length === 0 ? null : cpfDigitsRaw
+  const cpfDigits: string | null = cpfDigitsRaw.length === 0 ? null : cpfDigitsRaw
   if (cpfDigits !== null && cpfDigits.length !== 11) {
     throw new ValidationError(
       'CPF deve ter 11 dígitos quando preenchido (ou pode ser deixado em branco).',
@@ -95,9 +92,7 @@ export async function createPatientWithAnamnesis(
     .filter((f) => isResponseEmpty(input.responses[f.id]))
     .map((f) => f.label)
   if (missing.length > 0) {
-    throw new ValidationError(
-      `Campos obrigatórios não preenchidos: ${missing.join(', ')}`,
-    )
+    throw new ValidationError(`Campos obrigatórios não preenchidos: ${missing.join(', ')}`)
   }
 
   // 5. Cria paciente. plan_id explícito (Select UI) tem prioridade sobre
@@ -148,10 +143,7 @@ export async function createPatientWithAnamnesis(
   }
 }
 
-function pickString(
-  responses: Record<string, unknown>,
-  key: string,
-): string | null {
+function pickString(responses: Record<string, unknown>, key: string): string | null {
   const v = responses[key]
   if (typeof v !== 'string') return null
   const trimmed = v.trim()

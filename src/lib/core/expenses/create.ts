@@ -32,10 +32,7 @@ export interface CreateExpenseInput {
   taxId?: string | null
 }
 
-export async function createExpense(
-  supabase: SupabaseClient<Database>,
-  input: CreateExpenseInput,
-) {
+export async function createExpense(supabase: SupabaseClient<Database>, input: CreateExpenseInput) {
   if (input.amountCents <= 0) throw new ValidationError('O valor deve ser maior que zero')
   if (input.description.trim().length < 2) throw new ValidationError('Descrição muito curta')
   if (input.recurring && !input.frequency) {
@@ -58,10 +55,9 @@ export async function createExpense(
     if (taxErr) throw new Error(`tax lookup failed: ${taxErr.message}`)
     const taxRow = tax as { id: string; is_active: boolean; deleted_at: string | null } | null
     if (!taxRow || taxRow.deleted_at || !taxRow.is_active) {
-      throw new ValidationError(
-        'Imposto inválido: não encontrado, inativo ou de outra clínica.',
-        { taxId: input.taxId },
-      )
+      throw new ValidationError('Imposto inválido: não encontrado, inativo ou de outra clínica.', {
+        taxId: input.taxId,
+      })
     }
     category = 'impostos' // FR-015 — força categoria.
   }

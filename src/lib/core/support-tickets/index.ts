@@ -6,7 +6,4 @@ export {
   type SupportTicketCreateInput,
 } from './schema'
 export { createSupportTicket } from './create'
-export type {
-  CreateSupportTicketContext,
-  CreateSupportTicketResult,
-} from './create'
+export type { CreateSupportTicketContext, CreateSupportTicketResult } from './create'

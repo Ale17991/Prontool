@@ -39,9 +39,7 @@ const envelope = z.object({
       custom_fields: z.record(z.string(), z.unknown()).optional(),
     })
     .passthrough(),
-  pipeline: z
-    .object({ id: z.string().optional(), stage_name: z.string().optional() })
-    .optional(),
+  pipeline: z.object({ id: z.string().optional(), stage_name: z.string().optional() }).optional(),
 })
 
 export function extractCustomFields(payload: unknown, config: TenantGhlConfig): ExtractedEvent {
@@ -58,7 +56,9 @@ export function extractCustomFields(payload: unknown, config: TenantGhlConfig): 
   // { key, value } / { name, value } pairs depending on the GHL workspace.
   const customFields = normalizeCustomFields(customFieldsRaw)
 
-  const required: Array<[keyof ExtractedEvent | `patient.${keyof ExtractedEvent['patient']}`, string]> = [
+  const required: Array<
+    [keyof ExtractedEvent | `patient.${keyof ExtractedEvent['patient']}`, string]
+  > = [
     ['plano', config.field_map_plano],
     ['tussCode', config.field_map_procedimento_tuss],
     ['medicoIdentifier', config.field_map_medico_identifier],

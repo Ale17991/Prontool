@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Modalidades de pagamento para profissionais e profissional assistente no atendimento. Suportar 3 modalidades: comissionado (atual), fixo (salário mensal) e liberal (cobra por participação como assistente em atendimentos). Refletir em cadastro, formulário de atendimento e relatórios."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 > **Dependência entre stories**: US1 estabelece o modelo de dados (modalidade no cadastro). US2 e US3 dependem de US1 estar entregue, mas são independentes entre si — pode-se entregar US2 sem US3 ou vice-versa. Cada story é descrita como "deliverable vertical" — inclui cadastro + UI + impacto onde aplicável.
 
@@ -84,7 +84,7 @@ Como admin/financeiro, quero ver os pagamentos de profissionais Fixos e Liberais
 - **Remoção de assistente de um atendimento já salvo**: append-only — o registro original não some; uma nova versão (ou flag de remoção) garante que o relatório desconsidere a partir do momento da remoção.
 - **Profissional Comissionado com comissão 0%**: válido (cenário "sócio sem comissão fixa") — comportamento atual mantido.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -131,7 +131,7 @@ Como admin/financeiro, quero ver os pagamentos de profissionais Fixos e Liberais
 - **Linha de Pagamento Fixo (Fixed Payment Line)**: lançamento mensal derivado do cadastro do Fixo. Aparece no relatório mensal no dia de faturamento configurado, classificado como despesa de pessoal.
 - **Audit Log de Mudança de Modalidade**: registro imutável de cada troca de modalidade (ator, timestamp, modalidade anterior, modalidade nova, parâmetros antigos e novos).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

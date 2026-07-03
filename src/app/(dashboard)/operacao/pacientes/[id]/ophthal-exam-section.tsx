@@ -23,7 +23,13 @@ interface ExamRow {
 const emptyAV = (): AV => ({ odSc: '', odCc: '', oeSc: '', oeCc: '' })
 const emptyRefrEye = (): RefrEye => ({ sphere: '', cylinder: '', axis: '' })
 
-export function OphthalExamSection({ patientId, canWrite }: { patientId: string; canWrite: boolean }) {
+export function OphthalExamSection({
+  patientId,
+  canWrite,
+}: {
+  patientId: string
+  canWrite: boolean
+}) {
   const [rows, setRows] = useState<ExamRow[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -53,8 +59,12 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
   }, [load])
 
   function reset() {
-    setAv(emptyAV()); setRefr({ od: emptyRefrEye(), oe: emptyRefrEye() }); setPio({ od: '', oe: '' })
-    setBio(''); setFundo(''); setNotes('')
+    setAv(emptyAV())
+    setRefr({ od: emptyRefrEye(), oe: emptyRefrEye() })
+    setPio({ od: '', oe: '' })
+    setBio('')
+    setFundo('')
+    setNotes('')
   }
 
   async function emit() {
@@ -64,14 +74,23 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
       const res = await fetch(`/api/pacientes/${patientId}/exames-oftalmo`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ av, refr, pio, biomicroscopy: biomicroscopy || null, fundoscopy: fundoscopy || null, notes: notes || null }),
+        body: JSON.stringify({
+          av,
+          refr,
+          pio,
+          biomicroscopy: biomicroscopy || null,
+          fundoscopy: fundoscopy || null,
+          notes: notes || null,
+        }),
       })
       if (!res.ok) {
         const b = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
         setError(b.error?.message ?? 'Falha ao salvar.')
         return
       }
-      reset(); setOpen(false); await load()
+      reset()
+      setOpen(false)
+      await load()
     } finally {
       setPending(false)
     }
@@ -94,7 +113,13 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
             >
               Modelos de laudo
             </a>
-            <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setOpen((v) => !v)}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5"
+              onClick={() => setOpen((v) => !v)}
+            >
               <Plus className="h-3.5 w-3.5" /> Novo exame
             </Button>
           </div>
@@ -108,13 +133,33 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <span className="w-24 text-xs font-semibold text-slate-600">OD (direito)</span>
-                  <LabeledInput label="S/ correção" value={av.odSc} onChange={(v) => setAv({ ...av, odSc: v })} cls={cell} />
-                  <LabeledInput label="C/ correção" value={av.odCc} onChange={(v) => setAv({ ...av, odCc: v })} cls={cell} />
+                  <LabeledInput
+                    label="S/ correção"
+                    value={av.odSc}
+                    onChange={(v) => setAv({ ...av, odSc: v })}
+                    cls={cell}
+                  />
+                  <LabeledInput
+                    label="C/ correção"
+                    value={av.odCc}
+                    onChange={(v) => setAv({ ...av, odCc: v })}
+                    cls={cell}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-24 text-xs font-semibold text-slate-600">OE (esquerdo)</span>
-                  <LabeledInput label="S/ correção" value={av.oeSc} onChange={(v) => setAv({ ...av, oeSc: v })} cls={cell} />
-                  <LabeledInput label="C/ correção" value={av.oeCc} onChange={(v) => setAv({ ...av, oeCc: v })} cls={cell} />
+                  <LabeledInput
+                    label="S/ correção"
+                    value={av.oeSc}
+                    onChange={(v) => setAv({ ...av, oeSc: v })}
+                    cls={cell}
+                  />
+                  <LabeledInput
+                    label="C/ correção"
+                    value={av.oeCc}
+                    onChange={(v) => setAv({ ...av, oeCc: v })}
+                    cls={cell}
+                  />
                 </div>
               </div>
             </div>
@@ -124,35 +169,81 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
                   <span className="w-24 text-xs font-semibold text-slate-600">OD</span>
-                  <LabeledInput label="Esférico" value={refr.od.sphere} onChange={(v) => setRefr({ ...refr, od: { ...refr.od, sphere: v } })} cls={cell} />
-                  <LabeledInput label="Cilíndrico" value={refr.od.cylinder} onChange={(v) => setRefr({ ...refr, od: { ...refr.od, cylinder: v } })} cls={cell} />
-                  <LabeledInput label="Eixo" value={refr.od.axis} onChange={(v) => setRefr({ ...refr, od: { ...refr.od, axis: v } })} cls={cell} />
+                  <LabeledInput
+                    label="Esférico"
+                    value={refr.od.sphere}
+                    onChange={(v) => setRefr({ ...refr, od: { ...refr.od, sphere: v } })}
+                    cls={cell}
+                  />
+                  <LabeledInput
+                    label="Cilíndrico"
+                    value={refr.od.cylinder}
+                    onChange={(v) => setRefr({ ...refr, od: { ...refr.od, cylinder: v } })}
+                    cls={cell}
+                  />
+                  <LabeledInput
+                    label="Eixo"
+                    value={refr.od.axis}
+                    onChange={(v) => setRefr({ ...refr, od: { ...refr.od, axis: v } })}
+                    cls={cell}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-24 text-xs font-semibold text-slate-600">OE</span>
-                  <LabeledInput label="Esférico" value={refr.oe.sphere} onChange={(v) => setRefr({ ...refr, oe: { ...refr.oe, sphere: v } })} cls={cell} />
-                  <LabeledInput label="Cilíndrico" value={refr.oe.cylinder} onChange={(v) => setRefr({ ...refr, oe: { ...refr.oe, cylinder: v } })} cls={cell} />
-                  <LabeledInput label="Eixo" value={refr.oe.axis} onChange={(v) => setRefr({ ...refr, oe: { ...refr.oe, axis: v } })} cls={cell} />
+                  <LabeledInput
+                    label="Esférico"
+                    value={refr.oe.sphere}
+                    onChange={(v) => setRefr({ ...refr, oe: { ...refr.oe, sphere: v } })}
+                    cls={cell}
+                  />
+                  <LabeledInput
+                    label="Cilíndrico"
+                    value={refr.oe.cylinder}
+                    onChange={(v) => setRefr({ ...refr, oe: { ...refr.oe, cylinder: v } })}
+                    cls={cell}
+                  />
+                  <LabeledInput
+                    label="Eixo"
+                    value={refr.oe.axis}
+                    onChange={(v) => setRefr({ ...refr, oe: { ...refr.oe, axis: v } })}
+                    cls={cell}
+                  />
                 </div>
               </div>
             </div>
 
             <div className="flex items-end gap-3">
               <span className="text-[11px] font-bold uppercase text-slate-500">PIO (mmHg)</span>
-              <LabeledInput label="OD" value={pio.od} onChange={(v) => setPio({ ...pio, od: v })} cls={cell} />
-              <LabeledInput label="OE" value={pio.oe} onChange={(v) => setPio({ ...pio, oe: v })} cls={cell} />
+              <LabeledInput
+                label="OD"
+                value={pio.od}
+                onChange={(v) => setPio({ ...pio, od: v })}
+                cls={cell}
+              />
+              <LabeledInput
+                label="OE"
+                value={pio.oe}
+                onChange={(v) => setPio({ ...pio, oe: v })}
+                cls={cell}
+              />
             </div>
 
             <div>
-              <Label className="text-[11px] font-bold uppercase text-slate-500">Biomicroscopia</Label>
+              <Label className="text-[11px] font-bold uppercase text-slate-500">
+                Biomicroscopia
+              </Label>
               <Textarea value={biomicroscopy} onChange={(e) => setBio(e.target.value)} rows={2} />
             </div>
             <div>
-              <Label className="text-[11px] font-bold uppercase text-slate-500">Fundoscopia / mapeamento de retina</Label>
+              <Label className="text-[11px] font-bold uppercase text-slate-500">
+                Fundoscopia / mapeamento de retina
+              </Label>
               <Textarea value={fundoscopy} onChange={(e) => setFundo(e.target.value)} rows={2} />
             </div>
             <div>
-              <Label className="text-[11px] font-bold uppercase text-slate-500">Conduta / observações</Label>
+              <Label className="text-[11px] font-bold uppercase text-slate-500">
+                Conduta / observações
+              </Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
             </div>
 
@@ -170,10 +261,16 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
         ) : (
           <ul className="space-y-1.5">
             {rows.map((r) => (
-              <li key={r.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs">
-                <span className="whitespace-nowrap font-semibold text-slate-700">{formatDate(r.examDate)}</span>
+              <li
+                key={r.id}
+                className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs"
+              >
+                <span className="whitespace-nowrap font-semibold text-slate-700">
+                  {formatDate(r.examDate)}
+                </span>
                 <span className="flex-1 text-slate-500">
-                  AV OD {r.av.odSc || '—'} · OE {r.av.oeSc || '—'} · PIO {r.pio.od || '—'}/{r.pio.oe || '—'}
+                  AV OD {r.av.odSc || '—'} · OE {r.av.oeSc || '—'} · PIO {r.pio.od || '—'}/
+                  {r.pio.oe || '—'}
                 </span>
                 <a
                   href={`/api/pacientes/${patientId}/exames-oftalmo/${r.id}/pdf`}
@@ -192,7 +289,17 @@ export function OphthalExamSection({ patientId, canWrite }: { patientId: string;
   )
 }
 
-function LabeledInput({ label, value, onChange, cls }: { label: string; value: string; onChange: (v: string) => void; cls: string }) {
+function LabeledInput({
+  label,
+  value,
+  onChange,
+  cls,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  cls: string
+}) {
   return (
     <div>
       <Label className="block text-[9px] font-bold uppercase text-slate-400">{label}</Label>

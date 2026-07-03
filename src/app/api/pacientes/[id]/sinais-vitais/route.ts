@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import {
-  createVitalSigns,
-  listVitalSigns,
-} from '@/lib/core/patient-medical/vital-signs'
+import { createVitalSigns, listVitalSigns } from '@/lib/core/patient-medical/vital-signs'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -25,10 +22,7 @@ const createSchema = z.object({
   appointment_id: z.string().uuid().optional().nullable(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/sinais-vitais`
   try {
     const session = await requireRole(

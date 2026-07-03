@@ -8,7 +8,12 @@
  */
 import { test, expect } from '@playwright/test'
 import { loginAsAdmin } from './fixtures'
-import { seedMemedFixture, stubMemedSdk, openPrescription, type MemedE2eFixture } from './memed-helpers'
+import {
+  seedMemedFixture,
+  stubMemedSdk,
+  openPrescription,
+  type MemedE2eFixture,
+} from './memed-helpers'
 
 let fixture: MemedE2eFixture
 
@@ -50,7 +55,9 @@ test('ativar → habilitar prescritor → prescrever → emitir → registro vis
     { timeout: 60_000 },
   )
   await page.evaluate((id) => {
-    ;(window as unknown as { __emitPrescricaoImpressa: (d: unknown) => void }).__emitPrescricaoImpressa({ id })
+    ;(
+      window as unknown as { __emitPrescricaoImpressa: (d: unknown) => void }
+    ).__emitPrescricaoImpressa({ id })
   }, rxId)
   await recorded
 

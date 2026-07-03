@@ -197,10 +197,7 @@ export function ApplyTemplateForm({ templateId, fields }: ApplyTemplateFormProps
       if (!f.required) continue
       const v = responses[f.id]
       const empty =
-        v === undefined ||
-        v === null ||
-        v === '' ||
-        (Array.isArray(v) && v.length === 0)
+        v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
       if (empty) {
         setError(`Preencha o campo obrigatório: ${f.label}`)
         return
@@ -300,10 +297,7 @@ function FieldInput({
         {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
       </span>
       {isDefault ? (
-        <Badge
-          variant="secondary"
-          className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
-        >
+        <Badge variant="secondary" className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800">
           Padrão
         </Badge>
       ) : null}
@@ -354,10 +348,7 @@ function FieldInput({
     return (
       <div className="space-y-1.5">
         {label}
-        <Select
-          value={(value as string | undefined) ?? ''}
-          onValueChange={(v) => onChange(v)}
-        >
+        <Select value={(value as string | undefined) ?? ''} onValueChange={(v) => onChange(v)}>
           <SelectTrigger>
             <SelectValue placeholder="Selecione…" />
           </SelectTrigger>

@@ -28,7 +28,9 @@ export default async function TissIntegrationPage(): Promise<JSX.Element> {
     supabase.from('health_plans').select('id, name').eq('active', true).order('name'),
     supabase
       .from('tenant_tiss_operator_config')
-      .select('health_plan_id, ans_registration, contracted_code, contracted_cnpj, contracted_cnes, active'),
+      .select(
+        'health_plan_id, ans_registration, contracted_code, contracted_cnpj, contracted_cnes, active',
+      ),
     supabase
       .from('tenant_tiss_certificates')
       .select('id, subject_cn, not_after')

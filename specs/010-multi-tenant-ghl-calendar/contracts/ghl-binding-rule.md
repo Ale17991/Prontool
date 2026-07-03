@@ -13,7 +13,7 @@ Esta story **não adiciona endpoints** — modifica o comportamento de endpoints
 ```ts
 export async function assertGhlBindingFree(
   supabase: SupabaseClient<Database>,
-  args: { tenantId: string | null; locationId: string }
+  args: { tenantId: string | null; locationId: string },
 ): Promise<void>
 ```
 
@@ -81,12 +81,12 @@ Já é admin-only via `requireRole('admin')`. Acrescenta:
 
 **Possible response codes**:
 
-| Code | Meaning |
-|------|---------|
-| `200` | Conexão criada/atualizada com sucesso |
-| `400` | Parâmetros do callback inválidos (state mismatch, etc.) |
-| `409 GHL_TENANT_ALREADY_CONNECTED` | FR-001 |
-| `409 GHL_LOCATION_ALREADY_BOUND` | FR-002 |
+| Code                               | Meaning                                                 |
+| ---------------------------------- | ------------------------------------------------------- |
+| `200`                              | Conexão criada/atualizada com sucesso                   |
+| `400`                              | Parâmetros do callback inválidos (state mismatch, etc.) |
+| `409 GHL_TENANT_ALREADY_CONNECTED` | FR-001                                                  |
+| `409 GHL_LOCATION_ALREADY_BOUND`   | FR-002                                                  |
 
 ---
 

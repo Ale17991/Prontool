@@ -54,9 +54,7 @@ export function TissGuiaLauncher({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ appointmentId, guiaType }),
       })
-      const body = (await res.json().catch(() => ({}))) as
-        | GuiaResult
-        | ApiError
+      const body = (await res.json().catch(() => ({}))) as GuiaResult | ApiError
       if (!res.ok) {
         const apiErr = body as ApiError
         throw new Error(apiErr.error?.message ?? `Falha ao gerar a guia (${res.status}).`)
@@ -100,8 +98,7 @@ export function TissGuiaLauncher({
               </ul>
             ) : null}
             <p className="mt-1.5 text-amber-700">
-              Corrija os dados (carteira do beneficiário, CBO do médico, etc.) e gere
-              novamente.
+              Corrija os dados (carteira do beneficiário, CBO do médico, etc.) e gere novamente.
             </p>
           </div>
         )

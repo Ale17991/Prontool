@@ -13,7 +13,12 @@ describe('Feature 011 — POST /api/impostos input validation', () => {
     await resetDatabase()
     const t = await seedTenant('imp-val')
     const admin = await seedUser(t.tenantId, 'admin')
-    adminJwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId: t.tenantId, role: 'admin' })
+    adminJwt = mintJwt({
+      userId: admin.userId,
+      email: admin.email,
+      tenantId: t.tenantId,
+      role: 'admin',
+    })
   })
 
   async function postBody(body: unknown): Promise<Response> {

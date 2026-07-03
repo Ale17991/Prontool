@@ -64,19 +64,17 @@ export async function setUserPermissionOverrides(
         .eq('action', ch.action)
       if (error) throw new Error(`override delete failed: ${error.message}`)
     } else {
-      const { error } = await supabaseService
-        .from('user_permission_overrides' as never)
-        .upsert(
-          {
-            tenant_id: input.tenantId,
-            user_id: input.targetUserId,
-            action: ch.action,
-            effect: ch.effect,
-            created_by: input.actorUserId,
-            updated_at: nowIso,
-          } as never,
-          { onConflict: 'tenant_id,user_id,action' },
-        )
+      const { error } = await supabaseService.from('user_permission_overrides' as never).upsert(
+        {
+          tenant_id: input.tenantId,
+          user_id: input.targetUserId,
+          action: ch.action,
+          effect: ch.effect,
+          created_by: input.actorUserId,
+          updated_at: nowIso,
+        } as never,
+        { onConflict: 'tenant_id,user_id,action' },
+      )
       if (error) throw new Error(`override upsert failed: ${error.message}`)
     }
 

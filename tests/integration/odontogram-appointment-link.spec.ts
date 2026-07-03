@@ -68,32 +68,28 @@ describe('odontograma — vínculo a atendimento', () => {
   })
 
   it('vínculo válido (mesmo paciente do atendimento) persiste', async () => {
-    const { error } = await serviceClient()
-      .from('dental_chart_entries')
-      .insert({
-        tenant_id: tenantId,
-        patient_id: patientId,
-        appointment_id: appointmentId,
-        tooth_fdi: 16,
-        surface: 'occlusal_incisal',
-        status_id: statusId,
-        created_by: actorId,
-      })
+    const { error } = await serviceClient().from('dental_chart_entries').insert({
+      tenant_id: tenantId,
+      patient_id: patientId,
+      appointment_id: appointmentId,
+      tooth_fdi: 16,
+      surface: 'occlusal_incisal',
+      status_id: statusId,
+      created_by: actorId,
+    })
     expect(error).toBeNull()
   })
 
   it('atendimento de outro paciente é rejeitado', async () => {
-    const { error } = await serviceClient()
-      .from('dental_chart_entries')
-      .insert({
-        tenant_id: tenantId,
-        patient_id: otherPatientId,
-        appointment_id: appointmentId,
-        tooth_fdi: 17,
-        surface: 'occlusal_incisal',
-        status_id: statusId,
-        created_by: actorId,
-      })
+    const { error } = await serviceClient().from('dental_chart_entries').insert({
+      tenant_id: tenantId,
+      patient_id: otherPatientId,
+      appointment_id: appointmentId,
+      tooth_fdi: 17,
+      surface: 'occlusal_incisal',
+      status_id: statusId,
+      created_by: actorId,
+    })
     expect(error).not.toBeNull()
   })
 })

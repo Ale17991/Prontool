@@ -23,11 +23,14 @@ export async function confirmAppointment(
 ): Promise<ConfirmAppointmentResult> {
   // 'confirm_appointment' criada na migration 0096 — generated types ainda
   // nao foram regenerados, por isso `as never`.
-  const { data, error } = await supabase.rpc('confirm_appointment' as never, {
-    p_appointment_id: input.appointmentId,
-    p_by: input.actorUserId,
-    p_notes: input.notes ?? undefined,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'confirm_appointment' as never,
+    {
+      p_appointment_id: input.appointmentId,
+      p_by: input.actorUserId,
+      p_notes: input.notes ?? undefined,
+    } as never,
+  )
 
   if (error) {
     const msg = error.message ?? ''

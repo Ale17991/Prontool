@@ -104,12 +104,9 @@ export async function GET(req: Request): Promise<Response> {
     } catch (auditErr) {
       logger.error({ err: auditErr }, 'ghl-oauth-callback-audit-failed')
     }
-    return jsonError(
-      502,
-      'CODE_EXCHANGE_FAILED',
-      `GHL /oauth/token retornou ${status}`,
-      { clearCookie: true },
-    )
+    return jsonError(502, 'CODE_EXCHANGE_FAILED', `GHL /oauth/token retornou ${status}`, {
+      clearCookie: true,
+    })
   }
 
   // Persiste tokens + dispara post-connect-setup.
@@ -155,12 +152,9 @@ export async function GET(req: Request): Promise<Response> {
       { err: err instanceof Error ? err.message : String(err), tenant_id: payload.tenantId },
       'ghl-oauth-callback-connect-failed',
     )
-    return jsonError(
-      500,
-      'CONNECT_FAILED',
-      'Falha ao persistir conexão. Verifique logs.',
-      { clearCookie: true },
-    )
+    return jsonError(500, 'CONNECT_FAILED', 'Falha ao persistir conexão. Verifique logs.', {
+      clearCookie: true,
+    })
   }
 
   return redirect(REDIRECT_AFTER_PATH, { status: 'connected' }, { clearCookie: true })

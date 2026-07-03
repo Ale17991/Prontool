@@ -9,10 +9,7 @@
  * will be wired at that point too.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedGhlConfig, seedUser } from '@/tests/helpers/seed-factories'
 import { buildSignedWebhookRequest, buildValidGhlPayload } from '@/tests/helpers/webhook-request'
 

@@ -61,7 +61,10 @@ export async function createStatus(
 
   if (error) {
     if (error.code === '23505') {
-      throw new ConflictError('DENTAL_STATUS_DUPLICATE', `Já existe um status com o código "${input.code}".`)
+      throw new ConflictError(
+        'DENTAL_STATUS_DUPLICATE',
+        `Já existe um status com o código "${input.code}".`,
+      )
     }
     if (error.code === '23514') {
       throw new ValidationError('Valores inválidos para o status (código, cor ou escopo).')

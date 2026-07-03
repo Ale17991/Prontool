@@ -96,13 +96,28 @@ Documenta apenas as **mudanças** sobre os endpoints de relatório existentes (o
   "period": { "from": "2026-05-01", "to": "2026-05-31" },
   "summary": {
     "participations_count": 3,
-    "total_paid_cents":     95000,
+    "total_paid_cents": 95000,
     "current_default_cents": 35000
   },
   "participations": [
-    { "appointment_id": "...", "appointment_at": "2026-05-04T14:00Z", "patient_name": "P 1", "frozen_amount_cents": 35000 },
-    { "appointment_id": "...", "appointment_at": "2026-05-08T15:30Z", "patient_name": "P 2", "frozen_amount_cents": 20000 },
-    { "appointment_id": "...", "appointment_at": "2026-05-20T09:00Z", "patient_name": "P 3", "frozen_amount_cents": 40000 }
+    {
+      "appointment_id": "...",
+      "appointment_at": "2026-05-04T14:00Z",
+      "patient_name": "P 1",
+      "frozen_amount_cents": 35000
+    },
+    {
+      "appointment_id": "...",
+      "appointment_at": "2026-05-08T15:30Z",
+      "patient_name": "P 2",
+      "frozen_amount_cents": 20000
+    },
+    {
+      "appointment_id": "...",
+      "appointment_at": "2026-05-20T09:00Z",
+      "patient_name": "P 3",
+      "frozen_amount_cents": 40000
+    }
   ]
 }
 ```
@@ -137,20 +152,20 @@ Documenta apenas as **mudanças** sobre os endpoints de relatório existentes (o
 {
   "month": "2026-05",
   "lines": {
-    "gross_revenue_cents":     150000_00,
-    "commissions_cents":         42000_00,
-    "fixed_payments_cents":      24000_00,
-    "liberal_payments_cents":     3200_00,
-    "taxes_cents":               12000_00,
-    "operating_expenses_cents":  18500_00,
-    "net_profit_cents":          50300_00
+    "gross_revenue_cents": 150000_00,
+    "commissions_cents": 42000_00,
+    "fixed_payments_cents": 24000_00,
+    "liberal_payments_cents": 3200_00,
+    "taxes_cents": 12000_00,
+    "operating_expenses_cents": 18500_00,
+    "net_profit_cents": 50300_00
   },
   "drilldowns": {
-    "commissions":     "/relatorios/por-profissional?from=2026-05-01&to=2026-05-31&payment_mode=comissionado",
-    "fixed":           "/relatorios/mensal?month=2026-05&filter=fixed_pay_lines",
-    "liberal":         "/relatorios/por-profissional?from=2026-05-01&to=2026-05-31&payment_mode=liberal",
-    "taxes":           "/relatorios/despesas?from=2026-05-01&to=2026-05-31&category=tax",
-    "operating":       "/relatorios/despesas?from=2026-05-01&to=2026-05-31&category!=tax"
+    "commissions": "/relatorios/por-profissional?from=2026-05-01&to=2026-05-31&payment_mode=comissionado",
+    "fixed": "/relatorios/mensal?month=2026-05&filter=fixed_pay_lines",
+    "liberal": "/relatorios/por-profissional?from=2026-05-01&to=2026-05-31&payment_mode=liberal",
+    "taxes": "/relatorios/despesas?from=2026-05-01&to=2026-05-31&category=tax",
+    "operating": "/relatorios/despesas?from=2026-05-01&to=2026-05-31&category!=tax"
   }
 }
 ```

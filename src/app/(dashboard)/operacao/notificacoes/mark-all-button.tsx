@@ -21,7 +21,14 @@ export function MarkAllButton() {
   }
 
   return (
-    <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={pending} className="gap-1.5">
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={onClick}
+      disabled={pending}
+      className="gap-1.5"
+    >
       <CheckCheck className="h-3.5 w-3.5" />
       {pending ? 'Marcando…' : 'Marcar todas como lidas'}
     </Button>

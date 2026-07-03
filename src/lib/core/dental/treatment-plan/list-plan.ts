@@ -56,7 +56,9 @@ export async function listPlan(
     }),
     supabase
       .from('treatment_budgets')
-      .select('id, title, status, frozen_total_cents, presented_at, accepted_at, refused_at, created_at')
+      .select(
+        'id, title, status, frozen_total_cents, presented_at, accepted_at, refused_at, created_at',
+      )
       .eq('tenant_id', args.tenantId)
       .eq('patient_id', args.patientId)
       .order('created_at', { ascending: false }),

@@ -93,16 +93,28 @@ components:
   schemas:
     AppointmentEffective:
       type: object
-      required: [id, appointment_at, doctor_id, patient_id, procedure_id, plan_id,
-                 frozen_amount_cents, frozen_commission_bps, effective_status,
-                 net_amount_cents, net_commission_cents]
+      required:
+        [
+          id,
+          appointment_at,
+          doctor_id,
+          patient_id,
+          procedure_id,
+          plan_id,
+          frozen_amount_cents,
+          frozen_commission_bps,
+          effective_status,
+          net_amount_cents,
+          net_commission_cents,
+        ]
       properties:
         id: { type: string, format: uuid }
         appointment_at: { type: string, format: date-time }
         doctor_id: { type: string, format: uuid }
         doctor_name: { type: string }
         patient_id: { type: string, format: uuid }
-        patient_display_name: { type: string, description: Nome visível conforme role (decriptado via view) }
+        patient_display_name:
+          { type: string, description: Nome visível conforme role (decriptado via view) }
         procedure_id: { type: string, format: uuid }
         procedure_tuss_code: { type: string }
         plan_id: { type: string, format: uuid }

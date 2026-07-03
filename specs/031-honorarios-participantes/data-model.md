@@ -6,22 +6,22 @@ Tabela existente `public.appointment_assistants` (migration 0084), **estendida**
 
 ### Colunas (existentes mantidas)
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `id` | UUID PK | gen_random_uuid() |
-| `tenant_id` | UUID NOT NULL | FK tenants; RLS |
-| `appointment_id` | UUID NOT NULL | FK appointments |
-| `assistant_doctor_id` | UUID NOT NULL | FK doctors — o **participante** |
-| `frozen_amount_cents` | BIGINT NOT NULL | **honorário** congelado (>0, <100000000) |
-| `created_by` / `created_at` | UUID / TIMESTAMPTZ | |
-| `removed_at` / `removed_by` | TIMESTAMPTZ / UUID | soft-unlink (par completo) |
+| Coluna                      | Tipo               | Notas                                    |
+| --------------------------- | ------------------ | ---------------------------------------- |
+| `id`                        | UUID PK            | gen_random_uuid()                        |
+| `tenant_id`                 | UUID NOT NULL      | FK tenants; RLS                          |
+| `appointment_id`            | UUID NOT NULL      | FK appointments                          |
+| `assistant_doctor_id`       | UUID NOT NULL      | FK doctors — o **participante**          |
+| `frozen_amount_cents`       | BIGINT NOT NULL    | **honorário** congelado (>0, <100000000) |
+| `created_by` / `created_at` | UUID / TIMESTAMPTZ |                                          |
+| `removed_at` / `removed_by` | TIMESTAMPTZ / UUID | soft-unlink (par completo)               |
 
 ### Colunas novas (0128)
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `procedure_id` | UUID NULL | FK `appointment_procedures(id)` — linha de procedimento. NULL = participação a nível de atendimento (legado). |
-| `participation_degree` | TEXT NULL | Código do grau (domínio TISS 35). Validado por pertinência ao domínio na camada de aplicação. |
+| Coluna                 | Tipo      | Notas                                                                                                         |
+| ---------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `procedure_id`         | UUID NULL | FK `appointment_procedures(id)` — linha de procedimento. NULL = participação a nível de atendimento (legado). |
+| `participation_degree` | TEXT NULL | Código do grau (domínio TISS 35). Validado por pertinência ao domínio na camada de aplicação.                 |
 
 ### Regras / constraints
 
@@ -56,10 +56,10 @@ tiss_domain_tables(35) ·····  participation_degree     (validação por có
 
 ## Validações (camada de aplicação)
 
-| Campo | Regra |
-|---|---|
-| `assistant_doctor_id` | médico ativo do tenant; ≠ duplicado ativo na mesma (appointment, procedure) |
-| `procedure_id` | pertence ao appointment/tenant (quando informado) |
-| `participation_degree` | pertence ao domínio 35 (ou faixa própria, se aplicável); rejeita texto livre |
-| `frozen_amount_cents` | inteiro > 0 |
-| guia SP/SADT | participante precisa de CPF + conselho + UF + CBO completos para a guia ficar `pronta` |
+| Campo                  | Regra                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `assistant_doctor_id`  | médico ativo do tenant; ≠ duplicado ativo na mesma (appointment, procedure)            |
+| `procedure_id`         | pertence ao appointment/tenant (quando informado)                                      |
+| `participation_degree` | pertence ao domínio 35 (ou faixa própria, se aplicável); rejeita texto livre           |
+| `frozen_amount_cents`  | inteiro > 0                                                                            |
+| guia SP/SADT           | participante precisa de CPF + conselho + UF + CBO completos para a guia ficar `pronta` |

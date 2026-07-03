@@ -46,10 +46,7 @@ export function readMarketplaceSignatureHeaders(headers: Headers): MarketplaceSi
       headers.get('x-wh-signature') ??
       headers.get('x-ghl-signature') ?? // fallback caso GHL use prefixo legado
       null,
-    timestamp:
-      headers.get('x-wh-timestamp') ??
-      headers.get('x-ghl-timestamp') ??
-      null,
+    timestamp: headers.get('x-wh-timestamp') ?? headers.get('x-ghl-timestamp') ?? null,
   }
 }
 

@@ -18,7 +18,12 @@ describe('Feature 012 — tenant isolation /api/tarefas', () => {
     const tenantB = (await seedTenant('tarefas-iso-b')).tenantId
     const adminA = await seedUser(tenantA, 'admin')
     const adminB = await seedUser(tenantB, 'admin')
-    adminAjwt = mintJwt({ userId: adminA.userId, email: adminA.email, tenantId: tenantA, role: 'admin' })
+    adminAjwt = mintJwt({
+      userId: adminA.userId,
+      email: adminA.email,
+      tenantId: tenantA,
+      role: 'admin',
+    })
 
     const sb = serviceClient()
     const { data } = await sb

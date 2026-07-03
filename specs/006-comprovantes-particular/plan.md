@@ -27,15 +27,15 @@ Migration única (0059) faz as duas coisas — risco controlado por idempotênci
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Toca? | Análise |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | Sim | `expenses` permanece append-only — colunas legadas `receipt_file_*` viram nullable e read-only via column-guard atualizado, drop apenas em 0060. `expense_receipts` é append + soft-delete (UPDATE de campos `deleted_*` permitido apenas para admin via RLS — file_name/storage_path/file_size_bytes ficam imutáveis). `appointments.plan_id` passa a aceitar NULL — atendimentos antigos não são alterados; só novos podem ser criados particular. Storage binário **nunca apagado**. PASS. |
-| **II. Auditabilidade Total de Preços** | Sim | Upload de comprovante → `audit_log` com `entity='expense_receipts'`, `field='upload'`, `new_value=file_name`. Soft-delete → `field='soft_delete'`, `reason` no campo `reason`. Atendimento particular: o INSERT em `appointments` com `plan_id=NULL` e `frozen_amount_cents` é registrado normalmente pelo audit existente em appointments. PASS. |
-| **III. Isolamento Multi-Tenant** | Sim | `expense_receipts` herda `tenant_id` por FK direta + RLS espelhada de `expenses`. Bucket `expense-receipts` mantém RLS por `(storage.foldername(name))[1] = tenant_id` (já em 0058). Trigger novo de `appointments` opera no escopo do `tenant_id` da row inserida. PASS. |
-| **IV. Conformidade TUSS/ANS** | Não | Sem mudança em catálogo TUSS. PASS. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | Sim | Upload (POST) admin/financeiro; soft-delete (DELETE) admin only — alinhado com 0058. Visualização/download (GET) admin/financeiro/recepcionista/profissional_saude. Particular: papéis que já criavam atendimentos (admin/recepcionista) continuam a fazê-lo, agora com a opção de `plan_id=NULL`. PASS. |
+| Princípio                                    | Toca? | Análise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável**       | Sim   | `expenses` permanece append-only — colunas legadas `receipt_file_*` viram nullable e read-only via column-guard atualizado, drop apenas em 0060. `expense_receipts` é append + soft-delete (UPDATE de campos `deleted_*` permitido apenas para admin via RLS — file_name/storage_path/file_size_bytes ficam imutáveis). `appointments.plan_id` passa a aceitar NULL — atendimentos antigos não são alterados; só novos podem ser criados particular. Storage binário **nunca apagado**. PASS. |
+| **II. Auditabilidade Total de Preços**       | Sim   | Upload de comprovante → `audit_log` com `entity='expense_receipts'`, `field='upload'`, `new_value=file_name`. Soft-delete → `field='soft_delete'`, `reason` no campo `reason`. Atendimento particular: o INSERT em `appointments` com `plan_id=NULL` e `frozen_amount_cents` é registrado normalmente pelo audit existente em appointments. PASS.                                                                                                                                             |
+| **III. Isolamento Multi-Tenant**             | Sim   | `expense_receipts` herda `tenant_id` por FK direta + RLS espelhada de `expenses`. Bucket `expense-receipts` mantém RLS por `(storage.foldername(name))[1] = tenant_id` (já em 0058). Trigger novo de `appointments` opera no escopo do `tenant_id` da row inserida. PASS.                                                                                                                                                                                                                     |
+| **IV. Conformidade TUSS/ANS**                | Não   | Sem mudança em catálogo TUSS. PASS.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **V. Segurança por Perfil de Acesso (RBAC)** | Sim   | Upload (POST) admin/financeiro; soft-delete (DELETE) admin only — alinhado com 0058. Visualização/download (GET) admin/financeiro/recepcionista/profissional_saude. Particular: papéis que já criavam atendimentos (admin/recepcionista) continuam a fazê-lo, agora com a opção de `plan_id=NULL`. PASS.                                                                                                                                                                                      |
 
 **Gates**: Todos passam. Sem violações para registrar em "Complexity Tracking".
 
@@ -135,13 +135,13 @@ Outputs em [`data-model.md`](./data-model.md), [`quickstart.md`](./quickstart.md
 
 ### Data model summary
 
-| Entidade | Mudança | Detalhes |
-|---|---|---|
-| `expenses` | Sem ALTER schema | Colunas `receipt_file_*` ficam deprecated mas preservadas (0060 dropa). Column-guard atualizado para impedir UPDATE nelas. |
-| `expense_receipts` | NEW TABLE | `id, tenant_id, expense_id, file_name, storage_path UNIQUE, file_size_bytes, content_type, uploaded_by, uploaded_at, deleted_at, deleted_by, deleted_reason`. RLS espelhada de `expenses`. Audit trigger AFTER INSERT + AFTER UPDATE WHEN deleted_at became non-null. |
-| `appointments` | ALTER `plan_id DROP NOT NULL` | Trigger 0015 recriado com lógica condicional `IF plan_id IS NOT NULL`. |
-| `treatment_plan_steps` | Sem mudança schema | `plan_id` já é nullable. UI passa a usar checkbox em vez de sentinela `__none__`. |
-| `audit_log` | Sem schema change | Recebe `entity='expense_receipts'`. |
+| Entidade               | Mudança                       | Detalhes                                                                                                                                                                                                                                                              |
+| ---------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `expenses`             | Sem ALTER schema              | Colunas `receipt_file_*` ficam deprecated mas preservadas (0060 dropa). Column-guard atualizado para impedir UPDATE nelas.                                                                                                                                            |
+| `expense_receipts`     | NEW TABLE                     | `id, tenant_id, expense_id, file_name, storage_path UNIQUE, file_size_bytes, content_type, uploaded_by, uploaded_at, deleted_at, deleted_by, deleted_reason`. RLS espelhada de `expenses`. Audit trigger AFTER INSERT + AFTER UPDATE WHEN deleted_at became non-null. |
+| `appointments`         | ALTER `plan_id DROP NOT NULL` | Trigger 0015 recriado com lógica condicional `IF plan_id IS NOT NULL`.                                                                                                                                                                                                |
+| `treatment_plan_steps` | Sem mudança schema            | `plan_id` já é nullable. UI passa a usar checkbox em vez de sentinela `__none__`.                                                                                                                                                                                     |
+| `audit_log`            | Sem schema change             | Recebe `entity='expense_receipts'`.                                                                                                                                                                                                                                   |
 
 ### Contracts summary
 
@@ -152,6 +152,7 @@ Outputs em [`data-model.md`](./data-model.md), [`quickstart.md`](./quickstart.md
 ### Quickstart
 
 `quickstart.md`:
+
 1. `git checkout 006-comprovantes-particular`
 2. `pnpm install` (sem deps novas)
 3. `pnpm supabase start && pnpm supabase:reset`
@@ -180,8 +181,8 @@ Sem violações pós-design. Plano aprovado para `/speckit.tasks`.
 > Sem violações de constituição — tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| _(none)_ | _(none)_ | _(none)_ |
+| --------- | ---------- | ------------------------------------ |
+| _(none)_  | _(none)_   | _(none)_                             |
 
 ## Risk Register (não-constitucional)
 

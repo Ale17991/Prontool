@@ -10,7 +10,10 @@ import { Textarea } from '@/components/ui/textarea'
 
 export interface JsonSchema {
   type: string
-  properties: Record<string, { type?: string; minLength?: number; maxLength?: number; pattern?: string }>
+  properties: Record<
+    string,
+    { type?: string; minLength?: number; maxLength?: number; pattern?: string }
+  >
   required: string[]
 }
 
@@ -33,9 +36,7 @@ export function ProviderForm({
     credentials: JsonSchema
   } | null>(null)
   const [config, setConfig] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      Object.entries(currentConfig ?? {}).map(([k, v]) => [k, String(v ?? '')]),
-    ),
+    Object.fromEntries(Object.entries(currentConfig ?? {}).map(([k, v]) => [k, String(v ?? '')])),
   )
   const [credentials, setCredentials] = useState<Record<string, string>>({})
   const [reason, setReason] = useState('')
@@ -60,9 +61,7 @@ export function ProviderForm({
       if (body.config && !connected) {
         // edge case: row existed but we rendered as !connected. refresh.
         setConfig(
-          Object.fromEntries(
-            Object.entries(body.config).map(([k, v]) => [k, String(v ?? '')]),
-          ),
+          Object.fromEntries(Object.entries(body.config).map(([k, v]) => [k, String(v ?? '')])),
         )
       }
     })()
@@ -148,9 +147,7 @@ export function ProviderForm({
   return (
     <form onSubmit={onSave} className="space-y-6">
       <section className="space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-          Configuração
-        </h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Configuração</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {configFields.map(([key, schema]) => (
             <div key={key} className="space-y-1.5">
@@ -169,7 +166,8 @@ export function ProviderForm({
 
       <section className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-          Credenciais {connected ? <span className="text-slate-400">(digite para rotacionar)</span> : null}
+          Credenciais{' '}
+          {connected ? <span className="text-slate-400">(digite para rotacionar)</span> : null}
         </h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {credentialFields.map(([key, schema]) => (
@@ -183,7 +181,9 @@ export function ProviderForm({
                 maxLength={schema.maxLength ?? 256}
                 autoComplete="off"
                 required={!connected && schemas.credentials.required.includes(key)}
-                placeholder={connected ? '••• (manter atual se em branco ainda não é suportado)' : ''}
+                placeholder={
+                  connected ? '••• (manter atual se em branco ainda não é suportado)' : ''
+                }
               />
             </div>
           ))}

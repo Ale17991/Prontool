@@ -59,9 +59,7 @@ export async function listParticipantsByProcedure(
     doctorId: r.assistant_doctor_id,
     doctorName: r.doctor?.full_name ?? '(profissional removido)',
     participationDegree: r.participation_degree,
-    degreeLabel: r.participation_degree
-      ? (labelByCode.get(r.participation_degree) ?? null)
-      : null,
+    degreeLabel: r.participation_degree ? (labelByCode.get(r.participation_degree) ?? null) : null,
     amountCents: r.frozen_amount_cents,
     createdAt: r.created_at,
   }))

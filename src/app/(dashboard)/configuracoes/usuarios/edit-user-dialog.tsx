@@ -40,7 +40,9 @@ export function EditUserDialog({ target, onOpenChange, onSuccess }: Props) {
           body: JSON.stringify({ role }),
         })
         if (!r.ok) {
-          const b = (await r.json().catch(() => ({}))) as { error?: { code?: string; message?: string } }
+          const b = (await r.json().catch(() => ({}))) as {
+            error?: { code?: string; message?: string }
+          }
           setError(
             b.error?.code === 'LAST_ADMIN'
               ? 'Não é possível rebaixar a única admin ativa.'
@@ -117,7 +119,12 @@ export function EditUserDialog({ target, onOpenChange, onSuccess }: Props) {
           </div>
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={busy}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={busy}>

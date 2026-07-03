@@ -26,15 +26,12 @@ interface RouteContext {
 
 export async function POST(req: Request, ctx: RouteContext): Promise<Response> {
   try {
-    const session = await requireRole(
-      ['admin', 'recepcionista', 'profissional_saude'],
-      {
-        entity: 'appointments',
-        entityId: ctx.params.id,
-        route: '/api/atendimentos/[id]/confirmar',
-        request: req,
-      },
-    )
+    const session = await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
+      entity: 'appointments',
+      entityId: ctx.params.id,
+      route: '/api/atendimentos/[id]/confirmar',
+      request: req,
+    })
 
     const parsed = bodySchema.safeParse(await req.json().catch(() => ({})))
     if (!parsed.success) {

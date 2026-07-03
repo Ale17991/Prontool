@@ -20,16 +20,7 @@ const ROLE_OPTIONS = [
   'Outro',
 ] as const
 
-const COUNCIL_OPTIONS = [
-  'CRM',
-  'CRO',
-  'CREFITO',
-  'CFP',
-  'CRN',
-  'CRFa',
-  'COREN',
-  'Outro',
-] as const
+const COUNCIL_OPTIONS = ['CRM', 'CRO', 'CREFITO', 'CFP', 'CRN', 'CRFa', 'COREN', 'Outro'] as const
 
 type PaymentMode = 'comissionado' | 'fixo' | 'liberal'
 
@@ -47,8 +38,7 @@ const PAYMENT_MODE_OPTIONS: Array<{ value: PaymentMode; label: string; hint: str
   {
     value: 'liberal',
     label: 'Liberal',
-    hint:
-      'Cobra por participação como assistente em atendimentos de outros profissionais.',
+    hint: 'Cobra por participação como assistente em atendimentos de outros profissionais.',
   },
 ]
 
@@ -324,9 +314,9 @@ export function NewDoctorForm() {
         />
       </div>
       <p className="text-[11px] text-slate-500">
-        CPF, UF do conselho e data de nascimento são necessários para emitir
-        prescrição digital (Memed). O CBO (6 dígitos, Classificação Brasileira de
-        Ocupações) é exigido para gerar guias TISS. Podem ser preenchidos depois.
+        CPF, UF do conselho e data de nascimento são necessários para emitir prescrição digital
+        (Memed). O CBO (6 dígitos, Classificação Brasileira de Ocupações) é exigido para gerar guias
+        TISS. Podem ser preenchidos depois.
       </p>
 
       <div className="space-y-1.5">
@@ -359,9 +349,7 @@ export function NewDoctorForm() {
             </option>
           ))}
         </select>
-        {modeMeta ? (
-          <p className="text-[11px] text-slate-500">{modeMeta.hint}</p>
-        ) : null}
+        {modeMeta ? <p className="text-[11px] text-slate-500">{modeMeta.hint}</p> : null}
       </div>
 
       {paymentMode === 'comissionado' ? (
@@ -426,8 +414,8 @@ export function NewDoctorForm() {
             placeholder="350,00"
           />
           <p className="text-[10px] text-slate-500">
-            Valor pré-preenchido ao adicionar este profissional como assistente em
-            atendimentos — pode ser editado caso a caso.
+            Valor pré-preenchido ao adicionar este profissional como assistente em atendimentos —
+            pode ser editado caso a caso.
           </p>
         </div>
       ) : null}
@@ -491,7 +479,11 @@ function toBps(input: string): number | null {
  * Retorna `null` para input inválido.
  */
 function toCents(input: string): number | null {
-  const cleaned = input.trim().replace(/R\$\s*/gi, '').replace(/\./g, '').replace(',', '.')
+  const cleaned = input
+    .trim()
+    .replace(/R\$\s*/gi, '')
+    .replace(/\./g, '')
+    .replace(',', '.')
   if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null
   const value = Number(cleaned)
   if (Number.isNaN(value) || value < 0) return null

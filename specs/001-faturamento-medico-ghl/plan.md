@@ -21,6 +21,7 @@ PostgreSQL, e o catálogo TUSS é importado do repositório público
 `charlesfgarcia/tabelas-ans` em script de seed versionado.
 
 Divergências relevantes da stack sugerida pelo usuário (ver research.md):
+
 1. **Express é removido em favor de Next.js Route Handlers unificados**
    — um único deploy na Vercel, mesmo runtime, menor superfície.
 2. **`xlsx` (SheetJS) é substituído por `exceljs`** devido a CVEs abertos e
@@ -33,6 +34,7 @@ Divergências relevantes da stack sugerida pelo usuário (ver research.md):
 
 **Language/Version**: TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).
 **Primary Dependencies**:
+
 - Next.js 14 (App Router, Server Actions, Route Handlers) — UI + API.
 - `@supabase/supabase-js` + `@supabase/ssr` — cliente Postgres + Auth.
 - Supabase Auth (provedor de identidade; custom JWT claims `tenant_id`, `role`).
@@ -50,6 +52,7 @@ append-only nas tabelas financeiras (`appointments`, `appointment_reversals`,
 `price_versions`, `audit_log`, `doctor_commission_history`).
 
 **Testing**:
+
 - Vitest — unit + integration.
 - Playwright — E2E de fluxos admin (gestão de preço, dashboard de alertas,
   geração de relatório).
@@ -57,6 +60,7 @@ append-only nas tabelas financeiras (`appointments`, `appointment_reversals`,
   de integração — mocks de DB são proibidos (reforça Principle I do constitution).
 
 **Target Platform**:
+
 - Frontend + API: Vercel (Next.js 14 runtime Node.js; região `gru1` São Paulo
   para latência Brasil).
 - DB + Auth: Supabase (região São Paulo).
@@ -66,6 +70,7 @@ append-only nas tabelas financeiras (`appointments`, `appointment_reversals`,
 **Project Type**: Web application (Next.js unificado frontend + backend).
 
 **Performance Goals** (derivados de SC-001a/b/c e SC-004):
+
 - Webhook ack p99 < 1 s.
 - Processamento semântico de atendimento p95 < 10 s.
 - Entrada na DLQ para falha de negócio < 30 s.
@@ -73,6 +78,7 @@ append-only nas tabelas financeiras (`appointments`, `appointment_reversals`,
 - Entrega de e-mail de alerta ao admin < 2 min em 95% dos casos.
 
 **Constraints**:
+
 - Função Vercel com timeout ≤ 60 s (plano Pro) — processamento semântico
   precisa caber ou ser redisparado pela fila.
 - RLS obrigatória em 100% das tabelas de tenant (Principle III).
@@ -85,6 +91,7 @@ append-only nas tabelas financeiras (`appointments`, `appointment_reversals`,
   criptografados em repouso; ausentes de logs em texto claro (FR-010a, SC-011).
 
 **Scale/Scope**:
+
 - v1: tenant count estimado 10–50 clínicas no piloto (premissa; revalidar).
 - Por clínica: até 5 k atendimentos/mês, ~500 procedimentos cadastrados,
   ~20 médicos, ~10 planos.
@@ -93,19 +100,20 @@ append-only nas tabelas financeiras (`appointments`, `appointment_reversals`,
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 Avaliação contra os 5 Core Principles do constitution (`.specify/memory/constitution.md`):
 
-| Principle | Status | Como o plano atende |
-|-----------|--------|---------------------|
-| I. Integridade Financeira Imutável (NON-NEGOTIABLE) | PASS | Tabelas financeiras são append-only; triggers `BEFORE UPDATE OR DELETE` bloqueiam mutação; reversão é registro compensatório append-only (FR-027–32). Valor e comissão de atendimento são congelados na criação. |
-| II. Auditabilidade Total de Preços (NON-NEGOTIABLE) | PASS | Trigger de nível de banco insere em `audit_log` em cada INSERT de `price_versions`, `doctors` (alteração de comissão), `procedures`, e tentativas de acesso negadas. Campos obrigatórios: `actor_id`, `timestamp UTC`, `tenant_id`, `entity`, `field`, `old_value`, `new_value`, `reason`, `ip`, `user_agent`. |
-| III. Isolamento Multi-Tenant | PASS | `tenant_id UUID NOT NULL` em toda tabela de tenant; RLS policy `tenant_id = auth.jwt()->>'tenant_id'::uuid`; UUID PK; middleware Next.js injeta JWT; testes de contrato verificam vazamento impossível. Webhook ingestion via service-role isolada a uma transação com `SET LOCAL app.tenant_id` antes de qualquer escrita. |
-| IV. Conformidade TUSS/ANS | PASS | Tabela `tuss_codes` global (read-only para tenants) carregada por script de seed a partir de `github.com/charlesfgarcia/tabelas-ans`. Versões são rastreadas em `tuss_catalog_versions`. Validação de código TUSS em INSERT de `price_versions` e no processamento de atendimento (FR-016). |
-| V. Segurança por Perfil de Acesso (RBAC) | PASS | Supabase Auth emite JWT com claims `role` (`admin`/`financeiro`/`recepcionista`/`profissional_saude`) e `tenant_id`. Route Handlers verificam role server-side antes de qualquer mutação. RLS policies cruzam `tenant_id` AND `role`. Tentativas negadas gravadas na trilha. |
+| Principle                                           | Status | Como o plano atende                                                                                                                                                                                                                                                                                                         |
+| --------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Integridade Financeira Imutável (NON-NEGOTIABLE) | PASS   | Tabelas financeiras são append-only; triggers `BEFORE UPDATE OR DELETE` bloqueiam mutação; reversão é registro compensatório append-only (FR-027–32). Valor e comissão de atendimento são congelados na criação.                                                                                                            |
+| II. Auditabilidade Total de Preços (NON-NEGOTIABLE) | PASS   | Trigger de nível de banco insere em `audit_log` em cada INSERT de `price_versions`, `doctors` (alteração de comissão), `procedures`, e tentativas de acesso negadas. Campos obrigatórios: `actor_id`, `timestamp UTC`, `tenant_id`, `entity`, `field`, `old_value`, `new_value`, `reason`, `ip`, `user_agent`.              |
+| III. Isolamento Multi-Tenant                        | PASS   | `tenant_id UUID NOT NULL` em toda tabela de tenant; RLS policy `tenant_id = auth.jwt()->>'tenant_id'::uuid`; UUID PK; middleware Next.js injeta JWT; testes de contrato verificam vazamento impossível. Webhook ingestion via service-role isolada a uma transação com `SET LOCAL app.tenant_id` antes de qualquer escrita. |
+| IV. Conformidade TUSS/ANS                           | PASS   | Tabela `tuss_codes` global (read-only para tenants) carregada por script de seed a partir de `github.com/charlesfgarcia/tabelas-ans`. Versões são rastreadas em `tuss_catalog_versions`. Validação de código TUSS em INSERT de `price_versions` e no processamento de atendimento (FR-016).                                 |
+| V. Segurança por Perfil de Acesso (RBAC)            | PASS   | Supabase Auth emite JWT com claims `role` (`admin`/`financeiro`/`recepcionista`/`profissional_saude`) e `tenant_id`. Route Handlers verificam role server-side antes de qualquer mutação. RLS policies cruzam `tenant_id` AND `role`. Tentativas negadas gravadas na trilha.                                                |
 
 **Additional domain constraints from constitution (Section 2)** — all addressed:
+
 - Persistência append-only via triggers (R7 em research.md).
 - LGPD: campos pessoais criptografados via `pgcrypto` column-level em colunas
   sensíveis de `patients`; logs via `pino` com redaction list.
@@ -115,6 +123,7 @@ Avaliação contra os 5 Core Principles do constitution (`.specify/memory/consti
   `tenant_id`, `user_id`, `trace_id`.
 
 **Development Workflow gates from constitution (Section 3)** — plan provides:
+
 - Testes obrigatórios para código financeiro, RBAC e multi-tenant scoping
   (contract + isolation + role matrix) — detalhados em tasks.md (Phase 2).
 - Migrações reversíveis em dev via Supabase migration files.
@@ -275,7 +284,7 @@ isolados. Workers de fila são Route Handlers dedicados em
 
 ## Complexity Tracking
 
-*Preenchido apenas se o Constitution Check apontar violações justificadas.*
+_Preenchido apenas se o Constitution Check apontar violações justificadas._
 
 **Nenhuma violação detectada no gate inicial.** O plano segue estritamente
 os 5 Core Principles sem necessidade de desvio. A única simplificação em
@@ -285,6 +294,6 @@ favor de Next.js unificado) **reduz** complexidade e está documentada em
 
 ---
 
-*Phase 0 output: [research.md](./research.md) — decisões técnicas e pesquisa.*
-*Phase 1 output: [data-model.md](./data-model.md), [contracts/](./contracts/), [quickstart.md](./quickstart.md).*
-*Phase 2 will be executed by `/speckit-tasks` — not part of this command.*
+_Phase 0 output: [research.md](./research.md) — decisões técnicas e pesquisa._
+_Phase 1 output: [data-model.md](./data-model.md), [contracts/](./contracts/), [quickstart.md](./quickstart.md)._
+_Phase 2 will be executed by `/speckit-tasks` — not part of this command._

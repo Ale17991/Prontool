@@ -5,6 +5,7 @@
 ## Schema
 
 Ver [`../data-model.md`](../data-model.md#treatment_plan_steps-alter). Resumo:
+
 - `appointment_id UUID NULL UNIQUE REFERENCES appointments(id)`.
 - Column-guard relaxado: UPDATE em `appointment_id` aceito apenas quando `OLD.appointment_id IS NULL`.
 
@@ -13,6 +14,7 @@ Ver [`../data-model.md`](../data-model.md#treatment_plan_steps-alter). Resumo:
 `create_step_with_appointment(p_tenant_id, p_patient_id, p_procedure_id, p_doctor_id, p_plan_id, p_appointment_at TIMESTAMPTZ, p_duration_minutes INTEGER, p_title TEXT, p_notes TEXT, p_created_by UUID) RETURNS UUID`
 
 Lógica:
+
 1. INSERT em `appointments` com `source='manual'`, `appointment_at=p_appointment_at`, `duration_minutes=p_duration_minutes`. Falha de slot lock propaga (HTTP 409 no caller).
 2. INSERT em `treatment_plan_steps` com `appointment_id=appointment.id`, `scheduled_date=DATE(p_appointment_at AT TIME ZONE 'America/Sao_Paulo')`, demais campos.
 3. RETURN `step.id`.
@@ -26,6 +28,7 @@ Tudo na transação implícita da função (sem savepoints).
 **Auth**: `requireRole(['admin', 'profissional_saude', 'recepcionista'])`.
 
 **Body** (Zod, expandido):
+
 ```ts
 z.object({
   procedure_id: z.string().uuid(),
@@ -35,7 +38,7 @@ z.object({
   notes: z.string().trim().max(2000).nullable(),
   // NOVOS campos:
   scheduled_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/),  // HH:MM local
+  start_time: z.string().regex(/^\d{2}:\d{2}$/), // HH:MM local
   end_time: z.string().regex(/^\d{2}:\d{2}$/),
 }).refine((d) => timeToMinutes(d.end_time) > timeToMinutes(d.start_time), {
   message: 'end_time deve ser depois de start_time',
@@ -45,6 +48,7 @@ z.object({
 Handler converte `scheduled_date + start_time` para `appointment_at` (UTC), calcula `duration_minutes = endMin - startMin`, e chama `create_step_with_appointment` via RPC.
 
 **Resposta 201**:
+
 ```json
 {
   "step_id": "uuid",
@@ -55,6 +59,7 @@ Handler converte `scheduled_date + start_time` para `appointment_at` (UTC), calc
 ```
 
 **Erros**:
+
 - 400: validação Zod (incluindo `end > start`).
 - 409: conflito de horário (`APPOINTMENT_CONFLICT`).
 - 404: paciente/procedimento/profissional/plano não encontrado no tenant.
@@ -90,18 +95,19 @@ O column-guard relaxado aceita esse UPDATE (porque `OLD.appointment_id IS NULL`)
 
 Ver detalhes em [`../data-model.md`](../data-model.md#triggers-resumo). Resumo dos cenários:
 
-| Ação do usuário | Trigger primário | Efeito secundário |
-|---|---|---|
-| Marca etapa como `concluido` | `step_status_sync_to_appointment` (UPDATE on steps) | INSERT em `appointment_completions` → trigger `appointment_completion_sync_to_step` no-op (depth>1) |
-| Marca etapa como `cancelado` | `step_status_sync_to_appointment` (UPDATE on steps) | INSERT em `appointment_reversals` → trigger `appointment_reversal_sync_to_step` no-op (depth>1) |
+| Ação do usuário                  | Trigger primário                                                   | Efeito secundário                                                                                                               |
+| -------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Marca etapa como `concluido`     | `step_status_sync_to_appointment` (UPDATE on steps)                | INSERT em `appointment_completions` → trigger `appointment_completion_sync_to_step` no-op (depth>1)                             |
+| Marca etapa como `cancelado`     | `step_status_sync_to_appointment` (UPDATE on steps)                | INSERT em `appointment_reversals` → trigger `appointment_reversal_sync_to_step` no-op (depth>1)                                 |
 | Marca atendimento como realizado | endpoint chama `mark_appointment_realized` → INSERT em completions | trigger `appointment_completion_sync_to_step` UPDATE step.status='concluido'; `step_status_sync_to_appointment` no-op (depth>1) |
-| Estorna atendimento | INSERT em `appointment_reversals` | trigger `appointment_reversal_sync_to_step` UPDATE step.status='cancelado'; trigger `release_slot_lock` libera o slot |
+| Estorna atendimento              | INSERT em `appointment_reversals`                                  | trigger `appointment_reversal_sync_to_step` UPDATE step.status='cancelado'; trigger `release_slot_lock` libera o slot           |
 
 ## UI
 
 ### `treatment-steps-section.tsx` — formulário de nova etapa
 
 Campos novos:
+
 - `<Input type="date" required>` para `scheduled_date` (já existia).
 - `<Input type="time" required>` para `start_time`.
 - `<Input type="time" required>` para `end_time`.
@@ -113,9 +119,11 @@ Bloco "valor estimado" continua aparecendo (não foi removido — só do card fi
 ### Banner de etapa legada sem horário
 
 Quando lista de etapas inclui alguma com `appointment_id IS NULL`:
+
 ```tsx
 <Banner>
-  Você tem N etapas sem horário definido. Agende cada uma para que apareçam no calendário da clínica.
+  Você tem N etapas sem horário definido. Agende cada uma para que apareçam no calendário da
+  clínica.
 </Banner>
 ```
 

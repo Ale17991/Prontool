@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import {
-  createPatientTag,
-  listPatientTags,
-} from '@/lib/core/patient-tags/service'
+import { createPatientTag, listPatientTags } from '@/lib/core/patient-tags/service'
 import { PATIENT_TAG_COLORS } from '@/lib/core/patient-tags/palette'
 import { toHttpResponse } from '@/lib/observability/http'
 

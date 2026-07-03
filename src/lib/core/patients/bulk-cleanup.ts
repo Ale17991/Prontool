@@ -29,9 +29,7 @@ export async function bulkCleanupPatient(
   input: BulkCleanupInput,
 ): Promise<BulkCleanupResult> {
   if (!input.removeAnamneses && !input.removeRecords && !input.removeSteps) {
-    throw new ValidationError(
-      'Selecione ao menos um tipo de dado para remover',
-    )
+    throw new ValidationError('Selecione ao menos um tipo de dado para remover')
   }
 
   // Sanity check — paciente pertence ao tenant?

@@ -4,7 +4,10 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getUserOverrides } from '@/lib/auth/overrides'
 import { ALL_ACTIONS, type Action } from '@/lib/auth/rbac'
-import { setUserPermissionOverrides, type OverrideChange } from '@/lib/core/team/permission-overrides/set'
+import {
+  setUserPermissionOverrides,
+  type OverrideChange,
+} from '@/lib/core/team/permission-overrides/set'
 import { ValidationError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -38,7 +41,11 @@ export async function GET(
   { params }: { params: { userId: string } },
 ): Promise<Response> {
   try {
-    const session = await requireRole(['admin'], { entity: 'user_permission_overrides', route: ROUTE, request: req })
+    const session = await requireRole(['admin'], {
+      entity: 'user_permission_overrides',
+      route: ROUTE,
+      request: req,
+    })
     const sb = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
 
     const roleRes = await sb
@@ -61,11 +68,20 @@ export async function POST(
   { params }: { params: { userId: string } },
 ): Promise<Response> {
   try {
-    const session = await requireRole(['admin'], { entity: 'user_permission_overrides', route: ROUTE, request: req })
+    const session = await requireRole(['admin'], {
+      entity: 'user_permission_overrides',
+      route: ROUTE,
+      request: req,
+    })
     const parsed = bodySchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: parsed.error.issues[0]?.message ?? 'payload inválido' } },
+        {
+          error: {
+            code: 'INVALID_BODY',
+            message: parsed.error.issues[0]?.message ?? 'payload inválido',
+          },
+        },
         { status: 400 },
       )
     }
@@ -75,7 +91,10 @@ export async function POST(
       .filter((c) => ACTION_SET.has(c.action))
       .map((c) => ({ action: c.action as Action, effect: c.effect }))
     if (changes.length === 0) {
-      return NextResponse.json({ error: { code: 'NO_VALID_ACTIONS', message: 'Nenhuma ação válida.' } }, { status: 400 })
+      return NextResponse.json(
+        { error: { code: 'NO_VALID_ACTIONS', message: 'Nenhuma ação válida.' } },
+        { status: 400 },
+      )
     }
 
     const sb = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
@@ -91,7 +110,10 @@ export async function POST(
       return NextResponse.json({ applied: result.applied })
     } catch (err) {
       if (err instanceof ValidationError) {
-        return NextResponse.json({ error: { code: 'PROTECTED_ACTION', message: err.message } }, { status: 400 })
+        return NextResponse.json(
+          { error: { code: 'PROTECTED_ACTION', message: err.message } },
+          { status: 400 },
+        )
       }
       throw err
     }

@@ -28,10 +28,7 @@ const postBodySchema = z.object({
  * necessário ao seletor (médicos ativos + graus do domínio 35). Honorários são
  * mascarados (null) para quem não tem `finance.view_values`.
  */
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/atendimentos/${params.id}/participantes`
   try {
     const session = await requireRole(
@@ -94,7 +91,9 @@ export async function POST(
     const parsed = postBodySchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }

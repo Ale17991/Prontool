@@ -160,12 +160,7 @@ export async function listPayablesWithProjections(
 
   // Despesas reais no range
   const realRows: PayableRow[] = allExpenses
-    .filter(
-      (e) =>
-        e.competence_date >= fromIso &&
-        e.competence_date <= toIso &&
-        !e.superseded_by,
-    )
+    .filter((e) => e.competence_date >= fromIso && e.competence_date <= toIso && !e.superseded_by)
     .map((e) => ({
       id: e.id,
       isProjection: false,
@@ -188,9 +183,10 @@ export async function listPayablesWithProjections(
     }))
 
   // Projeções
-  const projections = filters.includeProjections === false
-    ? []
-    : projectRecurringExpenses(allExpenses, fromIso, toIso)
+  const projections =
+    filters.includeProjections === false
+      ? []
+      : projectRecurringExpenses(allExpenses, fromIso, toIso)
 
   let rows: PayableRow[] = [...realRows, ...projections]
 
@@ -253,21 +249,24 @@ export async function markExpensePaid(
     .eq('tenant_id', input.tenantId)
   if (upd.error) throw new Error(`mark paid: ${upd.error.message}`)
 
-  await supabase.rpc('log_audit_event' as never, {
-    p_tenant_id: input.tenantId,
-    p_entity: 'expenses',
-    p_entity_id: input.expenseId,
-    p_field: 'paid_at',
-    p_old: null,
-    p_new: input.paidAt,
-    p_reason: `paid via /api/financeiro/contas-a-pagar; method=${input.paymentMethod}`,
-  } as never)
+  await supabase.rpc(
+    'log_audit_event' as never,
+    {
+      p_tenant_id: input.tenantId,
+      p_entity: 'expenses',
+      p_entity_id: input.expenseId,
+      p_field: 'paid_at',
+      p_old: null,
+      p_new: input.paidAt,
+      p_reason: `paid via /api/financeiro/contas-a-pagar; method=${input.paymentMethod}`,
+    } as never,
+  )
 }
 
 export interface VersionExpenseInput {
   tenantId: string
   expenseId: string
-  effectiveFrom: string  // YYYY-MM-DD
+  effectiveFrom: string // YYYY-MM-DD
   newAmountCents: number
   reason: string
   actorUserId: string
@@ -338,15 +337,18 @@ export async function versionRecurringExpense(
   if (upd.error) throw new Error(`version update old: ${upd.error.message}`)
 
   // 3. Audit
-  await supabase.rpc('log_audit_event' as never, {
-    p_tenant_id: input.tenantId,
-    p_entity: 'expenses',
-    p_entity_id: input.expenseId,
-    p_field: 'recurring.versioned',
-    p_old: oldRow.amount_cents.toString(),
-    p_new: input.newAmountCents.toString(),
-    p_reason: `${input.reason} | new_id=${newId} | effective_from=${input.effectiveFrom}`,
-  } as never)
+  await supabase.rpc(
+    'log_audit_event' as never,
+    {
+      p_tenant_id: input.tenantId,
+      p_entity: 'expenses',
+      p_entity_id: input.expenseId,
+      p_field: 'recurring.versioned',
+      p_old: oldRow.amount_cents.toString(),
+      p_new: input.newAmountCents.toString(),
+      p_reason: `${input.reason} | new_id=${newId} | effective_from=${input.effectiveFrom}`,
+    } as never,
+  )
 
   return { newExpenseId: newId }
 }
@@ -366,13 +368,16 @@ export async function endRecurringExpense(
     .eq('id', args.expenseId)
     .eq('tenant_id', args.tenantId)
   if (upd.error) throw new Error(`end recurring: ${upd.error.message}`)
-  await supabase.rpc('log_audit_event' as never, {
-    p_tenant_id: args.tenantId,
-    p_entity: 'expenses',
-    p_entity_id: args.expenseId,
-    p_field: 'recurring_ends_at',
-    p_old: null,
-    p_new: args.endsAt,
-    p_reason: 'recurring expense terminated (no versioning)',
-  } as never)
+  await supabase.rpc(
+    'log_audit_event' as never,
+    {
+      p_tenant_id: args.tenantId,
+      p_entity: 'expenses',
+      p_entity_id: args.expenseId,
+      p_field: 'recurring_ends_at',
+      p_old: null,
+      p_new: args.endsAt,
+      p_reason: 'recurring expense terminated (no versioning)',
+    } as never,
+  )
 }

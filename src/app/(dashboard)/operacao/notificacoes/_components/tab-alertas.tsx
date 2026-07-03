@@ -66,11 +66,7 @@ export async function TabAlertas({ role, statusFilter }: Props) {
     <div className="space-y-4">
       <p className="text-sm text-slate-500">
         {rows.length} alerta{rows.length === 1 ? '' : 's'}
-        {statusFilter === 'aberto'
-          ? ' abertos'
-          : statusFilter === 'resolvido'
-            ? ' resolvidos'
-            : ''}
+        {statusFilter === 'aberto' ? ' abertos' : statusFilter === 'resolvido' ? ' resolvidos' : ''}
         {statusFilter === 'todos' && openCount > 0 ? ` · ${openCount} abertos` : ''}
       </p>
 
@@ -112,9 +108,7 @@ export async function TabAlertas({ role, statusFilter }: Props) {
           ) : rows.length === 0 ? (
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <Bell className="h-8 w-8 text-slate-300" />
-              <p className="text-sm font-medium text-slate-500">
-                Nenhum alerta no filtro atual.
-              </p>
+              <p className="text-sm font-medium text-slate-500">Nenhum alerta no filtro atual.</p>
             </div>
           ) : (
             <Table>
@@ -130,9 +124,7 @@ export async function TabAlertas({ role, statusFilter }: Props) {
               <TableBody>
                 {rows.map((r) => (
                   <TableRow key={r.id ?? Math.random()} className="align-top">
-                    <TableCell className="text-slate-700">
-                      {formatDateTime(r.created_at)}
-                    </TableCell>
+                    <TableCell className="text-slate-700">{formatDateTime(r.created_at)}</TableCell>
                     <TableCell>
                       <span className="font-semibold text-slate-900">
                         {TYPE_LABEL[r.type ?? ''] ?? r.type}

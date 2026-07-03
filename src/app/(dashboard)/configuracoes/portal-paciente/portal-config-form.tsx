@@ -7,10 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import type {
-  MetricSetting,
-  PatientPortalConfig,
-} from '@/lib/core/patient-portal/portal-config'
+import type { MetricSetting, PatientPortalConfig } from '@/lib/core/patient-portal/portal-config'
 import { createMetricAction, savePortalConfigAction, setMetricEnabledAction } from './actions'
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{2,31}$/
@@ -25,9 +22,7 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
   const [enabled, setEnabled] = useState(initialConfig.patientPortalEnabled)
   const [slug, setSlug] = useState(initialConfig.publicBookingSlug)
   const [metrics, setMetrics] = useState(initialMetrics)
-  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(
-    null,
-  )
+  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null)
   const [pending, startTransition] = useTransition()
 
   // Cadastro de métrica custom.

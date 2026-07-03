@@ -22,10 +22,7 @@ const postBodySchema = z.object({
   amount_cents: z.number().int().positive().max(100_000_00),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/atendimentos/${params.id}/assistants`
   try {
     const session = await requireRole(

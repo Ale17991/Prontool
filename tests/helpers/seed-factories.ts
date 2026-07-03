@@ -8,7 +8,9 @@ export interface SeededTenant {
   slug: string
 }
 
-export async function seedTenant(slug = `tenant-${randomUUID().slice(0, 8)}`): Promise<SeededTenant> {
+export async function seedTenant(
+  slug = `tenant-${randomUUID().slice(0, 8)}`,
+): Promise<SeededTenant> {
   const sb = serviceClient()
   const tenantId = randomUUID()
   await sb
@@ -371,6 +373,12 @@ export async function seedAppointment(args: {
   amountCents: number
   commissionBps: number
   at?: string
+  /**
+   * Marca o atendimento como REALIZADO (insere appointment_completions) para
+   * que `appointments_effective.effective_status` vire 'ativo' — pré-condição
+   * para entrar em receita/produção/repasse. Default false (fica 'agendado').
+   */
+  completed?: boolean
 }): Promise<string> {
   const sb = serviceClient()
   const id = randomUUID()
@@ -390,6 +398,9 @@ export async function seedAppointment(args: {
       appointment_at: args.at ?? new Date().toISOString(),
     })
     .throwOnError()
+  if (args.completed) {
+    await seedAppointmentCompletion({ tenantId: args.tenantId, appointmentId: id })
+  }
   return id
 }
 
@@ -483,7 +494,14 @@ export async function seedPatient(tenantId: string): Promise<string> {
  */
 export async function seedClinicProfile(
   tenantId: string,
-  opts: { slug: string; corporateName?: string; publicBookingEnabled?: boolean },
+  opts: {
+    slug: string
+    corporateName?: string
+    publicBookingEnabled?: boolean
+    /** Liga/desliga do portal do paciente (0114). Default true — o portal
+     * resolve a clínica só quando habilitado; testes de portal precisam disso. */
+    patientPortalEnabled?: boolean
+  },
 ): Promise<void> {
   const sb = serviceClient()
   await sb
@@ -493,6 +511,7 @@ export async function seedClinicProfile(
       corporate_name: opts.corporateName ?? 'Clínica Teste 030',
       public_booking_slug: opts.slug,
       public_booking_enabled: opts.publicBookingEnabled ?? false,
+      patient_portal_enabled: opts.patientPortalEnabled ?? true,
     })
     .throwOnError()
 }

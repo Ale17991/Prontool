@@ -8,7 +8,11 @@ export class DomainError extends Error {
   readonly statusHint: number | undefined
   readonly meta: Record<string, unknown> | undefined
 
-  constructor(code: string, message: string, opts: { status?: number; meta?: Record<string, unknown> } = {}) {
+  constructor(
+    code: string,
+    message: string,
+    opts: { status?: number; meta?: Record<string, unknown> } = {},
+  ) {
     super(message)
     this.name = this.constructor.name
     this.code = code
@@ -75,11 +79,9 @@ export class AppointmentPriceMissingError extends DomainError {
 /** Raised when procedure's TUSS code has been retired. */
 export class TussCodeRetiredError extends DomainError {
   constructor(code: string, retiredOn: string) {
-    super(
-      'TUSS_CODE_RETIRED',
-      `Código TUSS ${code} foi retirado do catálogo em ${retiredOn}.`,
-      { meta: { code, retiredOn } },
-    )
+    super('TUSS_CODE_RETIRED', `Código TUSS ${code} foi retirado do catálogo em ${retiredOn}.`, {
+      meta: { code, retiredOn },
+    })
   }
 }
 

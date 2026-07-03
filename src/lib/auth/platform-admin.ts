@@ -62,7 +62,7 @@ function identityFromCookies(): { id: string; email: string | null } | null {
     const s = session as { access_token?: unknown } | unknown[]
     const accessToken =
       typeof (s as { access_token?: unknown }).access_token === 'string'
-        ? ((s as { access_token: string }).access_token)
+        ? (s as { access_token: string }).access_token
         : Array.isArray(s) && typeof s[0] === 'string'
           ? (s[0] as string)
           : null
@@ -78,8 +78,7 @@ function identityFromCookies(): { id: string; email: string | null } | null {
 /** Dono(s) da plataforma por e-mail — super-admin garantido, independe da tabela. */
 function bootstrapSuperEmails(): Set<string> {
   const raw =
-    process.env.PLATFORM_SUPER_ADMIN_EMAILS ??
-    'clinnipro@gmail.com,operations@homio.com.br'
+    process.env.PLATFORM_SUPER_ADMIN_EMAILS ?? 'clinnipro@gmail.com,operations@homio.com.br'
   return new Set(
     raw
       .split(',')

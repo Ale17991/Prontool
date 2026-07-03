@@ -76,9 +76,7 @@ export function TasksTable({ tasks, isAdmin, members }: Props) {
                   <p className="line-clamp-1 text-[11px] text-slate-500">{t.notes}</p>
                 ) : null}
               </TableCell>
-              <TableCell className="text-xs text-slate-700">
-                {t.assigned_to_name ?? '—'}
-              </TableCell>
+              <TableCell className="text-xs text-slate-700">{t.assigned_to_name ?? '—'}</TableCell>
               <TableCell
                 className={cn(
                   'text-xs font-semibold tabular-nums',
@@ -87,9 +85,7 @@ export function TasksTable({ tasks, isAdmin, members }: Props) {
               >
                 {new Date(t.due_date + 'T00:00:00').toLocaleDateString('pt-BR')}
                 {t.is_overdue ? (
-                  <span className="ml-1 text-[10px] uppercase tracking-widest">
-                    Atrasada
-                  </span>
+                  <span className="ml-1 text-[10px] uppercase tracking-widest">Atrasada</span>
                 ) : null}
               </TableCell>
               <TableCell>

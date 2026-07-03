@@ -216,7 +216,10 @@ export function assignLanes<T extends LaneAssignable>(blocks: T[]): LaneResult<T
     let overlap = 1
     for (const w of visible) {
       if (w === v) continue
-      if (w.block.start.getTime() < v.block.end.getTime() && w.block.end.getTime() > v.block.start.getTime()) {
+      if (
+        w.block.start.getTime() < v.block.end.getTime() &&
+        w.block.end.getTime() > v.block.start.getTime()
+      ) {
         overlap++
       }
     }

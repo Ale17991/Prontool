@@ -69,17 +69,17 @@ z.object({
 
 ## Response 400 / 404 / 422
 
-| Status | Code |
-|--------|------|
-| 400 | `INVALID_BODY` |
-| 400 | `APPOINTMENT_IN_FUTURE` |
-| 401 | `UNAUTHENTICATED` |
-| 403 | `FORBIDDEN` |
-| 404 | `PATIENT_NOT_FOUND` / `DOCTOR_NOT_FOUND` / `PROCEDURE_NOT_FOUND` / `PLAN_NOT_FOUND` |
-| 422 | `TUSS_CODE_RETIRED` |
-| 422 | `PRICE_NOT_FOUND` |
-| 422 | `COMMISSION_NOT_FOUND` |
-| 500 | `INTERNAL_ERROR` |
+| Status | Code                                                                                |
+| ------ | ----------------------------------------------------------------------------------- |
+| 400    | `INVALID_BODY`                                                                      |
+| 400    | `APPOINTMENT_IN_FUTURE`                                                             |
+| 401    | `UNAUTHENTICATED`                                                                   |
+| 403    | `FORBIDDEN`                                                                         |
+| 404    | `PATIENT_NOT_FOUND` / `DOCTOR_NOT_FOUND` / `PROCEDURE_NOT_FOUND` / `PLAN_NOT_FOUND` |
+| 422    | `TUSS_CODE_RETIRED`                                                                 |
+| 422    | `PRICE_NOT_FOUND`                                                                   |
+| 422    | `COMMISSION_NOT_FOUND`                                                              |
+| 500    | `INTERNAL_ERROR`                                                                    |
 
 ```json
 { "error": { "code": "APPOINTMENT_IN_FUTURE", "message": "Atendimento não pode estar no futuro" } }

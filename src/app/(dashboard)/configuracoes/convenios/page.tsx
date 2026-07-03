@@ -88,8 +88,8 @@ export default async function ConveniosPage() {
         <h1 className="text-2xl font-black tracking-tight text-slate-900">Convênios</h1>
         <p className="mt-1 text-sm text-slate-500">
           {rows.length} convênio{rows.length === 1 ? '' : 's'} · {activeCount} ativo
-          {activeCount === 1 ? '' : 's'}. Cada convênio tem sua tabela de
-          procedimentos com valores — clique em &quot;Abrir&quot; para gerenciar preços.
+          {activeCount === 1 ? '' : 's'}. Cada convênio tem sua tabela de procedimentos com valores
+          — clique em &quot;Abrir&quot; para gerenciar preços.
         </p>
       </div>
 
@@ -104,8 +104,8 @@ export default async function ConveniosPage() {
           <CardContent>
             <NewPlanForm />
             <p className="mt-3 text-[11px] text-slate-500">
-              Nomes são imutáveis após o cadastro — preserva integridade dos
-              relatórios históricos. Para encerrar, desative.
+              Nomes são imutáveis após o cadastro — preserva integridade dos relatórios históricos.
+              Para encerrar, desative.
             </p>
           </CardContent>
         </Card>
@@ -121,9 +121,7 @@ export default async function ConveniosPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 px-6 py-16 text-center">
             <FileText className="h-8 w-8 text-slate-300" />
-            <p className="text-sm font-medium text-slate-500">
-              Nenhum convênio cadastrado.
-            </p>
+            <p className="text-sm font-medium text-slate-500">Nenhum convênio cadastrado.</p>
           </CardContent>
         </Card>
       ) : (
@@ -167,14 +165,10 @@ export default async function ConveniosPage() {
                       <TableCell className="text-right font-semibold tabular-nums text-slate-700">
                         {s.count > 0 ? formatCurrency(avg) : '—'}
                       </TableCell>
-                      <TableCell className="text-slate-700">
-                        {formatDate(p.created_at)}
-                      </TableCell>
+                      <TableCell className="text-slate-700">{formatDate(p.created_at)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-3">
-                          {canWrite ? (
-                            <TogglePlanActive planId={p.id} active={p.active} />
-                          ) : null}
+                          {canWrite ? <TogglePlanActive planId={p.id} active={p.active} /> : null}
                           <Link
                             href={`/configuracoes/convenios/${p.id}`}
                             className="inline-flex items-center gap-1 text-xs font-bold text-link hover:text-link-hover hover:underline"

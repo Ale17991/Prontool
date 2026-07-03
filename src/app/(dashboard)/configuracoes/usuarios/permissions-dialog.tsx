@@ -126,7 +126,8 @@ export function PermissionsDialog({ target, onOpenChange, onSuccess }: Props) {
         </DialogHeader>
 
         <p className="text-xs text-slate-500">
-          Papel base: <strong>{labelForRole(role)}</strong>. Ajuste por ação: <em>Herdar</em> usa o papel;
+          Papel base: <strong>{labelForRole(role)}</strong>. Ajuste por ação: <em>Herdar</em> usa o
+          papel;
           <em> Conceder</em> adiciona; <em>Revogar</em> retira (revogação sempre vence).
         </p>
 
@@ -139,13 +140,18 @@ export function PermissionsDialog({ target, onOpenChange, onSuccess }: Props) {
             <div className="space-y-4">
               {GROUPS.map((g) => (
                 <div key={g.key}>
-                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">{g.key}</p>
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    {g.key}
+                  </p>
                   <div className="space-y-1">
                     {g.actions.map((a) => {
                       const base = can(role, a)
                       const cur = state[a] ?? 'inherit'
                       return (
-                        <div key={a} className="flex items-center justify-between gap-3 rounded-md px-2 py-1 hover:bg-slate-50">
+                        <div
+                          key={a}
+                          className="flex items-center justify-between gap-3 rounded-md px-2 py-1 hover:bg-slate-50"
+                        >
                           <span className="font-mono text-[11px] text-slate-700">
                             {a}
                             <span className="ml-2 text-[10px] text-slate-400">
@@ -173,8 +179,8 @@ export function PermissionsDialog({ target, onOpenChange, onSuccess }: Props) {
             </div>
 
             <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-500">
-              Ações financeiras-críticas ({[...PROTECTED].join(', ')}) são protegidas e não podem ter override —
-              continuam atadas ao papel.
+              Ações financeiras-críticas ({[...PROTECTED].join(', ')}) são protegidas e não podem
+              ter override — continuam atadas ao papel.
             </p>
 
             {error ? <p className="text-xs text-destructive">{error}</p> : null}
@@ -182,7 +188,12 @@ export function PermissionsDialog({ target, onOpenChange, onSuccess }: Props) {
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-slate-400">{changes.length} alteração(ões)</span>
               <div className="flex gap-2">
-                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onOpenChange(false)}
+                  disabled={busy}
+                >
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={busy || changes.length === 0}>

@@ -9,10 +9,7 @@
  * Red-first: worker import fails until T085.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import {
   seedTenant,
   seedGhlConfig,

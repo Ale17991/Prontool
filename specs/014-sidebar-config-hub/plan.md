@@ -17,15 +17,16 @@ Feature **puramente UI/navegação** que (1) enxuga a sidebar para 3 + 3 + 1 ite
 **Project Type**: Web application monolítica (Next.js full-stack) — frontend e backend no mesmo repositório, mas esta feature toca **apenas** o frontend (`src/app/(dashboard)/...` + `src/app/(dashboard)/_components/`).
 **Performance Goals**: Hub `/configuracoes` e página unificada de notificações SSR com TTFB / FCP **dentro da faixa atual** do dashboard (sem regressão observável A/B). Grid de 9 cards estáticos: <50 ms de render server-side; tabs client-side sem fetch adicional ao trocar.
 **Constraints**:
+
 - FR-016: pura UI — proibido tocar migrations/RLS/API handlers/eventos.
 - Constituição III (multi-tenant): preservar — as páginas movidas já filtram por `tenant_id` via `getSession()` + RLS; mover a rota não muda essa cadeia.
 - Constituição V (RBAC server-side): preservar — visibilidade dos cards continua avaliada no servidor com `getSession()` + `can()`, não apenas no client.
 - Bundle: nenhum aumento significativo (apenas reorganização de componentes); zero novas deps.
-**Scale/Scope**: 4 user stories (P1×2, P2, P3), 17 FRs, 9 rotas tocadas (1 nova `/configuracoes` virando hub, 2 movidas, 3 com redirect 308, 3 alteradas via tabs).
+  **Scale/Scope**: 4 user stories (P1×2, P2, P3), 17 FRs, 9 rotas tocadas (1 nova `/configuracoes` virando hub, 2 movidas, 3 com redirect 308, 3 alteradas via tabs).
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 Avaliação dos cinco princípios contra esta feature:
 

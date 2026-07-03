@@ -6,6 +6,7 @@
 ## Summary
 
 Duas frentes sobre o RBAC e a gestão de usuários existentes:
+
 1. **Overrides por usuário** — nova tabela `user_permission_overrides (tenant_id, user_id, action, effect grant|deny)`. A checagem de autorização passa a considerar papel + overrides (permissão efetiva = `MATRIX[role] ∪ grants \ denies`), avaliada **no servidor**. UI de edição em `/configuracoes/usuarios` (admin da clínica), com aviso ao conceder ações sensíveis.
 2. **Autonomia de super-admin** no `/admin` — gerenciar usuários de qualquer clínica (CRUD + papel), resetar senha, editar dados cadastrais da clínica e impersonar **somente-leitura** (banner + auditoria início/fim). Reusa os fluxos existentes (`createManualUser`, convite, reset, `tenant_clinic_profile`, `enforce_last_admin`), agora cross-tenant e auditados.
 
@@ -23,7 +24,7 @@ Duas frentes sobre o RBAC e a gestão de usuários existentes:
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável** — ✅ Não altera registros financeiros. Overrides são config (tabela mutável própria); audit em append-only.
 - **II. Auditabilidade de Preços** — ✅ A feature adiciona auditoria de mudanças de permissão/usuário (reforça II). Toda concessão/revogação é auditada (ator/alvo/antes-depois/motivo).
@@ -86,8 +87,8 @@ tests/
 
 > Itens que exigem justificativa/decisão antes da implementação:
 
-| Item | Por que existe | Decisão necessária / mitigação |
-|------|----------------|--------------------------------|
+| Item                                                      | Por que existe                                                                                                                              | Decisão necessária / mitigação                                                                                                                       |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Override de ações financeiras-críticas vs Princípio V** | "Todas overridáveis" permitiria conceder `price.write`/`commission.write`/`appointment.reverse`/`audit.*` a papéis que o Princípio V proíbe | **RESOLVIDO (2026-06-26)**: essas ações são NÃO-overridáveis (protegidas). Honra a constituição sem emenda. Overrides valem só para as demais ações. |
-| Impersonação read-only | Super-admin atuando dentro do tenant | Mitigado: somente-leitura (bloqueia escrita no servidor durante a impersonação), banner visível, auditoria início/fim, escopo de tenant validado. |
-| Carga de overrides por request | Autorização precisa ser imediata (não via JWT stale) | 1 query indexada por `(tenant_id,user_id)`; set efetivo 1×/request. Custo desprezível; evita staleness. |
+| Impersonação read-only                                    | Super-admin atuando dentro do tenant                                                                                                        | Mitigado: somente-leitura (bloqueia escrita no servidor durante a impersonação), banner visível, auditoria início/fim, escopo de tenant validado.    |
+| Carga de overrides por request                            | Autorização precisa ser imediata (não via JWT stale)                                                                                        | 1 query indexada por `(tenant_id,user_id)`; set efetivo 1×/request. Custo desprezível; evita staleness.                                              |

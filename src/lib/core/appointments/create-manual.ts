@@ -118,7 +118,9 @@ export async function createAppointmentManually(
 ): Promise<CreateManualAppointmentResult> {
   const when = new Date(input.appointmentAt)
   if (Number.isNaN(when.getTime())) {
-    throw new DomainError('INVALID_BODY', 'Data e hora do atendimento em formato inválido.', { status: 400 })
+    throw new DomainError('INVALID_BODY', 'Data e hora do atendimento em formato inválido.', {
+      status: 400,
+    })
   }
 
   if (!input.procedures || input.procedures.length === 0) {
@@ -132,14 +134,18 @@ export async function createAppointmentManually(
   const distinctProcedureIds = Array.from(new Set(input.procedures.map((p) => p.procedureId)))
   const distinctPlanIds = Array.from(
     new Set(
-      input.procedures
-        .map((p) => p.planId)
-        .filter((v): v is string => typeof v === 'string'),
+      input.procedures.map((p) => p.planId).filter((v): v is string => typeof v === 'string'),
     ),
   )
 
   const fkChecks: Array<Promise<void>> = [
-    ensureBelongsToTenant(supabase, 'patients', input.patientId, input.tenantId, 'PATIENT_NOT_FOUND'),
+    ensureBelongsToTenant(
+      supabase,
+      'patients',
+      input.patientId,
+      input.tenantId,
+      'PATIENT_NOT_FOUND',
+    ),
     ensureBelongsToTenant(supabase, 'doctors', input.doctorId, input.tenantId, 'DOCTOR_NOT_FOUND'),
     ...distinctProcedureIds.map((pid) =>
       ensureBelongsToTenant(supabase, 'procedures', pid, input.tenantId, 'PROCEDURE_NOT_FOUND'),
@@ -357,7 +363,8 @@ export async function createAppointmentManually(
   const totalCents = lines.reduce((acc, l) => acc + l.lineAmountCents * l.quantity, 0)
 
   // Materiais — pre-validacao (defesa redundante ao trigger SQL).
-  let materialsPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> = []
+  let materialsPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> =
+    []
   if (input.materials && input.materials.length > 0) {
     const codes = input.materials.map((m) => m.tussCode)
     const valid = await supabase
@@ -647,7 +654,9 @@ async function ensureBelongsToTenant(
   if (res.error) throw new Error(`${table} lookup failed: ${res.error.message}`)
   if (!res.data) {
     const label = PT_TABLE_LABEL[table] ?? table
-    throw new DomainError(notFoundCode, `${label} não encontrado(a) nesta clínica.`, { status: 404 })
+    throw new DomainError(notFoundCode, `${label} não encontrado(a) nesta clínica.`, {
+      status: 404,
+    })
   }
 }
 

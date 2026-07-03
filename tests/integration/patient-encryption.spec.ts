@@ -14,10 +14,7 @@
  * LGPD commitment tracked by SC-011.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant } from '@/tests/helpers/seed-factories'
 import { upsertPatientFromGhl } from '@/lib/core/patients/upsert-from-ghl'
 

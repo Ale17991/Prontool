@@ -82,9 +82,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
   const [neighborhood, setNeighborhood] = useState('')
   const [city, setCity] = useState('')
   const [state, setState] = useState<string>('')
-  const [cepLookup, setCepLookup] = useState<'idle' | 'loading' | 'not-found' | 'error'>(
-    'idle',
-  )
+  const [cepLookup, setCepLookup] = useState<'idle' | 'loading' | 'not-found' | 'error'>('idle')
 
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -253,12 +251,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
 
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail (opcional)</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div className="space-y-1.5">
@@ -330,16 +323,14 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
               Nenhum plano ativo cadastrado.{' '}
               <Link href="/configuracoes/convenios" className="underline">
                 Cadastrar plano
-              </Link>
-              {' '}ou escolha &quot;Sem plano (particular)&quot;.
+              </Link>{' '}
+              ou escolha &quot;Sem plano (particular)&quot;.
             </p>
           ) : null}
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
-          <Label htmlFor="insurance_card_number">
-            Carteirinha do convênio (opcional)
-          </Label>
+          <Label htmlFor="insurance_card_number">Carteirinha do convênio (opcional)</Label>
           <Input
             id="insurance_card_number"
             placeholder="Número da carteira / matrícula"
@@ -424,7 +415,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           {cepLookup === 'loading' ? (
             <p className="text-[11px] text-slate-500">Buscando CEP…</p>
           ) : cepLookup === 'not-found' ? (
-            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">CEP não encontrado no ViaCEP.</p>
+            <p className="text-[11px] text-[hsl(var(--warning-foreground))]">
+              CEP não encontrado no ViaCEP.
+            </p>
           ) : cepLookup === 'error' ? (
             <p className="text-[11px] text-[hsl(var(--warning-foreground))]">
               Não foi possível consultar o CEP — preencha manualmente.

@@ -97,10 +97,10 @@ async function resolveWebhookSecret(tenantSlug: string): Promise<string> {
   return secret
 }
 
-function buildSignedRequest(args: {
+function buildSignedRequest(args: { url: string; secret: string }): {
   url: string
-  secret: string
-}): { url: string; init: RequestInit } {
+  init: RequestInit
+} {
   const payload = {
     event_id: `bench_${randomUUID()}`,
     event_type: 'pipeline_stage_changed',
@@ -178,9 +178,7 @@ async function main(): Promise<void> {
   const deadline = Date.now() + args.durationSec * 1000
   const startedAt = performance.now()
   await Promise.all(
-    Array.from({ length: args.concurrency }, () =>
-      worker({ url, secret, deadline, samples }),
-    ),
+    Array.from({ length: args.concurrency }, () => worker({ url, secret, deadline, samples })),
   )
   const elapsedSec = (performance.now() - startedAt) / 1000
 

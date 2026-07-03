@@ -107,10 +107,9 @@ export function PatientLoginForm({ slug }: { slug: string }) {
               onChange={(e) => setConsent(e.target.checked)}
             />
             <span>
-              Autorizo o acesso aos meus dados de saúde neste portal, conforme a
-              Lei Geral de Proteção de Dados (LGPD). Os dados exibidos são
-              somente para minha consulta pessoal e cada acesso é registrado por
-              segurança.
+              Autorizo o acesso aos meus dados de saúde neste portal, conforme a Lei Geral de
+              Proteção de Dados (LGPD). Os dados exibidos são somente para minha consulta pessoal e
+              cada acesso é registrado por segurança.
             </span>
           </label>
 

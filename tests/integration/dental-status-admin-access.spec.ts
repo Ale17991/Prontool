@@ -17,7 +17,12 @@ describe('dental_status_catalog — acesso de escrita restrito', () => {
   it('admin de tenant não consegue inserir no catálogo global', async () => {
     const t = await seedTenant()
     const admin = await seedUser(t.tenantId, 'admin')
-    const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId: t.tenantId, role: 'admin' })
+    const jwt = mintJwt({
+      userId: admin.userId,
+      email: admin.email,
+      tenantId: t.tenantId,
+      role: 'admin',
+    })
     const sb = rlsClient(jwt)
     const { error } = await sb.from('dental_status_catalog').insert({
       code: 'tenant_hack',
@@ -31,7 +36,12 @@ describe('dental_status_catalog — acesso de escrita restrito', () => {
   it('admin de tenant consegue LER o catálogo (paleta)', async () => {
     const t = await seedTenant()
     const admin = await seedUser(t.tenantId, 'admin')
-    const jwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId: t.tenantId, role: 'admin' })
+    const jwt = mintJwt({
+      userId: admin.userId,
+      email: admin.email,
+      tenantId: t.tenantId,
+      role: 'admin',
+    })
     const sb = rlsClient(jwt)
     const { data, error } = await sb
       .from('dental_status_catalog')

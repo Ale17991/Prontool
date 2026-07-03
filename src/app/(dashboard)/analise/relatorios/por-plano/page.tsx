@@ -5,11 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { can } from '@/lib/auth/rbac'
-import {
-  PARTICULAR_KEY,
-  summaryByPlan,
-  type PlanSummaryRow,
-} from '@/lib/core/reports/by-plan'
+import { PARTICULAR_KEY, summaryByPlan, type PlanSummaryRow } from '@/lib/core/reports/by-plan'
 import type { Database } from '@/lib/db/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -52,9 +48,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
       .order('name', { ascending: true }),
   ])
 
-  const summaryByPlanId = new Map<string, PlanSummaryRow>(
-    summaryItems.map((s) => [s.planId, s]),
-  )
+  const summaryByPlanId = new Map<string, PlanSummaryRow>(summaryItems.map((s) => [s.planId, s]))
   const plans = (plansRes.data ?? []) as PlanRow[]
   const particularSummary = summaryByPlanId.get(PARTICULAR_KEY) ?? null
 
@@ -81,9 +75,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
-          Relatório financeiro
-        </h1>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">Relatório financeiro</h1>
         <p className="mt-1 text-sm text-slate-500">
           Procedimentos realizados por plano de saúde —{' '}
           <span className="font-semibold">{formatDate(period.from)}</span> a{' '}
@@ -108,13 +100,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
               <Label htmlFor="from" className="text-xs">
                 Data início
               </Label>
-              <Input
-                id="from"
-                name="from"
-                type="date"
-                defaultValue={period.from}
-                required
-              />
+              <Input id="from" name="from" type="date" defaultValue={period.from} required />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="to" className="text-xs">
@@ -129,10 +115,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <SummaryStat label="Planos ativos" value={plans.length.toString()} />
-        <SummaryStat
-          label="Procedimentos no período"
-          value={grandTotalProcedures.toString()}
-        />
+        <SummaryStat label="Procedimentos no período" value={grandTotalProcedures.toString()} />
         <SummaryStat
           label="Faturamento no período"
           value={formatCurrency(grandTotalRevenue)}
@@ -156,8 +139,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
       {plans.length === 0 ? (
         <Card>
           <CardContent className="px-6 py-6 text-center text-sm text-slate-500">
-            Nenhum convênio ativo cadastrado — apenas atendimentos particulares
-            aparecem acima.{' '}
+            Nenhum convênio ativo cadastrado — apenas atendimentos particulares aparecem acima.{' '}
             <Link
               href="/configuracoes/convenios"
               className="font-semibold text-link hover:text-link-hover underline"
@@ -236,9 +218,7 @@ function SummaryStat({
   return (
     <Card>
       <CardContent className="p-5">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
         <p
           className={
             highlight

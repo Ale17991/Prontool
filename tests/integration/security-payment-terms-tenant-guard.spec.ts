@@ -22,7 +22,17 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createHmac } from 'node:crypto'
 import { randomUUID } from 'node:crypto'
 import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
-import { seedTenant, seedUser, seedDoctor } from '@/tests/helpers/seed-factories'
+import {
+  seedTenant,
+  seedUser,
+  seedDoctor,
+  seedHealthPlan,
+  seedTussCode,
+  seedProcedure,
+  seedPriceVersion,
+  seedPatient,
+  seedAppointment,
+} from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 
 const JWT_SECRET =
@@ -83,18 +93,21 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     const jwt = mintTenantlessJwt(userId, u!.user!.email!)
 
     const client = rlsClient(jwt)
-    const { error } = await client.rpc('record_payment_terms_change' as never, {
-      p_tenant_id: tenantId,
-      p_doctor_id: doctorId,
-      p_payment_mode: 'comissionado',
-      p_percentage_bps: 5000,
-      p_monthly_amount_cents: null,
-      p_billing_day: null,
-      p_liberal_default_cents: null,
-      p_valid_from: '2026-01-01',
-      p_reason: 'tentativa malicious',
-      p_actor: userId,
-    } as never)
+    const { error } = await client.rpc(
+      'record_payment_terms_change' as never,
+      {
+        p_tenant_id: tenantId,
+        p_doctor_id: doctorId,
+        p_payment_mode: 'comissionado',
+        p_percentage_bps: 5000,
+        p_monthly_amount_cents: null,
+        p_billing_day: null,
+        p_liberal_default_cents: null,
+        p_valid_from: '2026-01-01',
+        p_reason: 'tentativa malicious',
+        p_actor: userId,
+      } as never,
+    )
 
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/TENANT_MISMATCH/)
@@ -119,18 +132,21 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     })
 
     const client = rlsClient(jwt)
-    const { data, error } = await client.rpc('record_payment_terms_change' as never, {
-      p_tenant_id: tenantId,
-      p_doctor_id: doctorId,
-      p_payment_mode: 'comissionado',
-      p_percentage_bps: 6000,
-      p_monthly_amount_cents: null,
-      p_billing_day: null,
-      p_liberal_default_cents: null,
-      p_valid_from: '2026-01-01',
-      p_reason: 'admin ajustou comissão',
-      p_actor: admin.userId,
-    } as never)
+    const { data, error } = await client.rpc(
+      'record_payment_terms_change' as never,
+      {
+        p_tenant_id: tenantId,
+        p_doctor_id: doctorId,
+        p_payment_mode: 'comissionado',
+        p_percentage_bps: 6000,
+        p_monthly_amount_cents: null,
+        p_billing_day: null,
+        p_liberal_default_cents: null,
+        p_valid_from: '2026-01-01',
+        p_reason: 'admin ajustou comissão',
+        p_actor: admin.userId,
+      } as never,
+    )
 
     expect(error).toBeNull()
     expect(data).toBeTruthy()
@@ -138,92 +154,37 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
 
   it('attach_assistant_to_appointment com caller sem tenant → APPOINTMENT_NOT_FOUND', async () => {
     const { tenantId } = await seedTenant('c3-attach-no-tenant')
-    // Seed um appointment válido para ter um UUID real.
+    // Appointment válido via factories (inserts manuais quebravam com a
+    // evolução de schema/triggers). O foco do teste é o guard de tenant.
     const sb = serviceClient()
-    const apptId = randomUUID()
-    const { doctorId } = await seedDoctor(tenantId, { paymentMode: 'liberal' })
-
-    // Cria minimum viable patient + procedure + plan + price_version pra
-    // poder inserir appointment. Aqui usamos o seedAppointment? Sim,
-    // mas exige mais seeds — para focar no guard, fazemos INSERT minimal
-    // via service_role com colunas necessárias.
-    const planRes = await sb
-      .from('health_plans')
-      .insert({ tenant_id: tenantId, name: 'Plano C3' })
-      .select('id')
-      .single()
-    const planId = (planRes.data as { id: string }).id
-
-    const { data: tussRow } = await sb
-      .from('tuss_codes')
-      .insert({
-        code: 'C3TEST',
-        description: 'test',
-        tuss_table: '22',
-        valid_from: '2020-01-01',
-      } as never)
-      .select('code')
-      .single()
-    void tussRow
-
-    const procRes = await sb
-      .from('procedures')
-      .insert({ tenant_id: tenantId, tuss_code: 'C3TEST' } as never)
-      .select('id')
-      .single()
-    const procId = (procRes.data as { id: string }).id
-
-    const priceRes = await sb
-      .from('price_versions')
-      .insert({
-        tenant_id: tenantId,
-        procedure_id: procId,
-        plan_id: planId,
-        amount_cents: 10000,
-        valid_from: '2020-01-01',
-        created_by: '00000000-0000-0000-0000-000000000000',
-        reason: 'seed',
-      })
-      .select('id')
-      .single()
-    const priceId = (priceRes.data as { id: string }).id
-
-    // Patient mínimo
-    const patientRes = await sb
-      .from('patients')
-      .insert({
-        tenant_id: tenantId,
-        ghl_contact_id: `p-${randomUUID()}`,
-        full_name_enc: Buffer.from('x') as unknown as string,
-        cpf_enc: Buffer.from('x') as unknown as string,
-      } as never)
-      .select('id')
-      .single()
-    const patientId = (patientRes.data as { id: string }).id
-
-    const commRes = await sb
+    const { doctorId } = await seedDoctor(tenantId)
+    const planId = await seedHealthPlan(tenantId)
+    await seedTussCode('C3TEST')
+    const procId = await seedProcedure(tenantId, 'C3TEST')
+    const priceId = await seedPriceVersion({
+      tenantId,
+      planId,
+      procedureId: procId,
+      amountCents: 10000,
+      validFrom: '2020-01-01',
+    })
+    const patientId = await seedPatient(tenantId)
+    const { data: comm } = await sb
       .from('doctor_commission_history')
       .select('id')
       .eq('doctor_id', doctorId)
       .single()
-    const commissionId = (commRes.data as { id: string }).id
-
-    await sb
-      .from('appointments')
-      .insert({
-        id: apptId,
-        tenant_id: tenantId,
-        patient_id: patientId,
-        doctor_id: doctorId,
-        procedure_id: procId,
-        plan_id: planId,
-        frozen_amount_cents: 10000,
-        frozen_commission_bps: 4000,
-        source_price_version_id: priceId,
-        source_commission_history_id: commissionId,
-        appointment_at: new Date().toISOString(),
-      } as never)
-      .throwOnError()
+    const apptId = await seedAppointment({
+      tenantId,
+      doctorId,
+      planId,
+      procedureId: procId,
+      priceVersionId: priceId,
+      patientId,
+      commissionId: (comm as unknown as { id: string }).id,
+      amountCents: 10000,
+      commissionBps: 4000,
+    })
 
     // Cria usuário sem tenant.
     const { data: u } = await sb.auth.admin.createUser({
@@ -234,12 +195,15 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     const jwt = mintTenantlessJwt(u!.user!.id, u!.user!.email!)
     const client = rlsClient(jwt)
 
-    const { error } = await client.rpc('attach_assistant_to_appointment' as never, {
-      p_appointment_id: apptId,
-      p_assistant_doctor_id: doctorId,
-      p_amount_cents: 5000,
-      p_actor: u!.user!.id,
-    } as never)
+    const { error } = await client.rpc(
+      'attach_assistant_to_appointment' as never,
+      {
+        p_appointment_id: apptId,
+        p_assistant_doctor_id: doctorId,
+        p_amount_cents: 5000,
+        p_actor: u!.user!.id,
+      } as never,
+    )
 
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/APPOINTMENT_NOT_FOUND/)
@@ -258,10 +222,13 @@ describe('security: payment_terms RPCs reject callers without tenant claim (C3)'
     // UUID random — não importa se existe; guard verifica antes do lookup.
     // Mas é fácil testar com UUID que NÃO existe; espera ASSISTANT_NOT_FOUND.
     const fakeId = randomUUID()
-    const { error } = await client.rpc('remove_appointment_assistant' as never, {
-      p_id: fakeId,
-      p_actor: u!.user!.id,
-    } as never)
+    const { error } = await client.rpc(
+      'remove_appointment_assistant' as never,
+      {
+        p_id: fakeId,
+        p_actor: u!.user!.id,
+      } as never,
+    )
 
     expect(error).not.toBeNull()
     expect(error!.message).toMatch(/ASSISTANT_NOT_FOUND/)

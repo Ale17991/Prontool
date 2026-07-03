@@ -7,7 +7,7 @@
 
 > **Escopo desta spec**: esta é uma spec de **conformidade auditável**, não de funcionalidade nova. A funcionalidade da Memed (registrar prescritor, prescrever, capturar eventos) está no spec **026-memed-prescricao-digital**. Aqui o foco é a **prova auditável** de que cada critério da Memed é atendido, com cenários de teste que servem para a avaliação que a Memed executa antes de liberar a chave de produção (e que pode revogar a qualquer momento depois).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Cadastro do Prescritor completo e correto (Priority: P1)
 
@@ -130,7 +130,7 @@ O aceite dos 9 itens de conformidade (incluindo "Sim, estou ciente de que a inte
 - **Token de prescritor expirado** (Memed devolve 401): o backend renova via `GET /usuarios/{external_id}` automaticamente e re-injeta no iframe; usuário não percebe.
 - **Tenant tem credenciais Memed mas ainda está em homologação**: UI mostra claramente "Modo homologação — prescrições NÃO têm validade legal"; banner persistente em toda tela de prescrição.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -180,7 +180,7 @@ O aceite dos 9 itens de conformidade (incluindo "Sim, estou ciente de que a inte
 
 - **Acceptance Record (documento)**: arquivo em `docs/legal/` com registro do aceite humano dos 9 itens. Não é entidade de banco — é prova jurídica versionada no git.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

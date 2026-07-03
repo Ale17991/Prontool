@@ -5,22 +5,22 @@
 **Status**: Draft
 **Input**: User description: "Faturamento TISS de convênios. Permitir que clínicas que atendem convênios gerem, validem, organizem em lotes e exportem guias no padrão TISS da ANS para receber das operadoras — reaproveitando o que já existe (tuss_codes/tuss_catalog_versions, procedures, health_plans/convênios, appointments, doctors, taxes/financeiro)."
 
-## Contexto Regulatório *(leitura obrigatória — base da pesquisa)*
+## Contexto Regulatório _(leitura obrigatória — base da pesquisa)_
 
 O **TISS (Troca de Informação em Saúde Suplementar)** é o padrão **obrigatório** da ANS (base legal **RN nº 501/2022**) para a troca eletrônica de dados de atenção à saúde entre prestadores e operadoras de planos de saúde. Não existe formato proprietário aceito: para faturar convênio, o sistema **DEVE** produzir XML TISS válido que valide contra o schema XSD oficial da ANS. Pontos verificados na pesquisa (fontes oficiais gov.br/ans, RN 501/2022, release ANS Jan/2026):
 
-- **Versão-alvo (CONFIRMADA — release oficial Maio/2026, pub. 28/05/2026):** o **Componente de Comunicação** (mensagens) vigente é o **04.03.00** (o paralelo `01.06.00` cobre apenas Monitoramento e **não** substitui o de mensagens), **fim de implantação obrigatório 30/06/2026**. Demais componentes do release Maio/2026: Organizacional **202605**, Representação/TUSS **202605** (atualizou tabelas 19/OPME, 20/medicamentos e 64), Conteúdo e Estrutura **202511** e Segurança e Privacidade **202511** (ambos com fim de implantação 30/06/2026). A RN 501/2022 (Art. 7) obriga uso da "versão vigente" — o fornecedor não escolhe versão arbitrária. **Alvo do sistema: Comunicação 04.03.00 + Conteúdo e Estrutura 202511 + TUSS 202605.** Fonte: PDF oficial `PadroTISS_ComponenteOrganizacional_202605.pdf` (item 314 — Prazos) e legenda `Componente de Conteúdo e Estrutura_202511` (gov.br/ans). *(Reconfirmar o release vigente e rebaixar os XSDs a cada início de ciclo de manutenção, pois a ANS publica releases periódicos.)*
+- **Versão-alvo (CONFIRMADA — release oficial Maio/2026, pub. 28/05/2026):** o **Componente de Comunicação** (mensagens) vigente é o **04.03.00** (o paralelo `01.06.00` cobre apenas Monitoramento e **não** substitui o de mensagens), **fim de implantação obrigatório 30/06/2026**. Demais componentes do release Maio/2026: Organizacional **202605**, Representação/TUSS **202605** (atualizou tabelas 19/OPME, 20/medicamentos e 64), Conteúdo e Estrutura **202511** e Segurança e Privacidade **202511** (ambos com fim de implantação 30/06/2026). A RN 501/2022 (Art. 7) obriga uso da "versão vigente" — o fornecedor não escolhe versão arbitrária. **Alvo do sistema: Comunicação 04.03.00 + Conteúdo e Estrutura 202511 + TUSS 202605.** Fonte: PDF oficial `PadroTISS_ComponenteOrganizacional_202605.pdf` (item 314 — Prazos) e legenda `Componente de Conteúdo e Estrutura_202511` (gov.br/ans). _(Reconfirmar o release vigente e rebaixar os XSDs a cada início de ciclo de manutenção, pois a ANS publica releases periódicos.)_
 - **5 componentes do padrão:** Organizacional, Conteúdo e Estrutura (campos obrigatórios das guias), Representação de Conceitos em Saúde (terminologia/TUSS), Segurança e Privacidade (sigilo/assinatura/log) e Comunicação (XML + meios de troca).
 - **Estrutura da mensagem/lote:** raiz `mensagemTISS` → `cabecalho` (cabeçalho de transação) → escolha `prestadorParaOperadora` / `operadoraParaPrestador` → `epilogo` (com **hash** de integridade) → assinatura digital **opcional** no XSD. O lote do prestador usa `loteGuias`; namespace alvo `http://www.ans.gov.br/padroes/tiss/schemas`.
 - **Procedimentos nunca são texto livre:** toda linha de procedimento exige o par **Tabela** (domínio nº 87 — "tabela de tabelas", ex.: `22` procedimentos, `18` diárias/taxas/gases, `20` medicamentos, `00` tabela própria) **+ Código do Procedimento**, ambos obrigatórios.
-- **Guia de Consulta — campos obrigatórios (CONFIRMADO na legenda oficial 202511):** Registro ANS (dom. da operadora), Nº da guia no prestador, Nº da carteira do beneficiário, Atendimento a RN (S/N), Nome do beneficiário, Código do contratado executante na operadora, Nome do contratado, **CNES** (preencher `9999999` se não houver), Conselho Profissional (dom. 26), Número no conselho, **UF (dom. 59)**, **CBO (dom. 24)**, **Indicação de Acidente (dom. 36)**, Regime de atendimento (dom. 76), Data do Atendimento, **Tipo de Consulta (dom. 52)**, **Tabela** (referência do procedimento) + **Código do procedimento** + **Valor do procedimento** (zero quando não definível por contrato), Assinatura do profissional executante e Assinatura do beneficiário/responsável. *Condicionados:* Nome do profissional executante (quando o contratado for **pessoa jurídica**), Nome social, Cobertura Especial (dom. 75), Validade da carteira, Nº da guia atribuído pela operadora.
+- **Guia de Consulta — campos obrigatórios (CONFIRMADO na legenda oficial 202511):** Registro ANS (dom. da operadora), Nº da guia no prestador, Nº da carteira do beneficiário, Atendimento a RN (S/N), Nome do beneficiário, Código do contratado executante na operadora, Nome do contratado, **CNES** (preencher `9999999` se não houver), Conselho Profissional (dom. 26), Número no conselho, **UF (dom. 59)**, **CBO (dom. 24)**, **Indicação de Acidente (dom. 36)**, Regime de atendimento (dom. 76), Data do Atendimento, **Tipo de Consulta (dom. 52)**, **Tabela** (referência do procedimento) + **Código do procedimento** + **Valor do procedimento** (zero quando não definível por contrato), Assinatura do profissional executante e Assinatura do beneficiário/responsável. _Condicionados:_ Nome do profissional executante (quando o contratado for **pessoa jurídica**), Nome social, Cobertura Especial (dom. 75), Validade da carteira, Nº da guia atribuído pela operadora.
 - **SP/SADT — estrutura (CONFIRMADO na legenda oficial 202511):** separa blocos **Solicitante** e **Executante**, cada um com **Conselho Profissional** (dom. 26), **Número no conselho**, **UF (dom. 59)** e **CBO (dom. 24)**. Cabeçalho com Caráter do Atendimento (dom. 23), Tipo de Atendimento (dom. 50), Indicação de Acidente (dom. 36), Tipo de Consulta (dom. 52, quando atendimento = consulta); **Senha** condicionada (quando autorização com senha). Linha de procedimento realizado: **Tabela (dom. 87)** + **Código** + Descrição + Qtde + Via de acesso (cirúrgico) + **Técnica (dom. 48)** + Valor Unitário + Valor Total; totalizadores por categoria (procedimentos, taxas/aluguéis, materiais, OPME, medicamentos, gases). Profissional executante por linha condicionado a haver honorários (dom. 26/59/24 + Grau de Participação dom. 35).
 - **Glosas:** os motivos de recusa são padronizados na **Tabela 38** (Mensagens — Glosas, Negativas e Outras); faixa `9901-9999` reservada a motivos próprios da operadora.
 - **Mensagens XML confirmadas na legenda 202511:** existem mensagens dedicadas `loteGuias` (envio prestador→operadora), `recebimentoLote` (protocolo de recebimento), `demonstrativosRetorno` / `Demonstrativo Analise Conta` / `Demonstrativo Pagamento` (retorno — follow-up) e `recursoGlosa` (recurso — follow-up). Confirma a estrutura de lote do MVP e o caminho dos itens deixados fora do MVP.
 
 > **Pendência residual (não bloqueia o spec):** as exigências concretas do **Componente de Segurança e Privacidade 202511** (formato exato da assinatura digital por tipo de mensagem) serão lidas do componente oficial no `/speckit.plan`, junto ao download dos XSDs da 04.03.00.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Configurar um convênio para faturamento TISS (Priority: P1)
 
@@ -130,7 +130,7 @@ Quando um lote é exportado/enviado, as guias correspondentes geram um **valor a
 - **Hash/epílogo:** o XML precisa do hash de integridade exigido pelo padrão; arquivo sem hash válido é rejeitado pela operadora.
 - **Assinatura digital:** o lote é assinado com ICP-Brasil no MVP (decisão D2); falha/ausência de certificado válido deve bloquear a exportação com mensagem clara.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -165,7 +165,7 @@ Quando um lote é exportado/enviado, as guias correspondentes geram um **valor a
 - **FR-015**: O sistema MUST montar o XML do lote conforme a estrutura do padrão (mensagem raiz, cabeçalho, guias, epílogo com **hash de integridade**) e disponibilizar o **download** do arquivo.
 - **FR-016**: O sistema MUST impedir lotes que misturem operadoras distintas.
 - **FR-017**: O sistema MUST permitir rebaixar o download do mesmo lote reproduzindo conteúdo idêntico (mesmo número de lote/hash), evitando duplicidade no portal.
-- **FR-017a**: O sistema MUST assinar digitalmente o XML do lote com **ICP-Brasil** (reusando a assinatura da feature 024) conforme o elemento de assinatura do schema TISS, antes de disponibilizar o download. *(Decisão D2: assinatura incluída no MVP.)*
+- **FR-017a**: O sistema MUST assinar digitalmente o XML do lote com **ICP-Brasil** (reusando a assinatura da feature 024) conforme o elemento de assinatura do schema TISS, antes de disponibilizar o download. _(Decisão D2: assinatura incluída no MVP.)_
 
 **Status, glosas e reapresentação (US5)**
 
@@ -185,7 +185,7 @@ Quando um lote é exportado/enviado, as guias correspondentes geram um **valor a
 - **FR-025**: O sistema MUST tratar dados sensíveis do paciente nas guias conforme o padrão de cifragem/PII e LGPD já adotado, e atender às exigências do Componente de Segurança e Privacidade do TISS aplicáveis à versão-alvo.
 - **FR-026**: O sistema MUST manter catálogo das tabelas de domínio TISS necessárias (no mínimo: domínio 87 tabela-de-tabelas, conselho profissional, CBO, via/técnica para SP/SADT, e Tabela 38 de glosas), versionado.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Configuração TISS da Operadora**: por convênio/tenant — Registro ANS, versão TISS adotada, código do contratado na operadora, CNPJ/CNES, mapeamentos de tabela. Relaciona-se a `health_plans`.
 - **Guia TISS**: representa uma guia (Consulta ou SP/SADT) gerada a partir de um atendimento. Atributos: tipo, status, operadora, beneficiário, profissional(is), versão TISS/catálogo usados, vínculo ao atendimento e ao lote. Contém linhas de procedimento.
@@ -195,7 +195,7 @@ Quando um lote é exportado/enviado, as guias correspondentes geram um **valor a
 - **Catálogo de Domínios/Schemas TISS**: tabelas de domínio (87, conselho, CBO, via, técnica, Tabela 38) e schemas XSD por versão — versionados.
 - **Conta a Receber da Operadora**: ligação ao financeiro existente, valor apresentado x recebido x glosado; respeita repasse médico.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -207,7 +207,7 @@ Quando um lote é exportado/enviado, as guias correspondentes geram um **valor a
 - **SC-006**: Nenhum dado TISS de um tenant é visível/acessível por outro tenant (isolamento verificado por teste).
 - **SC-007**: Glosas registradas reduzem o valor a receber correspondente e permitem reapresentação rastreável, sem perda do vínculo com a apresentação original.
 
-## Out of Scope (MVP) *(follow-up)*
+## Out of Scope (MVP) _(follow-up)_
 
 - Envio automático via **webservice SOAP** de cada operadora (no MVP o envio é por download do XML + upload manual no portal).
 - **Importação automática** de retorno/demonstrativo de pagamento (Demonstrativo de Análise de Conta / Demonstrativo de Pagamento) — no MVP a glosa é registrada manualmente.
@@ -215,11 +215,11 @@ Quando um lote é exportado/enviado, as guias correspondentes geram um **valor a
 - **Recurso de glosa eletrônico** (reapresentação no MVP é via novo lote).
 - Conciliação bancária automática do pagamento da operadora.
 
-## Pendências de Decisão *(exigem validação humana antes do /speckit.plan — "sem margem para falha")*
+## Pendências de Decisão _(exigem validação humana antes do /speckit.plan — "sem margem para falha")_
 
 > Estas são as decisões que a pesquisa identificou como **não dedutíveis por padrão** e que mudam escopo/conformidade. Devem ser resolvidas antes de planejar a implementação.
 
-- **D1 — Versão TISS exata e XSDs oficiais: ✅ RESOLVIDO.** Verificado direto no PDF oficial `PadroTISS_ComponenteOrganizacional_202605.pdf` (release **Maio/2026**, pub. 28/05/2026 — o mais recente): Componente de Comunicação **04.03.00** (mensagens), fim de implantação **30/06/2026**; Conteúdo e Estrutura **202511**, TUSS **202605**. **Alvo do sistema fixado: 04.03.00 + Conteúdo/Estrutura 202511 + TUSS 202605.** Os XSDs concretos (`.zip` do Componente de Comunicação) serão baixados/versionados no `/speckit.plan` a partir da página do release. *(Manutenção: reconfirmar a cada release ANS.)*
+- **D1 — Versão TISS exata e XSDs oficiais: ✅ RESOLVIDO.** Verificado direto no PDF oficial `PadroTISS_ComponenteOrganizacional_202605.pdf` (release **Maio/2026**, pub. 28/05/2026 — o mais recente): Componente de Comunicação **04.03.00** (mensagens), fim de implantação **30/06/2026**; Conteúdo e Estrutura **202511**, TUSS **202605**. **Alvo do sistema fixado: 04.03.00 + Conteúdo/Estrutura 202511 + TUSS 202605.** Os XSDs concretos (`.zip` do Componente de Comunicação) serão baixados/versionados no `/speckit.plan` a partir da página do release. _(Manutenção: reconfirmar a cada release ANS.)_
 - **D2 — Assinatura digital do lote (ICP-Brasil): ✅ RESOLVIDO.** A assinatura **entra no MVP** (FR-017a), reusando a assinatura ICP-Brasil da feature 024. O formato exato (XMLDSig no elemento de assinatura do `mensagemTISS`) será fixado no `/plan` lendo o Componente de Segurança e Privacidade 202511 + XSD.
 - **D3 — Campos obrigatórios da Guia de Consulta: ✅ RESOLVIDO.** Lidos da legenda oficial **Componente de Conteúdo e Estrutura 202511** (planilha/PDF oficiais). Lista confirmada e incorporada ao Contexto Regulatório acima. **Correções vs. pesquisa inicial:** Tipo de Consulta = **domínio 52** (não 53), Indicação de Acidente = **domínio 36** (não 35), UF = **domínio 59**, Técnica (SP/SADT) = **domínio 48** (não 49). A regra "Nome do profissional executante obrigatório quando contratado é PJ" foi confirmada.
 - **D4 — Operadora(s) piloto: ✅ RESOLVIDO (direção).** Piloto = **uma operadora grande** (Unimed/Bradesco/Amil) para validar o XML real ponta a ponta. A operadora específica e as particularidades do seu portal serão fixadas no `/speckit.plan`.

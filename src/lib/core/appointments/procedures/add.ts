@@ -50,7 +50,8 @@ export async function addProcedureToAppointment(
     .maybeSingle()
   if (pErr) throw new Error(`addProcedureToAppointment load procedure failed: ${pErr.message}`)
   if (!procRaw) throw new NotFoundError('procedure', input.procedureId)
-  const defaultAmount = ((procRaw as { default_amount_cents: number | null }).default_amount_cents) ?? 0
+  const defaultAmount =
+    (procRaw as { default_amount_cents: number | null }).default_amount_cents ?? 0
 
   // Preço vigente + price_version (a trava de coerência exige pv p/ convênio).
   let vigente: number
@@ -88,7 +89,7 @@ export async function addProcedureToAppointment(
     .order('sequence', { ascending: false })
     .limit(1)
     .maybeSingle()
-  const nextSeq = (((maxRow as { sequence: number } | null)?.sequence) ?? 0) + 1
+  const nextSeq = ((maxRow as { sequence: number } | null)?.sequence ?? 0) + 1
 
   const { data: ins, error: iErr } = await supabase
     .from('appointment_procedures' as never)

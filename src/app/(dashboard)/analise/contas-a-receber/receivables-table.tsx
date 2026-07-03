@@ -32,10 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
-import type {
-  ReceivableRow,
-  ReceivableStatus,
-} from '@/lib/core/accounts-receivable'
+import type { ReceivableRow, ReceivableStatus } from '@/lib/core/accounts-receivable'
 
 const STATUS_LABEL: Record<ReceivableStatus, string> = {
   pendente: 'Pendente',
@@ -46,8 +43,7 @@ const STATUS_LABEL: Record<ReceivableStatus, string> = {
 
 const STATUS_CLASS: Record<ReceivableStatus, string> = {
   pendente: 'bg-info-bg text-info-text',
-  atrasado:
-    'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
+  atrasado: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
   parcial: 'bg-info-bg text-info-text',
   inadimplencia: 'bg-[hsl(var(--alert)/0.15)] text-[hsl(var(--alert))]',
 }
@@ -76,24 +72,12 @@ export function ReceivablesTable({ rows, canMarkBadDebt }: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-[10px] uppercase tracking-widest">
-                Paciente
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-widest">
-                Vencimento
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-widest">
-                Valor
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-widest">
-                Pendente
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-widest">
-                Status
-              </TableHead>
-              <TableHead className="text-[10px] uppercase tracking-widest">
-                Dias
-              </TableHead>
+              <TableHead className="text-[10px] uppercase tracking-widest">Paciente</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-widest">Vencimento</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-widest">Valor</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-widest">Pendente</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-widest">Status</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-widest">Dias</TableHead>
               <TableHead className="text-right" />
             </TableRow>
           </TableHeader>
@@ -106,7 +90,7 @@ export function ReceivablesTable({ rows, canMarkBadDebt }: Props) {
                     {r.patientIsAnonymized ? (
                       <span className="italic text-slate-400">[anonimizado]</span>
                     ) : (
-                      r.patientName ?? r.patientId?.slice(0, 8) ?? '—'
+                      (r.patientName ?? r.patientId?.slice(0, 8) ?? '—')
                     )}
                     {r.installmentNumber > 1 ? (
                       <span className="ml-1 text-[10px] text-slate-400">
@@ -261,19 +245,16 @@ function RegisterPaymentModal({
     }
     setPending(true)
     try {
-      const res = await fetch(
-        `/api/financeiro/contas-a-receber/${row.installmentId}/payment`,
-        {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            amount_cents: cents,
-            payment_method: method,
-            paid_at: new Date(paidAt).toISOString(),
-            note: note.trim() || null,
-          }),
-        },
-      )
+      const res = await fetch(`/api/financeiro/contas-a-receber/${row.installmentId}/payment`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          amount_cents: cents,
+          payment_method: method,
+          paid_at: new Date(paidAt).toISOString(),
+          note: note.trim() || null,
+        }),
+      })
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
           error?: { message?: string }
@@ -288,13 +269,18 @@ function RegisterPaymentModal({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose()
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar pagamento</DialogTitle>
           <DialogDescription>
-            Parcela vence em {formatDate(row.dueDate)} —{' '}
-            {formatCurrency(row.pendingAmountCents)} pendente.
+            Parcela vence em {formatDate(row.dueDate)} — {formatCurrency(row.pendingAmountCents)}{' '}
+            pendente.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">

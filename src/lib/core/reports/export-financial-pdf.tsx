@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import type { FinancialReport } from './financial-report'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
@@ -218,9 +211,7 @@ export function FinancialReportDocument({
                 <Text style={[styles.td, styles.cellMetric]}>
                   {formatBRL(row.grossRevenueCents)}
                 </Text>
-                <Text style={[styles.td, styles.cellCount]}>
-                  {row.marketSharePct.toFixed(1)}%
-                </Text>
+                <Text style={[styles.td, styles.cellCount]}>{row.marketSharePct.toFixed(1)}%</Text>
               </View>
             ))
           )}
@@ -267,9 +258,7 @@ export function FinancialReportDocument({
                   {row.tussCode ? ` · ${row.tussCode}` : ''}
                 </Text>
                 <Text style={[styles.td, styles.cellCount]}>{row.count}</Text>
-                <Text style={[styles.td, styles.cellMetric]}>
-                  {formatBRL(row.totalCents)}
-                </Text>
+                <Text style={[styles.td, styles.cellMetric]}>{formatBRL(row.totalCents)}</Text>
               </View>
             ))
           )}
@@ -292,9 +281,7 @@ export function FinancialReportDocument({
                   {CATEGORY_LABEL[row.category] ?? row.category}
                 </Text>
                 <Text style={[styles.td, styles.cellCount]}>{row.count}</Text>
-                <Text style={[styles.td, styles.cellMetric]}>
-                  {formatBRL(row.totalCents)}
-                </Text>
+                <Text style={[styles.td, styles.cellMetric]}>{formatBRL(row.totalCents)}</Text>
                 <Text style={[styles.td, styles.cellCount]}>{row.pct.toFixed(1)}%</Text>
               </View>
             ))
@@ -329,8 +316,8 @@ export function FinancialReportDocument({
         </View>
 
         <Text style={styles.footer}>
-          Gerado em {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} ·
-          Clinni — relatório financeiro consolidado.
+          Gerado em {new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Clinni
+          — relatório financeiro consolidado.
         </Text>
       </Page>
     </Document>

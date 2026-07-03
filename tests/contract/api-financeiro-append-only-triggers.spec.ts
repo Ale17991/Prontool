@@ -101,7 +101,10 @@ describe('Feature 023 — append-only triggers', () => {
     // Para simplicidade do teste foundational, vamos criar diretamente via SQL.
     const recordId = randomUUID()
     const installmentId = randomUUID()
-    await sb.rpc('sql_for_test' as never, {} as never).then(() => {}, () => {})
+    await sb.rpc('sql_for_test' as never, {} as never).then(
+      () => {},
+      () => {},
+    )
 
     const patientId = await seedPatient(tenantId)
     await sb
@@ -145,7 +148,10 @@ describe('Feature 023 — append-only triggers', () => {
       } as never)
       .throwOnError()
 
-    const res = await sb.from('installment_payments' as never).delete().eq('id', ipId)
+    const res = await sb
+      .from('installment_payments' as never)
+      .delete()
+      .eq('id', ipId)
     expect(res.error).toBeTruthy()
     expect(res.error?.message).toMatch(/DELETE not allowed|append-only/i)
   })

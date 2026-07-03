@@ -60,7 +60,11 @@ export const GHL_CUSTOM_FIELD_DEFINITIONS: Record<
 // Webhook events registrados na sub-account.
 // ---------------------------------------------------------------------------
 
-export const GHL_WEBHOOK_EVENTS = ['ContactCreate', 'ContactUpdate', 'OpportunityStatusUpdate'] as const
+export const GHL_WEBHOOK_EVENTS = [
+  'ContactCreate',
+  'ContactUpdate',
+  'OpportunityStatusUpdate',
+] as const
 
 export type GhlWebhookEvent = (typeof GHL_WEBHOOK_EVENTS)[number]
 
@@ -71,9 +75,7 @@ export type GhlWebhookEvent = (typeof GHL_WEBHOOK_EVENTS)[number]
 export const ghlOAuthCredentialsSchema = z.object({
   access_token: z.string().min(20, 'access_token muito curto'),
   refresh_token: z.string().min(20, 'refresh_token muito curto'),
-  expires_at: z
-    .string()
-    .datetime({ message: 'expires_at deve ser ISO 8601 UTC' }),
+  expires_at: z.string().datetime({ message: 'expires_at deve ser ISO 8601 UTC' }),
   scopes: z.array(z.string().min(1)).min(1),
   user_type: z.enum(['Location', 'Company']),
   location_id: z.string().min(1),

@@ -51,7 +51,9 @@ export function ChangePasswordForm() {
         setConfirmPassword('')
         return
       }
-      const body = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } }
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: { code?: string; message?: string }
+      }
       const code = body.error?.code
       if (code === 'INVALID_CURRENT_PASSWORD') setError('Senha atual incorreta')
       else if (code === 'WEAK_PASSWORD') setError('Senha fraca — não atende à política')
@@ -105,7 +107,9 @@ export function ChangePasswordForm() {
           </div>
           <div className="md:col-span-3 flex items-center justify-between">
             <div className="text-xs">
-              {success ? <span className="text-success-strong">Senha alterada com sucesso</span> : null}
+              {success ? (
+                <span className="text-success-strong">Senha alterada com sucesso</span>
+              ) : null}
               {error ? <span className="text-destructive">{error}</span> : null}
             </div>
             <Button type="submit" disabled={busy || !currentPassword || !newPassword}>

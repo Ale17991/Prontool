@@ -56,7 +56,10 @@ export function AppointmentAttachmentsSection({
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch(`/api/atendimentos/${appointmentId}/anexos`, { method: 'POST', body: fd })
+      const res = await fetch(`/api/atendimentos/${appointmentId}/anexos`, {
+        method: 'POST',
+        body: fd,
+      })
       if (!res.ok) {
         const b = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
         setError(b.error?.message ?? 'Falha ao enviar a foto.')
@@ -98,8 +101,19 @@ export function AppointmentAttachmentsSection({
                 if (f) void onPick(f)
               }}
             />
-            <Button type="button" size="sm" variant="outline" className="h-7 gap-1.5 px-2 text-xs" disabled={busy} onClick={() => inputRef.current?.click()}>
-              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 px-2 text-xs"
+              disabled={busy}
+              onClick={() => inputRef.current?.click()}
+            >
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ImagePlus className="h-3.5 w-3.5" />
+              )}
               Adicionar foto
             </Button>
           </>
@@ -119,9 +133,15 @@ export function AppointmentAttachmentsSection({
               <a href={r.signedUrl ?? '#'} target="_blank" rel="noreferrer">
                 {r.signedUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.signedUrl} alt={r.fileName} className="h-20 w-20 rounded-md border border-slate-200 object-cover" />
+                  <img
+                    src={r.signedUrl}
+                    alt={r.fileName}
+                    className="h-20 w-20 rounded-md border border-slate-200 object-cover"
+                  />
                 ) : (
-                  <div className="flex h-20 w-20 items-center justify-center rounded-md border border-slate-200 bg-slate-100 text-[10px] text-slate-400">sem prévia</div>
+                  <div className="flex h-20 w-20 items-center justify-center rounded-md border border-slate-200 bg-slate-100 text-[10px] text-slate-400">
+                    sem prévia
+                  </div>
                 )}
               </a>
               {canManage ? (

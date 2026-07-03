@@ -17,11 +17,11 @@ Legenda: `[ ]` pendente · `[X]` concluído · `[~]` em andamento · `[P]` paral
 
 Limpa o ruído para enxergar o que importa.
 
-- [X] **P0-01** Bug do calendário **já estava corrigido na master** (`calendar-filters.ts` já usa `startOfDay/endOfDay` no `case 'dia'`). A branch `fix/calendar-day-view-empty` era redundante → **deletada**.
-- [X] **P0-02** Docs soltos commitados (`memed-submissao-producao.md`, `pr-030-portal-paciente.md` + este plano).
-- [X] **P0-03** [P] `.gitignore` atualizado para ignorar `clinni-instagram/`, `homio-ref/`, `temp-impeccable/`, `tests/e2e/artifacts-memed/`. **Não apagados** (contêm assets de marketing não versionados em outro lugar).
-- [X] **P0-04** [P] Branches deletadas: `021-memed-prescricao-digital`, `rebrand/clinni`, `rebrand/favicon`, `rebrand/favicon-round`.
-- [X] **P0-05** [P] `stash@{0}` descartado (lockfile + linha de middleware já presente na master via 030).
+- [x] **P0-01** Bug do calendário **já estava corrigido na master** (`calendar-filters.ts` já usa `startOfDay/endOfDay` no `case 'dia'`). A branch `fix/calendar-day-view-empty` era redundante → **deletada**.
+- [x] **P0-02** Docs soltos commitados (`memed-submissao-producao.md`, `pr-030-portal-paciente.md` + este plano).
+- [x] **P0-03** [P] `.gitignore` atualizado para ignorar `clinni-instagram/`, `homio-ref/`, `temp-impeccable/`, `tests/e2e/artifacts-memed/`. **Não apagados** (contêm assets de marketing não versionados em outro lugar).
+- [x] **P0-04** [P] Branches deletadas: `021-memed-prescricao-digital`, `rebrand/clinni`, `rebrand/favicon`, `rebrand/favicon-round`.
+- [x] **P0-05** [P] `stash@{0}` descartado (lockfile + linha de middleware já presente na master via 030).
 
 **Checkpoint:** ✅ working tree limpo; só `029-faturamento-tiss` permanece como branch de trabalho aberta. (Restam ~28 branches de feature locais já mescladas — opcional deletar em lote.)
 
@@ -38,15 +38,15 @@ para uso em produção. A submissão do dossiê fica cancelada. O dossiê
 (`docs/legal/memed-submissao-producao.md`) permanece como registro de conformidade.
 
 - [~] **P1-01** ~~Enviar dossiê à Memed~~ — **dispensado pela Memed (2026-06-09)**.
-- [ ] **P1-02** Confirmar env vars de produção provisionadas na Vercel + migrations 0110 + 0111 aplicadas em produção. *(ação do usuário)*
-- [ ] **P1-03** Validar o fluxo em produção quando uma clínica ativar (registrar prescritor → carregar paciente → emitir → capturar eventos). *(ação do usuário)*
+- [ ] **P1-02** Confirmar env vars de produção provisionadas na Vercel + migrations 0110 + 0111 aplicadas em produção. _(ação do usuário)_
+- [ ] **P1-03** Validar o fluxo em produção quando uma clínica ativar (registrar prescritor → carregar paciente → emitir → capturar eventos). _(ação do usuário)_
 
 ### 1b. Portal do paciente (030) → produção — 38/38 tasks ✓
 
 - [ ] **P1-04** Setar `PATIENT_SESSION_SECRET` nas env vars de produção da Vercel.
 - [ ] **P1-05** Por clínica: definir o slug público em `tenant_clinic_profile.public_booking_slug`.
 - [ ] **P1-06** Operacional: garantir pacientes com CPF + data de nascimento preenchidos; orientar a equipe a registrar as métricas metabólicas no prontuário; divulgar o link `/paciente/[slug]`.
-- [X] **P1-07** Migration 0113 aplicada em produção.
+- [x] **P1-07** Migration 0113 aplicada em produção.
 
 **Checkpoint:** Memed em análise pela Memed; Portal acessível por pacientes reais.
 
@@ -120,10 +120,10 @@ Ordem obrigatória pelas dependências: **US2 → T034 → US4 → validar**.
 
 ## Resumo da sequência
 
-| Fase | O quê | Esforço | Bloqueia? |
-|------|-------|---------|-----------|
-| 0 | Higiene do repo | minutos | não |
-| 1a | Submeter Memed à produção | horas + espera externa | começar cedo |
-| 1b | Portal 030 ao ar | horas | não |
-| 2 | MVP TISS (US2 → T034 → US4) | semanas | T034 bloqueia US4 |
-| 3 | Rebrand + landing | dias, paralelo | não |
+| Fase | O quê                       | Esforço                | Bloqueia?         |
+| ---- | --------------------------- | ---------------------- | ----------------- |
+| 0    | Higiene do repo             | minutos                | não               |
+| 1a   | Submeter Memed à produção   | horas + espera externa | começar cedo      |
+| 1b   | Portal 030 ao ar            | horas                  | não               |
+| 2    | MVP TISS (US2 → T034 → US4) | semanas                | T034 bloqueia US4 |
+| 3    | Rebrand + landing           | dias, paralelo         | não               |

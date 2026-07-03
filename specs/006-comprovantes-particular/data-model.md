@@ -40,6 +40,7 @@ CREATE INDEX expense_receipts_tenant_uploaded_idx
 ```
 
 **Imutabilidade** (apenas `deleted_*` mutável):
+
 ```sql
 CREATE OR REPLACE FUNCTION public.enforce_expense_receipt_mutability()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
@@ -66,12 +67,14 @@ END $$;
 ```
 
 **RLS**:
+
 - SELECT: `tenant_id = jwt_tenant_id()` (todos os 4 papéis com leitura de despesa).
 - INSERT: bloqueado para clients (apenas via service_role na API). REVOKE INSERT.
 - UPDATE: admin only — `jwt_role() = 'admin'` AND `tenant_id = jwt_tenant_id()`. GRANT UPDATE só nos 3 campos `deleted_*`.
 - DELETE: bloqueado por trigger.
 
 **Audit**:
+
 - AFTER INSERT → log com `entity='expense_receipts', entity_id=id, field='upload', new_value=file_name`.
 - AFTER UPDATE WHEN `OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL` → log `field='soft_delete', new_value=file_name, reason=NEW.deleted_reason`.
 
@@ -84,6 +87,7 @@ ALTER TABLE public.appointments ALTER COLUMN plan_id DROP NOT NULL;
 Idempotente. Atendimentos antigos têm `plan_id` preenchido — não muda. Apenas novos podem ter NULL.
 
 Relaxar também a coluna `source_price_version_id` para nullable (atendimentos particulares não têm price_versions linkado):
+
 ```sql
 ALTER TABLE public.appointments ALTER COLUMN source_price_version_id DROP NOT NULL;
 ```
@@ -221,6 +225,7 @@ END $$;
 ```
 
 `GRANT UPDATE` revogado das colunas `receipt_file_*` (eram concedidas em 0058):
+
 ```sql
 REVOKE UPDATE (receipt_file_name, receipt_file_url, receipt_file_size)
   ON public.expenses FROM authenticated;
@@ -229,6 +234,7 @@ REVOKE UPDATE (receipt_file_name, receipt_file_url, receipt_file_size)
 ## Plano de rollback (dev)
 
 Em dev, ordem reversa:
+
 ```sql
 DROP TABLE IF EXISTS public.expense_receipts CASCADE;
 ALTER TABLE public.appointments ALTER COLUMN plan_id SET NOT NULL;       -- so funciona se nao houver NULLs
@@ -241,6 +247,7 @@ Em **prod, nunca rodar** — perda de dados de receipts e atendimentos particula
 ## Migration 0060 (futura, fora deste plan)
 
 Quando confirmada paridade:
+
 ```sql
 ALTER TABLE public.expenses
   DROP COLUMN IF EXISTS receipt_file_name,
@@ -251,11 +258,11 @@ ALTER TABLE public.expenses
 
 ## RLS resumo
 
-| Tabela | SELECT | INSERT | UPDATE | DELETE |
-|---|---|---|---|---|
-| `expense_receipts` | tenant_id matches | service_role only | admin only (deleted_*) | bloqueado |
-| `appointments` | inalterado | inalterado | inalterado | inalterado |
-| `expenses` | inalterado | inalterado | admin only (deleted_*) | bloqueado |
+| Tabela             | SELECT            | INSERT            | UPDATE                   | DELETE     |
+| ------------------ | ----------------- | ----------------- | ------------------------ | ---------- |
+| `expense_receipts` | tenant_id matches | service_role only | admin only (deleted\_\*) | bloqueado  |
+| `appointments`     | inalterado        | inalterado        | inalterado               | inalterado |
+| `expenses`         | inalterado        | inalterado        | admin only (deleted\_\*) | bloqueado  |
 
 Bucket `expense-receipts` (Storage) — sem mudança de policies; 0058 já cobre.
 

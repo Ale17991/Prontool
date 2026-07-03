@@ -34,7 +34,8 @@ process.env.LOG_LEVEL ??= 'warn'
 process.env.GHL_CLIENT_ID ??= 'test_client_id'
 process.env.GHL_CLIENT_SECRET ??= 'test_client_secret_minimum_length_xxx'
 process.env.GHL_REDIRECT_URI ??= 'http://localhost:3000/api/oauth/ghl/callback'
-process.env.GHL_SCOPES ??= 'contacts.readonly,contacts.write,custom-fields.readonly,custom-fields.write,locations.readonly,opportunities.write,webhooks.readonly,webhooks.write'
+process.env.GHL_SCOPES ??=
+  'contacts.readonly,contacts.write,custom-fields.readonly,custom-fields.write,locations.readonly,opportunities.write,webhooks.readonly,webhooks.write'
 process.env.GHL_MARKETPLACE_SHARED_SECRET ??= 'test_marketplace_shared_secret_min_32_chars_xxxx'
 process.env.GHL_SSO_JWKS_URL ??= 'https://services.leadconnectorhq.com/.well-known/jwks.json'
 
@@ -85,8 +86,6 @@ afterAll(() => {
   }
   mswServer.close()
   if (leaks.length > 0) {
-    throw new Error(
-      `SC-013 violation — alert email contained seeded PII:\n  ${leaks.join('\n  ')}`,
-    )
+    throw new Error(`SC-013 violation — alert email contained seeded PII:\n  ${leaks.join('\n  ')}`)
   }
 })

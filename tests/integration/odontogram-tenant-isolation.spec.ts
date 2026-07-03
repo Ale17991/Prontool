@@ -9,11 +9,7 @@ import { mintJwt } from '@/tests/helpers/jwt-helper'
 
 async function cariesStatusId(): Promise<string> {
   const sb = serviceClient()
-  const { data } = await sb
-    .from('dental_status_catalog')
-    .select('id')
-    .eq('code', 'caries')
-    .single()
+  const { data } = await sb.from('dental_status_catalog').select('id').eq('code', 'caries').single()
   return (data as { id: string }).id
 }
 

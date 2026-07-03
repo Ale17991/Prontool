@@ -1,9 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  decryptCredentials,
-  encryptCredentials,
-} from '@/lib/core/integrations/credentials'
+import { decryptCredentials, encryptCredentials } from '@/lib/core/integrations/credentials'
 import { getIntegrationConfig, type TenantIntegrationRow } from '@/lib/core/integrations/config'
 import { ghlOAuthCredentialsSchema, type GhlOAuthCredentials } from './types'
 

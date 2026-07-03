@@ -47,7 +47,13 @@ export async function GET(req: Request): Promise<Response> {
     })
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_QUERY', message: 'parametros invalidos', issues: parsed.error.issues } },
+        {
+          error: {
+            code: 'INVALID_QUERY',
+            message: 'parametros invalidos',
+            issues: parsed.error.issues,
+          },
+        },
         { status: 400 },
       )
     }

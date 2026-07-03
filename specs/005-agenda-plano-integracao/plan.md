@@ -28,15 +28,15 @@ A entrega é uma migration grande (0055) + ajustes de domain/API/UI. **Reusa** `
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Toca? | Análise |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | Sim | `appointments` continua intocado (sem UPDATE). `appointment_completions` é append-only. `appointment_slot_locks` permite DELETE — é **derived data** (índice de slots ocupados), não registro financeiro; análogo a um índice de banco. Triggers que sincronizam status no plano operam exclusivamente em `treatment_plan_steps.status`/`completed_at`/`completed_by` (já no whitelist do column-guard). Append-only preservado em todos os registros financeiros. PASS. |
-| **II. Auditabilidade Total de Preços** | Sim | `appointment_completions` registra `completed_by`, `completed_at`, `source`. Trigger de audit já existente em `appointments` permanece. Para a tabela nova, criamos audit trigger seguindo o padrão do repo. Status sync (step→appointment, appointment→step) gera entradas pareadas em `audit_log` referenciando entity_id de ambos. PASS. |
-| **III. Isolamento Multi-Tenant** | Sim | `appointment_completions` e `appointment_slot_locks` herdam `tenant_id` por FK direta + RLS espelhada de `appointments`. Trigger de slot lock fixa `tenant_id` na inserção. Conflito é por `(tenant_id, doctor_id, range)` — multi-tenant naturalmente isolado. PASS. |
-| **IV. Conformidade TUSS/ANS** | Não | Sem mudança em catálogo. `tuss_codes` continua intocado. PASS. |
-| **V. Segurança por Perfil de Acesso (RBAC)** | Sim | Rota `/api/atendimentos/[id]/realizado` reusa o gate de `appointment.reverse` (admin + profissional do registro). Endpoint `/api/atendimentos/check-conflict` exige autenticação simples (todos os papéis com leitura podem pré-verificar). Conflito retorna 409 sem vazar dados de outro tenant (RLS no view de busca). PASS. |
+| Princípio                                    | Toca? | Análise                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **I. Integridade Financeira Imutável**       | Sim   | `appointments` continua intocado (sem UPDATE). `appointment_completions` é append-only. `appointment_slot_locks` permite DELETE — é **derived data** (índice de slots ocupados), não registro financeiro; análogo a um índice de banco. Triggers que sincronizam status no plano operam exclusivamente em `treatment_plan_steps.status`/`completed_at`/`completed_by` (já no whitelist do column-guard). Append-only preservado em todos os registros financeiros. PASS. |
+| **II. Auditabilidade Total de Preços**       | Sim   | `appointment_completions` registra `completed_by`, `completed_at`, `source`. Trigger de audit já existente em `appointments` permanece. Para a tabela nova, criamos audit trigger seguindo o padrão do repo. Status sync (step→appointment, appointment→step) gera entradas pareadas em `audit_log` referenciando entity_id de ambos. PASS.                                                                                                                              |
+| **III. Isolamento Multi-Tenant**             | Sim   | `appointment_completions` e `appointment_slot_locks` herdam `tenant_id` por FK direta + RLS espelhada de `appointments`. Trigger de slot lock fixa `tenant_id` na inserção. Conflito é por `(tenant_id, doctor_id, range)` — multi-tenant naturalmente isolado. PASS.                                                                                                                                                                                                    |
+| **IV. Conformidade TUSS/ANS**                | Não   | Sem mudança em catálogo. `tuss_codes` continua intocado. PASS.                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **V. Segurança por Perfil de Acesso (RBAC)** | Sim   | Rota `/api/atendimentos/[id]/realizado` reusa o gate de `appointment.reverse` (admin + profissional do registro). Endpoint `/api/atendimentos/check-conflict` exige autenticação simples (todos os papéis com leitura podem pré-verificar). Conflito retorna 409 sem vazar dados de outro tenant (RLS no view de busca). PASS.                                                                                                                                           |
 
 **Gates**: Todos passam. Sem violações para registrar em "Complexity Tracking".
 
@@ -131,15 +131,16 @@ Outputs em [`data-model.md`](./data-model.md), [`quickstart.md`](./quickstart.md
 
 ### Data model summary
 
-| Entidade | Mudança | Detalhes |
-|---|---|---|
-| `appointments` | sem ALTER TABLE | continua exatamente como está. Novos triggers e índices em volta. |
-| `appointment_completions` | NEW TABLE | `id UUID PK, tenant_id UUID FK, appointment_id UUID FK UNIQUE, completed_at TIMESTAMPTZ NOT NULL DEFAULT now(), completed_by UUID, source TEXT CHECK ('plan_step', 'manual'), reason TEXT`. Append-only (UPDATE/DELETE bloqueados). RLS por `tenant_id`. Audit trigger. |
-| `appointment_slot_locks` | NEW TABLE | `id UUID PK, tenant_id UUID FK, doctor_id UUID FK, appointment_id UUID FK UNIQUE, slot_range tstzrange NOT NULL`. **EXCLUDE** `(tenant_id WITH =, doctor_id WITH =, slot_range WITH &&)` — o veto autoritativo de conflito. RLS. **Permite DELETE** (via trigger no INSERT em appointment_reversals). Sem audit (índice derivado). |
-| `treatment_plan_steps` | ADD COLUMN `appointment_id UUID NULL REFERENCES appointments(id)` | UNIQUE; FK; column-guard relaxado para permitir set quando `OLD.appointment_id IS NULL` (one-shot link). |
-| `appointments_effective` (view) | RECREATE | LEFT JOIN com `appointment_completions` adicionado. CASE estornado > ativo (has completion) > agendado. Substitui a heurística de tempo da migration 0054. |
+| Entidade                        | Mudança                                                           | Detalhes                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appointments`                  | sem ALTER TABLE                                                   | continua exatamente como está. Novos triggers e índices em volta.                                                                                                                                                                                                                                                                  |
+| `appointment_completions`       | NEW TABLE                                                         | `id UUID PK, tenant_id UUID FK, appointment_id UUID FK UNIQUE, completed_at TIMESTAMPTZ NOT NULL DEFAULT now(), completed_by UUID, source TEXT CHECK ('plan_step', 'manual'), reason TEXT`. Append-only (UPDATE/DELETE bloqueados). RLS por `tenant_id`. Audit trigger.                                                            |
+| `appointment_slot_locks`        | NEW TABLE                                                         | `id UUID PK, tenant_id UUID FK, doctor_id UUID FK, appointment_id UUID FK UNIQUE, slot_range tstzrange NOT NULL`. **EXCLUDE** `(tenant_id WITH =, doctor_id WITH =, slot_range WITH &&)` — o veto autoritativo de conflito. RLS. **Permite DELETE** (via trigger no INSERT em appointment_reversals). Sem audit (índice derivado). |
+| `treatment_plan_steps`          | ADD COLUMN `appointment_id UUID NULL REFERENCES appointments(id)` | UNIQUE; FK; column-guard relaxado para permitir set quando `OLD.appointment_id IS NULL` (one-shot link).                                                                                                                                                                                                                           |
+| `appointments_effective` (view) | RECREATE                                                          | LEFT JOIN com `appointment_completions` adicionado. CASE estornado > ativo (has completion) > agendado. Substitui a heurística de tempo da migration 0054.                                                                                                                                                                         |
 
 Triggers introduzidos:
+
 - `appointments_create_slot_lock` (AFTER INSERT on appointments) — INSERT em slot_locks. Falha de EXCLUDE propaga e aborta.
 - `appointment_reversals_release_slot_lock` (AFTER INSERT on appointment_reversals) — DELETE de slot_locks WHERE appointment_id matches.
 - `appointment_completions_audit` (AFTER INSERT) — registra em audit_log.
@@ -159,6 +160,7 @@ Todos os triggers de sincronização verificam `pg_trigger_depth() = 1` para evi
 ### Quickstart
 
 `quickstart.md` cobre:
+
 1. `git checkout 005-agenda-plano-integracao`
 2. `pnpm install` (sem deps novas — `btree_gist` é extensão Postgres)
 3. `pnpm supabase start` + `pnpm supabase:reset` (aplica 0055)
@@ -188,8 +190,8 @@ Sem violações pós-design. Plano aprovado para `/speckit.tasks`.
 > Sem violações de constituição — tabela vazia.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| _(none)_ | _(none)_ | _(none)_ |
+| --------- | ---------- | ------------------------------------ |
+| _(none)_  | _(none)_   | _(none)_                             |
 
 ## Risk Register (não-constitucional)
 

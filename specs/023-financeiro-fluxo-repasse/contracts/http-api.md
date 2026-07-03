@@ -20,6 +20,7 @@
 
 **Auth**: `admin | financeiro | recepcionista`
 **Query params**:
+
 - `from?` — DATE, default hoje-7
 - `to?` — DATE, default hoje+30
 - `status?` — `pendente | atrasado | parcial | inadimplencia | all` (default `all`)
@@ -28,6 +29,7 @@
 - `limit?` — int (default 100, max 500)
 
 **Response 200**:
+
 ```json
 {
   "installments": [
@@ -56,6 +58,7 @@
 
 **Auth**: `admin | financeiro | recepcionista`
 **Body** (Zod):
+
 ```json
 {
   "amount_cents": 20000,
@@ -64,17 +67,21 @@
   "note": "opcional"
 }
 ```
+
 **Validações**:
+
 - `amount_cents > 0` e `amount_cents <= pending_amount_cents` da parcela.
 - `installment.tenant_id = session.tenantId` (RLS + check explícito).
 - `payment_method` ∈ lista de métodos válidos (text livre por enquanto).
 
 **Response 201**:
+
 ```json
 { "payment_id": "uuid", "new_pending_cents": 20000, "new_status": "parcial" }
 ```
 
 **Side-effects**:
+
 - INSERT em `installment_payments`.
 - Trigger atualiza `payment_installments.paid_amount_cents`, `paid_at`, `status`.
 - Audit `installment.payment_recorded`.
@@ -83,9 +90,11 @@
 
 **Auth**: `admin | financeiro`
 **Body**:
+
 ```json
 { "reason": "opcional, mínimo 10 chars se preenchido" }
 ```
+
 **Pré-condição**: parcela com `days_overdue > 60` ou flag de override por admin.
 **Side-effect**: atualiza `payment_installments.status = 'inadimplencia'`; audit log.
 
@@ -93,12 +102,14 @@
 
 **Auth**: `admin` apenas
 **Body**:
+
 ```json
 {
   "payment_id": "uuid",
   "reason": "obrigatório, ≥10 chars"
 }
 ```
+
 **Side-effect**: INSERT em `installment_payments` com `amount_cents` negativo do pagamento original; `note` = "Estorno: " + reason. Trigger recalcula cache.
 
 ---
@@ -109,6 +120,7 @@
 
 **Auth**: `admin | financeiro`
 **Query params**:
+
 - `from?`, `to?` — DATE (default mês atual)
 - `category?` — uma das categorias existentes
 - `supplier?` — text contains (case-insensitive)
@@ -116,6 +128,7 @@
 - `include_projections?` — bool (default true)
 
 **Response 200**:
+
 ```json
 {
   "expenses": [
@@ -159,6 +172,7 @@
 
 **Auth**: `admin | financeiro`
 **Body**:
+
 ```json
 {
   "paid_at": "2026-05-20T10:00:00Z",
@@ -166,6 +180,7 @@
   "payment_method": "boleto"
 }
 ```
+
 **Validações**: `expense.paid_at IS NULL`; `paid_amount_cents > 0`.
 **Side-effect**: UPDATE em `expenses` (apenas colunas de pagamento — Princípio I respeita); audit log.
 
@@ -173,6 +188,7 @@
 
 **Auth**: `admin | financeiro`
 **Body**:
+
 ```json
 {
   "effective_from": "2026-06-01",
@@ -180,7 +196,9 @@
   "reason": "Reajuste anual contratual"
 }
 ```
+
 **Comportamento (FR-014a)**:
+
 1. UPDATE `expenses` antiga: `recurring_ends_at = effective_from - 1 day`.
 2. INSERT nova `expenses` com mesmos campos exceto `amount_cents = new_amount_cents`, `recurring_starts_at = effective_from`, `competence_date = effective_from`.
 3. UPDATE `superseded_by = new_id` na antiga.
@@ -202,11 +220,13 @@
 
 **Auth**: `admin | financeiro`
 **Query params**:
+
 - `from` — DATE (required)
 - `to` — DATE (required)
 - `scale?` — `daily | weekly | monthly` (default `daily` se range ≤30d, `weekly` se ≤90d, `monthly` >90d)
 
 **Response 200**:
+
 ```json
 {
   "starting_balance_cents": 1000000,
@@ -232,7 +252,13 @@
   "aggregated": {
     "scale": "daily",
     "buckets": [
-      { "key": "2026-05-20", "entries_cents": 50000, "exits_cents": -20000, "delta_cents": 30000, "balance_after_cents": 1030000 }
+      {
+        "key": "2026-05-20",
+        "entries_cents": 50000,
+        "exits_cents": -20000,
+        "delta_cents": 30000,
+        "balance_after_cents": 1030000
+      }
     ]
   }
 }
@@ -247,6 +273,7 @@
 `mes` formato `YYYY-MM`.
 **Auth**: `admin | financeiro | profissional_saude`
 **Response (admin/financeiro)**:
+
 ```json
 {
   "month": "2026-04",
@@ -291,6 +318,7 @@
 
 **Auth**: `admin | financeiro`
 **Body**:
+
 ```json
 {
   "paid_at": "2026-05-10T12:00:00Z",
@@ -299,6 +327,7 @@
   "payment_note": "TED ref 123456"
 }
 ```
+
 **Side-effect**: UPDATE `monthly_payouts` campos de pagamento. Audit.
 
 ---
@@ -309,6 +338,7 @@
 
 **Auth**: `admin | financeiro`
 **Response**:
+
 ```json
 {
   "current_balance_cents": 1500000,
@@ -330,6 +360,7 @@
 
 **Auth**: `admin` apenas
 **Body**:
+
 ```json
 {
   "effective_from": "2026-05-20",
@@ -337,6 +368,7 @@
   "reason": "Aporte adicional do sócio"
 }
 ```
+
 **Validações**: `reason.length >= 3`; `amount_cents != 0`.
 **Side-effect**: INSERT em `tenant_cash_balance_adjustments`. Audit.
 
@@ -344,23 +376,23 @@
 
 ## Mapeamento FR → Endpoint
 
-| FR | Endpoint |
-|---|---|
-| FR-001/002/003/004 | `GET /financeiro/contas-a-receber` |
-| FR-005 | `POST /contas-a-receber/[id]/payment` |
-| FR-006/007 | `POST /contas-a-receber/[id]/bad-debt` |
-| FR-008 | `POST /contas-a-receber/[id]/reverse-payment` |
-| FR-009/010/011/012/013/015 | `GET /financeiro/contas-a-pagar` |
-| FR-014a | `POST /contas-a-pagar/[id]/version` |
-| FR-014b | `POST /contas-a-pagar/[id]/end-recurring` |
-| FR-016/017/018 | `POST /contas-a-pagar/[id]/pay` (+ admin reverse) |
-| FR-019/020/021/022/023/024/025/026 | `GET /financeiro/fluxo-caixa` |
-| FR-021/21a/21b | `GET|POST /configuracoes/cash-balance` |
-| FR-027/028/029/030/035/036 | `GET /repasse-medico/[mes]` |
-| FR-031 | `POST /repasse-medico/[mes]/close` |
-| FR-032/32a/32b | `POST /repasse-medico/[mes]/reopen` |
-| FR-033/037 | `POST /repasse-medico/[mes]/payouts/[id]/mark-paid` |
-| FR-034 | trigger DB `generate_payout_adjustment_if_closed` (sem endpoint) |
-| FR-042/43/44 | helper SQL `log_audit_event` + triggers `enforce_append_only_columns` |
-| FR-045 | renderização condicional client + server check |
-| FR-046 | RLS de `monthly_payouts` |
+| FR                                 | Endpoint                                                              |
+| ---------------------------------- | --------------------------------------------------------------------- | --------------------------------- |
+| FR-001/002/003/004                 | `GET /financeiro/contas-a-receber`                                    |
+| FR-005                             | `POST /contas-a-receber/[id]/payment`                                 |
+| FR-006/007                         | `POST /contas-a-receber/[id]/bad-debt`                                |
+| FR-008                             | `POST /contas-a-receber/[id]/reverse-payment`                         |
+| FR-009/010/011/012/013/015         | `GET /financeiro/contas-a-pagar`                                      |
+| FR-014a                            | `POST /contas-a-pagar/[id]/version`                                   |
+| FR-014b                            | `POST /contas-a-pagar/[id]/end-recurring`                             |
+| FR-016/017/018                     | `POST /contas-a-pagar/[id]/pay` (+ admin reverse)                     |
+| FR-019/020/021/022/023/024/025/026 | `GET /financeiro/fluxo-caixa`                                         |
+| FR-021/21a/21b                     | `GET                                                                  | POST /configuracoes/cash-balance` |
+| FR-027/028/029/030/035/036         | `GET /repasse-medico/[mes]`                                           |
+| FR-031                             | `POST /repasse-medico/[mes]/close`                                    |
+| FR-032/32a/32b                     | `POST /repasse-medico/[mes]/reopen`                                   |
+| FR-033/037                         | `POST /repasse-medico/[mes]/payouts/[id]/mark-paid`                   |
+| FR-034                             | trigger DB `generate_payout_adjustment_if_closed` (sem endpoint)      |
+| FR-042/43/44                       | helper SQL `log_audit_event` + triggers `enforce_append_only_columns` |
+| FR-045                             | renderização condicional client + server check                        |
+| FR-046                             | RLS de `monthly_payouts`                                              |

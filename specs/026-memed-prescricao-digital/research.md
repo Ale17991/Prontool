@@ -10,8 +10,8 @@ Todas as incógnitas de Technical Context foram resolvidas abaixo.
 - **Decisão**: Criar tabela dedicada **`tenant_memed_config`** (1 linha por tenant), com `api_key_enc`/`secret_key_enc` (BYTEA) cifrados via os RPCs genéricos `enc_text_with_key`/`dec_text_with_key` (mesma chave `PATIENT_DATA_ENCRYPTION_KEY` usada pela cápsula de credenciais existente), além de `environment` ('staging'|'production'), estado de conexão e campos de aceite de termo.
 - **Rationale**: A Memed é uma integração **síncrona request/response** (registro de prescritor, proxy de token, leitura de catálogos) — não publica nem consome `DomainEvent`. A tabela `tenant_integrations` está acoplada ao **event-bus** (`getEnabledIntegrations` → `dispatch` fan-out para adapters do registry) e à **detecção de standalone**. Inserir um `provider='memed'` ali (a) exige alterar o CHECK de `provider` e (b) arriscaria o dispatcher tentar tratar 'memed' como adapter de eventos. Tabela dedicada mantém o ciclo de vida e RLS limpos, sem tocar no caminho GHL.
 - **Alternativas consideradas**:
-  - *Reusar `tenant_integrations` (provider='memed')*: ganharia o helper `decryptCredentials` e a UI de config por registry — mas exige `ALTER ... CHECK` e acopla ao fan-out de eventos. Rejeitada pelo risco/acoplamento; a UI de config da Memed precisa ser custom de qualquer forma (igual ao GHL OAuth, que tem página própria).
-  - *Credenciais em env/secret de plataforma*: contraria a decisão FR-003 (por clínica) e a constituição (segredos por tenant, não em env versionado).
+  - _Reusar `tenant_integrations` (provider='memed')_: ganharia o helper `decryptCredentials` e a UI de config por registry — mas exige `ALTER ... CHECK` e acopla ao fan-out de eventos. Rejeitada pelo risco/acoplamento; a UI de config da Memed precisa ser custom de qualquer forma (igual ao GHL OAuth, que tem página própria).
+  - _Credenciais em env/secret de plataforma_: contraria a decisão FR-003 (por clínica) e a constituição (segredos por tenant, não em env versionado).
 
 ## D2 — Autenticação e formato da API Memed
 

@@ -58,9 +58,7 @@ export async function ingestRawEvent(
       actor: 'webhook',
     })
     if (transition.error) {
-      throw new Error(
-        `ingestRawEvent transition insert failed: ${transition.error.message}`,
-      )
+      throw new Error(`ingestRawEvent transition insert failed: ${transition.error.message}`)
     }
     return { rawEventId, duplicate: false }
   }

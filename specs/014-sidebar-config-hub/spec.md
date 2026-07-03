@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Reorganização da sidebar e configurações como hub centralizado. Notificações e alertas saem da sidebar e ficam apenas no sininho da topbar. Configurações vira um botão único que abre uma página hub (`/configuracoes`) com grid de cards para todas as opções (Clínica, Meu Perfil, Usuários, Procedimentos, Convênios, Profissionais, Modelos de Anamnese, Integrações, Auditoria). Cards filtrados por RBAC. Auditoria sai de Análise e entra como card. Pura UI — sem mudanças no backend/banco."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Sidebar simplificada para uso diário (Priority: P1)
 
@@ -85,7 +85,7 @@ Como usuário com bookmarks antigos, links internos ou histórico de navegador, 
 - Usuário acessa `/operacao/notificacoes?tab=alertas` mas não tem `alert.read`: a página deve cair silenciosamente na aba de notificações pessoais (ignorar o query param), nunca exibir um estado de "acesso negado" dentro da própria página.
 - Estado de "carregando" no hub: enquanto a página resolve quais cards mostrar, deve evitar flash de cards proibidos (renderização server-side com o role já resolvido, como o restante do dashboard).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -125,7 +125,7 @@ Como usuário com bookmarks antigos, links internos ou histórico de navegador, 
 
 Esta feature é puramente de UI/navegação e não introduz, altera ou remove entidades de domínio. As entidades visíveis ao usuário (notificações, alertas, registros de auditoria, dados da clínica, usuários, procedimentos, convênios, profissionais, modelos de anamnese, integrações) continuam idênticas às já existentes nas features 007, 008, 009, 011 e 012.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

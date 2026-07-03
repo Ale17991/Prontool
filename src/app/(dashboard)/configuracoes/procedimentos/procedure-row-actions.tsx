@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -238,8 +233,7 @@ function EditProcedureDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="edit-amount" className="text-xs">
-              Valor particular (R$){' '}
-              <span className="text-slate-400">(opcional)</span>
+              Valor particular (R$) <span className="text-slate-400">(opcional)</span>
             </Label>
             <Input
               id="edit-amount"
@@ -257,9 +251,7 @@ function EditProcedureDialog({
               className="mt-0.5 h-4 w-4"
             />
             <span>
-              <span className="font-semibold text-slate-900">
-                Coberto pelo plano de saúde
-              </span>
+              <span className="font-semibold text-slate-900">Coberto pelo plano de saúde</span>
               <span className="block text-slate-500">
                 Quando desmarcado, este procedimento é sempre particular.
               </span>

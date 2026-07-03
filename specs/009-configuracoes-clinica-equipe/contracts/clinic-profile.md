@@ -43,6 +43,7 @@ Returns the clinic profile of the active tenant. If the row does not exist yet, 
 ```
 
 **Errors**:
+
 - `401` not authenticated
 - `403` not admin
 
@@ -80,6 +81,7 @@ Updates the clinic profile in a single call. Server validates each field; partia
 **Response 200**: same shape as `GET`.
 
 **Errors**:
+
 - `400 invalid_cnpj` — CNPJ digits do not validate.
 - `400 invalid_field` — any field fails Zod schema; payload includes `details: { field, message }`.
 - `401`, `403` as above.
@@ -91,6 +93,7 @@ Updates the clinic profile in a single call. Server validates each field; partia
 Uploads or replaces the clinic logo. Multipart form (`field name: logo`) with the binary file.
 
 **Constraints**:
+
 - `Content-Length` ≤ 2 MB (rejected with 413 otherwise).
 - File MUST start with JPG (`FF D8 FF`) or PNG (`89 50 4E 47 0D 0A 1A 0A`) magic bytes — checked server-side.
 - Path stored: `{tenant_id}/logo.{jpg|png}` (overwrites previous logo).
@@ -108,6 +111,7 @@ Uploads or replaces the clinic logo. Multipart form (`field name: logo`) with th
 ```
 
 **Errors**:
+
 - `400 invalid_image_format` — magic bytes do not match.
 - `413 payload_too_large` — file > 2 MB.
 
@@ -154,5 +158,6 @@ ViaCEP proxy. `cep` is 8 digits, no mask. Auth required (any role) — the endpo
 **Cache**: `Cache-Control: public, s-maxage=86400, stale-while-revalidate=604800`.
 
 **Errors**:
+
 - `400 invalid_cep` — not 8 digits.
 - `401` — not authenticated.

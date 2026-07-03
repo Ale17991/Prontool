@@ -37,12 +37,15 @@ export async function addAssistant(
     throw new ValidationError('Valor da participação acima do limite permitido')
   }
 
-  const { data, error } = await supabase.rpc('attach_assistant_to_appointment' as never, {
-    p_appointment_id: input.appointmentId,
-    p_assistant_doctor_id: input.assistantDoctorId,
-    p_amount_cents: input.amountCents,
-    p_actor: input.actorUserId,
-  } as never)
+  const { data, error } = await supabase.rpc(
+    'attach_assistant_to_appointment' as never,
+    {
+      p_appointment_id: input.appointmentId,
+      p_assistant_doctor_id: input.assistantDoctorId,
+      p_amount_cents: input.amountCents,
+      p_actor: input.actorUserId,
+    } as never,
+  )
 
   if (error) {
     const msg = error.message ?? ''
@@ -50,7 +53,11 @@ export async function addAssistant(
       throw new DomainError('APPOINTMENT_NOT_FOUND', 'Atendimento não encontrado.', { status: 404 })
     }
     if (/APPOINTMENT_REVERSED/.test(msg)) {
-      throw new DomainError('APPOINTMENT_REVERSED', 'Atendimento estornado — não permite novos assistentes.', { status: 409 })
+      throw new DomainError(
+        'APPOINTMENT_REVERSED',
+        'Atendimento estornado — não permite novos assistentes.',
+        { status: 409 },
+      )
     }
     if (/ASSISTANT_NOT_LIBERAL/.test(msg)) {
       throw new DomainError(
@@ -60,11 +67,9 @@ export async function addAssistant(
       )
     }
     if (/ASSISTANT_TENANT_MISMATCH/.test(msg)) {
-      throw new DomainError(
-        'ASSISTANT_TENANT_MISMATCH',
-        'Profissional pertence a outra clínica.',
-        { status: 400 },
-      )
+      throw new DomainError('ASSISTANT_TENANT_MISMATCH', 'Profissional pertence a outra clínica.', {
+        status: 400,
+      })
     }
     if (error.code === '23505') {
       throw new ConflictError(

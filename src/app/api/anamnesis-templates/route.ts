@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import {
-  createAnamnesisTemplate,
-  type AnamnesisField,
-} from '@/lib/core/anamnesis/create-template'
+import { createAnamnesisTemplate, type AnamnesisField } from '@/lib/core/anamnesis/create-template'
 import { ValidationError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -21,15 +18,7 @@ export const runtime = 'nodejs'
 
 const fieldSchema = z.object({
   id: z.string().min(1),
-  type: z.enum([
-    'texto_curto',
-    'texto_longo',
-    'checkbox',
-    'radio',
-    'select',
-    'data',
-    'numero',
-  ]),
+  type: z.enum(['texto_curto', 'texto_longo', 'checkbox', 'radio', 'select', 'data', 'numero']),
   label: z.string().min(1),
   required: z.boolean(),
   options: z.array(z.string()).optional(),

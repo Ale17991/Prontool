@@ -32,9 +32,7 @@ export function AdminNav() {
             href={it.href}
             className={cn(
               'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-              active
-                ? 'bg-primary text-primary-foreground'
-                : 'text-slate-600 hover:bg-slate-100',
+              active ? 'bg-primary text-primary-foreground' : 'text-slate-600 hover:bg-slate-100',
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />

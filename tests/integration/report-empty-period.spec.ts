@@ -45,10 +45,10 @@ describe('T136 — empty monthly report', () => {
 
     const { GET } = await import('@/app/api/relatorios/mensal/route')
     const res = await GET(
-      new Request(
-        'http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31',
-        { method: 'GET', headers: { authorization: `Bearer ${jwt}` } },
-      ),
+      new Request('http://localhost/api/relatorios/mensal?from=2026-05-01&to=2026-05-31', {
+        method: 'GET',
+        headers: { authorization: `Bearer ${jwt}` },
+      }),
     )
     expect(res.status).toBe(200)
     const body = (await res.json()) as {

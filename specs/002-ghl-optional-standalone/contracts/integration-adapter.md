@@ -8,15 +8,15 @@ O contrato é validado em CI via `tests/contract/integration-adapter.spec.ts`, q
 
 ```ts
 export interface IntegrationAdapter<Config = unknown, Credentials = unknown> {
-  provider: ProviderId;
-  label: string;
-  description: string;
-  configSchema: z.ZodSchema<Config>;
-  credentialsSchema: z.ZodSchema<Credentials>;
-  redactCredentials(c: Credentials): Record<string, string>;
-  extractTenantIdFromWebhook?(req: Request): Promise<string | null>;
-  handleInboundWebhook?(ctx: AdapterContext<Config, Credentials>, req: Request): Promise<Response>;
-  handleDomainEvent(ctx: AdapterContext<Config, Credentials>, event: DomainEvent): Promise<void>;
+  provider: ProviderId
+  label: string
+  description: string
+  configSchema: z.ZodSchema<Config>
+  credentialsSchema: z.ZodSchema<Credentials>
+  redactCredentials(c: Credentials): Record<string, string>
+  extractTenantIdFromWebhook?(req: Request): Promise<string | null>
+  handleInboundWebhook?(ctx: AdapterContext<Config, Credentials>, req: Request): Promise<Response>
+  handleDomainEvent(ctx: AdapterContext<Config, Credentials>, event: DomainEvent): Promise<void>
 }
 ```
 
@@ -41,10 +41,11 @@ Schema Zod da **parte secreta**. Nunca é retornada em response de API (mesmo re
 ### `redactCredentials(c: Credentials): Record<string, string>`
 
 Recebe credenciais **decifradas** e retorna objeto com todos os valores mascarados (`'***'` ou prefixo + últimos 4 chars). Usado por:
+
 - `GET /api/configuracoes/integracoes/[provider]` em `credentials_redacted`.
 - `audit_log` `before_value` / `after_value`.
 
-**Contract test assertion**: fuzz com 20 strings "supersecret_<random>" — nenhuma pode aparecer no output.
+**Contract test assertion**: fuzz com 20 strings "supersecret\_<random>" — nenhuma pode aparecer no output.
 
 ### `handleDomainEvent(ctx, event): Promise<void>`
 

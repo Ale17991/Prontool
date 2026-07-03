@@ -32,8 +32,7 @@ interface ActionErr {
 }
 
 async function authorize(): Promise<
-  | { ok: true; tenantId: string; userId: string }
-  | { ok: false; response: ActionErr }
+  { ok: true; tenantId: string; userId: string } | { ok: false; response: ActionErr }
 > {
   const session = await getSession()
   if (!session) {

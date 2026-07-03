@@ -45,10 +45,7 @@ export function MateriaisEditor({
 
   function addMaterial(item: TussTypeaheadValue | null) {
     if (!item) return
-    onChange([
-      ...value,
-      { tussCode: item.code, tussDescription: item.description, quantity: 1 },
-    ])
+    onChange([...value, { tussCode: item.code, tussDescription: item.description, quantity: 1 }])
     // reset typeahead para escolher proximo item
     setPicker(null)
     setPickerKey((k) => k + 1)

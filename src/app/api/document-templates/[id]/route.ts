@@ -16,10 +16,7 @@ const upsertSchema = z.object({
   font_size: z.number().int().min(8).max(18),
 })
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PUT(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/document-templates/${params.id}`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -31,7 +28,9 @@ export async function PUT(
     const parsed = upsertSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }

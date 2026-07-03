@@ -13,7 +13,7 @@
 - Q: Quantos exames em rascunho um paciente pode ter ao mesmo tempo? → A: No máximo um rascunho por paciente; criar um novo exige finalizar ou descartar o anterior.
 - Q: Como validar valores fora de faixa clínica plausível (PD/margem)? → A: Rejeitar valores fora da faixa — profundidade de sondagem 0–15 mm; recessão −5 a +15 mm.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Registrar um exame periodontal completo (Priority: P1)
 
@@ -75,7 +75,7 @@ Ao visualizar um exame (rascunho ou finalizado), o profissional vê um painel de
 - **Exame em rascunho abandonado**: o paciente tem no máximo um exame em rascunho por vez; iniciar um novo exige finalizar ou descartar o anterior.
 - **Paciente anonimizado**: a seção Periograma segue a mesma regra das demais do Odonto-Space (oculta quando o paciente está anonimizado).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -98,13 +98,13 @@ Ao visualizar um exame (rascunho ou finalizado), o profissional vê um painel de
 - **FR-017**: O sistema MUST permitir, opcionalmente, vincular um exame periodontal a um atendimento, sem exigir esse vínculo.
 - **FR-018**: O sistema MUST limitar o paciente a no máximo um exame periodontal em rascunho por vez; criar um novo exame MUST exigir que o rascunho anterior seja finalizado ou descartado.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Exame periodontal**: representa uma avaliação periodontal de boca toda em uma data. Atributos: paciente, clínica, data do exame, estado (rascunho/finalizado), autor, atendimento vinculado (opcional), observações. Relaciona-se a muitas medições por sítio e a achados por dente.
 - **Medição por sítio**: representa um dos 6 sítios de um dente em um exame. Atributos: dente (FDI), sítio (disto/centro/mésio × vestibular/lingual-palatina), profundidade de sondagem, recessão com sinal, sangramento, supuração, placa. CAL é derivado (PD + recessão).
 - **Achado por dente**: representa atributos do dente como um todo no exame. Atributos: dente (FDI), mobilidade, furca, ausente, implante.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

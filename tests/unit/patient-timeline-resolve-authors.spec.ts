@@ -4,10 +4,7 @@
  * user_profile, fallback (user ausente em ambos), formatAuthorDisplay.
  */
 import { describe, it, expect, vi } from 'vitest'
-import {
-  resolveAuthors,
-  formatAuthorDisplay,
-} from '@/lib/core/patient-timeline/resolve-authors'
+import { resolveAuthors, formatAuthorDisplay } from '@/lib/core/patient-timeline/resolve-authors'
 
 interface ChainStep {
   table: string
@@ -27,8 +24,7 @@ function fakeSupabase(steps: ChainStep[]): {
   function makeChain(step: ChainStep): unknown {
     const chain: string[] = []
     const proxy: Record<string, unknown> = {}
-    const finish = () =>
-      Promise.resolve({ data: step.data, error: step.error })
+    const finish = () => Promise.resolve({ data: step.data, error: step.error })
     const methods = ['select', 'eq', 'in', 'not']
     for (const m of methods) {
       proxy[m] = (..._args: unknown[]) => {
@@ -36,8 +32,7 @@ function fakeSupabase(steps: ChainStep[]): {
         return proxy
       }
     }
-    proxy.then = (resolve: (v: unknown) => unknown) =>
-      finish().then(resolve)
+    proxy.then = (resolve: (v: unknown) => unknown) => finish().then(resolve)
     callLog.push({ table: step.table, chain })
     return proxy
   }

@@ -29,9 +29,9 @@ Projeto Next.js App Router com colocação `_components` por rota:
 
 **Purpose**: Pré-requisitos isolados (sem dependência entre US) que destravam todo o resto.
 
-- [X] T001 [P] Criar estrutura de diretórios: `src/app/(dashboard)/operacao/pacientes/[id]/_components/`, `src/app/(dashboard)/operacao/pacientes/[id]/_components/quick-view-blocks/`, `src/app/(dashboard)/operacao/pacientes/[id]/_components/sheets/`, `src/lib/core/patient-timeline/`, `tests/unit/lib/core/patient-timeline/`, `tests/components/pacientes/sheets/`
-- [X] T002 [P] Adicionar `src/components/ui/tabs.tsx` (shadcn wrapper sobre `@radix-ui/react-tabs` — package já em `package.json`); seguir padrão dos outros primitivos em `src/components/ui/` (cn, forwardRef, exportar `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`); usar tokens semânticos do design system 016 (`bg-muted`, `text-muted-foreground`, `border-input`, focus ring `ring-ring`)
-- [X] T003 [P] Verificar via `grep` que `@radix-ui/react-tabs` e `@radix-ui/react-dialog` estão em `package.json`; se faltar algo, parar e instalar via `pnpm add`
+- [x] T001 [P] Criar estrutura de diretórios: `src/app/(dashboard)/operacao/pacientes/[id]/_components/`, `src/app/(dashboard)/operacao/pacientes/[id]/_components/quick-view-blocks/`, `src/app/(dashboard)/operacao/pacientes/[id]/_components/sheets/`, `src/lib/core/patient-timeline/`, `tests/unit/lib/core/patient-timeline/`, `tests/components/pacientes/sheets/`
+- [x] T002 [P] Adicionar `src/components/ui/tabs.tsx` (shadcn wrapper sobre `@radix-ui/react-tabs` — package já em `package.json`); seguir padrão dos outros primitivos em `src/components/ui/` (cn, forwardRef, exportar `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`); usar tokens semânticos do design system 016 (`bg-muted`, `text-muted-foreground`, `border-input`, focus ring `ring-ring`)
+- [x] T003 [P] Verificar via `grep` que `@radix-ui/react-tabs` e `@radix-ui/react-dialog` estão em `package.json`; se faltar algo, parar e instalar via `pnpm add`
 
 **Checkpoint**: Estrutura pronta, primitivo `<Tabs>` disponível.
 
@@ -41,11 +41,11 @@ Projeto Next.js App Router com colocação `_components` por rota:
 
 **Purpose**: Tipos virtuais e helpers que TODAS as user stories consumirão. **⚠️ CRITICAL: nenhuma US pode começar até esta fase estar completa.**
 
-- [X] T004 [P] Definir tipos em `src/lib/core/patient-timeline/types.ts`: `TimelineEventKind`, `TimelineEventBase`, 7 variantes (`AnamneseEvent`, `EvolucaoEvent`, `TextoEvent`, `ArquivoEvent`, `VitalEvent`, `AppointmentEvent`, `PaymentEvent`), união `TimelineEvent`, `QuickViewSnapshot`, `AuthorMap`, `TimelineFilter` — conforme `data-model.md` §1-3
+- [x] T004 [P] Definir tipos em `src/lib/core/patient-timeline/types.ts`: `TimelineEventKind`, `TimelineEventBase`, 7 variantes (`AnamneseEvent`, `EvolucaoEvent`, `TextoEvent`, `ArquivoEvent`, `VitalEvent`, `AppointmentEvent`, `PaymentEvent`), união `TimelineEvent`, `QuickViewSnapshot`, `AuthorMap`, `TimelineFilter` — conforme `data-model.md` §1-3
 - [ ] T005 [P] Implementar `resolveAuthors(supabase, { tenantId, userIds, knownDoctors? })` em `src/lib/core/patient-timeline/resolve-authors.ts` — short-circuit por `knownDoctors`, SELECT em `doctors` por `(tenant_id, user_id) IN ...`, SELECT em `user_profile` para residuais, retorno `ReadonlyMap<string, string>`. Defesa em profundidade com `eq('tenant_id', tenantId)` em ambos
 - [ ] T006 [P] Implementar `assembleTimelineEvents(supabase, { tenantId, patientId, limit })` em `src/lib/core/patient-timeline/assemble.ts` — mescla `listClinicalRecords` + `listVitalSigns` + `appointments_effective` + payments do paciente; aplica regras de `data-model.md` §1 (occurredAt por fonte, authorUserId por fonte, ordenação desc + tiebreak por kind, filtro de anonimizado restringindo a `payment`+`appointment`)
 - [ ] T007 [P] Implementar `buildQuickViewSnapshot({ patient, summary, allergies, diagnoses, vitalSigns, payments, sessionRole })` em `src/lib/core/patient-timeline/quick-view-snapshot.ts` — derivação puramente client-side conforme `data-model.md` §2 (sem queries novas); inclui cálculo de `financial.receivedCents`, `financial.pendingCents`, `financial.lastPaidAt`, filtragem de diagnósticos para `ativo|em_acompanhamento`, sorting por severity em alergias, anonymized short-circuit
-- [X] T008 [P] Criar barrel `src/lib/core/patient-timeline/index.ts` reexportando os tipos e as 3 funções
+- [x] T008 [P] Criar barrel `src/lib/core/patient-timeline/index.ts` reexportando os tipos e as 3 funções
 - [ ] T009 [P] Teste unitário `tests/unit/lib/core/patient-timeline/resolve-authors.test.ts`: mock Supabase client; cobre (a) short-circuit por knownDoctors, (b) hit em doctors, (c) hit em user_profile, (d) user ausente em ambos retorna fora do Map, (e) filtro de tenant_id é aplicado
 - [ ] T010 [P] Teste unitário `tests/unit/lib/core/patient-timeline/assemble.test.ts`: cobre (a) ordem desc por occurredAt, (b) tiebreak por kind, (c) paciente anonimizado retorna apenas `appointment|payment`, (d) limit aplicado
 - [ ] T011 [P] Teste unitário `tests/unit/lib/core/patient-timeline/quick-view-snapshot.test.ts`: cobre (a) anonimizado short-circuit, (b) filtro de diagnósticos por status, (c) financial.lastPaidAt deriva corretamente, (d) permissions derivam de role
@@ -153,10 +153,10 @@ Projeto Next.js App Router com colocação `_components` por rota:
 
 > **Status (2026-05-20)**: US3 ✅ implementado dentro do próprio `<ClinicalTimeline>` (filtros + contagens). Toggle Lista/Gráfico (T049) **diferido** — usuário pode usar a seção `<VitalSignsSection>` na aba Cadastro para ver o gráfico de série temporal.
 
-- [X] T047 [P] [US3] `_components/timeline-filters.tsx` — chips com contagem pré-computada (props `counts`); estado local; chip desabilitado quando count=0 (C8 I-3); navegação por teclado via setas (Tabs do shadcn já oferece)
-- [X] T048 [US3] Modificar `<ClinicalTimeline>` (T022): receber `activeFilter` state e função de filtragem; passar `counts` para `<TimelineFilters>`; exibir mensagem "Nenhum evento neste filtro" + botão "Limpar filtro" quando filtrado e vazio (FR-017)
+- [x] T047 [P] [US3] `_components/timeline-filters.tsx` — chips com contagem pré-computada (props `counts`); estado local; chip desabilitado quando count=0 (C8 I-3); navegação por teclado via setas (Tabs do shadcn já oferece)
+- [x] T048 [US3] Modificar `<ClinicalTimeline>` (T022): receber `activeFilter` state e função de filtragem; passar `counts` para `<TimelineFilters>`; exibir mensagem "Nenhum evento neste filtro" + botão "Limpar filtro" quando filtrado e vazio (FR-017)
 - [ ] T049 [US3] Em `<ClinicalTimeline>`, quando `activeFilter === 'vitais'`, exibir um toggle adicional `[Lista | Gráfico]` (React state). No modo Gráfico, renderizar `<LineChart>` reusando a configuração de `vital-signs-section.tsx` (R7)
-- [X] T050 [US3] Atualizar contagens em runtime quando novos eventos chegam (após `router.refresh`); `counts` deriva de `events.reduce(...)` no pai
+- [x] T050 [US3] Atualizar contagens em runtime quando novos eventos chegam (após `router.refresh`); `counts` deriva de `events.reduce(...)` no pai
 
 ### Testes de componente — US3
 
@@ -192,15 +192,15 @@ Projeto Next.js App Router com colocação `_components` por rota:
 
 **Purpose**: Validação final, ajustes globais, smoke tests, atualização de docs.
 
-- [X] T058 [P] Rodar `pnpm typecheck` e corrigir qualquer erro de tipos novo — **PASS**
-- [X] T059 [P] Rodar `pnpm lint:auth` — pre-existing failure em `/api/lembretes/[id]/reenviar/route.ts` (feature 018), **fora do escopo**
+- [x] T058 [P] Rodar `pnpm typecheck` e corrigir qualquer erro de tipos novo — **PASS**
+- [x] T059 [P] Rodar `pnpm lint:auth` — pre-existing failure em `/api/lembretes/[id]/reenviar/route.ts` (feature 018), **fora do escopo**
 - [ ] T060 [P] Rodar `pnpm test` (suite completa) — diferido para próxima iteração
 - [ ] T061 Cobrir manualmente o `quickstart.md` ponta a ponta — diferido para validação em preview deploy
-- [X] T062 [P] Validar bundle size delta com `next build`: rota `/operacao/pacientes/[id]` = **38.2 kB / 301 kB First Load** (build PASS)
+- [x] T062 [P] Validar bundle size delta com `next build`: rota `/operacao/pacientes/[id]` = **38.2 kB / 301 kB First Load** (build PASS)
 - [ ] T063 [P] Verificar acessibilidade em DevTools (Lighthouse) — diferido
 - [ ] T064 Atualizar memory/auto-memory — diferido
 - [ ] T065 Limpar comentários redundantes — N/A (não houve extração de forms nesta entrega)
-- [X] T066 Verificar print do prontuário continua funcionando — endpoint preservado, botão "Imprimir prontuário" na sidebar abre `/api/pacientes/[id]/prontuario/pdf`
+- [x] T066 Verificar print do prontuário continua funcionando — endpoint preservado, botão "Imprimir prontuário" na sidebar abre `/api/pacientes/[id]/prontuario/pdf`
 
 ---
 

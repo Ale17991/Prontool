@@ -61,9 +61,7 @@ export function TimelineEventItem({ event, authorDisplay, canViewValues }: Props
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-bold text-slate-900">
-              {titleFor(event)}
-            </p>
+            <p className="text-sm font-bold text-slate-900">{titleFor(event)}</p>
             <Badge variant={meta.badgeVariant} className="h-5 px-1.5 text-[10px]">
               {meta.label}
             </Badge>
@@ -75,9 +73,7 @@ export function TimelineEventItem({ event, authorDisplay, canViewValues }: Props
         </div>
       </button>
 
-      {expanded ? (
-        <div className="mt-3 pl-11">{renderExpanded(event, canViewValues)}</div>
-      ) : null}
+      {expanded ? <div className="mt-3 pl-11">{renderExpanded(event, canViewValues)}</div> : null}
     </article>
   )
 }
@@ -171,9 +167,7 @@ function AnamneseBlock({ event }: { event: AnamneseEvent }) {
         Modelo: {snap.template_title} · v{snap.template_version}
       </p>
       {fields.length === 0 ? (
-        <p className="text-xs text-slate-500">
-          Apenas campos padrão preenchidos.
-        </p>
+        <p className="text-xs text-slate-500">Apenas campos padrão preenchidos.</p>
       ) : (
         <dl className="space-y-1.5">
           {fields.map((f) => {
@@ -211,13 +205,9 @@ function FileBlock({ event }: { event: ArquivoEvent }) {
   return (
     <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs">
       <Paperclip className="h-3 w-3 text-slate-400" />
-      <span className="truncate font-mono">
-        {event.source.fileName ?? 'sem nome'}
-      </span>
+      <span className="truncate font-mono">{event.source.fileName ?? 'sem nome'}</span>
       {event.source.fileSizeBytes ? (
-        <span className="ml-auto text-slate-400">
-          {formatFileSize(event.source.fileSizeBytes)}
-        </span>
+        <span className="ml-auto text-slate-400">{formatFileSize(event.source.fileSizeBytes)}</span>
       ) : null}
     </div>
   )
@@ -228,7 +218,10 @@ function VitalBlock({ event }: { event: VitalEvent }) {
   const peso = v.weightGrams !== null ? (v.weightGrams / 1000).toFixed(1) + 'kg' : '—'
   return (
     <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-3 text-xs md:grid-cols-3">
-      <KV k="PA" val={v.systolicBp && v.diastolicBp ? `${v.systolicBp}/${v.diastolicBp} mmHg` : '—'} />
+      <KV
+        k="PA"
+        val={v.systolicBp && v.diastolicBp ? `${v.systolicBp}/${v.diastolicBp} mmHg` : '—'}
+      />
       <KV k="FC" val={v.heartRate ? `${v.heartRate} bpm` : '—'} />
       <KV k="FR" val={v.respiratoryRate ? `${v.respiratoryRate} irpm` : '—'} />
       <KV k="Temp" val={v.temperatureCelsius ? `${v.temperatureCelsius.toFixed(1)}°C` : '—'} />
@@ -241,7 +234,13 @@ function VitalBlock({ event }: { event: VitalEvent }) {
   )
 }
 
-function AppointmentBlock({ event, canViewValues }: { event: AppointmentEvent; canViewValues: boolean }) {
+function AppointmentBlock({
+  event,
+  canViewValues,
+}: {
+  event: AppointmentEvent
+  canViewValues: boolean
+}) {
   const a = event.source
   return (
     <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-3 text-xs md:grid-cols-3">
@@ -272,9 +271,7 @@ function PaymentBlock({ event }: { event: PaymentEvent }) {
 function KV({ k, val }: { k: string; val: string }) {
   return (
     <div>
-      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-        {k}
-      </p>
+      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{k}</p>
       <p className="font-semibold text-slate-700">{val}</p>
     </div>
   )

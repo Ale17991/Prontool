@@ -17,10 +17,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import type { Database } from '@/lib/db/types'
-import {
-  SupportTicketCreateSchema,
-  createSupportTicket,
-} from '@/lib/core/support-tickets'
+import { SupportTicketCreateSchema, createSupportTicket } from '@/lib/core/support-tickets'
 import { logger } from '@/lib/observability/logger'
 
 export const runtime = 'nodejs'
@@ -100,9 +97,6 @@ export async function POST(request: NextRequest) {
       },
       'support-tickets-create-failed',
     )
-    return NextResponse.json(
-      { error: 'INTERNAL_ERROR', message },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: 'INTERNAL_ERROR', message }, { status: 500 })
   }
 }

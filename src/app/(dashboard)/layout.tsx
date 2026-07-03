@@ -102,8 +102,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   // Feature 010 (R13) — tenants.name é a fonte primária do nome de exibição.
   // corporate_name fica para o PDF (linha legal abaixo) e raramente diverge.
   // getClinicProfile já carrega tenants.name em `displayName`.
-  const tenantDisplayName =
-    clinicProfile?.displayName ?? clinicProfile?.corporateName ?? null
+  const tenantDisplayName = clinicProfile?.displayName ?? clinicProfile?.corporateName ?? null
 
   return (
     <DashboardShell

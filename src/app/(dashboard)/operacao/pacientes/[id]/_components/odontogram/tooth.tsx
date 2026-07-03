@@ -148,7 +148,14 @@ export function Tooth({
               strokeWidth={3}
               rx={3}
             />
-            <line x1={6} y1={6} x2={34} y2={TOTAL_H - 6} stroke={toothMark.color} strokeWidth={2.5} />
+            <line
+              x1={6}
+              y1={6}
+              x2={34}
+              y2={TOTAL_H - 6}
+              stroke={toothMark.color}
+              strokeWidth={2.5}
+            />
           </g>
         ) : null}
       </svg>

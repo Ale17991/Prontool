@@ -1,23 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import {
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-  type FormEvent,
-} from 'react'
+import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Check,
-  DollarSign,
-  History,
-  Loader2,
-  Pencil,
-  Plus,
-  X,
-} from 'lucide-react'
+import { Check, DollarSign, History, Loader2, Pencil, Plus, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -88,8 +74,8 @@ export function PlanProceduresSection({
 
   function onAdded(newHead: PriceHeadWithProcedure) {
     setHeads((prev) =>
-      [newHead, ...prev.filter((h) => h.procedureId !== newHead.procedureId)].sort(
-        (a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? ''),
+      [newHead, ...prev.filter((h) => h.procedureId !== newHead.procedureId)].sort((a, b) =>
+        (a.displayName ?? '').localeCompare(b.displayName ?? ''),
       ),
     )
     setShowAdd(false)
@@ -97,9 +83,7 @@ export function PlanProceduresSection({
   }
 
   function onChanged(newHead: PriceHeadWithProcedure) {
-    setHeads((prev) =>
-      prev.map((h) => (h.procedureId === newHead.procedureId ? newHead : h)),
-    )
+    setHeads((prev) => prev.map((h) => (h.procedureId === newHead.procedureId ? newHead : h)))
     setEditingId(null)
     startTransition(() => router.refresh())
   }
@@ -135,8 +119,8 @@ export function PlanProceduresSection({
             </div>
           ) : addableCount === 0 ? (
             <div className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-xs font-semibold text-[hsl(var(--warning-foreground))]">
-              Todos os {procedures.length} procedimento{procedures.length === 1 ? '' : 's'}{' '}
-              cobertos já têm preço cadastrado neste convênio.{' '}
+              Todos os {procedures.length} procedimento{procedures.length === 1 ? '' : 's'} cobertos
+              já têm preço cadastrado neste convênio.{' '}
               <Link href="/configuracoes/procedimentos" className="underline">
                 Cadastrar novo procedimento
               </Link>
@@ -220,9 +204,7 @@ function Row({
           {!head.procedureActive ? (
             <Badge variant="secondary">Procedimento inativo</Badge>
           ) : !head.procedureCovered ? (
-            <Badge variant="warning">
-              Agora particular
-            </Badge>
+            <Badge variant="warning">Agora particular</Badge>
           ) : (
             <Badge variant="success">Vigente</Badge>
           )}
@@ -316,20 +298,18 @@ function AddProcedureForm({
   // procedimentos cadastrados sem display_name (cenário comum: usuário
   // selecionou o TUSS e não renomeou) ficariam "invisíveis" na busca por
   // nome.
-  const filtered = search.trim().length === 0
-    ? procedures.slice(0, 50)
-    : procedures
-        .filter((p) => {
-          const q = search.toLowerCase()
-          const codeMatch =
-            typeof p.tussCode === 'string' &&
-            p.tussCode.toLowerCase().includes(q)
-          const nameMatch = (p.displayName ?? '').toLowerCase().includes(q)
-          const catalogMatch =
-            (p.catalogDescription ?? '').toLowerCase().includes(q)
-          return codeMatch || nameMatch || catalogMatch
-        })
-        .slice(0, 50)
+  const filtered =
+    search.trim().length === 0
+      ? procedures.slice(0, 50)
+      : procedures
+          .filter((p) => {
+            const q = search.toLowerCase()
+            const codeMatch = typeof p.tussCode === 'string' && p.tussCode.toLowerCase().includes(q)
+            const nameMatch = (p.displayName ?? '').toLowerCase().includes(q)
+            const catalogMatch = (p.catalogDescription ?? '').toLowerCase().includes(q)
+            return codeMatch || nameMatch || catalogMatch
+          })
+          .slice(0, 50)
 
   // Estatísticas só do conjunto buscado — útil para diagnosticar
   // "por que meu procedimento não aparece pra adicionar?".
@@ -348,9 +328,7 @@ function AddProcedureForm({
       return
     }
     if (selectedAlreadyPriced) {
-      setError(
-        'Este procedimento já tem preço neste convênio. Use "Alterar valor" na tabela.',
-      )
+      setError('Este procedimento já tem preço neste convênio. Use "Alterar valor" na tabela.')
       return
     }
     const amountCents = toCents(amount)
@@ -396,9 +374,7 @@ function AddProcedureForm({
           procedureId: selectedProcedure.id,
           tussCode: selectedProcedure.tussCode,
           displayName:
-            selectedProcedure.displayName ??
-            selectedProcedure.catalogDescription ??
-            null,
+            selectedProcedure.displayName ?? selectedProcedure.catalogDescription ?? null,
           amountCents: created.amount_cents,
           validFrom: created.valid_from,
           procedureActive: true,
@@ -434,10 +410,9 @@ function AddProcedureForm({
               {filtered.length === 0 ? (
                 <p className="px-3 py-2 text-slate-500">
                   Nenhum procedimento corresponde à busca{' '}
-                  <span className="font-semibold">&quot;{search.trim()}&quot;</span>. Lista
-                  limitada a procedimentos com{' '}
-                  <span className="font-semibold">Coberto pelo plano de saúde</span>{' '}
-                  marcado em{' '}
+                  <span className="font-semibold">&quot;{search.trim()}&quot;</span>. Lista limitada
+                  a procedimentos com{' '}
+                  <span className="font-semibold">Coberto pelo plano de saúde</span> marcado em{' '}
                   <Link href="/configuracoes/procedimentos" className="underline">
                     Configurações → Procedimentos
                   </Link>
@@ -452,9 +427,7 @@ function AddProcedureForm({
                       key={p.id}
                       onClick={() => {
                         setProcedureId(p.id)
-                        setSearch(
-                          p.displayName ?? p.catalogDescription ?? p.tussCode,
-                        )
+                        setSearch(p.displayName ?? p.catalogDescription ?? p.tussCode)
                         setDropdownOpen(false)
                       }}
                       className={cn(
@@ -482,9 +455,7 @@ function AddProcedureForm({
                             Não list.
                           </span>
                         ) : null}
-                        <span className="font-mono text-[10px] text-slate-500">
-                          {p.tussCode}
-                        </span>
+                        <span className="font-mono text-[10px] text-slate-500">{p.tussCode}</span>
                       </span>
                     </button>
                   )
@@ -495,8 +466,8 @@ function AddProcedureForm({
         </div>
         {search.trim().length > 0 && filteredAlreadyPriced > 0 && dropdownOpen ? (
           <p className="text-[11px] text-success-strong">
-            {filteredAvailable.length} disponíve{filteredAvailable.length === 1 ? 'l' : 'is'}{' '}
-            para adicionar · {filteredAlreadyPriced} já cadastrado
+            {filteredAvailable.length} disponíve{filteredAvailable.length === 1 ? 'l' : 'is'} para
+            adicionar · {filteredAlreadyPriced} já cadastrado
             {filteredAlreadyPriced === 1 ? '' : 's'} neste convênio.
           </p>
         ) : null}
@@ -513,8 +484,8 @@ function AddProcedureForm({
         ) : null}
         {selectedAlreadyPriced ? (
           <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] px-3 py-2 text-[11px] font-semibold text-[hsl(var(--warning-foreground))]">
-            Este procedimento já tem preço cadastrado neste convênio. Para mudar o
-            valor, use o botão &quot;Alterar valor&quot; na tabela abaixo.
+            Este procedimento já tem preço cadastrado neste convênio. Para mudar o valor, use o
+            botão &quot;Alterar valor&quot; na tabela abaixo.
           </p>
         ) : null}
       </div>
@@ -568,7 +539,11 @@ function AddProcedureForm({
           disabled={pending || selectedAlreadyPriced}
           className="gap-2"
         >
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
           Adicionar procedimento
         </Button>
       </div>
@@ -587,9 +562,7 @@ function AlterPriceForm({
   onDone: (next: PriceHeadWithProcedure) => void
   onCancel: () => void
 }) {
-  const [amount, setAmount] = useState(
-    (head.amountCents / 100).toFixed(2).replace('.', ','),
-  )
+  const [amount, setAmount] = useState((head.amountCents / 100).toFixed(2).replace('.', ','))
   const [validFrom, setValidFrom] = useState(new Date().toISOString().slice(0, 10))
   const [reason, setReason] = useState('')
   const [pending, setPending] = useState(false)
@@ -688,7 +661,11 @@ function AlterPriceForm({
           Cancelar
         </Button>
         <Button type="submit" size="sm" disabled={pending} className="gap-2">
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Check className="h-3.5 w-3.5" />
+          )}
           Salvar
         </Button>
       </div>

@@ -72,9 +72,7 @@ export async function fetchActiveAppointments(
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const { data, error } = await supabase
       .from('appointments_effective')
-      .select(
-        'id, patient_id, doctor_id, appointment_at, effective_status, frozen_commission_bps',
-      )
+      .select('id, patient_id, doctor_id, appointment_at, effective_status, frozen_commission_bps')
       .eq('tenant_id', tenantId)
       .gte('appointment_at', fromTs)
       .lt('appointment_at', toExclusive)

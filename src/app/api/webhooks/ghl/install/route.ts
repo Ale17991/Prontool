@@ -63,10 +63,7 @@ export async function POST(req: Request): Promise<Response> {
     })
   } catch (err) {
     if (err instanceof InvalidMarketplaceSignatureError) {
-      logger.warn(
-        { reason: err.reason },
-        'ghl-marketplace-install-signature-invalid',
-      )
+      logger.warn({ reason: err.reason }, 'ghl-marketplace-install-signature-invalid')
       return jsonError(401, 'INVALID_SIGNATURE', 'Assinatura inválida')
     }
     throw err
@@ -233,8 +230,8 @@ function jsonError(
   message: string,
   extra: Record<string, unknown> = {},
 ): Response {
-  return new Response(
-    JSON.stringify({ error: { code, message, ...extra } }),
-    { status, headers: { 'content-type': 'application/json' } },
-  )
+  return new Response(JSON.stringify({ error: { code, message, ...extra } }), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  })
 }

@@ -1,5 +1,5 @@
 ---
-description: "Task list — Integração Memed (Prescrição Digital)"
+description: 'Task list — Integração Memed (Prescrição Digital)'
 ---
 
 # Tasks: Integração Memed — Prescrição Digital
@@ -134,6 +134,7 @@ Labels de história mapeiam o spec.md: US1=prescrever no atendimento, US2=habili
 - **Polish** ao final.
 
 ### Paralelizável
+
 - T001/T002 (setup) em paralelo.
 - T010/T011 (contrato DB) em paralelo após a migration.
 - Dentro de US2: T016/T017/T018 em paralelo (arquivos distintos).
@@ -146,6 +147,7 @@ Labels de história mapeiam o spec.md: US1=prescrever no atendimento, US2=habili
 - Tudo construível/validável em **homologação** (chaves públicas) antes da aprovação de produção.
 
 ## Notes
+
 - [P] = arquivos diferentes, sem dependência.
 - Cápsula `memed/` é o **único** lugar que decifra credenciais e chama a Memed; rotas nunca chamam a Memed direto.
 - Token sempre buscado fresco via proxy; chaves nunca no frontend/logs.

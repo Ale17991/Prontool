@@ -139,15 +139,13 @@ export async function cancelByToken(
   //    Trigger release_slot_lock_on_reversal libera appointment_slot_locks
   //    automaticamente.
   const reversalAmountCents = -(appt.frozen_amount_cents as number)
-  const { error: revError } = await supabase
-    .from('appointment_reversals')
-    .insert({
-      tenant_id: tokenRow.tenant_id,
-      appointment_id: appt.id,
-      reversal_amount_cents: reversalAmountCents,
-      reason: `public_booking_cancel: ipHash=${input.ipHash.slice(0, 16)}`,
-      created_by: createdBy,
-    } as never)
+  const { error: revError } = await supabase.from('appointment_reversals').insert({
+    tenant_id: tokenRow.tenant_id,
+    appointment_id: appt.id,
+    reversal_amount_cents: reversalAmountCents,
+    reason: `public_booking_cancel: ipHash=${input.ipHash.slice(0, 16)}`,
+    created_by: createdBy,
+  } as never)
   if (revError) {
     return {
       ok: false,
@@ -171,15 +169,18 @@ export async function cancelByToken(
 
   // 7. Audit log adicional com event_type específico.
   try {
-    await supabase.rpc('log_audit_event' as never, {
-      p_tenant_id: tokenRow.tenant_id,
-      p_entity: 'appointments',
-      p_entity_id: appt.id,
-      p_field: 'public_booking_cancelled',
-      p_old: 'agendado',
-      p_new: 'cancelado',
-      p_reason: `ip_hash=${input.ipHash}`,
-    } as never)
+    await supabase.rpc(
+      'log_audit_event' as never,
+      {
+        p_tenant_id: tokenRow.tenant_id,
+        p_entity: 'appointments',
+        p_entity_id: appt.id,
+        p_field: 'public_booking_cancelled',
+        p_old: 'agendado',
+        p_new: 'cancelado',
+        p_reason: `ip_hash=${input.ipHash}`,
+      } as never,
+    )
   } catch {
     // best-effort
   }
@@ -222,12 +223,10 @@ async function notifyAdminsCancellation(
       reference_key: `${input.appointmentId}:cancelled`,
     }))
     if (rows.length === 0) return
-    await supabase
-      .from('notifications')
-      .upsert(rows as never, {
-        onConflict: 'tenant_id,user_id,type,reference_key',
-        ignoreDuplicates: true,
-      })
+    await supabase.from('notifications').upsert(rows as never, {
+      onConflict: 'tenant_id,user_id,type,reference_key',
+      ignoreDuplicates: true,
+    })
   } catch (err) {
     logger.warn(
       { err, tenantId: input.tenantId, appointmentId: input.appointmentId },

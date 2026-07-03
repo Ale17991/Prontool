@@ -11,10 +11,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import {
-  listMeasurements,
-  recordMeasurement,
-} from '@/lib/core/patient-portal/measurements'
+import { listMeasurements, recordMeasurement } from '@/lib/core/patient-portal/measurements'
 import { listEnabledMetricTypesForTenant } from '@/lib/core/patient-portal/metric-types'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -29,10 +26,7 @@ const createSchema = z.object({
   notes: z.string().max(2000).optional().nullable(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/medicoes`
   try {
     const session = await requireRole(

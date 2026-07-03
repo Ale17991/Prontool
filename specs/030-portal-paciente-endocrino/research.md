@@ -14,7 +14,7 @@ Decisões técnicas (Decisão / Justificativa / Alternativas), ancoradas no mape
 - **Decisão**: **cookie HMAC-SHA256 stateless** reusando o padrão de `src/lib/integrations/ghl/oauth/state.ts` (`createStateCookie`/`verifyStateCookie`). Payload `{ patientId, tenantId, iatMs, expMs }`, assinado com segredo de servidor; cookie `httpOnly; Secure; SameSite=Strict; Path=/; Max-Age≈1800` (30 min).
 - **Justificativa**: sem hit de banco por request; TTL no payload; padrão já existe no projeto (constant-time compare). Visão é só-leitura e curta → revogação instantânea não é crítica.
 - **Alternativas**: token em tabela (stateful, revogável) — mais pesado, desnecessário aqui. JWT Supabase de paciente — exigiria criar usuário em `auth.users` (o dono pediu **sem conta**).
-- **Segredo**: usar um segredo dedicado de env (ex.: `PATIENT_SESSION_SECRET`) **ou** o `SUPABASE_JWT_SECRET` existente. *Decisão p/ tasks*: env dedicado, para não acoplar à rotação do segredo do Supabase.
+- **Segredo**: usar um segredo dedicado de env (ex.: `PATIENT_SESSION_SECRET`) **ou** o `SUPABASE_JWT_SECRET` existente. _Decisão p/ tasks_: env dedicado, para não acoplar à rotação do segredo do Supabase.
 
 ## R3. Rate-limit / anti-força-bruta
 
@@ -31,7 +31,7 @@ Decisões técnicas (Decisão / Justificativa / Alternativas), ancoradas no mape
 
 - **Decisão**: tabela genérica `patient_measurements` (tenant, patient, `metric_type`, `value NUMERIC`, `unit`, `measured_at DATE`, notes, autor) **append-only** + catálogo `patient_metric_types` (metric_type, label, unit, faixas plausíveis, specialty, ordem). Endocrino é seed de `patient_metric_types`.
 - **Justificativa**: a peça estratégica — qualquer especialidade vira configuração; correção = nova linha (Princípio I). Peso/IMC/PA continuam em `vital_signs` (não duplicar) e o portal **une** as duas fontes na leitura.
-- **Métricas endócrino (seed)**: `glicemia_jejum` (mg/dL, 20–600), `hba1c` (%, 2–20), `circunferencia_abdominal` (cm, 30–250), `colesterol_total` (mg/dL, 50–800), `ldl` (mg/dL, 10–600), `hdl` (mg/dL, 5–200), `triglicerides` (mg/dL, 20–5000). *Faixas plausíveis a revisar clinicamente nas tasks.*
+- **Métricas endócrino (seed)**: `glicemia_jejum` (mg/dL, 20–600), `hba1c` (%, 2–20), `circunferencia_abdominal` (cm, 30–250), `colesterol_total` (mg/dL, 50–800), `ldl` (mg/dL, 10–600), `hdl` (mg/dL, 5–200), `triglicerides` (mg/dL, 20–5000). _Faixas plausíveis a revisar clinicamente nas tasks._
 - **Alternativas**: estender `vital_signs` com colunas de glicemia/HbA1c/etc. — viraria especialidade-específico e não escala para outras (silo).
 
 ## R6. Leitura escopada ao paciente (sem JWT de staff)

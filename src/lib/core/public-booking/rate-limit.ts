@@ -34,9 +34,7 @@ export interface CheckRateLimitResult {
   used: number
 }
 
-export async function checkRateLimit(
-  input: CheckRateLimitInput,
-): Promise<CheckRateLimitResult> {
+export async function checkRateLimit(input: CheckRateLimitInput): Promise<CheckRateLimitResult> {
   const since = new Date(Date.now() - input.windowSeconds * 1000).toISOString()
   const { data, error } = await input.supabase
     .from('public_booking_rate_limits')
@@ -72,23 +70,18 @@ export interface BumpRateLimitInput {
 }
 
 export async function bumpRateLimit(input: BumpRateLimitInput): Promise<void> {
-  const { error } = await input.supabase
-    .from('public_booking_rate_limits')
-    .insert({
-      tenant_id: input.tenantId,
-      ip_hash: input.ipHash,
-      action: input.action,
-    } as never)
+  const { error } = await input.supabase.from('public_booking_rate_limits').insert({
+    tenant_id: input.tenantId,
+    ip_hash: input.ipHash,
+    action: input.action,
+  } as never)
   if (error) {
     // Best-effort: rate limit log não pode quebrar a request principal.
     // O contador só fica sub-contado neste request específico.
   }
 }
 
-export const RATE_LIMITS: Record<
-  RateLimitAction,
-  { limit: number; windowSeconds: number }
-> = {
+export const RATE_LIMITS: Record<RateLimitAction, { limit: number; windowSeconds: number }> = {
   view_slots: { limit: 10, windowSeconds: 60 },
   // submit: anti-spam por IP×clínica. O slot lock (appointment_slot_locks +
   // SLOT_NO_LONGER_AVAILABLE) já impede duplo agendamento do MESMO horário, mas

@@ -97,9 +97,7 @@ export function PatientTypeahead({
    * Cache do paciente atualmente selecionado pra renderizar o botão sem
    * depender do array `items` (que muda conforme a busca).
    */
-  const [selected, setSelected] = useState<PatientTypeaheadValue | null>(
-    initial ?? null,
-  )
+  const [selected, setSelected] = useState<PatientTypeaheadValue | null>(initial ?? null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -216,9 +214,7 @@ export function PatientTypeahead({
           disabled={disabled}
           className="w-full justify-between font-normal"
         >
-          <span className={cn('truncate', !selected && 'text-slate-500')}>
-            {triggerLabel}
-          </span>
+          <span className={cn('truncate', !selected && 'text-slate-500')}>{triggerLabel}</span>
           <span className="ml-2 flex shrink-0 items-center gap-1">
             {selected ? (
               <button
@@ -254,9 +250,7 @@ export function PatientTypeahead({
               <p className="py-6 text-center text-xs text-destructive">{error}</p>
             ) : items.length === 0 ? (
               <CommandEmpty className="py-6 text-center text-xs text-slate-500">
-                {search.trim()
-                  ? 'Nenhum paciente encontrado.'
-                  : 'Nenhum paciente nesta clínica.'}
+                {search.trim() ? 'Nenhum paciente encontrado.' : 'Nenhum paciente nesta clínica.'}
               </CommandEmpty>
             ) : (
               <CommandGroup heading="Pacientes">
@@ -274,9 +268,7 @@ export function PatientTypeahead({
                       )}
                     />
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="truncate font-semibold text-slate-900">
-                        {p.fullName}
-                      </span>
+                      <span className="truncate font-semibold text-slate-900">{p.fullName}</span>
                       {p.tags.length > 0 ? (
                         <span className="flex flex-wrap items-center gap-1">
                           {p.tags.map((t) => (
@@ -287,9 +279,7 @@ export function PatientTypeahead({
                       <span className="flex items-center gap-2 text-[11px] text-slate-500">
                         <span className="font-mono">{maskCpf(p.cpf)}</span>
                         <span aria-hidden>·</span>
-                        <span className="truncate">
-                          {p.planName ?? 'Particular'}
-                        </span>
+                        <span className="truncate">{p.planName ?? 'Particular'}</span>
                       </span>
                     </div>
                   </CommandItem>

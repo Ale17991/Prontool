@@ -34,20 +34,20 @@ Gating: **core** (sempre disponível, toggle simples) · **config** (toggle por
 clínica) · **módulo** (pago por plano) · sensibilidade: 🟢 baixa · 🟡 média · 🔴 alta
 (OFF por padrão + liberação profissional).
 
-| Seção | Gating | Sens. | Origem do dado | Observação |
-|---|---|---|---|---|
-| Meus atendimentos (histórico) | core | 🟢 | `appointments_effective` | já existe (030) |
-| Evolução de métricas (peso/IMC/metabólicas) | core | 🟢 | `patient_measurements` | já existe (030); semáforo + tendência |
-| Orientações / plano de cuidado | config | 🟡 | nova `patient_care_notes` | texto do profissional p/ o paciente |
-| Prescrições / receitas | config | 🟡 | `prescription_records` (Memed) | link/visualização, sem editar |
-| Documentos (atestado, laudo, declaração) | config | 🟡 | Storage + nova `patient_documents` | upload pelo profissional |
-| Resultados de exames | config | 🔴 | nova `patient_exam_results` | **nunca cru**: semáforo + faixa + resumo; liberação profissional |
-| Vacinas / imunização | config | 🟢 | nova `patient_immunizations` | — |
-| Faturas / pagamentos | config | 🟢 | financeiro existente | só do próprio paciente |
-| **Rotina de treino** | **módulo `treino`** | 🟢 | novas tabelas (§4) | personal trainer |
-| **Plano alimentar / dieta** | **módulo `dieta`** | 🟡 | novas tabelas (§4) | nutricionista; restrições/alergias |
-| Teleconsulta | módulo `telemedicina` | 🟡 | (futuro) | já é módulo no 031 |
-| Mensagens seguras com a equipe | módulo (futuro) | 🟡 | (futuro) | escopo posterior |
+| Seção                                       | Gating                | Sens. | Origem do dado                     | Observação                                                       |
+| ------------------------------------------- | --------------------- | ----- | ---------------------------------- | ---------------------------------------------------------------- |
+| Meus atendimentos (histórico)               | core                  | 🟢    | `appointments_effective`           | já existe (030)                                                  |
+| Evolução de métricas (peso/IMC/metabólicas) | core                  | 🟢    | `patient_measurements`             | já existe (030); semáforo + tendência                            |
+| Orientações / plano de cuidado              | config                | 🟡    | nova `patient_care_notes`          | texto do profissional p/ o paciente                              |
+| Prescrições / receitas                      | config                | 🟡    | `prescription_records` (Memed)     | link/visualização, sem editar                                    |
+| Documentos (atestado, laudo, declaração)    | config                | 🟡    | Storage + nova `patient_documents` | upload pelo profissional                                         |
+| Resultados de exames                        | config                | 🔴    | nova `patient_exam_results`        | **nunca cru**: semáforo + faixa + resumo; liberação profissional |
+| Vacinas / imunização                        | config                | 🟢    | nova `patient_immunizations`       | —                                                                |
+| Faturas / pagamentos                        | config                | 🟢    | financeiro existente               | só do próprio paciente                                           |
+| **Rotina de treino**                        | **módulo `treino`**   | 🟢    | novas tabelas (§4)                 | personal trainer                                                 |
+| **Plano alimentar / dieta**                 | **módulo `dieta`**    | 🟡    | novas tabelas (§4)                 | nutricionista; restrições/alergias                               |
+| Teleconsulta                                | módulo `telemedicina` | 🟡    | (futuro)                           | já é módulo no 031                                               |
+| Mensagens seguras com a equipe              | módulo (futuro)       | 🟡    | (futuro)                           | escopo posterior                                                 |
 
 **Diagnósticos crus (psiquiátrico, oncológico, sorologia, genética)**: 🔴 — não
 expor automaticamente. Ficam embutidos só em "Orientações" mediadas pelo profissional.
@@ -60,6 +60,7 @@ Novos `ModuleId` em `entitlements/plans.ts`: `'treino'` e `'dieta'`. Disponívei
 como add-on em qualquer plano. Painel admin de entitlements liga por clínica.
 
 ### 3a. Rotina de treino (`treino`)
+
 Modelagem **aditiva** (começa leve, evolui ao completo sem migração dolorosa):
 
 - `workout_plans` (tenant, patient, título, objetivo, vigência, criado_por, status)
@@ -70,6 +71,7 @@ Modelagem **aditiva** (começa leve, evolui ao completo sem migração dolorosa)
 > só preencher colunas que já existem — sem migração. Fonte: Renaissance/NASM.
 
 ### 3b. Plano alimentar / dieta (`dieta`)
+
 Modelagem **conservadora** (macro-por-LBM foi derrubado na pesquisa → opcional):
 
 - `diet_plans` (tenant, patient, título, objetivo, restrições/alergias, vigência, criado_por, status)

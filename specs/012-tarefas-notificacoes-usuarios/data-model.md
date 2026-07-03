@@ -4,13 +4,13 @@
 
 ## Visão geral
 
-| Tabela / RPC | Mudança | Status |
-|---|---|---|
-| `public.tasks` | **NOVA** | criar |
-| `public.notifications` | **NOVA** | criar |
-| `public.doctors` | **ALTER** — `+ user_id UUID NULL` + UNIQUE parcial | acrescentar coluna |
-| `public.generate_user_notifications(...)` | **NOVA RPC** SECURITY DEFINER | criar |
-| `public.audit_log` | _sem schema change_ | uso via `log_audit_event` |
+| Tabela / RPC                              | Mudança                                            | Status                    |
+| ----------------------------------------- | -------------------------------------------------- | ------------------------- |
+| `public.tasks`                            | **NOVA**                                           | criar                     |
+| `public.notifications`                    | **NOVA**                                           | criar                     |
+| `public.doctors`                          | **ALTER** — `+ user_id UUID NULL` + UNIQUE parcial | acrescentar coluna        |
+| `public.generate_user_notifications(...)` | **NOVA RPC** SECURITY DEFINER                      | criar                     |
+| `public.audit_log`                        | _sem schema change_                                | uso via `log_audit_event` |
 
 Tudo na migration única **`supabase/migrations/0078_tasks_notifications_user_link.sql`**.
 
@@ -69,17 +69,17 @@ CREATE INDEX tasks_overdue_idx
 
 ### Invariantes
 
-| ID | Invariante | Mecanismo |
-|---|---|---|
-| INV-T1 | `title` 1–200 chars | CHECK |
-| INV-T2 | `notes` ≤ 1000 chars ou NULL | CHECK |
-| INV-T3 | `priority` ∈ {baixa, normal, alta, urgente} | CHECK |
-| INV-T4 | `status` ∈ {pendente, concluida} | CHECK |
-| INV-T5 | Coerência `status ↔ completed_*` | CHECK composto |
-| INV-T6 | Colunas core (id/tenant/title/due_date/assigned_to/assigned_by/created_at/created_by) imutáveis | trigger `enforce_tasks_mutation` |
-| INV-T7 | DELETE físico bloqueado | trigger `enforce_append_only` |
-| INV-T8 | Toda mudança auditada | trigger `audit_tasks_change` chama `log_audit_event` |
-| INV-T9 | Leitura/escrita filtrada por RLS | policies `tasks_*` |
+| ID     | Invariante                                                                                      | Mecanismo                                            |
+| ------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| INV-T1 | `title` 1–200 chars                                                                             | CHECK                                                |
+| INV-T2 | `notes` ≤ 1000 chars ou NULL                                                                    | CHECK                                                |
+| INV-T3 | `priority` ∈ {baixa, normal, alta, urgente}                                                     | CHECK                                                |
+| INV-T4 | `status` ∈ {pendente, concluida}                                                                | CHECK                                                |
+| INV-T5 | Coerência `status ↔ completed_*`                                                                | CHECK composto                                       |
+| INV-T6 | Colunas core (id/tenant/title/due_date/assigned_to/assigned_by/created_at/created_by) imutáveis | trigger `enforce_tasks_mutation`                     |
+| INV-T7 | DELETE físico bloqueado                                                                         | trigger `enforce_append_only`                        |
+| INV-T8 | Toda mudança auditada                                                                           | trigger `audit_tasks_change` chama `log_audit_event` |
+| INV-T9 | Leitura/escrita filtrada por RLS                                                                | policies `tasks_*`                                   |
 
 ### Trigger de imutabilidade
 
@@ -233,16 +233,16 @@ CREATE INDEX notifications_unread_idx
 
 ### Invariantes
 
-| ID | Invariante | Mecanismo |
-|---|---|---|
-| INV-N1 | `type` ∈ {atendimento, tarefa, tarefa_atrasada, aniversarios_mes} | CHECK |
-| INV-N2 | `title` 1–200 chars; `body` 1–2000 chars | CHECK |
-| INV-N3 | `reference_type` ∈ {appointment, task, month} ou NULL | CHECK |
-| INV-N4 | UNIQUE `(tenant_id, user_id, type, reference_key)` — idempotência | INDEX |
-| INV-N5 | Coerência `is_read ↔ read_at` | CHECK composto |
-| INV-N6 | RLS: usuário vê apenas as suas | policy `notifications_user_only` |
-| INV-N7 | DELETE físico bloqueado | trigger `enforce_append_only` |
-| INV-N8 | Mutáveis: apenas `is_read`, `read_at` | trigger `enforce_notifications_mutation` |
+| ID     | Invariante                                                        | Mecanismo                                |
+| ------ | ----------------------------------------------------------------- | ---------------------------------------- |
+| INV-N1 | `type` ∈ {atendimento, tarefa, tarefa_atrasada, aniversarios_mes} | CHECK                                    |
+| INV-N2 | `title` 1–200 chars; `body` 1–2000 chars                          | CHECK                                    |
+| INV-N3 | `reference_type` ∈ {appointment, task, month} ou NULL             | CHECK                                    |
+| INV-N4 | UNIQUE `(tenant_id, user_id, type, reference_key)` — idempotência | INDEX                                    |
+| INV-N5 | Coerência `is_read ↔ read_at`                                     | CHECK composto                           |
+| INV-N6 | RLS: usuário vê apenas as suas                                    | policy `notifications_user_only`         |
+| INV-N7 | DELETE físico bloqueado                                           | trigger `enforce_append_only`            |
+| INV-N8 | Mutáveis: apenas `is_read`, `read_at`                             | trigger `enforce_notifications_mutation` |
 
 ### Triggers
 
@@ -336,11 +336,11 @@ CREATE TRIGGER doctors_user_link_audit
 
 ### Invariantes
 
-| ID | Invariante | Mecanismo |
-|---|---|---|
-| INV-D1 | Um doctor referencia ≤ 1 usuário | UNIQUE parcial |
-| INV-D2 | Cross-tenant blocked | UNIQUE por (tenant_id, user_id) WHERE NOT NULL |
-| INV-D3 | Mudança auditada | trigger `audit_user_doctor_link` |
+| ID     | Invariante                       | Mecanismo                                      |
+| ------ | -------------------------------- | ---------------------------------------------- |
+| INV-D1 | Um doctor referencia ≤ 1 usuário | UNIQUE parcial                                 |
+| INV-D2 | Cross-tenant blocked             | UNIQUE por (tenant_id, user_id) WHERE NOT NULL |
+| INV-D3 | Mudança auditada                 | trigger `audit_user_doctor_link`               |
 
 ---
 
@@ -588,24 +588,24 @@ patients (decifrando birth_date) e popula notifications via UPSERT idempotente.
 
 ## Mapeamento Spec → Schema
 
-| Spec requirement | Schema artifact |
-|---|---|
-| FR-001 (campos da tarefa) | `tasks` columns |
-| FR-002 (filtros listagem) | índices + service layer |
-| FR-003 (destaque atrasadas) | service projeta `is_overdue = (status='pendente' AND due_date < today)` |
-| FR-004 (concluir/reabrir) | trigger imutabilidade permite mutar status + completed_* |
-| FR-005 (RLS por papel) | policies `tasks_read/insert/update` |
-| FR-006 (audit tarefas) | trigger `audit_tasks_change` |
-| FR-007 (soft-delete admin) | `deleted_at` column + service layer `requireRole('admin')` |
-| FR-008–FR-010 (geração 4 tipos) | RPC `generate_user_notifications` |
-| FR-011 (idempotência) | UNIQUE `notifications_dedup_unique` + ON CONFLICT DO NOTHING |
-| FR-012 (campos notif) | `notifications` columns |
-| FR-013 (RLS notif) | policy `notifications_user_only` |
-| FR-014 (badge sininho) | `notifications_unread_idx` + `GET /api/notificacoes/unread-count` |
-| FR-015–FR-017 (página + mark read) | service layer + UI |
-| FR-018 (sidebar) | dashboard-shell |
-| FR-019–FR-027 (cadastro manual) | service layer + auth.admin.createUser + doctors.user_id |
-| FR-028–FR-029 (multi-tenant) | RLS + UNIQUE parcial doctors |
+| Spec requirement                   | Schema artifact                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| FR-001 (campos da tarefa)          | `tasks` columns                                                         |
+| FR-002 (filtros listagem)          | índices + service layer                                                 |
+| FR-003 (destaque atrasadas)        | service projeta `is_overdue = (status='pendente' AND due_date < today)` |
+| FR-004 (concluir/reabrir)          | trigger imutabilidade permite mutar status + completed\_\*              |
+| FR-005 (RLS por papel)             | policies `tasks_read/insert/update`                                     |
+| FR-006 (audit tarefas)             | trigger `audit_tasks_change`                                            |
+| FR-007 (soft-delete admin)         | `deleted_at` column + service layer `requireRole('admin')`              |
+| FR-008–FR-010 (geração 4 tipos)    | RPC `generate_user_notifications`                                       |
+| FR-011 (idempotência)              | UNIQUE `notifications_dedup_unique` + ON CONFLICT DO NOTHING            |
+| FR-012 (campos notif)              | `notifications` columns                                                 |
+| FR-013 (RLS notif)                 | policy `notifications_user_only`                                        |
+| FR-014 (badge sininho)             | `notifications_unread_idx` + `GET /api/notificacoes/unread-count`       |
+| FR-015–FR-017 (página + mark read) | service layer + UI                                                      |
+| FR-018 (sidebar)                   | dashboard-shell                                                         |
+| FR-019–FR-027 (cadastro manual)    | service layer + auth.admin.createUser + doctors.user_id                 |
+| FR-028–FR-029 (multi-tenant)       | RLS + UNIQUE parcial doctors                                            |
 
 ---
 
@@ -668,7 +668,7 @@ type TaskRow = {
   tenant_id: string
   title: string
   notes: string | null
-  due_date: string  // YYYY-MM-DD
+  due_date: string // YYYY-MM-DD
   assigned_to: string
   assigned_by: string
   priority: 'baixa' | 'normal' | 'alta' | 'urgente'

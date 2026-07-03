@@ -16,7 +16,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createHmac } from 'node:crypto'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 
-const SHARED_SECRET = process.env.GHL_MARKETPLACE_SHARED_SECRET ?? 'test_marketplace_shared_secret_min_32_chars_xxxx'
+const SHARED_SECRET =
+  process.env.GHL_MARKETPLACE_SHARED_SECRET ?? 'test_marketplace_shared_secret_min_32_chars_xxxx'
 
 interface SignedRequest {
   body: string
@@ -46,14 +47,12 @@ interface InstallPayloadOverrides {
 
 function makeInstallPayload(o: InstallPayloadOverrides = {}): string {
   const tokens: Record<string, unknown> = {
-    access_token:
-      o.accessToken ?? 'at_install_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    access_token: o.accessToken ?? 'at_install_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     expires_in: o.expiresIn ?? 86400,
     scope: o.scope ?? 'contacts.readonly contacts.write',
   }
   if (!o.omitRefreshToken) {
-    tokens.refresh_token =
-      o.refreshToken ?? 'rt_install_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+    tokens.refresh_token = o.refreshToken ?? 'rt_install_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
   }
   return JSON.stringify({
     eventId: o.eventId ?? `evt_${Math.random().toString(36).slice(2)}`,

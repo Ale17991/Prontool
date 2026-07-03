@@ -54,8 +54,7 @@ export default async function AgendamentoPublicoPage() {
     name: p.display_name ?? p.tuss_code ?? '—',
   }))
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
 
   return (
     <div className="space-y-6">

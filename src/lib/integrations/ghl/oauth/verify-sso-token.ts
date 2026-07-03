@@ -61,10 +61,7 @@ export class InvalidSsoTokenError extends Error {
 let jwksCache: { fetchedAt: number; keys: Jwk[] } | null = null
 const JWKS_TTL_MS = 60 * 60 * 1000 // 1h
 
-const ALLOWED_ISS = [
-  'https://services.leadconnectorhq.com',
-  'https://marketplace.gohighlevel.com',
-]
+const ALLOWED_ISS = ['https://services.leadconnectorhq.com', 'https://marketplace.gohighlevel.com']
 
 export async function verifySsoToken(rawToken: string): Promise<SsoTokenClaims> {
   // Env lida por chamada — module-level read pode pegar valor vazio em

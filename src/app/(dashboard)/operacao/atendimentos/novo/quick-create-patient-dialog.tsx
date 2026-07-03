@@ -38,7 +38,11 @@ const PARTICULAR = '__particular__'
  * nome, convênio e telefone. Cria via POST /api/pacientes e devolve o paciente
  * para o form selecioná-lo. Cadastro completo continua em /operacao/pacientes.
  */
-export function QuickCreatePatientDialog({ plans, onCreated, disabled }: QuickCreatePatientDialogProps) {
+export function QuickCreatePatientDialog({
+  plans,
+  onCreated,
+  disabled,
+}: QuickCreatePatientDialogProps) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -79,7 +83,7 @@ export function QuickCreatePatientDialog({ plans, onCreated, disabled }: QuickCr
         fullName: name.trim(),
         cpf: '',
         planId: resolvedPlan,
-        planName: resolvedPlan ? plans.find((p) => p.id === resolvedPlan)?.label ?? null : null,
+        planName: resolvedPlan ? (plans.find((p) => p.id === resolvedPlan)?.label ?? null) : null,
         tags: [],
       })
       setName('')
@@ -94,7 +98,13 @@ export function QuickCreatePatientDialog({ plans, onCreated, disabled }: QuickCr
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="ghost" size="sm" className="h-7 gap-1.5 px-2 text-xs" disabled={disabled}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1.5 px-2 text-xs"
+          disabled={disabled}
+        >
           <UserPlus className="h-3.5 w-3.5" /> Cadastrar novo
         </Button>
       </DialogTrigger>
@@ -102,8 +112,8 @@ export function QuickCreatePatientDialog({ plans, onCreated, disabled }: QuickCr
         <DialogHeader>
           <DialogTitle>Cadastro rápido de paciente</DialogTitle>
           <DialogDescription>
-            Cadastre o essencial para agendar agora. Os demais dados podem ser completados
-            depois na ficha do paciente.
+            Cadastre o essencial para agendar agora. Os demais dados podem ser completados depois na
+            ficha do paciente.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -113,16 +123,25 @@ export function QuickCreatePatientDialog({ plans, onCreated, disabled }: QuickCr
           </div>
           <div>
             <Label htmlFor="qc-phone">Telefone</Label>
-            <Input id="qc-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(00) 00000-0000" />
+            <Input
+              id="qc-phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(00) 00000-0000"
+            />
           </div>
           <div>
             <Label>Convênio</Label>
             <Select value={planId} onValueChange={setPlanId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={PARTICULAR}>Particular</SelectItem>
                 {plans.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

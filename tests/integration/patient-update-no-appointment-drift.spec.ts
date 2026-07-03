@@ -10,10 +10,7 @@
  * Red-first: `upsert-from-ghl` (T081) not yet implemented.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import {
   seedTenant,
   seedTussCode,

@@ -17,17 +17,17 @@ Fonte única de verdade para "qual tenant tem quais integrações ativas".
 
 ### Fields
 
-| Field | Type | Null | Notes |
-|-------|------|------|-------|
-| `tenant_id` | `UUID` | NOT NULL | FK → `tenants.id` ON DELETE CASCADE |
-| `provider` | `TEXT` | NOT NULL | `'ghl' \| 'hubspot' \| 'rdstation' \| 'pipedrive' \| 'generic_webhook'`; check constraint contra `registry` atual |
-| `config` | `JSONB` | NOT NULL | Shape validado por `registry[provider].configSchema` — campos públicos (location_id, portal_id, field_maps, trigger stage, URLs) |
-| `credentials_enc` | `BYTEA` | NOT NULL | JSON cifrado via `enc_text_with_key(..., PATIENT_DATA_ENCRYPTION_KEY)`. Shape validado por `registry[provider].credentialsSchema` |
-| `webhook_secret_enc` | `BYTEA` | NULL | Separado de `credentials` porque o secret de assinatura inbound costuma ser diferente do PAT de outbound; nullable para providers sem inbound (ex.: `generic_webhook` puro outbound) |
-| `enabled` | `BOOLEAN` | NOT NULL | DEFAULT TRUE; permite pause sem perder config |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL | DEFAULT now() |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL | trigger `touch_updated_at` |
-| `created_by_user_id` | `UUID` | NOT NULL | FK → `auth.users(id)` — audit |
+| Field                | Type          | Null     | Notes                                                                                                                                                                                |
+| -------------------- | ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tenant_id`          | `UUID`        | NOT NULL | FK → `tenants.id` ON DELETE CASCADE                                                                                                                                                  |
+| `provider`           | `TEXT`        | NOT NULL | `'ghl' \| 'hubspot' \| 'rdstation' \| 'pipedrive' \| 'generic_webhook'`; check constraint contra `registry` atual                                                                    |
+| `config`             | `JSONB`       | NOT NULL | Shape validado por `registry[provider].configSchema` — campos públicos (location_id, portal_id, field_maps, trigger stage, URLs)                                                     |
+| `credentials_enc`    | `BYTEA`       | NOT NULL | JSON cifrado via `enc_text_with_key(..., PATIENT_DATA_ENCRYPTION_KEY)`. Shape validado por `registry[provider].credentialsSchema`                                                    |
+| `webhook_secret_enc` | `BYTEA`       | NULL     | Separado de `credentials` porque o secret de assinatura inbound costuma ser diferente do PAT de outbound; nullable para providers sem inbound (ex.: `generic_webhook` puro outbound) |
+| `enabled`            | `BOOLEAN`     | NOT NULL | DEFAULT TRUE; permite pause sem perder config                                                                                                                                        |
+| `created_at`         | `TIMESTAMPTZ` | NOT NULL | DEFAULT now()                                                                                                                                                                        |
+| `updated_at`         | `TIMESTAMPTZ` | NOT NULL | trigger `touch_updated_at`                                                                                                                                                           |
+| `created_by_user_id` | `UUID`        | NOT NULL | FK → `auth.users(id)` — audit                                                                                                                                                        |
 
 **Primary key**: composite `(tenant_id, provider)`. Garantia: 1 linha por tenant × provider.
 
@@ -112,20 +112,22 @@ configSchema = z.object({
   field_map_procedimento_tuss: z.string().min(1).max(60),
   field_map_profissional: z.string().min(1).max(60),
   field_map_valor: z.string().min(1).max(60),
-});
+})
 credentialsSchema = z.object({
-  operations_pat: z.string().min(10).max(200),         // PAT no proxy
+  operations_pat: z.string().min(10).max(200), // PAT no proxy
   inbound_webhook_secret: z.string().min(32).max(128), // segredo HMAC do webhook inbound
-});
+})
 
 // generic_webhook
 configSchema = z.object({
   outbound_url: z.string().url(),
-  events: z.array(z.enum(['patient.created','appointment.created','appointment.reversed'])).min(1),
-});
+  events: z
+    .array(z.enum(['patient.created', 'appointment.created', 'appointment.reversed']))
+    .min(1),
+})
 credentialsSchema = z.object({
   bearer_token: z.string().min(8).max(256).optional(),
-});
+})
 ```
 
 ---
@@ -160,14 +162,15 @@ Imutável (Principle I). Estorno cria novo registro. Aplicável a todas as orige
 
 ## Entity: `audit_log` (existing — novos event types, provider-agnósticos)
 
-| `event_type` | Trigger | Actor | `before_value` | `after_value` | `entity_id` |
-|--------------|---------|-------|----------------|---------------|-------------|
-| `integration.connect` | `POST /api/configuracoes/integracoes/[provider]` e ausência prévia | admin | `null` | `{provider, config, credentials:redacted}` | `"<tenant_id>:<provider>"` |
-| `integration.reconfigure` | `POST` com linha existente | admin | redacted anterior | redacted nova | `"<tenant_id>:<provider>"` |
-| `integration.disconnect` | `DELETE /api/configuracoes/integracoes/[provider]` | admin | redacted anterior | `null` | `"<tenant_id>:<provider>"` |
-| `appointment.price_override` | `createAppointmentManually` com `amount_cents_override` | admin/recepcionista | `{amount_cents: vigente}` | `{amount_cents: override}` | `appointment_id` |
+| `event_type`                 | Trigger                                                            | Actor               | `before_value`            | `after_value`                              | `entity_id`                |
+| ---------------------------- | ------------------------------------------------------------------ | ------------------- | ------------------------- | ------------------------------------------ | -------------------------- |
+| `integration.connect`        | `POST /api/configuracoes/integracoes/[provider]` e ausência prévia | admin               | `null`                    | `{provider, config, credentials:redacted}` | `"<tenant_id>:<provider>"` |
+| `integration.reconfigure`    | `POST` com linha existente                                         | admin               | redacted anterior         | redacted nova                              | `"<tenant_id>:<provider>"` |
+| `integration.disconnect`     | `DELETE /api/configuracoes/integracoes/[provider]`                 | admin               | redacted anterior         | `null`                                     | `"<tenant_id>:<provider>"` |
+| `appointment.price_override` | `createAppointmentManually` com `amount_cents_override`            | admin/recepcionista | `{amount_cents: vigente}` | `{amount_cents: override}`                 | `appointment_id`           |
 
 Redaction:
+
 - Chamador (`src/lib/core/audit/integration-events.ts`) invoca `adapter.redactCredentials(credentials)` para obter versão segura antes de gravar. Nunca grava `credentials_enc` bruto ou decifrado.
 
 ---
@@ -208,66 +211,65 @@ Não é tabela; é o **contrato** que todo provider cumpre em `src/lib/integrati
 
 ```ts
 // src/lib/integrations/types.ts
-import type { z } from 'zod';
-import type { Logger } from 'pino';
+import type { z } from 'zod'
+import type { Logger } from 'pino'
 
-export type ProviderId = 'ghl' | 'hubspot' | 'rdstation' | 'pipedrive' | 'generic_webhook';
+export type ProviderId = 'ghl' | 'hubspot' | 'rdstation' | 'pipedrive' | 'generic_webhook'
 
 export interface PatientSnapshot {
-  id: string;
-  tenantId: string;
-  fullName: string;
-  cpf: string;
-  email: string | null;
-  phone: string | null;
-  birthDate: string | null;
-  planId: string | null;
-  ghlContactId: string | null;
+  id: string
+  tenantId: string
+  fullName: string
+  cpf: string
+  email: string | null
+  phone: string | null
+  birthDate: string | null
+  planId: string | null
+  ghlContactId: string | null
 }
 
 export interface AppointmentSnapshot {
-  id: string;
-  tenantId: string;
-  patientId: string;
-  doctorId: string;
-  procedureId: string;
-  procedureTussCode: string;
-  planId: string;
-  appointmentAt: string;       // ISO UTC
-  frozenAmountCents: number;
-  source: 'ghl' | 'manual';
+  id: string
+  tenantId: string
+  patientId: string
+  doctorId: string
+  procedureId: string
+  procedureTussCode: string
+  planId: string
+  appointmentAt: string // ISO UTC
+  frozenAmountCents: number
+  source: 'ghl' | 'manual'
 }
 
 export type DomainEvent =
-  | { type: 'patient.created';     patient: PatientSnapshot }
+  | { type: 'patient.created'; patient: PatientSnapshot }
   | { type: 'appointment.created'; appointment: AppointmentSnapshot; patient: PatientSnapshot }
-  | { type: 'appointment.reversed'; original: AppointmentSnapshot; reversal: AppointmentSnapshot; reason: string };
+  | {
+      type: 'appointment.reversed'
+      original: AppointmentSnapshot
+      reversal: AppointmentSnapshot
+      reason: string
+    }
 
 export interface AdapterContext<Config = unknown, Credentials = unknown> {
-  tenantId: string;
-  provider: ProviderId;
-  config: Config;
-  credentials: Credentials;
-  logger: Logger;
-  now: () => Date;
+  tenantId: string
+  provider: ProviderId
+  config: Config
+  credentials: Credentials
+  logger: Logger
+  now: () => Date
 }
 
 export interface IntegrationAdapter<Config = unknown, Credentials = unknown> {
-  provider: ProviderId;
-  label: string;
-  description: string;
-  configSchema: z.ZodSchema<Config>;
-  credentialsSchema: z.ZodSchema<Credentials>;
-  redactCredentials(c: Credentials): Record<string, string>;
-  extractTenantIdFromWebhook?(req: Request): Promise<string | null>;
-  handleInboundWebhook?(
-    ctx: AdapterContext<Config, Credentials>,
-    req: Request,
-  ): Promise<Response>;
-  handleDomainEvent(
-    ctx: AdapterContext<Config, Credentials>,
-    event: DomainEvent,
-  ): Promise<void>;
+  provider: ProviderId
+  label: string
+  description: string
+  configSchema: z.ZodSchema<Config>
+  credentialsSchema: z.ZodSchema<Credentials>
+  redactCredentials(c: Credentials): Record<string, string>
+  extractTenantIdFromWebhook?(req: Request): Promise<string | null>
+  handleInboundWebhook?(ctx: AdapterContext<Config, Credentials>, req: Request): Promise<Response>
+  handleDomainEvent(ctx: AdapterContext<Config, Credentials>, event: DomainEvent): Promise<void>
 }
 ```
 
@@ -275,9 +277,9 @@ Registry central:
 
 ```ts
 // src/lib/integrations/registry.ts
-import type { IntegrationAdapter, ProviderId } from './types';
-import { ghlAdapter } from './ghl/adapter';
-import { genericWebhookAdapter } from './generic-webhook/adapter';
+import type { IntegrationAdapter, ProviderId } from './types'
+import { ghlAdapter } from './ghl/adapter'
+import { genericWebhookAdapter } from './generic-webhook/adapter'
 
 export const registry: Record<ProviderId, IntegrationAdapter<any, any>> = {
   ghl: ghlAdapter,
@@ -285,14 +287,14 @@ export const registry: Record<ProviderId, IntegrationAdapter<any, any>> = {
   // hubspot: hubspotAdapter,    // P4+
   // rdstation: rdstationAdapter,
   // pipedrive: pipedriveAdapter,
-};
+}
 
 export function getAdapter(provider: string): IntegrationAdapter | null {
-  return (registry as Record<string, IntegrationAdapter>)[provider] ?? null;
+  return (registry as Record<string, IntegrationAdapter>)[provider] ?? null
 }
 
 export function listProviders(): ProviderId[] {
-  return Object.keys(registry) as ProviderId[];
+  return Object.keys(registry) as ProviderId[]
 }
 ```
 
@@ -334,8 +336,8 @@ Event flow (P3+):
                                          ┌──fan-out (Promise.allSettled)──┐
                                          ▼                 ▼              ▼
                                     ghlAdapter    genericWebhookAdapter   …
-                                    (HTTP POST     (HTTP POST to            
-                                     proxy)         configured URL)         
+                                    (HTTP POST     (HTTP POST to
+                                     proxy)         configured URL)
 ```
 
 ---
@@ -343,11 +345,11 @@ Event flow (P3+):
 ## Derived concept: "tenant mode"
 
 ```ts
-type TenantMode = 'standalone' | 'connected';
+type TenantMode = 'standalone' | 'connected'
 
 async function getTenantMode(supabase, tenantId): Promise<TenantMode> {
-  const enabled = await getEnabledIntegrations(supabase, tenantId);
-  return enabled.length > 0 ? 'connected' : 'standalone';
+  const enabled = await getEnabledIntegrations(supabase, tenantId)
+  return enabled.length > 0 ? 'connected' : 'standalone'
 }
 
 async function getEnabledIntegrations(supabase, tenantId) {
@@ -355,8 +357,8 @@ async function getEnabledIntegrations(supabase, tenantId) {
     .from('tenant_integrations')
     .select('*')
     .eq('tenant_id', tenantId)
-    .eq('enabled', true);
-  return data ?? [];
+    .eq('enabled', true)
+  return data ?? []
 }
 ```
 

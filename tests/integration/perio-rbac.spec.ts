@@ -49,7 +49,12 @@ describe('periograma — RBAC de escrita', () => {
     const t = await seedTenant()
     const patientId = await seedPatient(t.tenantId)
     const user = await seedUser(t.tenantId, 'recepcionista')
-    const jwt = mintJwt({ userId: user.userId, email: user.email, tenantId: t.tenantId, role: 'recepcionista' })
+    const jwt = mintJwt({
+      userId: user.userId,
+      email: user.email,
+      tenantId: t.tenantId,
+      role: 'recepcionista',
+    })
     const { GET } = await import('@/app/api/pacientes/[id]/periograma/route')
     const res = await GET(
       new Request(`http://localhost/api/pacientes/${patientId}/periograma`, {

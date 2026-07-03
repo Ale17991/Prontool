@@ -24,9 +24,7 @@ export const RESERVED_SLUGS = [
 /** Mesma regex da CHECK constraint: começa com letra/dígito; 3–32 chars. */
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,31}$/
 
-export type BookingSlugResult =
-  | { ok: true; slug: string | null }
-  | { ok: false; reason: string }
+export type BookingSlugResult = { ok: true; slug: string | null } | { ok: false; reason: string }
 
 /**
  * Normaliza (trim + lowercase) e valida formato + reservados.

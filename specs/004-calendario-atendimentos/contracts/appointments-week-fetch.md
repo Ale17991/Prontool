@@ -7,21 +7,21 @@
 ```ts
 export interface ListWeekInput {
   tenantId: string
-  weekStart: Date           // domingo 00:00:00 da semana exibida (em fuso da clínica)
-  weekEnd: Date             // sábado 23:59:59
-  doctorIds?: string[]      // opcional; ausente/vazio = todos
+  weekStart: Date // domingo 00:00:00 da semana exibida (em fuso da clínica)
+  weekEnd: Date // sábado 23:59:59
+  doctorIds?: string[] // opcional; ausente/vazio = todos
 }
 
 export interface AppointmentWeekRow {
   id: string
   patientId: string
-  patientName: string                  // descriptografada via RPC `decrypt_patient_names_for_ids`
+  patientName: string // descriptografada via RPC `decrypt_patient_names_for_ids`
   doctorId: string
   doctorName: string
   procedureId: string
-  procedureLabel: string               // display_name ?? tuss_code
-  appointmentAt: string                // ISO with offset
-  durationMinutes: number              // COALESCE(duration_minutes, 30)
+  procedureLabel: string // display_name ?? tuss_code
+  appointmentAt: string // ISO with offset
+  durationMinutes: number // COALESCE(duration_minutes, 30)
   effectiveStatus: 'ativo' | 'estornado'
 }
 

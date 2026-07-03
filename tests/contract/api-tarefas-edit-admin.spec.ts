@@ -25,7 +25,12 @@ describe('Feature 012 follow-up — PATCH /api/tarefas edicao admin', () => {
     adminJwt = mintJwt({ userId: admin.userId, email: admin.email, tenantId, role: 'admin' })
     const recep = await seedUser(tenantId, 'recepcionista')
     recepUserId = recep.userId
-    recepJwt = mintJwt({ userId: recep.userId, email: recep.email, tenantId, role: 'recepcionista' })
+    recepJwt = mintJwt({
+      userId: recep.userId,
+      email: recep.email,
+      tenantId,
+      role: 'recepcionista',
+    })
 
     const sb = serviceClient()
     const { data, error } = await sb

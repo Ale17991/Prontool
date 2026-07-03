@@ -4,12 +4,12 @@
 
 ## Visão geral das tabelas tocadas
 
-| Tabela | Mudança | Status |
-|---|---|---|
-| `public.taxes` | **NOVA** — catálogo de impostos por tenant | criar |
-| `public.health_plans` | **ALTER** — `+ tax_rate_bps INT NOT NULL DEFAULT 0` | acrescentar coluna |
-| `public.expenses` | **ALTER** — `+ tax_id UUID NULL REFERENCES taxes(id)` + CHECK + trigger update | acrescentar coluna + reforçar trigger |
-| `public.audit_log` | _sem schema change_ | uso via `log_audit_event` |
+| Tabela                | Mudança                                                                        | Status                                |
+| --------------------- | ------------------------------------------------------------------------------ | ------------------------------------- |
+| `public.taxes`        | **NOVA** — catálogo de impostos por tenant                                     | criar                                 |
+| `public.health_plans` | **ALTER** — `+ tax_rate_bps INT NOT NULL DEFAULT 0`                            | acrescentar coluna                    |
+| `public.expenses`     | **ALTER** — `+ tax_id UUID NULL REFERENCES taxes(id)` + CHECK + trigger update | acrescentar coluna + reforçar trigger |
+| `public.audit_log`    | _sem schema change_                                                            | uso via `log_audit_event`             |
 
 Todas as mudanças vão na migration única **`supabase/migrations/0076_taxes_and_plan_tax_rate.sql`**.
 
@@ -57,16 +57,16 @@ CREATE UNIQUE INDEX taxes_active_name_unique_idx
 
 ### Invariantes
 
-| ID | Invariante | Mecanismo |
-|---|---|---|
-| INV-T1 | `rate_bps` é inteiro entre 0 e 10000 (0–100 %) | CHECK |
-| INV-T2 | `name` tem 1–80 chars | CHECK |
-| INV-T3 | `category` ∈ {municipal, estadual, federal, outro} | CHECK |
-| INV-T4 | dois impostos não-deletados no mesmo tenant não podem ter `lower(trim(name))` igual | UNIQUE INDEX parcial |
-| INV-T5 | `id`, `tenant_id`, `name`, `category`, `created_at`, `created_by` são imutáveis | trigger `enforce_taxes_mutation` |
-| INV-T6 | DELETE físico bloqueado | trigger `enforce_append_only` (função já existente) |
-| INV-T7 | Toda criação/alteração registrada em `audit_log` | trigger `audit_taxes_change` chamando `log_audit_event` |
-| INV-T8 | Reads filtrados por tenant; writes só admin/financeiro | RLS policies |
+| ID     | Invariante                                                                          | Mecanismo                                               |
+| ------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| INV-T1 | `rate_bps` é inteiro entre 0 e 10000 (0–100 %)                                      | CHECK                                                   |
+| INV-T2 | `name` tem 1–80 chars                                                               | CHECK                                                   |
+| INV-T3 | `category` ∈ {municipal, estadual, federal, outro}                                  | CHECK                                                   |
+| INV-T4 | dois impostos não-deletados no mesmo tenant não podem ter `lower(trim(name))` igual | UNIQUE INDEX parcial                                    |
+| INV-T5 | `id`, `tenant_id`, `name`, `category`, `created_at`, `created_by` são imutáveis     | trigger `enforce_taxes_mutation`                        |
+| INV-T6 | DELETE físico bloqueado                                                             | trigger `enforce_append_only` (função já existente)     |
+| INV-T7 | Toda criação/alteração registrada em `audit_log`                                    | trigger `audit_taxes_change` chamando `log_audit_event` |
+| INV-T8 | Reads filtrados por tenant; writes só admin/financeiro                              | RLS policies                                            |
 
 ### Trigger de imutabilidade
 
@@ -178,12 +178,12 @@ ALTER TABLE public.health_plans
 
 ### Invariantes
 
-| ID | Invariante | Mecanismo |
-|---|---|---|
-| INV-H1 | `tax_rate_bps` ∈ [0, 10000] | CHECK |
-| INV-H2 | DEFAULT 0 garante backfill seguro de linhas existentes | DEFAULT clause |
-| INV-H3 | Cada mudança auditada | trigger `audit_health_plan_tax_rate_change` |
-| INV-H4 | Escrita só por admin (regra atual de `health_plans` mantida) | RLS já vigente |
+| ID     | Invariante                                                   | Mecanismo                                   |
+| ------ | ------------------------------------------------------------ | ------------------------------------------- |
+| INV-H1 | `tax_rate_bps` ∈ [0, 10000]                                  | CHECK                                       |
+| INV-H2 | DEFAULT 0 garante backfill seguro de linhas existentes       | DEFAULT clause                              |
+| INV-H3 | Cada mudança auditada                                        | trigger `audit_health_plan_tax_rate_change` |
+| INV-H4 | Escrita só por admin (regra atual de `health_plans` mantida) | RLS já vigente                              |
 
 ### Trigger de auditoria
 
@@ -253,12 +253,12 @@ END $$;
 
 ### Invariantes
 
-| ID | Invariante | Mecanismo |
-|---|---|---|
-| INV-E1 | `tax_id` aponta para imposto do mesmo tenant | FK + RLS (taxes visíveis só do tenant) — reforçado no caminho de aplicação |
-| INV-E2 | Se `tax_id IS NOT NULL` então `category = 'impostos'` | CHECK |
-| INV-E3 | `tax_id` é imutável após insert | trigger expandida |
-| INV-E4 | Toda criação registrada em audit (já existente, agora incluindo `tax_id`) | trigger existente ajustada |
+| ID     | Invariante                                                                | Mecanismo                                                                  |
+| ------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| INV-E1 | `tax_id` aponta para imposto do mesmo tenant                              | FK + RLS (taxes visíveis só do tenant) — reforçado no caminho de aplicação |
+| INV-E2 | Se `tax_id IS NOT NULL` então `category = 'impostos'`                     | CHECK                                                                      |
+| INV-E3 | `tax_id` é imutável após insert                                           | trigger expandida                                                          |
+| INV-E4 | Toda criação registrada em audit (já existente, agora incluindo `tax_id`) | trigger existente ajustada                                                 |
 
 > **Cross-tenant integridade do `tax_id`**: o CHECK SQL não cobre "tax do mesmo tenant que expense" — depende da camada de aplicação verificar `taxes.tenant_id = session.tenantId` antes do insert (já é o padrão; `createExpense` faz `tenantId: session.tenantId` no insert e o select de tax para popular UI também filtra por tenant). Defesa adicional: a RLS de `taxes` impede leitura cross-tenant, então um payload com `tax_id` de outro tenant resultaria em "imposto inexistente" no select da UI; a FK garante referencial mas não tenant scope. Adicionar trigger de validação cross-tenant fica como `enforce_expenses_tax_same_tenant` — opcional, recomendado:
 
@@ -315,18 +315,18 @@ CREATE TRIGGER expenses_tax_same_tenant
 
 ## Mapeamento Spec → Schema
 
-| Spec requirement | Schema artifact |
-|---|---|
-| FR-001 (campos do imposto) | `taxes` columns |
-| FR-002 (bps) | `rate_bps INT CHECK 0..10000` |
-| FR-003 (unique by name, ci, trim, scoped) | `taxes_active_name_unique_idx` |
-| FR-005 (desativar sem perder histórico) | `is_active` + `deleted_at` + FK RESTRICT |
-| FR-006 (sem delete físico) | `enforce_append_only` trigger |
-| FR-008–FR-011 (alíquota convênio) | `health_plans.tax_rate_bps` + audit trigger |
-| FR-012 (sem tabela de relação) | _ausência intencional de health_plan_taxes_ |
-| FR-013–FR-017 (vínculo despesa→imposto) | `expenses.tax_id` + CHECK category + cross-tenant trigger |
-| FR-022–FR-023 (audit) | `audit_taxes_change` + `audit_health_plan_tax_rate_change` |
-| FR-024 (RLS por tenant) | policies em `taxes` + RLS herdada em health_plans/expenses |
+| Spec requirement                          | Schema artifact                                            |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| FR-001 (campos do imposto)                | `taxes` columns                                            |
+| FR-002 (bps)                              | `rate_bps INT CHECK 0..10000`                              |
+| FR-003 (unique by name, ci, trim, scoped) | `taxes_active_name_unique_idx`                             |
+| FR-005 (desativar sem perder histórico)   | `is_active` + `deleted_at` + FK RESTRICT                   |
+| FR-006 (sem delete físico)                | `enforce_append_only` trigger                              |
+| FR-008–FR-011 (alíquota convênio)         | `health_plans.tax_rate_bps` + audit trigger                |
+| FR-012 (sem tabela de relação)            | _ausência intencional de health_plan_taxes_                |
+| FR-013–FR-017 (vínculo despesa→imposto)   | `expenses.tax_id` + CHECK category + cross-tenant trigger  |
+| FR-022–FR-023 (audit)                     | `audit_taxes_change` + `audit_health_plan_tax_rate_change` |
+| FR-024 (RLS por tenant)                   | policies em `taxes` + RLS herdada em health_plans/expenses |
 
 ---
 
@@ -377,7 +377,7 @@ type TaxRow = {
   id: string
   tenant_id: string
   name: string
-  rate_bps: number          // 0..10000
+  rate_bps: number // 0..10000
   description: string | null
   category: 'municipal' | 'estadual' | 'federal' | 'outro'
   is_active: boolean
@@ -394,9 +394,9 @@ Helper TS para conversão (centraliza arredondamento):
 
 ```ts
 // src/lib/validation/rate-bps.ts
-export function percentToBps(input: string): number  // "6,50" -> 650, half-up
-export function bpsToPercent(bps: number): string    // 650 -> "6,50"
-export function bpsValid(bps: number): boolean        // 0..10000, integer
+export function percentToBps(input: string): number // "6,50" -> 650, half-up
+export function bpsToPercent(bps: number): string // 650 -> "6,50"
+export function bpsValid(bps: number): boolean // 0..10000, integer
 ```
 
 ---

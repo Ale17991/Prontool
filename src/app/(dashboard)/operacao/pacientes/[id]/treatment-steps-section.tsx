@@ -3,15 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState, useTransition, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Calendar,
-  CheckCircle2,
-  ClipboardList,
-  Loader2,
-  Plus,
-  StickyNote,
-  X,
-} from 'lucide-react'
+import { Calendar, CheckCircle2, ClipboardList, Loader2, Plus, StickyNote, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -139,8 +131,7 @@ export function TreatmentStepsSection({
     return { total: steps.length, pendente: pend, concluido: done, cancelado: canc }
   }, [steps])
 
-  const visibleSteps =
-    filter === 'all' ? steps : steps.filter((s) => s.status === filter)
+  const visibleSteps = filter === 'all' ? steps : steps.filter((s) => s.status === filter)
 
   return (
     <Card>
@@ -271,7 +262,9 @@ function MiniStat({
     <div className="rounded-md bg-white px-3 py-2 shadow-sm">
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
       <p className={cn('mt-0.5 text-sm font-bold tabular-nums', accentCls)}>{value}</p>
-      {sub ? <p className="mt-0.5 text-[10px] text-[hsl(var(--warning-foreground))]">{sub}</p> : null}
+      {sub ? (
+        <p className="mt-0.5 text-[10px] text-[hsl(var(--warning-foreground))]">{sub}</p>
+      ) : null}
     </div>
   )
 }
@@ -354,9 +347,7 @@ function StepRow({
             ) : null}
           </p>
         ) : (
-          <p className="text-[11px] italic text-slate-400">
-            Sem profissional atribuído
-          </p>
+          <p className="text-[11px] italic text-slate-400">Sem profissional atribuído</p>
         )}
         <p className="text-[11px] text-slate-500">
           <Calendar className="mr-1 inline h-3 w-3" />
@@ -385,9 +376,7 @@ function StepRow({
             </ul>
           </div>
         ) : null}
-        {error ? (
-          <p className="mt-1 text-[11px] font-semibold text-destructive">{error}</p>
-        ) : null}
+        {error ? <p className="mt-1 text-[11px] font-semibold text-destructive">{error}</p> : null}
       </div>
       {canWrite && step.status === 'pendente' ? (
         <div className="flex shrink-0 flex-col gap-1.5">
@@ -631,7 +620,7 @@ function NewStepForm({
   const particularLocked = selectedProcedure ? !selectedProcedure.coveredByPlan : false
   const effectiveParticular = particularLocked || particular
   const effectivePlanForConvenio = effectiveParticular ? '' : healthPlanId
-  const shouldFallbackToParticular = false  // legado — particular agora e explicito
+  const shouldFallbackToParticular = false // legado — particular agora e explicito
 
   // Auto-detect: procedimento nao coberto -> lock particular
   // Sem override manual: ajusta de acordo com paciente.
@@ -652,17 +641,18 @@ function NewStepForm({
     setPriceState,
   })
 
-  const filtered = search.trim().length === 0
-    ? procedures.slice(0, 50)
-    : procedures
-        .filter((p) => {
-          const q = search.toLowerCase()
-          return (
-            p.tussCode.toLowerCase().includes(q) ||
-            (p.displayName ?? '').toLowerCase().includes(q)
-          )
-        })
-        .slice(0, 50)
+  const filtered =
+    search.trim().length === 0
+      ? procedures.slice(0, 50)
+      : procedures
+          .filter((p) => {
+            const q = search.toLowerCase()
+            return (
+              p.tussCode.toLowerCase().includes(q) ||
+              (p.displayName ?? '').toLowerCase().includes(q)
+            )
+          })
+          .slice(0, 50)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -697,7 +687,9 @@ function NewStepForm({
     }
 
     // Materiais opcionais. Validacao local antes do submit.
-    let materiaisPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> | undefined
+    let materiaisPayload:
+      | Array<{ tuss_code: string; tuss_description: string; quantity: number }>
+      | undefined
     if (materiais.length > 0) {
       const validated = validateMaterials(materiais)
       if (!validated) {
@@ -734,8 +726,7 @@ function NewStepForm({
         }
         if (res.status === 409 || body.error?.code === 'APPOINTMENT_CONFLICT') {
           setError(
-            body.error?.message ??
-              'Conflito de horário com outro atendimento deste profissional.',
+            body.error?.message ?? 'Conflito de horário com outro atendimento deste profissional.',
           )
         } else {
           setError(body.error?.message ?? 'Falha ao adicionar etapa.')
@@ -954,7 +945,11 @@ function NewStepForm({
 
       <div className="md:col-span-2 flex justify-end">
         <Button type="submit" size="sm" disabled={pending || !!conflictWarning} className="gap-2">
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
           Adicionar etapa
         </Button>
       </div>
@@ -967,17 +962,14 @@ function NewStepForm({
  * em ISO UTC. Se `referenceStart` for fornecido e `time` for menor, assume
  * que cruzou meia-noite e adiciona 1 dia.
  */
-function combineDateTimeToIso(
-  date: string,
-  time: string,
-  referenceStart?: string,
-): string | null {
+function combineDateTimeToIso(date: string, time: string, referenceStart?: string): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
   if (!/^\d{2}:\d{2}$/.test(time)) return null
   const dt = new Date(`${date}T${time}:00`)
   if (Number.isNaN(dt.getTime())) return null
   if (referenceStart && /^\d{2}:\d{2}$/.test(referenceStart)) {
-    const startMin = parseInt(referenceStart.slice(0, 2), 10) * 60 + parseInt(referenceStart.slice(3), 10)
+    const startMin =
+      parseInt(referenceStart.slice(0, 2), 10) * 60 + parseInt(referenceStart.slice(3), 10)
     const endMin = parseInt(time.slice(0, 2), 10) * 60 + parseInt(time.slice(3), 10)
     if (endMin <= startMin) dt.setDate(dt.getDate() + 1)
   }

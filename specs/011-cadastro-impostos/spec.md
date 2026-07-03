@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Cadastro de impostos e imposto por convênio. (Feature 1) Cadastro de impostos da clínica em Despesas → Impostos com nome, alíquota, descrição, categoria (Municipal/Estadual/Federal/Outro), status. (Feature 2) Alíquota de imposto do convênio armazenada em `health_plans.tax_rate_bps`, com checkbox 'Convênio cobra imposto?' na página do convênio. (Feature 3) Despesa pode ser vinculada a imposto cadastrado via checkbox, categorizando-a como 'Impostos'. (Feature 4) Relatórios deduzem imposto do convênio e impostos da clínica do faturamento; dashboard exibe card 'Impostos' consolidado."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Cadastrar impostos da clínica (Priority: P1)
 
@@ -83,12 +83,12 @@ A administração precisa ver, no relatório por plano e no dashboard financeiro
 - **Alíquota maior que 100% ou negativa**: bloqueada na validação com mensagem clara. Limite superior aceito: 100,00%.
 - **Exclusão de imposto vinculado a despesas**: não é permitida exclusão física. O fluxo é apenas desativar (status=inactive), preservando a referência histórica das despesas vinculadas.
 - **Edição de alíquota de imposto após despesas vinculadas**: a alíquota cadastrada é apenas "padrão de referência"; a despesa lançada é sempre um valor monetário absoluto, então alterar a alíquota do imposto não recalcula despesas antigas.
-- **Mudança da alíquota do convênio no meio do período de um relatório**: o relatório aplica a alíquota *atual* do convênio sobre o faturamento bruto do período. Não há versionamento temporal de `tax_rate_bps` nesta versão. (Documentado como limitação intencional para manter o modelo simples — pode evoluir em feature futura se demanda surgir.)
+- **Mudança da alíquota do convênio no meio do período de um relatório**: o relatório aplica a alíquota _atual_ do convênio sobre o faturamento bruto do período. Não há versionamento temporal de `tax_rate_bps` nesta versão. (Documentado como limitação intencional para manter o modelo simples — pode evoluir em feature futura se demanda surgir.)
 - **Convênio com checkbox desmarcado mas `tax_rate_bps > 0` por estado legado**: na primeira edição após o deploy, o checkbox vem marcado se `tax_rate_bps > 0`, garantindo consistência com o dado existente.
 - **Despesa vinculada a imposto + categoria manual conflitante**: ao marcar "Vincular a imposto", a categoria é forçada para "Impostos" e o campo de categoria manual fica desabilitado/oculto, evitando inconsistência.
 - **Multi-tenant**: impostos são escopados por `tenant_id` (RLS); um tenant nunca vê impostos de outro. Alíquota do convênio também é por tenant (já que `health_plans` já é multi-tenant).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -113,7 +113,7 @@ A administração precisa ver, no relatório por plano e no dashboard financeiro
 **Vínculo despesa→imposto (US3)**
 
 - **FR-013**: O formulário de criação de despesa MUST oferecer um checkbox "Vincular a imposto cadastrado?", desmarcado por padrão.
-- **FR-014**: Quando marcado, o formulário MUST exibir um select com os impostos *ativos* do tenant atual, ordenados por nome. Impostos inativos NÃO devem aparecer no select.
+- **FR-014**: Quando marcado, o formulário MUST exibir um select com os impostos _ativos_ do tenant atual, ordenados por nome. Impostos inativos NÃO devem aparecer no select.
 - **FR-015**: Ao salvar uma despesa com imposto vinculado, o sistema MUST definir automaticamente a categoria da despesa como "Impostos" e gravar a referência ao imposto selecionado.
 - **FR-016**: Despesas com vínculo a imposto MUST manter a referência mesmo se o imposto for posteriormente desativado, para fins de rastreabilidade e relatórios históricos.
 - **FR-017**: Ao desmarcar o checkbox no formulário antes de salvar, o sistema MUST limpar a seleção e seguir o fluxo padrão de categorização de despesas.
@@ -123,7 +123,7 @@ A administração precisa ver, no relatório por plano e no dashboard financeiro
 - **FR-018**: No relatório por plano, o sistema MUST exibir uma linha "Imposto do convênio" calculada como `faturamento_bruto * tax_rate_bps / 10000`, deduzida do bruto, antes do líquido.
 - **FR-019**: O cálculo de resultado operacional consolidado MUST aplicar a fórmula: `lucro = faturamento_bruto − comissões − impostos_do_convênio − impostos_da_clínica − despesas_operacionais`, garantindo que despesas vinculadas a impostos cadastrados sejam contadas apenas em "impostos_da_clínica" e excluídas de "despesas_operacionais".
 - **FR-020**: A dashboard financeira MUST exibir um card "Impostos" no período filtrado, com o total consolidado (impostos retidos pelos convênios + impostos pagos pela clínica) e a possibilidade de detalhar os dois componentes.
-- **FR-021**: O cálculo do imposto do convênio MUST usar a alíquota *atual* do convênio (não há versionamento histórico nesta versão).
+- **FR-021**: O cálculo do imposto do convênio MUST usar a alíquota _atual_ do convênio (não há versionamento histórico nesta versão).
 
 **Auditoria e governança**
 
@@ -134,10 +134,10 @@ A administração precisa ver, no relatório por plano e no dashboard financeiro
 ### Key Entities
 
 - **Imposto da clínica (clinic_tax)**: representa um imposto a que a clínica está sujeita. Por tenant. Atributos: id, tenant_id, nome (único ativo por tenant), alíquota em basis points, descrição opcional, categoria (enum: Municipal/Estadual/Federal/Outro), status (ativo/inativo), timestamps e auditoria. Relaciona-se com Despesa (1:N via referência opcional).
-- **Convênio / plano de saúde (health_plan, já existente)**: ganha o atributo *alíquota tributária do convênio em basis points* (inteiro, default 0). Sem novas relações.
+- **Convênio / plano de saúde (health_plan, já existente)**: ganha o atributo _alíquota tributária do convênio em basis points_ (inteiro, default 0). Sem novas relações.
 - **Despesa (expense, já existente)**: ganha referência opcional ao imposto cadastrado. Quando preenchida, a categoria da despesa é forçada para "Impostos".
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

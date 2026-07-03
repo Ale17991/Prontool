@@ -9,6 +9,7 @@
 Representa uma cor nomeada com função semântica, exposta como variável CSS no escopo `:root`.
 
 **Campos**:
+
 - `name` — string kebab-case, prefixada por `--`. Ex.: `--success`.
 - `category` — `core` | `semantic` | `sidebar` | `typography`.
 - `format` — `hsl-triple` (`"H S% L%"` para uso em `hsl(var(--token))`) **ou** `rgba` (cor completa para uso direto) **ou** `hex` (idem).
@@ -19,6 +20,7 @@ Representa uma cor nomeada com função semântica, exposta como variável CSS n
 **Estados**: cada token é binário (presente / ausente). Não há transições. Atualizações são edições diretas no arquivo `globals.css`.
 
 **Regras de validação** (verificáveis no plano):
+
 - `name` MUST ser único.
 - Pares `*` + `*-foreground` definidos juntos.
 - Para tokens com `format: hsl-triple`: o par MUST ter contraste ≥ WCAG AA (4.5:1 texto / 3:1 UI).
@@ -88,6 +90,7 @@ Total: **17 core + 12 semantic + 8 sidebar = 37 tokens** (sendo 21 novos/atualiz
 Representa um nível tipográfico nomeado, aplicado como classe utilitária CSS.
 
 **Campos**:
+
 - `name` — string kebab-case, prefixada por `text-`. Ex.: `text-body`.
 - `font_size_px` — número (px). MUST ser ≥ 12 (exceção registrada: `text-caption` pode descer a 11 em rótulos de métrica).
 - `font_weight` — número (100–900).
@@ -107,6 +110,7 @@ Representa um nível tipográfico nomeado, aplicado como classe utilitária CSS.
 ```
 
 **Regras de validação**:
+
 - `font_size_px` ≥ 12 para qualquer texto da UI principal.
 - `text-caption` pode ter rótulos de métrica em 11px **localmente** (com classe explícita; não via override de `.text-caption`).
 - `family: mono` aplica a stack mono herdada do Tailwind (`ui-monospace`).
@@ -120,6 +124,7 @@ Representa um nível tipográfico nomeado, aplicado como classe utilitária CSS.
 Representa um estado conceitual do ciclo de vida de uma consulta, mapeado a uma representação visual unificada.
 
 **Campos**:
+
 - `variant` — chave string. Valores possíveis: `agendado`, `confirmado`, `concluido`, `em_atendimento`, `no_show`, `cancelado`, `estornado`.
 - `label_pt` — texto em português exibido ao usuário.
 - `icon` — nome do ícone Lucide.
@@ -142,6 +147,7 @@ estornado       Estornado         RotateCcw    --alert        --alert-fg     sol
 ```
 
 > **Nota de domínio**: o banco hoje (migration 0054) só tem `agendado` | `ativo` | `estornado`. Mapper inicial (definido em `research.md` §3):
+>
 > - `agendado` → `agendado`
 > - `ativo` → `concluido` (escolha pragmática até domínio receber estados intermediários)
 > - `estornado` → `estornado`
@@ -149,6 +155,7 @@ estornado       Estornado         RotateCcw    --alert        --alert-fg     sol
 > Os outros 4 (`confirmado`, `em_atendimento`, `no_show`, `cancelado`) ficam disponíveis no componente para evolução futura.
 
 **Regras de validação**:
+
 - `variant` MUST ser único.
 - `label_pt` MUST estar em português, capitalizado.
 - `icon` MUST existir em `node_modules/lucide-react`.
@@ -165,6 +172,7 @@ estornado       Estornado         RotateCcw    --alert        --alert-fg     sol
 Representa a configuração da fonte primária do produto.
 
 **Campos**:
+
 - `family_name` — `Inter`.
 - `loading_strategy` — `next-font-google-swap` | `cdn-link` | `system-fallback`.
 - `subsets` — lista de subsets carregados.
@@ -172,6 +180,7 @@ Representa a configuração da fonte primária do produto.
 - `opentype_features` — lista de features ativas. Atual: `cv11`, `ss01`.
 
 **Estado-alvo**:
+
 ```text
 family_name: Inter
 loading_strategy: next-font-google-swap
@@ -189,6 +198,7 @@ opentype_features: [cv11, ss01]
 Representa a composição de tokens aplicados ao componente `dashboard-shell.tsx`.
 
 **Campos** (todos consomem tokens definidos em §1, categoria SIDEBAR):
+
 - `background` → `--sidebar-bg`
 - `text_color` → `--sidebar-text`
 - `active_item_background` → `--sidebar-active-bg`
@@ -204,10 +214,10 @@ Representa a composição de tokens aplicados ao componente `dashboard-shell.tsx
 
 ## Resumo
 
-| Entidade-conceito | Quantidade | Localização canônica |
-|---|---|---|
-| Token Cromático | 37 (21 novos/atualizados) | `src/app/globals.css` |
-| Escala Tipográfica | 7 níveis | `src/app/globals.css` (classes utilitárias) |
-| Status Visual de Atendimento | 7 variantes | `src/components/ui/appointment-status-badge.tsx` (novo) |
-| Identidade Tipográfica | 1 configuração | `src/app/layout.tsx` + `globals.css` |
-| Identidade Visual da Sidebar | 8 propriedades | `src/app/(dashboard)/_components/dashboard-shell.tsx` |
+| Entidade-conceito            | Quantidade                | Localização canônica                                    |
+| ---------------------------- | ------------------------- | ------------------------------------------------------- |
+| Token Cromático              | 37 (21 novos/atualizados) | `src/app/globals.css`                                   |
+| Escala Tipográfica           | 7 níveis                  | `src/app/globals.css` (classes utilitárias)             |
+| Status Visual de Atendimento | 7 variantes               | `src/components/ui/appointment-status-badge.tsx` (novo) |
+| Identidade Tipográfica       | 1 configuração            | `src/app/layout.tsx` + `globals.css`                    |
+| Identidade Visual da Sidebar | 8 propriedades            | `src/app/(dashboard)/_components/dashboard-shell.tsx`   |

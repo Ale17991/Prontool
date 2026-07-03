@@ -35,8 +35,7 @@ export async function resolveAuthors(
     }
   }
 
-  const stillMissing = (): string[] =>
-    Array.from(args.userIds).filter((u) => !result.has(u))
+  const stillMissing = (): string[] => Array.from(args.userIds).filter((u) => !result.has(u))
 
   let remaining = stillMissing()
   if (remaining.length === 0) return result
@@ -73,10 +72,7 @@ export async function resolveAuthors(
   return result
 }
 
-export function formatAuthorDisplay(
-  authors: AuthorMap,
-  userId: string,
-): string {
+export function formatAuthorDisplay(authors: AuthorMap, userId: string): string {
   const name = authors.get(userId)
   if (name) return name
   return userId.slice(0, 8)

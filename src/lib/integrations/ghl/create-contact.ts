@@ -1,9 +1,5 @@
 import { logger } from '@/lib/observability/logger'
-import {
-  GHL_API_BASE,
-  GHL_API_VERSION,
-  type GhlConfigV2,
-} from './oauth/types'
+import { GHL_API_BASE, GHL_API_VERSION, type GhlConfigV2 } from './oauth/types'
 
 /**
  * Feature 008 — Outbound: cria contato no GHL via Bearer OAuth direto
@@ -37,9 +33,7 @@ export interface CreateContactResult {
   ghlContactId: string
 }
 
-export async function createContactInGhl(
-  input: CreateContactInput,
-): Promise<CreateContactResult> {
+export async function createContactInGhl(input: CreateContactInput): Promise<CreateContactResult> {
   const customFields = buildCustomFieldsArray(input.customFieldIds, input.patient)
 
   const body = {
@@ -59,16 +53,14 @@ export async function createContactInGhl(
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
-    logger.warn(
-      { status: res.status, body: text.slice(0, 200) },
-      'ghl-create-contact-failed',
-    )
+    logger.warn({ status: res.status, body: text.slice(0, 200) }, 'ghl-create-contact-failed')
     throw new Error(`GHL POST /contacts/ ${res.status}`)
   }
 
-  const payload = (await res.json().catch(() => null)) as
-    | { contact?: { id?: string }; id?: string }
-    | null
+  const payload = (await res.json().catch(() => null)) as {
+    contact?: { id?: string }
+    id?: string
+  } | null
   const ghlContactId = payload?.contact?.id ?? payload?.id
   if (!ghlContactId) throw new Error('GHL POST /contacts/ response missing contact id')
   return { ghlContactId }
@@ -100,10 +92,7 @@ export function buildHeaders(accessToken: string): Record<string, string> {
   }
 }
 
-export async function fetchWithRetry(
-  url: string,
-  init: RequestInit,
-): Promise<Response> {
+export async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
   let attempt = 0
   while (true) {
     attempt += 1

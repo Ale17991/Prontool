@@ -99,9 +99,7 @@ export function PatientForm({
             )
           }, 2000)
         } else if (errCode === 'VALIDATION_FAILED') {
-          setError(
-            (json.message as string) ?? 'Não foi possível validar os dados informados.',
-          )
+          setError((json.message as string) ?? 'Não foi possível validar os dados informados.')
         } else if (errCode === 'INVALID_PAYLOAD') {
           setError('Verifique os campos preenchidos e tente novamente.')
         } else {
@@ -131,8 +129,7 @@ export function PatientForm({
             <span className="text-slate-500">Procedimento:</span> {procedureName}
           </div>
           <div>
-            <span className="text-slate-500">Data e hora:</span>{' '}
-            {formatBrasilia(slotStart)}
+            <span className="text-slate-500">Data e hora:</span> {formatBrasilia(slotStart)}
           </div>
         </div>
       </section>

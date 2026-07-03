@@ -34,7 +34,10 @@ export async function createStatusAction(input: {
   if (!actorUserId) return { ok: false, error: 'Não autorizado.' }
 
   if (!/^[a-z][a-z0-9_]{1,47}$/.test(input.code)) {
-    return { ok: false, error: 'Código inválido: use minúsculas, números e _ (começando por letra).' }
+    return {
+      ok: false,
+      error: 'Código inválido: use minúsculas, números e _ (começando por letra).',
+    }
   }
   if (!/^#[0-9a-fA-F]{6}$/.test(input.color)) {
     return { ok: false, error: 'Cor inválida: use formato hex #RRGGBB.' }

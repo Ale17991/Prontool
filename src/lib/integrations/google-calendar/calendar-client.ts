@@ -62,7 +62,10 @@ async function call(
   }
   const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
   if (!res.ok) {
-    throw new GoogleCalendarApiError(`${method} ${path} → ${res.status} ${JSON.stringify(json)}`, res.status)
+    throw new GoogleCalendarApiError(
+      `${method} ${path} → ${res.status} ${JSON.stringify(json)}`,
+      res.status,
+    )
   }
   return json
 }
@@ -92,7 +95,8 @@ export async function getFreeBusy(
   const json = (await res.json().catch(() => ({}))) as {
     calendars?: Record<string, { busy?: Array<{ start: string; end: string }> }>
   }
-  if (!res.ok) throw new GoogleCalendarApiError(`freeBusy → ${res.status} ${JSON.stringify(json)}`, res.status)
+  if (!res.ok)
+    throw new GoogleCalendarApiError(`freeBusy → ${res.status} ${JSON.stringify(json)}`, res.status)
   const busy = json.calendars?.[calendarId]?.busy ?? []
   return busy.filter((b) => b.start && b.end).map((b) => ({ start: b.start, end: b.end }))
 }
@@ -103,9 +107,15 @@ export async function createCalendarEvent(
   calendarId: string,
   input: CalendarEventInput,
 ): Promise<string> {
-  const json = await call(accessToken, `${encodeURIComponent(calendarId)}/events`, 'POST', eventBody(input))
+  const json = await call(
+    accessToken,
+    `${encodeURIComponent(calendarId)}/events`,
+    'POST',
+    eventBody(input),
+  )
   const id = json.id
-  if (typeof id !== 'string') throw new GoogleCalendarApiError('createCalendarEvent: sem id na resposta', 500)
+  if (typeof id !== 'string')
+    throw new GoogleCalendarApiError('createCalendarEvent: sem id na resposta', 500)
   return id
 }
 
@@ -130,5 +140,9 @@ export async function deleteCalendarEvent(
   calendarId: string,
   eventId: string,
 ): Promise<void> {
-  await call(accessToken, `${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, 'DELETE')
+  await call(
+    accessToken,
+    `${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    'DELETE',
+  )
 }

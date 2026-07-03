@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
-import {
-  calcIndicators,
-  type PerioSite,
-  type PerioIndicators,
-} from '@/lib/core/dental/perio/sites'
+import { calcIndicators, type PerioSite, type PerioIndicators } from '@/lib/core/dental/perio/sites'
 import { PerioChartGrid, siteKey, type SiteCell, type ToothFinding } from './perio-chart-grid'
 import { PerioIndicatorsPanel } from './perio-indicators'
 import { PerioCompare } from './perio-compare'
@@ -42,7 +38,9 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/pacientes/${patientId}/periograma`, { headers: { accept: 'application/json' } })
+      const res = await fetch(`/api/pacientes/${patientId}/periograma`, {
+        headers: { accept: 'application/json' },
+      })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       setExams(data.exams ?? [])
@@ -62,7 +60,9 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
     async (id: string) => {
       setError(null)
       try {
-        const res = await fetch(`/api/pacientes/${patientId}/periograma/${id}`, { headers: { accept: 'application/json' } })
+        const res = await fetch(`/api/pacientes/${patientId}/periograma/${id}`, {
+          headers: { accept: 'application/json' },
+        })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         const m: Record<string, SiteCell> = {}
@@ -77,7 +77,12 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
         }
         const f: Record<number, ToothFinding> = {}
         for (const x of data.findings ?? []) {
-          f[x.toothFdi] = { mobility: x.mobility, furcation: x.furcation, isMissing: x.isMissing, isImplant: x.isImplant }
+          f[x.toothFdi] = {
+            mobility: x.mobility,
+            furcation: x.furcation,
+            isMissing: x.isMissing,
+            isImplant: x.isImplant,
+          }
         }
         setMeasurements(m)
         setFindings(f)
@@ -177,7 +182,16 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
       const key = siteKey(toothFdi, site)
       setMeasurements((prev) => ({
         ...prev,
-        [key]: { ...(prev[key] ?? { probingDepthMm: null, recessionMm: null, bleeding: false, suppuration: false, plaque: false }), ...patch },
+        [key]: {
+          ...(prev[key] ?? {
+            probingDepthMm: null,
+            recessionMm: null,
+            bleeding: false,
+            suppuration: false,
+            plaque: false,
+          }),
+          ...patch,
+        },
       }))
       dirtyMeas.current.add(key)
       scheduleSave()
@@ -189,7 +203,15 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
     (toothFdi: number, patch: Partial<ToothFinding>) => {
       setFindings((prev) => ({
         ...prev,
-        [toothFdi]: { ...(prev[toothFdi] ?? { mobility: null, furcation: null, isMissing: false, isImplant: false }), ...patch },
+        [toothFdi]: {
+          ...(prev[toothFdi] ?? {
+            mobility: null,
+            furcation: null,
+            isMissing: false,
+            isImplant: false,
+          }),
+          ...patch,
+        },
       }))
       dirtyFind.current.add(toothFdi)
       scheduleSave()
@@ -203,7 +225,9 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
     setError(null)
     try {
       await flush()
-      const res = await fetch(`/api/pacientes/${patientId}/periograma/${examId}/finalizar`, { method: 'POST' })
+      const res = await fetch(`/api/pacientes/${patientId}/periograma/${examId}/finalizar`, {
+        method: 'POST',
+      })
       if (!res.ok) {
         const j = await res.json().catch(() => null)
         throw new Error(j?.error?.message ?? `HTTP ${res.status}`)
@@ -222,7 +246,9 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch(`/api/pacientes/${patientId}/periograma/${examId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/pacientes/${patientId}/periograma/${examId}`, {
+        method: 'DELETE',
+      })
       if (!res.ok) {
         const j = await res.json().catch(() => null)
         throw new Error(j?.error?.message ?? `HTTP ${res.status}`)
@@ -240,9 +266,18 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
   const liveIndicators: PerioIndicators = useMemo(() => {
     const meas = Object.entries(measurements).map(([k, c]) => {
       const [tooth, site] = k.split(':')
-      return { toothFdi: Number(tooth), site: site as PerioSite, probingDepthMm: c.probingDepthMm, recessionMm: c.recessionMm, bleeding: c.bleeding }
+      return {
+        toothFdi: Number(tooth),
+        site: site as PerioSite,
+        probingDepthMm: c.probingDepthMm,
+        recessionMm: c.recessionMm,
+        bleeding: c.bleeding,
+      }
     })
-    const find = Object.entries(findings).map(([t, f]) => ({ toothFdi: Number(t), isMissing: f.isMissing }))
+    const find = Object.entries(findings).map(([t, f]) => ({
+      toothFdi: Number(t),
+      isMissing: f.isMissing,
+    }))
     return calcIndicators(meas, find)
   }, [measurements, findings])
 
@@ -253,9 +288,17 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Toggle active={view === 'list'} onClick={() => setView('list')}>Exames</Toggle>
-        {examId ? <Toggle active={view === 'exam'} onClick={() => setView('exam')}>Exame atual</Toggle> : null}
-        <Toggle active={view === 'compare'} onClick={() => setView('compare')}>Comparar</Toggle>
+        <Toggle active={view === 'list'} onClick={() => setView('list')}>
+          Exames
+        </Toggle>
+        {examId ? (
+          <Toggle active={view === 'exam'} onClick={() => setView('exam')}>
+            Exame atual
+          </Toggle>
+        ) : null}
+        <Toggle active={view === 'compare'} onClick={() => setView('compare')}>
+          Comparar
+        </Toggle>
       </div>
 
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
@@ -264,7 +307,11 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
         <div className="space-y-3">
           {canWrite ? (
             <div className="flex flex-wrap items-center gap-2">
-              <select value={dentition} onChange={(e) => setDentition(e.target.value as 'permanent' | 'deciduous')} className="rounded border px-2 py-1 text-xs">
+              <select
+                value={dentition}
+                onChange={(e) => setDentition(e.target.value as 'permanent' | 'deciduous')}
+                className="rounded border px-2 py-1 text-xs"
+              >
                 <option value="permanent">Permanente</option>
                 <option value="deciduous">Decídua</option>
               </select>
@@ -291,15 +338,29 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {exams.length === 0 ? (
-                  <tr><td colSpan={4} className="px-3 py-4 text-center text-slate-400">Nenhum exame periodontal.</td></tr>
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-slate-400">
+                      Nenhum exame periodontal.
+                    </td>
+                  </tr>
                 ) : null}
                 {exams.map((e) => (
                   <tr key={e.id}>
                     <td className="px-3 py-2">{e.examDate}</td>
-                    <td className="px-3 py-2">{e.status === 'rascunho' ? 'Rascunho' : 'Finalizado'}</td>
-                    <td className="px-3 py-2">{e.dentition === 'permanent' ? 'Permanente' : 'Decídua'}</td>
+                    <td className="px-3 py-2">
+                      {e.status === 'rascunho' ? 'Rascunho' : 'Finalizado'}
+                    </td>
+                    <td className="px-3 py-2">
+                      {e.dentition === 'permanent' ? 'Permanente' : 'Decídua'}
+                    </td>
                     <td className="px-3 py-2 text-right">
-                      <button type="button" onClick={() => openExam(e.id)} className="text-slate-600 hover:underline">Abrir</button>
+                      <button
+                        type="button"
+                        onClick={() => openExam(e.id)}
+                        className="text-slate-600 hover:underline"
+                      >
+                        Abrir
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -318,8 +379,22 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
             </span>
             {canWrite && status === 'rascunho' ? (
               <div className="flex gap-2">
-                <button type="button" disabled={busy} onClick={finalize} className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Finalizar</button>
-                <button type="button" disabled={busy} onClick={discard} className="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-500">Descartar</button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={finalize}
+                  className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                >
+                  Finalizar
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={discard}
+                  className="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-500"
+                >
+                  Descartar
+                </button>
               </div>
             ) : null}
           </div>
@@ -334,23 +409,40 @@ export function PerioTab({ patientId, canWrite }: { patientId: string; canWrite:
             onSite={onSite}
             onFinding={onFinding}
           />
-          <p className="text-[11px] text-slate-400">PS = profundidade de sondagem · Rec = recessão (mm, negativa = margem coronal) · barra = sangramento.</p>
+          <p className="text-[11px] text-slate-400">
+            PS = profundidade de sondagem · Rec = recessão (mm, negativa = margem coronal) · barra =
+            sangramento.
+          </p>
         </div>
       ) : null}
 
       {view === 'compare' ? (
-        <PerioCompare patientId={patientId} exams={finalizedExams.map((e) => ({ id: e.id, examDate: e.examDate }))} />
+        <PerioCompare
+          patientId={patientId}
+          exams={finalizedExams.map((e) => ({ id: e.id, examDate: e.examDate }))}
+        />
       ) : null}
     </div>
   )
 }
 
-function Toggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function Toggle({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={cn('rounded-md px-3 py-1.5 text-xs font-medium transition', active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')}
+      className={cn(
+        'rounded-md px-3 py-1.5 text-xs font-medium transition',
+        active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+      )}
     >
       {children}
     </button>

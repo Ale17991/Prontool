@@ -48,10 +48,7 @@ export async function GET(req: Request): Promise<Response> {
   try {
     const session = (await getSessionFromRequest(req)) ?? (await getSession())
     if (!session) {
-      return NextResponse.json(
-        { error: { code: 'UNAUTHENTICATED' } },
-        { status: 401 },
-      )
+      return NextResponse.json({ error: { code: 'UNAUTHENTICATED' } }, { status: 401 })
     }
 
     const supabase = createSupabaseServiceClient()
@@ -132,10 +129,7 @@ export async function POST(req: Request): Promise<Response> {
     const supabase = createSupabaseServiceClient()
     const row = await getIntegrationConfig(supabase, session.tenantId, 'ghl')
     if (!row) {
-      return NextResponse.json(
-        { error: { code: 'NOT_CONNECTED' } },
-        { status: 404 },
-      )
+      return NextResponse.json({ error: { code: 'NOT_CONNECTED' } }, { status: 404 })
     }
 
     const before = (row.config ?? {}) as Record<string, unknown>

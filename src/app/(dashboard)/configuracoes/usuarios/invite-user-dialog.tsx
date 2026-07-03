@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  TENANT_ROLES_ORDERED,
-  labelForRole,
-} from '@/lib/core/team/types'
+import { TENANT_ROLES_ORDERED, labelForRole } from '@/lib/core/team/types'
 import type { TenantRole } from '@/lib/db/types'
 
 interface Props {
@@ -40,7 +37,9 @@ export function InviteUserDialog({ open, onOpenChange, onSuccess }: Props) {
         onSuccess()
         return
       }
-      const body = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } }
+      const body = (await res.json().catch(() => ({}))) as {
+        error?: { code?: string; message?: string }
+      }
       const code = body.error?.code
       if (code === 'USER_ALREADY_ACTIVE') setError('Esse e-mail já está vinculado à clínica')
       else setError(body.error?.message ?? `HTTP ${res.status}`)
@@ -86,7 +85,12 @@ export function InviteUserDialog({ open, onOpenChange, onSuccess }: Props) {
           </div>
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
           <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={busy}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={busy || !email}>

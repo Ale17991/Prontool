@@ -69,7 +69,10 @@ export function redactDetailPii<T extends Record<string, unknown>>(detail: T): T
 }
 
 function redactName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((p) => p.length > 0)
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length > 0)
   if (parts.length === 0) return '***'
   const first = parts[0] ?? ''
   if (parts.length === 1) return `${first[0] ?? '*'}***`

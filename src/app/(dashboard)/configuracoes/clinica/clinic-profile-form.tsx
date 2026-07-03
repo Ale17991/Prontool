@@ -146,7 +146,15 @@ export function ClinicProfileForm({ initial }: Props) {
         const res = await fetch(`/api/configuracoes/cep/${digits}`)
         if (!res.ok) return
         const data = (await res.json()) as
-          | { ok: true; address: { street: string | null; neighborhood: string | null; city: string | null; uf: string | null } }
+          | {
+              ok: true
+              address: {
+                street: string | null
+                neighborhood: string | null
+                city: string | null
+                uf: string | null
+              }
+            }
           | { ok: false; reason: string }
         if (cancelled || !data.ok) return
         setForm((prev) => ({
@@ -315,7 +323,11 @@ export function ClinicProfileForm({ initial }: Props) {
             <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
               {profile.logo?.signedUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={profile.logo.signedUrl} alt="Logo" className="h-full w-full object-contain" />
+                <img
+                  src={profile.logo.signedUrl}
+                  alt="Logo"
+                  className="h-full w-full object-contain"
+                />
               ) : (
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                   Sem logo
@@ -374,8 +386,7 @@ export function ClinicProfileForm({ initial }: Props) {
               placeholder="Como a clínica aparece na sidebar e nos PDFs"
             />
             <p className="mt-1 text-[11px] text-slate-500">
-              Aparece em destaque na sidebar, no seletor de clínicas e como título
-              dos PDFs.
+              Aparece em destaque na sidebar, no seletor de clínicas e como título dos PDFs.
             </p>
           </div>
           <div className="md:col-span-2">
@@ -500,8 +511,8 @@ export function ClinicProfileForm({ initial }: Props) {
           <div>
             <h2 className="text-base font-bold text-slate-900">Agenda</h2>
             <p className="text-xs text-slate-500">
-              Período que cada linha do calendário representa. A linha mantém o mesmo
-              tamanho; muda o intervalo de tempo que ela cobre.
+              Período que cada linha do calendário representa. A linha mantém o mesmo tamanho; muda
+              o intervalo de tempo que ela cobre.
             </p>
           </div>
           <div className="max-w-xs">
@@ -530,8 +541,8 @@ export function ClinicProfileForm({ initial }: Props) {
               </select>
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
-              Período que cada linha representa. Ex.: 30 minutos, 1 hora, 2 horas.
-              Equivale a {intervalToMinutes(form.intervalAmount, form.intervalUnit)} min por linha.
+              Período que cada linha representa. Ex.: 30 minutos, 1 hora, 2 horas. Equivale a{' '}
+              {intervalToMinutes(form.intervalAmount, form.intervalUnit)} min por linha.
             </p>
           </div>
 
@@ -565,8 +576,8 @@ export function ClinicProfileForm({ initial }: Props) {
               </div>
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
-              Define a faixa de horas exibida no calendário (dia/semana). A abertura
-              deve ser antes do fechamento.
+              Define a faixa de horas exibida no calendário (dia/semana). A abertura deve ser antes
+              do fechamento.
             </p>
 
             <label className="mt-5 flex cursor-pointer items-start gap-2 border-t border-slate-100 pt-4">

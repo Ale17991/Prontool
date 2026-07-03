@@ -18,7 +18,7 @@
 
 ---
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Paciente agenda sem login em ≤90 segundos (Priority: P1)
 
@@ -137,7 +137,7 @@ Após confirmar o agendamento, Ana vê uma tela de sucesso com nome do profissio
 - **Tentativa de SQL injection no slug**: slug aceita apenas `[a-z0-9-]{3,32}` validado no servidor; query usa parâmetros tipados.
 - **Captcha resolvido offline** (token reutilizado): Turnstile gera token de uso único com validade curta; servidor verifica com a Cloudflare antes de aceitar o submit.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -218,7 +218,7 @@ Após confirmar o agendamento, Ana vê uma tela de sucesso com nome do profissio
 - **Entrada de auditoria pública**: tipo de evento (visualização, criação, cancelamento), slug, hash de IP, timestamp, identificador do appointment afetado, ator marcado como "anônimo".
 - **Política de privacidade pública**: texto associado ao tenant exibido em `/agendar/[slug]/privacidade`.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

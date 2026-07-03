@@ -3,7 +3,16 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronRight, Loader2, PauseCircle, PlayCircle, Plug, Search, Boxes, Users } from 'lucide-react'
+import {
+  ChevronRight,
+  Loader2,
+  PauseCircle,
+  PlayCircle,
+  Plug,
+  Search,
+  Boxes,
+  Users,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PLAN_LABEL, type Plan } from '@/lib/core/entitlements/plans'
@@ -84,7 +93,10 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
 
   function bulkStatus(status: 'active' | 'suspended') {
     if (status === 'suspended' && typeof window !== 'undefined') {
-      if (!window.confirm(`Suspender ${selected.size} clínica(s)? Os usuários delas perdem acesso.`)) return
+      if (
+        !window.confirm(`Suspender ${selected.size} clínica(s)? Os usuários delas perdem acesso.`)
+      )
+        return
     }
     startTransition(async () => {
       const res = await adminBulkSetTenantStatusAction({ tenantIds: [...selected], status })
@@ -110,12 +122,24 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
             className="pl-9"
           />
         </div>
-        <Select value={statusF} onChange={(v) => { setStatusF(v as typeof statusF); setPage(0) }}>
+        <Select
+          value={statusF}
+          onChange={(v) => {
+            setStatusF(v as typeof statusF)
+            setPage(0)
+          }}
+        >
           <option value="all">Todos os status</option>
           <option value="active">Ativas</option>
           <option value="suspended">Suspensas</option>
         </Select>
-        <Select value={planF} onChange={(v) => { setPlanF(v as typeof planF); setPage(0) }}>
+        <Select
+          value={planF}
+          onChange={(v) => {
+            setPlanF(v as typeof planF)
+            setPage(0)
+          }}
+        >
           <option value="all">Todos os planos</option>
           <option value="essencial">Essencial</option>
           <option value="pro">Pro</option>
@@ -132,14 +156,30 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
       {selected.size > 0 ? (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
           <span className="font-semibold text-primary">{selected.size} selecionada(s)</span>
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => bulkStatus('active')} className="h-7 gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={pending}
+            onClick={() => bulkStatus('active')}
+            className="h-7 gap-1.5"
+          >
             <PlayCircle className="h-3.5 w-3.5" /> Reativar
           </Button>
-          <Button size="sm" variant="outline" disabled={pending} onClick={() => bulkStatus('suspended')} className="h-7 gap-1.5 text-destructive">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={pending}
+            onClick={() => bulkStatus('suspended')}
+            className="h-7 gap-1.5 text-destructive"
+          >
             <PauseCircle className="h-3.5 w-3.5" /> Suspender
           </Button>
           {pending ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
-          <button type="button" onClick={() => setSelected(new Set())} className="ml-auto text-slate-400 hover:text-slate-600">
+          <button
+            type="button"
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-slate-400 hover:text-slate-600"
+          >
             Limpar
           </button>
         </div>
@@ -194,7 +234,10 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
                       />
                     </td>
                     <td className="px-2 py-2.5">
-                      <Link href={`/admin/clinicas/${r.tenantId}`} className="flex items-center gap-2.5">
+                      <Link
+                        href={`/admin/clinicas/${r.tenantId}`}
+                        className="flex items-center gap-2.5"
+                      >
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-black text-primary">
                           {(r.name || '?').charAt(0).toUpperCase()}
                         </span>
@@ -202,7 +245,9 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
                           <span className="block truncate font-bold text-slate-900 group-hover:text-primary">
                             {r.name}
                           </span>
-                          <span className="block truncate text-[11px] text-slate-400">{r.slug}</span>
+                          <span className="block truncate text-[11px] text-slate-400">
+                            {r.slug}
+                          </span>
                         </span>
                       </Link>
                     </td>
@@ -223,7 +268,9 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
                           {r.status === 'active' ? 'Ativa' : 'Suspensa'}
                         </span>
                         {billing ? (
-                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${billing.cls}`}>
+                          <span
+                            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${billing.cls}`}
+                          >
                             {billing.label}
                           </span>
                         ) : null}
@@ -251,7 +298,9 @@ export function ClinicsList({ rows }: { rows: ClinicListRow[] }) {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-[11px] text-slate-500">{fmtDate(r.createdAt)}</td>
+                    <td className="px-3 py-2.5 text-[11px] text-slate-500">
+                      {fmtDate(r.createdAt)}
+                    </td>
                     <td className="px-3 py-2.5 text-right">
                       <Link
                         href={`/admin/clinicas/${r.tenantId}`}

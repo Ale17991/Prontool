@@ -29,9 +29,13 @@ export async function createHealthPlan(
     .single()
   if (error) {
     if (error.code === '23505') {
-      throw new ConflictError('HEALTH_PLAN_DUPLICATE', `Plan named "${input.name}" already exists in tenant`, {
-        name: input.name,
-      })
+      throw new ConflictError(
+        'HEALTH_PLAN_DUPLICATE',
+        `Plan named "${input.name}" already exists in tenant`,
+        {
+          name: input.name,
+        },
+      )
     }
     throw new Error(`createHealthPlan failed: ${error.message}`)
   }

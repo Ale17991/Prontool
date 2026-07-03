@@ -67,6 +67,7 @@ pnpm seed:demo         # cria tenant demo + admin + preços
 ```
 
 Credenciais do tenant demo (já seedadas):
+
 - E-mail: `admin@clinica-demo.test`
 - Senha: `demo1234`
 - Role: `admin`
@@ -106,6 +107,7 @@ pnpm tsx --env-file=.env.local scripts/simulate-ghl-webhook.ts \
 ```
 
 Verificações:
+
 1. `/api/webhooks/ghl` retorna 200 em <1 s com `raw_event_id`.
 2. `/dashboard/atendimentos` mostra novo atendimento com valor vindo da
    tabela seed e comissão snapshot do médico.
@@ -200,7 +202,7 @@ pnpm supabase:gen-types      # regenera src/lib/db/types.ts
   via curl com as credenciais do demo — o JWT retornado é um JWT padrão
   (decode com `jwt.io` ou `node -e "console.log(JSON.parse(Buffer.from('<payload>','base64').toString()))"`).
 - **`exceljs` gerando arquivo corrompido**: garanta `res.headers.set(
-  'Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')`
+'Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')`
   e use `workbook.xlsx.writeBuffer()` (não `writeFile`).
 
 ## 10. Deploy

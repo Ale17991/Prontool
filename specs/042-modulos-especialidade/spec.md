@@ -19,7 +19,7 @@ A solução é amarrar cada conjunto de áreas a um **módulo de especialidade**
 - Q: Estado padrão de `convenio`/`odonto`/`oftalmo` em clínicas novas (não-legacy) → A: Desligados por padrão; super-admin liga no /admin conforme o nicho.
 - Q: Campo de convênio/plano no cadastro do paciente quando `convenio` off → A: Esconder também (coerente com "esconder tudo de convênio").
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Clínica sem convênio não vê áreas de convênio (Priority: P1)
 
@@ -97,7 +97,7 @@ O super-admin precisa ligar/desligar `convenio`, `odonto` e `oftalmo` em cada cl
 - **Módulo `tiss` remanescente nos dados**: após a migração, nenhum tenant deve ter `tiss` no array de módulos (renomeado para `convenio`); um `tiss` remanescente seria ignorado pela leitura (filtrada por `ALL_MODULES`).
 - **Atendimento histórico com convênio numa clínica que depois desligou `convenio`**: o valor já gravado permanece; apenas o seletor/novas marcações de convênio deixam de ser oferecidos.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -139,13 +139,13 @@ O super-admin precisa ligar/desligar `convenio`, `odonto` e `oftalmo` em cada cl
 - **FR-017**: Nenhuma clínica que hoje usa convênio, odontologia ou oftalmologia MAY perder acesso a essas áreas após o deploy.
 - **FR-018**: O gating MUST falhar em modo aberto (mostrar a área) em caso de erro de leitura de entitlements ou ausência de linha, mantendo a postura defensiva atual.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Entitlement do tenant**: registro por clínica com plano + lista de módulos contratados. Passa a reconhecer `convenio`, `odonto`, `oftalmo` e a não reconhecer mais `tiss`.
 - **Módulo de especialidade**: rótulo/identidade de um conjunto de áreas que só aparece quando ativo (`convenio`, `odonto`, `oftalmo`).
 - **Sinais de uso para auto-ativação**: convênios cadastrados / config TISS (→ convenio); odontograma/periograma (→ odonto); exames oftalmológicos (→ oftalmo).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

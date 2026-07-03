@@ -9,22 +9,22 @@ Esta feature é puramente de navegação. Os "contratos" são contratos de **rot
 
 ## Rotas afetadas
 
-| URL | Status HTTP | Tipo | Notas |
-|-----|------------|------|-------|
-| `/configuracoes` | 200 | **ALTERADA** | Era redirect role-based (admin → `/configuracoes/clinica`; outros → `/configuracoes/perfil`). Vira hub com grid de cards. |
-| `/configuracoes/auditoria` | 200 | **NOVA** | Página de auditoria, código movido de `/analise/auditoria`. |
-| `/configuracoes/clinica` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/perfil` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/usuarios` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/procedimentos` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/convenios` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/profissionais` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/modelos-anamnese` | 200 | MANTIDA | Sem mudança. |
-| `/configuracoes/integracoes` | 200 | MANTIDA | Sem mudança. |
-| `/operacao/notificacoes` | 200 | **ALTERADA** | Aceita `?tab=notificacoes|alertas|dlq`. Renderiza sub-seções server-side. |
-| `/operacao/alertas` | **308** | **VIRA REDIRECT** | `Location: /operacao/notificacoes?tab=alertas[&<original-query-preserved>]` |
-| `/operacao/dlq` | **308** | **VIRA REDIRECT** | `Location: /operacao/notificacoes?tab=dlq[&<original-query-preserved>]` |
-| `/analise/auditoria` | **308** | **VIRA REDIRECT** | `Location: /configuracoes/auditoria[?<original-query-preserved>]` |
+| URL                               | Status HTTP | Tipo              | Notas                                                                                                                     |
+| --------------------------------- | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------- |
+| `/configuracoes`                  | 200         | **ALTERADA**      | Era redirect role-based (admin → `/configuracoes/clinica`; outros → `/configuracoes/perfil`). Vira hub com grid de cards. |
+| `/configuracoes/auditoria`        | 200         | **NOVA**          | Página de auditoria, código movido de `/analise/auditoria`.                                                               |
+| `/configuracoes/clinica`          | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/perfil`           | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/usuarios`         | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/procedimentos`    | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/convenios`        | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/profissionais`    | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/modelos-anamnese` | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/configuracoes/integracoes`      | 200         | MANTIDA           | Sem mudança.                                                                                                              |
+| `/operacao/notificacoes`          | 200         | **ALTERADA**      | Aceita `?tab=notificacoes                                                                                                 | alertas | dlq`. Renderiza sub-seções server-side. |
+| `/operacao/alertas`               | **308**     | **VIRA REDIRECT** | `Location: /operacao/notificacoes?tab=alertas[&<original-query-preserved>]`                                               |
+| `/operacao/dlq`                   | **308**     | **VIRA REDIRECT** | `Location: /operacao/notificacoes?tab=dlq[&<original-query-preserved>]`                                                   |
+| `/analise/auditoria`              | **308**     | **VIRA REDIRECT** | `Location: /configuracoes/auditoria[?<original-query-preserved>]`                                                         |
 
 ---
 
@@ -33,18 +33,21 @@ Esta feature é puramente de navegação. Os "contratos" são contratos de **rot
 ### 1. `/configuracoes` — Hub (substituição do redirect role-based)
 
 **Antes**:
+
 ```ts
 if (session.role === 'admin') redirect('/configuracoes/clinica')
 else redirect('/configuracoes/perfil')
 ```
 
 **Depois**:
+
 - Server Component que carrega sessão + flags, filtra `HUB_CARDS` por `show(ctx)`, e renderiza um grid (1/2/3 colunas).
 - Status HTTP: **200** (sem redirect; é uma página).
 - Visibilidade dos cards: aplicada **no servidor** antes da resposta — flash de cards proibidos é impossível (FR-017).
 - Cada card é um `<Link>` para `card.href`. Sem fetch client-side. Sem hidratação extra além do que outras páginas SSR têm.
 
 **Acceptance**:
+
 - Admin com todas flags `true` vê 9 cards na ordem fixa.
 - Profissional de saúde (sem flags relevantes) vê apenas 1 card: "Meu Perfil".
 - HTML contém apenas os cards que passaram pelo filtro — não há CSS `display: none`.
@@ -54,9 +57,11 @@ else redirect('/configuracoes/perfil')
 ### 2. `/operacao/notificacoes` — Página unificada com tabs
 
 **Antes**:
+
 - Página renderizava só notificações pessoais + um link "Alertas do sistema" que navegava para `/operacao/alertas`.
 
 **Depois**:
+
 - Server Component lê `searchParams.tab`. Se ausente ou inválido, default = `notificacoes`.
 - Tab bar é renderizada como `<nav aria-label="Seções de notificações">` com `<Link>` para cada aba **disponível para o usuário**.
 - Conteúdo do `<main>` é determinado pela aba ativa:
@@ -67,6 +72,7 @@ else redirect('/configuracoes/perfil')
 - Idem para `?tab=dlq` sem `dlq.read`.
 
 **Acceptance**:
+
 - Recepcionista (`alert.read` = false, `dlq.read` = false): tab bar mostra apenas "Notificações". Acesso a `?tab=alertas` cai em notificações silenciosamente.
 - Admin (`alert.read` = true, `dlq.read` = true): tab bar mostra 3 abas. Cada `?tab=...` válido renderiza a aba correspondente.
 - Funcionalidades existentes em cada aba (marcar como lido, resolver alerta, reprocessar DLQ) **continuam funcionando** com seus mesmos handlers de API (FR-015).
@@ -102,6 +108,7 @@ export default function LegacyAuditoriaRedirect({
 **Para `/operacao/dlq`**: destino base = `/operacao/notificacoes?tab=dlq`. Idem.
 
 **Acceptance** (verificável em integration test):
+
 - `GET /analise/auditoria` → `308`, `Location: /configuracoes/auditoria`.
 - `GET /analise/auditoria?from=2026-01-01&to=2026-01-31` → `308`, `Location: /configuracoes/auditoria?from=2026-01-01&to=2026-01-31`.
 - `GET /operacao/alertas?severity=warning` → `308`, `Location: /operacao/notificacoes?tab=alertas&severity=warning`.

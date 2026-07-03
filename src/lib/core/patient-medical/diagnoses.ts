@@ -1,10 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from '@/lib/observability/errors'
+import { ConflictError, NotFoundError, ValidationError } from '@/lib/observability/errors'
 
 export type DiagnosisStatus = 'ativo' | 'em_acompanhamento' | 'resolvido'
 
@@ -162,11 +158,9 @@ export async function updateDiagnosisStatus(
     })
   }
   if (existing.data.status === args.status) {
-    throw new ConflictError(
-      'DIAGNOSIS_STATUS_UNCHANGED',
-      'Status já é o solicitado',
-      { current: existing.data.status },
-    )
+    throw new ConflictError('DIAGNOSIS_STATUS_UNCHANGED', 'Status já é o solicitado', {
+      current: existing.data.status,
+    })
   }
 
   const { data, error } = await supabase

@@ -218,7 +218,12 @@ export async function seedMemedFixture(): Promise<MemedE2eFixture> {
 
   const patientName = 'Paciente Memed E2E'
   const patientId = await seedFullPatient(sb, tenantId, patientName)
-  const appointmentId = await seedAppointmentFor(sb, { tenantId, patientId, doctorId, commissionId })
+  const appointmentId = await seedAppointmentFor(sb, {
+    tenantId,
+    patientId,
+    doctorId,
+    commissionId,
+  })
   const appointment2Id = await seedAppointmentFor(sb, {
     tenantId,
     patientId,

@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  renderToBuffer,
-} from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 
@@ -16,7 +9,12 @@ import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
  */
 const styles = StyleSheet.create({
   page: { padding: 40, fontFamily: 'Helvetica', fontSize: 10, color: '#334155' },
-  header: { marginBottom: 24, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 12 },
+  header: {
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    paddingBottom: 12,
+  },
   tenantName: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: '#0f172a' },
   title: { fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#0f172a', marginTop: 4 },
   patientInfo: { fontSize: 9, color: '#64748b', marginTop: 6 },
@@ -110,9 +108,7 @@ export function AnamnesisPdfDocument(input: AnamnesisPdfInput) {
           .map((field) => (
             <View key={field.id} style={styles.section} wrap={false}>
               <Text style={styles.fieldLabel}>{field.label}</Text>
-              <Text style={styles.fieldValue}>
-                {renderAnswer(input.responses[field.id])}
-              </Text>
+              <Text style={styles.fieldValue}>{renderAnswer(input.responses[field.id])}</Text>
             </View>
           ))}
 

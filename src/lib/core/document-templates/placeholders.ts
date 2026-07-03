@@ -15,10 +15,7 @@ export const AVAILABLE_PLACEHOLDERS: Array<{ key: string; label: string }> = [
   { key: 'data', label: 'Data de hoje' },
 ]
 
-export function substitutePlaceholders(
-  body: string,
-  vars: Record<string, string>,
-): string {
+export function substitutePlaceholders(body: string, vars: Record<string, string>): string {
   return body.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_m, key: string) => {
     const v = vars[key]
     return v === undefined || v === null ? '' : v

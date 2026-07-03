@@ -54,7 +54,7 @@ async function main(): Promise<void> {
   for (const p of PREFIXES) officialByPrefix[p] = 0
   for (const code of officialCodes) {
     const p = code.slice(0, 2)
-    if (PREFIXES.includes(p as typeof PREFIXES[number])) {
+    if (PREFIXES.includes(p as (typeof PREFIXES)[number])) {
       officialByPrefix[p] = (officialByPrefix[p] ?? 0) + 1
     }
   }
@@ -75,7 +75,7 @@ async function main(): Promise<void> {
   for (const p of PREFIXES) localByPrefix[p] = 0
   for (const code of localCodes) {
     const p = code.slice(0, 2)
-    if (PREFIXES.includes(p as typeof PREFIXES[number])) {
+    if (PREFIXES.includes(p as (typeof PREFIXES)[number])) {
       localByPrefix[p] = (localByPrefix[p] ?? 0) + 1
     }
   }
@@ -172,11 +172,7 @@ async function resolveXlsxPath(): Promise<string> {
   const entries = zip.getEntries()
   const target = entries.find((e) => {
     const name = e.entryName.toLowerCase()
-    return (
-      name.includes('tuss 22') &&
-      name.endsWith('.xlsx') &&
-      !name.startsWith('__macosx/')
-    )
+    return name.includes('tuss 22') && name.endsWith('.xlsx') && !name.startsWith('__macosx/')
   })
   if (!target) {
     const list = entries
@@ -184,7 +180,9 @@ async function resolveXlsxPath(): Promise<string> {
       .filter((n) => n.toLowerCase().endsWith('.xlsx'))
       .slice(0, 10)
       .join('\n  ')
-    throw new Error(`xlsx da Tabela 22 nao encontrado no ZIP. Entradas xlsx encontradas:\n  ${list}`)
+    throw new Error(
+      `xlsx da Tabela 22 nao encontrado no ZIP. Entradas xlsx encontradas:\n  ${list}`,
+    )
   }
 
   const extractDir = join(tmpdir(), `tuss-audit-${Date.now()}`)

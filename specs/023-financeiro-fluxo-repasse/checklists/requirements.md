@@ -34,11 +34,13 @@
 ### Iteration 1 (2026-05-20)
 
 **Content Quality — PASS**
+
 - Spec referencia entidades do banco (`payment_installments`, `expenses`, `appointments_effective`, `monthly_payouts`) **apenas como contrato de domínio** — comunica WHERE o dado vive sem dizer COMO implementar.
 - Funções existentes (`computeOperatingResult`, `buildFinancialReport`) são mencionadas como **contratos de paridade** (SC-006, SC-010, A-002) — apropriado para feature que estende, não reescreve.
 - Sem nomes de framework/lib/SDK na spec (apenas em Assumptions, onde é apropriado).
 
 **Requirement Completeness — PASS**
+
 - Zero `[NEEDS CLARIFICATION]` markers.
 - 46 FRs no formato "X MUST Y" testáveis.
 - 10 SCs com métricas explícitas (tempo, %, contagem, fps, paridade absoluta).
@@ -46,11 +48,13 @@
 - 10 assumptions documentadas + 12 out-of-scope explícitos.
 
 **Feature Readiness — PASS**
+
 - 5 user stories priorizadas (P1/P1/P2/P2/P3) com Acceptance Scenarios Given/When/Then e Independent Test.
 - US1 (contas a receber) e US2 (contas a pagar) podem ser entregues independentemente — cada uma é MVP utilizável sozinha. US3 (fluxo de caixa) depende dos dados de US1+US2 mas pode ser independent test com seeds.
 - US4 (repasse médico) é o workflow mais complexo mas autônomo; US5 (dashboard) é polish opcional.
 
 **Constitution alignment** (verificação preliminar):
+
 - Princípio I (imutabilidade): FR-016, FR-031, FR-037, FR-043 explicitam append-only para valores calculados.
 - Princípio II (auditoria): FR-042 cobre todas as operações.
 - Princípio III (tenant isolation): pressupõe RLS atual cobrir tabelas novas (`monthly_payouts`, `monthly_payouts_adjustments`).
@@ -76,6 +80,7 @@ Spec aprovada na primeira iteração. Sem clarificações pendentes — o usuár
 **Novas tabelas introduzidas** (vs. iteração 1): `installment_payments`, `monthly_payouts_reopens`, `tenant_cash_balance_adjustments`. Total agora: **5 tabelas novas** + colunas em `expenses` (`paid_at`, `paid_amount_cents`, `payment_method`, `recurring_starts_at`, `recurring_ends_at`, `superseded_by`).
 
 **Validação pós-clarify**:
+
 - [x] Clarifications section com 5 bullets (1 por pergunta).
 - [x] Nenhuma marca [NEEDS CLARIFICATION] remanescente.
 - [x] Sem contradições — FRs antigos reescritos onde necessário (FR-021, FR-032).

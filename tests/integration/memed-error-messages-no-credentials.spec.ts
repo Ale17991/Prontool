@@ -6,7 +6,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedDoctor } from '@/tests/helpers/seed-factories'
-import { mockMemed, seedMemedConnection, setDoctorPrescriberFields } from '@/tests/helpers/memed-mock'
+import {
+  mockMemed,
+  seedMemedConnection,
+  setDoctorPrescriberFields,
+} from '@/tests/helpers/memed-mock'
 import { enablePrescriber } from '@/lib/core/integrations/memed/register-prescriber'
 
 function leaks(s: string): boolean {

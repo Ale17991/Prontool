@@ -38,10 +38,11 @@ export async function listPublicBookingSlots(
   if (error) {
     throw new Error(`listPublicBookingSlots failed: ${error.message}`)
   }
-  const rows = (data as unknown as Array<{
-    slot_start: string
-    slot_end: string
-  }> | null) ?? []
+  const rows =
+    (data as unknown as Array<{
+      slot_start: string
+      slot_end: string
+    }> | null) ?? []
   return rows.map((r) => ({ start: r.slot_start, end: r.slot_end }))
 }
 

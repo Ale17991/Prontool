@@ -140,18 +140,12 @@ export async function assemblePatientChart(
   )
   const filteredVitals = vitalSignsAll.filter((v) => inWindow(v.measuredAt))
   const filteredSteps = steps.filter((s) => inWindow(s.createdAt))
-  const filteredAppointments = appointments.filter((a) =>
-    inWindow(a.appointmentAt),
-  )
+  const filteredAppointments = appointments.filter((a) => inWindow(a.appointmentAt))
 
   // Carrega materiais em batch para os atendimentos da janela.
   if (filteredAppointments.length > 0) {
     const ids = filteredAppointments.map((a) => a.id)
-    const grouped = await listMaterialsByAppointmentIds(
-      supabase,
-      ids,
-      input.tenantId,
-    )
+    const grouped = await listMaterialsByAppointmentIds(supabase, ids, input.tenantId)
     for (const a of filteredAppointments) {
       const rows = grouped[a.id] ?? []
       a.materials = rows.map((r) => ({
@@ -239,11 +233,7 @@ async function fetchTenant(
   supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<{ name: string } | null> {
-  const { data } = await supabase
-    .from('tenants')
-    .select('name')
-    .eq('id', tenantId)
-    .maybeSingle()
+  const { data } = await supabase.from('tenants').select('name').eq('id', tenantId).maybeSingle()
   return data ?? null
 }
 

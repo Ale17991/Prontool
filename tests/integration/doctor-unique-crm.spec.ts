@@ -83,10 +83,7 @@ describe('T122 — doctor CRM uniqueness scoped to tenant', () => {
     })
     expect(docA.id).not.toBe(docB.id)
 
-    const { data: rows } = await sb
-      .from('doctors')
-      .select('tenant_id, crm')
-      .eq('crm', CRM)
+    const { data: rows } = await sb.from('doctors').select('tenant_id, crm').eq('crm', CRM)
     expect(rows ?? []).toHaveLength(2)
   })
 

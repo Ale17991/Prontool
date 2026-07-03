@@ -139,11 +139,21 @@ export function LiberalSettlementsCard() {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <Label className="text-[11px] font-bold uppercase text-slate-500">De</Label>
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
+            <Input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="w-40"
+            />
           </div>
           <div>
             <Label className="text-[11px] font-bold uppercase text-slate-500">Até</Label>
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
+            <Input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-40"
+            />
           </div>
           <Button type="button" size="sm" onClick={() => void load()} disabled={loading}>
             {loading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}

@@ -68,9 +68,7 @@ function extractPrescriptionId(data: unknown): string | null {
     const d = data as Record<string, unknown>
     const nested = d.prescricao
     const fromNested =
-      nested && typeof nested === 'object'
-        ? (nested as Record<string, unknown>).id
-        : undefined
+      nested && typeof nested === 'object' ? (nested as Record<string, unknown>).id : undefined
     const candidate = d.id ?? fromNested ?? d.prescriptionId ?? d.idPrescricao
     if (candidate !== null && candidate !== undefined) return String(candidate)
   }
@@ -78,7 +76,11 @@ function extractPrescriptionId(data: unknown): string | null {
 }
 
 /** Aguarda um global aparecer (script boota async). Rejeita após timeout. */
-function waitFor<T>(getter: () => T | undefined | null, timeoutMs: number, label: string): Promise<T> {
+function waitFor<T>(
+  getter: () => T | undefined | null,
+  timeoutMs: number,
+  label: string,
+): Promise<T> {
   return new Promise((resolve, reject) => {
     const started = Date.now()
     const tick = () => {
@@ -111,7 +113,9 @@ function loadMemedScript(token: string): Promise<void> {
     script.async = true
     script.onload = () => resolve()
     script.onerror = () =>
-      reject(new Error('Não foi possível carregar o módulo da Memed (script bloqueado ou offline).'))
+      reject(
+        new Error('Não foi possível carregar o módulo da Memed (script bloqueado ou offline).'),
+      )
     document.body.appendChild(script)
   })
 }
@@ -214,7 +218,11 @@ export function PrescreverLauncher({
       await loadMemedScript(token)
 
       setStage('Inicializando módulo…')
-      const sinapse = await waitFor(() => window.MdSinapsePrescricao, SDK_TIMEOUT_MS, 'MdSinapsePrescricao')
+      const sinapse = await waitFor(
+        () => window.MdSinapsePrescricao,
+        SDK_TIMEOUT_MS,
+        'MdSinapsePrescricao',
+      )
       sinapse.event.add('core:moduleInit', (module) => {
         if (module?.name !== PRESCRICAO_MODULE) return
         const hub = getMdHub()

@@ -30,20 +30,12 @@ describe('computeInstallmentSchedule', () => {
 
   it('avança 1 mês por parcela mantendo o dia', () => {
     const out = computeInstallmentSchedule(30_000, 3, '2026-01-15')
-    expect(out.map((i) => i.dueDate)).toEqual([
-      '2026-01-15',
-      '2026-02-15',
-      '2026-03-15',
-    ])
+    expect(out.map((i) => i.dueDate)).toEqual(['2026-01-15', '2026-02-15', '2026-03-15'])
   })
 
   it('cruza a virada de ano corretamente', () => {
     const out = computeInstallmentSchedule(30_000, 3, '2025-11-10')
-    expect(out.map((i) => i.dueDate)).toEqual([
-      '2025-11-10',
-      '2025-12-10',
-      '2026-01-10',
-    ])
+    expect(out.map((i) => i.dueDate)).toEqual(['2025-11-10', '2025-12-10', '2026-01-10'])
   })
 
   it('é determinístico — não depende do fuso/relógio do servidor', () => {

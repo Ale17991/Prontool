@@ -77,9 +77,7 @@ export async function listTasks(
   const rows = (data ?? []) as unknown as TaskRow[]
 
   // Carrega user_profile (full_name) para projetar nomes
-  const userIds = Array.from(
-    new Set(rows.flatMap((r) => [r.assigned_to, r.created_by])),
-  )
+  const userIds = Array.from(new Set(rows.flatMap((r) => [r.assigned_to, r.created_by])))
   const nameByUser = new Map<string, string>()
   if (userIds.length > 0) {
     const { data: profiles } = await supabase

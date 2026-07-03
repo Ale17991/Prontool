@@ -23,10 +23,7 @@ const createSchema = z.object({
   appointment_id: z.string().uuid().optional().nullable(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/odontograma`
   try {
     const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {

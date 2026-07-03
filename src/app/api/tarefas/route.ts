@@ -22,8 +22,14 @@ const PRIORITY = ['baixa', 'normal', 'alta', 'urgente'] as const
 const querySchema = z.object({
   status: z.enum(STATUS).optional(),
   assigned_to: z.string().optional(),
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   include_deleted: z
     .union([z.string(), z.boolean()])
     .optional()
@@ -56,9 +62,7 @@ export async function GET(req: Request): Promise<Response> {
     // assignedTo 'me' = forçar para self (admin pode usar para filtrar).
     let assignedToFilter: string | undefined
     if (session.role === 'admin') {
-      assignedToFilter = parsed.data.assigned_to === 'me'
-        ? session.userId
-        : parsed.data.assigned_to
+      assignedToFilter = parsed.data.assigned_to === 'me' ? session.userId : parsed.data.assigned_to
     } else {
       assignedToFilter = session.userId
     }
@@ -99,8 +103,7 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
     // Para não-admin, força `assigned_to = session.userId` (defesa em camadas).
-    const assignedTo =
-      session.role === 'admin' ? parsed.data.assigned_to : session.userId
+    const assignedTo = session.role === 'admin' ? parsed.data.assigned_to : session.userId
 
     const supabase = createSupabaseServiceClient()
     try {

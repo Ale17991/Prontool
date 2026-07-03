@@ -47,21 +47,21 @@ Todas as ambiguidades funcionais foram resolvidas no `/speckit.clarify` (ver `##
 
 ## Reuso de padrões existentes (referências de código)
 
-| Necessidade | Padrão a reusar | Arquivo de referência |
-|---|---|---|
-| Migration tabela + RLS por tenant | `patient_measurements` | `supabase/migrations/0113_patient_portal_measurements.sql` |
-| Append-only genérico | `enforce_append_only_columns('')` | `supabase/migrations/0095_financeiro_operacional.sql` |
-| Imutabilidade simples + consistência de tenant | `appointment_materials` triggers | `supabase/migrations/0061_appointment_materials.sql` |
-| Auditoria | `log_audit_event` + `session_uuid('app.actor_id')` | `supabase/migrations/0013_audit_triggers.sql` |
-| Catálogo global read-only | `tuss_codes` | `supabase/migrations/0003_tuss_catalog.sql`, `0037_tuss_multi_table.sql` |
-| Busca TUSS por tabela | `searchTussCatalog({ table: '22' })` | `src/lib/core/catalog/list-tuss.ts` |
-| RPC SECURITY DEFINER por tenant | `get_patient_for_tenant` | `supabase/migrations/0027_*` |
-| Core write clínico (assert paciente → insert → DTO) | `createVitalSigns` | `src/lib/core/patient-medical/vital-signs.ts` |
-| Route Handler clínico | sinais-vitais POST | `src/app/api/pacientes/[id]/sinais-vitais/route.ts` |
-| Aba no prontuário | tabs do paciente | `src/app/(dashboard)/operacao/pacientes/[id]/_components/patient-detail-layout.tsx` |
-| Admin super-only + CRUD catálogo | `requireSuperAdmin` + padrão taxes | `src/lib/auth/platform-admin.ts`, `src/app/(dashboard)/analise/despesas/impostos/*` |
-| Service client (allowlist inclui `lib/core/catalog`) | `createSupabaseServiceClient` | `src/lib/db/supabase-service.ts` |
-| Helpers RLS | `jwt_tenant_id()`, `jwt_role()` | `supabase/migrations/0017_rls_policies.sql` |
+| Necessidade                                          | Padrão a reusar                                    | Arquivo de referência                                                               |
+| ---------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Migration tabela + RLS por tenant                    | `patient_measurements`                             | `supabase/migrations/0113_patient_portal_measurements.sql`                          |
+| Append-only genérico                                 | `enforce_append_only_columns('')`                  | `supabase/migrations/0095_financeiro_operacional.sql`                               |
+| Imutabilidade simples + consistência de tenant       | `appointment_materials` triggers                   | `supabase/migrations/0061_appointment_materials.sql`                                |
+| Auditoria                                            | `log_audit_event` + `session_uuid('app.actor_id')` | `supabase/migrations/0013_audit_triggers.sql`                                       |
+| Catálogo global read-only                            | `tuss_codes`                                       | `supabase/migrations/0003_tuss_catalog.sql`, `0037_tuss_multi_table.sql`            |
+| Busca TUSS por tabela                                | `searchTussCatalog({ table: '22' })`               | `src/lib/core/catalog/list-tuss.ts`                                                 |
+| RPC SECURITY DEFINER por tenant                      | `get_patient_for_tenant`                           | `supabase/migrations/0027_*`                                                        |
+| Core write clínico (assert paciente → insert → DTO)  | `createVitalSigns`                                 | `src/lib/core/patient-medical/vital-signs.ts`                                       |
+| Route Handler clínico                                | sinais-vitais POST                                 | `src/app/api/pacientes/[id]/sinais-vitais/route.ts`                                 |
+| Aba no prontuário                                    | tabs do paciente                                   | `src/app/(dashboard)/operacao/pacientes/[id]/_components/patient-detail-layout.tsx` |
+| Admin super-only + CRUD catálogo                     | `requireSuperAdmin` + padrão taxes                 | `src/lib/auth/platform-admin.ts`, `src/app/(dashboard)/analise/despesas/impostos/*` |
+| Service client (allowlist inclui `lib/core/catalog`) | `createSupabaseServiceClient`                      | `src/lib/db/supabase-service.ts`                                                    |
+| Helpers RLS                                          | `jwt_tenant_id()`, `jwt_role()`                    | `supabase/migrations/0017_rls_policies.sql`                                         |
 
 ## Não-funcional
 

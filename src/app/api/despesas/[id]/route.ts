@@ -15,7 +15,14 @@ export const runtime = 'nodejs'
 
 const putBodySchema = z.object({
   category: z.enum([
-    'aluguel', 'equipamentos', 'materiais', 'pessoal', 'servicos', 'impostos', 'manutencao', 'outros',
+    'aluguel',
+    'equipamentos',
+    'materiais',
+    'pessoal',
+    'servicos',
+    'impostos',
+    'manutencao',
+    'outros',
   ]),
   description: z.string().trim().min(2).max(500),
   supplier: z.string().trim().max(200).nullable().optional(),
@@ -25,10 +32,7 @@ const putBodySchema = z.object({
   frequency: z.enum(['mensal', 'semanal', 'anual']).nullable().optional(),
 })
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function PUT(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(['admin', 'financeiro'], {
       entity: 'expenses',
@@ -39,7 +43,9 @@ export async function PUT(
     const parsed = putBodySchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 422 },
       )
     }
@@ -54,7 +60,7 @@ export async function PUT(
       amountCents: parsed.data.amount_cents,
       competenceDate: parsed.data.competence_date,
       recurring: parsed.data.recurring,
-      frequency: parsed.data.recurring ? parsed.data.frequency ?? null : null,
+      frequency: parsed.data.recurring ? (parsed.data.frequency ?? null) : null,
     })
     return NextResponse.json({ id: result.id }, { status: 200 })
   } catch (err) {

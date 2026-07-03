@@ -30,7 +30,10 @@ export async function uploadUserAvatar(
   context: UploadContext = {},
 ): Promise<UserProfileAvatar> {
   if (file.size > MAX_AVATAR_BYTES) {
-    throw new ValidationError('Avatar excede 2 MB', { reason: 'payload_too_large', size: file.size })
+    throw new ValidationError('Avatar excede 2 MB', {
+      reason: 'payload_too_large',
+      size: file.size,
+    })
   }
   const buffer = await file.arrayBuffer()
   const sniffed = sniffImageType(buffer)

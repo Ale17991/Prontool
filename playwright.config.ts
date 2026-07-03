@@ -13,10 +13,7 @@ export default defineConfig({
   // single Node process and makes first-hit timing flaky. CI uses the prod
   // build and can parallelise.
   workers: 1,
-  reporter: [
-    ['html', { outputFolder: 'tests/e2e/artifacts' }],
-    ['list'],
-  ],
+  reporter: [['html', { outputFolder: 'tests/e2e/artifacts' }], ['list']],
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
     locale: 'pt-BR',
@@ -25,9 +22,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: process.env.CI ? 'pnpm start' : 'pnpm dev',
     url: 'http://localhost:3000',

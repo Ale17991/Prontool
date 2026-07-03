@@ -5,11 +5,7 @@
  * Valida FR-014 + Princípio I da constituição para a tabela.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  resetDatabase,
-  rlsClient,
-  serviceClient,
-} from '@/tests/helpers/supabase-test-client'
+import { resetDatabase, rlsClient, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedDoctor } from '@/tests/helpers/seed-factories'
 import { mintJwt } from '@/tests/helpers/jwt-helper'
 import { createCommissionVersion } from '@/lib/core/commissions/create-version'
@@ -98,10 +94,7 @@ describe('T119 — commission history is append-only', () => {
       role: 'admin',
     })
     const sb = rlsClient(jwt)
-    const { error } = await sb
-      .from('doctor_commission_history')
-      .delete()
-      .eq('id', commissionId)
+    const { error } = await sb.from('doctor_commission_history').delete().eq('id', commissionId)
     expect(error).not.toBeNull()
 
     const svc = serviceClient()

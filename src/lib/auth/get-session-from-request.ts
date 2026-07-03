@@ -50,7 +50,9 @@ function decodeAndVerifyJwt(token: string): ActiveSession | null {
 
   let claims: JwtClaims
   try {
-    claims = JSON.parse(Buffer.from(b64urlToB64(payloadB64), 'base64').toString('utf8')) as JwtClaims
+    claims = JSON.parse(
+      Buffer.from(b64urlToB64(payloadB64), 'base64').toString('utf8'),
+    ) as JwtClaims
   } catch {
     return null
   }

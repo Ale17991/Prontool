@@ -15,10 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
-import type {
-  QuickViewSnapshot,
-  SheetKind,
-} from '@/lib/core/patient-timeline'
+import type { QuickViewSnapshot, SheetKind } from '@/lib/core/patient-timeline'
 import { QuickViewAllergiesCard } from './quick-view-allergies-card'
 import { PatientTagsCard } from '@/components/patient-tags/patient-tags-card'
 
@@ -39,15 +36,12 @@ function bmiClass(bmi: number | null): {
   className: string
 } | null {
   if (bmi === null) return null
-  if (bmi < 18.5)
-    return { label: 'Abaixo', className: 'bg-info-bg text-info-text' }
-  if (bmi < 25)
-    return { label: 'Normal', className: 'bg-success-bg text-success-text' }
+  if (bmi < 18.5) return { label: 'Abaixo', className: 'bg-info-bg text-info-text' }
+  if (bmi < 25) return { label: 'Normal', className: 'bg-success-bg text-success-text' }
   if (bmi < 30)
     return {
       label: 'Sobrepeso',
-      className:
-        'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
+      className: 'bg-[hsl(var(--warning)/0.2)] text-[hsl(var(--warning-foreground))]',
     }
   return {
     label: 'Obeso',
@@ -112,9 +106,7 @@ export function PatientQuickView({
                 {identity.fullName || '—'}
               </p>
               <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">
-                {identity.ageYears !== null
-                  ? `${identity.ageYears} anos`
-                  : 'Idade não informada'}
+                {identity.ageYears !== null ? `${identity.ageYears} anos` : 'Idade não informada'}
               </p>
               <p className="mt-0.5 font-mono text-[10px] text-slate-500">
                 CPF {identity.cpf || '—'}
@@ -221,9 +213,7 @@ export function PatientQuickView({
                 >
                   <span className="font-mono font-bold">{d.cid10Code}</span>
                   {d.status === 'em_acompanhamento' ? (
-                    <span className="text-[8px] uppercase opacity-70">
-                      acomp.
-                    </span>
+                    <span className="text-[8px] uppercase opacity-70">acomp.</span>
                   ) : null}
                 </span>
               ))}
@@ -254,10 +244,7 @@ export function PatientQuickView({
                     : '—'
                 }
               />
-              <VitalLine
-                label="FC"
-                value={lastVital.heartRate?.toString() ?? '—'}
-              />
+              <VitalLine label="FC" value={lastVital.heartRate?.toString() ?? '—'} />
               <VitalLine
                 label="Peso"
                 value={
@@ -286,8 +273,16 @@ export function PatientQuickView({
                 Financeiro
               </p>
             </div>
-            <FinLine label="Recebido" value={formatCurrency(financial.receivedCents)} accent="success" />
-            <FinLine label="Pendente" value={formatCurrency(financial.pendingCents)} accent={financial.pendingCents > 0 ? 'warning' : 'neutral'} />
+            <FinLine
+              label="Recebido"
+              value={formatCurrency(financial.receivedCents)}
+              accent="success"
+            />
+            <FinLine
+              label="Pendente"
+              value={formatCurrency(financial.pendingCents)}
+              accent={financial.pendingCents > 0 ? 'warning' : 'neutral'}
+            />
             {financial.lastPaidAt ? (
               <FinLine
                 label="Última paga"
@@ -303,46 +298,25 @@ export function PatientQuickView({
       <Card>
         <CardContent className="grid grid-cols-2 gap-1.5 p-3">
           {permissions.canCreateEvolution ? (
-            <ActionButton
-              label="Evolução"
-              onClick={() => onOpenSheet('new-evolution')}
-            />
+            <ActionButton label="Evolução" onClick={() => onOpenSheet('new-evolution')} />
           ) : null}
           {permissions.canCreateAnamnesis ? (
-            <ActionButton
-              label="Anamnese"
-              onClick={() => onOpenSheet('new-anamnese')}
-            />
+            <ActionButton label="Anamnese" onClick={() => onOpenSheet('new-anamnese')} />
           ) : null}
           {permissions.canCreateVital ? (
-            <ActionButton
-              label="Sinal vital"
-              onClick={() => onOpenSheet('new-vital')}
-            />
+            <ActionButton label="Sinal vital" onClick={() => onOpenSheet('new-vital')} />
           ) : null}
           {permissions.canCreateDiagnosis ? (
-            <ActionButton
-              label="Diagnóstico"
-              onClick={() => onOpenSheet('new-diagnosis')}
-            />
+            <ActionButton label="Diagnóstico" onClick={() => onOpenSheet('new-diagnosis')} />
           ) : null}
           {permissions.canCreateHistory ? (
-            <ActionButton
-              label="Antecedente"
-              onClick={() => onOpenSheet('new-history')}
-            />
+            <ActionButton label="Antecedente" onClick={() => onOpenSheet('new-history')} />
           ) : null}
           {permissions.canCreateText ? (
-            <ActionButton
-              label="Nota"
-              onClick={() => onOpenSheet('new-text')}
-            />
+            <ActionButton label="Nota" onClick={() => onOpenSheet('new-text')} />
           ) : null}
           {permissions.canUploadFile ? (
-            <ActionButton
-              label="Arquivo"
-              onClick={() => onOpenSheet('upload-file')}
-            />
+            <ActionButton label="Arquivo" onClick={() => onOpenSheet('upload-file')} />
           ) : null}
           {permissions.canPrint ? (
             <Button
@@ -372,17 +346,12 @@ function VitalLine({
 }) {
   return (
     <div>
-      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-        {label}
-      </p>
+      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
       <div className="flex items-center gap-1">
         <p className="font-bold text-slate-700">{value}</p>
         {badge ? (
           <span
-            className={cn(
-              'rounded px-1 py-0.5 text-[8px] font-bold uppercase',
-              badge.className,
-            )}
+            className={cn('rounded px-1 py-0.5 text-[8px] font-bold uppercase', badge.className)}
           >
             {badge.label}
           </span>
@@ -415,20 +384,9 @@ function FinLine({
   )
 }
 
-function ActionButton({
-  label,
-  onClick,
-}: {
-  label: string
-  onClick: () => void
-}) {
+function ActionButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-8 text-[11px] font-bold"
-      onClick={onClick}
-    >
+    <Button size="sm" variant="outline" className="h-8 text-[11px] font-bold" onClick={onClick}>
       + {label}
     </Button>
   )

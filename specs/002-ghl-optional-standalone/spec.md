@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: User description: "Tornar o Prontool completamente independente do GoHighLevel, mantendo integração opcional para quem usa. O sistema deve funcionar 100% standalone e também em conjunto com GHL quando configurado."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 — Clínica standalone usa o Prontool sem GHL (Priority: P1)
 
@@ -67,7 +67,7 @@ Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhoo
 - **Dois admins mudando status ao mesmo tempo**: Última escrita vence. Audit log mostra os dois eventos. Sem necessidade de locking.
 - **Credenciais inválidas no primeiro teste**: Formulário oferece "Testar conexão" antes de salvar; se falhar, mostra erro e não persiste. (P3 — detalhe de UX, não bloqueia o fluxo principal.)
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -88,7 +88,7 @@ Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhoo
 - **FR-015**: Logs estruturados (pino) MUST continuar registrando eventos de sync GHL apenas para tenants conectados; para tenants standalone não deve haver log de "integração pendente", "sem secret" ou equivalente.
 - **FR-016**: Relatório mensal e todas as agregações derivadas MUST incluir atendimentos criados manualmente e via webhook de forma indistinguível para o usuário final.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Tenant (existente)**: A clínica/consultório. Não muda de estrutura, mas ganha o conceito implícito de "modo de operação" = standalone ou GHL-conectado, derivado de `tenant_ghl_config`.
 - **Tenant GHL Config (existente, `tenant_ghl_config`)**: Fonte única da verdade sobre conexão GHL. Presença = conectado. Ausência = standalone. Já contém webhook secret criptografado, trigger stage e field mappings.
@@ -96,7 +96,7 @@ Uma clínica com GHL conectado tem a integração fluindo invisivelmente: webhoo
 - **Appointment (existente)**: Coluna `source` passa a aceitar o valor `'manual'` além de `'webhook'`. Processamento de comissão, relatório e estorno independe da origem.
 - **Audit log (existente)**: Recebe eventos `ghl.connect` e `ghl.disconnect` da tela de configuração.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

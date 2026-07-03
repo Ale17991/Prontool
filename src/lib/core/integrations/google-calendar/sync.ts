@@ -29,7 +29,6 @@ function loose(supabase: SupabaseClient<Database>): SupabaseClient {
   return supabase as unknown as SupabaseClient
 }
 
-
 /** Médico → usuário (conta). Null = médico não vinculado a usuário. 1 query. */
 async function resolveDoctorUser(
   supabase: SupabaseClient<Database>,
@@ -56,12 +55,19 @@ async function loadEventDetails(
   const [apptRes, procRes, tz] = await Promise.all([
     sb.from('appointments').select('duration_minutes').eq('id', appt.id).maybeSingle(),
     appt.procedureId
-      ? sb.from('procedures').select('display_name').eq('tenant_id', appt.tenantId).eq('id', appt.procedureId).maybeSingle()
+      ? sb
+          .from('procedures')
+          .select('display_name')
+          .eq('tenant_id', appt.tenantId)
+          .eq('id', appt.procedureId)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
     getTenantTimezone(supabase, appt.tenantId),
   ])
   return {
-    durationMinutes: (apptRes.data as { duration_minutes: number | null } | null)?.duration_minutes ?? DEFAULT_DURATION_MIN,
+    durationMinutes:
+      (apptRes.data as { duration_minutes: number | null } | null)?.duration_minutes ??
+      DEFAULT_DURATION_MIN,
     procedureName: (procRes.data as { display_name: string | null } | null)?.display_name ?? null,
     timeZone: tz,
   }
@@ -126,7 +132,11 @@ async function resolvePatientFirstName(
   }
 }
 
-async function onCreated(supabase: SupabaseClient<Database>, appt: AppointmentSnapshot, patientNameHint: string): Promise<void> {
+async function onCreated(
+  supabase: SupabaseClient<Database>,
+  appt: AppointmentSnapshot,
+  patientNameHint: string,
+): Promise<void> {
   // 1) Médico → usuário (1 query). Sem vínculo → nada a fazer.
   const doctor = await resolveDoctorUser(supabase, appt.tenantId, appt.doctorId)
   if (!doctor) return
@@ -168,7 +178,10 @@ async function onCreated(supabase: SupabaseClient<Database>, appt: AppointmentSn
       status: 'synced',
     })
   } catch (err) {
-    logger.error({ err: (err as Error).message, appointmentId: appt.id }, 'google-calendar-create-failed')
+    logger.error(
+      { err: (err as Error).message, appointmentId: appt.id },
+      'google-calendar-create-failed',
+    )
     await recordSync(supabase, {
       appointmentId: appt.id,
       tenantId: appt.tenantId,
@@ -181,14 +194,23 @@ async function onCreated(supabase: SupabaseClient<Database>, appt: AppointmentSn
   }
 }
 
-async function onReversed(supabase: SupabaseClient<Database>, appointmentId: string, tenantId: string): Promise<void> {
+async function onReversed(
+  supabase: SupabaseClient<Database>,
+  appointmentId: string,
+  tenantId: string,
+): Promise<void> {
   const { data } = await loose(supabase)
     .from('appointment_calendar_sync')
     .select('user_id, calendar_id, external_event_id, status')
     .eq('appointment_id', appointmentId)
     .eq('provider', PROVIDER)
     .maybeSingle()
-  const row = data as { user_id: string | null; calendar_id: string | null; external_event_id: string | null; status: string } | null
+  const row = data as {
+    user_id: string | null
+    calendar_id: string | null
+    external_event_id: string | null
+    status: string
+  } | null
   if (!row || row.status === 'deleted' || !row.external_event_id || !row.user_id) return
 
   const auth = await withGoogleAuth(supabase, row.user_id, tenantId)

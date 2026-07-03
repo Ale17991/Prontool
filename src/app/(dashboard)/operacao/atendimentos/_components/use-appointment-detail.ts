@@ -55,7 +55,12 @@ export function useAppointmentDetail(id: string | null): AppointmentDetailState 
       })
       .catch((err: unknown) => {
         if (ctrl.signal.aborted) return
-        if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'AbortError') {
+        if (
+          err &&
+          typeof err === 'object' &&
+          'name' in err &&
+          (err as { name: string }).name === 'AbortError'
+        ) {
           return
         }
         const e = err as { code?: string; message?: string }

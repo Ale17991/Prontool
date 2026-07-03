@@ -12,8 +12,7 @@ import {
  * Reusa helpers do create-contact para custom_fields + headers.
  */
 
-export interface UpdateContactInput
-  extends Omit<CreateContactInput, 'locationId'> {
+export interface UpdateContactInput extends Omit<CreateContactInput, 'locationId'> {
   contactId: string
 }
 

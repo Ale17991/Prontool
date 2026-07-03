@@ -64,7 +64,7 @@ export async function renderExpensesExcel(
       category: CATEGORY_LABEL[r.category] ?? r.category,
       description: r.description,
       supplier: r.supplier ?? '',
-      recurring: r.recurring ? FREQ_LABEL[r.frequency ?? ''] ?? 'Recorrente' : 'Avulsa',
+      recurring: r.recurring ? (FREQ_LABEL[r.frequency ?? ''] ?? 'Recorrente') : 'Avulsa',
       tax: r.tax_name ?? '',
       amount: r.amount_cents / 100,
     })
@@ -88,7 +88,13 @@ export async function renderExpensesExcel(
   if (meta.tenantLabel) info.addRow({ k: 'Clínica', v: meta.tenantLabel })
   info.addRow({ k: 'Período de', v: meta.from ?? '—' })
   info.addRow({ k: 'Período até', v: meta.to ?? '—' })
-  info.addRow({ k: 'Categoria', v: meta.category && meta.category !== 'all' ? (CATEGORY_LABEL[meta.category] ?? meta.category) : 'Todas' })
+  info.addRow({
+    k: 'Categoria',
+    v:
+      meta.category && meta.category !== 'all'
+        ? (CATEGORY_LABEL[meta.category] ?? meta.category)
+        : 'Todas',
+  })
   info.addRow({ k: 'Lançamentos', v: rows.length })
   const t = info.addRow({ k: 'Total', v: totalCents / 100 })
   t.getCell('v').numFmt = BRL

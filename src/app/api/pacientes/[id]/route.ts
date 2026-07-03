@@ -63,10 +63,7 @@ const patchSchema = z
     { message: 'Informe plan_id, address, identity, status ou alert_note para atualizar.' },
   )
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   try {
     const session = await requireRole(
       ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],

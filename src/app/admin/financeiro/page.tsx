@@ -40,10 +40,26 @@ export default async function AdminFinanceiroPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <KpiCard label="MRR total" value={formatCurrency(summary.mrrTotalCents)} icon={<DollarSign className="h-4 w-4 text-success-text" />} />
-            <KpiCard label="Ativas" value={String(summary.countByStatus.active)} icon={<DollarSign className="h-4 w-4" />} />
-            <KpiCard label="Em trial" value={String(summary.countByStatus.trial)} icon={<Clock className="h-4 w-4 text-[hsl(var(--warning-foreground))]" />} />
-            <KpiCard label="Inadimplentes" value={String(summary.countByStatus.past_due)} icon={<AlertTriangle className="h-4 w-4 text-destructive" />} />
+            <KpiCard
+              label="MRR total"
+              value={formatCurrency(summary.mrrTotalCents)}
+              icon={<DollarSign className="h-4 w-4 text-success-text" />}
+            />
+            <KpiCard
+              label="Ativas"
+              value={String(summary.countByStatus.active)}
+              icon={<DollarSign className="h-4 w-4" />}
+            />
+            <KpiCard
+              label="Em trial"
+              value={String(summary.countByStatus.trial)}
+              icon={<Clock className="h-4 w-4 text-[hsl(var(--warning-foreground))]" />}
+            />
+            <KpiCard
+              label="Inadimplentes"
+              value={String(summary.countByStatus.past_due)}
+              icon={<AlertTriangle className="h-4 w-4 text-destructive" />}
+            />
           </div>
 
           <section className="rounded-lg border border-slate-200 bg-white p-4">
@@ -52,16 +68,25 @@ export default async function AdminFinanceiroPage() {
               {PLANS.map((p) => (
                 <div key={p} className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">
-                    {PLAN_LABEL[p]} <span className="text-xs text-slate-400">({summary!.mrrByPlan[p].count} ativas × {formatCurrency(prices![p])})</span>
+                    {PLAN_LABEL[p]}{' '}
+                    <span className="text-xs text-slate-400">
+                      ({summary!.mrrByPlan[p].count} ativas × {formatCurrency(prices![p])})
+                    </span>
                   </span>
-                  <span className="font-semibold tabular-nums text-slate-900">{formatCurrency(summary!.mrrByPlan[p].cents)}</span>
+                  <span className="font-semibold tabular-nums text-slate-900">
+                    {formatCurrency(summary!.mrrByPlan[p].cents)}
+                  </span>
                 </div>
               ))}
             </div>
           </section>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <ListCard title="Trials a vencer" icon={<Clock className="h-4 w-4" />} empty="Nenhum trial próximo.">
+            <ListCard
+              title="Trials a vencer"
+              icon={<Clock className="h-4 w-4" />}
+              empty="Nenhum trial próximo."
+            >
               {summary.trialsEnding.map((t) => (
                 <li key={t.tenantId} className="flex justify-between">
                   <span>{t.name}</span>
@@ -69,7 +94,11 @@ export default async function AdminFinanceiroPage() {
                 </li>
               ))}
             </ListCard>
-            <ListCard title="Inadimplentes" icon={<AlertTriangle className="h-4 w-4 text-destructive" />} empty="Nenhum inadimplente.">
+            <ListCard
+              title="Inadimplentes"
+              icon={<AlertTriangle className="h-4 w-4 text-destructive" />}
+              empty="Nenhum inadimplente."
+            >
               {summary.pastDue.map((t) => (
                 <li key={t.tenantId} className="flex justify-between">
                   <span>{t.name}</span>
@@ -77,7 +106,11 @@ export default async function AdminFinanceiroPage() {
                 </li>
               ))}
             </ListCard>
-            <ListCard title="Churn (cancelados)" icon={<TrendingDown className="h-4 w-4" />} empty="Nenhum cancelamento.">
+            <ListCard
+              title="Churn (cancelados)"
+              icon={<TrendingDown className="h-4 w-4" />}
+              empty="Nenhum cancelamento."
+            >
               {summary.churn.map((t) => (
                 <li key={t.tenantId} className="flex justify-between">
                   <span>{t.name}</span>
@@ -99,14 +132,21 @@ function KpiCard(props: { label: string; value: string; icon: React.ReactNode })
     <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4">
       <div className="rounded-lg bg-slate-50 p-2 text-slate-500">{props.icon}</div>
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{props.label}</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          {props.label}
+        </p>
         <p className="text-base font-bold tabular-nums text-slate-900">{props.value}</p>
       </div>
     </div>
   )
 }
 
-function ListCard(props: { title: string; icon: React.ReactNode; empty: string; children: React.ReactNode }) {
+function ListCard(props: {
+  title: string
+  icon: React.ReactNode
+  empty: string
+  children: React.ReactNode
+}) {
   const items = Array.isArray(props.children) ? props.children : [props.children]
   const hasItems = items.some((c) => c)
   return (

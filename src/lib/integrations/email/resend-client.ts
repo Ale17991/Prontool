@@ -177,8 +177,7 @@ export async function sendSupportTicketEmail(
 function renderSupportTicketHtml(x: SendSupportTicketEmailInput): string {
   const kindLabel =
     x.kind === 'bug' ? 'Bug / Erro' : x.kind === 'suggestion' ? 'Sugestão' : 'Suporte'
-  const kindColor =
-    x.kind === 'bug' ? '#b91c1c' : x.kind === 'suggestion' ? '#1d4ed8' : '#15803d'
+  const kindColor = x.kind === 'bug' ? '#b91c1c' : x.kind === 'suggestion' ? '#1d4ed8' : '#15803d'
   const row = (label: string, value: string | null) =>
     value
       ? `<tr><td style="padding: 4px 12px 4px 0; color: #64748b; vertical-align: top;">${escapeHtml(label)}</td><td style="padding: 4px 0; color: #0f172a;">${escapeHtml(value)}</td></tr>`
@@ -202,7 +201,11 @@ function renderSupportTicketHtml(x: SendSupportTicketEmailInput): string {
 </html>`
 }
 
-function renderAlertHtml(x: { subject: string; bodyMarkdown: string; dashboardUrl: string }): string {
+function renderAlertHtml(x: {
+  subject: string
+  bodyMarkdown: string
+  dashboardUrl: string
+}): string {
   // Very deliberate: no dynamic PII-bearing fields rendered here.
   const escaped = escapeHtml(x.bodyMarkdown)
   return `<!doctype html>

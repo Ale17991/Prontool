@@ -200,9 +200,7 @@ export async function POST(req: Request, { params }: Params): Promise<Response> 
       actorUserId: session.userId,
       actorLabel: session.email ? `user:${session.email}` : null,
       adapter,
-      before: existing
-        ? { config: existing.config, credentials: existingCreds }
-        : null,
+      before: existing ? { config: existing.config, credentials: existingCreds } : null,
       after: { config: configParsed.data, credentials: credsParsed.data },
       reason: parsed.data.reason,
       ip,

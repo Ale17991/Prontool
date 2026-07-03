@@ -35,7 +35,8 @@ export function useChat(): ChatContextValue {
 function playBeep(strong: boolean) {
   try {
     const Ctx =
-      window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
     if (!Ctx) return
     const ac = new Ctx()
     const osc = ac.createOscillator()
@@ -177,11 +178,12 @@ export function ChatProvider({
 
             if (!onChatPageRef.current) {
               const isDm = msg.toUserId !== null
-              const prefix = msg.kind === 'nudge'
-                ? `${msg.fromName} chamou sua atenção!`
-                : isDm
-                  ? `${msg.fromName} (privado): ${msg.content}`
-                  : msg.content
+              const prefix =
+                msg.kind === 'nudge'
+                  ? `${msg.fromName} chamou sua atenção!`
+                  : isDm
+                    ? `${msg.fromName} (privado): ${msg.content}`
+                    : msg.content
               setUnread((n) => n + 1)
               setPopup({
                 id: msg.id,

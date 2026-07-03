@@ -23,7 +23,7 @@ Registrar, por **linha de procedimento** de um atendimento, a equipe de particip
 
 ## Constitution Check
 
-*GATE: passa antes da Phase 0 e revalidado após Phase 1.*
+_GATE: passa antes da Phase 0 e revalidado após Phase 1._
 
 - **I. Integridade Financeira Imutável** ✅ — Reusa tabela append-only; honorário congelado no INSERT; correção via soft-unlink + novo registro. Nenhum UPDATE/DELETE físico de valor. Novas colunas são aditivas.
 - **II. Auditabilidade Total** ✅ — Inclusão e remoção de participação chamam `log_audit_event` (ator, timestamp, tenant, valores, motivo, ip/ua), padrão já usado em assistentes.

@@ -21,9 +21,7 @@ import type { Database } from '../../src/lib/db/types'
 let envLoaded = false
 export function loadEnv() {
   if (envLoaded) return
-  const envFile = ['.env.test', '.env.local'].find((f) =>
-    existsSync(join(process.cwd(), f)),
-  )
+  const envFile = ['.env.test', '.env.local'].find((f) => existsSync(join(process.cwd(), f)))
   if (envFile) {
     const lines = readFileSync(envFile, 'utf8').split(/\r?\n/)
     for (const line of lines) {
@@ -62,9 +60,7 @@ export function serviceClient(): SupabaseClient<Database> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
-    throw new Error(
-      'NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing from .env.local',
-    )
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing from .env.local')
   }
   return createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -129,10 +125,7 @@ export function signPayload(secret: string, timestamp: string, rawBody: string):
   return createHmac('sha256', secret).update(`${timestamp}.${rawBody}`).digest('hex')
 }
 
-export function buildDemoGhlPayload(overrides: {
-  event_id: string
-  patient_name: string
-}) {
+export function buildDemoGhlPayload(overrides: { event_id: string; patient_name: string }) {
   return {
     event_id: overrides.event_id,
     event_type: 'pipeline_stage_changed',

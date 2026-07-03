@@ -23,7 +23,9 @@ import {
 const CLINIC = process.argv[2] ?? 'Ambiente de testes'
 const DURATIONS = [30, 40, 60]
 
-async function resolveTenant(sb: SupabaseClient<Database>): Promise<{ id: string; slug: string | null }> {
+async function resolveTenant(
+  sb: SupabaseClient<Database>,
+): Promise<{ id: string; slug: string | null }> {
   const bySlug = await sb.from('tenants').select('id, slug').eq('slug', CLINIC).maybeSingle()
   if (bySlug.data) return bySlug.data as { id: string; slug: string | null }
   const byName = await sb.from('tenants').select('id, slug').ilike('name', CLINIC).maybeSingle()
@@ -37,7 +39,8 @@ async function main() {
 
   const current = await getPublicBookingConfig(sb, tenant.id)
   const slug = current.config.publicBookingSlug ?? tenant.slug
-  if (!slug) throw new Error('Clínica sem slug — defina um slug antes de habilitar o agendamento público.')
+  if (!slug)
+    throw new Error('Clínica sem slug — defina um slug antes de habilitar o agendamento público.')
 
   await updatePublicBookingConfig(sb, tenant.id, {
     publicBookingSlug: slug,
@@ -64,9 +67,13 @@ async function main() {
   const procedures = (procRows ?? []) as Array<{ id: string; display_name: string | null }>
 
   console.log(`[public-booking] clínica ${CLINIC} (${tenant.id}) · slug "${slug}"`)
-  console.log(`  ${doctors.length} médico(s) ativo(s), ${procedures.length} procedimento(s) ativo(s)`)
-  if (doctors.length === 0) throw new Error('Nenhum médico ativo na clínica — cadastre médicos primeiro.')
-  if (procedures.length === 0) throw new Error('Nenhum procedimento ativo na clínica — cadastre procedimentos primeiro.')
+  console.log(
+    `  ${doctors.length} médico(s) ativo(s), ${procedures.length} procedimento(s) ativo(s)`,
+  )
+  if (doctors.length === 0)
+    throw new Error('Nenhum médico ativo na clínica — cadastre médicos primeiro.')
+  if (procedures.length === 0)
+    throw new Error('Nenhum procedimento ativo na clínica — cadastre procedimentos primeiro.')
 
   for (let i = 0; i < doctors.length; i++) {
     const d = doctors[i]!

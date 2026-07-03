@@ -18,18 +18,12 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { ForbiddenError, UnauthorizedError } from '@/lib/observability/errors'
 import type { Database } from '@/lib/db/types'
 import { sendOneReminder } from '@/lib/core/reminders/send-one'
-import type {
-  EligibleAppointment,
-  TenantReminderSettings,
-} from '@/lib/core/reminders/types'
+import type { EligibleAppointment, TenantReminderSettings } from '@/lib/core/reminders/types'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-export async function POST(
-  request: NextRequest,
-  context: { params: { id: string } },
-) {
+export async function POST(request: NextRequest, context: { params: { id: string } }) {
   const appointmentId = context.params.id
   if (!appointmentId) {
     return NextResponse.json({ error: 'APPOINTMENT_NOT_FOUND' }, { status: 404 })
@@ -90,16 +84,10 @@ export async function POST(
 
   // 3. Valida elegibilidade
   if (!a.patients?.email_enc) {
-    return NextResponse.json(
-      { error: 'NOT_ELIGIBLE', code: 'NO_EMAIL' },
-      { status: 422 },
-    )
+    return NextResponse.json({ error: 'NOT_ELIGIBLE', code: 'NO_EMAIL' }, { status: 422 })
   }
   if ((a.patients.reminders_opt_in as boolean | null) === false) {
-    return NextResponse.json(
-      { error: 'NOT_ELIGIBLE', code: 'PATIENT_OPT_OUT' },
-      { status: 422 },
-    )
+    return NextResponse.json({ error: 'NOT_ELIGIBLE', code: 'PATIENT_OPT_OUT' }, { status: 422 })
   }
 
   const revRes = await supabase
@@ -109,10 +97,7 @@ export async function POST(
     .eq('appointment_id', appointmentId)
     .maybeSingle()
   if (revRes.data) {
-    return NextResponse.json(
-      { error: 'NOT_ELIGIBLE', code: 'REVERSED' },
-      { status: 422 },
-    )
+    return NextResponse.json({ error: 'NOT_ELIGIBLE', code: 'REVERSED' }, { status: 422 })
   }
 
   // 4. Carrega config + clinic info do tenant
@@ -139,8 +124,7 @@ export async function POST(
     reminder_window_end: string | null
   }
 
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
   const publicBookingUrl =
     clinic.public_booking_enabled === true && clinic.public_booking_slug
       ? `${appUrl}/agendar/${clinic.public_booking_slug}`
@@ -176,10 +160,7 @@ export async function POST(
   }
 
   // 5. Send
-  logger.info(
-    { appointmentId, actorUserId: session.userId },
-    'manual-resend-start',
-  )
+  logger.info({ appointmentId, actorUserId: session.userId }, 'manual-resend-start')
 
   try {
     const record = await sendOneReminder({

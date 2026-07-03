@@ -15,11 +15,11 @@ medication.
 
 We ingest three of ANS's tables into `tuss_codes`:
 
-| Table | Name | Rows (as of 2026-04-23) |
-|------:|------|---:|
-| **22** | Procedimentos e eventos em saúde | 5.851 |
-| **19** | Materiais e OPME | 38.553 |
-| **20** | Medicamentos | 1.114 |
+|  Table | Name                             | Rows (as of 2026-04-23) |
+| -----: | -------------------------------- | ----------------------: |
+| **22** | Procedimentos e eventos em saúde |                   5.851 |
+| **19** | Materiais e OPME                 |                  38.553 |
+| **20** | Medicamentos                     |                   1.114 |
 
 The `tuss_codes.tuss_table` discriminator tells the app which table a
 given code came from. Collision testing (`scripts/check-tuss-collision.mjs`)
@@ -131,6 +131,7 @@ precisely because the upstream is unlicensed. To lift the gate:
    stop requiring `SEED_TUSS_FORCE=1` in the production seed runbook.
 
 Until then, every production seed of TUSS must:
+
 - Be run by the platform operator, not by tenants.
 - Attach `SEED_TUSS_FORCE=1` explicitly.
 - Include the legal justification in the change-management ticket.

@@ -33,17 +33,15 @@ describe('Feature 030 — RBAC de patient_measurements', () => {
 
   function insertAs(role: TenantRole) {
     const { jwt, userId } = jwts[role]!
-    return rlsClient(jwt)
-      .from('patient_measurements')
-      .insert({
-        tenant_id: tenantId,
-        patient_id: patientId,
-        metric_type: 'glicemia_jejum',
-        value: 110,
-        unit: 'mg/dL',
-        measured_at: '2026-05-10',
-        created_by_user_id: userId,
-      })
+    return rlsClient(jwt).from('patient_measurements').insert({
+      tenant_id: tenantId,
+      patient_id: patientId,
+      metric_type: 'glicemia_jejum',
+      value: 110,
+      unit: 'mg/dL',
+      measured_at: '2026-05-10',
+      created_by_user_id: userId,
+    })
   }
 
   it('admin insere medição', async () => {

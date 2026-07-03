@@ -59,28 +59,26 @@ describe('Feature 013 — backfill payment terms history', () => {
     // Como o helper test_truncate truncou tudo (incluindo a row do backfill
     // original), simulamos o resultado do BACKFILL via INSERT direto com o
     // mesmo shape que o SQL da migration produziria.
-    const { error: backfillErr } = await sb
-      .from('doctor_payment_terms_history' as never)
-      .insert([
-        {
-          tenant_id: tenantId,
-          doctor_id: doctorWithCommissionId,
-          payment_mode: 'comissionado',
-          percentage_bps: 4500,
-          valid_from: '2022-03-15',
-          reason: 'Backfill 0084 — preserva modalidade comissionado existente',
-          created_by: '00000000-0000-0000-0000-000000000000',
-        },
-        {
-          tenant_id: tenantId,
-          doctor_id: doctorWithoutCommissionId,
-          payment_mode: 'comissionado',
-          percentage_bps: 0,
-          valid_from: new Date().toISOString().slice(0, 10),
-          reason: 'Backfill 0084 — preserva modalidade comissionado existente',
-          created_by: '00000000-0000-0000-0000-000000000000',
-        },
-      ] as never)
+    const { error: backfillErr } = await sb.from('doctor_payment_terms_history' as never).insert([
+      {
+        tenant_id: tenantId,
+        doctor_id: doctorWithCommissionId,
+        payment_mode: 'comissionado',
+        percentage_bps: 4500,
+        valid_from: '2022-03-15',
+        reason: 'Backfill 0084 — preserva modalidade comissionado existente',
+        created_by: '00000000-0000-0000-0000-000000000000',
+      },
+      {
+        tenant_id: tenantId,
+        doctor_id: doctorWithoutCommissionId,
+        payment_mode: 'comissionado',
+        percentage_bps: 0,
+        valid_from: new Date().toISOString().slice(0, 10),
+        reason: 'Backfill 0084 — preserva modalidade comissionado existente',
+        created_by: '00000000-0000-0000-0000-000000000000',
+      },
+    ] as never)
     if (backfillErr) throw new Error(`backfill simulation: ${backfillErr.message}`)
   })
 
@@ -115,10 +113,7 @@ describe('Feature 013 — backfill payment terms history', () => {
 
   it('doctors.payment_mode default é "comissionado" para todos os legados', async () => {
     const sb = serviceClient()
-    const { data } = await sb
-      .from('doctors')
-      .select('id, payment_mode')
-      .eq('tenant_id', tenantId)
+    const { data } = await sb.from('doctors').select('id, payment_mode').eq('tenant_id', tenantId)
     for (const row of (data ?? []) as Array<{ payment_mode: string }>) {
       expect(row.payment_mode).toBe('comissionado')
     }

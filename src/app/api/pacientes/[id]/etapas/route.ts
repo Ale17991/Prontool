@@ -30,16 +30,21 @@ const createSchema = z.object({
     .nullable(),
   // Novos campos da feature 005: horario obrigatorio quando ambos vierem.
   // Compat: se ambos ausentes, legado (sem appointment vinculado).
-  start_time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
-  end_time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+  start_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional()
+    .nullable(),
+  end_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .optional()
+    .nullable(),
   /** Materiais opcionais (TUSS tabela 19). Anexados apenas quando ha appointment vinculado. */
   materiais: z.array(materialItemSchema).max(50).optional(),
 })
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/etapas`
   try {
     const session = await requireRole(
@@ -93,8 +98,7 @@ export async function POST(
 
     // Caminho NOVO: scheduled_date + start_time + end_time presentes →
     // RPC create_step_with_appointment cria appointment + step linkados.
-    const hasSchedule =
-      parsed.data.scheduled_date && parsed.data.start_time && parsed.data.end_time
+    const hasSchedule = parsed.data.scheduled_date && parsed.data.start_time && parsed.data.end_time
     if (hasSchedule) {
       const result = await createStepWithAppointment(supabase, {
         tenantId: session.tenantId,
