@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { superAdminUserId } from '@/lib/auth/platform-admin'
 import { listTeamMembers } from '@/lib/core/team/list'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { ClinicDataForm } from './clinic-data-form'
@@ -60,6 +61,9 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
 
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
   if (!tenant) notFound()
+
+  // Só o super-admin geral pode "Entrar e editar"; suporte só visualiza.
+  const isSuper = (await superAdminUserId()) !== null
 
   const profile = await getClinicProfile(sb, id)
 
@@ -136,7 +140,7 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
         </Link>
       </div>
 
-      <ClinicDetail row={row} metrics={metrics} users={users} audit={audit} />
+      <ClinicDetail row={row} metrics={metrics} users={users} audit={audit} isSuper={isSuper} />
 
       <ClinicDataForm
         tenantId={tenant.id}

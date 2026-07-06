@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Activity,
   CalendarDays,
+  Eye,
   KeyRound,
   LogIn,
   Loader2,
@@ -97,11 +98,13 @@ export function ClinicDetail({
   metrics,
   users,
   audit,
+  isSuper,
 }: {
   row: ClinicDetailRow
   metrics: Metrics
   users: ClinicUserRow[]
   audit: AuditEntry[]
+  isSuper: boolean
 }) {
   const router = useRouter()
   const [plan, setPlan] = useState<Plan>(row.plan)
@@ -112,7 +115,7 @@ export function ClinicDetail({
   )
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; msg: string } | null>(null)
   const [pending, startTransition] = useTransition()
-  const [entering, setEntering] = useState(false)
+  const [entering, setEntering] = useState<'edit' | 'view' | null>(null)
   const [status, setStatus] = useState<'active' | 'suspended'>(row.status)
   const [statusPending, startStatusTransition] = useTransition()
   const [resetSending, setResetSending] = useState<string | null>(null)
@@ -214,22 +217,24 @@ export function ClinicDetail({
     })()
   }
 
-  function enter() {
+  function enter(mode: 'edit' | 'view') {
     setFeedback(null)
-    setEntering(true)
+    setEntering(mode)
     void (async () => {
       try {
         void adminLogEnterClinicAction(row.tenantId)
-        // Feature 043 (US5) — entra em modo IMPERSONAÇÃO READ-ONLY (escrita
-        // bloqueada no servidor pelo middleware enquanto durar a sessão).
-        const res = await fetch('/api/admin/impersonation/start', {
+        // "edit" = switch de escrita (super-admin, 0171). "view" = impersonação
+        // READ-ONLY (escrita bloqueada no servidor pelo middleware).
+        const url =
+          mode === 'edit' ? '/api/admin/enter-edit' : '/api/admin/impersonation/start'
+        const res = await fetch(url, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ tenantId: row.tenantId }),
         })
         if (!res.ok) {
           setFeedback({ kind: 'error', msg: 'Não foi possível entrar na clínica.' })
-          setEntering(false)
+          setEntering(null)
           return
         }
         const sb = createSupabaseBrowserClient()
@@ -238,7 +243,7 @@ export function ClinicDetail({
         router.refresh()
       } catch {
         setFeedback({ kind: 'error', msg: 'Não foi possível entrar na clínica.' })
-        setEntering(false)
+        setEntering(null)
       }
     })()
   }
@@ -264,13 +269,33 @@ export function ClinicDetail({
           <p className="mt-0.5 text-[11px] text-slate-400">{row.slug}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={enter} disabled={entering}>
-            {entering ? (
+          {isSuper ? (
+            <Button
+              variant="default"
+              onClick={() => enter('edit')}
+              disabled={entering !== null}
+              title="Entrar na clínica com permissão de edição"
+            >
+              {entering === 'edit' ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="mr-1.5 h-4 w-4" />
+              )}
+              Entrar e editar
+            </Button>
+          ) : null}
+          <Button
+            variant="outline"
+            onClick={() => enter('view')}
+            disabled={entering !== null}
+            title="Entrar apenas para visualizar (somente-leitura)"
+          >
+            {entering === 'view' ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
             ) : (
-              <LogIn className="mr-1.5 h-4 w-4" />
+              <Eye className="mr-1.5 h-4 w-4" />
             )}
-            Entrar na clínica
+            Só visualizar
           </Button>
           <Button
             variant={status === 'active' ? 'outline' : 'default'}

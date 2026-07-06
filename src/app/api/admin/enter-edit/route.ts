@@ -6,14 +6,20 @@ import { IMPERSONATION_COOKIE } from '@/lib/core/auth/impersonation'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
- * Feature 043 (US5) — inicia impersonação READ-ONLY de uma clínica.
- * Super-admin entra no contexto do tenant alvo (switch re-emite o JWT → RLS de
- * leitura) e marca a sessão como impersonação via cookie (o middleware bloqueia
- * escrita). Cliente DEVE chamar `refreshSession()` após o 200.
+ * "Entrar e editar" — switch de escrita para o super-admin (0171).
+ *
+ * Diferente de /api/admin/impersonation/start (read-only): NÃO seta o cookie de
+ * impersonação e chama switchActiveTenant SEM readOnly, então a flag
+ * `support_view_tenant_id` é limpa e o auth hook NÃO marca `impersonation` no
+ * JWT → escrita liberada. Também apaga qualquer cookie de impersonação residual
+ * de uma visualização anterior (senão o middleware seguiria bloqueando escrita).
+ *
+ * Só super-admin (superAdminUserId). Suporte não-super cai no 403 e usa apenas
+ * o "Só visualizar". Cliente DEVE chamar `refreshSession()` após o 200.
  */
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-const ROUTE = '/api/admin/impersonation/start'
+const ROUTE = '/api/admin/enter-edit'
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -38,7 +44,6 @@ export async function POST(req: Request): Promise<Response> {
       userId: actorId,
       tenantId,
       userEmail: null,
-      readOnly: true,
     })
 
     await sb.from('audit_log').insert({
@@ -47,20 +52,16 @@ export async function POST(req: Request): Promise<Response> {
       actor_label: 'super-admin',
       entity: 'session',
       entity_id: actorId,
-      field: 'impersonation_start',
+      field: 'admin_enter_edit',
       old_value: previousTenantId ? JSON.stringify({ tenant_id: previousTenantId }) : null,
-      new_value: JSON.stringify({ tenant_id: tenantId, mode: 'read_only' }),
-      reason: 'impersonação read-only iniciada pelo super-admin',
+      new_value: JSON.stringify({ tenant_id: tenantId, mode: 'read_write' }),
+      reason: 'super-admin entrou na clínica com edição',
       result: 'success',
     } as never)
 
     const res = NextResponse.json({ ok: true })
-    res.cookies.set(IMPERSONATION_COOKIE, `${tenantId}:${previousTenantId ?? ''}`, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    })
+    // Apaga cookie de impersonação residual (se veio de um "Só visualizar").
+    res.cookies.set(IMPERSONATION_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 })
     return res
   } catch (err) {
     return toHttpResponse(err, { route: ROUTE })
