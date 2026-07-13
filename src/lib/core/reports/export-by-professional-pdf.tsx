@@ -187,6 +187,18 @@ export function ByProfessionalReportDocument({
             </View>
           ) : null}
           <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Gasto com materiais</Text>
+            <Text style={styles.summaryValue}>
+              {formatBRL(detail.totals.totalMaterialsCostCents)}
+            </Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Margem após materiais</Text>
+            <Text style={styles.summaryValue}>
+              {formatBRL(detail.totals.netAfterMaterialsCents)}
+            </Text>
+          </View>
+          <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Procedimento mais realizado</Text>
             <Text style={styles.summaryValue}>
               {detail.topProcedure

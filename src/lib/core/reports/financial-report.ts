@@ -2,7 +2,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { applyPlanTax } from './apply-plan-tax'
-import { sumMaterialsCost } from './materials-cost'
+import {
+  sumMaterialsCost,
+  materialsCostByDoctor,
+  materialsCostByPlan,
+  MATERIALS_PARTICULAR_KEY,
+} from './materials-cost'
 import {
   getTenantTimezone,
   ymdStartOfDayUtc,
@@ -39,6 +44,8 @@ export interface RevenueByPlanRow {
   taxRateBps: number
   taxFromPlanCents: number
   netOfPlanTaxCents: number
+  // Feature 045 — gasto com materiais atribuído a este convênio.
+  materialsCostCents: number
 }
 
 export interface TaxTotals {
@@ -59,6 +66,8 @@ export interface DoctorRankingRow {
   doctorName: string
   grossRevenueCents: number
   appointmentCount: number
+  /** Feature 045 — gasto com materiais atribuído a este profissional. */
+  materialsCostCents: number
   /** Quebra do faturamento deste médico por convênio (soma = grossRevenue). */
   byPlan: DoctorPlanRevenueRow[]
 }
@@ -187,8 +196,25 @@ export async function buildFinancialReport(
   const activeIds = active.map((r) => r.id)
   const lines = await fetchProcedureLines(supabase, input.tenantId, activeIds)
 
+  // Feature 045 — janela de materiais (base appointment_at, estornados
+  // excluídos pelo agregador). Reusada para o total, por convênio e por médico.
+  const materialsWindow = {
+    tenantId: input.tenantId,
+    fromIso: ymdStartOfDayUtc(input.from, tz),
+    toIso: ymdNextDayStartUtc(input.to, tz),
+  }
+  const [materialsByPlanMap, materialsByDoctorMap] = await Promise.all([
+    materialsCostByPlan(supabase, materialsWindow),
+    materialsCostByDoctor(supabase, materialsWindow),
+  ])
+  const materialsForPlan = (planId: string): number =>
+    materialsByPlanMap.get(planId || MATERIALS_PARTICULAR_KEY) ?? 0
+
   const revenueByPlanRaw = aggregateByPlanFromLines(lines)
-  const topDoctors = aggregateTopDoctors(active, 5)
+  const topDoctors = aggregateTopDoctors(active, 5).map((d) => ({
+    ...d,
+    materialsCostCents: materialsByDoctorMap.get(d.doctorId) ?? 0,
+  }))
   const topProcedures = aggregateTopProceduresFromLines(lines, 10)
   const expensesByCategory = aggregateExpensesByCategory(expenses)
   const dailyRevenue = aggregateDailyRevenue(active, input.from, input.to, tz)
@@ -201,7 +227,10 @@ export async function buildFinancialReport(
     revenueByPlanRaw.map((r) => r.planId).filter((id) => id !== ''),
   )
   const enrichedByPlan = applyPlanTax(revenueByPlanRaw, planTaxMap)
-  const revenueByPlan: RevenueByPlanRow[] = enrichedByPlan.rows
+  const revenueByPlan: RevenueByPlanRow[] = enrichedByPlan.rows.map((r) => ({
+    ...r,
+    materialsCostCents: materialsForPlan(r.planId),
+  }))
   const taxFromPlansCents = enrichedByPlan.totalTaxCents
 
   // Imposto da clínica = soma das despesas categorizadas como 'impostos'.
@@ -240,11 +269,9 @@ export async function buildFinancialReport(
   const totalExpensesCents = expenses.totalCents
   // Feature 045 — gasto com materiais do período (base appointment_at, fuso do
   // tenant, estornados excluídos). D1: deduz margem, não toca receita/comissão.
-  const materialsCostCents = await sumMaterialsCost(supabase, {
-    tenantId: input.tenantId,
-    fromIso: ymdStartOfDayUtc(input.from, tz),
-    toIso: ymdNextDayStartUtc(input.to, tz),
-  })
+  // Total = soma do mapa por convênio (mesma janela → consistente com a coluna).
+  let materialsCostCents = 0
+  for (const v of materialsByPlanMap.values()) materialsCostCents += v
   // lucro = netRevenue − totalExpenses − imposto_do_convênio − materiais.
   // Despesas de categoria 'impostos' já fazem parte de totalExpensesCents,
   // representando o "imposto da clínica" — não há dupla contagem.
@@ -474,7 +501,7 @@ async function fetchCurrentlyCommissionedDoctorIds(
 // taxRateBps/taxFromPlanCents/netOfPlanTaxCents.
 type RawRevenueByPlanRow = Omit<
   RevenueByPlanRow,
-  'taxRateBps' | 'taxFromPlanCents' | 'netOfPlanTaxCents'
+  'taxRateBps' | 'taxFromPlanCents' | 'netOfPlanTaxCents' | 'materialsCostCents'
 >
 
 function aggregateByPlanFromLines(lines: ProcedureLineRow[]): RawRevenueByPlanRow[] {
@@ -526,6 +553,7 @@ function aggregateTopDoctors(rows: AppointmentRow[], limit: number): DoctorRanki
       doctorName: r.doctors?.full_name ?? '—',
       grossRevenueCents: 0,
       appointmentCount: 0,
+      materialsCostCents: 0,
       byPlan: [],
     }
     existing.grossRevenueCents += r.net_amount_cents ?? 0

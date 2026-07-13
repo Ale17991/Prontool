@@ -21,6 +21,13 @@ export interface MaterialsCostWindow {
   toIso: string
 }
 
+/**
+ * Chave usada por `materialsCostByPlan` para agrupar atendimentos particulares
+ * (plan_id nulo). Os relatórios que atribuem material por convênio traduzem a
+ * sua própria sentinela de "Particular" para esta chave ao consultar o mapa.
+ */
+export const MATERIALS_PARTICULAR_KEY = '__particular__' as const
+
 interface MaterialCostRow {
   unit_cost_cents: number | null
   quantity: number | null
@@ -167,7 +174,7 @@ async function groupByAppointmentDimension(
   for (const r of (apptRows ?? []) as Array<Record<string, unknown>>) {
     if ((r.effective_status as string | null) === 'estornado') continue
     const id = r.id as string
-    const key = (r[dimension] as string | null) ?? '__particular__'
+    const key = (r[dimension] as string | null) ?? MATERIALS_PARTICULAR_KEY
     dimByAppt.set(id, key)
     ids.push(id)
   }

@@ -33,6 +33,17 @@ export async function renderByPlanExcel(
     value: detail.totals.totalRevenueCents / 100,
   })
   moneyRow.getCell('value').numFmt = BRL
+  const matRow = resumo.addRow({
+    metric: 'Gasto com materiais',
+    value: detail.totals.materialsCostCents / 100,
+  })
+  matRow.getCell('value').numFmt = BRL
+  const marginRow = resumo.addRow({
+    metric: 'Margem após materiais',
+    value: detail.totals.netAfterMaterialsCents / 100,
+  })
+  marginRow.getCell('value').numFmt = BRL
+  marginRow.font = { bold: true }
   resumo.addRow({})
   resumo.addRow({
     metric: 'Profissional com mais procedimentos',

@@ -68,6 +68,17 @@ export async function renderByProfessionalExcel(
     value: detail.totals.totalNetOfTaxCents / 100,
   })
   netRow.getCell('value').numFmt = BRL
+  const matRow = resumo.addRow({
+    metric: 'Gasto com materiais',
+    value: detail.totals.totalMaterialsCostCents / 100,
+  })
+  matRow.getCell('value').numFmt = BRL
+  const marginRow = resumo.addRow({
+    metric: 'Margem após materiais',
+    value: detail.totals.netAfterMaterialsCents / 100,
+  })
+  marginRow.getCell('value').numFmt = BRL
+  marginRow.font = { bold: true }
   resumo.addRow({})
   resumo.addRow({
     metric: 'Procedimento mais realizado',

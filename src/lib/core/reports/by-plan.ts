@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { applyPlanTax } from './apply-plan-tax'
+import { materialsCostByPlan, MATERIALS_PARTICULAR_KEY } from './materials-cost'
 import { getTenantTimezone, ymdStartOfDayUtc, ymdNextDayStartUtc } from '@/lib/utils/tenant-tz'
 
 /**
@@ -36,6 +37,10 @@ export interface PlanSummaryRow {
   taxRateBps: number
   taxFromPlanCents: number
   netOfPlanTaxCents: number
+  // Feature 045 — gasto com materiais atribuído a este convênio.
+  materialsCostCents: number
+  /** Margem real = líquido após imposto − gasto com materiais. */
+  netAfterMaterialsCents: number
 }
 
 export interface PlanProcedureRow {
@@ -68,6 +73,9 @@ export interface PlanDetail {
     taxRateBps: number
     taxFromPlanCents: number
     netOfPlanTaxCents: number
+    // Feature 045 — gasto com materiais atribuído a este convênio.
+    materialsCostCents: number
+    netAfterMaterialsCents: number
   }
   topDoctor: { doctorId: string; doctorName: string; count: number } | null
   topProcedure: {
@@ -120,6 +128,16 @@ export async function summaryByPlan(
   const activeIds = await fetchActiveAppointmentIds(supabase, input.tenantId, fromTs, toExclusive)
   if (activeIds.length === 0) return []
 
+  // Feature 045 — gasto com materiais atribuído por convênio (chave particular
+  // do agregador = MATERIALS_PARTICULAR_KEY; aqui o sentinel é PARTICULAR_KEY).
+  const materialsByPlan = await materialsCostByPlan(supabase, {
+    tenantId: input.tenantId,
+    fromIso: fromTs,
+    toIso: toExclusive,
+  })
+  const materialsForPlan = (planId: string): number =>
+    materialsByPlan.get(planId === PARTICULAR_KEY ? MATERIALS_PARTICULAR_KEY : planId) ?? 0
+
   // 2) Linhas desses atendimentos.
   const lines = await fetchLines(supabase, input.tenantId, activeIds)
 
@@ -164,15 +182,20 @@ export async function summaryByPlan(
     grossRevenueCents: r.totalRevenueCents,
   }))
   const { rows: enriched } = applyPlanTax(adapted, planTaxMap)
-  const out: PlanSummaryRow[] = enriched.map((r) => ({
-    planId: r.planId,
-    planName: r.planName,
-    procedureCount: r.procedureCount,
-    totalRevenueCents: r.totalRevenueCents,
-    taxRateBps: r.taxRateBps,
-    taxFromPlanCents: r.taxFromPlanCents,
-    netOfPlanTaxCents: r.netOfPlanTaxCents,
-  }))
+  const out: PlanSummaryRow[] = enriched.map((r) => {
+    const materialsCostCents = materialsForPlan(r.planId)
+    return {
+      planId: r.planId,
+      planName: r.planName,
+      procedureCount: r.procedureCount,
+      totalRevenueCents: r.totalRevenueCents,
+      taxRateBps: r.taxRateBps,
+      taxFromPlanCents: r.taxFromPlanCents,
+      netOfPlanTaxCents: r.netOfPlanTaxCents,
+      materialsCostCents,
+      netAfterMaterialsCents: r.netOfPlanTaxCents - materialsCostCents,
+    }
+  })
   return out.sort((a, b) => b.totalRevenueCents - a.totalRevenueCents)
 }
 
@@ -222,6 +245,15 @@ export async function detailByPlan(
   const fromTs = ymdStartOfDayUtc(input.from, tz)
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
+  // Feature 045 — gasto com materiais deste convênio no período.
+  const materialsByPlan = await materialsCostByPlan(supabase, {
+    tenantId: input.tenantId,
+    fromIso: fromTs,
+    toIso: toExclusive,
+  })
+  const materialsCostCents =
+    materialsByPlan.get(input.planId === null ? MATERIALS_PARTICULAR_KEY : input.planId) ?? 0
+
   // 1) Atendimentos ATIVOS no periodo (com dados do profissional).
   const active = await fetchActiveAppointments(supabase, input.tenantId, fromTs, toExclusive)
   if (active.length === 0) {
@@ -239,6 +271,8 @@ export async function detailByPlan(
         taxRateBps: 0,
         taxFromPlanCents: 0,
         netOfPlanTaxCents: 0,
+        materialsCostCents,
+        netAfterMaterialsCents: -materialsCostCents,
       },
       topDoctor: null,
       topProcedure: null,
@@ -366,6 +400,8 @@ export async function detailByPlan(
       taxRateBps: taxRow.taxRateBps,
       taxFromPlanCents: taxRow.taxFromPlanCents,
       netOfPlanTaxCents: taxRow.netOfPlanTaxCents,
+      materialsCostCents,
+      netAfterMaterialsCents: taxRow.netOfPlanTaxCents - materialsCostCents,
     },
     topDoctor,
     topProcedure,

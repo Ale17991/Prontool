@@ -131,6 +131,7 @@ export default async function PorPlanoPage({ searchParams }: PageProps) {
             name={c.name}
             count={c.summary?.procedureCount ?? 0}
             totalCents={c.summary?.totalRevenueCents ?? 0}
+            materialsCents={c.summary?.materialsCostCents ?? 0}
             variant={c.isParticular ? 'particular' : 'plan'}
           />
         ))}
@@ -159,12 +160,14 @@ function PlanCard({
   name,
   count,
   totalCents,
+  materialsCents,
   variant,
 }: {
   planId: string
   name: string
   count: number
   totalCents: number
+  materialsCents: number
   variant: 'plan' | 'particular'
 }) {
   const Icon = variant === 'particular' ? Wallet : ShieldCheck
@@ -177,7 +180,7 @@ function PlanCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col justify-between gap-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Procedimentos
@@ -190,6 +193,14 @@ function PlanCard({
             </p>
             <p className="text-xl font-black text-slate-900 tabular-nums">
               {formatCurrency(totalCents)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Materiais
+            </p>
+            <p className="text-xl font-black text-slate-900 tabular-nums">
+              {formatCurrency(materialsCents)}
             </p>
           </div>
         </div>

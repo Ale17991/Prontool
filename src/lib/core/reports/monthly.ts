@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
+import {
+  materialsCostByDoctor,
+  materialsCostByPlan,
+  MATERIALS_PARTICULAR_KEY,
+} from './materials-cost'
 import { getTenantTimezone, ymdStartOfDayUtc, ymdNextDayStartUtc } from '@/lib/utils/tenant-tz'
 
 /**
@@ -25,6 +30,8 @@ export interface RevenueByPlan {
   planName: string
   netRevenueCents: number
   appointmentCount: number
+  /** Feature 045 — gasto com materiais atribuído a este convênio. */
+  materialsCostCents: number
 }
 
 export interface ProductionByDoctor {
@@ -33,6 +40,8 @@ export interface ProductionByDoctor {
   netProductionCents: number
   netCommissionCents: number
   appointmentCount: number
+  /** Feature 045 — gasto com materiais atribuído a este profissional. */
+  materialsCostCents: number
 }
 
 export interface MonthlyTotals {
@@ -40,6 +49,8 @@ export interface MonthlyTotals {
   netCommissionCents: number
   appointmentCount: number
   reversalCount: number
+  /** Feature 045 — gasto com materiais total do período (estornados excluídos). */
+  materialsCostCents: number
 }
 
 export interface MonthlyReport {
@@ -84,6 +95,19 @@ export async function buildMonthlyReport(
   const tz = await getTenantTimezone(supabase, input.tenantId)
   const fromTs = ymdStartOfDayUtc(input.from, tz)
   const toExclusiveTs = ymdNextDayStartUtc(input.to, tz)
+
+  // Feature 045 — gasto com materiais atribuído por convênio e por profissional
+  // (mesma janela; estornados já excluídos pelo agregador).
+  const [materialsByPlan, materialsByDoctor] = await Promise.all([
+    materialsCostByPlan(supabase, { tenantId: input.tenantId, fromIso: fromTs, toIso: toExclusiveTs }),
+    materialsCostByDoctor(supabase, {
+      tenantId: input.tenantId,
+      fromIso: fromTs,
+      toIso: toExclusiveTs,
+    }),
+  ])
+  let materialsTotalCents = 0
+  for (const v of materialsByPlan.values()) materialsTotalCents += v
 
   // Paginate: PostgREST caps each response at `db-max-rows` (default 1000
   // locally; typically 1000 in Supabase cloud too). SC-004 expects the
@@ -134,6 +158,7 @@ export async function buildMonthlyReport(
       planName: r.health_plans?.name ?? '—',
       netRevenueCents: 0,
       appointmentCount: 0,
+      materialsCostCents: 0,
     }
     plan.netRevenueCents += net
     plan.appointmentCount += 1
@@ -145,6 +170,7 @@ export async function buildMonthlyReport(
       netProductionCents: 0,
       netCommissionCents: 0,
       appointmentCount: 0,
+      materialsCostCents: 0,
     }
     doc.netProductionCents += net
     doc.netCommissionCents += netComm
@@ -152,12 +178,17 @@ export async function buildMonthlyReport(
     byDoctor.set(r.doctor_id, doc)
   }
 
-  const revenueByPlan = Array.from(byPlan.values()).sort(
-    (a, b) => b.netRevenueCents - a.netRevenueCents,
-  )
-  const productionByDoctor = Array.from(byDoctor.values()).sort(
-    (a, b) => b.netProductionCents - a.netProductionCents,
-  )
+  // Feature 045 — atribui o gasto com materiais a cada linha (particular do
+  // agregador = MATERIALS_PARTICULAR_KEY; `|| KEY` cobre plan_id nulo/vazio).
+  const revenueByPlan = Array.from(byPlan.values())
+    .map((p) => ({
+      ...p,
+      materialsCostCents: materialsByPlan.get(p.planId || MATERIALS_PARTICULAR_KEY) ?? 0,
+    }))
+    .sort((a, b) => b.netRevenueCents - a.netRevenueCents)
+  const productionByDoctor = Array.from(byDoctor.values())
+    .map((d) => ({ ...d, materialsCostCents: materialsByDoctor.get(d.doctorId) ?? 0 }))
+    .sort((a, b) => b.netProductionCents - a.netProductionCents)
 
   return {
     period: { from: input.from, to: input.to },
@@ -168,6 +199,7 @@ export async function buildMonthlyReport(
       netCommissionCents: netCommission,
       appointmentCount: rows.length,
       reversalCount,
+      materialsCostCents: materialsTotalCents,
     },
   }
 }
@@ -183,6 +215,7 @@ export function monthlyReportToWire(report: MonthlyReport): {
     plan_name: string
     net_revenue_cents: number
     appointment_count: number
+    materials_cost_cents: number
   }>
   production_by_doctor: Array<{
     doctor_id: string
@@ -190,12 +223,14 @@ export function monthlyReportToWire(report: MonthlyReport): {
     net_production_cents: number
     net_commission_cents: number
     appointment_count: number
+    materials_cost_cents: number
   }>
   totals: {
     net_revenue_cents: number
     net_commission_cents: number
     appointment_count: number
     reversal_count: number
+    materials_cost_cents: number
   }
 } {
   return {
@@ -205,6 +240,7 @@ export function monthlyReportToWire(report: MonthlyReport): {
       plan_name: r.planName,
       net_revenue_cents: r.netRevenueCents,
       appointment_count: r.appointmentCount,
+      materials_cost_cents: r.materialsCostCents,
     })),
     production_by_doctor: report.productionByDoctor.map((d) => ({
       doctor_id: d.doctorId,
@@ -212,12 +248,14 @@ export function monthlyReportToWire(report: MonthlyReport): {
       net_production_cents: d.netProductionCents,
       net_commission_cents: d.netCommissionCents,
       appointment_count: d.appointmentCount,
+      materials_cost_cents: d.materialsCostCents,
     })),
     totals: {
       net_revenue_cents: report.totals.netRevenueCents,
       net_commission_cents: report.totals.netCommissionCents,
       appointment_count: report.totals.appointmentCount,
       reversal_count: report.totals.reversalCount,
+      materials_cost_cents: report.totals.materialsCostCents,
     },
   }
 }

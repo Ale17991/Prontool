@@ -105,13 +105,13 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] `materialsCostByDoctor` + `materialsCostByPlan` em `src/lib/core/reports/materials-cost.ts`
-- [ ] T032 [US3] Estender `by-professional.ts` (coluna + `netAfterMaterialsCents`) em `src/lib/core/reports/by-professional.ts`
-- [ ] T033 [US3] Estender `by-plan.ts` em `src/lib/core/reports/by-plan.ts`
-- [ ] T034 [US3] Estender `monthly.ts` e `financial-report.ts` em `src/lib/core/reports/{monthly,financial-report}.ts`
-- [ ] T035 [P] [US3] Exports Excel: coluna em `src/lib/core/reports/{export-by-professional-excel,export-by-plan-excel,export-financial-excel}.ts`
-- [ ] T036 [P] [US3] Exports PDF: coluna em `src/lib/core/reports/{export-by-professional-pdf,export-by-plan-pdf,export-financial-pdf}.tsx`
-- [ ] T037 [US3] UI: coluna "Gasto com materiais" nas telas por profissional/convênio/mensal
+- [X] T031 [US3] `materialsCostByDoctor` + `materialsCostByPlan` em `src/lib/core/reports/materials-cost.ts` (+ export `MATERIALS_PARTICULAR_KEY`)
+- [X] T032 [US3] Estender `by-professional.ts` (coluna + `netAfterMaterialsCents`) em `src/lib/core/reports/by-professional.ts` (summary + detail)
+- [X] T033 [US3] Estender `by-plan.ts` em `src/lib/core/reports/by-plan.ts` (summary + detail)
+- [X] T034 [US3] Estender `monthly.ts` e `financial-report.ts` em `src/lib/core/reports/{monthly,financial-report}.ts` (+ wire monthly)
+- [X] T035 [P] [US3] Exports Excel: coluna em `src/lib/core/reports/{export-by-professional-excel,export-by-plan-excel,export-financial-excel}.ts`
+- [X] T036 [P] [US3] Exports PDF: coluna em `src/lib/core/reports/{export-by-professional-pdf,export-by-plan-pdf,export-financial-pdf}.tsx`
+- [X] T037 [US3] UI: coluna "Gasto com materiais" nas telas por profissional/convênio/mensal
 
 **Checkpoint**: US3 funcional — margem real visível e exportável.
 
