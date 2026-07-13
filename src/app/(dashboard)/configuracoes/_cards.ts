@@ -1,5 +1,6 @@
 import {
   BellRing,
+  Boxes,
   Building2,
   CalendarClock,
   CalendarPlus,
@@ -34,6 +35,7 @@ export type HubCardId =
   | 'perfil'
   | 'usuarios'
   | 'procedimentos'
+  | 'materiais'
   | 'convenios'
   | 'profissionais'
   | 'modelos-anamnese'
@@ -92,6 +94,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Catálogo de procedimentos e códigos TUSS.',
     icon: ListChecks,
     show: ({ role }) => can(role, 'procedure.read'),
+  },
+  {
+    id: 'materiais',
+    href: '/configuracoes/materiais',
+    title: 'Materiais / Insumos',
+    description: 'Catálogo de insumos e custos usados nos atendimentos.',
+    icon: Boxes,
+    show: ({ role }) => role === 'admin' || role === 'financeiro',
   },
   {
     id: 'convenios',

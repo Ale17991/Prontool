@@ -22,6 +22,7 @@ import { LocalProcedureTypeahead } from '@/components/tuss/local-procedure-typea
 import {
   MateriaisEditor,
   validateMaterials,
+  parseReaisToCents,
   type MaterialDraft,
 } from '@/components/atendimentos/materiais-editor'
 
@@ -688,7 +689,14 @@ function NewStepForm({
 
     // Materiais opcionais. Validacao local antes do submit.
     let materiaisPayload:
-      | Array<{ tuss_code: string; tuss_description: string; quantity: number }>
+      | Array<{
+          tuss_code: string | null
+          tuss_description: string | null
+          material_id: string | null
+          material_name: string | null
+          quantity: number
+          unit_cost_cents: number
+        }>
       | undefined
     if (materiais.length > 0) {
       const validated = validateMaterials(materiais)
@@ -699,7 +707,10 @@ function NewStepForm({
       materiaisPayload = validated.map((m) => ({
         tuss_code: m.tussCode,
         tuss_description: m.tussDescription,
+        material_id: m.materialId,
+        material_name: m.materialName,
         quantity: m.quantity,
+        unit_cost_cents: parseReaisToCents(m.costReais) ?? 0,
       }))
     }
 

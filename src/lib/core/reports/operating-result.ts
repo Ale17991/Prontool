@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { selectMonthlyFixedPayLines } from './monthly-fixed-pay-lines'
+import { sumMaterialsCost } from './materials-cost'
 import { getTenantTimezone, ymdStartOfDayUtc } from '@/lib/utils/tenant-tz'
 
 export interface OperatingResultLines {
@@ -11,6 +12,8 @@ export interface OperatingResultLines {
   liberalPaymentsCents: number
   taxesCents: number
   operatingExpensesCents: number
+  /** Feature 045 — gasto com materiais dos atendimentos do mês (D1: só margem). */
+  materialsCostCents: number
   netProfitCents: number
 }
 
@@ -23,6 +26,7 @@ export interface OperatingResult {
     liberal: string
     taxes: string
     operating: string
+    materials: string
   }
 }
 
@@ -166,13 +170,22 @@ export async function computeOperatingResult(
     }
   }
 
+  // 5) Gasto com materiais — feature 045 (D1: dedução de margem, não toca
+  //    receita/comissão/repasse). Base = appointment_at, estornados excluídos.
+  const materialsCostCents = await sumMaterialsCost(supabase, {
+    tenantId: args.tenantId,
+    fromIso,
+    toIso,
+  })
+
   const netProfitCents =
     grossRevenueCents -
     commissionsCents -
     fixedPaymentsCents -
     liberalPaymentsCents -
     taxesCents -
-    operatingExpensesCents
+    operatingExpensesCents -
+    materialsCostCents
 
   return {
     month: args.month,
@@ -183,6 +196,7 @@ export async function computeOperatingResult(
       liberalPaymentsCents,
       taxesCents,
       operatingExpensesCents,
+      materialsCostCents,
       netProfitCents,
     },
     drilldowns: {
@@ -191,6 +205,7 @@ export async function computeOperatingResult(
       liberal: `/relatorios/por-profissional?from=${fromDateStr}&to=${toDateStr}&payment_mode=liberal`,
       taxes: `/relatorios/despesas?from=${fromDateStr}&to=${toDateStr}&category=tax`,
       operating: `/relatorios/despesas?from=${fromDateStr}&to=${toDateStr}&category=other`,
+      materials: `/analise/relatorios/materiais?from=${fromDateStr}&to=${toDateStr}`,
     },
   }
 }

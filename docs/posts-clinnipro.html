@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinnipro · Guia de Posts</title>
+<style>
+  :root{
+    --ground:#0e2427; --ground2:#122c30;
+    --ink:#f3f8f6; --ink-soft:#b9cdca; --muted:#8aa4a1;
+    --line:#254a4e; --line-soft:#1c3b3f;
+    --teal:#22c39a; --teal-deep:#0e9e76; --invest:#e0912e;
+    --card:#173539; --card-line:#274d52;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",system-ui,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:clamp(28px,6vmin,72px) clamp(20px,5vmin,56px) 90px;}
+
+  .brand{display:flex; align-items:center; gap:12px; font-weight:700; font-size:18px; margin-bottom:34px;}
+  .brand .mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--teal-deep));display:grid;place-items:center;font-size:16px;}
+
+  .eyebrow{text-transform:uppercase; letter-spacing:.16em; font-size:13px; font-weight:700; color:var(--teal); margin:0 0 12px;}
+  h1{font-size:clamp(30px,5.4vmin,50px); line-height:1.08; margin:0 0 16px; letter-spacing:-.02em; text-wrap:balance;}
+  h2{font-size:clamp(21px,3.2vmin,30px); margin:58px 0 6px; letter-spacing:-.015em;}
+  h2 + .subh{margin:0 0 18px; color:var(--muted); font-size:15px;}
+  .lead{font-size:clamp(16px,2.2vmin,20px); color:var(--ink-soft); max-width:64ch; margin:0;}
+
+  .north{background:linear-gradient(135deg,rgba(34,195,154,.12),rgba(14,158,118,.05)); border:1px solid var(--teal-deep); border-radius:16px; padding:clamp(18px,3vmin,28px); margin:32px 0 8px;}
+  .north p{margin:0; font-size:clamp(16px,2.3vmin,21px);}
+  .north b{color:var(--teal);}
+
+  .tone{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px;}
+  @media (max-width:620px){.tone{grid-template-columns:1fr;}}
+  .tone .box{border-radius:14px; padding:16px 18px; border:1px solid var(--card-line); background:var(--card);}
+  .tone .box h4{margin:0 0 10px; font-size:14px; text-transform:uppercase; letter-spacing:.06em;}
+  .tone .yes h4{color:var(--teal);} .tone .no h4{color:var(--invest);}
+  .tone ul{margin:0; padding-left:18px; font-size:15px; color:var(--ink-soft);}
+  .tone li{margin:0 0 7px;}
+
+  /* funnel map */
+  .fmap{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:24px;}
+  @media (max-width:720px){.fmap{grid-template-columns:1fr;}}
+  .fmap .col{border:1px solid var(--card-line); border-radius:14px; padding:16px 18px; background:var(--ground2);}
+  .fmap .col .t{font-weight:800; font-size:15px; margin-bottom:4px;}
+  .fmap .col .t.topo{color:var(--teal);} .fmap .col .t.meio{color:var(--invest);} .fmap .col .t.fundo{color:#9db8ff;}
+  .fmap .col .o{font-size:13px; color:var(--muted); margin-bottom:10px;}
+  .fmap .col ul{margin:0; padding-left:16px; font-size:14px; color:var(--ink-soft);}
+  .fmap .col li{margin:0 0 5px;}
+
+  /* pillar */
+  .pillar{border:1px solid var(--card-line); border-radius:18px; padding:clamp(18px,3vmin,26px); margin:0 0 18px; background:var(--ground2);}
+  .pillar .head{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+  .pillar .ico{font-size:22px;}
+  .pillar h3{margin:0; font-size:clamp(18px,2.6vmin,23px); letter-spacing:-.01em;}
+  .chips{display:flex; gap:7px; flex-wrap:wrap; margin-left:auto;}
+  .chip{font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; border:1px solid var(--line);}
+  .chip.f{background:rgba(34,195,154,.1); color:var(--teal); border-color:var(--teal-deep);}
+  .chip.freq{background:rgba(224,145,46,.1); color:var(--invest); border-color:#7a5320;}
+  .chip.fmt{background:var(--card); color:var(--ink-soft);}
+  .pillar .why{margin:0 0 14px; color:var(--ink-soft); font-size:15px;}
+  .pillar .why b{color:var(--ink);}
+
+  .exgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media (max-width:720px){.exgrid{grid-template-columns:1fr;}}
+  .ex{background:var(--card); border:1px solid var(--card-line); border-radius:13px; padding:15px 17px;}
+  .ex .lbl{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px; font-weight:700;}
+  .ex .cap-copy{font-size:14px; white-space:pre-line; margin:0;}
+  .ex .foot{margin-top:11px; padding-top:10px; border-top:1px solid var(--line-soft); font-size:12.5px; color:var(--ink-soft);}
+  .ex .foot b{color:var(--ink);}
+  .ex .ht{color:var(--teal); font-size:12.5px; margin-top:6px;}
+  .art{margin-top:12px; font-size:13.5px; color:var(--ink-soft);}
+  .art b{color:var(--ink);}
+
+  /* calendar */
+  .calwrap{overflow-x:auto; margin-top:8px;}
+  table.cal{border-collapse:collapse; width:100%; font-size:13.5px; min-width:640px;}
+  table.cal th,table.cal td{border:1px solid var(--line-soft); padding:10px 12px; text-align:left; vertical-align:top;}
+  table.cal thead th{background:var(--card); color:var(--muted); text-transform:uppercase; font-size:11.5px; letter-spacing:.05em;}
+  table.cal td .p{font-weight:700; display:block; margin-bottom:2px;}
+  table.cal td small{color:var(--muted);}
+  table.cal .wk{background:var(--card); font-weight:800; color:var(--ink); white-space:nowrap;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+
+  /* banks */
+  .banks{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:8px;}
+  @media (max-width:720px){.banks{grid-template-columns:1fr;}}
+  .bank{border:1px solid var(--card-line); border-radius:14px; padding:16px 18px; background:var(--card);}
+  .bank h4{margin:0 0 10px; font-size:14px;}
+  .bank ul{margin:0; padding-left:16px; font-size:14px; color:var(--ink-soft);}
+  .bank li{margin:0 0 7px;}
+  .bank .ht{color:var(--teal);}
+
+  .cad{border:1px dashed var(--line); border-radius:14px; padding:18px 20px; margin-top:22px; font-size:15px; color:var(--ink-soft);}
+  .cad b{color:var(--ink);}
+  .cad ul{margin:8px 0 0; padding-left:18px;}
+  .cad li{margin:0 0 6px;}
+</style>
+
+<div class="wrap">
+
+  <div class="brand"><img src="data:image/png;base64,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" alt="Clinnipro" style="width:30px;height:30px;vertical-align:middle;display:inline-block;flex:none;"> Clinnipro</div>
+
+  <p class="eyebrow">Guia de conteúdo · documento de trabalho para o time</p>
+  <h1>Tipos de post, exemplos & calendário editorial</h1>
+  <p class="lead">Playbook de conteúdo orgânico das redes da Clinnipro: os pilares, como cada um serve ao funil, exemplos prontos, um calendário de 4 semanas e bancos de ganchos, CTAs e hashtags. Feito pra o time executar. Ajuste nomes, números e recursos ao que for real.</p>
+
+  <div class="north">
+    <p>🌟 <b>O norte de tudo:</b> a Clinnipro é o <b>melhor amigo da clínica</b>. Não entregamos só um sistema, entregamos o que a clínica precisa pra funcionar bem. <b>Tudo para a clínica, do jeito dela.</b> Todo post soa como um amigo ao lado, não como fornecedor vendendo caixa de software.</p>
+  </div>
+
+  <div class="tone">
+    <div class="box yes">
+      <h4>✓ O tom que buscamos</h4>
+      <ul>
+        <li>Parceiro que caminha junto: "ao seu lado", "do seu jeito"</li>
+        <li>Prático e generoso, ensina mesmo quem ainda não é cliente</li>
+        <li>Humano, quente, próximo (quase íntimo)</li>
+        <li>Fala "a sua clínica", trata pelo nome</li>
+      </ul>
+    </div>
+    <div class="box no">
+      <h4>✕ O que evitamos</h4>
+      <ul>
+        <li>Ar de salvador: "vamos resolver a sua clínica"</li>
+        <li>Sugerir que o dono não sabe administrar</li>
+        <li>Só falar de função técnica, sem o cuidado</li>
+        <li>Promessa exagerada / linguagem de vendão</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- funnel map -->
+  <h2>Como o conteúdo serve ao funil</h2>
+  <p class="subh">Todo post tem um trabalho. O orgânico alimenta o mesmo funil da mídia paga, aquece, prova e converte.</p>
+  <div class="fmap">
+    <div class="col">
+      <div class="t topo">TOPO · atrair</div>
+      <div class="o">Objetivo: alcance, salvamentos, novos seguidores</div>
+      <ul>
+        <li>💡 Dica prática</li>
+        <li>📊 Enquete / interação</li>
+        <li>🗓️ Sazonal / datas</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="t meio">MEIO · aproximar</div>
+      <div class="o">Objetivo: confiança, "essa é a minha turma"</div>
+      <ul>
+        <li>🤝 Proximidade / time</li>
+        <li>⭐ Prova social</li>
+        <li>💙 Manifesto</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="t fundo">FUNDO · converter</div>
+      <div class="o">Objetivo: clique no link/WhatsApp, demo</div>
+      <ul>
+        <li>🛠️ Recurso do produto</li>
+        <li>🎉 Novidade</li>
+        <li>CTA direto pra demo/WhatsApp</li>
+      </ul>
+    </div>
+  </div>
+  <p class="cad" style="margin-top:16px;"><b>Regra 80/20:</b> ~80% dos posts atraem/aproximam (topo + meio) e ~20% convertem (fundo). Amigo primeiro, vendedor depois. Todo post de fundo carrega um CTA claro pro WhatsApp/demo.</p>
+
+  <!-- pillars -->
+  <h2>Os 8 pilares, com specs e exemplos</h2>
+  <p class="subh">Cada pilar traz: papel no funil, formato, frequência, 2 exemplos de legenda e a direção de arte.</p>
+
+  <!-- 1 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">💡</span><h3>1. Dica prática (educativo)</h3>
+      <div class="chips"><span class="chip f">Topo</span><span class="chip freq">2×/sem</span><span class="chip fmt">Carrossel · Reels</span></div></div>
+    <p class="why">Ajuda a clínica a rodar melhor, mesmo quem ainda não usa o sistema. É o "tudo para a clínica" na veia. <b>Meta:</b> salvamentos e compartilhamentos.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · reduzir faltas</div>
+        <p class="cap-copy">Falta marcada é dinheiro que não volta 😕
+
+3 jeitos de reduzir o no-show ainda esta semana 👇
+1️⃣ Confirme no dia anterior
+2️⃣ Tenha lista de espera pra encaixar
+3️⃣ Facilite o reagendamento
+
+Na Clinnipro o lembrete sai sozinho, mas a dica vale mesmo se você faz na mão 💙</p>
+        <div class="foot"><b>CTA:</b> Salva e mostra pra recepção
+        <div class="ht">#gestãodeclínica #odontologia #secretáriadeclínica</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · organizar o financeiro</div>
+        <p class="cap-copy">Você sabe quanto a sua clínica lucrou mês passado? 🤔
+
+Se a resposta demorou, começa por aqui:
+✅ Separe conta PF de PJ
+✅ Registre todo recebimento no dia
+✅ Feche o mês sempre na mesma data
+
+Organização não precisa ser complicada, precisa ser constante 💙</p>
+        <div class="foot"><b>CTA:</b> Comenta "financeiro" que a gente aprofunda
+        <div class="ht">#financeirodaclínica #gestãodeconsultório</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> carrossel com 1 gancho na capa + 1 dica por card, números grandes, fundo teal da marca. Reels: mão na tela / texto animado, &lt; 30s.</p>
+  </div>
+
+  <!-- 2 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">🛠️</span><h3>2. Recurso do produto (bastidor)</h3>
+      <div class="chips"><span class="chip f">Fundo</span><span class="chip freq">1×/sem</span><span class="chip fmt">Reels · Feed</span></div></div>
+    <p class="why">Mostra uma função resolvendo uma dor real, enquadrada como cuidado: "olha o que facilitamos pra você". <b>Meta:</b> cliques no WhatsApp/demo.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · personalização</div>
+        <p class="cap-copy">A sua clínica não é igual a nenhuma outra. O seu sistema também não deveria ser 🤝
+
+Aqui você ajusta agenda, prontuário e fluxos do jeito que a sua clínica trabalha. A gente molda ao seu jeito, não o contrário.
+
+Quer ver na sua clínica? Chama no WhatsApp 💙</p>
+        <div class="foot"><b>CTA:</b> Chama no WhatsApp (link na bio)
+        <div class="ht">#sistemaparaclínica #prontuárioeletrônico</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · lembrete automático</div>
+        <p class="cap-copy">E se os lembretes de consulta se enviassem sozinhos? 📲
+
+Na Clinnipro, o paciente recebe a confirmação sem ninguém parar a recepção pra isso. Menos falta, menos correria, mais tempo pra cuidar de quem está na cadeira.
+
+A tecnologia trabalha; você cuida das pessoas 💙</p>
+        <div class="foot"><b>CTA:</b> Agenda uma demo, link na bio
+        <div class="ht">#agendadeclínica #tecnologianaodontologia</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> screen recording real do sistema (Reels) com legenda curta na tela; ou mockup limpo no feed. Sempre mostrar o benefício, não a tela crua.</p>
+  </div>
+
+  <!-- 3 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">⭐</span><h3>3. Prova social (depoimento)</h3>
+      <div class="chips"><span class="chip f">Meio</span><span class="chip freq">1×/sem</span><span class="chip fmt">Feed · Reels</span></div></div>
+    <p class="why">A voz de quem foi bem atendido vende proximidade melhor que qualquer anúncio. <b>Meta:</b> confiança + reforço do diferencial de suporte. <b>Enquanto não houver depoimento real</b> (hoje ainda não temos), substitua por prova indireta: print de tela real, um dado da própria clínica, ou um bastidor do suporte. Nunca invente uma fala de cliente.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · card com aspas</div>
+        <p class="cap-copy">"O que mais me pegou foi o suporte. Mandei uma dúvida num sábado… e me responderam.", Dra. [Nome], [Clínica]
+
+A gente gosta de estar por perto de verdade 💙 Obrigado pela confiança, Dra. [Nome]!</p>
+        <div class="foot"><b>CTA:</b>, (marcar o cliente, com permissão)
+        <div class="ht">#clientesatisfeito #suportehumano</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · antes/depois de rotina</div>
+        <p class="cap-copy">Antes: agenda no caderno, recibo no talão, o mês fechando no susto.
+Depois: tudo num lugar só, e um time no WhatsApp quando precisa.
+
+A [Clínica] topou dividir a virada com a gente. Vem ver 👀💙</p>
+        <div class="foot"><b>CTA:</b> Salva pra quando for a sua vez
+        <div class="ht">#antesedepois #gestãodeclínica</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> foto real do cliente (autorizada) + aspas grandes; ou vídeo curto de 15s do próprio cliente falando. Autenticidade &gt; produção.</p>
+  </div>
+
+  <!-- 4 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">🤝</span><h3>4. Proximidade / o time</h3>
+      <div class="chips"><span class="chip f">Meio</span><span class="chip freq">1×/sem</span><span class="chip fmt">Reels · Feed</span></div></div>
+    <p class="why">Mostra a gente, o rosto do suporte, os bastidores. É o pilar que encarna o "melhor amigo da clínica". <b>Meta:</b> afinidade de marca.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · call center não</div>
+        <p class="cap-copy">Tem sistema que te joga num call center e num número de protocolo 📞❌
+
+Aqui você fala com gente que conhece o nome da sua clínica. Do primeiro "oi" ao corre do dia a dia, a gente fica ao seu lado 💙</p>
+        <div class="foot"><b>CTA:</b> ,
+        <div class="ht">#atendimentohumanizado #portrásdaclinni</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · bastidor do time</div>
+        <p class="cap-copy">Oi! Essa é a [Nome], que provavelmente já te respondeu no WhatsApp 👋
+
+No nosso time, cada clínica tem gente de verdade cuidando. A gente comemora junto quando a sua agenda lota 💙</p>
+        <div class="foot"><b>CTA:</b> Manda um "oi" pra ela nos comentários
+        <div class="ht">#timeclinnipro #pessoasnocentro</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> fotos/vídeos reais do time (nada de banco de imagem). Clima leve, humano, sorriso. Reels de bastidor funciona muito bem.</p>
+  </div>
+
+  <!-- 5 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">🎉</span><h3>5. Novidade / atualização</h3>
+      <div class="chips"><span class="chip f">Fundo</span><span class="chip freq">quando houver</span><span class="chip fmt">Feed · Story</span></div></div>
+    <p class="why">Melhorias frequentes provam produto vivo que escuta. <b>Meta:</b> retenção da base + mostrar que pedido vira realidade.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · lançamento</div>
+        <p class="cap-copy">Novidade saindo do forno 🎉
+
+Agora você [recurso em 1 frase]. Pequenas melhorias, toda semana, porque muita coisa aqui nasceu de um pedido de vocês. Continua mandando 💙</p>
+        <div class="foot"><b>CTA:</b> Comenta o que quer ver a seguir
+        <div class="ht">#novidade #clinnipro</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · "você pediu"</div>
+        <p class="cap-copy">Vocês pediram, a gente fez ✅
+
+[Recurso] chegou porque uma clínica comentou aqui que sentia falta. É assim que a Clinnipro cresce: ouvindo quem usa 💙</p>
+        <div class="foot"><b>CTA:</b> Qual seria o seu próximo pedido?
+        <div class="ht">#vocêpediu #atualização</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> selo "Novidade" no card + print do recurso. Story com sticker de link se levar pra alguma página.</p>
+  </div>
+
+  <!-- 6 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">💙</span><h3>6. Manifesto / institucional</h3>
+      <div class="chips"><span class="chip f">Meio</span><span class="chip freq">1×/mês</span><span class="chip fmt">Feed</span></div></div>
+    <p class="why">O post que crava quem a gente é, ancorado no "tudo para a clínica". <b>Meta:</b> posicionamento e identificação.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · o que somos</div>
+        <p class="cap-copy">A gente não veio vender um software.
+
+Veio cuidar de tudo que a sua clínica precisa pra funcionar bem, agenda, pacientes, financeiro, prontuário… e um time do seu lado.
+
+Tudo para a clínica. Do seu jeito 💙</p>
+        <div class="foot"><b>CTA:</b> ,
+        <div class="ht">#tudoparaaclínica #clinnipro</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · por que existimos</div>
+        <p class="cap-copy">Toda clínica merece uma que trabalhe tão bem quanto quem cuida dela.
+
+A Clinnipro nasceu pra ser essa parceira: perto, flexível e do lado de quem faz a clínica acontecer todo dia 💙</p>
+        <div class="foot"><b>CTA:</b> Compartilha se você é dessas clínicas
+        <div class="ht">#propósito #melhoramigodaclínica</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> tipografia forte sobre fundo da marca, pouco elemento. É post de frase, o texto é o herói.</p>
+  </div>
+
+  <!-- 7 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">📊</span><h3>7. Interação / enquete</h3>
+      <div class="chips"><span class="chip f">Topo</span><span class="chip freq">1–2×/sem</span><span class="chip fmt">Story</span></div></div>
+    <p class="why">Barato, engaja e revela a dor real da clínica pra alimentar conteúdo e anúncios. <b>Meta:</b> engajamento + pesquisa.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · enquete de dor</div>
+        <p class="cap-copy">Qual a maior dor de cabeça da sua clínica hoje? 👇
+📅 Agenda bagunçada
+💰 Financeiro / repasse
+📞 Faltas e remarcações
+🗂️ Prontuário e histórico
+
+Responde aí que a gente traz conteúdo (e talvez uma mãozinha) 💙</p>
+        <div class="foot"><b>CTA:</b> Vota no Story
+        <div class="ht">, (Story não usa hashtag)</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · caixa de pergunta</div>
+        <p class="cap-copy">Semana de tirar dúvidas! 🙋
+
+Manda a sua pergunta sobre gestão de clínica, agenda, financeiro ou prontuário. A gente responde nos próximos Stories, de graça, entre amigos 💙</p>
+        <div class="foot"><b>CTA:</b> Usa a caixinha
+        <div class="ht">,</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> sticker nativo (enquete/pergunta/quiz) sobre fundo simples. Responder cada voto puxa conversa no direct, porta de entrada de lead.</p>
+  </div>
+
+  <!-- 8 -->
+  <div class="pillar">
+    <div class="head"><span class="ico">🗓️</span><h3>8. Sazonal / datas</h3>
+      <div class="chips"><span class="chip f">Topo</span><span class="chip freq">no calendário</span><span class="chip fmt">Feed · Story</span></div></div>
+    <p class="why">Datas do universo da clínica (Dia do Dentista, do Médico, da Secretária). Celebrar quem cuida das pessoas cabe ao amigo da clínica. <b>Meta:</b> alcance + afeto.</p>
+    <div class="exgrid">
+      <div class="ex">
+        <div class="lbl">Exemplo A · Dia do Dentista (25/out)</div>
+        <p class="cap-copy">Hoje é dia de quem transforma sorrisos 🦷✨
+
+Feliz Dia do Cirurgião-Dentista! Obrigado por deixar a Clinnipro cuidar da parte chata, pra você focar no que ama. Conta com a gente sempre 💙</p>
+        <div class="foot"><b>CTA:</b> Marca aquele dentista que você admira
+        <div class="ht">#diadodentista #cirurgiãodentista</div></div>
+      </div>
+      <div class="ex">
+        <div class="lbl">Exemplo B · Dia da Secretária (30/set)</div>
+        <p class="cap-copy">Quem segura a agenda, acalma o paciente e faz a clínica girar? A recepção 👏
+
+Feliz Dia da Secretária! A gente construiu a Clinnipro pra facilitar o seu dia, porque sabemos o tamanho dele 💙</p>
+        <div class="foot"><b>CTA:</b> Marca a secretária que é um espetáculo
+        <div class="ht">#diadasecretária #recepçãodeclínica</div></div>
+      </div>
+    </div>
+    <p class="art"><b>Direção de arte:</b> card comemorativo caloroso, cor da marca. Planejar as datas do trimestre com antecedência (ver banco de datas abaixo).</p>
+  </div>
+
+  <!-- calendar -->
+  <h2>Calendário editorial · 4 semanas</h2>
+  <p class="subh">Modelo de ~1 post/dia útil + Stories ao longo da semana. Gira os pilares mantendo o equilíbrio 80/20.</p>
+  <div class="calwrap">
+    <table class="cal">
+      <thead><tr><th>Semana</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="wk">1</td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>carrossel</small></td>
+          <td><span class="p"><span class="dot" style="background:#9db8ff"></span>Recurso</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Prova social</span><small>feed</small></td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Proximidade</span><small>Reels</small></td>
+        </tr>
+        <tr>
+          <td class="wk">2</td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>carrossel</small></td>
+          <td><span class="p"><span class="dot" style="background:#9db8ff"></span>Recurso</span><small>feed</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Manifesto</span><small>feed · 1×/mês</small></td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Prova social</span><small>Reels</small></td>
+        </tr>
+        <tr>
+          <td class="wk">3</td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>carrossel</small></td>
+          <td><span class="p"><span class="dot" style="background:#9db8ff"></span>Recurso</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Proximidade</span><small>feed</small></td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#9db8ff"></span>Novidade / sazonal</span><small>feed</small></td>
+        </tr>
+        <tr>
+          <td class="wk">4</td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>carrossel</small></td>
+          <td><span class="p"><span class="dot" style="background:#9db8ff"></span>Recurso</span><small>feed</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Prova social</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#22c39a"></span>Dica</span><small>Reels</small></td>
+          <td><span class="p"><span class="dot" style="background:#e0912e"></span>Proximidade</span><small>feed</small></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cad" style="margin-top:14px;"><b>Stories (todos os dias):</b> 1–2 enquetes/caixinhas por semana, bastidores do time, repost de quem marca a Clinnipro, prints de conversa boa no suporte (com permissão). <b>Balanço:</b> ~8 posts topo/meio pra cada ~2 de fundo por mês.</p>
+
+  <!-- banks -->
+  <h2>Bancos de apoio</h2>
+  <p class="subh">Peças reutilizáveis pra acelerar a produção, misture e combine.</p>
+  <div class="banks">
+    <div class="bank">
+      <h4>🪝 Ganchos de abertura</h4>
+      <ul>
+        <li>"Falta marcada é dinheiro que não volta…"</li>
+        <li>"Você sabe quanto a sua clínica lucrou mês passado?"</li>
+        <li>"Tem sistema que te joga num call center…"</li>
+        <li>"A sua clínica não é igual a nenhuma outra."</li>
+        <li>"Vocês pediram, a gente fez ✅"</li>
+        <li>"3 jeitos de [resolver dor] ainda esta semana 👇"</li>
+      </ul>
+    </div>
+    <div class="bank">
+      <h4>📣 CTAs</h4>
+      <ul>
+        <li>Chama no WhatsApp (link na bio), <i>fundo</i></li>
+        <li>Agenda uma demo, link na bio, <i>fundo</i></li>
+        <li>Salva pra mostrar pra recepção, <i>topo</i></li>
+        <li>Comenta "[palavra]" que a gente aprofunda, <i>topo</i></li>
+        <li>Marca aquele profissional que…, <i>alcance</i></li>
+        <li>Vota / usa a caixinha, <i>Story</i></li>
+      </ul>
+    </div>
+    <div class="bank">
+      <h4>#️⃣ Banco de hashtags</h4>
+      <ul>
+        <li class="ht">Marca: #clinnipro #tudoparaaclínica #melhoramigodaclínica</li>
+        <li class="ht">Odonto: #odontologia #cirurgiãodentista #gestãoodontológica #clínicaodontológica</li>
+        <li class="ht">Gestão: #gestãodeclínica #gestãodeconsultório #secretáriadeclínica #financeirodaclínica</li>
+        <li class="ht">Produto: #sistemaparaclínica #prontuárioeletrônico #agendadeclínica</li>
+      </ul>
+    </div>
+    <div class="bank">
+      <h4>📆 Datas do trimestre (exemplos)</h4>
+      <ul>
+        <li>30/set, Dia da Secretária</li>
+        <li>03/out, Dia do Dentista (adiantar posts)</li>
+        <li>25/out, Dia do Cirurgião-Dentista</li>
+        <li>18/out, Dia do Médico</li>
+        <li>Confirme cada data e planeje com 1 semana de antecedência</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- production -->
+  <div class="cad">
+    <b>Ritmo de produção & o que medimos</b>
+    <ul>
+      <li><b>Cadência:</b> ~1 post/dia útil + Stories diários. Produzir em lote (1 dia/semana grava vários Reels e monta os carrosséis do mês).</li>
+      <li><b>Banco vivo:</b> manter sempre 2–3 criativos novos prontos pra testar, os campeões viram anúncio pago.</li>
+      <li><b>Métricas de conteúdo:</b> alcance, salvamentos, compartilhamentos, novos seguidores (topo); cliques no link/WhatsApp e conversas no direct (fundo).</li>
+      <li><b>Ponte com a mídia paga:</b> post orgânico que performa bem vira criativo de anúncio; enquete de dor vira ângulo de campanha.</li>
+      <li><b>Regra de ouro:</b> ~80% ajudar/aproximar, ~20% vender. Amigo primeiro, vendedor depois.</li>
+    </ul>
+  </div>
+
+</div>

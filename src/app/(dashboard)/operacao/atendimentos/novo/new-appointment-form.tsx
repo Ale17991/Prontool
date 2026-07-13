@@ -30,6 +30,7 @@ import {
 import {
   MateriaisEditor,
   validateMaterials,
+  parseReaisToCents,
   type MaterialDraft,
 } from '@/components/atendimentos/materiais-editor'
 import {
@@ -59,6 +60,8 @@ export interface NewAppointmentFormProps {
   /** Intervalo (minutos) da agenda — preenche o fim automaticamente. */
   slotIntervalMinutes?: number
   initialAppointmentAt?: string
+  /** admin/financeiro — habilita salvar insumo livre no catálogo (Feature 045). */
+  canManageCatalog?: boolean
 }
 
 type PaymentMethod =
@@ -89,6 +92,7 @@ export function NewAppointmentForm({
   participationDegrees,
   slotIntervalMinutes = 30,
   initialAppointmentAt,
+  canManageCatalog = false,
 }: NewAppointmentFormProps) {
   const router = useRouter()
   const [patient, setPatient] = useState<PatientTypeaheadValue | null>(null)
@@ -344,7 +348,10 @@ export function NewAppointmentForm({
       payload.materiais = validated.map((m) => ({
         tuss_code: m.tussCode,
         tuss_description: m.tussDescription,
+        material_id: m.materialId,
+        material_name: m.materialName,
         quantity: m.quantity,
+        unit_cost_cents: parseReaisToCents(m.costReais) ?? 0,
       }))
     }
 
@@ -653,7 +660,12 @@ export function NewAppointmentForm({
       />
 
       <div className="md:col-span-2">
-        <MateriaisEditor value={materiais} onChange={setMateriais} disabled={pending} />
+        <MateriaisEditor
+          value={materiais}
+          onChange={setMateriais}
+          disabled={pending}
+          canManageCatalog={canManageCatalog}
+        />
       </div>
 
       <div className="md:col-span-2">

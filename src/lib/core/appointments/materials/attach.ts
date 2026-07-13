@@ -1,12 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ConflictError, DomainError, NotFoundError } from '@/lib/observability/errors'
-import type { AppointmentMaterial } from './list'
+import { mapAppointmentMaterialRow, type AppointmentMaterial } from './list'
 
+/**
+ * Feature 045: material pode vir do catálogo (`materialId`) ou ser livre
+ * (`materialName`), com ou sem TUSS. `unitCostCents` é o snapshot de custo
+ * (0 = pendência). Pelo menos um identificador deve ser informado.
+ */
 export interface MaterialInput {
-  tussCode: string
-  tussDescription: string
+  tussCode?: string | null
+  tussDescription?: string | null
+  materialId?: string | null
+  materialName?: string | null
   quantity: number
+  unitCostCents?: number
 }
 
 export interface AttachMaterialsInput {
@@ -62,9 +70,12 @@ export async function attachMaterialsToAppointment(
   }
 
   const payload = input.materials.map((m) => ({
-    tuss_code: m.tussCode,
-    tuss_description: m.tussDescription,
+    tuss_code: m.tussCode ?? null,
+    tuss_description: m.tussDescription ?? null,
+    material_id: m.materialId ?? null,
+    material_name: m.materialName ?? null,
     quantity: m.quantity,
+    unit_cost_cents: m.unitCostCents ?? 0,
   }))
 
   const { data, error } = await supabase.rpc(
@@ -113,14 +124,7 @@ export async function attachMaterialsToAppointment(
     appointment_id: string
     materials: Array<Record<string, unknown>>
   } | null
-  const items = (result?.materials ?? []).map((r) => ({
-    id: r.id as string,
-    tussCode: r.tuss_code as string,
-    tussDescription: r.tuss_description as string,
-    quantity: r.quantity as number,
-    createdAt: r.created_at as string,
-    createdBy: r.created_by as string,
-  }))
+  const items = (result?.materials ?? []).map((r) => mapAppointmentMaterialRow(r))
 
   return {
     appointmentId: result?.appointment_id ?? input.appointmentId,

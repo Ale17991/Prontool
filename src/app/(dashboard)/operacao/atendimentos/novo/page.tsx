@@ -159,6 +159,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
             participationDegrees={degreeOptions}
             slotIntervalMinutes={slotIntervalMinutes}
             initialAppointmentAt={searchParams.at}
+            canManageCatalog={session.role === 'admin' || session.role === 'financeiro'}
           />
         </CardContent>
       </Card>

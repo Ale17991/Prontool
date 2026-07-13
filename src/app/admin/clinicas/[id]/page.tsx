@@ -27,7 +27,8 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     entRes,
     userCountRes,
     apptCountRes,
-    lastActivityRes,
+    lastAuditRes,
+    lastApptRes,
     integrationsRes,
     members,
     auditRes,
@@ -42,6 +43,16 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     sb.from('appointments').select('id', { count: 'exact', head: true }).eq('tenant_id', id),
     sb
       .from('audit_log')
+      .select('created_at')
+      .eq('tenant_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    // "Última atividade" = uso real da clínica. audit_log só pega eventos
+    // auditados/ações de admin; o agendamento mais recente (created_at) reflete
+    // a operação do dia a dia. Pegamos o mais recente entre os dois (abaixo).
+    sb
+      .from('appointments')
       .select('created_at')
       .eq('tenant_id', id)
       .order('created_at', { ascending: false })
@@ -90,10 +101,18 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     (integrationsRes.data ?? []) as Array<{ provider: string; status: string | null }>
   ).map((i) => i.provider)
 
+  const lastAuditAt = (lastAuditRes.data as { created_at?: string } | null)?.created_at ?? null
+  const lastApptAt = (lastApptRes.data as { created_at?: string } | null)?.created_at ?? null
+  // Mais recente entre auditoria e agendamento (ambos podem ser null).
+  const lastActivity = [lastAuditAt, lastApptAt]
+    .filter((d): d is string => Boolean(d))
+    .sort()
+    .at(-1) ?? null
+
   const metrics = {
     userCount: (userCountRes.count as number | null) ?? 0,
     appointmentCount: (apptCountRes.count as number | null) ?? 0,
-    lastActivity: (lastActivityRes.data as { created_at?: string } | null)?.created_at ?? null,
+    lastActivity,
     integrations,
   }
 

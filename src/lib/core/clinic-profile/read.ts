@@ -49,6 +49,8 @@ function syntheticEmptyRow(tenantId: string): Row {
     // Defaults consistentes com a migration 0133 (07:00–22:00).
     calendar_open_time: '07:00:00',
     calendar_close_time: '22:00:00',
+    // Default consistente com a migration 0147 (NOT NULL DEFAULT FALSE).
+    surgical_scan_required: false,
     created_at: now,
     updated_at: now,
   }

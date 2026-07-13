@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { ValidationError } from '@/lib/observability/errors'
 import { applyPlanTax } from './apply-plan-tax'
+import { sumMaterialsCost } from './materials-cost'
 import {
   getTenantTimezone,
   ymdStartOfDayUtc,
@@ -82,6 +83,8 @@ export interface FinancialTotals {
   commissionsCents: number
   netRevenueCents: number
   totalExpensesCents: number
+  /** Feature 045 — gasto com materiais no período (deduz margem; D1). */
+  materialsCostCents: number
   operatingProfitCents: number
   operatingMarginPct: number
   appointmentCount: number
@@ -235,10 +238,18 @@ export async function buildFinancialReport(
   )
   const netRevenueCents = grossRevenueCents - commissionsCents
   const totalExpensesCents = expenses.totalCents
-  // lucro = netRevenue − totalExpenses − imposto_do_convênio.
+  // Feature 045 — gasto com materiais do período (base appointment_at, fuso do
+  // tenant, estornados excluídos). D1: deduz margem, não toca receita/comissão.
+  const materialsCostCents = await sumMaterialsCost(supabase, {
+    tenantId: input.tenantId,
+    fromIso: ymdStartOfDayUtc(input.from, tz),
+    toIso: ymdNextDayStartUtc(input.to, tz),
+  })
+  // lucro = netRevenue − totalExpenses − imposto_do_convênio − materiais.
   // Despesas de categoria 'impostos' já fazem parte de totalExpensesCents,
   // representando o "imposto da clínica" — não há dupla contagem.
-  const operatingProfitCents = netRevenueCents - totalExpensesCents - taxFromPlansCents
+  const operatingProfitCents =
+    netRevenueCents - totalExpensesCents - taxFromPlansCents - materialsCostCents
   const operatingMarginPct =
     grossRevenueCents > 0 ? Math.round((operatingProfitCents / grossRevenueCents) * 1000) / 10 : 0
 
@@ -252,8 +263,16 @@ export async function buildFinancialReport(
     previousPeriod.to,
     tz,
   )
+  const previousMaterialsCostCents = await sumMaterialsCost(supabase, {
+    tenantId: input.tenantId,
+    fromIso: ymdStartOfDayUtc(previousPeriod.from, tz),
+    toIso: ymdNextDayStartUtc(previousPeriod.to, tz),
+  })
   const previousProfit =
-    previousNetRevenue - previousExpenses.totalCents - previousTaxFromPlansCents
+    previousNetRevenue -
+    previousExpenses.totalCents -
+    previousTaxFromPlansCents -
+    previousMaterialsCostCents
 
   return {
     period: { from: input.from, to: input.to },
@@ -267,6 +286,7 @@ export async function buildFinancialReport(
       commissionsCents,
       netRevenueCents,
       totalExpensesCents,
+      materialsCostCents,
       operatingProfitCents,
       operatingMarginPct,
       appointmentCount: active.length,

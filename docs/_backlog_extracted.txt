@@ -1,0 +1,149 @@
+Backlog de Requisitos
+Sistema de Gestão Clínica / Consultório Oftalmológico
+Versão 2 — estrutura hierárquica revisada
+
+Sumário
+TOC \h \o "1-2"
+
+
+Como ler este documento
+Os requisitos seguem a numeração hierárquica original (1, 1/1, 1/2…). As linhas em destaque azul são os itens principais; as linhas recuadas são subitens e sub-subitens. Cada item tem ID, descrição, prioridade sugerida e observações.
+Prioridades sugeridas (a validar com a equipe):
+Alta — essencial para atendimento, faturamento ou conformidade.
+Média — melhora relevante de fluxo de trabalho.
+Baixa — conveniência / refinamento posterior.
+
+1. Atendimento e Ficha do Paciente
+Correção e ampliação dos dados do atendimento e da ficha do paciente.
+ID
+Requisito
+Prioridade
+Observações
+1/1
+Adicionar foto na ficha do paciente.
+Alta
+
+1/2
+Botão no agendamento para criação rápida + contato: nome, convênio e telefone.
+Alta
+Atalho a partir da agenda.
+1/3
+Criar uma forma de o próprio paciente completar esses dados.
+Média
+Formulário/link enviado ao paciente.
+1/4
+Registrar dados de pós-atendimento (como o atendimento foi realizado) e fotos de etiquetas de material utilizado. Pode ser integrado ao sistema de notas.
+Alta
+Integrar ao módulo de notas.
+1/4/1
+Cadastrar solicitação de exame e adicionar arquivos vinculados às notas; os arquivos ficam em uma biblioteca de documentos do paciente.
+Alta
+Biblioteca de docs por paciente.
+1/4/2
+Local para informar os documentos já emitidos ao paciente (somente os baixados para envio são sinalizados na área de documentos).
+Média
+Marcar os baixados p/ envio.
+1/4/3
+Todo documento relacionado a cirurgia deve ter etiqueta.
+Alta
+Regra obrigatória.
+1/5
+Botão para marcar o paciente como óbito ou inativo, bloqueando mensagens e marcações para evitar problemas e constrangimento.
+Alta
+Bloqueia disparos automáticos.
+1/6
+Marcar paciente como retorno (caixa marcável que pode substituir o procedimento a ser realizado).
+Média
+
+1/7
+Prontuário visualizável antes de baixar.
+Média
+Pré-visualização.
+1/8
+Na barra de diagnóstico, além do CID, incluir o nome da doença.
+Média
+CID + descrição.
+1/9
+Profissional liberal com botão para definir grau de participação com base no TUSS; ao adicionar participante ao atendimento, selecionar o grau. Fixos e comissionados também são participantes. Um procedimento pode ter vários participantes (ex.: anestesista, instrumentador cirúrgico), além do profissional que realiza.
+Alta
+Múltiplos participantes por procedimento.
+1/10
+Ao criar atestados, poder ter ou não o CID.
+Alta
+CID opcional.
+1/11
+Notificação pop-up ao abrir a ficha do paciente: cadastrar aviso por paciente que aparece sempre que a página é aberta; só é possível usar a página após fechá-lo.
+Média
+Pop-up bloqueante por paciente.
+
+2. Módulo de Oftalmologia
+Criar módulo de oftalmologia; estudar o que outros sistemas oferecem, considerando o sistema HI_DOCTOR como referência.
+ID
+Requisito
+Prioridade
+Observações
+2
+Criar módulo de oftalmologia (benchmarking de sistemas existentes, referência: HI_DOCTOR).
+Alta
+Estudo comparativo prévio.
+2/1
+Prescrição de óculos — definir quais dados são necessários para gerar a receita.
+Alta
+Mapear campos antes de desenvolver.
+2/2
+Modelo para criação e laudo de exames (todos os módulos) para impressão, com modelo pré-estabelecido.
+Alta
+Template padrão por módulo.
+
+3. Anamnese e Modelos de Documentos
+Padronização de anamnese e modelos de texto para documentos impressos fora da Memed.
+ID
+Requisito
+Prioridade
+Observações
+3
+Criar anamnese padrão e modelos de texto reutilizáveis (ex.: atestados). Os modelos devem usar dados do paciente para preencher documentos como atestados e receitas impressas fora da Memed. Tamanho do papel, da fonte e demais parâmetros de texto devem ser modificáveis.
+Alta
+Campos dinâmicos + parâmetros de impressão.
+
+4. Financeiro e Faturamento
+Relatórios de despesas e controle de recebimentos por convênio.
+ID
+Requisito
+Prioridade
+Observações
+4
+Gerar relatórios de despesas para a contabilidade (em PDF ou Excel) + botão de editar despesa.
+Alta
+Exportação PDF/Excel.
+4/1
+Botão para marcar recebidos nos planos de saúde (ou outra forma de marcação), permitindo marcar vários e marcar como recebido de uma vez.
+Alta
+Ações em massa.
+4/2
+Nas métricas por convênio, incluir o que foi recebido e o que não foi, com filtro por esse dado e uma caixa para ele no dashboard.
+Alta
+Filtro + widget no dashboard.
+
+4/2 — Status do procedimento por convênio
+O ideal é um campo de seleção com estas opções, podendo marcar um a um ou em massa:
+Status
+Significado
+Recebido
+Valor já recebido do convênio.
+Pendente
+Aguardando pagamento / em processamento.
+Glosado
+Item recusado ou descontado pelo convênio.
+Não recebido
+Devido, porém ainda não pago.
+
+
+Pontos a definir com a equipe
+Prescrição de óculos (2/1): mapear os campos da receita oftalmológica (esférico, cilíndrico, eixo, DNP, adição, prisma, base, distância de leitura).
+Benchmarking do módulo de oftalmologia (2): levantar funcionalidades do HI_DOCTOR e de outros sistemas como referência.
+Modelos de documento (3): definir a lista completa de variáveis dinâmicas do paciente e os formatos/tamanhos de papel suportados.
+Biblioteca de documentos (1/4/1) e marcação de emitidos (1/4/2): definir como o sistema distingue documentos gerados x baixados para envio.
+Grau de participação (1/9): confirmar a tabela TUSS de referência e os graus aplicáveis a cada tipo de participante.
+Etiqueta de cirurgia (1/4/3): definir layout e conteúdo padrão da etiqueta.
+

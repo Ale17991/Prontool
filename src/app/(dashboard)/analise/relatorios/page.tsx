@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
   ArrowDownRight,
@@ -584,6 +585,30 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
           tone="negative"
         />
       </div>
+
+      {report.totals.materialsCostCents > 0 ? (
+        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-5 py-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Gasto com materiais
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Custo dos insumos consumidos nos atendimentos do período (deduzido do lucro).
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <p className="text-xl font-black tabular-nums text-destructive">
+              -{formatCurrency(report.totals.materialsCostCents)}
+            </p>
+            <Link
+              href={`/analise/relatorios/materiais?from=${report.period.from}&to=${report.period.to}`}
+              className="text-xs font-medium text-blue-600 hover:underline"
+            >
+              Detalhar
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       <Card className="border-[#2D4E4D] bg-[#1A3741] text-white shadow-md">
         <CardContent className="p-6 sm:p-8">
