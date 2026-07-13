@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { logger } from '@/lib/observability/logger'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 
 let resendSingleton: Resend | null = null
 
@@ -37,7 +38,7 @@ export async function sendAlertEmail(input: AlertEmailInput): Promise<{ id: stri
   }
 
   const from = process.env.RESEND_FROM ?? 'alertas@dev.clinnipro.io'
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const appUrl = resolvePublicBaseUrl()
 
   const html = renderAlertHtml({
     subject: input.subject,

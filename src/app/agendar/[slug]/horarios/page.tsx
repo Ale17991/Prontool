@@ -7,6 +7,7 @@
  */
 
 import { notFound, redirect } from 'next/navigation'
+import { ChevronLeft, CalendarClock } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 import {
@@ -38,22 +39,32 @@ export default async function HorariosPage({
     const procedures = await listProceduresAnyDoctor(supabase, tenant.tenantId)
     return (
       <div className="space-y-6">
-        <header className="space-y-1">
+        <header className="space-y-2">
           <a
             href={`/agendar/${params.slug}`}
-            className="text-sm text-link underline-offset-2 hover:underline"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
           >
-            ← Voltar
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
           </a>
-          <h1 className="text-2xl font-bold text-slate-900">Sem preferência de profissional</h1>
-          <p className="text-sm text-slate-600">
-            Escolha o procedimento e o horário. O profissional com melhor disponibilidade na semana
-            será atribuído automaticamente.
-          </p>
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-primary/10 text-primary">
+              <CalendarClock className="h-5 w-5" />
+            </span>
+            <div>
+              <h1 className="text-xl font-black tracking-tight text-foreground sm:text-2xl">
+                Sem preferência de profissional
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Escolha o procedimento e o horário — atribuímos o profissional com melhor
+                disponibilidade.
+              </p>
+            </div>
+          </div>
         </header>
 
         {procedures.length === 0 ? (
-          <p className="rounded-md border border-border bg-card p-4 text-sm text-slate-500">
+          <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
             Nenhum procedimento disponível para agendamento público no momento.
           </p>
         ) : (
@@ -82,18 +93,36 @@ export default async function HorariosPage({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
+      <header className="space-y-2">
         <a
           href={`/agendar/${params.slug}`}
-          className="text-sm text-link underline-offset-2 hover:underline"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
         >
-          ← Trocar profissional
+          <ChevronLeft className="h-4 w-4" />
+          Trocar profissional
         </a>
-        <h1 className="text-2xl font-bold text-slate-900">{doctor.doctorFullName}</h1>
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#0AB9C7] to-[#0A6BAA] text-sm font-bold text-white">
+            {doctor.doctorFullName
+              .trim()
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((w) => w[0]!)
+              .join('')
+              .toUpperCase()}
+          </span>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-foreground sm:text-2xl">
+              {doctor.doctorFullName}
+            </h1>
+            <p className="text-sm text-muted-foreground">Escolha o procedimento e o horário.</p>
+          </div>
+        </div>
       </header>
 
       {procedures.length === 0 ? (
-        <p className="rounded-md border border-border bg-card p-4 text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
           Este profissional não tem procedimentos disponíveis para agendamento público.
         </p>
       ) : (

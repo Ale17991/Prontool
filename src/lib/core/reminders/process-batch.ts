@@ -15,6 +15,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { sendOneReminder } from './send-one'
 import { isWeekend, isWithinWindow, selectDueAppointments } from './select-due'
 import type { EligibleAppointment, ProcessBatchResult, TenantReminderSettings } from './types'
@@ -93,7 +94,7 @@ export async function processBatch(
   // Buffer global compartilhado entre tenants — cap em MAX_BATCH.
   const buffer: BatchItem[] = []
   const tenantsTouched = new Set<string>()
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+  const appUrl = resolvePublicBaseUrl()
 
   // Itera tenants em chunks de MAX_TENANTS_PARALLEL.
   for (let i = 0; i < tenants.length; i += MAX_TENANTS_PARALLEL) {
