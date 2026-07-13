@@ -6,6 +6,7 @@ import { can } from '@/lib/auth/rbac'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import type { Database } from '@/lib/db/types'
 import { getPublicBookingConfig } from '@/lib/core/public-booking/config'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { PublicBookingForm } from './public-booking-form'
 
 export const dynamic = 'force-dynamic'
@@ -54,7 +55,10 @@ export default async function AgendamentoPublicoPage() {
     name: p.display_name ?? p.tuss_code ?? '—',
   }))
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+  // Esquema GARANTIDO: se NEXT_PUBLIC_APP_URL vier sem http(s):// (ex.:
+  // `app.clinnipro.com.br`), um href relativo quebra em 404
+  // (`/configuracoes/app.clinnipro.com.br/agendar/...`). resolvePublicBaseUrl prefixa https://.
+  const baseUrl = resolvePublicBaseUrl()
 
   return (
     <div className="space-y-6">

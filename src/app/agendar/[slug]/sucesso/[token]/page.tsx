@@ -7,6 +7,7 @@
 
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { CheckCircle2 } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 import { hashToken } from '@/lib/core/public-booking/tokens'
@@ -92,10 +93,15 @@ export default async function SucessoPage({ params }: { params: { slug: string; 
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-success/30 bg-success-bg p-6 text-center">
-        <h1 className="text-2xl font-bold text-success-strong">Agendamento confirmado!</h1>
+      <div className="flex flex-col items-center rounded-2xl border border-success/30 bg-success-bg p-8 text-center">
+        <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-success/15 text-success-strong">
+          <CheckCircle2 className="h-8 w-8" />
+        </span>
+        <h1 className="text-2xl font-black tracking-tight text-success-strong">
+          Agendamento confirmado!
+        </h1>
         <p className="mt-2 text-sm text-success-text">
-          Você receberá um email de confirmação em instantes.
+          Você receberá um e-mail de confirmação em instantes.
         </p>
       </div>
 

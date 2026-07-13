@@ -26,6 +26,7 @@ import { DomainError } from '@/lib/observability/errors'
 import { createPatientManually } from '@/lib/core/patients/create-manual'
 import { createAppointmentManually } from '@/lib/core/appointments/create-manual'
 import { publishDomainEvent } from '@/lib/core/events/publish'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { resolveTenantBySlug } from './resolve-tenant'
 import { generateCancelToken } from './tokens'
 import { sendBookingConfirmations } from './send-confirmation'
@@ -271,7 +272,7 @@ export async function createPublicBooking(
 
     // 9. Pós-commit (fire-and-forget): email paciente + email admin + bell.
     //    Erros logados internamente; não falham a request.
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+    const appUrl = resolvePublicBaseUrl()
     const cancelUrl = `${appUrl}/agendar/${input.slug}/cancelar/${token.raw}`
     const dashboardUrl = `${appUrl}/operacao/atendimentos/${result.appointmentId}`
 

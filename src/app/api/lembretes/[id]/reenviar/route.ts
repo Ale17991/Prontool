@@ -18,6 +18,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { ForbiddenError, UnauthorizedError } from '@/lib/observability/errors'
 import type { Database } from '@/lib/db/types'
 import { sendOneReminder } from '@/lib/core/reminders/send-one'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import type { EligibleAppointment, TenantReminderSettings } from '@/lib/core/reminders/types'
 
 export const dynamic = 'force-dynamic'
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest, context: { params: { id: string
     reminder_window_end: string | null
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
+  const appUrl = resolvePublicBaseUrl()
   const publicBookingUrl =
     clinic.public_booking_enabled === true && clinic.public_booking_slug
       ? `${appUrl}/agendar/${clinic.public_booking_slug}`

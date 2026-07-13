@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import type { Database, TenantRole } from '@/lib/db/types'
 import { ConflictError, ValidationError } from '@/lib/observability/errors'
+import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { TENANT_ROLES_ORDERED } from './types'
 
 const inviteSchema = z.object({
@@ -104,7 +105,7 @@ export async function inviteTeamMember(
   }
 
   // 3. Envia o e-mail de convite (link de definição de senha).
-  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/welcome`
+  const redirectTo = `${resolvePublicBaseUrl()}/welcome`
   const { error: inviteError } = await supabaseService.auth.admin.inviteUserByEmail(email, {
     redirectTo,
   })
@@ -166,7 +167,7 @@ export async function resendInvite(
     throw new ConflictError('NOT_PENDING', 'Usuário sem e-mail registrado')
   }
 
-  const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/welcome`
+  const redirectTo = `${resolvePublicBaseUrl()}/welcome`
   const { error: inviteError } = await supabaseService.auth.admin.inviteUserByEmail(
     target.user.email,
     { redirectTo },

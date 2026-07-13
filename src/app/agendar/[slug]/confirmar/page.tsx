@@ -6,6 +6,7 @@
  */
 
 import { notFound, redirect } from 'next/navigation'
+import { ChevronLeft } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
 import {
@@ -55,14 +56,20 @@ export default async function ConfirmarPage({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
+      <header className="space-y-2">
         <a
           href={`/agendar/${params.slug}/horarios?doctor_id=${doctor_id}&procedure_id=${procedure_id}`}
-          className="text-sm text-link underline-offset-2 hover:underline"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
         >
-          ← Alterar horário
+          <ChevronLeft className="h-4 w-4" />
+          Alterar horário
         </a>
-        <h1 className="text-2xl font-bold text-slate-900">Confirmar agendamento</h1>
+        <h1 className="text-2xl font-black tracking-tight text-foreground">
+          Confirmar agendamento
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Falta pouco — confirme seus dados para garantir o horário.
+        </p>
       </header>
 
       <PatientForm
