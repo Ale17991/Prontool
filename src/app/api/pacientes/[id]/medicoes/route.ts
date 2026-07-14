@@ -36,7 +36,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     const supabase = createSupabaseServiceClient()
     const [measurements, metricTypes] = await Promise.all([
       listMeasurements(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      listEnabledMetricTypesForTenant(supabase, session.tenantId, { specialty: 'endocrino' }),
+      listEnabledMetricTypesForTenant(supabase, session.tenantId),
     ])
     return NextResponse.json({ measurements, metricTypes }, { status: 200 })
   } catch (err) {
