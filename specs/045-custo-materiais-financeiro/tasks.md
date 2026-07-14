@@ -37,9 +37,9 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 - [X] T008 Migration 0172: atualizar RPCs `attach_materials_to_appointment` e `create_appointment_with_materials` para aceitar `unit_cost_cents` + `material_id` e `tuss_code` opcional
 - [X] T009 Migration 0172: RPC nova `set_appointment_material_cost(...)` (SECURITY DEFINER, column-guard, auditada, `reason` obrigatório)
 - [X] T010 Rodar `pnpm supabase:reset && pnpm supabase:gen-types` e conferir tipos em `src/lib/db/types`
-- [ ] T011 [P] Contract test: `appointment_materials` rejeita DELETE e UPDATE de colunas ≠ `{unit_cost_cents, material_id}` em `tests/contract/appointment-materials-immutability.test.ts`
-- [ ] T012 [P] Contract test: isolamento de tenant em `tenant_materials` e `set_appointment_material_cost` em `tests/contract/materials-tenant-isolation.test.ts`
-- [ ] T013 [P] Contract test: RBAC — apenas `admin`/`financeiro` criam/editam custo em `tests/contract/materials-rbac.test.ts`
+- [X] T011 [P] Contract test: `appointment_materials` rejeita DELETE e UPDATE de colunas ≠ `{unit_cost_cents, material_id}` em `tests/contract/appointment-materials-immutability.spec.ts`
+- [X] T012 [P] Contract test: isolamento de tenant em `tenant_materials` e `set_appointment_material_cost` em `tests/contract/materials-tenant-isolation.spec.ts`
+- [X] T013 [P] Contract test: RBAC — apenas `admin`/`financeiro` criam/editam custo em `tests/contract/materials-rbac.spec.ts`
 
 **Checkpoint**: schema, RPCs e guardas prontos — histórias podem começar.
 
@@ -53,8 +53,8 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Integration test: anexar material com custo (default do catálogo + override) e listar com `totalCostCents`/`costPending` em `tests/integration/attach-material-cost.test.ts`
-- [ ] T015 [P] [US1] Integration test: completar custo pendente via `set-cost` (auditado) e imutabilidade do snapshot ao editar o catálogo em `tests/integration/material-cost-complete.test.ts`
+- [X] T014 [P] [US1] Integration test: anexar material com custo (default do catálogo + override) e listar com `totalCostCents`/`costPending` em `tests/integration/attach-material-cost.spec.ts`
+- [X] T015 [P] [US1] Integration test: completar custo pendente via `set-cost` (auditado) e imutabilidade do snapshot ao editar o catálogo em `tests/integration/material-cost-complete.spec.ts`
 
 ### Implementation for User Story 1
 
@@ -80,7 +80,7 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Integration test: `sumMaterialsCost` exclui estornado + fronteira de mês (fuso do tenant); `operating-result` inclui a linha e reduz `netProfit`; `grossRevenue`/`commissions` inalterados em `tests/integration/operating-result-materials.test.ts`
+- [X] T025 [P] [US2] Integration test: `sumMaterialsCost` exclui estornado + fronteira de mês (fuso do tenant); `operating-result` inclui a linha e reduz `netProfit`; `grossRevenue`/`commissions` inalterados em `tests/integration/operating-result-materials.spec.ts`
 
 ### Implementation for User Story 2
 
@@ -101,7 +101,7 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 3
 
-- [ ] T030 [P] [US3] Integration test: `materialsCostByDoctor`/`materialsCostByPlan` atribuem por `doctor_id`/`plan_id` e excluem estornado em `tests/integration/reports-materials-breakdown.test.ts`
+- [X] T030 [P] [US3] Integration test: `materialsCostByDoctor`/`materialsCostByPlan` atribuem por `doctor_id`/`plan_id` e excluem estornado em `tests/integration/reports-materials-breakdown.spec.ts`
 
 ### Implementation for User Story 3
 
@@ -125,7 +125,7 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 4
 
-- [ ] T038 [P] [US4] Integration test: desativação remove do seletor e mantém histórico; edição de custo não afeta usos passados em `tests/integration/catalog-management.test.ts`
+- [X] T038 [P] [US4] Integration test: desativação remove do seletor e mantém histórico; edição de custo não afeta usos passados em `tests/integration/catalog-management.spec.ts`
 
 ### Implementation for User Story 4
 
@@ -138,9 +138,9 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T041 [P] Unit tests: `costPending`/`totalCostCents` e fronteira de mês em `tests/unit/materials-cost.test.ts`
-- [ ] T042 Rodar `pnpm lint:auth`, `pnpm typecheck` e o roteiro de `quickstart.md`
-- [ ] T043 [P] Revisar textos/tooltips ("Gasto com materiais", pendência de custo) para consistência de UI
+- [X] T041 [P] Unit tests: `costPending`/`totalCostCents` e fronteira de mês em `tests/unit/materials-cost.spec.ts`
+- [X] T042 Rodar `pnpm lint:auth`, `pnpm typecheck` e o roteiro de `quickstart.md` (lint:auth + typecheck + eslint limpos; testes automatizados do quickstart verdes)
+- [X] T043 [P] Revisar textos/tooltips ("Gasto com materiais", pendência de custo) para consistência de UI (uniforme em dashboard/drilldown/6 exports + "custo pendente" no editor e detalhes)
 
 ---
 
