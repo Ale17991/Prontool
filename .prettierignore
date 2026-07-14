@@ -10,3 +10,5 @@ supabase/.branches/
 supabase/.temp/
 .claude/
 .specify/
+# Assets oficiais versionados verbatim (XSDs ANS, CodeSystem TUSS) — não reformatar
+src/lib/core/tiss/schemas/
