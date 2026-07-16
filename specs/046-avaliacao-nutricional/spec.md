@@ -96,14 +96,14 @@ O profissional define metas (peso-alvo, percentual de gordura-alvo) e a meta ene
 - **FR-003**: O sistema MUST restringir toda avaliação ao paciente e à clínica corrente (isolamento por clínica).
 
 **Composição corporal (US1)**
-- **FR-004**: O sistema MUST oferecer os protocolos de dobras cutâneas: **Jackson-Pollock 3 dobras**, **Jackson-Pollock 7 dobras**, **Durnin-Womersley**, **Faulkner**, **Guedes**, **Slaughter (infantil)** e **bioimpedância** (entrada direta de percentual de gordura).
+- **FR-004**: O sistema MUST oferecer **todos os protocolos de composição corporal das planilhas de referência**: **Durnin-Womersley (1974)**, **Guedes (1985)**, **Jackson-Pollock-Ward 3 dobras (1980)**, **Jackson-Pollock-Ward 7 dobras (1980)**, **Petroski (1995)**, **Faulkner (1987)**, **Weltman (1988)**, **McArdle (1992, 9–16 anos)**, **Slaughter (1988, 7–18 anos)** e **bioimpedância** (entrada direta de percentual de gordura).
 - **FR-005**: Para cada protocolo, o sistema MUST indicar **quais dobras** são exigidas e validar que foram informadas antes de calcular.
 - **FR-006**: O sistema MUST calcular **densidade corporal → percentual de gordura** (fórmula de Siri ou Brozek), **massa gorda** e **massa magra** a partir das dobras e do peso.
 - **FR-007**: O sistema MUST calcular **IMC** e sua **classificação**, e a **relação cintura-quadril** e sua **classificação**, a partir de peso/altura/circunferências.
 - **FR-008**: O sistema MUST diferenciar os coeficientes por **sexo** e respeitar a **faixa etária** de validade de cada protocolo.
 
 **Necessidades energéticas (US2)**
-- **FR-009**: O sistema MUST oferecer as equações de taxa metabólica basal: **Mifflin-St Jeor**, **Harris-Benedict (1984)**, **FAO/OMS (Schofield, por faixa etária)**, **Katch-McArdle**, **Cunningham** e **EER/IOM**.
+- **FR-009**: O sistema MUST oferecer **todas as equações de gasto energético das planilhas de referência**: **Harris-Benedict (1919)**, **Harris-Benedict (1984)**, **Mifflin-St Jeor (1990)**, **FAO/OMS-WHO (1985)**, **FAO/WHO (2004)**, **Schofield (1985)**, **Henry-Rees (1991)**, **Cunningham (1980)**, **Tinsley por peso (2018)**, **Tinsley por massa magra (2018)**, **Katch-McArdle (1996)**, **EER/IOM (2005)**, **EER (2023)**, **EER Gestante (2023)** e **EER Lactante (0–6 e 7–12 meses) (2023)**.
 - **FR-010**: O sistema MUST calcular a **taxa metabólica basal** conforme a equação escolhida (usando massa magra quando a equação exigir).
 - **FR-011**: O sistema MUST aplicar um **fator de atividade física** e, quando informado, um **fator de injúria/estresse** e o **adicional de gestação/lactação** para obter o **gasto energético total**.
 - **FR-012**: O sistema MUST calcular o **valor energético da meta** como gasto energético total ajustado por objetivo (déficit/manutenção/superávit, em kcal ou percentual).
@@ -135,7 +135,8 @@ O profissional define metas (peso-alvo, percentual de gordura-alvo) e a meta ene
 ### Measurable Outcomes
 
 - **SC-001**: Um profissional consegue concluir uma avaliação completa (composição + energia) de um paciente já cadastrado em **menos de 5 minutos**.
-- **SC-002**: Os resultados calculados (percentual de gordura por protocolo, taxa metabólica basal, gasto energético total, macros) **coincidem com os valores de referência** dos respectivos métodos para casos-teste conhecidos (diferença apenas de arredondamento).
+- **SC-002**: Os resultados calculados (percentual de gordura por protocolo, taxa metabólica basal, gasto energético total, macros) **coincidem com os valores que as planilhas de referência produzem** para os mesmos casos-teste (diferença apenas de arredondamento).
+- **SC-007**: **Todas** as equações de gasto energético e todos os protocolos de composição das planilhas de referência estão disponíveis para escolha na avaliação.
 - **SC-003**: Após salvar uma avaliação, os indicadores derivados aparecem no **histórico de medições e nos gráficos de evolução** do paciente sem qualquer passo manual adicional.
 - **SC-004**: Clínicas **sem** o módulo `nutri_avaliacao` não veem a tela nem o item de menu, e o acesso direto é negado (**0** vazamentos de acesso).
 - **SC-005**: **100%** das avaliações são imutáveis e auditadas; nenhuma edição destrutiva é possível (correção sempre gera novo registro).
@@ -146,7 +147,8 @@ O profissional define metas (peso-alvo, percentual de gordura-alvo) e a meta ene
 - **Reuso do motor de medições (feature 030)**: os indicadores derivados são gravados no mecanismo de medições longitudinais já existente; a métrica de **gasto energético total** (em kcal) será acrescentada ao catálogo de métricas.
 - **Dados do paciente**: sexo e data de nascimento vêm do cadastro do paciente; peso e altura podem vir de medições/sinais vitais recentes ou ser informados na própria avaliação.
 - **Persistência dedicada**: a avaliação é guardada em uma estrutura própria (retrato da consulta), separada das medições, para preservar entradas e método usados — decisão confirmada com o solicitante.
-- **Métodos v1 (núcleo)**: o conjunto de equações e protocolos acima é o escopo da primeira versão; métodos adicionais das planilhas de referência (ex.: Tinsley, Henry, Petroski, EER 2023) podem ser somados depois, pois são apenas novos coeficientes.
+- **Cobertura total de métodos**: a v1 oferece **todas** as equações de gasto energético e todos os protocolos de composição das planilhas de referência (não um subconjunto) — decisão do solicitante, priorizando paridade com as planilhas.
+- **Fonte da verdade dos coeficientes = as planilhas**: para garantir que os resultados **batem exatamente** com as planilhas (SC-002), os coeficientes de cada equação/protocolo são **transcritos das próprias planilhas de referência** (`nutri-doc/`, abas de cálculo `Calc_*`), e os valores que as planilhas produzem para casos-teste conhecidos são usados como **gabarito** dos testes automatizados — em vez de depender de coeficientes de livro (que variam por versão/arredondamento).
 - **Metas**: reaproveitam o mecanismo de metas de métrica já existente; a meta energética/macros fica registrada na própria avaliação.
 - **Plano alimentar fora de escopo**: a montagem do cardápio e a base de alimentos são de outra frente (módulo `dieta`) e não fazem parte desta feature.
 - **Fora de escopo v1**: percentis infantis detalhados e módulo gestacional completo além do adicional energético; rótulo nutricional; recordatório alimentar; exames laboratoriais (frentes/módulos próprios).
