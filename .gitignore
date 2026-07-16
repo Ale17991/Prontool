@@ -57,3 +57,7 @@ supabase/.env
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Planilhas de referência de nutrição (fonte local; binários grandes não versionados)
+nutri-doc/*.xlsm
+nutri-doc/*.xlsx
