@@ -6,6 +6,19 @@ Objetivo: replicar em código, com fidelidade absoluta, as equações de Gasto E
 > **Regra de rigor**: todas as fórmulas abaixo foram transcritas **verbatim** das células. Onde algo
 > não foi localizado, está marcado como **NÃO ENCONTRADO**. Onde depende de macro VBA, está marcado.
 
+## Decisões de implementação (2026-07-16)
+
+1. **Coeficientes = equação canônica publicada** (decisão do usuário). Onde a planilha diverge claramente
+   do publicado (arredondamento/erro do autor), usar os **valores canônicos com precisão cheia**; a planilha
+   é a autoridade para a **estrutura** (quais faixas etárias, quais sítios de dobra, adicionais de
+   gestante/lactante, PAL, fatores de injúria) e para o que não for equação padrão. Correções conhecidas a aplicar:
+   - **Mifflin-St Jeor**: usar `10·P + 6.25·A − 5·I (+5 H / −161 M)` (planilha tinha `9.99`/`4.92`).
+   - **Harris-Benedict 1984 (Roza-Shizgal)**: `13.397·P + 4.799·A − 5.677·I + 88.362` (H) / `9.247·P + 3.098·A − 4.330·I + 447.593` (F).
+   - **Harris-Benedict 1919**: `66.473 + 13.7516·P + 5.0033·A − 6.7550·I` (H) / `655.0955 + 9.5634·P + 1.8496·A − 4.6756·I` (F).
+   - **EER/IOM 2005**: reconferir a parentização (PA deve multiplicar peso **e** altura) e o termo aditivo `+107/+144` célula a célula antes de codar — possível quirk da planilha.
+   - Demais equações: manter como transcrito (já batem com o publicado).
+2. **Casos-gabarito**: gerados a partir das fórmulas (autoconsistentes) e validados por amostragem manual — as planilhas foram salvas **sem** dados de paciente, então não há par entrada→saída real (só confirmação dos termos constantes).
+
 ---
 
 ## 0. Convenções e mapeamento de variáveis
