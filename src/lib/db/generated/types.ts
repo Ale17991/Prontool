@@ -2907,6 +2907,126 @@ export type Database = {
           },
         ]
       }
+      nutrition_assessments: {
+        Row: {
+          activity_factor: number | null
+          age_years: number
+          assessed_at: string
+          body_density: number | null
+          circumferences: Json
+          created_at: string
+          created_by_user_id: string
+          dobra_protocol: string | null
+          extra_kcal: number
+          fat_mass_kg: number | null
+          fat_pct: number | null
+          get_kcal: number | null
+          height_cm: number | null
+          id: string
+          imc: number | null
+          imc_class: string | null
+          injury_factor: number
+          lean_mass_kg: number | null
+          notes: string | null
+          objective: string | null
+          objective_delta_kcal: number | null
+          patient_id: string
+          sex: string
+          skinfolds: Json
+          target_kcal: number | null
+          target_macros: Json | null
+          tenant_id: string
+          tmb_equation: string | null
+          tmb_kcal: number | null
+          waist_hip_class: string | null
+          waist_hip_ratio: number | null
+          weight_kg: number
+        }
+        Insert: {
+          activity_factor?: number | null
+          age_years: number
+          assessed_at: string
+          body_density?: number | null
+          circumferences?: Json
+          created_at?: string
+          created_by_user_id: string
+          dobra_protocol?: string | null
+          extra_kcal?: number
+          fat_mass_kg?: number | null
+          fat_pct?: number | null
+          get_kcal?: number | null
+          height_cm?: number | null
+          id?: string
+          imc?: number | null
+          imc_class?: string | null
+          injury_factor?: number
+          lean_mass_kg?: number | null
+          notes?: string | null
+          objective?: string | null
+          objective_delta_kcal?: number | null
+          patient_id: string
+          sex: string
+          skinfolds?: Json
+          target_kcal?: number | null
+          target_macros?: Json | null
+          tenant_id: string
+          tmb_equation?: string | null
+          tmb_kcal?: number | null
+          waist_hip_class?: string | null
+          waist_hip_ratio?: number | null
+          weight_kg: number
+        }
+        Update: {
+          activity_factor?: number | null
+          age_years?: number
+          assessed_at?: string
+          body_density?: number | null
+          circumferences?: Json
+          created_at?: string
+          created_by_user_id?: string
+          dobra_protocol?: string | null
+          extra_kcal?: number
+          fat_mass_kg?: number | null
+          fat_pct?: number | null
+          get_kcal?: number | null
+          height_cm?: number | null
+          id?: string
+          imc?: number | null
+          imc_class?: string | null
+          injury_factor?: number
+          lean_mass_kg?: number | null
+          notes?: string | null
+          objective?: string | null
+          objective_delta_kcal?: number | null
+          patient_id?: string
+          sex?: string
+          skinfolds?: Json
+          target_kcal?: number | null
+          target_macros?: Json | null
+          tenant_id?: string
+          tmb_equation?: string | null
+          tmb_kcal?: number | null
+          waist_hip_class?: string | null
+          waist_hip_ratio?: number | null
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_assessments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_assessments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ophthalmology_exams: {
         Row: {
           av_od_cc: string | null

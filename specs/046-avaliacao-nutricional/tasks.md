@@ -30,19 +30,19 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 
 **⚠️ CRITICAL**: nenhuma história começa antes desta fase.
 
-- [ ] T004 Migration `supabase/migrations/0175_nutrition_assessments.sql`: tabela `nutrition_assessments` (colunas de entrada + resultado conforme data-model), índice `(tenant_id, patient_id, assessed_at DESC)`, CHECKs de faixa plausível, RLS (SELECT `jwt_tenant_id()`; INSERT admin/profissional_saude), REVOKE UPDATE/DELETE de `authenticated`
-- [ ] T005 Migration 0175: trigger append-only (rejeita UPDATE/DELETE fora de superuser) + trigger `AFTER INSERT` de auditoria (`log_audit_event`)
-- [ ] T006 Migration 0175: RPC `create_nutrition_assessment(...)` SECURITY DEFINER (grava o snapshot; valida tenant via `jwt_tenant_id()`; retorna id)
-- [ ] T007 Migration 0175: seed da métrica `gasto_energetico_total` (kcal, specialty `nutricao`) em `patient_metric_types` **e** no `catalog_baseline.patient_metric_types` (gotcha da 0170 — sobreviver ao reset dos testes)
-- [ ] T008 Rodar `pnpm supabase:reset && pnpm supabase:gen-types`; conferir tipos em `src/lib/db/generated`; re-seed (`seed:demo` + métricas de nutrição)
+- [X] T004 Migration `supabase/migrations/0175_nutrition_assessments.sql`: tabela `nutrition_assessments` (colunas de entrada + resultado conforme data-model), índice `(tenant_id, patient_id, assessed_at DESC)`, CHECKs de faixa plausível, RLS (SELECT `jwt_tenant_id()`; INSERT admin/profissional_saude), REVOKE UPDATE/DELETE de `authenticated`
+- [X] T005 Migration 0175: trigger append-only (rejeita UPDATE/DELETE fora de superuser) + trigger `AFTER INSERT` de auditoria (`log_audit_event`)
+- [X] T006 Migration 0175: RPC `create_nutrition_assessment(...)` SECURITY DEFINER (grava o snapshot; valida tenant via `jwt_tenant_id()`; retorna id)
+- [X] T007 Migration 0175: seed da métrica `gasto_energetico_total` (kcal, specialty `nutricao`) em `patient_metric_types` **e** no `catalog_baseline.patient_metric_types` (gotcha da 0170 — sobreviver ao reset dos testes)
+- [X] T008 Rodar `pnpm supabase:reset && pnpm supabase:gen-types`; conferir tipos em `src/lib/db/generated`; re-seed (`seed:demo` + métricas de nutrição)
 - [X] T009 [P] `src/lib/core/nutrition/classify.ts` — classificação de IMC (OMS + cutoffs de idoso) e de RCQ (risco por sexo)
-- [ ] T010 `src/lib/core/nutrition/assessments/create.ts` — orquestra: valida paciente/tenant e dados obrigatórios (sexo/idade), chama o motor (blocos de composição/energia conforme presentes), grava via RPC e lança os derivados com `recordMeasurementsBatch` (mesma `assessed_at`)
-- [ ] T011 [P] `src/lib/core/nutrition/assessments/{list,get}.ts` — leitura escopada por paciente/tenant
-- [ ] T012 Rota `src/app/api/pacientes/[id]/avaliacao-nutricional/route.ts` — `POST` (criar) + `GET` (listar) com `requireRole` + gate `hasModule('nutri_avaliacao')` + Zod (contrato em `contracts/`)
-- [ ] T013 Sidebar + rota: item de menu e página `src/app/(dashboard)/operacao/avaliacao-nutricional/page.tsx` gated por `hasModule('nutri_avaliacao')` (nega acesso direto sem módulo) — shell com seleção de paciente e painel de resultado vazio
-- [ ] T014 [P] Contract test `tests/contract/nutrition-assessment-immutability.spec.ts` — `nutrition_assessments` rejeita UPDATE e DELETE
-- [ ] T015 [P] Contract test `tests/contract/nutrition-assessment-tenant-isolation.spec.ts` — tenant B não lê/insere avaliação do tenant A
-- [ ] T016 [P] Contract test `tests/contract/nutrition-assessment-rbac.spec.ts` — rota: admin/profissional_saude criam (201); recepcionista/financeiro 403; sem módulo → negado
+- [X] T010 `src/lib/core/nutrition/assessments/create.ts` — orquestra: valida paciente/tenant e dados obrigatórios (sexo/idade), chama o motor (blocos de composição/energia conforme presentes), grava via RPC e lança os derivados com `recordMeasurementsBatch` (mesma `assessed_at`)
+- [X] T011 [P] `src/lib/core/nutrition/assessments/{list,get}.ts` — leitura escopada por paciente/tenant
+- [X] T012 Rota `src/app/api/pacientes/[id]/avaliacao-nutricional/route.ts` — `POST` (criar) + `GET` (listar) com `requireRole` + gate `hasModule('nutri_avaliacao')` + Zod (contrato em `contracts/`)
+- [X] T013 Sidebar + rota: item de menu e página `src/app/(dashboard)/operacao/avaliacao-nutricional/page.tsx` gated por `hasModule('nutri_avaliacao')` (nega acesso direto sem módulo) — shell com seleção de paciente e painel de resultado vazio
+- [X] T014 [P] Contract test `tests/contract/nutrition-assessment-immutability.spec.ts` — `nutrition_assessments` rejeita UPDATE e DELETE
+- [X] T015 [P] Contract test `tests/contract/nutrition-assessment-tenant-isolation.spec.ts` — tenant B não lê/insere avaliação do tenant A
+- [X] T016 [P] Contract test `tests/contract/nutrition-assessment-rbac.spec.ts` — rota: admin/profissional_saude criam (201); recepcionista/financeiro 403; sem módulo → negado
 
 **Checkpoint**: schema, persistência, gating e rota prontos — histórias podem começar.
 
@@ -58,14 +58,14 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 
 - [X] T017 [P] [US1] Unit test `tests/unit/nutrition-body-composition.spec.ts` — cada um dos 10 protocolos: Σdobras+idade → Dc → %gordura (Siri) → massa gorda/magra, vs. gabarito gerado de `nutri-doc/formulas-referencia.md` (escrever FALHANDO antes)
 - [X] T018 [P] [US1] Unit test `tests/unit/nutrition-classify.spec.ts` — classificação de IMC e RCQ por faixas/sexo
-- [ ] T019 [P] [US1] Integration test `tests/integration/nutrition-assessment-composition.spec.ts` — salvar avaliação com composição → snapshot imutável + derivados (%gordura, massa magra/gorda, IMC) lançados nas medições
+- [X] T019 [P] [US1] Integration test `tests/integration/nutrition-assessment-composition.spec.ts` — salvar avaliação com composição → snapshot imutável + derivados (%gordura, massa magra/gorda, IMC) lançados nas medições
 
 ### Implementation for US1
 
 - [X] T020 [US1] `src/lib/core/nutrition/body-composition.ts` — 10 protocolos (Durnin-Womersley, Guedes, JP-Ward 3D, JP-Ward 7D, Petroski, Faulkner, Weltman, McArdle, Slaughter, bioimpedância) → densidade → Siri → massa gorda/magra; IMC; RCQ. Coeficientes de `formulas-referencia.md`
-- [ ] T021 [US1] Estender `assessments/create.ts` para computar e gravar o **bloco de composição** e seus derivados
-- [ ] T022 [US1] UI: bloco de Antropometria em `src/app/(dashboard)/operacao/avaliacao-nutricional/_components/composition-form.tsx` — campos de dobra conforme o protocolo (via `protocols.ts`) + circunferências + peso/altura, com **resultado ao vivo** (motor puro no cliente)
-- [ ] T023 [US1] Validações: sítios exigidos pelo protocolo, compatibilidade protocolo↔idade, faixas plausíveis (mensagens 422 claras)
+- [X] T021 [US1] Estender `assessments/create.ts` para computar e gravar o **bloco de composição** e seus derivados
+- [X] T022 [US1] UI: bloco de Antropometria em `src/app/(dashboard)/operacao/avaliacao-nutricional/_components/composition-form.tsx` — campos de dobra conforme o protocolo (via `protocols.ts`) + circunferências + peso/altura, com **resultado ao vivo** (motor puro no cliente)
+- [X] T023 [US1] Validações: sítios exigidos pelo protocolo, compatibilidade protocolo↔idade, faixas plausíveis (mensagens 422 claras)
 
 **Checkpoint**: US1 funcional — a clínica registra composição corporal e vê a evolução.
 
@@ -85,10 +85,10 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 
 - [X] T025 [US2] **Reconferir a EER/IOM 2005 célula a célula** nas planilhas (parentização de PA sobre peso+altura e o termo aditivo `+107/+144`) e registrar a forma final em `formulas-referencia.md` antes de codá-la
 - [X] T026 [US2] `src/lib/core/nutrition/energy.ts` — 16 equações de TMB, fator de atividade (PAL), fator injúria, adicional gestante/lactante → GET; VET-meta por objetivo (déficit/manutenção/superávit); macros (por % e por g/kg)
-- [ ] T027 [US2] Estender `assessments/create.ts` para computar e gravar o **bloco de energia** e seus derivados (TMB, GET)
-- [ ] T028 [US2] UI: bloco de Gasto energético em `src/app/(dashboard)/operacao/avaliacao-nutricional/_components/energy-form.tsx` — equação + atividade + injúria/gestante + objetivo + macros, com **resultado ao vivo**
-- [ ] T029 [P] [US2] Integration test `tests/integration/nutrition-assessment-energy.spec.ts` — salvar com energia → TMB/GET nas medições; equação por MLG sem composição → 422 orientando
-- [ ] T030 [US2] Validações: equação por MLG exige composição; macros somam 100%; faixas plausíveis
+- [X] T027 [US2] Estender `assessments/create.ts` para computar e gravar o **bloco de energia** e seus derivados (TMB, GET)
+- [X] T028 [US2] UI: bloco de Gasto energético em `src/app/(dashboard)/operacao/avaliacao-nutricional/_components/energy-form.tsx` — equação + atividade + injúria/gestante + objetivo + macros, com **resultado ao vivo**
+- [X] T029 [P] [US2] Integration test `tests/integration/nutrition-assessment-energy.spec.ts` — salvar com energia → TMB/GET nas medições; equação por MLG sem composição → 422 orientando
+- [X] T030 [US2] Validações: equação por MLG exige composição; macros somam 100%; faixas plausíveis
 
 **Checkpoint**: US1+US2 = MVP — avaliação completa (composição + energia) salva e visível na evolução.
 
@@ -101,7 +101,7 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 **Independent Test**: com 2+ avaliações, abrir o histórico e conferir lista ordenada + evolução nos gráficos.
 
 - [ ] T031 [P] [US3] Integration test `tests/integration/nutrition-assessment-history.spec.ts` — 2+ avaliações → `list` ordenado (mais recente primeiro) + série dos derivados nas medições
-- [ ] T032 [US3] UI: histórico de avaliações (lista com data, protocolo/equação, principais resultados) na tela `avaliacao-nutricional`
+- [X] T032 [US3] UI: histórico de avaliações (lista com data, protocolo/equação, principais resultados) na tela `avaliacao-nutricional`
 - [ ] T033 [US3] UI: evolução — reusar os gráficos de medições existentes (`MetricEvolutionChart`) para os derivados de nutrição
 
 **Checkpoint**: US3 funcional — acompanhamento ao longo do tempo.
