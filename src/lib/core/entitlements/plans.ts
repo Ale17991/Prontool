@@ -19,6 +19,12 @@ export type ModuleId =
   | 'treino'
   | 'dieta'
   | 'endocrino'
+  // Nutrição (feature em construção — o /admin já liga/desliga por clínica;
+  // cada função é gated pelo respectivo módulo à medida que for entregue).
+  | 'nutri_avaliacao' // antropometria/dobras + gasto energético (TMB/GET) + metas
+  | 'nutri_recordatorio' // recordatório alimentar (R24h)
+  | 'nutri_rotulo' // rótulo nutricional
+  | 'exames_lab' // exames laboratoriais com faixas (cross-especialidade)
 
 export type Feature =
   // núcleo (Essencial)
@@ -57,6 +63,10 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'treino',
   'dieta',
   'endocrino',
+  'nutri_avaliacao',
+  'nutri_recordatorio',
+  'nutri_rotulo',
+  'exames_lab',
 ]
 
 /**

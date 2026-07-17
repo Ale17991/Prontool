@@ -164,6 +164,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
                 <TableRow>
                   <TableHead>Plano</TableHead>
                   <TableHead className="text-right">Receita líquida</TableHead>
+                  <TableHead className="text-right">Gasto materiais</TableHead>
                   <TableHead className="text-right">Atendimentos</TableHead>
                   <TableHead className="text-right">% da receita</TableHead>
                 </TableRow>
@@ -180,6 +181,9 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
                       <TableCell className="font-semibold text-slate-900">{row.planName}</TableCell>
                       <TableCell className="text-right font-bold text-slate-900">
                         {formatCurrency(row.netRevenueCents)}
+                      </TableCell>
+                      <TableCell className="text-right text-slate-700">
+                        {formatCurrency(row.materialsCostCents)}
                       </TableCell>
                       <TableCell className="text-right text-slate-700">
                         {row.appointmentCount}
@@ -223,6 +227,7 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
                   <TableHead>Profissional</TableHead>
                   <TableHead className="text-right">Produção líquida</TableHead>
                   <TableHead className="text-right">Comissão líquida</TableHead>
+                  <TableHead className="text-right">Gasto materiais</TableHead>
                   <TableHead className="text-right">Atendimentos</TableHead>
                 </TableRow>
               </TableHeader>
@@ -235,6 +240,9 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
                     </TableCell>
                     <TableCell className="text-right text-slate-700">
                       {formatCurrency(row.netCommissionCents)}
+                    </TableCell>
+                    <TableCell className="text-right text-slate-700">
+                      {formatCurrency(row.materialsCostCents)}
                     </TableCell>
                     <TableCell className="text-right text-slate-700">
                       {row.appointmentCount}

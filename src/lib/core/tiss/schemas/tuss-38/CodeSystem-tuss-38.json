@@ -1,0 +1,2588 @@
+{
+  "resourceType" : "CodeSystem",
+  "id" : "tuss-38",
+  "language" : "por",
+  "text" : {
+    "status" : "generated",
+    "div" : "<div xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"por\" lang=\"por\"><p>This  code system <code>https://fhir.ans.gov.br/CodeSystem/tuss-38</code> defines the following codes in a Is-A heirarchy:</p><table class=\"codes\"><tr><td style=\"white-space:nowrap\"><b>Code</b></td><td><b>Display</b></td></tr><tr><td style=\"white-space:nowrap\">2503<a name=\"tuss-38-2503\"> </a></td><td>COBRANÇA DE PSICOTERAPIA INDIVIDUAL, QUANDO O APLICADO É A COBRANÇA DE PSICOTERAPIA EM GRUPO</td></tr><tr><td style=\"white-space:nowrap\">5077<a name=\"tuss-38-5077\"> </a></td><td>SEXO NA RECEITA FEDERAL DIFERENTE DO INFORMADO PARA O CPF</td></tr><tr><td style=\"white-space:nowrap\">5076<a name=\"tuss-38-5076\"> </a></td><td>CPF NÃO ENCONTRADO NA RECEITA FEDERAL</td></tr><tr><td style=\"white-space:nowrap\">2502<a name=\"tuss-38-2502\"> </a></td><td>COBRANÇA DE DUAS AVALIAÇÕES FISIOTERÁPICAS</td></tr><tr><td style=\"white-space:nowrap\">2501<a name=\"tuss-38-2501\"> </a></td><td>PROCEDIMENTO EM SÉRIE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5075<a name=\"tuss-38-5075\"> </a></td><td>CID DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">5073<a name=\"tuss-38-5073\"> </a></td><td>O PRIMEIRO LANCAMENTO DA GUIA SÓ PODE SER EXCLUIDO SE ELE FOR O ÚNICO</td></tr><tr><td style=\"white-space:nowrap\">2421<a name=\"tuss-38-2421\"> </a></td><td>COBRANÇA DE TAXA EM QUANTIDADE INCORRETA.</td></tr><tr><td style=\"white-space:nowrap\">5072<a name=\"tuss-38-5072\"> </a></td><td>VALOR INFORMADO DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">5071<a name=\"tuss-38-5071\"> </a></td><td>CÓDIGO DA FACE DO DENTE DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">2423<a name=\"tuss-38-2423\"> </a></td><td>COBRANÇA DE TAXA DE EQUIPAMENTOS DE USO OBRIGATÓRIO NO LOCAL DE ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">5074<a name=\"tuss-38-5074\"> </a></td><td>REGIME DE ATENDIMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2422<a name=\"tuss-38-2422\"> </a></td><td>COBRANÇA DE TAXA POR USO DE EQUIPAMENTO DE USO OBRIGATÓRIO NA SALA DE CIRURGIA, CUJA TAXA DE SALA CIRÚRGICA JÁ INCLUI SEU USO.</td></tr><tr><td style=\"white-space:nowrap\">5080<a name=\"tuss-38-5080\"> </a></td><td>MODELO DE REMUNERAÇÃO NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2506<a name=\"tuss-38-2506\"> </a></td><td>A QUANTIDADE DE SESSÕES COBRADAS É DIFERENTE DA QUANTIDADE AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">5079<a name=\"tuss-38-5079\"> </a></td><td>MODELO DE REMUNERAÇÃO EM DUPLICIDADE.</td></tr><tr><td style=\"white-space:nowrap\">2505<a name=\"tuss-38-2505\"> </a></td><td>O CÓDIGO COBRADO É DIFERENTE DO CÓDIGO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">5078<a name=\"tuss-38-5078\"> </a></td><td>DATA DE NASCIMENTO NA RECEITA FEDERAL DIFERENTE DA INFORMADA PARA O CPF</td></tr><tr><td style=\"white-space:nowrap\">2504<a name=\"tuss-38-2504\"> </a></td><td>QUANTIDADE DE SESSÕES COBRADAS NÃO CONDIZEM COM AS ASSINATURAS NO CONTROLE DE TRATAMENTO SERIADO</td></tr><tr><td style=\"white-space:nowrap\">5085<a name=\"tuss-38-5085\"> </a></td><td>UNIDADE DE MEDIDA É OBRIGATÓRIA PARA A TABELA TUSS INFORMADA</td></tr><tr><td style=\"white-space:nowrap\">5084<a name=\"tuss-38-5084\"> </a></td><td>UNIDADE DE MEDIDA NÃO DEVE SER PREENCHIDA PARA A TABELA TUSS INFORMADA</td></tr><tr><td style=\"white-space:nowrap\">5083<a name=\"tuss-38-5083\"> </a></td><td>SOMA DOS VALORES DOS MODELOS DE REMUNERAÇÃO DIFERENTE DO VALOR INFORMADO DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">5082<a name=\"tuss-38-5082\"> </a></td><td>MODELO DE REMUNERAÇÃO NÃO DEVE SER INFORMADO PARA REDE PROPRIA COM MESMO CNPJ</td></tr><tr><td style=\"white-space:nowrap\">5081<a name=\"tuss-38-5081\"> </a></td><td>MODELO DE REMUNERAÇÃO NÃO DEVE SER INFORMADO PARA REEMBOLSO/PRESTADOR EVENTUAL</td></tr><tr><td style=\"white-space:nowrap\">2507<a name=\"tuss-38-2507\"> </a></td><td>O CÓDIGO AUTORIZADO ESTÁ INCOMPATÍVEL COM A PRESCRIÇÃO MÉDICA SOLICITADA</td></tr><tr><td style=\"white-space:nowrap\">2414<a name=\"tuss-38-2414\"> </a></td><td>COBRANÇA DE TAXA DE EQUIPAMENTO EM CONCOMITÂNCIA COM A COBRANÇA DE TAXA PARA O PROCEDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">2413<a name=\"tuss-38-2413\"> </a></td><td>COBRANÇA DE TAXA INCLUSA NO PACOTE NEGOCIADO.</td></tr><tr><td style=\"white-space:nowrap\">5064<a name=\"tuss-38-5064\"> </a></td><td>TIPO DE ESTABELECIMENTO NO CNES NÃO É APTO PARA INTERNAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">2412<a name=\"tuss-38-2412\"> </a></td><td>COBRANÇA DE TAXA DE RECUPERAÇÃO ANESTÉSICA NÃO JUSTIFICADA PARA O PROCEDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">5063<a name=\"tuss-38-5063\"> </a></td><td>PAR CNPJ x CNES NAO ENCONTRADO NA BASE DO CNES</td></tr><tr><td style=\"white-space:nowrap\">2411<a name=\"tuss-38-2411\"> </a></td><td>COBRANÇA DE TAXA DE SALA DE PRONTO SOCORRO, PARA APLICAÇÃO DE MEDICAMENTOS.</td></tr><tr><td style=\"white-space:nowrap\">5061<a name=\"tuss-38-5061\"> </a></td><td>TIPO DE ATENDIMENTO OPERADORA INTERMEDIÁRIA NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2408<a name=\"tuss-38-2408\"> </a></td><td>COBRANÇA DE TAXAS EM QUANTIDADE SUPERIOR AO TEMPO DE PERMANÊNCIA HOSPITALAR</td></tr><tr><td style=\"white-space:nowrap\">5060<a name=\"tuss-38-5060\"> </a></td><td>VALOR TOTAL PAGO DIFERENTE DA SOMA DAS PARCELAS PAGAS NO LANÇAMENTO</td></tr><tr><td style=\"white-space:nowrap\">2407<a name=\"tuss-38-2407\"> </a></td><td>COBRANÇA DE TAXAS, DE SERVIÇOS REALIZADOS EM AMBIENTES INCOMPATÍVEIS COM O USO DE EQUIPAMENTOS.</td></tr><tr><td style=\"white-space:nowrap\">5062<a name=\"tuss-38-5062\"> </a></td><td>REGISTRO ANS DA OPERADORA INTERMEDIÁRIA NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2410<a name=\"tuss-38-2410\"> </a></td><td>COBRANÇA DE TAXA DE OBSERVAÇÃO EM PRONTO SOCORRO SEM O REGISTRO DA PERMANÊNCIA.</td></tr><tr><td style=\"white-space:nowrap\">2409<a name=\"tuss-38-2409\"> </a></td><td>COBRANÇA DE TAXA DE OBSERVAÇÃO EM PRONTO SOCORRO COM PERMANÊNCIA MENOR QUE O PERÍODO ESTIPULADO</td></tr><tr><td style=\"white-space:nowrap\">5068<a name=\"tuss-38-5068\"> </a></td><td>DECLARAÇÃO DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">5067<a name=\"tuss-38-5067\"> </a></td><td>DIAGNÓSTICO EM DUPLICIDADE</td></tr><tr><td style=\"white-space:nowrap\">2416<a name=\"tuss-38-2416\"> </a></td><td>COBRANÇA DE TAXA DE RECUPERAÇÃO ANESTÉSICA PARA PACIENTES COM PÓS-OPERATÓRIO IMEDIATO REALIZADO NA UTI/CTI.</td></tr><tr><td style=\"white-space:nowrap\">5066<a name=\"tuss-38-5066\"> </a></td><td>NÚMERO DA DECLARAÇÃO EM DUPLICIDADE.</td></tr><tr><td style=\"white-space:nowrap\">2415<a name=\"tuss-38-2415\"> </a></td><td>TAXA EXIGE INFORMAÇÃO DO VALOR NA GUIA.</td></tr><tr><td style=\"white-space:nowrap\">5065<a name=\"tuss-38-5065\"> </a></td><td>TIPO DE ATIVIDADE ECONOMICA DO CNPJ NÃO É APTO PARA INTERNAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">2420<a name=\"tuss-38-2420\"> </a></td><td>COBRANÇA DE TAXA DE SALA CIRÚRGICA COM PORTE ANESTÉSICO DIFERENTE DO PROCEDIMENTO AUTORIZADO/REALIZADO.</td></tr><tr><td style=\"white-space:nowrap\">5070<a name=\"tuss-38-5070\"> </a></td><td>CÓDIGO DA REGIÃO DA BOCA DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">2419<a name=\"tuss-38-2419\"> </a></td><td>COBRANÇA DE TAXA DE OBSERVAÇÃO PARA ATENDIMENTO QUE GEROU UMA INTERNAÇÃO.</td></tr><tr><td style=\"white-space:nowrap\">5069<a name=\"tuss-38-5069\"> </a></td><td>CÓDIGO DO DENTE DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA</td></tr><tr><td style=\"white-space:nowrap\">2418<a name=\"tuss-38-2418\"> </a></td><td>COBRANÇA DE TAXA DE SALA INCOMPATÍVEL COM O PROCEDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">2417<a name=\"tuss-38-2417\"> </a></td><td>COBRANÇA DE TAXA DE RECUPERAÇÃO ANESTÉSICA SEM A PRESENÇA DO ANESTESISTA.</td></tr><tr><td style=\"white-space:nowrap\">5053<a name=\"tuss-38-5053\"> </a></td><td>IDENTIFICADOR JÁ INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2310<a name=\"tuss-38-2310\"> </a></td><td>COBRANÇA DE GASES INCOMPATÍVEL COM O UTILIZADO/ PRESCRITO.</td></tr><tr><td style=\"white-space:nowrap\">2309<a name=\"tuss-38-2309\"> </a></td><td>COBRANÇA DE AR COMPRIMIDO SEM REGISTRO NO BOLETIM ANESTÉSICO E DURAÇÃO DE USO.</td></tr><tr><td style=\"white-space:nowrap\">5052<a name=\"tuss-38-5052\"> </a></td><td>IDENTIFICADOR INEXISTENTE</td></tr><tr><td style=\"white-space:nowrap\">2308<a name=\"tuss-38-2308\"> </a></td><td>COBRANÇA DE CO2 NAS CIRURGIAS VIDEOLAPAROSCÓPICAS DURANTE TODA A REALIZAÇÃO DO PROCEDIMENTO (INÍCIO AO FIM).</td></tr><tr><td style=\"white-space:nowrap\">5051<a name=\"tuss-38-5051\"> </a></td><td>COMPETENCIA DO ARQUIVO DIFERENTE DA COMPETENCIA DA DATA DE PROCESSAMENTO DO LANÇAMENTO</td></tr><tr><td style=\"white-space:nowrap\">5049<a name=\"tuss-38-5049\"> </a></td><td>VALOR TOTAL MENOR QUE ZERO NA GUIA</td></tr><tr><td style=\"white-space:nowrap\">2305<a name=\"tuss-38-2305\"> </a></td><td>COBRANÇA DE OXIGENOTERAPIA EM USO PROLONGADO SEM JUSTIFICATIVA DE USO.</td></tr><tr><td style=\"white-space:nowrap\">5048<a name=\"tuss-38-5048\"> </a></td><td>DATA DE NASCIMENTO DO BENEFICIÁRIO INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">2304<a name=\"tuss-38-2304\"> </a></td><td>COBRANÇA DE OXIGÊNIO INCLUSO NA TAXA DE NEBULIZAÇÃO ESPECIFICADA.</td></tr><tr><td style=\"white-space:nowrap\">2307<a name=\"tuss-38-2307\"> </a></td><td>COBRANÇA DE GASES EM QUANTIDADE SUPERIOR AO PERÍODO DE PERMANÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">5050<a name=\"tuss-38-5050\"> </a></td><td>VALOR INFORMADO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2306<a name=\"tuss-38-2306\"> </a></td><td>COBRANÇA DE OXIGENOTERAPIA SEM REGISTRO DE CONTROLE DE USO (ENTRADA E SAÍDA).</td></tr><tr><td style=\"white-space:nowrap\">2403<a name=\"tuss-38-2403\"> </a></td><td>COBRANÇA DE TAXA DE USO DE BOMBA DE INFUSÃO EM PACIENTE INTERNADO NA UTI</td></tr><tr><td style=\"white-space:nowrap\">5056<a name=\"tuss-38-5056\"> </a></td><td>IDENTIFICADOR NÃO INFORMADO NA COMPETÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">5055<a name=\"tuss-38-5055\"> </a></td><td>IDENTIFICADOR JÁ INFORMADO NA COMPETÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">2402<a name=\"tuss-38-2402\"> </a></td><td>COBRANÇA DE TAXA POR USO DE EQUIPAMENTO INCOMPATÍVEL COM O PROCEDIMENTO REALIZADO/USO PREVISTO NO PROCEDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">5054<a name=\"tuss-38-5054\"> </a></td><td>IDENTIFICADOR NÃO ENCONTRADO</td></tr><tr><td style=\"white-space:nowrap\">2401<a name=\"tuss-38-2401\"> </a></td><td>TAXA / ALUGUEL INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5059<a name=\"tuss-38-5059\"> </a></td><td>EXCLUSÃO INVÁLIDA - EXISTEM LANÇAMENTOS VINCULADOS A ESTA FORMA DE CONTRATAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">2406<a name=\"tuss-38-2406\"> </a></td><td>COBRANÇA INDEVIDA DE TAXA DE SALA POR ADMINISTRAÇÃO DE MEDICAMENTOS.</td></tr><tr><td style=\"white-space:nowrap\">2405<a name=\"tuss-38-2405\"> </a></td><td>COBRANÇA DE MAIS DE UMA TAXA DE SALA DE CIRURGIA, POR CONTA DO NÚMERO DE PROCEDIMENTOS REALIZADOS NO MESMO TEMPO CIRÚRGICO.</td></tr><tr><td style=\"white-space:nowrap\">5058<a name=\"tuss-38-5058\"> </a></td><td>PROCEDIMENTO INCOMPATÍVEL COM O TIPO DE GUIA</td></tr><tr><td style=\"white-space:nowrap\">2404<a name=\"tuss-38-2404\"> </a></td><td>COBRANÇA DE OUTRAS TAXAS ASSOCIADAS/INCLUSAS NA COBRANÇA DA TAXA DE SALA PREVISTA.</td></tr><tr><td style=\"white-space:nowrap\">5057<a name=\"tuss-38-5057\"> </a></td><td>GUIA DE CONSULTA COM MAIS DE UM PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">5041<a name=\"tuss-38-5041\"> </a></td><td>QUANTIDADE NÃO INFORMADA</td></tr><tr><td style=\"white-space:nowrap\">2210<a name=\"tuss-38-2210\"> </a></td><td>COBRANÇA DE OPME EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO REALIZADO</td></tr><tr><td style=\"white-space:nowrap\">5040<a name=\"tuss-38-5040\"> </a></td><td>VALOR DEVE SER MAIOR QUE ZERO</td></tr><tr><td style=\"white-space:nowrap\">2209<a name=\"tuss-38-2209\"> </a></td><td>COBRANÇA DE OPME EM DESACORDO COM RELATÓRIO TÉCNICO</td></tr><tr><td style=\"white-space:nowrap\">5039<a name=\"tuss-38-5039\"> </a></td><td>CÓDIGO DA FACE DO DENTE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2208<a name=\"tuss-38-2208\"> </a></td><td>COBRANÇA DE OPME NO ITEM MATERIAL E MEDICAMENTOS.</td></tr><tr><td style=\"white-space:nowrap\">2206<a name=\"tuss-38-2206\"> </a></td><td>OPME INFORMADO NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">5036<a name=\"tuss-38-5036\"> </a></td><td>CÓDIGO DO GRUPO DO PROCEDIMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2205<a name=\"tuss-38-2205\"> </a></td><td>OPME INFORMADO NÃO COBERTO</td></tr><tr><td style=\"white-space:nowrap\">5035<a name=\"tuss-38-5035\"> </a></td><td>CÓDIGO DA TABELA DE REFERÊNCIA NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">5038<a name=\"tuss-38-5038\"> </a></td><td>CÓDIGO DA REGIÃO DA BOCA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2207<a name=\"tuss-38-2207\"> </a></td><td>COBRANÇA DE OPME NÃO UTILIZADO</td></tr><tr><td style=\"white-space:nowrap\">5037<a name=\"tuss-38-5037\"> </a></td><td>CÓDIGO DO DENTE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5044<a name=\"tuss-38-5044\"> </a></td><td>JÁ EXISTEM INFORMAÇÕES NA ANS PARA A COMPETÊNCIA INFORMADA</td></tr><tr><td style=\"white-space:nowrap\">2213<a name=\"tuss-38-2213\"> </a></td><td>OPME PAGO A FORNECEDOR TERCEIRIZADO</td></tr><tr><td style=\"white-space:nowrap\">5043<a name=\"tuss-38-5043\"> </a></td><td>MOTIVO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2212<a name=\"tuss-38-2212\"> </a></td><td>OPME EM DESACORDO COM OS CRITÉRIOS TÉCNICOS ADOTADOS PELA OPERADORA</td></tr><tr><td style=\"white-space:nowrap\">5042<a name=\"tuss-38-5042\"> </a></td><td>VALOR INFORMADO DA GUIA DIFERENTE DO SOMATÓRIO DO VALOR INFORMADO DOS ITENS</td></tr><tr><td style=\"white-space:nowrap\">2211<a name=\"tuss-38-2211\"> </a></td><td>COBRANÇA DE OPME INCLUSA NO PACOTE NEGOCIADO</td></tr><tr><td style=\"white-space:nowrap\">5047<a name=\"tuss-38-5047\"> </a></td><td>NÚMERO DO LOTE NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2303<a name=\"tuss-38-2303\"> </a></td><td>COBRANÇA DE OXIGENOTERAPIA COM QUANTITATIVO DE USO EM DIVERGÊNCIA/PAGO VALOR CORRIGIDO.</td></tr><tr><td style=\"white-space:nowrap\">5046<a name=\"tuss-38-5046\"> </a></td><td>COMPETÊNCIA INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">2302<a name=\"tuss-38-2302\"> </a></td><td>COBRANÇA DE OXIGENOTERAPIA SEM PRESCRIÇÃO MÉDICA.</td></tr><tr><td style=\"white-space:nowrap\">5045<a name=\"tuss-38-5045\"> </a></td><td>COMPETÊNCIA ANTERIOR NÃO ENVIADA</td></tr><tr><td style=\"white-space:nowrap\">2301<a name=\"tuss-38-2301\"> </a></td><td>GASES MEDICINAIS INVÁLIDOS</td></tr><tr><td style=\"white-space:nowrap\">2113<a name=\"tuss-38-2113\"> </a></td><td>COBRANÇA DE MEDICAMENTO EM PERMANÊNCIA HOSPITALAR NÃO AUTORIZADA.</td></tr><tr><td style=\"white-space:nowrap\">5028<a name=\"tuss-38-5028\"> </a></td><td>VERSÃO DO PADRÃO INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">2112<a name=\"tuss-38-2112\"> </a></td><td>COBRANÇA DE MEDICAMENTO INCOMPATÍVEL COM O RELATÓRIO TÉCNICO.</td></tr><tr><td style=\"white-space:nowrap\">5027<a name=\"tuss-38-5027\"> </a></td><td>REGISTRO ANS DA OPERADORA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2111<a name=\"tuss-38-2111\"> </a></td><td>COBRANÇA DE MEDICAMENTO INCLUSO NO PACOTE NEGOCIADO.</td></tr><tr><td style=\"white-space:nowrap\">5026<a name=\"tuss-38-5026\"> </a></td><td>HORA DE REGISTRO DA TRANSAÇÃO INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">5024<a name=\"tuss-38-5024\"> </a></td><td>OPERADORA INATIVA NA COMPETÊNCIA DOS DADOS</td></tr><tr><td style=\"white-space:nowrap\">2108<a name=\"tuss-38-2108\"> </a></td><td>COBRANÇA DE MEDICAMENTO EM QUANTIDADES INCOMPATÍVEIS COM O PROCEDIMENTO REALIZADO.</td></tr><tr><td style=\"white-space:nowrap\">5023<a name=\"tuss-38-5023\"> </a></td><td>COMPETÊNCIA NÃO ESTÁ LIBERADA PARA ENVIO DE DADOS</td></tr><tr><td style=\"white-space:nowrap\">2107<a name=\"tuss-38-2107\"> </a></td><td>COBRANÇA DE MEDICAMENTO EM QUANTIDADE INCOMPATÍVEL COM A PERMANÊNCIA.</td></tr><tr><td style=\"white-space:nowrap\">2110<a name=\"tuss-38-2110\"> </a></td><td>COBRANÇA DE MEDICAMENTO INCLUSOS NAS TAXAS</td></tr><tr><td style=\"white-space:nowrap\">5025<a name=\"tuss-38-5025\"> </a></td><td>DATA DE REGISTRO DA TRANSAÇÃO INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">2109<a name=\"tuss-38-2109\"> </a></td><td>QUANTIDADE DE MEDICAMENTO SUPERIOR A QUANTIDADE COBERTA</td></tr><tr><td style=\"white-space:nowrap\">2201<a name=\"tuss-38-2201\"> </a></td><td>OPME INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5031<a name=\"tuss-38-5031\"> </a></td><td>CARÁTER DE ATENDIMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2115<a name=\"tuss-38-2115\"> </a></td><td>MEDICAMENTO NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">5030<a name=\"tuss-38-5030\"> </a></td><td>CÓDIGO DO MUNÍCIPIO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2114<a name=\"tuss-38-2114\"> </a></td><td>COBRANÇA DE MEDICAMENTO NÃO UTILIZADO</td></tr><tr><td style=\"white-space:nowrap\">5029<a name=\"tuss-38-5029\"> </a></td><td>INDICADOR INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2204<a name=\"tuss-38-2204\"> </a></td><td>QUANTIDADE DE OPME DEVE SER MAIOR QUE ZERO</td></tr><tr><td style=\"white-space:nowrap\">5034<a name=\"tuss-38-5034\"> </a></td><td>VALOR NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2203<a name=\"tuss-38-2203\"> </a></td><td>OPME SEM NOTA FISCAL DO FORNECEDOR</td></tr><tr><td style=\"white-space:nowrap\">5033<a name=\"tuss-38-5033\"> </a></td><td>MOTIVO DE ENCERRAMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2202<a name=\"tuss-38-2202\"> </a></td><td>OPME SEM COBERTURA PARA ATENDIMENTO AMBULATORIAL</td></tr><tr><td style=\"white-space:nowrap\">5032<a name=\"tuss-38-5032\"> </a></td><td>INDICADOR DE RECÉM-NATO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5016<a name=\"tuss-38-5016\"> </a></td><td>SEM NENHUMA OCORRENCIA DE MOVIMENTO NA COMPETENCIA PARA ENVIO A ANS</td></tr><tr><td style=\"white-space:nowrap\">2015<a name=\"tuss-38-2015\"> </a></td><td>MATERIAL NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">5015<a name=\"tuss-38-5015\"> </a></td><td>NÚMERO DE GUIAS/DEMONSTRATIVOS DENTRO DA MENSAGEM SUPERIOR AO TAMANHO MÁXIMO PERMITIDO.</td></tr><tr><td style=\"white-space:nowrap\">2014<a name=\"tuss-38-2014\"> </a></td><td>COBRANÇA DE MATERIAL NÃO UTILIZADO</td></tr><tr><td style=\"white-space:nowrap\">5014<a name=\"tuss-38-5014\"> </a></td><td>CÓDIGO HASH INVÁLIDO. MENSAGEM PODE ESTAR CORROMPIDA.</td></tr><tr><td style=\"white-space:nowrap\">2013<a name=\"tuss-38-2013\"> </a></td><td>COBRANÇA DE MATERIAL EM PERMANÊNCIA HOSPITALAR NÃO AUTORIZADA.</td></tr><tr><td style=\"white-space:nowrap\">2011<a name=\"tuss-38-2011\"> </a></td><td>COBRANÇA DE MATERIAL INCLUSO NO PACOTE NEGOCIADO.</td></tr><tr><td style=\"white-space:nowrap\">5011<a name=\"tuss-38-5011\"> </a></td><td>ENVIO DE MENSAGEM FINALIZADA</td></tr><tr><td style=\"white-space:nowrap\">2010<a name=\"tuss-38-2010\"> </a></td><td>COBRANÇA DE MATERIAIS INCLUSOS NAS TAXAS</td></tr><tr><td style=\"white-space:nowrap\">5010<a name=\"tuss-38-5010\"> </a></td><td>ENVIO DE MENSAGEM NÃO FOI TERMINADO</td></tr><tr><td style=\"white-space:nowrap\">5013<a name=\"tuss-38-5013\"> </a></td><td>RECEBIMENTO DE MENSAGEM FINALIZADA</td></tr><tr><td style=\"white-space:nowrap\">2012<a name=\"tuss-38-2012\"> </a></td><td>COBRANÇA DE MATERIAL INCOMPATÍVEL COM O RELATÓRIO TÉCNICO.</td></tr><tr><td style=\"white-space:nowrap\">5012<a name=\"tuss-38-5012\"> </a></td><td>RECEBIMENTO DE MENSAGEM NÃO FINALIZADO</td></tr><tr><td style=\"white-space:nowrap\">5019<a name=\"tuss-38-5019\"> </a></td><td>CERTIFICADO DIGITAL VENCIDO</td></tr><tr><td style=\"white-space:nowrap\">2103<a name=\"tuss-38-2103\"> </a></td><td>MEDICAMENTO NÃO ESPECIFICADO</td></tr><tr><td style=\"white-space:nowrap\">5018<a name=\"tuss-38-5018\"> </a></td><td>CERTIFICADO DIGITAL INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2102<a name=\"tuss-38-2102\"> </a></td><td>MEDICAMENTO SEM COBERTURA PARA ATENDIMENTO AMBULATORIAL</td></tr><tr><td style=\"white-space:nowrap\">5017<a name=\"tuss-38-5017\"> </a></td><td>ARQUIVO PROCESSADO PELA ANS</td></tr><tr><td style=\"white-space:nowrap\">2101<a name=\"tuss-38-2101\"> </a></td><td>MEDICAMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5022<a name=\"tuss-38-5022\"> </a></td><td>ASSINATURA DIGITAL NÃO CONFERE</td></tr><tr><td style=\"white-space:nowrap\">2106<a name=\"tuss-38-2106\"> </a></td><td>MEDICAMENTO INFORMADO NÃO COBERTO</td></tr><tr><td style=\"white-space:nowrap\">5021<a name=\"tuss-38-5021\"> </a></td><td>CADEIA DE CERTIFICAÇÃO INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">2105<a name=\"tuss-38-2105\"> </a></td><td>QUANTIDADE DE MEDICAMENTOS DEVE SER MAIOR QUE ZERO</td></tr><tr><td style=\"white-space:nowrap\">5020<a name=\"tuss-38-5020\"> </a></td><td>CERTIFICADO DIGITAL REVOGADO</td></tr><tr><td style=\"white-space:nowrap\">2104<a name=\"tuss-38-2104\"> </a></td><td>MEDICAMENTO SEM NOTA FISCAL DO FORNECEDOR</td></tr><tr><td style=\"white-space:nowrap\">2003<a name=\"tuss-38-2003\"> </a></td><td>MATERIAL NÃO ESPECIFICADO</td></tr><tr><td style=\"white-space:nowrap\">5003<a name=\"tuss-38-5003\"> </a></td><td>ENDEREÇO DO REMETENTE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2002<a name=\"tuss-38-2002\"> </a></td><td>MATERIAL SEM COBERTURA PARA ATENDIMENTO AMBULATORIAL</td></tr><tr><td style=\"white-space:nowrap\">5002<a name=\"tuss-38-5002\"> </a></td><td>NÃO FOI POSSÍVEL VALIDAR O ARQUIVO XML</td></tr><tr><td style=\"white-space:nowrap\">2001<a name=\"tuss-38-2001\"> </a></td><td>MATERIAL INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">5001<a name=\"tuss-38-5001\"> </a></td><td>MENSAGEM ELETRÔNICA FORA DO PADRÃO TISS</td></tr><tr><td style=\"white-space:nowrap\">1916<a name=\"tuss-38-1916\"> </a></td><td>COBRANÇA DE DIÁRIAS DE UTI INCOMPATÍVEL COM DIAGNÓSTICO E EVOLUÇÃO CLÍNICA.</td></tr><tr><td style=\"white-space:nowrap\">3167<a name=\"tuss-38-3167\"> </a></td><td>SEQUENCIAL INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1915<a name=\"tuss-38-1915\"> </a></td><td>MUDANÇA DE ACOMODAÇÃO SEM COMUNICAÇÃO AO PACIENTE, FAMILIAR OU ACOMPANHANTE, OU SEM SOLICITAÇÃO DESTES.</td></tr><tr><td style=\"white-space:nowrap\">3166<a name=\"tuss-38-3166\"> </a></td><td>Arquivo enviado excede o tamanho máximo permitido</td></tr><tr><td style=\"white-space:nowrap\">1918<a name=\"tuss-38-1918\"> </a></td><td>PLANO DO BENEFICIÁRIO NÃO CONTEMPLA DIÁRIA DE ACOMPANHANTE</td></tr><tr><td style=\"white-space:nowrap\">1917<a name=\"tuss-38-1917\"> </a></td><td>FALTA PRORROGAÇÃO PARA QUANTIDADE DE DIÁRIAS COBRADAS.</td></tr><tr><td style=\"white-space:nowrap\">3168<a name=\"tuss-38-3168\"> </a></td><td>ASSINATURA DIGITAL INVÁLIDA OU NÃO ENVIADA</td></tr><tr><td style=\"white-space:nowrap\">2006<a name=\"tuss-38-2006\"> </a></td><td>MATERIAL INFORMADO NÃO COBERTO</td></tr><tr><td style=\"white-space:nowrap\">5006<a name=\"tuss-38-5006\"> </a></td><td>DESTINATÁRIO NÃO IDENTIFICADO</td></tr><tr><td style=\"white-space:nowrap\">2005<a name=\"tuss-38-2005\"> </a></td><td>QUANTIDADE DE MATERIAL DEVE SER MAIOR QUE ZERO</td></tr><tr><td style=\"white-space:nowrap\">5005<a name=\"tuss-38-5005\"> </a></td><td>REMETENTE NÃO IDENTIFICADO</td></tr><tr><td style=\"white-space:nowrap\">2004<a name=\"tuss-38-2004\"> </a></td><td>MATERIAL SEM NOTA FISCAL DO FORNECEDOR</td></tr><tr><td style=\"white-space:nowrap\">5004<a name=\"tuss-38-5004\"> </a></td><td>ENDEREÇO DO DESTINATÁRIO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2009<a name=\"tuss-38-2009\"> </a></td><td>QUANTIDADE DE MATERIAL SUPERIOR A QUANTIDADE COBERTA</td></tr><tr><td style=\"white-space:nowrap\">5009<a name=\"tuss-38-5009\"> </a></td><td>ESPAÇO RESERVADO PARA A CAIXA DE ENTRADA INSUFICIENTE</td></tr><tr><td style=\"white-space:nowrap\">2008<a name=\"tuss-38-2008\"> </a></td><td>COBRANÇA DE MATERIAL EM QUANTIDADES INCOMPATÍVEIS COM O PROCEDIMENTO REALIZADO.</td></tr><tr><td style=\"white-space:nowrap\">5008<a name=\"tuss-38-5008\"> </a></td><td>ESPAÇO RESERVADO PARA A CAIXA DE SAÍDA INSUFICIENTE</td></tr><tr><td style=\"white-space:nowrap\">2007<a name=\"tuss-38-2007\"> </a></td><td>COBRANÇA DE MATERIAL EM QUANTIDADE INCOMPATÍVEL COM A PERMANÊNCIA.</td></tr><tr><td style=\"white-space:nowrap\">5007<a name=\"tuss-38-5007\"> </a></td><td>MENSAGEM INCONSISTENTE OU INCOMPLETA</td></tr><tr><td style=\"white-space:nowrap\">1907<a name=\"tuss-38-1907\"> </a></td><td>QUANTIDADE UTI NÃO PREVISTA PARA PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3159<a name=\"tuss-38-3159\"> </a></td><td>Biometria – não compatível</td></tr><tr><td style=\"white-space:nowrap\">1906<a name=\"tuss-38-1906\"> </a></td><td>ACOMODAÇÃO NÃO INFORMADA</td></tr><tr><td style=\"white-space:nowrap\">3158<a name=\"tuss-38-3158\"> </a></td><td>Biometria – falha na transmissão</td></tr><tr><td style=\"white-space:nowrap\">1905<a name=\"tuss-38-1905\"> </a></td><td>QUANTIDADE DE DIÁRIAS DEVE SER MAIOR QUE ZERO</td></tr><tr><td style=\"white-space:nowrap\">3157<a name=\"tuss-38-3157\"> </a></td><td>QR code inválido</td></tr><tr><td style=\"white-space:nowrap\">3155<a name=\"tuss-38-3155\"> </a></td><td>PARTOGRAMA OU RELATÓRIO MÉDICO NÃO DISPONÍVEL PARA CONSULTA DA OPERADORA</td></tr><tr><td style=\"white-space:nowrap\">1902<a name=\"tuss-38-1902\"> </a></td><td>ACOMODAÇÃO INFORMADA NÃO ESTÁ DE ACORDO COM ACOMODAÇÃO CONTRATADA</td></tr><tr><td style=\"white-space:nowrap\">3154<a name=\"tuss-38-3154\"> </a></td><td>O PROFISSIONAL PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUI VÍNCULO COM A OPERADORA</td></tr><tr><td style=\"white-space:nowrap\">1901<a name=\"tuss-38-1901\"> </a></td><td>ACOMODAÇÃO INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">1904<a name=\"tuss-38-1904\"> </a></td><td>PERMANÊNCIA HOSPITALAR INCOMPATÍVEL COM O PROCEDIMENTO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">3156<a name=\"tuss-38-3156\"> </a></td><td>Token inválido</td></tr><tr><td style=\"white-space:nowrap\">1903<a name=\"tuss-38-1903\"> </a></td><td>PERMANÊNCIA HOSPITALAR INCOMPATÍVEL COM A EVOLUÇÃO CLÍNICA</td></tr><tr><td style=\"white-space:nowrap\">1911<a name=\"tuss-38-1911\"> </a></td><td>PERMANÊNCIA HOSPITALAR PARA INVESTIGAÇÃO INJUSTIFICADA.</td></tr><tr><td style=\"white-space:nowrap\">3162<a name=\"tuss-38-3162\"> </a></td><td>Código do protocolo não encontrado</td></tr><tr><td style=\"white-space:nowrap\">1910<a name=\"tuss-38-1910\"> </a></td><td>COBRANÇA DE DIÁRIAS EM LOCAIS DE ACOMODAÇÕES DIFERENTES, NO MESMO DIA.</td></tr><tr><td style=\"white-space:nowrap\">3161<a name=\"tuss-38-3161\"> </a></td><td>Prazo de envio fora do período contratual acordado entre as partes</td></tr><tr><td style=\"white-space:nowrap\">1908<a name=\"tuss-38-1908\"> </a></td><td>USUÁRIO NÃO POSSUI COBERTURA DE UTI</td></tr><tr><td style=\"white-space:nowrap\">3160<a name=\"tuss-38-3160\"> </a></td><td>Time Out - tente novamente</td></tr><tr><td style=\"white-space:nowrap\">1914<a name=\"tuss-38-1914\"> </a></td><td>COBRANÇA DE DIÁRIA EM QUANTIDADE INCOMPATÍVEL COM A PERMANÊNCIA HOSPITALAR.</td></tr><tr><td style=\"white-space:nowrap\">3165<a name=\"tuss-38-3165\"> </a></td><td>Arquivo de imagem corrompido</td></tr><tr><td style=\"white-space:nowrap\">1913<a name=\"tuss-38-1913\"> </a></td><td>CÓDIGO DE DIÁRIA INCOMPATÍVEL COM O LOCAL DE ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">3164<a name=\"tuss-38-3164\"> </a></td><td>Arquivo enviado não é de imagem</td></tr><tr><td style=\"white-space:nowrap\">1912<a name=\"tuss-38-1912\"> </a></td><td>EVOLUÇÃO CLÍNICA NÃO COMPATÍVEL COM A PERMANÊNCIA EM UTI.</td></tr><tr><td style=\"white-space:nowrap\">3163<a name=\"tuss-38-3163\"> </a></td><td>Não necessita de imagem</td></tr><tr><td style=\"white-space:nowrap\">3147<a name=\"tuss-38-3147\"> </a></td><td>MATERIAL PASSÍVEL DE REPROCESSAMENTO</td></tr><tr><td style=\"white-space:nowrap\">1834<a name=\"tuss-38-1834\"> </a></td><td>PORTE ANESTÉSICO COBRADO INCOMPATÍVEL COM O PORTE DO PROCEDIMENTO REALIZADO</td></tr><tr><td style=\"white-space:nowrap\">3146<a name=\"tuss-38-3146\"> </a></td><td>PRODUTO CONTRATADO NÃO ADAPTADO À LEI 9.656/98, SEM COBERTURA CONTRATUAL PARA O ITEM SOLICITADO</td></tr><tr><td style=\"white-space:nowrap\">1833<a name=\"tuss-38-1833\"> </a></td><td>PROCEDIMENTO COBRADO NÃO PERMITE ACRÉSCIMO DE ACOMODAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3145<a name=\"tuss-38-3145\"> </a></td><td>NÃO AUTORIZADO POR MOTIVO TÉCNICO</td></tr><tr><td style=\"white-space:nowrap\">1832<a name=\"tuss-38-1832\"> </a></td><td>PROCEDIMENTO NÃO PERMITE COBRANÇA DE AUXILIAR DE ANESTESISTA</td></tr><tr><td style=\"white-space:nowrap\">1830<a name=\"tuss-38-1830\"> </a></td><td>COBRANÇA DE PROCEDIMENTO SEM INFORMAÇÃO DAS DATAS DE ATENDIMENTO-VISITA, PLANTÃO, INTENSIVISTA, AVALIAÇÃO ENTERAL/PARENTERAL</td></tr><tr><td style=\"white-space:nowrap\">3142<a name=\"tuss-38-3142\"> </a></td><td>ITEM NÃO CONTRATADO</td></tr><tr><td style=\"white-space:nowrap\">3141<a name=\"tuss-38-3141\"> </a></td><td>BENEFICIÁRIO NÃO POSSUI COBERTURA PARA ASSISTÊNCIA AMBULATORIAL</td></tr><tr><td style=\"white-space:nowrap\">1829<a name=\"tuss-38-1829\"> </a></td><td>ADICIONAL DE VÍDEO NÃO PREVISTO PARA O PROCEDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">3144<a name=\"tuss-38-3144\"> </a></td><td>NÃO É NECESSÁRIA AUTORIZAÇÃO PRÉVIA</td></tr><tr><td style=\"white-space:nowrap\">1831<a name=\"tuss-38-1831\"> </a></td><td>LAUDO DO EXAME ENVIADO NÃO JUSTIFICA A COBRANÇA DO PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3143<a name=\"tuss-38-3143\"> </a></td><td>VALOR ACATADO POR DECISÃO JUDICIAL /LIMINAR</td></tr><tr><td style=\"white-space:nowrap\">3150<a name=\"tuss-38-3150\"> </a></td><td>CÓDIGO DA TABELA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1837<a name=\"tuss-38-1837\"> </a></td><td>NÃO CABE PAGAMENTO DO HONORÁRIO INTEGRAL POR SER VIA DE ACESSO CIRÚRGICO DIFERENTE</td></tr><tr><td style=\"white-space:nowrap\">3149<a name=\"tuss-38-3149\"> </a></td><td>INDICADOR DE ENVIO EM PAPEL INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1836<a name=\"tuss-38-1836\"> </a></td><td>&quot;ANALGESIA POR DIA SUBSEQUENTE&quot; INCOMPATÍVEL COM A VIA DE ADMINISTRAÇÃO DO MEDICAMENTO - VO OU IV PERIFÉRICA - SENDO LIBERADA VISITA HOSPITALAR</td></tr><tr><td style=\"white-space:nowrap\">3148<a name=\"tuss-38-3148\"> </a></td><td>TIPO DE TRANSAÇÃO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1835<a name=\"tuss-38-1835\"> </a></td><td>&quot;ANALGESIA POR DIA SUBSEQUENTE&quot; NÃO JUSTIFICADA EM RELATÓRIO MÉDICO, PARA O PROCEDIMENTO REALIZADO E/OU DATA DO ATENDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3153<a name=\"tuss-38-3153\"> </a></td><td>O ESTABELECIMENTO DE SAÚDE PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUI VÍNCULO COM A OPERADORA</td></tr><tr><td style=\"white-space:nowrap\">1840<a name=\"tuss-38-1840\"> </a></td><td>PROCEDIMENTO EXECUTADO ANTES DA AUTORIZAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3152<a name=\"tuss-38-3152\"> </a></td><td>O PROFISSIONAL PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUÍA VÍNCULO COM A OPERADORA NO PERÍODO A QUE SE REFERE A INFORMAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1839<a name=\"tuss-38-1839\"> </a></td><td>NECESSÁRIO ENVIO DO RESULTADO DO EXAME ANÁTOMO PATOLÓGICO</td></tr><tr><td style=\"white-space:nowrap\">3151<a name=\"tuss-38-3151\"> </a></td><td>O ESTABELECIMENTO DE SAÚDE PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUÍA VÍNCULO COM A OPERADORA NO PERÍODO A QUE SE REFERE A INFORMAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1838<a name=\"tuss-38-1838\"> </a></td><td>GRAU DE PARTICIPAÇÃO INFORMADO INCOMPATÍVEL COM EVENTO COBRADO.</td></tr><tr><td style=\"white-space:nowrap\">1822<a name=\"tuss-38-1822\"> </a></td><td>COBRANÇA DE PROCEDIMENTO COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO.</td></tr><tr><td style=\"white-space:nowrap\">3134<a name=\"tuss-38-3134\"> </a></td><td>TRATAMENTO ORTODÔNTICO EM FASE DE CONTENÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1821<a name=\"tuss-38-1821\"> </a></td><td>COBRANÇA DE PROCEDIMENTO NÃO COMPATÍVEL COM A IDADE.</td></tr><tr><td style=\"white-space:nowrap\">3133<a name=\"tuss-38-3133\"> </a></td><td>TRATAMENTO ORTODÔNTICO CONCLUÍDO</td></tr><tr><td style=\"white-space:nowrap\">1820<a name=\"tuss-38-1820\"> </a></td><td>COBRANÇA DE PROCEDIMENTO EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">3132<a name=\"tuss-38-3132\"> </a></td><td>ENVIAR PLANO DE TRATAMENTO ORTODÔNTICO INTERMEDIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">3130<a name=\"tuss-38-3130\"> </a></td><td>IMAGEM SUGERE IMPLANTE EM PROCESSO DE OSSEOINTEGRAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1817<a name=\"tuss-38-1817\"> </a></td><td>COBRANÇA DE PROCEDIMENTO INCLUSO NO PROCEDIMENTO PRINCIPAL</td></tr><tr><td style=\"white-space:nowrap\">3129<a name=\"tuss-38-3129\"> </a></td><td>IMAGEM SUGERE PRESENÇA DE CORPO ESTRANHO</td></tr><tr><td style=\"white-space:nowrap\">1816<a name=\"tuss-38-1816\"> </a></td><td>COBRANÇA DE PROCEDIMENTO EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO/EVOLUÇÃO CLÍNICA</td></tr><tr><td style=\"white-space:nowrap\">1819<a name=\"tuss-38-1819\"> </a></td><td>COBRANÇA DE PROCEDIMENTO COM HISTÓRIA CLÍNICA/HIPÓTESE DIAGNÓSTICA NÃO COMPATÍVEL</td></tr><tr><td style=\"white-space:nowrap\">3131<a name=\"tuss-38-3131\"> </a></td><td>ENVIAR PLANO DE TRATAMENTO ORTODÔNTICO INICIAL</td></tr><tr><td style=\"white-space:nowrap\">1818<a name=\"tuss-38-1818\"> </a></td><td>COBRANÇA DE PROCEDIMENTO QUE EXIGE AUTORIZAÇÃO PRÉVIA</td></tr><tr><td style=\"white-space:nowrap\">1825<a name=\"tuss-38-1825\"> </a></td><td>COBRANÇA DE PROCEDIMENTO AMBULATORIAL COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">3137<a name=\"tuss-38-3137\"> </a></td><td>PROCEDIMENTO PREVÊ COPARTICIPAÇÃO/FRANQUIA CONFORME CONTRATO</td></tr><tr><td style=\"white-space:nowrap\">1824<a name=\"tuss-38-1824\"> </a></td><td>PROCEDIMENTO COBRADO NÃO CORRESPONDE AO EXAME EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">3136<a name=\"tuss-38-3136\"> </a></td><td>PROCEDIMENTO OU ITEM ASSISTENCIAL AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">1823<a name=\"tuss-38-1823\"> </a></td><td>PROCEDIMENTO REALIZADO PELO MESMO PROFISSIONAL, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO SEM JUSTIFICATIVA ADEQUADA.</td></tr><tr><td style=\"white-space:nowrap\">3135<a name=\"tuss-38-3135\"> </a></td><td>PROFISSIONAL INFORMADO PARA REEMBOLSO PERTENCE A REDE DA OPERADORA</td></tr><tr><td style=\"white-space:nowrap\">3140<a name=\"tuss-38-3140\"> </a></td><td>ABANDONO DE TRATAMENTO PELO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">1828<a name=\"tuss-38-1828\"> </a></td><td>ADICIONAL DE URGÊNCIA NÃO PREVISTO PARA PROCEDIMENTO CIRÚRGICO ELETIVO.</td></tr><tr><td style=\"white-space:nowrap\">1827<a name=\"tuss-38-1827\"> </a></td><td>COBRANÇA DE OUTRO PROCEDIMENTO EM OUTRA GUIA, NA MESMA DATA, PELO MESMO PROFISSIONAL COM MESMO GRAU DE PARTICIPAÇÃO - LIBERADO VALOR REFERENTE À VIA DE ACESSO DO PROCEDIMENTO SECUNDÁRIO.</td></tr><tr><td style=\"white-space:nowrap\">3139<a name=\"tuss-38-3139\"> </a></td><td>TRATAMENTO ORTODONTICO SUSPENSO A PEDIDO DO DENTISTA</td></tr><tr><td style=\"white-space:nowrap\">1826<a name=\"tuss-38-1826\"> </a></td><td>VIAS DE ACESSO DOS PROCEDIMENTOS COBRADOS NÃO ESTÃO PREVISTAS NA LISTAGEM DE PROCEDIMENTOS MÚLTIPLOS.</td></tr><tr><td style=\"white-space:nowrap\">3138<a name=\"tuss-38-3138\"> </a></td><td>CONDIÇÃO CLÍNICA INCOMPATÍVEL COM A SOLICITAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3122<a name=\"tuss-38-3122\"> </a></td><td>SOLICITAÇÃO DE REEMBOLSO EM PLANO SEM DIREITO À LIVRE ESCOLHA</td></tr><tr><td style=\"white-space:nowrap\">1808<a name=\"tuss-38-1808\"> </a></td><td>PROCEDIMENTO NÃO CONFORME COM CID</td></tr><tr><td style=\"white-space:nowrap\">3121<a name=\"tuss-38-3121\"> </a></td><td>ITEM AUTORIZADO E AINDA NÃO INDENIZADO</td></tr><tr><td style=\"white-space:nowrap\">1807<a name=\"tuss-38-1807\"> </a></td><td>PROCEDIMENTOS MÉDICOS DUPLICADOS</td></tr><tr><td style=\"white-space:nowrap\">3120<a name=\"tuss-38-3120\"> </a></td><td>NECESSÁRIO O ENVIO DO PEDIDO DO PROFISSIONAL SOLICITANTE</td></tr><tr><td style=\"white-space:nowrap\">1806<a name=\"tuss-38-1806\"> </a></td><td>QUANTIDADE DE PROCEDIMENTO DEVE SER MAIOR QUE ZERO</td></tr><tr><td style=\"white-space:nowrap\">1804<a name=\"tuss-38-1804\"> </a></td><td>NÚMERO DE DIAS LIBERADOS / SESSÕES AUTORIZADAS NÃO INFORMADAS</td></tr><tr><td style=\"white-space:nowrap\">3117<a name=\"tuss-38-3117\"> </a></td><td>PROCEDIMENTO ODONTOLÓGICO COM INDICAÇÃO TÉCNICA EM PROGNÓSTICO DESFAVORÁVEL</td></tr><tr><td style=\"white-space:nowrap\">1803<a name=\"tuss-38-1803\"> </a></td><td>IDADE DO BENEFICIÁRIO INCOMPATÍVEL COM O PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">1802<a name=\"tuss-38-1802\"> </a></td><td>PROCEDIMENTO INCOMPATÍVEL COM O SEXO DO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">3119<a name=\"tuss-38-3119\"> </a></td><td>NECESSÁRIO ENVIAR TERMO DE RESPONSABILIDADE PROFISSIONAL</td></tr><tr><td style=\"white-space:nowrap\">1805<a name=\"tuss-38-1805\"> </a></td><td>VALOR TOTAL DO PROCEDIMENTO DIFERENTE DO VALOR PROCESSADO</td></tr><tr><td style=\"white-space:nowrap\">3118<a name=\"tuss-38-3118\"> </a></td><td>NECESSÁRIO ENVIAR TERMO DE CONSENTIMENTO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">3125<a name=\"tuss-38-3125\"> </a></td><td>RADIOGRAFIA SUGERE INDICAÇÃO DE RETRATAMENTO ENDODONTICO</td></tr><tr><td style=\"white-space:nowrap\">1811<a name=\"tuss-38-1811\"> </a></td><td>PROCEDIMENTO SEM REGISTRO DE EXECUÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3124<a name=\"tuss-38-3124\"> </a></td><td>RADIOGRAFIA SUGERE INDICAÇÃO DE EXODONTIA</td></tr><tr><td style=\"white-space:nowrap\">1810<a name=\"tuss-38-1810\"> </a></td><td>COBRANÇA DE PROCEDIMENTO NÃO SOLICITADO PELO MÉDICO</td></tr><tr><td style=\"white-space:nowrap\">3123<a name=\"tuss-38-3123\"> </a></td><td>ITEM PARA A MESMA FINALIDADE JÁ AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">1809<a name=\"tuss-38-1809\"> </a></td><td>COBRANÇA DE PROCEDIMENTO NÃO EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">3128<a name=\"tuss-38-3128\"> </a></td><td>IMAGEM SUGERE PRESENÇA DE ARTEFATO DE IMAGEM</td></tr><tr><td style=\"white-space:nowrap\">1814<a name=\"tuss-38-1814\"> </a></td><td>COBRANÇA DE PROCEDIMENTO COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">3127<a name=\"tuss-38-3127\"> </a></td><td>IMAGEM SUGERE ALTERAÇÃO PATOLÓGICA</td></tr><tr><td style=\"white-space:nowrap\">1813<a name=\"tuss-38-1813\"> </a></td><td>COBRANÇA DE PROCEDIMENTO SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE.</td></tr><tr><td style=\"white-space:nowrap\">3126<a name=\"tuss-38-3126\"> </a></td><td>COBRANÇA DE ITEM ANTERIOR À DATA DE REALIZAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1812<a name=\"tuss-38-1812\"> </a></td><td>COBRANÇA DE PROCEDIMENTO NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO</td></tr><tr><td style=\"white-space:nowrap\">1745<a name=\"tuss-38-1745\"> </a></td><td>PAGAMENTO DA EQUIPE CONFORME RELATÓRIO DO CIRURGIÃO</td></tr><tr><td style=\"white-space:nowrap\">3109<a name=\"tuss-38-3109\"> </a></td><td>PROCEDIMENTO SOLICITADO NÃO AUTORIZADO POR NÃO CONSTAR DO ROL DE PROCEDIMENTOS E EVENTOS EM SAÚDE DA ANS</td></tr><tr><td style=\"white-space:nowrap\">1744<a name=\"tuss-38-1744\"> </a></td><td>NEGOCIAÇÃO DIFERENCIADA DEVIDO A LIMINAR</td></tr><tr><td style=\"white-space:nowrap\">3108<a name=\"tuss-38-3108\"> </a></td><td>ITEM INCLUSO NO PACOTE NEGOCIADO</td></tr><tr><td style=\"white-space:nowrap\">1743<a name=\"tuss-38-1743\"> </a></td><td>NÃO HÁ NEGOCIAÇÃO PARA COBRANÇA DO KIT, DISCRIMINAR POR ITENS</td></tr><tr><td style=\"white-space:nowrap\">3107<a name=\"tuss-38-3107\"> </a></td><td>ITEM CATEGORIZADO COMO NÃO DESCARTÁVEL</td></tr><tr><td style=\"white-space:nowrap\">3105<a name=\"tuss-38-3105\"> </a></td><td>ITEM COM UTILIZAÇÃO SUSPENSA PELO ÓRGÃO COMPETENTE</td></tr><tr><td style=\"white-space:nowrap\">1740<a name=\"tuss-38-1740\"> </a></td><td>ESTORNO DO VALOR DE PROCEDIMENTO PAGO</td></tr><tr><td style=\"white-space:nowrap\">3104<a name=\"tuss-38-3104\"> </a></td><td>RECUSADO, CONFORME JUNTA MÉDICA/ODONTOLÓGICA</td></tr><tr><td style=\"white-space:nowrap\">1739<a name=\"tuss-38-1739\"> </a></td><td>DUPLICIDADE DE CONTA DEVIDO A PERIODO COBRADO JÁ EFETUADO EM OUTRA PARCIAL</td></tr><tr><td style=\"white-space:nowrap\">1742<a name=\"tuss-38-1742\"> </a></td><td>HONORÁRIO OU PROCEDIMENTO JÁ PAGO POR REEMBOLSO AO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">3106<a name=\"tuss-38-3106\"> </a></td><td>REGISTRO ANVISA INVÁLIDO OU NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">1741<a name=\"tuss-38-1741\"> </a></td><td>HONORÁRIO OU PROCEDIMENTO JÁ PAGO A OUTRO PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">1748<a name=\"tuss-38-1748\"> </a></td><td>PROCEDIMENTO NÃO CARACTERIZA URGÊNCIA/EMÊRGENCIA</td></tr><tr><td style=\"white-space:nowrap\">3112<a name=\"tuss-38-3112\"> </a></td><td>DESCONTO DE COPARTICIPAÇÃO/FRANQUIA CONFORME CONTRATO</td></tr><tr><td style=\"white-space:nowrap\">1747<a name=\"tuss-38-1747\"> </a></td><td>PLANO DO BENEFICIÁRIO E O TIPO DE ACOMODAÇÃO NÃO PERMITEM ACRÉSCIMO DE HONORÁRIOS</td></tr><tr><td style=\"white-space:nowrap\">3111<a name=\"tuss-38-3111\"> </a></td><td>CAMPO CONDICIONADO NÃO PREENCHIDO OU INCORRETO</td></tr><tr><td style=\"white-space:nowrap\">1746<a name=\"tuss-38-1746\"> </a></td><td>PERCENTUAL DE ACRÉSCIMO DIFERENTE DO NEGOCIADO</td></tr><tr><td style=\"white-space:nowrap\">3110<a name=\"tuss-38-3110\"> </a></td><td>BLOQUEIO JUDICIAL</td></tr><tr><td style=\"white-space:nowrap\">3116<a name=\"tuss-38-3116\"> </a></td><td>REALIZAÇÃO DE PROCEDIMENTO COM NECESSIDADE ESTÉTICA</td></tr><tr><td style=\"white-space:nowrap\">3115<a name=\"tuss-38-3115\"> </a></td><td>NECESSÁRIO ENVIO DE RADIOGRAFIA OCLUSAL DA REGIÃO</td></tr><tr><td style=\"white-space:nowrap\">1801<a name=\"tuss-38-1801\"> </a></td><td>PROCEDIMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3114<a name=\"tuss-38-3114\"> </a></td><td>NECESSÁRIO ENVIO DE RADIOGRAFIA INTERPROXIMAL DA REGIÃO</td></tr><tr><td style=\"white-space:nowrap\">1749<a name=\"tuss-38-1749\"> </a></td><td>RELATÓRIO DE AUDITORIA NÃO ENVIADO NA CONTA.</td></tr><tr><td style=\"white-space:nowrap\">3113<a name=\"tuss-38-3113\"> </a></td><td>NECESSÁRIO ENVIO DE RADIOGRAFIA PERIAPICAL DA REGIÃO</td></tr><tr><td style=\"white-space:nowrap\">1732<a name=\"tuss-38-1732\"> </a></td><td>QT COM DATA DE EVENTO DIVERGENTE DA LIBERADA</td></tr><tr><td style=\"white-space:nowrap\">3096<a name=\"tuss-38-3096\"> </a></td><td>ATENDIMENTO NÃO CONFIRMADO PELO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">1731<a name=\"tuss-38-1731\"> </a></td><td>TAXA INCOMPATIVEL PARA ATENDIMENTO AMBULATORIAL</td></tr><tr><td style=\"white-space:nowrap\">3095<a name=\"tuss-38-3095\"> </a></td><td>RECURSO DE GLOSA ACATADO</td></tr><tr><td style=\"white-space:nowrap\">3094<a name=\"tuss-38-3094\"> </a></td><td>VALOR DA TAXA ADMINISTRATIVA ALTERADO EM RAZÃO DE GLOSAS</td></tr><tr><td style=\"white-space:nowrap\">1730<a name=\"tuss-38-1730\"> </a></td><td>FILME INCLUSO NO EXAME REALIZADO</td></tr><tr><td style=\"white-space:nowrap\">1728<a name=\"tuss-38-1728\"> </a></td><td>COBRANÇA DE MATERIAL INCLUSO NO PROCEDIMENTO / EXAME REALIZADO</td></tr><tr><td style=\"white-space:nowrap\">3091<a name=\"tuss-38-3091\"> </a></td><td>COBRANÇA FORA DO PRAZO ESTIPULADO NO CONTRATO</td></tr><tr><td style=\"white-space:nowrap\">1727<a name=\"tuss-38-1727\"> </a></td><td>PAGO VALOR COMPATIVEL COM O PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">1726<a name=\"tuss-38-1726\"> </a></td><td>VALOR APRESENTADO A MAIOR - PLANO INDIVIDUAL</td></tr><tr><td style=\"white-space:nowrap\">3093<a name=\"tuss-38-3093\"> </a></td><td>VALOR ACATADO POR AUTORIZAÇÃO ESPECIAL</td></tr><tr><td style=\"white-space:nowrap\">1729<a name=\"tuss-38-1729\"> </a></td><td>COBRANÇA DE MATERIAL COM VALOR ACIMA DO PERMITIDO PARA PROCEDIMENTO/EXAME REALIZADO</td></tr><tr><td style=\"white-space:nowrap\">3092<a name=\"tuss-38-3092\"> </a></td><td>VALOR ACATADO POR GLOSA REALIZADA INDEVIDAMENTE, APÓS AVALIAÇÃO DO RECURSO</td></tr><tr><td style=\"white-space:nowrap\">1735<a name=\"tuss-38-1735\"> </a></td><td>COBRANÇA DE PACOTE NÃO NEGOCIADO COM O PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">3100<a name=\"tuss-38-3100\"> </a></td><td>PARA LIBERAR ESTE ACESSO, ENTRE EM CONTATO COM A OPERADORA E SOLICITE O CADASTRAMENTO DO SEU CÓDIGO DE ORIGEM</td></tr><tr><td style=\"white-space:nowrap\">1734<a name=\"tuss-38-1734\"> </a></td><td>COBRADO CONTA ABERTA, PAGO O PACOTE CONFORME NEGOCIAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3098<a name=\"tuss-38-3098\"> </a></td><td>O PRESTADOR POSSUI PACOTE CONTRATADO PARA ESTE PROCEDIMENTO. VERIFIQUE O CÓDIGO CORRESPONDENTE</td></tr><tr><td style=\"white-space:nowrap\">1733<a name=\"tuss-38-1733\"> </a></td><td>RECUPERAÇÃO DE VALORES POR PAGAMENTO INDEVIDO</td></tr><tr><td style=\"white-space:nowrap\">3097<a name=\"tuss-38-3097\"> </a></td><td>TIPO DE ATENDIMENTO INCOMPATÍVEL COM A SEGMENTAÇÃO ASSISTENCIAL CONTRATADA</td></tr><tr><td style=\"white-space:nowrap\">3103<a name=\"tuss-38-3103\"> </a></td><td>SOLICITAÇÃO DE AUTORIZAÇÃO FORA DO PRAZO ACORDADO</td></tr><tr><td style=\"white-space:nowrap\">1738<a name=\"tuss-38-1738\"> </a></td><td>DOCUMENTO FISCAL NÃO ENVIADO</td></tr><tr><td style=\"white-space:nowrap\">3102<a name=\"tuss-38-3102\"> </a></td><td>É NECESSÁRIO TER UM PROCEDIMENTO RELACIONADO À SOLICITAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1737<a name=\"tuss-38-1737\"> </a></td><td>DIFERENÇA DEVE SER COBRADA DO BENEFICIÁRIO PELO PRESTADOR COMO FRANQUIA</td></tr><tr><td style=\"white-space:nowrap\">1736<a name=\"tuss-38-1736\"> </a></td><td>CONTA AGUARDANDO NEGOCIAÇÃO PARA PAGAMENTO</td></tr><tr><td style=\"white-space:nowrap\">3101<a name=\"tuss-38-3101\"> </a></td><td>O PROCEDIMENTO SOLICITADO É DE EXECUÇÃO ÚNICA E JÁ FOI REALIZADO PELO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">3084<a name=\"tuss-38-3084\"> </a></td><td>RELATÓRIO ANALISE TÉCNICA SEM CARIMBO/ASSINATURA DO PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">1719<a name=\"tuss-38-1719\"> </a></td><td>REANÁLISE NEGADA, ANÁLISE CONFORME TABELA ACORDADA</td></tr><tr><td style=\"white-space:nowrap\">3083<a name=\"tuss-38-3083\"> </a></td><td>REAVALIAR O PLANO DE TRATAMENTO OBSERVANDO CRITÉRIOS DE INDICAÇÃO, OPORTUNIDADE E VIABILIDADE.</td></tr><tr><td style=\"white-space:nowrap\">1718<a name=\"tuss-38-1718\"> </a></td><td>REANÁLISE NEGADA, PAGO CONFORME RELATÓRIO AUDITORIA</td></tr><tr><td style=\"white-space:nowrap\">3082<a name=\"tuss-38-3082\"> </a></td><td>RADIOGRAFIA/IMAGEM INDICA FALHA NA RESTAURAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1717<a name=\"tuss-38-1717\"> </a></td><td>PAGO CONFORME RELATÓRIO DE AUDITORIA EXTERNA - CONTA INICIAL</td></tr><tr><td style=\"white-space:nowrap\">1715<a name=\"tuss-38-1715\"> </a></td><td>VALOR DO SERVIÇO INFERIOR AO VALOR DE TABELA</td></tr><tr><td style=\"white-space:nowrap\">3079<a name=\"tuss-38-3079\"> </a></td><td>RADIOGRAFIA INDICA TRATAMENTO ENDODÔNTICO E NÃO RETRATATAMENTO ENDODÔNTICO</td></tr><tr><td style=\"white-space:nowrap\">1714<a name=\"tuss-38-1714\"> </a></td><td>VALOR DO SERVIÇO SUPERIOR AO VALOR DE TABELA</td></tr><tr><td style=\"white-space:nowrap\">3078<a name=\"tuss-38-3078\"> </a></td><td>RADIOGRAFIA INDICA NÚCLEO INADEQUADO</td></tr><tr><td style=\"white-space:nowrap\">3081<a name=\"tuss-38-3081\"> </a></td><td>RADIOGRAFIA INICIAL NÃO ENVIADA</td></tr><tr><td style=\"white-space:nowrap\">1716<a name=\"tuss-38-1716\"> </a></td><td>PERCENTUAL DE REDUÇÃO/ACRÉSCIMO FORA DOS VALORES DEFINIDOS EM TABELA</td></tr><tr><td style=\"white-space:nowrap\">3080<a name=\"tuss-38-3080\"> </a></td><td>RADIOGRAFIA INICIAL E FINAL NÃO ENVIADAS</td></tr><tr><td style=\"white-space:nowrap\">3087<a name=\"tuss-38-3087\"> </a></td><td>COBRANÇA INDEVIDA DE TAXA ADMINISTRATIVA</td></tr><tr><td style=\"white-space:nowrap\">1722<a name=\"tuss-38-1722\"> </a></td><td>PAGO CONFORME NEGOCIAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3086<a name=\"tuss-38-3086\"> </a></td><td>TRATAMENTO ODONTOLÓGICO NÃO CARACTERIZADO COMO URGÊNCIA.</td></tr><tr><td style=\"white-space:nowrap\">1721<a name=\"tuss-38-1721\"> </a></td><td>CÓDIGO COBRADO SUBSTITUÍDO PELO CÓDIGO PAGO</td></tr><tr><td style=\"white-space:nowrap\">3085<a name=\"tuss-38-3085\"> </a></td><td>RADIOGRAFIA NÃO CORRESPONDE AO PROCEDIMENTO SOLICITADO</td></tr><tr><td style=\"white-space:nowrap\">1720<a name=\"tuss-38-1720\"> </a></td><td>LIBERADOS 150% DE VÍDEO, SEM COBERTURA PARA ADICIONAL DE ACOMODAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3090<a name=\"tuss-38-3090\"> </a></td><td>NECESSÁRIO ENVIAR AS ETIQUETAS E SELOS HEMOTERÁPICOS DO MATERIAL UTILIZADO</td></tr><tr><td style=\"white-space:nowrap\">1725<a name=\"tuss-38-1725\"> </a></td><td>VALOR PAGO A MAIOR REFERENTE À TAXA ADMINISTRATIVA</td></tr><tr><td style=\"white-space:nowrap\">3089<a name=\"tuss-38-3089\"> </a></td><td>QUANTIDADE DE ITENS INCOMPATÍVEL COM O PERÍODO DE INTERNAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1724<a name=\"tuss-38-1724\"> </a></td><td>VISITA MÉDICA COBRADA PELA EQUIPE CIRÚRGICA INCLUÍDA NO PERÍODO DE 10 DIAS APÓS REALIZAÇÃO DO PROCEDIMENTO CIRÚRGICO</td></tr><tr><td style=\"white-space:nowrap\">3088<a name=\"tuss-38-3088\"> </a></td><td>VALOR ACATADO, CONFORME REAJUSTE RETROATIVO</td></tr><tr><td style=\"white-space:nowrap\">1723<a name=\"tuss-38-1723\"> </a></td><td>ADICIONAL DE URGÊNCIA NÃO PREVISTO PARA ATENDIMENTO CLÍNICO</td></tr><tr><td style=\"white-space:nowrap\">3072<a name=\"tuss-38-3072\"> </a></td><td>RADIOGRAFIA INDICA CANAL(AIS) NÃO OBTURADO(S)</td></tr><tr><td style=\"white-space:nowrap\">1706<a name=\"tuss-38-1706\"> </a></td><td>VALOR APRESENTADO A MENOR</td></tr><tr><td style=\"white-space:nowrap\">3071<a name=\"tuss-38-3071\"> </a></td><td>RADIOGRAFIA INDICA AUSENCIA DE NÚCLEO</td></tr><tr><td style=\"white-space:nowrap\">1705<a name=\"tuss-38-1705\"> </a></td><td>VALOR APRESENTADO A MAIOR</td></tr><tr><td style=\"white-space:nowrap\">3070<a name=\"tuss-38-3070\"> </a></td><td>RADIOGRAFIA INDICA A PRESENÇA DE RAIZ RESIDUAL NO ALVEOLO</td></tr><tr><td style=\"white-space:nowrap\">1704<a name=\"tuss-38-1704\"> </a></td><td>VALOR COBRADO SUPERIOR AO ACORDADO EM PACOTE</td></tr><tr><td style=\"white-space:nowrap\">1702<a name=\"tuss-38-1702\"> </a></td><td>COBRANÇA DE PROCEDIMENTO EM DUPLICIDADE</td></tr><tr><td style=\"white-space:nowrap\">3067<a name=\"tuss-38-3067\"> </a></td><td>RADIOGRAFIA FINAL NÃO ENVIADA</td></tr><tr><td style=\"white-space:nowrap\">1701<a name=\"tuss-38-1701\"> </a></td><td>COBRANÇA FORA DO PRAZO DE VALIDADE</td></tr><tr><td style=\"white-space:nowrap\">3066<a name=\"tuss-38-3066\"> </a></td><td>PROCEDIMENTO EM DESACORDO COM O ANEXO GUIA TRATAMENTO ODONTOLÓGICO SITUAÇÃO INICIAL</td></tr><tr><td style=\"white-space:nowrap\">3069<a name=\"tuss-38-3069\"> </a></td><td>RADIOGRAFIA INDICA A NECESSIDADE DE TRATAMENTO ENDODONTICO</td></tr><tr><td style=\"white-space:nowrap\">1703<a name=\"tuss-38-1703\"> </a></td><td>HORÁRIO DO ATENDIMENTO NÃO ESTÁ NA FAIXA DE URGÊNCIA/EMERGÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">3068<a name=\"tuss-38-3068\"> </a></td><td>RADIOGRAFIA FINAL SEM DISSOCIAÇÃO DOS CONDUTOS</td></tr><tr><td style=\"white-space:nowrap\">1710<a name=\"tuss-38-1710\"> </a></td><td>FALTA VISTO DA ENFERMAGEM</td></tr><tr><td style=\"white-space:nowrap\">3074<a name=\"tuss-38-3074\"> </a></td><td>RADIOGRAFIA INDICA EXCESSO DE MATERIAL</td></tr><tr><td style=\"white-space:nowrap\">1709<a name=\"tuss-38-1709\"> </a></td><td>FALTA PRESCRIÇÃO MÉDICA</td></tr><tr><td style=\"white-space:nowrap\">1708<a name=\"tuss-38-1708\"> </a></td><td>NÃO EXISTE VALOR PARA O PROCEDIMENTO REALIZADO</td></tr><tr><td style=\"white-space:nowrap\">3073<a name=\"tuss-38-3073\"> </a></td><td>RADIOGRAFIA INDICA DESVIO DA TRAJETORIA DO CANAL</td></tr><tr><td style=\"white-space:nowrap\">1707<a name=\"tuss-38-1707\"> </a></td><td>NÃO EXISTE INFORMAÇÃO SOBRE A TABELA QUE SERÁ UTILIZADA NA VALORAÇÃO. VERIFIQUE O CONTRATO DO PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">1713<a name=\"tuss-38-1713\"> </a></td><td>FATURAMENTO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3077<a name=\"tuss-38-3077\"> </a></td><td>RADIOGRAFIA INDICA FALTA DE ADAPTAÇÃO DA COROA/PEÇA PROTÉTICA</td></tr><tr><td style=\"white-space:nowrap\">1712<a name=\"tuss-38-1712\"> </a></td><td>ASSINATURA DO MÉDICO RESPONSÁVEL PELO EXAME INEXISTENTE</td></tr><tr><td style=\"white-space:nowrap\">3076<a name=\"tuss-38-3076\"> </a></td><td>RADIOGRAFIA INDICA FALTA DE ADAPTAÇÃO DA COROA/NÚCLEO</td></tr><tr><td style=\"white-space:nowrap\">1711<a name=\"tuss-38-1711\"> </a></td><td>PROCEDIMENTO PERTENCE A UM PACOTE ACORDADO E JÁ COBRADO</td></tr><tr><td style=\"white-space:nowrap\">3075<a name=\"tuss-38-3075\"> </a></td><td>RADIOGRAFIA INDICA FALHA NA OBTURAÇÃO DO(S) CONDUTO(S)</td></tr><tr><td style=\"white-space:nowrap\">1609<a name=\"tuss-38-1609\"> </a></td><td>MOTIVO SAÍDA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3059<a name=\"tuss-38-3059\"> </a></td><td>NECESSÁRIA AUDITORIA INICIAL</td></tr><tr><td style=\"white-space:nowrap\">1608<a name=\"tuss-38-1608\"> </a></td><td>ALTA ANTERIOR À DATA DE INTERNAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3058<a name=\"tuss-38-3058\"> </a></td><td>NECESSÁRIA AUDITORIA FINAL</td></tr><tr><td style=\"white-space:nowrap\">1607<a name=\"tuss-38-1607\"> </a></td><td>ALTA HOSPITALAR ANTERIOR AO FINAL DA INTERVENÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3057<a name=\"tuss-38-3057\"> </a></td><td>NÃO APRESENTA A QUANTIDADE MÍNIMA DE ELEMENTOS DENTÁRIOS POR SEGMENTO</td></tr><tr><td style=\"white-space:nowrap\">3055<a name=\"tuss-38-3055\"> </a></td><td>IDENTIFICADO TRATAMENTO ENDODÔNTICO E NÃO RETRATAMENTO</td></tr><tr><td style=\"white-space:nowrap\">1604<a name=\"tuss-38-1604\"> </a></td><td>TIPO DE SAÍDA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3054<a name=\"tuss-38-3054\"> </a></td><td>IDENTIFICADO CONDUTO(S) NÃO OBTURADO(S)</td></tr><tr><td style=\"white-space:nowrap\">1603<a name=\"tuss-38-1603\"> </a></td><td>TIPO DE CONSULTA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1606<a name=\"tuss-38-1606\"> </a></td><td>FINAL DA INTERVENÇÃO ANTERIOR AO INÍCIO DA INTERVENÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3056<a name=\"tuss-38-3056\"> </a></td><td>NA AUDITORIA FOI CONSTATADA DIVERGÊNCIA NA QUANTIDADE DE FACES RESTAURADAS</td></tr><tr><td style=\"white-space:nowrap\">1605<a name=\"tuss-38-1605\"> </a></td><td>INTERVENÇÃO ANTERIOR A ADMISSÃO</td></tr><tr><td style=\"white-space:nowrap\">1612<a name=\"tuss-38-1612\"> </a></td><td>SERVIÇO NÃO PODE SER REALIZADO NO LOCAL ESPECIFICADO</td></tr><tr><td style=\"white-space:nowrap\">3062<a name=\"tuss-38-3062\"> </a></td><td>NECESSÁRIO ENVIAR LAUDO OU RELATÓRIO TÉCNICO SOBRE O TRATAMENTO SOLICITADO.</td></tr><tr><td style=\"white-space:nowrap\">1611<a name=\"tuss-38-1611\"> </a></td><td>INTERVENÇÃO ANTERIOR A INTERNAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">3061<a name=\"tuss-38-3061\"> </a></td><td>NECESSÁRIA AVALIAÇÃO DO ESPECIALISTA</td></tr><tr><td style=\"white-space:nowrap\">1610<a name=\"tuss-38-1610\"> </a></td><td>ÓBITO MULHER INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3060<a name=\"tuss-38-3060\"> </a></td><td>NECESSÁRIA AUDITORIA INTERMEDIÁRIA</td></tr><tr><td style=\"white-space:nowrap\">1615<a name=\"tuss-38-1615\"> </a></td><td>INTERNAÇÃO NÃO AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">3065<a name=\"tuss-38-3065\"> </a></td><td>PROCEDIMENTO AUTORIZADO SOMENTE PARA DENTES ANTERIORES</td></tr><tr><td style=\"white-space:nowrap\">1614<a name=\"tuss-38-1614\"> </a></td><td>SERVIÇO AMBULATORIAL NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">3064<a name=\"tuss-38-3064\"> </a></td><td>PROCEDIMENTO AUTORIZADO APENAS PARA DENTES TRATADOS ENDODONTICAMENTE</td></tr><tr><td style=\"white-space:nowrap\">1613<a name=\"tuss-38-1613\"> </a></td><td>CONSULTA NÃO AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">3063<a name=\"tuss-38-3063\"> </a></td><td>O PLANO DE TRATAMENTO AUTORIZADO SERÁ CANCELADO DEVIDO À TROCA DE PROFISSIONAL</td></tr><tr><td style=\"white-space:nowrap\">3047<a name=\"tuss-38-3047\"> </a></td><td>AUSÊNCIA DE IMAGEM/FOTO/RADIOGRAFIA/ DIAGNÓSTICO PÓS PROCEDIMENTO ODONTOLÓGICO</td></tr><tr><td style=\"white-space:nowrap\">1505<a name=\"tuss-38-1505\"> </a></td><td>REGIME DA INTERNAÇÃO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3046<a name=\"tuss-38-3046\"> </a></td><td>AUDITORIA FINAL CONSTA QUE O PROCEDIMENTO FOI REALIZADO COM OUTRO MATERIAL</td></tr><tr><td style=\"white-space:nowrap\">1504<a name=\"tuss-38-1504\"> </a></td><td>CARÁTER DE INTERNAÇÃO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3045<a name=\"tuss-38-3045\"> </a></td><td>APÓS ANÁLISE DA RADIOGRAFIA INICIAL, VERIFICOU-SE EXODONTIA DE FRAGMENTO RADICULAR</td></tr><tr><td style=\"white-space:nowrap\">1503<a name=\"tuss-38-1503\"> </a></td><td>INDICADOR DE ACIDENTE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1501<a name=\"tuss-38-1501\"> </a></td><td>TEMPO DE EVOLUÇÃO DA DOENÇA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3042<a name=\"tuss-38-3042\"> </a></td><td>APÓS ANÁLISE DA RADIOGRAFIA INICIAL VERIFICOU-SE EXODONTIA DE INCLUSO</td></tr><tr><td style=\"white-space:nowrap\">1438<a name=\"tuss-38-1438\"> </a></td><td>PROCEDIMENTO SOLICITADO NÃO AUTORIZADO POR NÃO ATENDER A DIRETRIZ DE UTILIZAÇÃO (DUT) DO ROL DE PROCEDIMENTOS E EVENTOS EM SAÚDE DA ANS</td></tr><tr><td style=\"white-space:nowrap\">3041<a name=\"tuss-38-3041\"> </a></td><td>AGUARDANDO DOCUMENTAÇÃO DE ORTODONTIA</td></tr><tr><td style=\"white-space:nowrap\">3044<a name=\"tuss-38-3044\"> </a></td><td>APÓS ANÁLISE DA RADIOGRAFIA INICIAL VERIFICOU-SE EXODONTIA SIMPLES</td></tr><tr><td style=\"white-space:nowrap\">1502<a name=\"tuss-38-1502\"> </a></td><td>TIPO DE DOENÇA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3043<a name=\"tuss-38-3043\"> </a></td><td>APÓS ANÁLISE DA RADIOGRAFIA INICIAL VERIFICOU-SE EXODONTIA DE SEMI-INCLUSO</td></tr><tr><td style=\"white-space:nowrap\">1508<a name=\"tuss-38-1508\"> </a></td><td>CÓDIGO CID NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">3050<a name=\"tuss-38-3050\"> </a></td><td>COBRANÇA DE URGÊNCIA/EMERGÊNCIA NA VIGÊNCIA DO TRATAMENTO ODONTOLÓGICO.</td></tr><tr><td style=\"white-space:nowrap\">3049<a name=\"tuss-38-3049\"> </a></td><td>CANCELAMENTO DO PROCEDIMENTO ODONTOLÓGICO POR SOLICITAÇÃO DO PRESTADOR.</td></tr><tr><td style=\"white-space:nowrap\">1507<a name=\"tuss-38-1507\"> </a></td><td>URGÊNCIA/EMERGÊNCIA NÃO APLICÁVEL</td></tr><tr><td style=\"white-space:nowrap\">3048<a name=\"tuss-38-3048\"> </a></td><td>CANCELAMENTO DO PROCEDIMENTO ODONTOLÓGICO POR SOLICITAÇÃO DO BENEFICIÁRIO.</td></tr><tr><td style=\"white-space:nowrap\">1506<a name=\"tuss-38-1506\"> </a></td><td>TIPO DE INTERNAÇÃO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3053<a name=\"tuss-38-3053\"> </a></td><td>ELEMENTOS PODEM SER VISUALIZADOS EM UMA MESMA PELÍCULA.</td></tr><tr><td style=\"white-space:nowrap\">1602<a name=\"tuss-38-1602\"> </a></td><td>TIPO DE ATENDIMENTO INVÁLIDO OU NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">3052<a name=\"tuss-38-3052\"> </a></td><td>DOCUMENTAÇÃO INCOMPLETA, INCORRETA OU AUSENTE</td></tr><tr><td style=\"white-space:nowrap\">1601<a name=\"tuss-38-1601\"> </a></td><td>REINCIDÊNCIA NO ATENDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3051<a name=\"tuss-38-3051\"> </a></td><td>DOCUMENTAÇÃO EM ANÁLISE</td></tr><tr><td style=\"white-space:nowrap\">1509<a name=\"tuss-38-1509\"> </a></td><td>CÓDIGO CID INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">3035<a name=\"tuss-38-3035\"> </a></td><td>PACIENTE EM TRATAMENTO COM O MESMO PROFISSIONAL</td></tr><tr><td style=\"white-space:nowrap\">3034<a name=\"tuss-38-3034\"> </a></td><td>JUSTIFICATIVA TECNICAMENTE NÃO SATISFATÓRIA</td></tr><tr><td style=\"white-space:nowrap\">1430<a name=\"tuss-38-1430\"> </a></td><td>PROCEDIMENTO ODONTOLÓGICO NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">1429<a name=\"tuss-38-1429\"> </a></td><td>CBO-S (ESPECIALIDADE) NÃO AUTORIZADO A REALIZAR O SERVIÇO</td></tr><tr><td style=\"white-space:nowrap\">3033<a name=\"tuss-38-3033\"> </a></td><td>INTERVALO DA ÚLTIMA MPP INFERIOR A QUATRO MESES</td></tr><tr><td style=\"white-space:nowrap\">1428<a name=\"tuss-38-1428\"> </a></td><td>FALTA DE AUTORIZAÇÃO DA EMPRESA DE CONECTIVIDADE</td></tr><tr><td style=\"white-space:nowrap\">1426<a name=\"tuss-38-1426\"> </a></td><td>NÃO AUTORIZADO PELA AUDITORIA</td></tr><tr><td style=\"white-space:nowrap\">3030<a name=\"tuss-38-3030\"> </a></td><td>AUDITORIA FINAL CONSTA QUE A RESTAURAÇÃO FOI REALIZADA EM OUTRO MATERIAL</td></tr><tr><td style=\"white-space:nowrap\">1425<a name=\"tuss-38-1425\"> </a></td><td>NECESSITA PRÉ-AUTORIZAÇÃO DA EMPRESA</td></tr><tr><td style=\"white-space:nowrap\">3029<a name=\"tuss-38-3029\"> </a></td><td>EVENTO NÃO INDICADO PELA AUDITORIA INICIAL</td></tr><tr><td style=\"white-space:nowrap\">3032<a name=\"tuss-38-3032\"> </a></td><td>INTERVALO DA ÚLTIMA MPP INFERIOR A TRÊS MESES</td></tr><tr><td style=\"white-space:nowrap\">1427<a name=\"tuss-38-1427\"> </a></td><td>NECESSIDADE DE AUDITORIA MÉDICA</td></tr><tr><td style=\"white-space:nowrap\">3031<a name=\"tuss-38-3031\"> </a></td><td>RADIOGRAFIA FORA DOS PADRÕES TÉCNICOS</td></tr><tr><td style=\"white-space:nowrap\">3038<a name=\"tuss-38-3038\"> </a></td><td>RADIOGRAFIA INICIAL INCONGRUENTE COM A RADIOGRAFIA FINAL</td></tr><tr><td style=\"white-space:nowrap\">1433<a name=\"tuss-38-1433\"> </a></td><td>PROCEDIMENTO NÃO AUTORIZADO, DENTE AUSENTE</td></tr><tr><td style=\"white-space:nowrap\">3037<a name=\"tuss-38-3037\"> </a></td><td>PROCEDIMENTO COBRADO NÃO É IGUAL AO EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">1432<a name=\"tuss-38-1432\"> </a></td><td>PROCEDIMENTO NÃO AUTORIZADO PARA DENTE/REGIÃO SOLICITADA</td></tr><tr><td style=\"white-space:nowrap\">3036<a name=\"tuss-38-3036\"> </a></td><td>PACIENTE EM TRATAMENTO COM OUTRO PROFISSIONAL</td></tr><tr><td style=\"white-space:nowrap\">1431<a name=\"tuss-38-1431\"> </a></td><td>PROCEDIMENTO NÃO AUTORIZADO NA FACE SOLICITADA</td></tr><tr><td style=\"white-space:nowrap\">1437<a name=\"tuss-38-1437\"> </a></td><td>SENHA DE AUTORIZAÇÃO CANCELADA</td></tr><tr><td style=\"white-space:nowrap\">3040<a name=\"tuss-38-3040\"> </a></td><td>GLOSA TÉCNICA (ESPECIFICAR DETALHADAMENTE)</td></tr><tr><td style=\"white-space:nowrap\">1436<a name=\"tuss-38-1436\"> </a></td><td>CANCELAMENTO DO ACORDO ANTERIOR À DATA DE REALIZAÇÃO DO PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">1435<a name=\"tuss-38-1435\"> </a></td><td>VIGÊNCIA DO ACORDO POSTERIOR À DATA DE REALIZAÇÃO DO PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3039<a name=\"tuss-38-3039\"> </a></td><td>RADIOGRAFIA NÃO CORRESPONDE AO PROCEDIMENTO COBRADO</td></tr><tr><td style=\"white-space:nowrap\">1434<a name=\"tuss-38-1434\"> </a></td><td>COBRANÇA DE CONTA DE CTI NEONATAL NA SENHA DO PARTO</td></tr><tr><td style=\"white-space:nowrap\">3022<a name=\"tuss-38-3022\"> </a></td><td>FALHA EM INFORMAÇÃO DE DADOS DE DENTE INICIAL E/OU FINAL</td></tr><tr><td style=\"white-space:nowrap\">1418<a name=\"tuss-38-1418\"> </a></td><td>SOLICITANTE SUSPENSO</td></tr><tr><td style=\"white-space:nowrap\">3021<a name=\"tuss-38-3021\"> </a></td><td>FALHA EM INFORMAÇÃO DE DADOS DE ARCADAS/HEMI-ARCOS</td></tr><tr><td style=\"white-space:nowrap\">1417<a name=\"tuss-38-1417\"> </a></td><td>SOLICITANTE NÃO HABILITADO</td></tr><tr><td style=\"white-space:nowrap\">3020<a name=\"tuss-38-3020\"> </a></td><td>CONFORME DOCUMENTAÇÃO RADIOGRÁFICA ENVIADA, EVENTO REALIZADO INADEQUADAMENTE</td></tr><tr><td style=\"white-space:nowrap\">1416<a name=\"tuss-38-1416\"> </a></td><td>SOLICITANTE NÃO CADASTRADO</td></tr><tr><td style=\"white-space:nowrap\">1414<a name=\"tuss-38-1414\"> </a></td><td>DATA DE VALIDADE DA SENHA EXPIRADA</td></tr><tr><td style=\"white-space:nowrap\">3017<a name=\"tuss-38-3017\"> </a></td><td>PROCEDIMENTO COBRADO NÃO CORRESPONDE A PERÍCIA (ESPECIFICAR).</td></tr><tr><td style=\"white-space:nowrap\">1413<a name=\"tuss-38-1413\"> </a></td><td>ACOMODAÇÃO NÃO POSSUI COBERTURA</td></tr><tr><td style=\"white-space:nowrap\">3016<a name=\"tuss-38-3016\"> </a></td><td>PROCEDIMENTO ODONTOLÓGICO REALIZADO, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO, SEM JUSTIFICATIVA</td></tr><tr><td style=\"white-space:nowrap\">3019<a name=\"tuss-38-3019\"> </a></td><td>EVENTO SOB ANÁLISE TÉCNICA, AGUARDANDO LIBERAÇÃO DE CONFIRMAÇÃO PARA POSTERIOR PAGAMENTO</td></tr><tr><td style=\"white-space:nowrap\">1415<a name=\"tuss-38-1415\"> </a></td><td>PROCEDIMENTO NÃO AUTORIZADO PARA O BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">3018<a name=\"tuss-38-3018\"> </a></td><td>EVENTO GLOSADO POR AUDITORIA (ESPECIFICAR)</td></tr><tr><td style=\"white-space:nowrap\">3025<a name=\"tuss-38-3025\"> </a></td><td>EVENTO SÓ POSSÍVEL EM DENTES PERMANENTES</td></tr><tr><td style=\"white-space:nowrap\">1421<a name=\"tuss-38-1421\"> </a></td><td>SERVIÇO SOLICITADO É DE PRÉ-EXISTÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">3024<a name=\"tuss-38-3024\"> </a></td><td>EVENTO SÓ POSSÍVEL EM DENTES DECÍDUOS</td></tr><tr><td style=\"white-space:nowrap\">1420<a name=\"tuss-38-1420\"> </a></td><td>SERVIÇO SOLICITADO FORA DA COBERTURA</td></tr><tr><td style=\"white-space:nowrap\">3023<a name=\"tuss-38-3023\"> </a></td><td>FALHA EM INFORMAÇÃO DE DADOS DE FACES DOS DENTES</td></tr><tr><td style=\"white-space:nowrap\">1419<a name=\"tuss-38-1419\"> </a></td><td>SERVIÇO SOLICITADO JÁ AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">3028<a name=\"tuss-38-3028\"> </a></td><td>EVENTO RESTRITO À ESPECIALISTAS</td></tr><tr><td style=\"white-space:nowrap\">1424<a name=\"tuss-38-1424\"> </a></td><td>QUANTIDADE AUTORIZADA ACIMA DA QUANTIDADE PERMITIDA</td></tr><tr><td style=\"white-space:nowrap\">3027<a name=\"tuss-38-3027\"> </a></td><td>DESACORDO ENTRE O TIPO DE DENTE E O NÚMERO DE CANAIS SOLICITADOS</td></tr><tr><td style=\"white-space:nowrap\">1423<a name=\"tuss-38-1423\"> </a></td><td>QUANTIDADE SOLICITADA ACIMA DA QUANTIDADE PERMITIDA</td></tr><tr><td style=\"white-space:nowrap\">3026<a name=\"tuss-38-3026\"> </a></td><td>ERRO NAS INFORMAÇÕES DE ORDEM DOS DENTES INICIAL E FINAL</td></tr><tr><td style=\"white-space:nowrap\">1422<a name=\"tuss-38-1422\"> </a></td><td>ESPECIALIDADE NÃO CADASTRADA PARA O SOLICITANTE</td></tr><tr><td style=\"white-space:nowrap\">3009<a name=\"tuss-38-3009\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO NÃO EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">1406<a name=\"tuss-38-1406\"> </a></td><td>NÚMERO DA SENHA INFORMADO DIFERENTE DO LIBERADO</td></tr><tr><td style=\"white-space:nowrap\">3008<a name=\"tuss-38-3008\"> </a></td><td>PROCEDIMENTO ODONTOLÓGICO INCLUSO NO PROCEDIMENTO PRINCIPAL</td></tr><tr><td style=\"white-space:nowrap\">1405<a name=\"tuss-38-1405\"> </a></td><td>DATA DE VALIDADE DA SENHA É ANTERIOR A DATA DO ATENDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3007<a name=\"tuss-38-3007\"> </a></td><td>PROCEDIMENTOS ODONTOLÓGICOS DUPLICADOS</td></tr><tr><td style=\"white-space:nowrap\">1404<a name=\"tuss-38-1404\"> </a></td><td>NÃO EXISTE GUIA DE AUTORIZAÇÃO RELACIONADA</td></tr><tr><td style=\"white-space:nowrap\">1402<a name=\"tuss-38-1402\"> </a></td><td>PROCEDIMENTO NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">1401<a name=\"tuss-38-1401\"> </a></td><td>ACOMODAÇÃO NÃO AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">3002<a name=\"tuss-38-3002\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO QUE EXIGE AUTORIZAÇÃO PRÉVIA</td></tr><tr><td style=\"white-space:nowrap\">1323<a name=\"tuss-38-1323\"> </a></td><td>DATA PREENCHIDA INCORRETAMENTE</td></tr><tr><td style=\"white-space:nowrap\">3004<a name=\"tuss-38-3004\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">1403<a name=\"tuss-38-1403\"> </a></td><td>NÃO EXISTE INFORMAÇÃO SOBRE A SENHA DE AUTORIZAÇÃO DO PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">3003<a name=\"tuss-38-3003\"> </a></td><td>IDADE DO BENEFICIÁRIO INCOMPATÍVEL COM O PROCEDIMENTO ODONTOLÓGICO</td></tr><tr><td style=\"white-space:nowrap\">3012<a name=\"tuss-38-3012\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO</td></tr><tr><td style=\"white-space:nowrap\">1409<a name=\"tuss-38-1409\"> </a></td><td>QUANTIDADE SERVIÇO SOLICITADA ACIMA COBERTA</td></tr><tr><td style=\"white-space:nowrap\">3011<a name=\"tuss-38-3011\"> </a></td><td>PROCEDIMENTO ODONTOLÓGICO SEM REGISTRO DE EXECUÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1408<a name=\"tuss-38-1408\"> </a></td><td>QUANTIDADE SERVIÇO SOLICITADA ACIMA DA AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">3010<a name=\"tuss-38-3010\"> </a></td><td>COBRANÇA DE PROCEDIMENTO NÃO SOLICITADO PELO CIRURGIÃO-DENTISTA</td></tr><tr><td style=\"white-space:nowrap\">1407<a name=\"tuss-38-1407\"> </a></td><td>SERVIÇO SOLICITADO NÃO POSSUI COBERTURA</td></tr><tr><td style=\"white-space:nowrap\">1412<a name=\"tuss-38-1412\"> </a></td><td>PROBLEMAS NO SISTEMA AUTORIZADOR</td></tr><tr><td style=\"white-space:nowrap\">3015<a name=\"tuss-38-3015\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO.</td></tr><tr><td style=\"white-space:nowrap\">1411<a name=\"tuss-38-1411\"> </a></td><td>SOLICITANTE NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">3014<a name=\"tuss-38-3014\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">1410<a name=\"tuss-38-1410\"> </a></td><td>SERVIÇO SOLICITADO EM CARÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">3013<a name=\"tuss-38-3013\"> </a></td><td>COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE.</td></tr><tr><td style=\"white-space:nowrap\">1317<a name=\"tuss-38-1317\"> </a></td><td>GUIA SEM DATA DO ATENDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">2902<a name=\"tuss-38-2902\"> </a></td><td>GLOSA MANTIDA</td></tr><tr><td style=\"white-space:nowrap\">1316<a name=\"tuss-38-1316\"> </a></td><td>GUIA COM LOCAL DE ATENDIMENTO PREENCHIDO INCORRETAMENTE.</td></tr><tr><td style=\"white-space:nowrap\">2901<a name=\"tuss-38-2901\"> </a></td><td>REVISÃO DE GLOSA INVÁLIDA</td></tr><tr><td style=\"white-space:nowrap\">1315<a name=\"tuss-38-1315\"> </a></td><td>GUIA SEM DATA DO ATO CIRÚRGICO.</td></tr><tr><td style=\"white-space:nowrap\">2822<a name=\"tuss-38-2822\"> </a></td><td>COBRANÇA DE PACOTE AMBULATORIAL COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">2820<a name=\"tuss-38-2820\"> </a></td><td>PACOTE REALIZADO PELO MESMO PROFISSIONAL, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO SEM JUSTIFICATIVA ADEQUADA.</td></tr><tr><td style=\"white-space:nowrap\">1312<a name=\"tuss-38-1312\"> </a></td><td>PRESTADOR CONTRATADO NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2819<a name=\"tuss-38-2819\"> </a></td><td>COBRANÇA DE PACOTE COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO.</td></tr><tr><td style=\"white-space:nowrap\">1311<a name=\"tuss-38-1311\"> </a></td><td>PRESTADOR EXECUTANTE NÃO INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">1314<a name=\"tuss-38-1314\"> </a></td><td>GUIA SEM ASSINATURA E/OU CARIMBO DO CREDENCIADO.</td></tr><tr><td style=\"white-space:nowrap\">2821<a name=\"tuss-38-2821\"> </a></td><td>PACOTE COBRADO NÃO CORRESPONDE AO EXAME EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">1313<a name=\"tuss-38-1313\"> </a></td><td>GUIA COM RASURA</td></tr><tr><td style=\"white-space:nowrap\">1320<a name=\"tuss-38-1320\"> </a></td><td>IDENTIFICAÇÃO DO ASSISTIDO INCOMPLETA</td></tr><tr><td style=\"white-space:nowrap\">1319<a name=\"tuss-38-1319\"> </a></td><td>GUIA SEM ASSINATURA DO ASSISTIDO.</td></tr><tr><td style=\"white-space:nowrap\">2905<a name=\"tuss-38-2905\"> </a></td><td>A GUIA NÃO É DE REVISÃO</td></tr><tr><td style=\"white-space:nowrap\">2904<a name=\"tuss-38-2904\"> </a></td><td>MAIS DE UM RECURSO DE GLOSA PARA A MESMA GUIA/PROTOCOLO</td></tr><tr><td style=\"white-space:nowrap\">1318<a name=\"tuss-38-1318\"> </a></td><td>GUIA COM CÓDIGO DE SERVIÇO PREENCHIDO INCORRETAMENTE.</td></tr><tr><td style=\"white-space:nowrap\">2903<a name=\"tuss-38-2903\"> </a></td><td>PEDIDO DE REVISÃO SEM JUSTIFICATIVA</td></tr><tr><td style=\"white-space:nowrap\">3001<a name=\"tuss-38-3001\"> </a></td><td>PROCEDIMENTO ODONTOLÓGICO INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1322<a name=\"tuss-38-1322\"> </a></td><td>COMPROVANTE PRESENCIAL OU GTO NÃO ENVIADO</td></tr><tr><td style=\"white-space:nowrap\">2909<a name=\"tuss-38-2909\"> </a></td><td>PRAZO PARA SOLICITAÇÃO DE RECURSO DE GLOSA PRESCRITO</td></tr><tr><td style=\"white-space:nowrap\">2908<a name=\"tuss-38-2908\"> </a></td><td>SOLICITAÇÃO DE REANÁLISE EFETUADA DE FORMA INCORRETA</td></tr><tr><td style=\"white-space:nowrap\">1321<a name=\"tuss-38-1321\"> </a></td><td>VALIDADE DA GUIA EXPIRADA</td></tr><tr><td style=\"white-space:nowrap\">2907<a name=\"tuss-38-2907\"> </a></td><td>PRAZO DE 180 DIAS ULTRAPASSADO PARA SOLICITAÇÃO DE REANÁLISE</td></tr><tr><td style=\"white-space:nowrap\">1304<a name=\"tuss-38-1304\"> </a></td><td>COBRANÇA EM GUIA INDEVIDA</td></tr><tr><td style=\"white-space:nowrap\">2812<a name=\"tuss-38-2812\"> </a></td><td>PACOTE NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">1303<a name=\"tuss-38-1303\"> </a></td><td>NÃO EXISTE O NÚMERO GUIA PRINCIPAL INFORMADO</td></tr><tr><td style=\"white-space:nowrap\">2811<a name=\"tuss-38-2811\"> </a></td><td>COBRANÇA DE PACOTE COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">1302<a name=\"tuss-38-1302\"> </a></td><td>CÓDIGO TIPO GUIA PRINCIPAL E NÚMERO GUIAS INCOMPATÍVEIS</td></tr><tr><td style=\"white-space:nowrap\">2810<a name=\"tuss-38-2810\"> </a></td><td>COBRANÇA DE PACOTE SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE.</td></tr><tr><td style=\"white-space:nowrap\">1217<a name=\"tuss-38-1217\"> </a></td><td>ESPECIALIDADE NÃO CADASTRADA PARA O PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">2808<a name=\"tuss-38-2808\"> </a></td><td>PACOTE SEM REGISTRO DE EXECUÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1216<a name=\"tuss-38-1216\"> </a></td><td>ESPECIALIDADE NÃO CADASTRADA</td></tr><tr><td style=\"white-space:nowrap\">2807<a name=\"tuss-38-2807\"> </a></td><td>COBRANÇA DE PACOTE NÃO SOLICITADO PELO MÉDICO</td></tr><tr><td style=\"white-space:nowrap\">1301<a name=\"tuss-38-1301\"> </a></td><td>TIPO GUIA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1218<a name=\"tuss-38-1218\"> </a></td><td>CÓDIGO DE PRESTADOR INCOMPATIVEL COM PROCEDIMENTO / EXAME COBRADO</td></tr><tr><td style=\"white-space:nowrap\">2809<a name=\"tuss-38-2809\"> </a></td><td>COBRANÇA DE PACOTE NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO</td></tr><tr><td style=\"white-space:nowrap\">1307<a name=\"tuss-38-1307\"> </a></td><td>NÚMERO DA GUIA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2815<a name=\"tuss-38-2815\"> </a></td><td>COBRANÇA DO PACOTE EXIGE AUTORIZAÇÃO PRÉVIA</td></tr><tr><td style=\"white-space:nowrap\">1306<a name=\"tuss-38-1306\"> </a></td><td>NÃO EXISTE NÚMERO GUIA PRINCIPAL E/OU CÓDIGO GUIA PRINCIPAL</td></tr><tr><td style=\"white-space:nowrap\">2814<a name=\"tuss-38-2814\"> </a></td><td>ITENS DE COMPOSIÇÃO DO PACOTE NÃO REALIZADOS</td></tr><tr><td style=\"white-space:nowrap\">1305<a name=\"tuss-38-1305\"> </a></td><td>ITEM PAGO EM OUTRA GUIA</td></tr><tr><td style=\"white-space:nowrap\">2813<a name=\"tuss-38-2813\"> </a></td><td>COBRANÇA DE PACOTE EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO/EVOLUÇÃO CLÍNICA</td></tr><tr><td style=\"white-space:nowrap\">1310<a name=\"tuss-38-1310\"> </a></td><td>SERVIÇO DO TIPO CIRÚRGICO E INVASIVO. EQUIPE MÉDICA NÃO INFORMADA NA GUIA</td></tr><tr><td style=\"white-space:nowrap\">2818<a name=\"tuss-38-2818\"> </a></td><td>COBRANÇA DE PACOTE NÃO COMPATÍVEL COM A IDADE.</td></tr><tr><td style=\"white-space:nowrap\">1309<a name=\"tuss-38-1309\"> </a></td><td>PROCEDIMENTO CONTRATADO NÃO ESTÁ DE ACORDO COM O TIPO DE GUIA UTILIZADO</td></tr><tr><td style=\"white-space:nowrap\">2817<a name=\"tuss-38-2817\"> </a></td><td>COBRANÇA DE PACOTE EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">1308<a name=\"tuss-38-1308\"> </a></td><td>GUIA JÁ APRESENTADA</td></tr><tr><td style=\"white-space:nowrap\">2816<a name=\"tuss-38-2816\"> </a></td><td>COBRANÇA DE PACOTE COM HISTÓRIA CLÍNICA/HIPÓTESE DIAGNÓSTICA NÃO COMPATÍVEL</td></tr><tr><td style=\"white-space:nowrap\">2718<a name=\"tuss-38-2718\"> </a></td><td>EXAMES NÃO JUSTIFICAM CARÁTER DE URGÊNCIA</td></tr><tr><td style=\"white-space:nowrap\">1209<a name=\"tuss-38-1209\"> </a></td><td>SOLICITAÇÃO APÓS O DESLIGAMENTO DO CREDENCIADO</td></tr><tr><td style=\"white-space:nowrap\">2717<a name=\"tuss-38-2717\"> </a></td><td>COBRANÇA DE EXAME AMBULATORIAL COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">1208<a name=\"tuss-38-1208\"> </a></td><td>SOLICITAÇÃO ANTERIOR À INCLUSÃO DO CREDENCIADO</td></tr><tr><td style=\"white-space:nowrap\">2716<a name=\"tuss-38-2716\"> </a></td><td>EXAME COBRADO NÃO CORRESPONDE AO EXAME EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">1207<a name=\"tuss-38-1207\"> </a></td><td>CREDENCIADO NÃO PERTENCE À REDE CREDENCIADA</td></tr><tr><td style=\"white-space:nowrap\">1205<a name=\"tuss-38-1205\"> </a></td><td>ADMISSÃO APÓS O DESLIGAMENTO DO CREDENCIADO DA REDE</td></tr><tr><td style=\"white-space:nowrap\">2713<a name=\"tuss-38-2713\"> </a></td><td>COBRANÇA DE EXAME NÃO COMPATÍVEL COM A IDADE.</td></tr><tr><td style=\"white-space:nowrap\">1204<a name=\"tuss-38-1204\"> </a></td><td>ADMISSÃO ANTERIOR À INCLUSÃO DO CREDENCIADO NA REDE</td></tr><tr><td style=\"white-space:nowrap\">2712<a name=\"tuss-38-2712\"> </a></td><td>COBRANÇA DE EXAME EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA</td></tr><tr><td style=\"white-space:nowrap\">2715<a name=\"tuss-38-2715\"> </a></td><td>EXAME REALIZADO PELO MESMO PROFISSIONAL, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO SEM JUSTIFICATIVA ADEQUADA.</td></tr><tr><td style=\"white-space:nowrap\">1206<a name=\"tuss-38-1206\"> </a></td><td>CPF / CNPJ INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2714<a name=\"tuss-38-2714\"> </a></td><td>COBRANÇA DE EXAME COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO.</td></tr><tr><td style=\"white-space:nowrap\">1212<a name=\"tuss-38-1212\"> </a></td><td>ATENDIMENTO / REFERÊNCIA FORA DA VIGÊNCIA DO CONTRATO DO PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">2803<a name=\"tuss-38-2803\"> </a></td><td>IDADE DO BENEFICIÁRIO INCOMPATÍVEL COM O PACOTE</td></tr><tr><td style=\"white-space:nowrap\">1211<a name=\"tuss-38-1211\"> </a></td><td>ASSINATURA / CARIMBO DO CREDENCIADO INEXISTENTE</td></tr><tr><td style=\"white-space:nowrap\">2802<a name=\"tuss-38-2802\"> </a></td><td>PACOTE INCOMPATÍVEL COM O SEXO DO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">2801<a name=\"tuss-38-2801\"> </a></td><td>PACOTE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1210<a name=\"tuss-38-1210\"> </a></td><td>SOLICITANTE CREDENCIADO NÃO CADASTRADO</td></tr><tr><td style=\"white-space:nowrap\">1215<a name=\"tuss-38-1215\"> </a></td><td>CREDENCIADO FORA DA ABRANGÊNCIA GEOGRÁFICA DO PLANO</td></tr><tr><td style=\"white-space:nowrap\">2806<a name=\"tuss-38-2806\"> </a></td><td>COBRANÇA DE PACOTE NÃO EXECUTADO</td></tr><tr><td style=\"white-space:nowrap\">1214<a name=\"tuss-38-1214\"> </a></td><td>CREDENCIADO NÃO HABILITADO A REALIZAR O PROCEDIMENTO</td></tr><tr><td style=\"white-space:nowrap\">2805<a name=\"tuss-38-2805\"> </a></td><td>VALOR DO PACOTE SUPERIOR AO VALOR DOS ITENS</td></tr><tr><td style=\"white-space:nowrap\">1213<a name=\"tuss-38-1213\"> </a></td><td>CBO (ESPECIALIDADE) INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2804<a name=\"tuss-38-2804\"> </a></td><td>VALOR TOTAL DO PACOTE DIFERENTE DO VALOR PROCESSADO</td></tr><tr><td style=\"white-space:nowrap\">2705<a name=\"tuss-38-2705\"> </a></td><td>COBRANÇA DE PROCEDIMENTO/EXAME SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE.</td></tr><tr><td style=\"white-space:nowrap\">1025<a name=\"tuss-38-1025\"> </a></td><td>BENEFICIÁRIO NÃO POSSUI COBERTURA PARA ASSISTÊNCIA ODONTOLÓGICA</td></tr><tr><td style=\"white-space:nowrap\">2704<a name=\"tuss-38-2704\"> </a></td><td>COBRANÇA DE EXAME NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO</td></tr><tr><td style=\"white-space:nowrap\">1024<a name=\"tuss-38-1024\"> </a></td><td>PLANO NÃO EXISTENTE</td></tr><tr><td style=\"white-space:nowrap\">2703<a name=\"tuss-38-2703\"> </a></td><td>EXAME SEM REGISTRO DE EXECUÇÃO</td></tr><tr><td style=\"white-space:nowrap\">1023<a name=\"tuss-38-1023\"> </a></td><td>NOME DO TITULAR INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1021<a name=\"tuss-38-1021\"> </a></td><td>VIA DE CARTÃO DO BENEFICIÁRIO NÃO LIBERADA</td></tr><tr><td style=\"white-space:nowrap\">2613<a name=\"tuss-38-2613\"> </a></td><td>HONORÁRIO MÉDICO DO ANESTESISTA JÁ LIBERADO NO PROCEDIMENTO CIRÚRGICO, POIS &quot;ANALGESIA POR DIA SUBSEQUENTE&quot; COBRADA NA MESMA DATA DO EVENTO CIRÚRGICO</td></tr><tr><td style=\"white-space:nowrap\">1020<a name=\"tuss-38-1020\"> </a></td><td>VIA DE CARTÃO DO BENEFICIÁRIO CANCELADA</td></tr><tr><td style=\"white-space:nowrap\">2612<a name=\"tuss-38-2612\"> </a></td><td>COBRANÇA INDEVIDA DE EQUIPE &quot;STAND-BY&quot;, JÁ QUE ANGIOPLASTIA SEGUIDA DE CIRURGIA CARDÍACA</td></tr><tr><td style=\"white-space:nowrap\">2702<a name=\"tuss-38-2702\"> </a></td><td>COBRANÇA DE EXAME NÃO SOLICITADO PELO MÉDICO</td></tr><tr><td style=\"white-space:nowrap\">1022<a name=\"tuss-38-1022\"> </a></td><td>VIA DE CARTÃO DO BENEFICIÁRIO NÃO COMPATÍVEL</td></tr><tr><td style=\"white-space:nowrap\">2614<a name=\"tuss-38-2614\"> </a></td><td>COBRANÇA DE CADA PARTICIPANTE DA EQUIPE DEVE SER FEITA EM GUIAS DIFERENTES</td></tr><tr><td style=\"white-space:nowrap\">2708<a name=\"tuss-38-2708\"> </a></td><td>COBRANÇA DE EXAME EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO/EVOLUÇÃO CLÍNICA</td></tr><tr><td style=\"white-space:nowrap\">1103<a name=\"tuss-38-1103\"> </a></td><td>PROTOCOLO NÃO É DE REAPRESENTAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">2707<a name=\"tuss-38-2707\"> </a></td><td>EXAME NÃO AUTORIZADO</td></tr><tr><td style=\"white-space:nowrap\">1102<a name=\"tuss-38-1102\"> </a></td><td>PROTOCOLO É DE RE-APRESENTAÇÃO</td></tr><tr><td style=\"white-space:nowrap\">2706<a name=\"tuss-38-2706\"> </a></td><td>COBRANÇA DE PROCEDIMENTO/EXAME COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">1101<a name=\"tuss-38-1101\"> </a></td><td>QUANTIDADE DE GUIAS INFORMADAS NO PROTOCOLO DIFERENTE DAS CADASTRADAS</td></tr><tr><td style=\"white-space:nowrap\">1203<a name=\"tuss-38-1203\"> </a></td><td>CÓDIGO PRESTADOR INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1202<a name=\"tuss-38-1202\"> </a></td><td>NÚMERO DO CNES INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2711<a name=\"tuss-38-2711\"> </a></td><td>COBRANÇA DE EXAME COM HISTÓRIA CLÍNICA/HIPÓTESE DIAGNÓSTICA NÃO COMPATÍVEL</td></tr><tr><td style=\"white-space:nowrap\">1201<a name=\"tuss-38-1201\"> </a></td><td>ATENDIMENTO FORA DA VIGÊNCIA DO CONTRATO COM O CREDENCIADO</td></tr><tr><td style=\"white-space:nowrap\">2710<a name=\"tuss-38-2710\"> </a></td><td>COBRANÇA DE EXAME QUE EXIGE AUTORIZAÇÃO PRÉVIA</td></tr><tr><td style=\"white-space:nowrap\">1104<a name=\"tuss-38-1104\"> </a></td><td>VALOR TOTAL DO PROTOCOLO DIFERENTE DO VALOR TOTAL DAS GUIAS</td></tr><tr><td style=\"white-space:nowrap\">2605<a name=\"tuss-38-2605\"> </a></td><td>NÃO CABE PAGAMENTO DO HONORÁRIO INTEGRAL POR SER A MESMA VIA DE ACESSO CIRÚRGICO.</td></tr><tr><td style=\"white-space:nowrap\">1013<a name=\"tuss-38-1013\"> </a></td><td>CADASTRO DO BENEFICIÁRIO COM PROBLEMAS</td></tr><tr><td style=\"white-space:nowrap\">2604<a name=\"tuss-38-2604\"> </a></td><td>PROCEDIMENTO PRINCIPAL NÃO REQUER EQUIPE MÉDICA</td></tr><tr><td style=\"white-space:nowrap\">1012<a name=\"tuss-38-1012\"> </a></td><td>SERVIÇO PROFISSIONAL HOSPITALAR NÃO É COBERTO PELO PLANO DO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">2603<a name=\"tuss-38-2603\"> </a></td><td>COBRANÇA DE HONORÁRIO SEM REGISTRO DA EFETIVA PARTICIPAÇÃO DO PROFISSIONAL</td></tr><tr><td style=\"white-space:nowrap\">1011<a name=\"tuss-38-1011\"> </a></td><td>IDENTIFICAÇÃO DO BENEFICIÁRIO NÃO CONSISTENTE</td></tr><tr><td style=\"white-space:nowrap\">1009<a name=\"tuss-38-1009\"> </a></td><td>BENEFICIÁRIO COM PAGAMENTO EM ABERTO</td></tr><tr><td style=\"white-space:nowrap\">2516<a name=\"tuss-38-2516\"> </a></td><td>QUANTIDADE COBRADA DIFERENTE DA REALIZADA</td></tr><tr><td style=\"white-space:nowrap\">1008<a name=\"tuss-38-1008\"> </a></td><td>ASSINATURA DIVERGENTE</td></tr><tr><td style=\"white-space:nowrap\">2515<a name=\"tuss-38-2515\"> </a></td><td>LOCAL DE ATENDIMENTO INADEQUADO</td></tr><tr><td style=\"white-space:nowrap\">2602<a name=\"tuss-38-2602\"> </a></td><td>COBRANÇA DE HONORÁRIO INCLUSO NO PROCEDIMENTO PRINCIPAL</td></tr><tr><td style=\"white-space:nowrap\">1010<a name=\"tuss-38-1010\"> </a></td><td>ASSINATURA DO TITULAR / RESPONSÁVEL INEXISTENTE</td></tr><tr><td style=\"white-space:nowrap\">2601<a name=\"tuss-38-2601\"> </a></td><td>CODIFICAÇÃO INCORRETA/INADEQUADA DO PROCEDIMENTO.</td></tr><tr><td style=\"white-space:nowrap\">2608<a name=\"tuss-38-2608\"> </a></td><td>COBRANÇA DE CONSULTA INDEVIDA, QUANDO O PROCEDIMENTO PRINCIPAL JÁ ESTÁ SENDO REMUNERADO.</td></tr><tr><td style=\"white-space:nowrap\">1016<a name=\"tuss-38-1016\"> </a></td><td>BENEFICIÁRIO COM ATENDIMENTO SUSPENSO</td></tr><tr><td style=\"white-space:nowrap\">2607<a name=\"tuss-38-2607\"> </a></td><td>COBRANÇA DE HONORÁRIOS EM DUPLICIDADE.</td></tr><tr><td style=\"white-space:nowrap\">1015<a name=\"tuss-38-1015\"> </a></td><td>IDADE DO BENEFICIÁRIO ACIMA IDADE LIMITE</td></tr><tr><td style=\"white-space:nowrap\">2606<a name=\"tuss-38-2606\"> </a></td><td>COBRANÇA DO HONORÁRIO EM LOCAL DE ATENDIMENTO INCORRETO (INEXISTENTE).</td></tr><tr><td style=\"white-space:nowrap\">1014<a name=\"tuss-38-1014\"> </a></td><td>BENEFICIÁRIO COM DATA DE EXCLUSÃO</td></tr><tr><td style=\"white-space:nowrap\">1019<a name=\"tuss-38-1019\"> </a></td><td>FAMÍLIA DO BENEFICIÁRIO COM ATENDIMENTO SUSPENSO</td></tr><tr><td style=\"white-space:nowrap\">2611<a name=\"tuss-38-2611\"> </a></td><td>COBRANÇA DE ESPECIALISTA NÃO JUSTIFICADA NO EVENTO</td></tr><tr><td style=\"white-space:nowrap\">1018<a name=\"tuss-38-1018\"> </a></td><td>EMPRESA DO BENEFICIÁRIO SUSPENSA / EXCLUÍDA</td></tr><tr><td style=\"white-space:nowrap\">2610<a name=\"tuss-38-2610\"> </a></td><td>GRAU DE PARTICIPAÇÃO DE AUXILIAR INCOMPATÍVEL COM PROCEDIMENTO COBRADO</td></tr><tr><td style=\"white-space:nowrap\">2609<a name=\"tuss-38-2609\"> </a></td><td>LOCAL DE ATENDIMENTO NÃO INFORMADO.</td></tr><tr><td style=\"white-space:nowrap\">1017<a name=\"tuss-38-1017\"> </a></td><td>DATA VALIDADE DA CARTEIRA VENCIDA</td></tr><tr><td style=\"white-space:nowrap\">2511<a name=\"tuss-38-2511\"> </a></td><td>AUSÊNCIA DE EVOLUÇÃO NO PRONTUÁRIO MÉDICO DO TRATAMENTO SERIADO REALIZADO.</td></tr><tr><td style=\"white-space:nowrap\">1003<a name=\"tuss-38-1003\"> </a></td><td>A ADMISSÃO DO BENEFICIÁRIO NO PRESTADOR OCORREU ANTES DA INCLUSÃO DO BENEFICIÁRIO NA OPERADORA</td></tr><tr><td style=\"white-space:nowrap\">2510<a name=\"tuss-38-2510\"> </a></td><td>COBRANÇA DO PROCEDIMENTO SERIADO EM NÚMERO DE SESSÕES ACIMA DA QUANTIDADE ESTABELECIDA</td></tr><tr><td style=\"white-space:nowrap\">2508<a name=\"tuss-38-2508\"> </a></td><td>COBRANÇA DE SESSÕES SEM O DEVIDO PLANO DE TRATAMENTO E, OU, COM O PRAZO DE PAGAMENTO EXPIRADO</td></tr><tr><td style=\"white-space:nowrap\">1001<a name=\"tuss-38-1001\"> </a></td><td>NÚMERO DA CARTEIRA INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">1002<a name=\"tuss-38-1002\"> </a></td><td>NÚMERO DO CARTÃO NACIONAL DE SAÚDE INVÁLIDO</td></tr><tr><td style=\"white-space:nowrap\">2509<a name=\"tuss-38-2509\"> </a></td><td>COBRANÇA DO PROCEDIMENTO SERIADO INCOMPATÍVEL COM O QUADRO CLÍNICO</td></tr><tr><td style=\"white-space:nowrap\">2513<a name=\"tuss-38-2513\"> </a></td><td>COBRANÇA DE TRATAMENTO SERIADO SEM JUSTIFICATIVA CLÍNICA/TÉCNICA</td></tr><tr><td style=\"white-space:nowrap\">1005<a name=\"tuss-38-1005\"> </a></td><td>ATENDIMENTO ANTERIOR À INCLUSÃO DO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">2512<a name=\"tuss-38-2512\"> </a></td><td>COBRANÇA DE SESSÕES DE FISIOTERAPIA EM DESACORDO COM AS EVOLUÇÕES DO PRONTUÁRIO MÉDICO</td></tr><tr><td style=\"white-space:nowrap\">1004<a name=\"tuss-38-1004\"> </a></td><td>SOLICITAÇÃO ANTERIOR À INCLUSÃO DO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">1007<a name=\"tuss-38-1007\"> </a></td><td>ATENDIMENTO DENTRO DA CARÊNCIA DO BENEFICIÁRIO</td></tr><tr><td style=\"white-space:nowrap\">2514<a name=\"tuss-38-2514\"> </a></td><td>SERVIÇO NÃO CONTRATADO PARA O PRESTADOR</td></tr><tr><td style=\"white-space:nowrap\">1006<a name=\"tuss-38-1006\"> </a></td><td>ATENDIMENTO APÓS O DESLIGAMENTO DO BENEFICIÁRIO</td></tr></table></div>"
+  },
+  "url" : "https://fhir.ans.gov.br/CodeSystem/tuss-38",
+  "version" : "202309",
+  "name" : "TUSS-38",
+  "title" : "Tabela 38 - Mensagens (glosas, negativas e outras)",
+  "status" : "active",
+  "experimental" : false,
+  "date" : "2023-11-24T13:24:14+00:00",
+  "publisher" : "Agência Nacional de Saúde Suplementar (ANS)",
+  "contact" : [{
+    "telecom" : [{
+      "system" : "url",
+      "value" : "https://gointerop.com"
+    }]
+  }],
+  "description" : "Tabela 38 - Mensagens (glosas, negativas e outras)",
+  "jurisdiction" : [{
+    "coding" : [{
+      "system" : "urn:iso:std:iso:3166",
+      "code" : "BR"
+    }]
+  }],
+  "hierarchyMeaning" : "is-a",
+  "content" : "complete",
+  "concept" : [{
+    "code" : "2503",
+    "display" : "COBRANÇA DE PSICOTERAPIA INDIVIDUAL, QUANDO O APLICADO É A COBRANÇA DE PSICOTERAPIA EM GRUPO"
+  },
+  {
+    "code" : "5077",
+    "display" : "SEXO NA RECEITA FEDERAL DIFERENTE DO INFORMADO PARA O CPF"
+  },
+  {
+    "code" : "5076",
+    "display" : "CPF NÃO ENCONTRADO NA RECEITA FEDERAL"
+  },
+  {
+    "code" : "2502",
+    "display" : "COBRANÇA DE DUAS AVALIAÇÕES FISIOTERÁPICAS"
+  },
+  {
+    "code" : "2501",
+    "display" : "PROCEDIMENTO EM SÉRIE INVÁLIDO"
+  },
+  {
+    "code" : "5075",
+    "display" : "CID DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA"
+  },
+  {
+    "code" : "5073",
+    "display" : "O PRIMEIRO LANCAMENTO DA GUIA SÓ PODE SER EXCLUIDO SE ELE FOR O ÚNICO"
+  },
+  {
+    "code" : "2421",
+    "display" : "COBRANÇA DE TAXA EM QUANTIDADE INCORRETA."
+  },
+  {
+    "code" : "5072",
+    "display" : "VALOR INFORMADO DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA"
+  },
+  {
+    "code" : "5071",
+    "display" : "CÓDIGO DA FACE DO DENTE DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA"
+  },
+  {
+    "code" : "2423",
+    "display" : "COBRANÇA DE TAXA DE EQUIPAMENTOS DE USO OBRIGATÓRIO NO LOCAL DE ATENDIMENTO."
+  },
+  {
+    "code" : "5074",
+    "display" : "REGIME DE ATENDIMENTO INVÁLIDO"
+  },
+  {
+    "code" : "2422",
+    "display" : "COBRANÇA DE TAXA POR USO DE EQUIPAMENTO DE USO OBRIGATÓRIO NA SALA DE CIRURGIA, CUJA TAXA DE SALA CIRÚRGICA JÁ INCLUI SEU USO."
+  },
+  {
+    "code" : "5080",
+    "display" : "MODELO DE REMUNERAÇÃO NÃO INFORMADO"
+  },
+  {
+    "code" : "2506",
+    "display" : "A QUANTIDADE DE SESSÕES COBRADAS É DIFERENTE DA QUANTIDADE AUTORIZADA"
+  },
+  {
+    "code" : "5079",
+    "display" : "MODELO DE REMUNERAÇÃO EM DUPLICIDADE."
+  },
+  {
+    "code" : "2505",
+    "display" : "O CÓDIGO COBRADO É DIFERENTE DO CÓDIGO AUTORIZADO"
+  },
+  {
+    "code" : "5078",
+    "display" : "DATA DE NASCIMENTO NA RECEITA FEDERAL DIFERENTE DA INFORMADA PARA O CPF"
+  },
+  {
+    "code" : "2504",
+    "display" : "QUANTIDADE DE SESSÕES COBRADAS NÃO CONDIZEM COM AS ASSINATURAS NO CONTROLE DE TRATAMENTO SERIADO"
+  },
+  {
+    "code" : "5085",
+    "display" : "UNIDADE DE MEDIDA É OBRIGATÓRIA PARA A TABELA TUSS INFORMADA"
+  },
+  {
+    "code" : "5084",
+    "display" : "UNIDADE DE MEDIDA NÃO DEVE SER PREENCHIDA PARA A TABELA TUSS INFORMADA"
+  },
+  {
+    "code" : "5083",
+    "display" : "SOMA DOS VALORES DOS MODELOS DE REMUNERAÇÃO DIFERENTE DO VALOR INFORMADO DA GUIA"
+  },
+  {
+    "code" : "5082",
+    "display" : "MODELO DE REMUNERAÇÃO NÃO DEVE SER INFORMADO PARA REDE PROPRIA COM MESMO CNPJ"
+  },
+  {
+    "code" : "5081",
+    "display" : "MODELO DE REMUNERAÇÃO NÃO DEVE SER INFORMADO PARA REEMBOLSO/PRESTADOR EVENTUAL"
+  },
+  {
+    "code" : "2507",
+    "display" : "O CÓDIGO AUTORIZADO ESTÁ INCOMPATÍVEL COM A PRESCRIÇÃO MÉDICA SOLICITADA"
+  },
+  {
+    "code" : "2414",
+    "display" : "COBRANÇA DE TAXA DE EQUIPAMENTO EM CONCOMITÂNCIA COM A COBRANÇA DE TAXA PARA O PROCEDIMENTO."
+  },
+  {
+    "code" : "2413",
+    "display" : "COBRANÇA DE TAXA INCLUSA NO PACOTE NEGOCIADO."
+  },
+  {
+    "code" : "5064",
+    "display" : "TIPO DE ESTABELECIMENTO NO CNES NÃO É APTO PARA INTERNAÇÃO"
+  },
+  {
+    "code" : "2412",
+    "display" : "COBRANÇA DE TAXA DE RECUPERAÇÃO ANESTÉSICA NÃO JUSTIFICADA PARA O PROCEDIMENTO."
+  },
+  {
+    "code" : "5063",
+    "display" : "PAR CNPJ x CNES NAO ENCONTRADO NA BASE DO CNES"
+  },
+  {
+    "code" : "2411",
+    "display" : "COBRANÇA DE TAXA DE SALA DE PRONTO SOCORRO, PARA APLICAÇÃO DE MEDICAMENTOS."
+  },
+  {
+    "code" : "5061",
+    "display" : "TIPO DE ATENDIMENTO OPERADORA INTERMEDIÁRIA NÃO INFORMADO"
+  },
+  {
+    "code" : "2408",
+    "display" : "COBRANÇA DE TAXAS EM QUANTIDADE SUPERIOR AO TEMPO DE PERMANÊNCIA HOSPITALAR"
+  },
+  {
+    "code" : "5060",
+    "display" : "VALOR TOTAL PAGO DIFERENTE DA SOMA DAS PARCELAS PAGAS NO LANÇAMENTO"
+  },
+  {
+    "code" : "2407",
+    "display" : "COBRANÇA DE TAXAS, DE SERVIÇOS REALIZADOS EM AMBIENTES INCOMPATÍVEIS COM O USO DE EQUIPAMENTOS."
+  },
+  {
+    "code" : "5062",
+    "display" : "REGISTRO ANS DA OPERADORA INTERMEDIÁRIA NÃO INFORMADO"
+  },
+  {
+    "code" : "2410",
+    "display" : "COBRANÇA DE TAXA DE OBSERVAÇÃO EM PRONTO SOCORRO SEM O REGISTRO DA PERMANÊNCIA."
+  },
+  {
+    "code" : "2409",
+    "display" : "COBRANÇA DE TAXA DE OBSERVAÇÃO EM PRONTO SOCORRO COM PERMANÊNCIA MENOR QUE O PERÍODO ESTIPULADO"
+  },
+  {
+    "code" : "5068",
+    "display" : "DECLARAÇÃO DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA"
+  },
+  {
+    "code" : "5067",
+    "display" : "DIAGNÓSTICO EM DUPLICIDADE"
+  },
+  {
+    "code" : "2416",
+    "display" : "COBRANÇA DE TAXA DE RECUPERAÇÃO ANESTÉSICA PARA PACIENTES COM PÓS-OPERATÓRIO IMEDIATO REALIZADO NA UTI/CTI."
+  },
+  {
+    "code" : "5066",
+    "display" : "NÚMERO DA DECLARAÇÃO EM DUPLICIDADE."
+  },
+  {
+    "code" : "2415",
+    "display" : "TAXA EXIGE INFORMAÇÃO DO VALOR NA GUIA."
+  },
+  {
+    "code" : "5065",
+    "display" : "TIPO DE ATIVIDADE ECONOMICA DO CNPJ NÃO É APTO PARA INTERNAÇÃO"
+  },
+  {
+    "code" : "2420",
+    "display" : "COBRANÇA DE TAXA DE SALA CIRÚRGICA COM PORTE ANESTÉSICO DIFERENTE DO PROCEDIMENTO AUTORIZADO/REALIZADO."
+  },
+  {
+    "code" : "5070",
+    "display" : "CÓDIGO DA REGIÃO DA BOCA DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA"
+  },
+  {
+    "code" : "2419",
+    "display" : "COBRANÇA DE TAXA DE OBSERVAÇÃO PARA ATENDIMENTO QUE GEROU UMA INTERNAÇÃO."
+  },
+  {
+    "code" : "5069",
+    "display" : "CÓDIGO DO DENTE DIFERENTE DO LANÇAMENTO ANTERIOR DA GUIA"
+  },
+  {
+    "code" : "2418",
+    "display" : "COBRANÇA DE TAXA DE SALA INCOMPATÍVEL COM O PROCEDIMENTO."
+  },
+  {
+    "code" : "2417",
+    "display" : "COBRANÇA DE TAXA DE RECUPERAÇÃO ANESTÉSICA SEM A PRESENÇA DO ANESTESISTA."
+  },
+  {
+    "code" : "5053",
+    "display" : "IDENTIFICADOR JÁ INFORMADO"
+  },
+  {
+    "code" : "2310",
+    "display" : "COBRANÇA DE GASES INCOMPATÍVEL COM O UTILIZADO/ PRESCRITO."
+  },
+  {
+    "code" : "2309",
+    "display" : "COBRANÇA DE AR COMPRIMIDO SEM REGISTRO NO BOLETIM ANESTÉSICO E DURAÇÃO DE USO."
+  },
+  {
+    "code" : "5052",
+    "display" : "IDENTIFICADOR INEXISTENTE"
+  },
+  {
+    "code" : "2308",
+    "display" : "COBRANÇA DE CO2 NAS CIRURGIAS VIDEOLAPAROSCÓPICAS DURANTE TODA A REALIZAÇÃO DO PROCEDIMENTO (INÍCIO AO FIM)."
+  },
+  {
+    "code" : "5051",
+    "display" : "COMPETENCIA DO ARQUIVO DIFERENTE DA COMPETENCIA DA DATA DE PROCESSAMENTO DO LANÇAMENTO"
+  },
+  {
+    "code" : "5049",
+    "display" : "VALOR TOTAL MENOR QUE ZERO NA GUIA"
+  },
+  {
+    "code" : "2305",
+    "display" : "COBRANÇA DE OXIGENOTERAPIA EM USO PROLONGADO SEM JUSTIFICATIVA DE USO."
+  },
+  {
+    "code" : "5048",
+    "display" : "DATA DE NASCIMENTO DO BENEFICIÁRIO INVÁLIDA"
+  },
+  {
+    "code" : "2304",
+    "display" : "COBRANÇA DE OXIGÊNIO INCLUSO NA TAXA DE NEBULIZAÇÃO ESPECIFICADA."
+  },
+  {
+    "code" : "2307",
+    "display" : "COBRANÇA DE GASES EM QUANTIDADE SUPERIOR AO PERÍODO DE PERMANÊNCIA"
+  },
+  {
+    "code" : "5050",
+    "display" : "VALOR INFORMADO INVÁLIDO"
+  },
+  {
+    "code" : "2306",
+    "display" : "COBRANÇA DE OXIGENOTERAPIA SEM REGISTRO DE CONTROLE DE USO (ENTRADA E SAÍDA)."
+  },
+  {
+    "code" : "2403",
+    "display" : "COBRANÇA DE TAXA DE USO DE BOMBA DE INFUSÃO EM PACIENTE INTERNADO NA UTI"
+  },
+  {
+    "code" : "5056",
+    "display" : "IDENTIFICADOR NÃO INFORMADO NA COMPETÊNCIA"
+  },
+  {
+    "code" : "5055",
+    "display" : "IDENTIFICADOR JÁ INFORMADO NA COMPETÊNCIA"
+  },
+  {
+    "code" : "2402",
+    "display" : "COBRANÇA DE TAXA POR USO DE EQUIPAMENTO INCOMPATÍVEL COM O PROCEDIMENTO REALIZADO/USO PREVISTO NO PROCEDIMENTO."
+  },
+  {
+    "code" : "5054",
+    "display" : "IDENTIFICADOR NÃO ENCONTRADO"
+  },
+  {
+    "code" : "2401",
+    "display" : "TAXA / ALUGUEL INVÁLIDO"
+  },
+  {
+    "code" : "5059",
+    "display" : "EXCLUSÃO INVÁLIDA - EXISTEM LANÇAMENTOS VINCULADOS A ESTA FORMA DE CONTRATAÇÃO"
+  },
+  {
+    "code" : "2406",
+    "display" : "COBRANÇA INDEVIDA DE TAXA DE SALA POR ADMINISTRAÇÃO DE MEDICAMENTOS."
+  },
+  {
+    "code" : "2405",
+    "display" : "COBRANÇA DE MAIS DE UMA TAXA DE SALA DE CIRURGIA, POR CONTA DO NÚMERO DE PROCEDIMENTOS REALIZADOS NO MESMO TEMPO CIRÚRGICO."
+  },
+  {
+    "code" : "5058",
+    "display" : "PROCEDIMENTO INCOMPATÍVEL COM O TIPO DE GUIA"
+  },
+  {
+    "code" : "2404",
+    "display" : "COBRANÇA DE OUTRAS TAXAS ASSOCIADAS/INCLUSAS NA COBRANÇA DA TAXA DE SALA PREVISTA."
+  },
+  {
+    "code" : "5057",
+    "display" : "GUIA DE CONSULTA COM MAIS DE UM PROCEDIMENTO"
+  },
+  {
+    "code" : "5041",
+    "display" : "QUANTIDADE NÃO INFORMADA"
+  },
+  {
+    "code" : "2210",
+    "display" : "COBRANÇA DE OPME EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO REALIZADO"
+  },
+  {
+    "code" : "5040",
+    "display" : "VALOR DEVE SER MAIOR QUE ZERO"
+  },
+  {
+    "code" : "2209",
+    "display" : "COBRANÇA DE OPME EM DESACORDO COM RELATÓRIO TÉCNICO"
+  },
+  {
+    "code" : "5039",
+    "display" : "CÓDIGO DA FACE DO DENTE INVÁLIDO"
+  },
+  {
+    "code" : "2208",
+    "display" : "COBRANÇA DE OPME NO ITEM MATERIAL E MEDICAMENTOS."
+  },
+  {
+    "code" : "2206",
+    "display" : "OPME INFORMADO NÃO AUTORIZADO"
+  },
+  {
+    "code" : "5036",
+    "display" : "CÓDIGO DO GRUPO DO PROCEDIMENTO INVÁLIDO"
+  },
+  {
+    "code" : "2205",
+    "display" : "OPME INFORMADO NÃO COBERTO"
+  },
+  {
+    "code" : "5035",
+    "display" : "CÓDIGO DA TABELA DE REFERÊNCIA NÃO INFORMADO"
+  },
+  {
+    "code" : "5038",
+    "display" : "CÓDIGO DA REGIÃO DA BOCA INVÁLIDO"
+  },
+  {
+    "code" : "2207",
+    "display" : "COBRANÇA DE OPME NÃO UTILIZADO"
+  },
+  {
+    "code" : "5037",
+    "display" : "CÓDIGO DO DENTE INVÁLIDO"
+  },
+  {
+    "code" : "5044",
+    "display" : "JÁ EXISTEM INFORMAÇÕES NA ANS PARA A COMPETÊNCIA INFORMADA"
+  },
+  {
+    "code" : "2213",
+    "display" : "OPME PAGO A FORNECEDOR TERCEIRIZADO"
+  },
+  {
+    "code" : "5043",
+    "display" : "MOTIVO INVÁLIDO"
+  },
+  {
+    "code" : "2212",
+    "display" : "OPME EM DESACORDO COM OS CRITÉRIOS TÉCNICOS ADOTADOS PELA OPERADORA"
+  },
+  {
+    "code" : "5042",
+    "display" : "VALOR INFORMADO DA GUIA DIFERENTE DO SOMATÓRIO DO VALOR INFORMADO DOS ITENS"
+  },
+  {
+    "code" : "2211",
+    "display" : "COBRANÇA DE OPME INCLUSA NO PACOTE NEGOCIADO"
+  },
+  {
+    "code" : "5047",
+    "display" : "NÚMERO DO LOTE NÃO INFORMADO"
+  },
+  {
+    "code" : "2303",
+    "display" : "COBRANÇA DE OXIGENOTERAPIA COM QUANTITATIVO DE USO EM DIVERGÊNCIA/PAGO VALOR CORRIGIDO."
+  },
+  {
+    "code" : "5046",
+    "display" : "COMPETÊNCIA INVÁLIDA"
+  },
+  {
+    "code" : "2302",
+    "display" : "COBRANÇA DE OXIGENOTERAPIA SEM PRESCRIÇÃO MÉDICA."
+  },
+  {
+    "code" : "5045",
+    "display" : "COMPETÊNCIA ANTERIOR NÃO ENVIADA"
+  },
+  {
+    "code" : "2301",
+    "display" : "GASES MEDICINAIS INVÁLIDOS"
+  },
+  {
+    "code" : "2113",
+    "display" : "COBRANÇA DE MEDICAMENTO EM PERMANÊNCIA HOSPITALAR NÃO AUTORIZADA."
+  },
+  {
+    "code" : "5028",
+    "display" : "VERSÃO DO PADRÃO INVÁLIDA"
+  },
+  {
+    "code" : "2112",
+    "display" : "COBRANÇA DE MEDICAMENTO INCOMPATÍVEL COM O RELATÓRIO TÉCNICO."
+  },
+  {
+    "code" : "5027",
+    "display" : "REGISTRO ANS DA OPERADORA INVÁLIDO"
+  },
+  {
+    "code" : "2111",
+    "display" : "COBRANÇA DE MEDICAMENTO INCLUSO NO PACOTE NEGOCIADO."
+  },
+  {
+    "code" : "5026",
+    "display" : "HORA DE REGISTRO DA TRANSAÇÃO INVÁLIDA"
+  },
+  {
+    "code" : "5024",
+    "display" : "OPERADORA INATIVA NA COMPETÊNCIA DOS DADOS"
+  },
+  {
+    "code" : "2108",
+    "display" : "COBRANÇA DE MEDICAMENTO EM QUANTIDADES INCOMPATÍVEIS COM O PROCEDIMENTO REALIZADO."
+  },
+  {
+    "code" : "5023",
+    "display" : "COMPETÊNCIA NÃO ESTÁ LIBERADA PARA ENVIO DE DADOS"
+  },
+  {
+    "code" : "2107",
+    "display" : "COBRANÇA DE MEDICAMENTO EM QUANTIDADE INCOMPATÍVEL COM A PERMANÊNCIA."
+  },
+  {
+    "code" : "2110",
+    "display" : "COBRANÇA DE MEDICAMENTO INCLUSOS NAS TAXAS"
+  },
+  {
+    "code" : "5025",
+    "display" : "DATA DE REGISTRO DA TRANSAÇÃO INVÁLIDA"
+  },
+  {
+    "code" : "2109",
+    "display" : "QUANTIDADE DE MEDICAMENTO SUPERIOR A QUANTIDADE COBERTA"
+  },
+  {
+    "code" : "2201",
+    "display" : "OPME INVÁLIDO"
+  },
+  {
+    "code" : "5031",
+    "display" : "CARÁTER DE ATENDIMENTO INVÁLIDO"
+  },
+  {
+    "code" : "2115",
+    "display" : "MEDICAMENTO NÃO AUTORIZADO"
+  },
+  {
+    "code" : "5030",
+    "display" : "CÓDIGO DO MUNÍCIPIO INVÁLIDO"
+  },
+  {
+    "code" : "2114",
+    "display" : "COBRANÇA DE MEDICAMENTO NÃO UTILIZADO"
+  },
+  {
+    "code" : "5029",
+    "display" : "INDICADOR INVÁLIDO"
+  },
+  {
+    "code" : "2204",
+    "display" : "QUANTIDADE DE OPME DEVE SER MAIOR QUE ZERO"
+  },
+  {
+    "code" : "5034",
+    "display" : "VALOR NÃO INFORMADO"
+  },
+  {
+    "code" : "2203",
+    "display" : "OPME SEM NOTA FISCAL DO FORNECEDOR"
+  },
+  {
+    "code" : "5033",
+    "display" : "MOTIVO DE ENCERRAMENTO INVÁLIDO"
+  },
+  {
+    "code" : "2202",
+    "display" : "OPME SEM COBERTURA PARA ATENDIMENTO AMBULATORIAL"
+  },
+  {
+    "code" : "5032",
+    "display" : "INDICADOR DE RECÉM-NATO INVÁLIDO"
+  },
+  {
+    "code" : "5016",
+    "display" : "SEM NENHUMA OCORRENCIA DE MOVIMENTO NA COMPETENCIA PARA ENVIO A ANS"
+  },
+  {
+    "code" : "2015",
+    "display" : "MATERIAL NÃO AUTORIZADO"
+  },
+  {
+    "code" : "5015",
+    "display" : "NÚMERO DE GUIAS/DEMONSTRATIVOS DENTRO DA MENSAGEM SUPERIOR AO TAMANHO MÁXIMO PERMITIDO."
+  },
+  {
+    "code" : "2014",
+    "display" : "COBRANÇA DE MATERIAL NÃO UTILIZADO"
+  },
+  {
+    "code" : "5014",
+    "display" : "CÓDIGO HASH INVÁLIDO. MENSAGEM PODE ESTAR CORROMPIDA."
+  },
+  {
+    "code" : "2013",
+    "display" : "COBRANÇA DE MATERIAL EM PERMANÊNCIA HOSPITALAR NÃO AUTORIZADA."
+  },
+  {
+    "code" : "2011",
+    "display" : "COBRANÇA DE MATERIAL INCLUSO NO PACOTE NEGOCIADO."
+  },
+  {
+    "code" : "5011",
+    "display" : "ENVIO DE MENSAGEM FINALIZADA"
+  },
+  {
+    "code" : "2010",
+    "display" : "COBRANÇA DE MATERIAIS INCLUSOS NAS TAXAS"
+  },
+  {
+    "code" : "5010",
+    "display" : "ENVIO DE MENSAGEM NÃO FOI TERMINADO"
+  },
+  {
+    "code" : "5013",
+    "display" : "RECEBIMENTO DE MENSAGEM FINALIZADA"
+  },
+  {
+    "code" : "2012",
+    "display" : "COBRANÇA DE MATERIAL INCOMPATÍVEL COM O RELATÓRIO TÉCNICO."
+  },
+  {
+    "code" : "5012",
+    "display" : "RECEBIMENTO DE MENSAGEM NÃO FINALIZADO"
+  },
+  {
+    "code" : "5019",
+    "display" : "CERTIFICADO DIGITAL VENCIDO"
+  },
+  {
+    "code" : "2103",
+    "display" : "MEDICAMENTO NÃO ESPECIFICADO"
+  },
+  {
+    "code" : "5018",
+    "display" : "CERTIFICADO DIGITAL INVÁLIDO"
+  },
+  {
+    "code" : "2102",
+    "display" : "MEDICAMENTO SEM COBERTURA PARA ATENDIMENTO AMBULATORIAL"
+  },
+  {
+    "code" : "5017",
+    "display" : "ARQUIVO PROCESSADO PELA ANS"
+  },
+  {
+    "code" : "2101",
+    "display" : "MEDICAMENTO INVÁLIDO"
+  },
+  {
+    "code" : "5022",
+    "display" : "ASSINATURA DIGITAL NÃO CONFERE"
+  },
+  {
+    "code" : "2106",
+    "display" : "MEDICAMENTO INFORMADO NÃO COBERTO"
+  },
+  {
+    "code" : "5021",
+    "display" : "CADEIA DE CERTIFICAÇÃO INVÁLIDA"
+  },
+  {
+    "code" : "2105",
+    "display" : "QUANTIDADE DE MEDICAMENTOS DEVE SER MAIOR QUE ZERO"
+  },
+  {
+    "code" : "5020",
+    "display" : "CERTIFICADO DIGITAL REVOGADO"
+  },
+  {
+    "code" : "2104",
+    "display" : "MEDICAMENTO SEM NOTA FISCAL DO FORNECEDOR"
+  },
+  {
+    "code" : "2003",
+    "display" : "MATERIAL NÃO ESPECIFICADO"
+  },
+  {
+    "code" : "5003",
+    "display" : "ENDEREÇO DO REMETENTE INVÁLIDO"
+  },
+  {
+    "code" : "2002",
+    "display" : "MATERIAL SEM COBERTURA PARA ATENDIMENTO AMBULATORIAL"
+  },
+  {
+    "code" : "5002",
+    "display" : "NÃO FOI POSSÍVEL VALIDAR O ARQUIVO XML"
+  },
+  {
+    "code" : "2001",
+    "display" : "MATERIAL INVÁLIDO"
+  },
+  {
+    "code" : "5001",
+    "display" : "MENSAGEM ELETRÔNICA FORA DO PADRÃO TISS"
+  },
+  {
+    "code" : "1916",
+    "display" : "COBRANÇA DE DIÁRIAS DE UTI INCOMPATÍVEL COM DIAGNÓSTICO E EVOLUÇÃO CLÍNICA."
+  },
+  {
+    "code" : "3167",
+    "display" : "SEQUENCIAL INVÁLIDO"
+  },
+  {
+    "code" : "1915",
+    "display" : "MUDANÇA DE ACOMODAÇÃO SEM COMUNICAÇÃO AO PACIENTE, FAMILIAR OU ACOMPANHANTE, OU SEM SOLICITAÇÃO DESTES."
+  },
+  {
+    "code" : "3166",
+    "display" : "Arquivo enviado excede o tamanho máximo permitido"
+  },
+  {
+    "code" : "1918",
+    "display" : "PLANO DO BENEFICIÁRIO NÃO CONTEMPLA DIÁRIA DE ACOMPANHANTE"
+  },
+  {
+    "code" : "1917",
+    "display" : "FALTA PRORROGAÇÃO PARA QUANTIDADE DE DIÁRIAS COBRADAS."
+  },
+  {
+    "code" : "3168",
+    "display" : "ASSINATURA DIGITAL INVÁLIDA OU NÃO ENVIADA"
+  },
+  {
+    "code" : "2006",
+    "display" : "MATERIAL INFORMADO NÃO COBERTO"
+  },
+  {
+    "code" : "5006",
+    "display" : "DESTINATÁRIO NÃO IDENTIFICADO"
+  },
+  {
+    "code" : "2005",
+    "display" : "QUANTIDADE DE MATERIAL DEVE SER MAIOR QUE ZERO"
+  },
+  {
+    "code" : "5005",
+    "display" : "REMETENTE NÃO IDENTIFICADO"
+  },
+  {
+    "code" : "2004",
+    "display" : "MATERIAL SEM NOTA FISCAL DO FORNECEDOR"
+  },
+  {
+    "code" : "5004",
+    "display" : "ENDEREÇO DO DESTINATÁRIO INVÁLIDO"
+  },
+  {
+    "code" : "2009",
+    "display" : "QUANTIDADE DE MATERIAL SUPERIOR A QUANTIDADE COBERTA"
+  },
+  {
+    "code" : "5009",
+    "display" : "ESPAÇO RESERVADO PARA A CAIXA DE ENTRADA INSUFICIENTE"
+  },
+  {
+    "code" : "2008",
+    "display" : "COBRANÇA DE MATERIAL EM QUANTIDADES INCOMPATÍVEIS COM O PROCEDIMENTO REALIZADO."
+  },
+  {
+    "code" : "5008",
+    "display" : "ESPAÇO RESERVADO PARA A CAIXA DE SAÍDA INSUFICIENTE"
+  },
+  {
+    "code" : "2007",
+    "display" : "COBRANÇA DE MATERIAL EM QUANTIDADE INCOMPATÍVEL COM A PERMANÊNCIA."
+  },
+  {
+    "code" : "5007",
+    "display" : "MENSAGEM INCONSISTENTE OU INCOMPLETA"
+  },
+  {
+    "code" : "1907",
+    "display" : "QUANTIDADE UTI NÃO PREVISTA PARA PROCEDIMENTO"
+  },
+  {
+    "code" : "3159",
+    "display" : "Biometria – não compatível"
+  },
+  {
+    "code" : "1906",
+    "display" : "ACOMODAÇÃO NÃO INFORMADA"
+  },
+  {
+    "code" : "3158",
+    "display" : "Biometria – falha na transmissão"
+  },
+  {
+    "code" : "1905",
+    "display" : "QUANTIDADE DE DIÁRIAS DEVE SER MAIOR QUE ZERO"
+  },
+  {
+    "code" : "3157",
+    "display" : "QR code inválido"
+  },
+  {
+    "code" : "3155",
+    "display" : "PARTOGRAMA OU RELATÓRIO MÉDICO NÃO DISPONÍVEL PARA CONSULTA DA OPERADORA"
+  },
+  {
+    "code" : "1902",
+    "display" : "ACOMODAÇÃO INFORMADA NÃO ESTÁ DE ACORDO COM ACOMODAÇÃO CONTRATADA"
+  },
+  {
+    "code" : "3154",
+    "display" : "O PROFISSIONAL PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUI VÍNCULO COM A OPERADORA"
+  },
+  {
+    "code" : "1901",
+    "display" : "ACOMODAÇÃO INVÁLIDA"
+  },
+  {
+    "code" : "1904",
+    "display" : "PERMANÊNCIA HOSPITALAR INCOMPATÍVEL COM O PROCEDIMENTO AUTORIZADO"
+  },
+  {
+    "code" : "3156",
+    "display" : "Token inválido"
+  },
+  {
+    "code" : "1903",
+    "display" : "PERMANÊNCIA HOSPITALAR INCOMPATÍVEL COM A EVOLUÇÃO CLÍNICA"
+  },
+  {
+    "code" : "1911",
+    "display" : "PERMANÊNCIA HOSPITALAR PARA INVESTIGAÇÃO INJUSTIFICADA."
+  },
+  {
+    "code" : "3162",
+    "display" : "Código do protocolo não encontrado"
+  },
+  {
+    "code" : "1910",
+    "display" : "COBRANÇA DE DIÁRIAS EM LOCAIS DE ACOMODAÇÕES DIFERENTES, NO MESMO DIA."
+  },
+  {
+    "code" : "3161",
+    "display" : "Prazo de envio fora do período contratual acordado entre as partes"
+  },
+  {
+    "code" : "1908",
+    "display" : "USUÁRIO NÃO POSSUI COBERTURA DE UTI"
+  },
+  {
+    "code" : "3160",
+    "display" : "Time Out - tente novamente"
+  },
+  {
+    "code" : "1914",
+    "display" : "COBRANÇA DE DIÁRIA EM QUANTIDADE INCOMPATÍVEL COM A PERMANÊNCIA HOSPITALAR."
+  },
+  {
+    "code" : "3165",
+    "display" : "Arquivo de imagem corrompido"
+  },
+  {
+    "code" : "1913",
+    "display" : "CÓDIGO DE DIÁRIA INCOMPATÍVEL COM O LOCAL DE ATENDIMENTO."
+  },
+  {
+    "code" : "3164",
+    "display" : "Arquivo enviado não é de imagem"
+  },
+  {
+    "code" : "1912",
+    "display" : "EVOLUÇÃO CLÍNICA NÃO COMPATÍVEL COM A PERMANÊNCIA EM UTI."
+  },
+  {
+    "code" : "3163",
+    "display" : "Não necessita de imagem"
+  },
+  {
+    "code" : "3147",
+    "display" : "MATERIAL PASSÍVEL DE REPROCESSAMENTO"
+  },
+  {
+    "code" : "1834",
+    "display" : "PORTE ANESTÉSICO COBRADO INCOMPATÍVEL COM O PORTE DO PROCEDIMENTO REALIZADO"
+  },
+  {
+    "code" : "3146",
+    "display" : "PRODUTO CONTRATADO NÃO ADAPTADO À LEI 9.656/98, SEM COBERTURA CONTRATUAL PARA O ITEM SOLICITADO"
+  },
+  {
+    "code" : "1833",
+    "display" : "PROCEDIMENTO COBRADO NÃO PERMITE ACRÉSCIMO DE ACOMODAÇÃO"
+  },
+  {
+    "code" : "3145",
+    "display" : "NÃO AUTORIZADO POR MOTIVO TÉCNICO"
+  },
+  {
+    "code" : "1832",
+    "display" : "PROCEDIMENTO NÃO PERMITE COBRANÇA DE AUXILIAR DE ANESTESISTA"
+  },
+  {
+    "code" : "1830",
+    "display" : "COBRANÇA DE PROCEDIMENTO SEM INFORMAÇÃO DAS DATAS DE ATENDIMENTO-VISITA, PLANTÃO, INTENSIVISTA, AVALIAÇÃO ENTERAL/PARENTERAL"
+  },
+  {
+    "code" : "3142",
+    "display" : "ITEM NÃO CONTRATADO"
+  },
+  {
+    "code" : "3141",
+    "display" : "BENEFICIÁRIO NÃO POSSUI COBERTURA PARA ASSISTÊNCIA AMBULATORIAL"
+  },
+  {
+    "code" : "1829",
+    "display" : "ADICIONAL DE VÍDEO NÃO PREVISTO PARA O PROCEDIMENTO."
+  },
+  {
+    "code" : "3144",
+    "display" : "NÃO É NECESSÁRIA AUTORIZAÇÃO PRÉVIA"
+  },
+  {
+    "code" : "1831",
+    "display" : "LAUDO DO EXAME ENVIADO NÃO JUSTIFICA A COBRANÇA DO PROCEDIMENTO"
+  },
+  {
+    "code" : "3143",
+    "display" : "VALOR ACATADO POR DECISÃO JUDICIAL /LIMINAR"
+  },
+  {
+    "code" : "3150",
+    "display" : "CÓDIGO DA TABELA INVÁLIDO"
+  },
+  {
+    "code" : "1837",
+    "display" : "NÃO CABE PAGAMENTO DO HONORÁRIO INTEGRAL POR SER VIA DE ACESSO CIRÚRGICO DIFERENTE"
+  },
+  {
+    "code" : "3149",
+    "display" : "INDICADOR DE ENVIO EM PAPEL INVÁLIDO"
+  },
+  {
+    "code" : "1836",
+    "display" : "\"ANALGESIA POR DIA SUBSEQUENTE\" INCOMPATÍVEL COM A VIA DE ADMINISTRAÇÃO DO MEDICAMENTO - VO OU IV PERIFÉRICA - SENDO LIBERADA VISITA HOSPITALAR"
+  },
+  {
+    "code" : "3148",
+    "display" : "TIPO DE TRANSAÇÃO INVÁLIDO"
+  },
+  {
+    "code" : "1835",
+    "display" : "\"ANALGESIA POR DIA SUBSEQUENTE\" NÃO JUSTIFICADA EM RELATÓRIO MÉDICO, PARA O PROCEDIMENTO REALIZADO E/OU DATA DO ATENDIMENTO"
+  },
+  {
+    "code" : "3153",
+    "display" : "O ESTABELECIMENTO DE SAÚDE PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUI VÍNCULO COM A OPERADORA"
+  },
+  {
+    "code" : "1840",
+    "display" : "PROCEDIMENTO EXECUTADO ANTES DA AUTORIZAÇÃO"
+  },
+  {
+    "code" : "3152",
+    "display" : "O PROFISSIONAL PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUÍA VÍNCULO COM A OPERADORA NO PERÍODO A QUE SE REFERE A INFORMAÇÃO"
+  },
+  {
+    "code" : "1839",
+    "display" : "NECESSÁRIO ENVIO DO RESULTADO DO EXAME ANÁTOMO PATOLÓGICO"
+  },
+  {
+    "code" : "3151",
+    "display" : "O ESTABELECIMENTO DE SAÚDE PARA O QUAL FOI SOLICITADA A INFORMAÇÃO SOBRE PARTOS NÃO POSSUÍA VÍNCULO COM A OPERADORA NO PERÍODO A QUE SE REFERE A INFORMAÇÃO"
+  },
+  {
+    "code" : "1838",
+    "display" : "GRAU DE PARTICIPAÇÃO INFORMADO INCOMPATÍVEL COM EVENTO COBRADO."
+  },
+  {
+    "code" : "1822",
+    "display" : "COBRANÇA DE PROCEDIMENTO COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO."
+  },
+  {
+    "code" : "3134",
+    "display" : "TRATAMENTO ORTODÔNTICO EM FASE DE CONTENÇÃO"
+  },
+  {
+    "code" : "1821",
+    "display" : "COBRANÇA DE PROCEDIMENTO NÃO COMPATÍVEL COM A IDADE."
+  },
+  {
+    "code" : "3133",
+    "display" : "TRATAMENTO ORTODÔNTICO CONCLUÍDO"
+  },
+  {
+    "code" : "1820",
+    "display" : "COBRANÇA DE PROCEDIMENTO EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA"
+  },
+  {
+    "code" : "3132",
+    "display" : "ENVIAR PLANO DE TRATAMENTO ORTODÔNTICO INTERMEDIÁRIO"
+  },
+  {
+    "code" : "3130",
+    "display" : "IMAGEM SUGERE IMPLANTE EM PROCESSO DE OSSEOINTEGRAÇÃO"
+  },
+  {
+    "code" : "1817",
+    "display" : "COBRANÇA DE PROCEDIMENTO INCLUSO NO PROCEDIMENTO PRINCIPAL"
+  },
+  {
+    "code" : "3129",
+    "display" : "IMAGEM SUGERE PRESENÇA DE CORPO ESTRANHO"
+  },
+  {
+    "code" : "1816",
+    "display" : "COBRANÇA DE PROCEDIMENTO EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO/EVOLUÇÃO CLÍNICA"
+  },
+  {
+    "code" : "1819",
+    "display" : "COBRANÇA DE PROCEDIMENTO COM HISTÓRIA CLÍNICA/HIPÓTESE DIAGNÓSTICA NÃO COMPATÍVEL"
+  },
+  {
+    "code" : "3131",
+    "display" : "ENVIAR PLANO DE TRATAMENTO ORTODÔNTICO INICIAL"
+  },
+  {
+    "code" : "1818",
+    "display" : "COBRANÇA DE PROCEDIMENTO QUE EXIGE AUTORIZAÇÃO PRÉVIA"
+  },
+  {
+    "code" : "1825",
+    "display" : "COBRANÇA DE PROCEDIMENTO AMBULATORIAL COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "3137",
+    "display" : "PROCEDIMENTO PREVÊ COPARTICIPAÇÃO/FRANQUIA CONFORME CONTRATO"
+  },
+  {
+    "code" : "1824",
+    "display" : "PROCEDIMENTO COBRADO NÃO CORRESPONDE AO EXAME EXECUTADO"
+  },
+  {
+    "code" : "3136",
+    "display" : "PROCEDIMENTO OU ITEM ASSISTENCIAL AUTORIZADO"
+  },
+  {
+    "code" : "1823",
+    "display" : "PROCEDIMENTO REALIZADO PELO MESMO PROFISSIONAL, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO SEM JUSTIFICATIVA ADEQUADA."
+  },
+  {
+    "code" : "3135",
+    "display" : "PROFISSIONAL INFORMADO PARA REEMBOLSO PERTENCE A REDE DA OPERADORA"
+  },
+  {
+    "code" : "3140",
+    "display" : "ABANDONO DE TRATAMENTO PELO BENEFICIÁRIO"
+  },
+  {
+    "code" : "1828",
+    "display" : "ADICIONAL DE URGÊNCIA NÃO PREVISTO PARA PROCEDIMENTO CIRÚRGICO ELETIVO."
+  },
+  {
+    "code" : "1827",
+    "display" : "COBRANÇA DE OUTRO PROCEDIMENTO EM OUTRA GUIA, NA MESMA DATA, PELO MESMO PROFISSIONAL COM MESMO GRAU DE PARTICIPAÇÃO - LIBERADO VALOR REFERENTE À VIA DE ACESSO DO PROCEDIMENTO SECUNDÁRIO."
+  },
+  {
+    "code" : "3139",
+    "display" : "TRATAMENTO ORTODONTICO SUSPENSO A PEDIDO DO DENTISTA"
+  },
+  {
+    "code" : "1826",
+    "display" : "VIAS DE ACESSO DOS PROCEDIMENTOS COBRADOS NÃO ESTÃO PREVISTAS NA LISTAGEM DE PROCEDIMENTOS MÚLTIPLOS."
+  },
+  {
+    "code" : "3138",
+    "display" : "CONDIÇÃO CLÍNICA INCOMPATÍVEL COM A SOLICITAÇÃO"
+  },
+  {
+    "code" : "3122",
+    "display" : "SOLICITAÇÃO DE REEMBOLSO EM PLANO SEM DIREITO À LIVRE ESCOLHA"
+  },
+  {
+    "code" : "1808",
+    "display" : "PROCEDIMENTO NÃO CONFORME COM CID"
+  },
+  {
+    "code" : "3121",
+    "display" : "ITEM AUTORIZADO E AINDA NÃO INDENIZADO"
+  },
+  {
+    "code" : "1807",
+    "display" : "PROCEDIMENTOS MÉDICOS DUPLICADOS"
+  },
+  {
+    "code" : "3120",
+    "display" : "NECESSÁRIO O ENVIO DO PEDIDO DO PROFISSIONAL SOLICITANTE"
+  },
+  {
+    "code" : "1806",
+    "display" : "QUANTIDADE DE PROCEDIMENTO DEVE SER MAIOR QUE ZERO"
+  },
+  {
+    "code" : "1804",
+    "display" : "NÚMERO DE DIAS LIBERADOS / SESSÕES AUTORIZADAS NÃO INFORMADAS"
+  },
+  {
+    "code" : "3117",
+    "display" : "PROCEDIMENTO ODONTOLÓGICO COM INDICAÇÃO TÉCNICA EM PROGNÓSTICO DESFAVORÁVEL"
+  },
+  {
+    "code" : "1803",
+    "display" : "IDADE DO BENEFICIÁRIO INCOMPATÍVEL COM O PROCEDIMENTO"
+  },
+  {
+    "code" : "1802",
+    "display" : "PROCEDIMENTO INCOMPATÍVEL COM O SEXO DO BENEFICIÁRIO"
+  },
+  {
+    "code" : "3119",
+    "display" : "NECESSÁRIO ENVIAR TERMO DE RESPONSABILIDADE PROFISSIONAL"
+  },
+  {
+    "code" : "1805",
+    "display" : "VALOR TOTAL DO PROCEDIMENTO DIFERENTE DO VALOR PROCESSADO"
+  },
+  {
+    "code" : "3118",
+    "display" : "NECESSÁRIO ENVIAR TERMO DE CONSENTIMENTO INFORMADO"
+  },
+  {
+    "code" : "3125",
+    "display" : "RADIOGRAFIA SUGERE INDICAÇÃO DE RETRATAMENTO ENDODONTICO"
+  },
+  {
+    "code" : "1811",
+    "display" : "PROCEDIMENTO SEM REGISTRO DE EXECUÇÃO"
+  },
+  {
+    "code" : "3124",
+    "display" : "RADIOGRAFIA SUGERE INDICAÇÃO DE EXODONTIA"
+  },
+  {
+    "code" : "1810",
+    "display" : "COBRANÇA DE PROCEDIMENTO NÃO SOLICITADO PELO MÉDICO"
+  },
+  {
+    "code" : "3123",
+    "display" : "ITEM PARA A MESMA FINALIDADE JÁ AUTORIZADO"
+  },
+  {
+    "code" : "1809",
+    "display" : "COBRANÇA DE PROCEDIMENTO NÃO EXECUTADO"
+  },
+  {
+    "code" : "3128",
+    "display" : "IMAGEM SUGERE PRESENÇA DE ARTEFATO DE IMAGEM"
+  },
+  {
+    "code" : "1814",
+    "display" : "COBRANÇA DE PROCEDIMENTO COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "3127",
+    "display" : "IMAGEM SUGERE ALTERAÇÃO PATOLÓGICA"
+  },
+  {
+    "code" : "1813",
+    "display" : "COBRANÇA DE PROCEDIMENTO SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE."
+  },
+  {
+    "code" : "3126",
+    "display" : "COBRANÇA DE ITEM ANTERIOR À DATA DE REALIZAÇÃO"
+  },
+  {
+    "code" : "1812",
+    "display" : "COBRANÇA DE PROCEDIMENTO NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO"
+  },
+  {
+    "code" : "1745",
+    "display" : "PAGAMENTO DA EQUIPE CONFORME RELATÓRIO DO CIRURGIÃO"
+  },
+  {
+    "code" : "3109",
+    "display" : "PROCEDIMENTO SOLICITADO NÃO AUTORIZADO POR NÃO CONSTAR DO ROL DE PROCEDIMENTOS E EVENTOS EM SAÚDE DA ANS"
+  },
+  {
+    "code" : "1744",
+    "display" : "NEGOCIAÇÃO DIFERENCIADA DEVIDO A LIMINAR"
+  },
+  {
+    "code" : "3108",
+    "display" : "ITEM INCLUSO NO PACOTE NEGOCIADO"
+  },
+  {
+    "code" : "1743",
+    "display" : "NÃO HÁ NEGOCIAÇÃO PARA COBRANÇA DO KIT, DISCRIMINAR POR ITENS"
+  },
+  {
+    "code" : "3107",
+    "display" : "ITEM CATEGORIZADO COMO NÃO DESCARTÁVEL"
+  },
+  {
+    "code" : "3105",
+    "display" : "ITEM COM UTILIZAÇÃO SUSPENSA PELO ÓRGÃO COMPETENTE"
+  },
+  {
+    "code" : "1740",
+    "display" : "ESTORNO DO VALOR DE PROCEDIMENTO PAGO"
+  },
+  {
+    "code" : "3104",
+    "display" : "RECUSADO, CONFORME JUNTA MÉDICA/ODONTOLÓGICA"
+  },
+  {
+    "code" : "1739",
+    "display" : "DUPLICIDADE DE CONTA DEVIDO A PERIODO COBRADO JÁ EFETUADO EM OUTRA PARCIAL"
+  },
+  {
+    "code" : "1742",
+    "display" : "HONORÁRIO OU PROCEDIMENTO JÁ PAGO POR REEMBOLSO AO BENEFICIÁRIO"
+  },
+  {
+    "code" : "3106",
+    "display" : "REGISTRO ANVISA INVÁLIDO OU NÃO INFORMADO"
+  },
+  {
+    "code" : "1741",
+    "display" : "HONORÁRIO OU PROCEDIMENTO JÁ PAGO A OUTRO PRESTADOR"
+  },
+  {
+    "code" : "1748",
+    "display" : "PROCEDIMENTO NÃO CARACTERIZA URGÊNCIA/EMÊRGENCIA"
+  },
+  {
+    "code" : "3112",
+    "display" : "DESCONTO DE COPARTICIPAÇÃO/FRANQUIA CONFORME CONTRATO"
+  },
+  {
+    "code" : "1747",
+    "display" : "PLANO DO BENEFICIÁRIO E O TIPO DE ACOMODAÇÃO NÃO PERMITEM ACRÉSCIMO DE HONORÁRIOS"
+  },
+  {
+    "code" : "3111",
+    "display" : "CAMPO CONDICIONADO NÃO PREENCHIDO OU INCORRETO"
+  },
+  {
+    "code" : "1746",
+    "display" : "PERCENTUAL DE ACRÉSCIMO DIFERENTE DO NEGOCIADO"
+  },
+  {
+    "code" : "3110",
+    "display" : "BLOQUEIO JUDICIAL"
+  },
+  {
+    "code" : "3116",
+    "display" : "REALIZAÇÃO DE PROCEDIMENTO COM NECESSIDADE ESTÉTICA"
+  },
+  {
+    "code" : "3115",
+    "display" : "NECESSÁRIO ENVIO DE RADIOGRAFIA OCLUSAL DA REGIÃO"
+  },
+  {
+    "code" : "1801",
+    "display" : "PROCEDIMENTO INVÁLIDO"
+  },
+  {
+    "code" : "3114",
+    "display" : "NECESSÁRIO ENVIO DE RADIOGRAFIA INTERPROXIMAL DA REGIÃO"
+  },
+  {
+    "code" : "1749",
+    "display" : "RELATÓRIO DE AUDITORIA NÃO ENVIADO NA CONTA."
+  },
+  {
+    "code" : "3113",
+    "display" : "NECESSÁRIO ENVIO DE RADIOGRAFIA PERIAPICAL DA REGIÃO"
+  },
+  {
+    "code" : "1732",
+    "display" : "QT COM DATA DE EVENTO DIVERGENTE DA LIBERADA"
+  },
+  {
+    "code" : "3096",
+    "display" : "ATENDIMENTO NÃO CONFIRMADO PELO BENEFICIÁRIO"
+  },
+  {
+    "code" : "1731",
+    "display" : "TAXA INCOMPATIVEL PARA ATENDIMENTO AMBULATORIAL"
+  },
+  {
+    "code" : "3095",
+    "display" : "RECURSO DE GLOSA ACATADO"
+  },
+  {
+    "code" : "3094",
+    "display" : "VALOR DA TAXA ADMINISTRATIVA ALTERADO EM RAZÃO DE GLOSAS"
+  },
+  {
+    "code" : "1730",
+    "display" : "FILME INCLUSO NO EXAME REALIZADO"
+  },
+  {
+    "code" : "1728",
+    "display" : "COBRANÇA DE MATERIAL INCLUSO NO PROCEDIMENTO / EXAME REALIZADO"
+  },
+  {
+    "code" : "3091",
+    "display" : "COBRANÇA FORA DO PRAZO ESTIPULADO NO CONTRATO"
+  },
+  {
+    "code" : "1727",
+    "display" : "PAGO VALOR COMPATIVEL COM O PROCEDIMENTO"
+  },
+  {
+    "code" : "1726",
+    "display" : "VALOR APRESENTADO A MAIOR - PLANO INDIVIDUAL"
+  },
+  {
+    "code" : "3093",
+    "display" : "VALOR ACATADO POR AUTORIZAÇÃO ESPECIAL"
+  },
+  {
+    "code" : "1729",
+    "display" : "COBRANÇA DE MATERIAL COM VALOR ACIMA DO PERMITIDO PARA PROCEDIMENTO/EXAME REALIZADO"
+  },
+  {
+    "code" : "3092",
+    "display" : "VALOR ACATADO POR GLOSA REALIZADA INDEVIDAMENTE, APÓS AVALIAÇÃO DO RECURSO"
+  },
+  {
+    "code" : "1735",
+    "display" : "COBRANÇA DE PACOTE NÃO NEGOCIADO COM O PRESTADOR"
+  },
+  {
+    "code" : "3100",
+    "display" : "PARA LIBERAR ESTE ACESSO, ENTRE EM CONTATO COM A OPERADORA E SOLICITE O CADASTRAMENTO DO SEU CÓDIGO DE ORIGEM"
+  },
+  {
+    "code" : "1734",
+    "display" : "COBRADO CONTA ABERTA, PAGO O PACOTE CONFORME NEGOCIAÇÃO"
+  },
+  {
+    "code" : "3098",
+    "display" : "O PRESTADOR POSSUI PACOTE CONTRATADO PARA ESTE PROCEDIMENTO. VERIFIQUE O CÓDIGO CORRESPONDENTE"
+  },
+  {
+    "code" : "1733",
+    "display" : "RECUPERAÇÃO DE VALORES POR PAGAMENTO INDEVIDO"
+  },
+  {
+    "code" : "3097",
+    "display" : "TIPO DE ATENDIMENTO INCOMPATÍVEL COM A SEGMENTAÇÃO ASSISTENCIAL CONTRATADA"
+  },
+  {
+    "code" : "3103",
+    "display" : "SOLICITAÇÃO DE AUTORIZAÇÃO FORA DO PRAZO ACORDADO"
+  },
+  {
+    "code" : "1738",
+    "display" : "DOCUMENTO FISCAL NÃO ENVIADO"
+  },
+  {
+    "code" : "3102",
+    "display" : "É NECESSÁRIO TER UM PROCEDIMENTO RELACIONADO À SOLICITAÇÃO"
+  },
+  {
+    "code" : "1737",
+    "display" : "DIFERENÇA DEVE SER COBRADA DO BENEFICIÁRIO PELO PRESTADOR COMO FRANQUIA"
+  },
+  {
+    "code" : "1736",
+    "display" : "CONTA AGUARDANDO NEGOCIAÇÃO PARA PAGAMENTO"
+  },
+  {
+    "code" : "3101",
+    "display" : "O PROCEDIMENTO SOLICITADO É DE EXECUÇÃO ÚNICA E JÁ FOI REALIZADO PELO BENEFICIÁRIO"
+  },
+  {
+    "code" : "3084",
+    "display" : "RELATÓRIO ANALISE TÉCNICA SEM CARIMBO/ASSINATURA DO PRESTADOR"
+  },
+  {
+    "code" : "1719",
+    "display" : "REANÁLISE NEGADA, ANÁLISE CONFORME TABELA ACORDADA"
+  },
+  {
+    "code" : "3083",
+    "display" : "REAVALIAR O PLANO DE TRATAMENTO OBSERVANDO CRITÉRIOS DE INDICAÇÃO, OPORTUNIDADE E VIABILIDADE."
+  },
+  {
+    "code" : "1718",
+    "display" : "REANÁLISE NEGADA, PAGO CONFORME RELATÓRIO AUDITORIA"
+  },
+  {
+    "code" : "3082",
+    "display" : "RADIOGRAFIA/IMAGEM INDICA FALHA NA RESTAURAÇÃO"
+  },
+  {
+    "code" : "1717",
+    "display" : "PAGO CONFORME RELATÓRIO DE AUDITORIA EXTERNA - CONTA INICIAL"
+  },
+  {
+    "code" : "1715",
+    "display" : "VALOR DO SERVIÇO INFERIOR AO VALOR DE TABELA"
+  },
+  {
+    "code" : "3079",
+    "display" : "RADIOGRAFIA INDICA TRATAMENTO ENDODÔNTICO E NÃO RETRATATAMENTO ENDODÔNTICO"
+  },
+  {
+    "code" : "1714",
+    "display" : "VALOR DO SERVIÇO SUPERIOR AO VALOR DE TABELA"
+  },
+  {
+    "code" : "3078",
+    "display" : "RADIOGRAFIA INDICA NÚCLEO INADEQUADO"
+  },
+  {
+    "code" : "3081",
+    "display" : "RADIOGRAFIA INICIAL NÃO ENVIADA"
+  },
+  {
+    "code" : "1716",
+    "display" : "PERCENTUAL DE REDUÇÃO/ACRÉSCIMO FORA DOS VALORES DEFINIDOS EM TABELA"
+  },
+  {
+    "code" : "3080",
+    "display" : "RADIOGRAFIA INICIAL E FINAL NÃO ENVIADAS"
+  },
+  {
+    "code" : "3087",
+    "display" : "COBRANÇA INDEVIDA DE TAXA ADMINISTRATIVA"
+  },
+  {
+    "code" : "1722",
+    "display" : "PAGO CONFORME NEGOCIAÇÃO"
+  },
+  {
+    "code" : "3086",
+    "display" : "TRATAMENTO ODONTOLÓGICO NÃO CARACTERIZADO COMO URGÊNCIA."
+  },
+  {
+    "code" : "1721",
+    "display" : "CÓDIGO COBRADO SUBSTITUÍDO PELO CÓDIGO PAGO"
+  },
+  {
+    "code" : "3085",
+    "display" : "RADIOGRAFIA NÃO CORRESPONDE AO PROCEDIMENTO SOLICITADO"
+  },
+  {
+    "code" : "1720",
+    "display" : "LIBERADOS 150% DE VÍDEO, SEM COBERTURA PARA ADICIONAL DE ACOMODAÇÃO"
+  },
+  {
+    "code" : "3090",
+    "display" : "NECESSÁRIO ENVIAR AS ETIQUETAS E SELOS HEMOTERÁPICOS DO MATERIAL UTILIZADO"
+  },
+  {
+    "code" : "1725",
+    "display" : "VALOR PAGO A MAIOR REFERENTE À TAXA ADMINISTRATIVA"
+  },
+  {
+    "code" : "3089",
+    "display" : "QUANTIDADE DE ITENS INCOMPATÍVEL COM O PERÍODO DE INTERNAÇÃO"
+  },
+  {
+    "code" : "1724",
+    "display" : "VISITA MÉDICA COBRADA PELA EQUIPE CIRÚRGICA INCLUÍDA NO PERÍODO DE 10 DIAS APÓS REALIZAÇÃO DO PROCEDIMENTO CIRÚRGICO"
+  },
+  {
+    "code" : "3088",
+    "display" : "VALOR ACATADO, CONFORME REAJUSTE RETROATIVO"
+  },
+  {
+    "code" : "1723",
+    "display" : "ADICIONAL DE URGÊNCIA NÃO PREVISTO PARA ATENDIMENTO CLÍNICO"
+  },
+  {
+    "code" : "3072",
+    "display" : "RADIOGRAFIA INDICA CANAL(AIS) NÃO OBTURADO(S)"
+  },
+  {
+    "code" : "1706",
+    "display" : "VALOR APRESENTADO A MENOR"
+  },
+  {
+    "code" : "3071",
+    "display" : "RADIOGRAFIA INDICA AUSENCIA DE NÚCLEO"
+  },
+  {
+    "code" : "1705",
+    "display" : "VALOR APRESENTADO A MAIOR"
+  },
+  {
+    "code" : "3070",
+    "display" : "RADIOGRAFIA INDICA A PRESENÇA DE RAIZ RESIDUAL NO ALVEOLO"
+  },
+  {
+    "code" : "1704",
+    "display" : "VALOR COBRADO SUPERIOR AO ACORDADO EM PACOTE"
+  },
+  {
+    "code" : "1702",
+    "display" : "COBRANÇA DE PROCEDIMENTO EM DUPLICIDADE"
+  },
+  {
+    "code" : "3067",
+    "display" : "RADIOGRAFIA FINAL NÃO ENVIADA"
+  },
+  {
+    "code" : "1701",
+    "display" : "COBRANÇA FORA DO PRAZO DE VALIDADE"
+  },
+  {
+    "code" : "3066",
+    "display" : "PROCEDIMENTO EM DESACORDO COM O ANEXO GUIA TRATAMENTO ODONTOLÓGICO SITUAÇÃO INICIAL"
+  },
+  {
+    "code" : "3069",
+    "display" : "RADIOGRAFIA INDICA A NECESSIDADE DE TRATAMENTO ENDODONTICO"
+  },
+  {
+    "code" : "1703",
+    "display" : "HORÁRIO DO ATENDIMENTO NÃO ESTÁ NA FAIXA DE URGÊNCIA/EMERGÊNCIA"
+  },
+  {
+    "code" : "3068",
+    "display" : "RADIOGRAFIA FINAL SEM DISSOCIAÇÃO DOS CONDUTOS"
+  },
+  {
+    "code" : "1710",
+    "display" : "FALTA VISTO DA ENFERMAGEM"
+  },
+  {
+    "code" : "3074",
+    "display" : "RADIOGRAFIA INDICA EXCESSO DE MATERIAL"
+  },
+  {
+    "code" : "1709",
+    "display" : "FALTA PRESCRIÇÃO MÉDICA"
+  },
+  {
+    "code" : "1708",
+    "display" : "NÃO EXISTE VALOR PARA O PROCEDIMENTO REALIZADO"
+  },
+  {
+    "code" : "3073",
+    "display" : "RADIOGRAFIA INDICA DESVIO DA TRAJETORIA DO CANAL"
+  },
+  {
+    "code" : "1707",
+    "display" : "NÃO EXISTE INFORMAÇÃO SOBRE A TABELA QUE SERÁ UTILIZADA NA VALORAÇÃO. VERIFIQUE O CONTRATO DO PRESTADOR"
+  },
+  {
+    "code" : "1713",
+    "display" : "FATURAMENTO INVÁLIDO"
+  },
+  {
+    "code" : "3077",
+    "display" : "RADIOGRAFIA INDICA FALTA DE ADAPTAÇÃO DA COROA/PEÇA PROTÉTICA"
+  },
+  {
+    "code" : "1712",
+    "display" : "ASSINATURA DO MÉDICO RESPONSÁVEL PELO EXAME INEXISTENTE"
+  },
+  {
+    "code" : "3076",
+    "display" : "RADIOGRAFIA INDICA FALTA DE ADAPTAÇÃO DA COROA/NÚCLEO"
+  },
+  {
+    "code" : "1711",
+    "display" : "PROCEDIMENTO PERTENCE A UM PACOTE ACORDADO E JÁ COBRADO"
+  },
+  {
+    "code" : "3075",
+    "display" : "RADIOGRAFIA INDICA FALHA NA OBTURAÇÃO DO(S) CONDUTO(S)"
+  },
+  {
+    "code" : "1609",
+    "display" : "MOTIVO SAÍDA INVÁLIDO"
+  },
+  {
+    "code" : "3059",
+    "display" : "NECESSÁRIA AUDITORIA INICIAL"
+  },
+  {
+    "code" : "1608",
+    "display" : "ALTA ANTERIOR À DATA DE INTERNAÇÃO"
+  },
+  {
+    "code" : "3058",
+    "display" : "NECESSÁRIA AUDITORIA FINAL"
+  },
+  {
+    "code" : "1607",
+    "display" : "ALTA HOSPITALAR ANTERIOR AO FINAL DA INTERVENÇÃO"
+  },
+  {
+    "code" : "3057",
+    "display" : "NÃO APRESENTA A QUANTIDADE MÍNIMA DE ELEMENTOS DENTÁRIOS POR SEGMENTO"
+  },
+  {
+    "code" : "3055",
+    "display" : "IDENTIFICADO TRATAMENTO ENDODÔNTICO E NÃO RETRATAMENTO"
+  },
+  {
+    "code" : "1604",
+    "display" : "TIPO DE SAÍDA INVÁLIDO"
+  },
+  {
+    "code" : "3054",
+    "display" : "IDENTIFICADO CONDUTO(S) NÃO OBTURADO(S)"
+  },
+  {
+    "code" : "1603",
+    "display" : "TIPO DE CONSULTA INVÁLIDO"
+  },
+  {
+    "code" : "1606",
+    "display" : "FINAL DA INTERVENÇÃO ANTERIOR AO INÍCIO DA INTERVENÇÃO"
+  },
+  {
+    "code" : "3056",
+    "display" : "NA AUDITORIA FOI CONSTATADA DIVERGÊNCIA NA QUANTIDADE DE FACES RESTAURADAS"
+  },
+  {
+    "code" : "1605",
+    "display" : "INTERVENÇÃO ANTERIOR A ADMISSÃO"
+  },
+  {
+    "code" : "1612",
+    "display" : "SERVIÇO NÃO PODE SER REALIZADO NO LOCAL ESPECIFICADO"
+  },
+  {
+    "code" : "3062",
+    "display" : "NECESSÁRIO ENVIAR LAUDO OU RELATÓRIO TÉCNICO SOBRE O TRATAMENTO SOLICITADO."
+  },
+  {
+    "code" : "1611",
+    "display" : "INTERVENÇÃO ANTERIOR A INTERNAÇÃO"
+  },
+  {
+    "code" : "3061",
+    "display" : "NECESSÁRIA AVALIAÇÃO DO ESPECIALISTA"
+  },
+  {
+    "code" : "1610",
+    "display" : "ÓBITO MULHER INVÁLIDO"
+  },
+  {
+    "code" : "3060",
+    "display" : "NECESSÁRIA AUDITORIA INTERMEDIÁRIA"
+  },
+  {
+    "code" : "1615",
+    "display" : "INTERNAÇÃO NÃO AUTORIZADA"
+  },
+  {
+    "code" : "3065",
+    "display" : "PROCEDIMENTO AUTORIZADO SOMENTE PARA DENTES ANTERIORES"
+  },
+  {
+    "code" : "1614",
+    "display" : "SERVIÇO AMBULATORIAL NÃO AUTORIZADO"
+  },
+  {
+    "code" : "3064",
+    "display" : "PROCEDIMENTO AUTORIZADO APENAS PARA DENTES TRATADOS ENDODONTICAMENTE"
+  },
+  {
+    "code" : "1613",
+    "display" : "CONSULTA NÃO AUTORIZADA"
+  },
+  {
+    "code" : "3063",
+    "display" : "O PLANO DE TRATAMENTO AUTORIZADO SERÁ CANCELADO DEVIDO À TROCA DE PROFISSIONAL"
+  },
+  {
+    "code" : "3047",
+    "display" : "AUSÊNCIA DE IMAGEM/FOTO/RADIOGRAFIA/ DIAGNÓSTICO PÓS PROCEDIMENTO ODONTOLÓGICO"
+  },
+  {
+    "code" : "1505",
+    "display" : "REGIME DA INTERNAÇÃO INVÁLIDO"
+  },
+  {
+    "code" : "3046",
+    "display" : "AUDITORIA FINAL CONSTA QUE O PROCEDIMENTO FOI REALIZADO COM OUTRO MATERIAL"
+  },
+  {
+    "code" : "1504",
+    "display" : "CARÁTER DE INTERNAÇÃO INVÁLIDO"
+  },
+  {
+    "code" : "3045",
+    "display" : "APÓS ANÁLISE DA RADIOGRAFIA INICIAL, VERIFICOU-SE EXODONTIA DE FRAGMENTO RADICULAR"
+  },
+  {
+    "code" : "1503",
+    "display" : "INDICADOR DE ACIDENTE INVÁLIDO"
+  },
+  {
+    "code" : "1501",
+    "display" : "TEMPO DE EVOLUÇÃO DA DOENÇA INVÁLIDO"
+  },
+  {
+    "code" : "3042",
+    "display" : "APÓS ANÁLISE DA RADIOGRAFIA INICIAL VERIFICOU-SE EXODONTIA DE INCLUSO"
+  },
+  {
+    "code" : "1438",
+    "display" : "PROCEDIMENTO SOLICITADO NÃO AUTORIZADO POR NÃO ATENDER A DIRETRIZ DE UTILIZAÇÃO (DUT) DO ROL DE PROCEDIMENTOS E EVENTOS EM SAÚDE DA ANS"
+  },
+  {
+    "code" : "3041",
+    "display" : "AGUARDANDO DOCUMENTAÇÃO DE ORTODONTIA"
+  },
+  {
+    "code" : "3044",
+    "display" : "APÓS ANÁLISE DA RADIOGRAFIA INICIAL VERIFICOU-SE EXODONTIA SIMPLES"
+  },
+  {
+    "code" : "1502",
+    "display" : "TIPO DE DOENÇA INVÁLIDO"
+  },
+  {
+    "code" : "3043",
+    "display" : "APÓS ANÁLISE DA RADIOGRAFIA INICIAL VERIFICOU-SE EXODONTIA DE SEMI-INCLUSO"
+  },
+  {
+    "code" : "1508",
+    "display" : "CÓDIGO CID NÃO INFORMADO"
+  },
+  {
+    "code" : "3050",
+    "display" : "COBRANÇA DE URGÊNCIA/EMERGÊNCIA NA VIGÊNCIA DO TRATAMENTO ODONTOLÓGICO."
+  },
+  {
+    "code" : "3049",
+    "display" : "CANCELAMENTO DO PROCEDIMENTO ODONTOLÓGICO POR SOLICITAÇÃO DO PRESTADOR."
+  },
+  {
+    "code" : "1507",
+    "display" : "URGÊNCIA/EMERGÊNCIA NÃO APLICÁVEL"
+  },
+  {
+    "code" : "3048",
+    "display" : "CANCELAMENTO DO PROCEDIMENTO ODONTOLÓGICO POR SOLICITAÇÃO DO BENEFICIÁRIO."
+  },
+  {
+    "code" : "1506",
+    "display" : "TIPO DE INTERNAÇÃO INVÁLIDO"
+  },
+  {
+    "code" : "3053",
+    "display" : "ELEMENTOS PODEM SER VISUALIZADOS EM UMA MESMA PELÍCULA."
+  },
+  {
+    "code" : "1602",
+    "display" : "TIPO DE ATENDIMENTO INVÁLIDO OU NÃO INFORMADO"
+  },
+  {
+    "code" : "3052",
+    "display" : "DOCUMENTAÇÃO INCOMPLETA, INCORRETA OU AUSENTE"
+  },
+  {
+    "code" : "1601",
+    "display" : "REINCIDÊNCIA NO ATENDIMENTO"
+  },
+  {
+    "code" : "3051",
+    "display" : "DOCUMENTAÇÃO EM ANÁLISE"
+  },
+  {
+    "code" : "1509",
+    "display" : "CÓDIGO CID INVÁLIDO"
+  },
+  {
+    "code" : "3035",
+    "display" : "PACIENTE EM TRATAMENTO COM O MESMO PROFISSIONAL"
+  },
+  {
+    "code" : "3034",
+    "display" : "JUSTIFICATIVA TECNICAMENTE NÃO SATISFATÓRIA"
+  },
+  {
+    "code" : "1430",
+    "display" : "PROCEDIMENTO ODONTOLÓGICO NÃO AUTORIZADO"
+  },
+  {
+    "code" : "1429",
+    "display" : "CBO-S (ESPECIALIDADE) NÃO AUTORIZADO A REALIZAR O SERVIÇO"
+  },
+  {
+    "code" : "3033",
+    "display" : "INTERVALO DA ÚLTIMA MPP INFERIOR A QUATRO MESES"
+  },
+  {
+    "code" : "1428",
+    "display" : "FALTA DE AUTORIZAÇÃO DA EMPRESA DE CONECTIVIDADE"
+  },
+  {
+    "code" : "1426",
+    "display" : "NÃO AUTORIZADO PELA AUDITORIA"
+  },
+  {
+    "code" : "3030",
+    "display" : "AUDITORIA FINAL CONSTA QUE A RESTAURAÇÃO FOI REALIZADA EM OUTRO MATERIAL"
+  },
+  {
+    "code" : "1425",
+    "display" : "NECESSITA PRÉ-AUTORIZAÇÃO DA EMPRESA"
+  },
+  {
+    "code" : "3029",
+    "display" : "EVENTO NÃO INDICADO PELA AUDITORIA INICIAL"
+  },
+  {
+    "code" : "3032",
+    "display" : "INTERVALO DA ÚLTIMA MPP INFERIOR A TRÊS MESES"
+  },
+  {
+    "code" : "1427",
+    "display" : "NECESSIDADE DE AUDITORIA MÉDICA"
+  },
+  {
+    "code" : "3031",
+    "display" : "RADIOGRAFIA FORA DOS PADRÕES TÉCNICOS"
+  },
+  {
+    "code" : "3038",
+    "display" : "RADIOGRAFIA INICIAL INCONGRUENTE COM A RADIOGRAFIA FINAL"
+  },
+  {
+    "code" : "1433",
+    "display" : "PROCEDIMENTO NÃO AUTORIZADO, DENTE AUSENTE"
+  },
+  {
+    "code" : "3037",
+    "display" : "PROCEDIMENTO COBRADO NÃO É IGUAL AO EXECUTADO"
+  },
+  {
+    "code" : "1432",
+    "display" : "PROCEDIMENTO NÃO AUTORIZADO PARA DENTE/REGIÃO SOLICITADA"
+  },
+  {
+    "code" : "3036",
+    "display" : "PACIENTE EM TRATAMENTO COM OUTRO PROFISSIONAL"
+  },
+  {
+    "code" : "1431",
+    "display" : "PROCEDIMENTO NÃO AUTORIZADO NA FACE SOLICITADA"
+  },
+  {
+    "code" : "1437",
+    "display" : "SENHA DE AUTORIZAÇÃO CANCELADA"
+  },
+  {
+    "code" : "3040",
+    "display" : "GLOSA TÉCNICA (ESPECIFICAR DETALHADAMENTE)"
+  },
+  {
+    "code" : "1436",
+    "display" : "CANCELAMENTO DO ACORDO ANTERIOR À DATA DE REALIZAÇÃO DO PROCEDIMENTO"
+  },
+  {
+    "code" : "1435",
+    "display" : "VIGÊNCIA DO ACORDO POSTERIOR À DATA DE REALIZAÇÃO DO PROCEDIMENTO"
+  },
+  {
+    "code" : "3039",
+    "display" : "RADIOGRAFIA NÃO CORRESPONDE AO PROCEDIMENTO COBRADO"
+  },
+  {
+    "code" : "1434",
+    "display" : "COBRANÇA DE CONTA DE CTI NEONATAL NA SENHA DO PARTO"
+  },
+  {
+    "code" : "3022",
+    "display" : "FALHA EM INFORMAÇÃO DE DADOS DE DENTE INICIAL E/OU FINAL"
+  },
+  {
+    "code" : "1418",
+    "display" : "SOLICITANTE SUSPENSO"
+  },
+  {
+    "code" : "3021",
+    "display" : "FALHA EM INFORMAÇÃO DE DADOS DE ARCADAS/HEMI-ARCOS"
+  },
+  {
+    "code" : "1417",
+    "display" : "SOLICITANTE NÃO HABILITADO"
+  },
+  {
+    "code" : "3020",
+    "display" : "CONFORME DOCUMENTAÇÃO RADIOGRÁFICA ENVIADA, EVENTO REALIZADO INADEQUADAMENTE"
+  },
+  {
+    "code" : "1416",
+    "display" : "SOLICITANTE NÃO CADASTRADO"
+  },
+  {
+    "code" : "1414",
+    "display" : "DATA DE VALIDADE DA SENHA EXPIRADA"
+  },
+  {
+    "code" : "3017",
+    "display" : "PROCEDIMENTO COBRADO NÃO CORRESPONDE A PERÍCIA (ESPECIFICAR)."
+  },
+  {
+    "code" : "1413",
+    "display" : "ACOMODAÇÃO NÃO POSSUI COBERTURA"
+  },
+  {
+    "code" : "3016",
+    "display" : "PROCEDIMENTO ODONTOLÓGICO REALIZADO, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO, SEM JUSTIFICATIVA"
+  },
+  {
+    "code" : "3019",
+    "display" : "EVENTO SOB ANÁLISE TÉCNICA, AGUARDANDO LIBERAÇÃO DE CONFIRMAÇÃO PARA POSTERIOR PAGAMENTO"
+  },
+  {
+    "code" : "1415",
+    "display" : "PROCEDIMENTO NÃO AUTORIZADO PARA O BENEFICIÁRIO"
+  },
+  {
+    "code" : "3018",
+    "display" : "EVENTO GLOSADO POR AUDITORIA (ESPECIFICAR)"
+  },
+  {
+    "code" : "3025",
+    "display" : "EVENTO SÓ POSSÍVEL EM DENTES PERMANENTES"
+  },
+  {
+    "code" : "1421",
+    "display" : "SERVIÇO SOLICITADO É DE PRÉ-EXISTÊNCIA"
+  },
+  {
+    "code" : "3024",
+    "display" : "EVENTO SÓ POSSÍVEL EM DENTES DECÍDUOS"
+  },
+  {
+    "code" : "1420",
+    "display" : "SERVIÇO SOLICITADO FORA DA COBERTURA"
+  },
+  {
+    "code" : "3023",
+    "display" : "FALHA EM INFORMAÇÃO DE DADOS DE FACES DOS DENTES"
+  },
+  {
+    "code" : "1419",
+    "display" : "SERVIÇO SOLICITADO JÁ AUTORIZADO"
+  },
+  {
+    "code" : "3028",
+    "display" : "EVENTO RESTRITO À ESPECIALISTAS"
+  },
+  {
+    "code" : "1424",
+    "display" : "QUANTIDADE AUTORIZADA ACIMA DA QUANTIDADE PERMITIDA"
+  },
+  {
+    "code" : "3027",
+    "display" : "DESACORDO ENTRE O TIPO DE DENTE E O NÚMERO DE CANAIS SOLICITADOS"
+  },
+  {
+    "code" : "1423",
+    "display" : "QUANTIDADE SOLICITADA ACIMA DA QUANTIDADE PERMITIDA"
+  },
+  {
+    "code" : "3026",
+    "display" : "ERRO NAS INFORMAÇÕES DE ORDEM DOS DENTES INICIAL E FINAL"
+  },
+  {
+    "code" : "1422",
+    "display" : "ESPECIALIDADE NÃO CADASTRADA PARA O SOLICITANTE"
+  },
+  {
+    "code" : "3009",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO NÃO EXECUTADO"
+  },
+  {
+    "code" : "1406",
+    "display" : "NÚMERO DA SENHA INFORMADO DIFERENTE DO LIBERADO"
+  },
+  {
+    "code" : "3008",
+    "display" : "PROCEDIMENTO ODONTOLÓGICO INCLUSO NO PROCEDIMENTO PRINCIPAL"
+  },
+  {
+    "code" : "1405",
+    "display" : "DATA DE VALIDADE DA SENHA É ANTERIOR A DATA DO ATENDIMENTO"
+  },
+  {
+    "code" : "3007",
+    "display" : "PROCEDIMENTOS ODONTOLÓGICOS DUPLICADOS"
+  },
+  {
+    "code" : "1404",
+    "display" : "NÃO EXISTE GUIA DE AUTORIZAÇÃO RELACIONADA"
+  },
+  {
+    "code" : "1402",
+    "display" : "PROCEDIMENTO NÃO AUTORIZADO"
+  },
+  {
+    "code" : "1401",
+    "display" : "ACOMODAÇÃO NÃO AUTORIZADA"
+  },
+  {
+    "code" : "3002",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO QUE EXIGE AUTORIZAÇÃO PRÉVIA"
+  },
+  {
+    "code" : "1323",
+    "display" : "DATA PREENCHIDA INCORRETAMENTE"
+  },
+  {
+    "code" : "3004",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA"
+  },
+  {
+    "code" : "1403",
+    "display" : "NÃO EXISTE INFORMAÇÃO SOBRE A SENHA DE AUTORIZAÇÃO DO PROCEDIMENTO"
+  },
+  {
+    "code" : "3003",
+    "display" : "IDADE DO BENEFICIÁRIO INCOMPATÍVEL COM O PROCEDIMENTO ODONTOLÓGICO"
+  },
+  {
+    "code" : "3012",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO"
+  },
+  {
+    "code" : "1409",
+    "display" : "QUANTIDADE SERVIÇO SOLICITADA ACIMA COBERTA"
+  },
+  {
+    "code" : "3011",
+    "display" : "PROCEDIMENTO ODONTOLÓGICO SEM REGISTRO DE EXECUÇÃO"
+  },
+  {
+    "code" : "1408",
+    "display" : "QUANTIDADE SERVIÇO SOLICITADA ACIMA DA AUTORIZADA"
+  },
+  {
+    "code" : "3010",
+    "display" : "COBRANÇA DE PROCEDIMENTO NÃO SOLICITADO PELO CIRURGIÃO-DENTISTA"
+  },
+  {
+    "code" : "1407",
+    "display" : "SERVIÇO SOLICITADO NÃO POSSUI COBERTURA"
+  },
+  {
+    "code" : "1412",
+    "display" : "PROBLEMAS NO SISTEMA AUTORIZADOR"
+  },
+  {
+    "code" : "3015",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO."
+  },
+  {
+    "code" : "1411",
+    "display" : "SOLICITANTE NÃO INFORMADO"
+  },
+  {
+    "code" : "3014",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "1410",
+    "display" : "SERVIÇO SOLICITADO EM CARÊNCIA"
+  },
+  {
+    "code" : "3013",
+    "display" : "COBRANÇA DE PROCEDIMENTO ODONTOLÓGICO SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE."
+  },
+  {
+    "code" : "1317",
+    "display" : "GUIA SEM DATA DO ATENDIMENTO"
+  },
+  {
+    "code" : "2902",
+    "display" : "GLOSA MANTIDA"
+  },
+  {
+    "code" : "1316",
+    "display" : "GUIA COM LOCAL DE ATENDIMENTO PREENCHIDO INCORRETAMENTE."
+  },
+  {
+    "code" : "2901",
+    "display" : "REVISÃO DE GLOSA INVÁLIDA"
+  },
+  {
+    "code" : "1315",
+    "display" : "GUIA SEM DATA DO ATO CIRÚRGICO."
+  },
+  {
+    "code" : "2822",
+    "display" : "COBRANÇA DE PACOTE AMBULATORIAL COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "2820",
+    "display" : "PACOTE REALIZADO PELO MESMO PROFISSIONAL, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO SEM JUSTIFICATIVA ADEQUADA."
+  },
+  {
+    "code" : "1312",
+    "display" : "PRESTADOR CONTRATADO NÃO INFORMADO"
+  },
+  {
+    "code" : "2819",
+    "display" : "COBRANÇA DE PACOTE COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO."
+  },
+  {
+    "code" : "1311",
+    "display" : "PRESTADOR EXECUTANTE NÃO INFORMADO"
+  },
+  {
+    "code" : "1314",
+    "display" : "GUIA SEM ASSINATURA E/OU CARIMBO DO CREDENCIADO."
+  },
+  {
+    "code" : "2821",
+    "display" : "PACOTE COBRADO NÃO CORRESPONDE AO EXAME EXECUTADO"
+  },
+  {
+    "code" : "1313",
+    "display" : "GUIA COM RASURA"
+  },
+  {
+    "code" : "1320",
+    "display" : "IDENTIFICAÇÃO DO ASSISTIDO INCOMPLETA"
+  },
+  {
+    "code" : "1319",
+    "display" : "GUIA SEM ASSINATURA DO ASSISTIDO."
+  },
+  {
+    "code" : "2905",
+    "display" : "A GUIA NÃO É DE REVISÃO"
+  },
+  {
+    "code" : "2904",
+    "display" : "MAIS DE UM RECURSO DE GLOSA PARA A MESMA GUIA/PROTOCOLO"
+  },
+  {
+    "code" : "1318",
+    "display" : "GUIA COM CÓDIGO DE SERVIÇO PREENCHIDO INCORRETAMENTE."
+  },
+  {
+    "code" : "2903",
+    "display" : "PEDIDO DE REVISÃO SEM JUSTIFICATIVA"
+  },
+  {
+    "code" : "3001",
+    "display" : "PROCEDIMENTO ODONTOLÓGICO INVÁLIDO"
+  },
+  {
+    "code" : "1322",
+    "display" : "COMPROVANTE PRESENCIAL OU GTO NÃO ENVIADO"
+  },
+  {
+    "code" : "2909",
+    "display" : "PRAZO PARA SOLICITAÇÃO DE RECURSO DE GLOSA PRESCRITO"
+  },
+  {
+    "code" : "2908",
+    "display" : "SOLICITAÇÃO DE REANÁLISE EFETUADA DE FORMA INCORRETA"
+  },
+  {
+    "code" : "1321",
+    "display" : "VALIDADE DA GUIA EXPIRADA"
+  },
+  {
+    "code" : "2907",
+    "display" : "PRAZO DE 180 DIAS ULTRAPASSADO PARA SOLICITAÇÃO DE REANÁLISE"
+  },
+  {
+    "code" : "1304",
+    "display" : "COBRANÇA EM GUIA INDEVIDA"
+  },
+  {
+    "code" : "2812",
+    "display" : "PACOTE NÃO AUTORIZADO"
+  },
+  {
+    "code" : "1303",
+    "display" : "NÃO EXISTE O NÚMERO GUIA PRINCIPAL INFORMADO"
+  },
+  {
+    "code" : "2811",
+    "display" : "COBRANÇA DE PACOTE COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "1302",
+    "display" : "CÓDIGO TIPO GUIA PRINCIPAL E NÚMERO GUIAS INCOMPATÍVEIS"
+  },
+  {
+    "code" : "2810",
+    "display" : "COBRANÇA DE PACOTE SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE."
+  },
+  {
+    "code" : "1217",
+    "display" : "ESPECIALIDADE NÃO CADASTRADA PARA O PRESTADOR"
+  },
+  {
+    "code" : "2808",
+    "display" : "PACOTE SEM REGISTRO DE EXECUÇÃO"
+  },
+  {
+    "code" : "1216",
+    "display" : "ESPECIALIDADE NÃO CADASTRADA"
+  },
+  {
+    "code" : "2807",
+    "display" : "COBRANÇA DE PACOTE NÃO SOLICITADO PELO MÉDICO"
+  },
+  {
+    "code" : "1301",
+    "display" : "TIPO GUIA INVÁLIDO"
+  },
+  {
+    "code" : "1218",
+    "display" : "CÓDIGO DE PRESTADOR INCOMPATIVEL COM PROCEDIMENTO / EXAME COBRADO"
+  },
+  {
+    "code" : "2809",
+    "display" : "COBRANÇA DE PACOTE NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO"
+  },
+  {
+    "code" : "1307",
+    "display" : "NÚMERO DA GUIA INVÁLIDO"
+  },
+  {
+    "code" : "2815",
+    "display" : "COBRANÇA DO PACOTE EXIGE AUTORIZAÇÃO PRÉVIA"
+  },
+  {
+    "code" : "1306",
+    "display" : "NÃO EXISTE NÚMERO GUIA PRINCIPAL E/OU CÓDIGO GUIA PRINCIPAL"
+  },
+  {
+    "code" : "2814",
+    "display" : "ITENS DE COMPOSIÇÃO DO PACOTE NÃO REALIZADOS"
+  },
+  {
+    "code" : "1305",
+    "display" : "ITEM PAGO EM OUTRA GUIA"
+  },
+  {
+    "code" : "2813",
+    "display" : "COBRANÇA DE PACOTE EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO/EVOLUÇÃO CLÍNICA"
+  },
+  {
+    "code" : "1310",
+    "display" : "SERVIÇO DO TIPO CIRÚRGICO E INVASIVO. EQUIPE MÉDICA NÃO INFORMADA NA GUIA"
+  },
+  {
+    "code" : "2818",
+    "display" : "COBRANÇA DE PACOTE NÃO COMPATÍVEL COM A IDADE."
+  },
+  {
+    "code" : "1309",
+    "display" : "PROCEDIMENTO CONTRATADO NÃO ESTÁ DE ACORDO COM O TIPO DE GUIA UTILIZADO"
+  },
+  {
+    "code" : "2817",
+    "display" : "COBRANÇA DE PACOTE EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA"
+  },
+  {
+    "code" : "1308",
+    "display" : "GUIA JÁ APRESENTADA"
+  },
+  {
+    "code" : "2816",
+    "display" : "COBRANÇA DE PACOTE COM HISTÓRIA CLÍNICA/HIPÓTESE DIAGNÓSTICA NÃO COMPATÍVEL"
+  },
+  {
+    "code" : "2718",
+    "display" : "EXAMES NÃO JUSTIFICAM CARÁTER DE URGÊNCIA"
+  },
+  {
+    "code" : "1209",
+    "display" : "SOLICITAÇÃO APÓS O DESLIGAMENTO DO CREDENCIADO"
+  },
+  {
+    "code" : "2717",
+    "display" : "COBRANÇA DE EXAME AMBULATORIAL COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "1208",
+    "display" : "SOLICITAÇÃO ANTERIOR À INCLUSÃO DO CREDENCIADO"
+  },
+  {
+    "code" : "2716",
+    "display" : "EXAME COBRADO NÃO CORRESPONDE AO EXAME EXECUTADO"
+  },
+  {
+    "code" : "1207",
+    "display" : "CREDENCIADO NÃO PERTENCE À REDE CREDENCIADA"
+  },
+  {
+    "code" : "1205",
+    "display" : "ADMISSÃO APÓS O DESLIGAMENTO DO CREDENCIADO DA REDE"
+  },
+  {
+    "code" : "2713",
+    "display" : "COBRANÇA DE EXAME NÃO COMPATÍVEL COM A IDADE."
+  },
+  {
+    "code" : "1204",
+    "display" : "ADMISSÃO ANTERIOR À INCLUSÃO DO CREDENCIADO NA REDE"
+  },
+  {
+    "code" : "2712",
+    "display" : "COBRANÇA DE EXAME EM QUANTIDADE ACIMA DA MÁXIMA PERMITIDA/AUTORIZADA"
+  },
+  {
+    "code" : "2715",
+    "display" : "EXAME REALIZADO PELO MESMO PROFISSIONAL, NA MESMA ESPECIALIDADE, NO PRAZO INFERIOR AO ESTIPULADO SEM JUSTIFICATIVA ADEQUADA."
+  },
+  {
+    "code" : "1206",
+    "display" : "CPF / CNPJ INVÁLIDO"
+  },
+  {
+    "code" : "2714",
+    "display" : "COBRANÇA DE EXAME COM AUSÊNCIA DE RESULTADO OU LAUDO TÉCNICO."
+  },
+  {
+    "code" : "1212",
+    "display" : "ATENDIMENTO / REFERÊNCIA FORA DA VIGÊNCIA DO CONTRATO DO PRESTADOR"
+  },
+  {
+    "code" : "2803",
+    "display" : "IDADE DO BENEFICIÁRIO INCOMPATÍVEL COM O PACOTE"
+  },
+  {
+    "code" : "1211",
+    "display" : "ASSINATURA / CARIMBO DO CREDENCIADO INEXISTENTE"
+  },
+  {
+    "code" : "2802",
+    "display" : "PACOTE INCOMPATÍVEL COM O SEXO DO BENEFICIÁRIO"
+  },
+  {
+    "code" : "2801",
+    "display" : "PACOTE INVÁLIDO"
+  },
+  {
+    "code" : "1210",
+    "display" : "SOLICITANTE CREDENCIADO NÃO CADASTRADO"
+  },
+  {
+    "code" : "1215",
+    "display" : "CREDENCIADO FORA DA ABRANGÊNCIA GEOGRÁFICA DO PLANO"
+  },
+  {
+    "code" : "2806",
+    "display" : "COBRANÇA DE PACOTE NÃO EXECUTADO"
+  },
+  {
+    "code" : "1214",
+    "display" : "CREDENCIADO NÃO HABILITADO A REALIZAR O PROCEDIMENTO"
+  },
+  {
+    "code" : "2805",
+    "display" : "VALOR DO PACOTE SUPERIOR AO VALOR DOS ITENS"
+  },
+  {
+    "code" : "1213",
+    "display" : "CBO (ESPECIALIDADE) INVÁLIDO"
+  },
+  {
+    "code" : "2804",
+    "display" : "VALOR TOTAL DO PACOTE DIFERENTE DO VALOR PROCESSADO"
+  },
+  {
+    "code" : "2705",
+    "display" : "COBRANÇA DE PROCEDIMENTO/EXAME SEM JUSTIFICATIVA PARA REALIZAÇÃO OU COM JUSTIFICATIVA INSUFICIENTE."
+  },
+  {
+    "code" : "1025",
+    "display" : "BENEFICIÁRIO NÃO POSSUI COBERTURA PARA ASSISTÊNCIA ODONTOLÓGICA"
+  },
+  {
+    "code" : "2704",
+    "display" : "COBRANÇA DE EXAME NÃO CORRELACIONADO AO RELATÓRIO ESPECÍFICO"
+  },
+  {
+    "code" : "1024",
+    "display" : "PLANO NÃO EXISTENTE"
+  },
+  {
+    "code" : "2703",
+    "display" : "EXAME SEM REGISTRO DE EXECUÇÃO"
+  },
+  {
+    "code" : "1023",
+    "display" : "NOME DO TITULAR INVÁLIDO"
+  },
+  {
+    "code" : "1021",
+    "display" : "VIA DE CARTÃO DO BENEFICIÁRIO NÃO LIBERADA"
+  },
+  {
+    "code" : "2613",
+    "display" : "HONORÁRIO MÉDICO DO ANESTESISTA JÁ LIBERADO NO PROCEDIMENTO CIRÚRGICO, POIS \"ANALGESIA POR DIA SUBSEQUENTE\" COBRADA NA MESMA DATA DO EVENTO CIRÚRGICO"
+  },
+  {
+    "code" : "1020",
+    "display" : "VIA DE CARTÃO DO BENEFICIÁRIO CANCELADA"
+  },
+  {
+    "code" : "2612",
+    "display" : "COBRANÇA INDEVIDA DE EQUIPE \"STAND-BY\", JÁ QUE ANGIOPLASTIA SEGUIDA DE CIRURGIA CARDÍACA"
+  },
+  {
+    "code" : "2702",
+    "display" : "COBRANÇA DE EXAME NÃO SOLICITADO PELO MÉDICO"
+  },
+  {
+    "code" : "1022",
+    "display" : "VIA DE CARTÃO DO BENEFICIÁRIO NÃO COMPATÍVEL"
+  },
+  {
+    "code" : "2614",
+    "display" : "COBRANÇA DE CADA PARTICIPANTE DA EQUIPE DEVE SER FEITA EM GUIAS DIFERENTES"
+  },
+  {
+    "code" : "2708",
+    "display" : "COBRANÇA DE EXAME EM QUANTIDADE INCOMPATÍVEL COM O PROCEDIMENTO/EVOLUÇÃO CLÍNICA"
+  },
+  {
+    "code" : "1103",
+    "display" : "PROTOCOLO NÃO É DE REAPRESENTAÇÃO"
+  },
+  {
+    "code" : "2707",
+    "display" : "EXAME NÃO AUTORIZADO"
+  },
+  {
+    "code" : "1102",
+    "display" : "PROTOCOLO É DE RE-APRESENTAÇÃO"
+  },
+  {
+    "code" : "2706",
+    "display" : "COBRANÇA DE PROCEDIMENTO/EXAME COM DATA DE AUTORIZAÇÃO POSTERIOR À DO ATENDIMENTO."
+  },
+  {
+    "code" : "1101",
+    "display" : "QUANTIDADE DE GUIAS INFORMADAS NO PROTOCOLO DIFERENTE DAS CADASTRADAS"
+  },
+  {
+    "code" : "1203",
+    "display" : "CÓDIGO PRESTADOR INVÁLIDO"
+  },
+  {
+    "code" : "1202",
+    "display" : "NÚMERO DO CNES INVÁLIDO"
+  },
+  {
+    "code" : "2711",
+    "display" : "COBRANÇA DE EXAME COM HISTÓRIA CLÍNICA/HIPÓTESE DIAGNÓSTICA NÃO COMPATÍVEL"
+  },
+  {
+    "code" : "1201",
+    "display" : "ATENDIMENTO FORA DA VIGÊNCIA DO CONTRATO COM O CREDENCIADO"
+  },
+  {
+    "code" : "2710",
+    "display" : "COBRANÇA DE EXAME QUE EXIGE AUTORIZAÇÃO PRÉVIA"
+  },
+  {
+    "code" : "1104",
+    "display" : "VALOR TOTAL DO PROTOCOLO DIFERENTE DO VALOR TOTAL DAS GUIAS"
+  },
+  {
+    "code" : "2605",
+    "display" : "NÃO CABE PAGAMENTO DO HONORÁRIO INTEGRAL POR SER A MESMA VIA DE ACESSO CIRÚRGICO."
+  },
+  {
+    "code" : "1013",
+    "display" : "CADASTRO DO BENEFICIÁRIO COM PROBLEMAS"
+  },
+  {
+    "code" : "2604",
+    "display" : "PROCEDIMENTO PRINCIPAL NÃO REQUER EQUIPE MÉDICA"
+  },
+  {
+    "code" : "1012",
+    "display" : "SERVIÇO PROFISSIONAL HOSPITALAR NÃO É COBERTO PELO PLANO DO BENEFICIÁRIO"
+  },
+  {
+    "code" : "2603",
+    "display" : "COBRANÇA DE HONORÁRIO SEM REGISTRO DA EFETIVA PARTICIPAÇÃO DO PROFISSIONAL"
+  },
+  {
+    "code" : "1011",
+    "display" : "IDENTIFICAÇÃO DO BENEFICIÁRIO NÃO CONSISTENTE"
+  },
+  {
+    "code" : "1009",
+    "display" : "BENEFICIÁRIO COM PAGAMENTO EM ABERTO"
+  },
+  {
+    "code" : "2516",
+    "display" : "QUANTIDADE COBRADA DIFERENTE DA REALIZADA"
+  },
+  {
+    "code" : "1008",
+    "display" : "ASSINATURA DIVERGENTE"
+  },
+  {
+    "code" : "2515",
+    "display" : "LOCAL DE ATENDIMENTO INADEQUADO"
+  },
+  {
+    "code" : "2602",
+    "display" : "COBRANÇA DE HONORÁRIO INCLUSO NO PROCEDIMENTO PRINCIPAL"
+  },
+  {
+    "code" : "1010",
+    "display" : "ASSINATURA DO TITULAR / RESPONSÁVEL INEXISTENTE"
+  },
+  {
+    "code" : "2601",
+    "display" : "CODIFICAÇÃO INCORRETA/INADEQUADA DO PROCEDIMENTO."
+  },
+  {
+    "code" : "2608",
+    "display" : "COBRANÇA DE CONSULTA INDEVIDA, QUANDO O PROCEDIMENTO PRINCIPAL JÁ ESTÁ SENDO REMUNERADO."
+  },
+  {
+    "code" : "1016",
+    "display" : "BENEFICIÁRIO COM ATENDIMENTO SUSPENSO"
+  },
+  {
+    "code" : "2607",
+    "display" : "COBRANÇA DE HONORÁRIOS EM DUPLICIDADE."
+  },
+  {
+    "code" : "1015",
+    "display" : "IDADE DO BENEFICIÁRIO ACIMA IDADE LIMITE"
+  },
+  {
+    "code" : "2606",
+    "display" : "COBRANÇA DO HONORÁRIO EM LOCAL DE ATENDIMENTO INCORRETO (INEXISTENTE)."
+  },
+  {
+    "code" : "1014",
+    "display" : "BENEFICIÁRIO COM DATA DE EXCLUSÃO"
+  },
+  {
+    "code" : "1019",
+    "display" : "FAMÍLIA DO BENEFICIÁRIO COM ATENDIMENTO SUSPENSO"
+  },
+  {
+    "code" : "2611",
+    "display" : "COBRANÇA DE ESPECIALISTA NÃO JUSTIFICADA NO EVENTO"
+  },
+  {
+    "code" : "1018",
+    "display" : "EMPRESA DO BENEFICIÁRIO SUSPENSA / EXCLUÍDA"
+  },
+  {
+    "code" : "2610",
+    "display" : "GRAU DE PARTICIPAÇÃO DE AUXILIAR INCOMPATÍVEL COM PROCEDIMENTO COBRADO"
+  },
+  {
+    "code" : "2609",
+    "display" : "LOCAL DE ATENDIMENTO NÃO INFORMADO."
+  },
+  {
+    "code" : "1017",
+    "display" : "DATA VALIDADE DA CARTEIRA VENCIDA"
+  },
+  {
+    "code" : "2511",
+    "display" : "AUSÊNCIA DE EVOLUÇÃO NO PRONTUÁRIO MÉDICO DO TRATAMENTO SERIADO REALIZADO."
+  },
+  {
+    "code" : "1003",
+    "display" : "A ADMISSÃO DO BENEFICIÁRIO NO PRESTADOR OCORREU ANTES DA INCLUSÃO DO BENEFICIÁRIO NA OPERADORA"
+  },
+  {
+    "code" : "2510",
+    "display" : "COBRANÇA DO PROCEDIMENTO SERIADO EM NÚMERO DE SESSÕES ACIMA DA QUANTIDADE ESTABELECIDA"
+  },
+  {
+    "code" : "2508",
+    "display" : "COBRANÇA DE SESSÕES SEM O DEVIDO PLANO DE TRATAMENTO E, OU, COM O PRAZO DE PAGAMENTO EXPIRADO"
+  },
+  {
+    "code" : "1001",
+    "display" : "NÚMERO DA CARTEIRA INVÁLIDO"
+  },
+  {
+    "code" : "1002",
+    "display" : "NÚMERO DO CARTÃO NACIONAL DE SAÚDE INVÁLIDO"
+  },
+  {
+    "code" : "2509",
+    "display" : "COBRANÇA DO PROCEDIMENTO SERIADO INCOMPATÍVEL COM O QUADRO CLÍNICO"
+  },
+  {
+    "code" : "2513",
+    "display" : "COBRANÇA DE TRATAMENTO SERIADO SEM JUSTIFICATIVA CLÍNICA/TÉCNICA"
+  },
+  {
+    "code" : "1005",
+    "display" : "ATENDIMENTO ANTERIOR À INCLUSÃO DO BENEFICIÁRIO"
+  },
+  {
+    "code" : "2512",
+    "display" : "COBRANÇA DE SESSÕES DE FISIOTERAPIA EM DESACORDO COM AS EVOLUÇÕES DO PRONTUÁRIO MÉDICO"
+  },
+  {
+    "code" : "1004",
+    "display" : "SOLICITAÇÃO ANTERIOR À INCLUSÃO DO BENEFICIÁRIO"
+  },
+  {
+    "code" : "1007",
+    "display" : "ATENDIMENTO DENTRO DA CARÊNCIA DO BENEFICIÁRIO"
+  },
+  {
+    "code" : "2514",
+    "display" : "SERVIÇO NÃO CONTRATADO PARA O PRESTADOR"
+  },
+  {
+    "code" : "1006",
+    "display" : "ATENDIMENTO APÓS O DESLIGAMENTO DO BENEFICIÁRIO"
+  }]
+}

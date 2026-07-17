@@ -22,11 +22,19 @@ import { toHttpResponse } from '@/lib/observability/http'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const materialItemSchema = z.object({
-  tuss_code: z.string().min(1).max(20),
-  tuss_description: z.string().min(1).max(500),
-  quantity: z.number().int().positive().default(1),
-})
+const materialItemSchema = z
+  .object({
+    // Feature 007 (TUSS 19) + Feature 045 (catálogo/insumo livre + custo).
+    tuss_code: z.string().min(1).max(20).nullable().optional(),
+    tuss_description: z.string().min(1).max(500).nullable().optional(),
+    material_id: z.string().uuid().nullable().optional(),
+    material_name: z.string().min(1).max(200).nullable().optional(),
+    quantity: z.number().int().positive().default(1),
+    unit_cost_cents: z.number().int().min(0).optional(),
+  })
+  .refine((m) => Boolean(m.tuss_code || m.material_id || m.material_name), {
+    message: 'Informe material do catálogo, insumo livre ou código TUSS.',
+  })
 
 const procedureLineSchema = z.object({
   procedure_id: z.string().uuid(),
@@ -97,9 +105,12 @@ export async function POST(req: Request): Promise<Response> {
     const supabase = createSupabaseServiceClient()
     const materialsInput = parsed.data.materiais
       ? parsed.data.materiais.map((m) => ({
-          tussCode: m.tuss_code,
-          tussDescription: m.tuss_description,
+          tussCode: m.tuss_code ?? null,
+          tussDescription: m.tuss_description ?? null,
+          materialId: m.material_id ?? null,
+          materialName: m.material_name ?? null,
           quantity: m.quantity,
+          unitCostCents: m.unit_cost_cents,
         }))
       : undefined
 

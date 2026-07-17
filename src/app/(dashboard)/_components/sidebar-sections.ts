@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   MessageCircle,
   Receipt,
+  Salad,
   ScrollText,
   Settings,
   TrendingDown,
@@ -68,6 +69,14 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Pacientes',
         icon: Users,
         show: ({ role }) => can(role, 'appointment.read'),
+      },
+      {
+        href: '/operacao/avaliacao-nutricional',
+        label: 'Avaliação Nutricional',
+        icon: Salad,
+        show: ({ role, ent }) =>
+          ent.hasModule('nutri_avaliacao') &&
+          (role === 'admin' || role === 'profissional_saude' || role === 'recepcionista'),
       },
       {
         href: '/operacao/tarefas',

@@ -167,6 +167,16 @@ export function ByPlanReportDocument({
             <Text style={styles.summaryValue}>{formatBRL(detail.totals.totalRevenueCents)}</Text>
           </View>
           <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Gasto com materiais</Text>
+            <Text style={styles.summaryValue}>{formatBRL(detail.totals.materialsCostCents)}</Text>
+          </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Margem após materiais</Text>
+            <Text style={styles.summaryValue}>
+              {formatBRL(detail.totals.netAfterMaterialsCents)}
+            </Text>
+          </View>
+          <View style={styles.summaryCard}>
             <Text style={styles.summaryLabel}>Profissional com mais procedimentos</Text>
             <Text style={styles.summaryValue}>
               {detail.topDoctor

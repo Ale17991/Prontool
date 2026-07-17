@@ -519,11 +519,27 @@ export default async function AtendimentoDetailPage({ params }: { params: { id: 
                   key={m.id}
                   className="flex flex-wrap items-center gap-2 rounded border border-slate-200 bg-slate-50/40 px-2.5 py-1.5 text-xs"
                 >
-                  <span className="font-mono font-bold text-slate-900">{m.tussCode}</span>
-                  <span className="min-w-0 flex-1 text-slate-700">{m.tussDescription}</span>
+                  {m.tussCode ? (
+                    <span className="font-mono font-bold text-slate-900">{m.tussCode}</span>
+                  ) : null}
+                  <span className="min-w-0 flex-1 text-slate-700">{m.name}</span>
+                  {m.costPending ? (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                      custo pendente
+                    </span>
+                  ) : (
+                    <span className="tabular-nums text-slate-500">
+                      {formatCurrency(m.unitCostCents)} un.
+                    </span>
+                  )}
                   <span className="rounded bg-slate-200 px-2 py-0.5 text-[11px] text-slate-700">
                     Qtd {m.quantity}
                   </span>
+                  {!m.costPending ? (
+                    <span className="tabular-nums font-medium text-slate-800">
+                      {formatCurrency(m.totalCostCents)}
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

@@ -36,6 +36,14 @@ export interface SwitchTenantInput {
   userEmail: string | null
   ip?: string | null
   userAgent?: string | null
+  /**
+   * Modo somente-leitura (impersonação de suporte). Quando `true`, grava
+   * `user_metadata.support_view_tenant_id = tenantId` — o auth hook (0171) usa
+   * essa flag para manter o super-admin em read-only nessa clínica. Quando
+   * `false`/omitido, a flag é REMOVIDA (switch normal/edição = escrita liberada
+   * para super; suporte segue read-only pela regra do hook, independente disso).
+   */
+  readOnly?: boolean
 }
 
 export interface SwitchTenantResult {
@@ -108,11 +116,20 @@ export async function switchActiveTenant(
 
   const { data: existingUser } = await supabaseService.auth.admin.getUserById(input.userId)
   const existingMetadata = existingUser?.user?.user_metadata ?? {}
+  const nextMetadata: Record<string, unknown> = {
+    ...existingMetadata,
+    active_tenant_id: input.tenantId,
+  }
+  if (input.readOnly) {
+    // Impersonação de suporte: marca a clínica como somente-leitura para o hook.
+    nextMetadata.support_view_tenant_id = input.tenantId
+  } else {
+    // Switch normal/edição: garante que nenhuma flag de leitura sobre de uma
+    // impersonação anterior (senão o super entraria travado por engano).
+    delete nextMetadata.support_view_tenant_id
+  }
   const { error: metaErr } = await supabaseService.auth.admin.updateUserById(input.userId, {
-    user_metadata: {
-      ...existingMetadata,
-      active_tenant_id: input.tenantId,
-    },
+    user_metadata: nextMetadata,
   })
   if (metaErr) {
     throw new ConflictError('switch_failed', `Falha ao atualizar metadata: ${metaErr.message}`)

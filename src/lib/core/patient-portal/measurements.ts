@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { DomainError, NotFoundError } from '@/lib/observability/errors'
-import { getMetricType, type PatientMetricType } from './metric-types'
+import { getMetricType, listMetricTypes, type PatientMetricType } from './metric-types'
 
 /**
  * Feature 030 — motor de medições longitudinais (`patient_measurements`).
@@ -172,4 +172,119 @@ export async function recordMeasurement(
   }
 
   return { measurement: toDto(data as unknown as DbRow), metricType }
+}
+
+export interface BatchEntryInput {
+  metricType: string
+  value: number
+  unit?: string | null
+}
+
+export interface RecordMeasurementsBatchInput {
+  tenantId: string
+  patientId: string
+  /** Data única de toda a sessão (YYYY-MM-DD). */
+  measuredAt: string
+  /** Observação aplicada a todas as linhas da sessão. */
+  notes?: string | null
+  entries: BatchEntryInput[]
+  actorUserId: string
+}
+
+/**
+ * Feature 045+ (bioimpedância) — registra VÁRIAS medições de uma vez, com a
+ * mesma `measured_at` (uma sessão de exame). Valida TODAS as entradas contra o
+ * catálogo antes de inserir e grava num único INSERT — atômico: se qualquer
+ * valor estiver fora da faixa plausível, nada é gravado (evita meia-sessão).
+ * Append-only como `recordMeasurement`.
+ */
+export async function recordMeasurementsBatch(
+  supabase: SupabaseClient<Database>,
+  input: RecordMeasurementsBatchInput,
+): Promise<{ measurements: MeasurementDTO[] }> {
+  if (input.entries.length === 0) {
+    throw new DomainError('MEASUREMENTS_REQUIRED', 'Informe ao menos uma medição.', { status: 400 })
+  }
+
+  // Paciente precisa pertencer ao tenant da sessão.
+  const pat = await supabase
+    .from('patients')
+    .select('id')
+    .eq('tenant_id', input.tenantId)
+    .eq('id', input.patientId)
+    .maybeSingle()
+  if (pat.error) throw new Error(`patient lookup failed: ${pat.error.message}`)
+  if (!pat.data) throw new NotFoundError('patient', input.patientId)
+
+  // Catálogo visível à clínica (globais + custom dela) indexado por metric_type.
+  const catalog = new Map(
+    (await listMetricTypes(supabase, { tenantId: input.tenantId })).map((t) => [t.metricType, t]),
+  )
+
+  const problems: string[] = []
+  const rows = input.entries.map((e) => {
+    const t = catalog.get(e.metricType)
+    if (!t || !t.active) {
+      problems.push(`Métrica "${e.metricType}" não existe no catálogo (ou está desativada).`)
+      return null
+    }
+    if (!Number.isFinite(e.value)) {
+      problems.push(`${t.label}: valor inválido.`)
+      return null
+    }
+    if (e.value < t.minPlausible || e.value > t.maxPlausible) {
+      problems.push(
+        `${t.label}: ${e.value} ${t.unit} fora da faixa plausível ` +
+          `(${t.minPlausible}–${t.maxPlausible} ${t.unit}).`,
+      )
+      return null
+    }
+    return {
+      tenant_id: input.tenantId,
+      patient_id: input.patientId,
+      metric_type: e.metricType,
+      value: e.value,
+      unit: e.unit?.trim() || t.unit,
+      measured_at: input.measuredAt,
+      notes: input.notes?.trim() || null,
+      created_by_user_id: input.actorUserId,
+    }
+  })
+
+  if (problems.length > 0) {
+    throw new DomainError('MEASUREMENT_OUT_OF_RANGE', problems.join(' '), { status: 422 })
+  }
+
+  const { data, error } = await supabase
+    .from('patient_measurements')
+    .insert(rows as never)
+    .select(COLUMNS)
+  if (error || !data) {
+    if (error?.message?.includes('MEASUREMENT_OUT_OF_RANGE') || error?.message?.includes('METRIC_TYPE_')) {
+      throw new DomainError('MEASUREMENT_REJECTED', error.message, { status: 422 })
+    }
+    throw new Error(`recordMeasurementsBatch insert failed: ${error?.message}`)
+  }
+
+  const measurements = (data as unknown as DbRow[]).map(toDto)
+
+  // Auditoria da sessão (best-effort).
+  try {
+    await supabase.rpc(
+      'log_audit_event' as never,
+      {
+        p_tenant_id: input.tenantId,
+        p_entity: 'patient_measurements',
+        p_entity_id: input.patientId,
+        p_field: 'recorded_batch',
+        p_old: null,
+        p_new: measurements.map((m) => `${m.metricType}=${m.value}`).join(', '),
+        p_reason: `actor=${input.actorUserId} measured_at=${input.measuredAt}`,
+      } as never,
+    )
+  } catch {
+    // best-effort
+  }
+
+  return { measurements }
 }

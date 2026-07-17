@@ -46,6 +46,7 @@ export async function renderFinancialReportExcel(
   moneyRow('Comissões pagas', report.totals.commissionsCents)
   moneyRow('Receita líquida', report.totals.netRevenueCents)
   moneyRow('Total despesas', report.totals.totalExpensesCents)
+  moneyRow('Gasto com materiais', report.totals.materialsCostCents)
   moneyRow('Lucro operacional', report.totals.operatingProfitCents)
   const margin = summary.addRow({
     metric: 'Margem operacional',
@@ -60,6 +61,7 @@ export async function renderFinancialReportExcel(
     { header: 'Convênio', key: 'plan', width: 32 },
     { header: 'Atendimentos', key: 'count', width: 16 },
     { header: 'Total bruto', key: 'gross', width: 22, style: { numFmt: BRL } },
+    { header: 'Gasto com materiais', key: 'materials', width: 20, style: { numFmt: BRL } },
     { header: 'Market share', key: 'share', width: 16, style: { numFmt: PCT } },
   ]
   plans.getRow(1).font = { bold: true }
@@ -68,6 +70,7 @@ export async function renderFinancialReportExcel(
       plan: row.planName,
       count: row.appointmentCount,
       gross: row.grossRevenueCents / 100,
+      materials: row.materialsCostCents / 100,
       share: row.marketSharePct / 100,
     })
   }
@@ -78,6 +81,7 @@ export async function renderFinancialReportExcel(
     { header: 'Profissional', key: 'name', width: 32 },
     { header: 'Atendimentos', key: 'count', width: 16 },
     { header: 'Faturamento bruto', key: 'gross', width: 24, style: { numFmt: BRL } },
+    { header: 'Gasto com materiais', key: 'materials', width: 20, style: { numFmt: BRL } },
   ]
   docs.getRow(1).font = { bold: true }
   for (const row of report.topDoctors) {
@@ -85,6 +89,7 @@ export async function renderFinancialReportExcel(
       name: row.doctorName,
       count: row.appointmentCount,
       gross: row.grossRevenueCents / 100,
+      materials: row.materialsCostCents / 100,
     })
   }
 

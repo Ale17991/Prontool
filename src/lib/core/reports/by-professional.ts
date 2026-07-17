@@ -13,6 +13,7 @@ import {
   type ReportDoctorRow as DoctorRow,
 } from './_sources'
 import { aggregateDoctorPlanMatrix, type DoctorPlanBreakdown } from './doctor-plan-matrix'
+import { materialsCostByDoctor } from './materials-cost'
 
 /**
  * Agregadores para o relatorio "Por Profissional":
@@ -49,6 +50,10 @@ export interface ProfessionalSummaryRow {
   totalTaxFromPlanCents: number
   /** Receita líquida do médico após o imposto do convênio. */
   totalNetOfTaxCents: number
+  /** Feature 045 — gasto com materiais atribuído aos atendimentos deste médico. */
+  totalMaterialsCostCents: number
+  /** Margem real do médico = receita líquida (após imposto) − gasto com materiais. */
+  netAfterMaterialsCents: number
   /** Quebra da receita/comissão deste médico por convênio. */
   byPlan: DoctorPlanBreakdown[]
 }
@@ -106,6 +111,10 @@ export interface ProfessionalDetail {
     totalTaxFromPlanCents: number
     /** Receita líquida após o imposto do convênio. */
     totalNetOfTaxCents: number
+    /** Feature 045 — gasto com materiais dos atendimentos deste médico. */
+    totalMaterialsCostCents: number
+    /** Margem real = receita líquida (após imposto) − gasto com materiais. */
+    netAfterMaterialsCents: number
   }
   /** Subtotais por convênio dentro deste profissional. */
   byPlan: DoctorPlanBreakdown[]
@@ -230,17 +239,22 @@ export async function summaryByProfessional(
   const fromTs = ymdStartOfDayUtc(input.from, tz)
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
-  const [active, allDoctors, participations] = await Promise.all([
+  const [active, allDoctors, participations, materialsByDoctor] = await Promise.all([
     fetchActiveAppointments(supabase, input.tenantId, fromTs, toExclusive),
     fetchAllDoctors(supabase, input.tenantId),
     fetchParticipations(supabase, input.tenantId, input.from, input.to),
+    materialsCostByDoctor(supabase, {
+      tenantId: input.tenantId,
+      fromIso: fromTs,
+      toIso: toExclusive,
+    }),
   ])
   const partByDoctor = new Map<string, number>()
   for (const p of participations) {
     partByDoctor.set(p.doctorId, (partByDoctor.get(p.doctorId) ?? 0) + p.amountCents)
   }
   if (active.length === 0) {
-    return enrichAllDoctorsWithZero(allDoctors, partByDoctor)
+    return enrichAllDoctorsWithZero(allDoctors, partByDoctor, materialsByDoctor)
   }
 
   const lines = await fetchLines(
@@ -272,6 +286,8 @@ export async function summaryByProfessional(
 
   const out: ProfessionalSummaryRow[] = allDoctors.map((d) => {
     const agg = rollupById.get(d.id)
+    const netOfTax = agg?.netOfTaxCents ?? 0
+    const materialsCost = materialsByDoctor.get(d.id) ?? 0
     return {
       doctorId: d.id,
       doctorName: d.full_name,
@@ -282,7 +298,9 @@ export async function summaryByProfessional(
       totalCommissionCents: agg?.commissionCents ?? 0,
       totalParticipationCents: partByDoctor.get(d.id) ?? 0,
       totalTaxFromPlanCents: agg?.taxFromPlanCents ?? 0,
-      totalNetOfTaxCents: agg?.netOfTaxCents ?? 0,
+      totalNetOfTaxCents: netOfTax,
+      totalMaterialsCostCents: materialsCost,
+      netAfterMaterialsCents: netOfTax - materialsCost,
       byPlan: agg?.byPlan ?? [],
     }
   })
@@ -312,6 +330,14 @@ export async function detailByProfessional(
   const toExclusive = ymdNextDayStartUtc(input.to, tz)
 
   const doctor = await fetchDoctorById(supabase, input.tenantId, input.doctorId)
+
+  // Feature 045 — gasto com materiais atribuído a este médico no período.
+  const materialsByDoctor = await materialsCostByDoctor(supabase, {
+    tenantId: input.tenantId,
+    fromIso: fromTs,
+    toIso: toExclusive,
+  })
+  const totalMaterialsCostCents = materialsByDoctor.get(input.doctorId) ?? 0
 
   // Honorários de participação deste profissional (independe de ser executante).
   const allParticipations = await fetchParticipations(
@@ -354,6 +380,8 @@ export async function detailByProfessional(
         totalParticipationCents,
         totalTaxFromPlanCents: 0,
         totalNetOfTaxCents: 0,
+        totalMaterialsCostCents,
+        netAfterMaterialsCents: -totalMaterialsCostCents,
       },
       byPlan: [],
       participations,
@@ -467,6 +495,8 @@ export async function detailByProfessional(
       totalParticipationCents,
       totalTaxFromPlanCents,
       totalNetOfTaxCents,
+      totalMaterialsCostCents,
+      netAfterMaterialsCents: totalNetOfTaxCents - totalMaterialsCostCents,
     },
     byPlan,
     participations,
@@ -489,21 +519,29 @@ function mapDoctor(d: DoctorRow): ProfessionalDetail['doctor'] {
 function enrichAllDoctorsWithZero(
   doctors: DoctorRow[],
   partByDoctor?: Map<string, number>,
+  materialsByDoctor?: Map<string, number>,
 ): ProfessionalSummaryRow[] {
   return doctors
-    .map((d) => ({
-      doctorId: d.id,
-      doctorName: d.full_name,
-      role: d.role,
-      specialty: d.specialty,
-      procedureCount: 0,
-      totalRevenueCents: 0,
-      totalCommissionCents: 0,
-      totalParticipationCents: partByDoctor?.get(d.id) ?? 0,
-      totalTaxFromPlanCents: 0,
-      totalNetOfTaxCents: 0,
-      byPlan: [],
-    }))
+    .map((d) => {
+      // Sem atendimentos ativos no período não há receita; ainda assim um médico
+      // pode ter material custeado (ex.: material lançado antes do estorno some).
+      const materialsCost = materialsByDoctor?.get(d.id) ?? 0
+      return {
+        doctorId: d.id,
+        doctorName: d.full_name,
+        role: d.role,
+        specialty: d.specialty,
+        procedureCount: 0,
+        totalRevenueCents: 0,
+        totalCommissionCents: 0,
+        totalParticipationCents: partByDoctor?.get(d.id) ?? 0,
+        totalTaxFromPlanCents: 0,
+        totalNetOfTaxCents: 0,
+        totalMaterialsCostCents: materialsCost,
+        netAfterMaterialsCents: -materialsCost,
+        byPlan: [],
+      }
+    })
     .sort((a, b) => a.doctorName.localeCompare(b.doctorName, 'pt-BR'))
 }
 

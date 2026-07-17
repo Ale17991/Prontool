@@ -38,6 +38,7 @@ export async function POST(req: Request): Promise<Response> {
       userId: actorId,
       tenantId,
       userEmail: null,
+      readOnly: true,
     })
 
     await sb.from('audit_log').insert({

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { superAdminUserId } from '@/lib/auth/platform-admin'
 import { listTeamMembers } from '@/lib/core/team/list'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { ClinicDataForm } from './clinic-data-form'
@@ -26,7 +27,8 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     entRes,
     userCountRes,
     apptCountRes,
-    lastActivityRes,
+    lastAuditRes,
+    lastApptRes,
     integrationsRes,
     members,
     auditRes,
@@ -46,6 +48,16 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
+    // "Última atividade" = uso real da clínica. audit_log só pega eventos
+    // auditados/ações de admin; o agendamento mais recente (created_at) reflete
+    // a operação do dia a dia. Pegamos o mais recente entre os dois (abaixo).
+    sb
+      .from('appointments')
+      .select('created_at')
+      .eq('tenant_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     sb.from('tenant_integrations').select('provider, status').eq('tenant_id', id),
     listTeamMembers(createSupabaseServiceClient(), { tenantId: id, requesterId: '' }).catch(
       () => [],
@@ -60,6 +72,9 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
 
   const tenant = tenantRes.data as { id: string; name: string; slug: string; status: string } | null
   if (!tenant) notFound()
+
+  // Só o super-admin geral pode "Entrar e editar"; suporte só visualiza.
+  const isSuper = (await superAdminUserId()) !== null
 
   const profile = await getClinicProfile(sb, id)
 
@@ -86,10 +101,18 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
     (integrationsRes.data ?? []) as Array<{ provider: string; status: string | null }>
   ).map((i) => i.provider)
 
+  const lastAuditAt = (lastAuditRes.data as { created_at?: string } | null)?.created_at ?? null
+  const lastApptAt = (lastApptRes.data as { created_at?: string } | null)?.created_at ?? null
+  // Mais recente entre auditoria e agendamento (ambos podem ser null).
+  const lastActivity = [lastAuditAt, lastApptAt]
+    .filter((d): d is string => Boolean(d))
+    .sort()
+    .at(-1) ?? null
+
   const metrics = {
     userCount: (userCountRes.count as number | null) ?? 0,
     appointmentCount: (apptCountRes.count as number | null) ?? 0,
-    lastActivity: (lastActivityRes.data as { created_at?: string } | null)?.created_at ?? null,
+    lastActivity,
     integrations,
   }
 
@@ -136,7 +159,7 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
         </Link>
       </div>
 
-      <ClinicDetail row={row} metrics={metrics} users={users} audit={audit} />
+      <ClinicDetail row={row} metrics={metrics} users={users} audit={audit} isSuper={isSuper} />
 
       <ClinicDataForm
         tenantId={tenant.id}

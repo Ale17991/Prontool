@@ -3,16 +3,51 @@ import type { Database } from '@/lib/db/types'
 
 /**
  * Material registrado em um atendimento. Imutavel apos criacao
- * (Principio I — append-only via trigger). Snapshot do catalogo TUSS
- * tabela 19 no momento da insercao.
+ * (Principio I — append-only via trigger), EXCETO o custo, que pode ser
+ * completado/corrigido via `setAppointmentMaterialCost` (column-guard).
+ *
+ * Feature 045: acrescenta custo (snapshot congelado), proveniência de
+ * catálogo e insumo livre (tuss opcional).
  */
 export interface AppointmentMaterial {
   id: string
+  /** Nome de exibição: material_name → tuss_description → tuss_code → '—'. */
+  name: string
   tussCode: string
   tussDescription: string
+  materialId: string | null
   quantity: number
+  unitCostCents: number
+  totalCostCents: number
+  /** true quando o custo ainda não foi informado (unit_cost_cents = 0). */
+  costPending: boolean
   createdAt: string
   createdBy: string
+}
+
+const SELECT =
+  'id, tuss_code, tuss_description, material_id, material_name, quantity, unit_cost_cents, created_at, created_by'
+
+/** Mapeia uma linha de appointment_materials para o DTO (reusado por attach). */
+export function mapAppointmentMaterialRow(r: Record<string, unknown>): AppointmentMaterial {
+  const tussCode = (r.tuss_code as string | null) ?? ''
+  const tussDescription = (r.tuss_description as string | null) ?? ''
+  const materialName = (r.material_name as string | null) ?? ''
+  const quantity = r.quantity as number
+  const unitCostCents = (r.unit_cost_cents as number | null) ?? 0
+  return {
+    id: r.id as string,
+    name: materialName || tussDescription || tussCode || '—',
+    tussCode,
+    tussDescription,
+    materialId: (r.material_id as string | null) ?? null,
+    quantity,
+    unitCostCents,
+    totalCostCents: unitCostCents * quantity,
+    costPending: unitCostCents === 0,
+    createdAt: r.created_at as string,
+    createdBy: r.created_by as string,
+  }
 }
 
 export interface ListMaterialsInput {
@@ -31,7 +66,7 @@ export async function listAppointmentMaterials(
 ): Promise<AppointmentMaterial[]> {
   const { data, error } = await supabase
     .from('appointment_materials' as never)
-    .select('id, tuss_code, tuss_description, quantity, created_at, created_by')
+    .select(SELECT)
     .eq('appointment_id', input.appointmentId)
     .eq('tenant_id', input.tenantId)
     .order('created_at', { ascending: true })
@@ -45,14 +80,7 @@ export async function listAppointmentMaterials(
     throw new Error(`listAppointmentMaterials failed: ${error.message}`)
   }
 
-  return (data ?? []).map((r: Record<string, unknown>) => ({
-    id: r.id as string,
-    tussCode: r.tuss_code as string,
-    tussDescription: r.tuss_description as string,
-    quantity: r.quantity as number,
-    createdAt: r.created_at as string,
-    createdBy: r.created_by as string,
-  }))
+  return ((data ?? []) as Array<Record<string, unknown>>).map(mapAppointmentMaterialRow)
 }
 
 /**
@@ -68,7 +96,7 @@ export async function listMaterialsByAppointmentIds(
 
   const { data, error } = await supabase
     .from('appointment_materials' as never)
-    .select('id, appointment_id, tuss_code, tuss_description, quantity, created_at, created_by')
+    .select(`appointment_id, ${SELECT}`)
     .in('appointment_id', appointmentIds)
     .eq('tenant_id', tenantId)
     .order('created_at', { ascending: true })
@@ -84,14 +112,7 @@ export async function listMaterialsByAppointmentIds(
   for (const r of (data ?? []) as Array<Record<string, unknown>>) {
     const aid = r.appointment_id as string
     if (!grouped[aid]) grouped[aid] = []
-    grouped[aid].push({
-      id: r.id as string,
-      tussCode: r.tuss_code as string,
-      tussDescription: r.tuss_description as string,
-      quantity: r.quantity as number,
-      createdAt: r.created_at as string,
-      createdBy: r.created_by as string,
-    })
+    grouped[aid].push(mapAppointmentMaterialRow(r))
   }
   return grouped
 }

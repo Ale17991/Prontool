@@ -66,8 +66,20 @@ export interface CreateManualAppointmentInput {
   appointmentAt: string
   durationMinutes?: number
   observacoes?: string
-  /** Materiais opcionais (TUSS tabela 19). Feature 007. */
-  materials?: Array<{ tussCode: string; tussDescription: string; quantity: number }>
+  /**
+   * Materiais opcionais. Feature 007 (TUSS 19) + Feature 045 (custo, catálogo,
+   * insumo livre). Cada item traz ao menos um identificador
+   * (`tussCode` | `materialId` | `materialName`) e um snapshot de custo
+   * (`unitCostCents`, 0 = pendência).
+   */
+  materials?: Array<{
+    tussCode?: string | null
+    tussDescription?: string | null
+    materialId?: string | null
+    materialName?: string | null
+    quantity: number
+    unitCostCents?: number
+  }>
   /** Profissionais assistentes (modalidade Liberal). Feature 013 US2 (legado). */
   assistants?: Array<{ assistantDoctorId: string; amountCents: number }>
   /**
@@ -363,32 +375,56 @@ export async function createAppointmentManually(
   const totalCents = lines.reduce((acc, l) => acc + l.lineAmountCents * l.quantity, 0)
 
   // Materiais — pre-validacao (defesa redundante ao trigger SQL).
-  let materialsPayload: Array<{ tuss_code: string; tuss_description: string; quantity: number }> =
-    []
+  // Feature 045: só materiais COM tuss_code precisam de validação TUSS 19;
+  // insumos livres (material_name) e do catálogo (material_id) não têm código.
+  let materialsPayload: Array<{
+    tuss_code: string | null
+    tuss_description: string | null
+    material_id: string | null
+    material_name: string | null
+    quantity: number
+    unit_cost_cents: number
+  }> = []
   if (input.materials && input.materials.length > 0) {
-    const codes = input.materials.map((m) => m.tussCode)
-    const valid = await supabase
-      .from('tuss_codes')
-      .select('code')
-      .in('code', codes)
-      .eq('tuss_table', '19')
-      .is('valid_to', null)
-    if (valid.error) {
-      throw new Error(`pre-validate materials TUSS failed: ${valid.error.message}`)
+    for (const m of input.materials) {
+      if (!m.tussCode && !m.materialId && !m.materialName) {
+        throw new DomainError(
+          'MATERIAL_IDENTIFIER_REQUIRED',
+          'Cada material precisa de código TUSS, insumo do catálogo ou nome livre.',
+          { status: 400 },
+        )
+      }
     }
-    const validSet = new Set((valid.data ?? []).map((r) => r.code as string))
-    const invalid = codes.filter((c) => !validSet.has(c))
-    if (invalid.length > 0) {
-      throw new DomainError(
-        'MATERIAL_TUSS_INVALID',
-        `Códigos TUSS inválidos ou não vigentes: ${invalid.join(', ')}`,
-        { status: 400 },
-      )
+    const codes = input.materials
+      .map((m) => m.tussCode)
+      .filter((c): c is string => typeof c === 'string' && c.length > 0)
+    if (codes.length > 0) {
+      const valid = await supabase
+        .from('tuss_codes')
+        .select('code')
+        .in('code', codes)
+        .eq('tuss_table', '19')
+        .is('valid_to', null)
+      if (valid.error) {
+        throw new Error(`pre-validate materials TUSS failed: ${valid.error.message}`)
+      }
+      const validSet = new Set((valid.data ?? []).map((r) => r.code as string))
+      const invalid = codes.filter((c) => !validSet.has(c))
+      if (invalid.length > 0) {
+        throw new DomainError(
+          'MATERIAL_TUSS_INVALID',
+          `Códigos TUSS inválidos ou não vigentes: ${invalid.join(', ')}`,
+          { status: 400 },
+        )
+      }
     }
     materialsPayload = input.materials.map((m) => ({
-      tuss_code: m.tussCode,
-      tuss_description: m.tussDescription,
+      tuss_code: m.tussCode ?? null,
+      tuss_description: m.tussDescription ?? null,
+      material_id: m.materialId ?? null,
+      material_name: m.materialName ?? null,
       quantity: m.quantity,
+      unit_cost_cents: m.unitCostCents ?? 0,
     }))
   }
 

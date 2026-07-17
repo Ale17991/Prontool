@@ -222,10 +222,11 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
       patientId: params.id,
     },
   ).catch(safeFail<Record<string, MeasurementDTO[]>>('measurements', {}))
+  // Todas as métricas longitudinais habilitadas (endócrino + nutrição/
+  // bioimpedância + custom da clínica) — o card decide como agrupar.
   const metricTypesPromise: Promise<PatientMetricType[]> = listEnabledMetricTypesForTenant(
     typedClient,
     session.tenantId,
-    { specialty: 'endocrino' },
   ).catch(safeFail<PatientMetricType[]>('metric-types', []))
   const diagnosesPromise: Promise<PatientDiagnosisDTO[]> = listDiagnoses(typedClient, {
     tenantId: session.tenantId,

@@ -184,6 +184,10 @@ export function FinancialReportDocument({
             <Text style={styles.summaryLabel}>Total despesas</Text>
             <Text style={styles.summaryValue}>-{formatBRL(totals.totalExpensesCents)}</Text>
           </View>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLabel}>Gasto com materiais</Text>
+            <Text style={styles.summaryValue}>-{formatBRL(totals.materialsCostCents)}</Text>
+          </View>
         </View>
         <View style={styles.profitCard}>
           <Text style={styles.profitLabel}>LUCRO OPERACIONAL</Text>
@@ -199,6 +203,7 @@ export function FinancialReportDocument({
             <Text style={[styles.th, styles.cellName]}>Convênio</Text>
             <Text style={[styles.th, styles.cellCount]}>Atend.</Text>
             <Text style={[styles.th, styles.cellMetric]}>Total bruto</Text>
+            <Text style={[styles.th, styles.cellMetric]}>Materiais</Text>
             <Text style={[styles.th, styles.cellCount]}>Share</Text>
           </View>
           {report.revenueByPlan.length === 0 ? (
@@ -210,6 +215,9 @@ export function FinancialReportDocument({
                 <Text style={[styles.td, styles.cellCount]}>{row.appointmentCount}</Text>
                 <Text style={[styles.td, styles.cellMetric]}>
                   {formatBRL(row.grossRevenueCents)}
+                </Text>
+                <Text style={[styles.td, styles.cellMetric]}>
+                  {formatBRL(row.materialsCostCents)}
                 </Text>
                 <Text style={[styles.td, styles.cellCount]}>{row.marketSharePct.toFixed(1)}%</Text>
               </View>
@@ -223,6 +231,7 @@ export function FinancialReportDocument({
             <Text style={[styles.th, styles.cellName]}>Profissional</Text>
             <Text style={[styles.th, styles.cellCount]}>Atend.</Text>
             <Text style={[styles.th, styles.cellMetric]}>Faturamento</Text>
+            <Text style={[styles.th, styles.cellMetric]}>Materiais</Text>
           </View>
           {report.topDoctors.length === 0 ? (
             <Text style={styles.emptyNote}>Sem dados no período.</Text>
@@ -233,6 +242,9 @@ export function FinancialReportDocument({
                 <Text style={[styles.td, styles.cellCount]}>{row.appointmentCount}</Text>
                 <Text style={[styles.td, styles.cellMetric]}>
                   {formatBRL(row.grossRevenueCents)}
+                </Text>
+                <Text style={[styles.td, styles.cellMetric]}>
+                  {formatBRL(row.materialsCostCents)}
                 </Text>
               </View>
             ))

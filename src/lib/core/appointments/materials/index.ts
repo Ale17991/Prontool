@@ -1,6 +1,7 @@
 export {
   listAppointmentMaterials,
   listMaterialsByAppointmentIds,
+  mapAppointmentMaterialRow,
   type AppointmentMaterial,
   type ListMaterialsInput,
 } from './list'
@@ -11,3 +12,5 @@ export {
   type AttachMaterialsInput,
   type AttachMaterialsResult,
 } from './attach'
+
+export { setAppointmentMaterialCost, type SetMaterialCostInput } from './set-cost'
