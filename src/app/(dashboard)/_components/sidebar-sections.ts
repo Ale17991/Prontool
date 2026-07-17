@@ -21,6 +21,7 @@ import {
   Salad,
   ScrollText,
   Settings,
+  Smile,
   TrendingDown,
   TrendingUp,
   Users,
@@ -71,8 +72,16 @@ export const SECTIONS: readonly NavSection[] = [
         show: ({ role }) => can(role, 'appointment.read'),
       },
       {
+        href: '/operacao/odonto',
+        label: 'Odontologia',
+        icon: Smile,
+        show: ({ role, ent }) =>
+          ent.hasModule('odonto') &&
+          (role === 'admin' || role === 'profissional_saude' || role === 'recepcionista'),
+      },
+      {
         href: '/operacao/avaliacao-nutricional',
-        label: 'Avaliação Nutricional',
+        label: 'Nutrição',
         icon: Salad,
         show: ({ role, ent }) =>
           ent.hasModule('nutri_avaliacao') &&
