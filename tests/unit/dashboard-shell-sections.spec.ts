@@ -1,7 +1,7 @@
 /**
  * Feature 014 — US1 — matriz role × itens visíveis na sidebar após a
  * reorganização. Garante que:
- *  - admin com todas flags ligadas vê 7 itens (3 + 3 + 1).
+ *  - admin com todas flags + módulos vê Operação (incl. Odontologia/Nutrição) + Análise + Configurações.
  *  - Notificações, Alertas do sistema, Pendências e Auditoria saíram da
  *    sidebar para qualquer role.
  *  - Configurações é o único item da terceira seção e visível para todos.
@@ -47,9 +47,16 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
     expect(SECTIONS.map((s) => s.id)).toEqual(['operacao', 'analise', 'configuracoes'])
   })
 
-  it('Operação has exactly 4 items: Agenda, Pacientes, Tarefas, Chat', () => {
+  it('Operação has exactly 6 items: Agenda, Pacientes, Odontologia, Nutrição, Tarefas, Chat', () => {
     const op = SECTIONS.find((s) => s.id === 'operacao')!
-    expect(op.items.map((it) => it.label)).toEqual(['Agenda', 'Pacientes', 'Tarefas', 'Chat'])
+    expect(op.items.map((it) => it.label)).toEqual([
+      'Agenda',
+      'Pacientes',
+      'Odontologia',
+      'Nutrição',
+      'Tarefas',
+      'Chat',
+    ])
   })
 
   it('Análise lista os itens de relatório + financeiro + Faturamento TISS', () => {
@@ -102,6 +109,8 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
     expect(flatLabels(visible)).toEqual([
       'Agenda',
       'Pacientes',
+      'Odontologia',
+      'Nutrição',
       'Tarefas',
       'Chat',
       'Relatórios',
@@ -143,6 +152,8 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
     expect(labels).toEqual([
       'Agenda',
       'Pacientes',
+      'Odontologia',
+      'Nutrição',
       'Tarefas',
       'Chat',
       'Repasse Médico',

@@ -100,9 +100,9 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 
 **Independent Test**: com 2+ avaliações, abrir o histórico e conferir lista ordenada + evolução nos gráficos.
 
-- [ ] T031 [P] [US3] Integration test `tests/integration/nutrition-assessment-history.spec.ts` — 2+ avaliações → `list` ordenado (mais recente primeiro) + série dos derivados nas medições
+- [X] T031 [P] [US3] Integration test `tests/integration/nutrition-assessment-history.spec.ts` — 2+ avaliações → `list` ordenado (mais recente primeiro) + série dos derivados nas medições
 - [X] T032 [US3] UI: histórico de avaliações (lista com data, protocolo/equação, principais resultados) na tela `avaliacao-nutricional`
-- [ ] T033 [US3] UI: evolução — reusar os gráficos de medições existentes (`MetricEvolutionChart`) para os derivados de nutrição
+- [X] T033 [US3] UI: evolução — reusar os gráficos de medições existentes (`MetricEvolutionChart`) para os derivados de nutrição
 
 **Checkpoint**: US3 funcional — acompanhamento ao longo do tempo.
 
@@ -114,8 +114,8 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 
 **Independent Test**: definir peso-alvo e %gordura-alvo e conferir que aparecem junto da evolução.
 
-- [ ] T034 [US4] UI: definição de metas (peso-alvo, %gordura-alvo) reusando `patient_metric_goals` (componente `GoalsEditor` existente) na tela
-- [ ] T035 [US4] Exibir a meta de VET/macros da última avaliação junto da evolução
+- [X] T034 [US4] UI: definição de metas (peso-alvo, %gordura-alvo) reusando `patient_metric_goals` (componente `GoalsEditor` existente) na tela
+- [X] T035 [US4] Exibir a meta de VET/macros da última avaliação junto da evolução
 
 **Checkpoint**: US4 funcional.
 
@@ -124,8 +124,8 @@ description: "Task list — Avaliação Nutricional (feature 046)"
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [ ] T036 [P] Revisar textos/tooltips (nomes de protocolos/equações, mensagens de pendência) para consistência
-- [ ] T037 Rodar `pnpm lint:auth`, `pnpm typecheck`, `pnpm test` e o roteiro de `quickstart.md`; garantir os testes de unidade das fórmulas verdes
-- [ ] T038 Re-seed pós-testes (`seed:demo` + métricas de nutrição, incl. `gasto_energetico_total`) — os testes apagam o banco e o `catalog_baseline` restaura os catálogos
+- [X] T037 Rodar `pnpm lint:auth`, `pnpm typecheck`, `pnpm test` — todos verdes (suíte completa: 246 arquivos / 1011 testes, 0 falhas). Roteiro manual de `quickstart.md` ainda NÃO executado (pendente rodar o app)
+- [X] T038 Re-seed pós-testes (`seed:demo` + métricas de nutrição, incl. `gasto_energetico_total`) — os testes apagam o banco e o `catalog_baseline` restaura os catálogos (11 métricas nutrição confirmadas no catálogo)
 - [ ] T039 [P] Validar amostra de resultados com a nutricionista (SC-002) e, se possível, trocar os gabaritos por exemplos reais preenchidos na planilha
 
 ---
