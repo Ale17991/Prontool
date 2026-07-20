@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import { listEnabledMetricTypesForTenant } from '@/lib/core/patient-portal/metric-types'
 import { NutritionAssessmentClient } from './assessment-client'
 
 /**
@@ -19,6 +20,11 @@ export default async function AvaliacaoNutricionalPage() {
 
   const canWrite = session.role === 'admin' || session.role === 'profissional_saude'
 
+  // Métricas de nutrição (derivadas da avaliação) — alimentam a evolução e as metas.
+  const nutritionMetrics = await listEnabledMetricTypesForTenant(supabase, session.tenantId, {
+    specialty: 'nutricao',
+  })
+
   return (
     <div className="space-y-6">
       <div>
@@ -27,7 +33,7 @@ export default async function AvaliacaoNutricionalPage() {
           Composição corporal, gasto energético e metas — o cálculo alimenta a evolução do paciente.
         </p>
       </div>
-      <NutritionAssessmentClient canWrite={canWrite} />
+      <NutritionAssessmentClient canWrite={canWrite} metricTypes={nutritionMetrics} />
     </div>
   )
 }

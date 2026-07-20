@@ -7,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PatientTypeahead, type PatientTypeaheadValue } from '@/components/patients/patient-typeahead'
+import { MetricEvolutionChart } from '@/components/patient-portal/evolution-chart'
+import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
+import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
+import { GoalsEditor } from '../pacientes/[id]/goals-editor'
 import {
   computeComposition,
   computeEnergy,
@@ -51,7 +55,13 @@ interface AssessmentSummary {
   targetKcal: number | null
 }
 
-export function NutritionAssessmentClient({ canWrite }: { canWrite: boolean }) {
+export function NutritionAssessmentClient({
+  canWrite,
+  metricTypes,
+}: {
+  canWrite: boolean
+  metricTypes: PatientMetricType[]
+}) {
   const today = new Date().toISOString().slice(0, 10)
   const [patient, setPatient] = useState<PatientTypeaheadValue | null>(null)
   const [assessedAt, setAssessedAt] = useState(today)
@@ -81,23 +91,34 @@ export function NutritionAssessmentClient({ canWrite }: { canWrite: boolean }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [history, setHistory] = useState<AssessmentSummary[]>([])
+  const [measurements, setMeasurements] = useState<Record<string, MeasurementDTO[]>>({})
 
   const protoMeta = protocol ? DOBRA_PROTOCOLS[protocol] : null
   const eqMeta = equation ? TMB_EQUATIONS[equation] : null
 
-  async function loadHistory(patientId: string) {
-    const res = await fetch(`/api/pacientes/${patientId}/avaliacao-nutricional`)
-    if (res.ok) {
-      const body = (await res.json()) as { assessments: AssessmentSummary[] }
-      setHistory(body.assessments)
-    } else {
-      setHistory([])
-    }
+  async function loadPatientData(patientId: string) {
+    const [assessRes, measRes] = await Promise.all([
+      fetch(`/api/pacientes/${patientId}/avaliacao-nutricional`),
+      fetch(`/api/pacientes/${patientId}/medicoes`),
+    ])
+    setHistory(
+      assessRes.ok
+        ? ((await assessRes.json()) as { assessments: AssessmentSummary[] }).assessments
+        : [],
+    )
+    setMeasurements(
+      measRes.ok
+        ? ((await measRes.json()) as { measurements: Record<string, MeasurementDTO[]> }).measurements
+        : {},
+    )
   }
 
   useEffect(() => {
-    if (patient) void loadHistory(patient.id)
-    else setHistory([])
+    if (patient) void loadPatientData(patient.id)
+    else {
+      setHistory([])
+      setMeasurements({})
+    }
   }, [patient])
 
   // Cálculo ao vivo (motor puro no cliente).
@@ -211,14 +232,17 @@ export function NutritionAssessmentClient({ canWrite }: { canWrite: boolean }) {
         setError(b.error?.message ?? 'Falha ao salvar a avaliação.')
         return
       }
-      await loadHistory(patient.id)
+      await loadPatientData(patient.id)
       setError(null)
     } finally {
       setPending(false)
     }
   }
 
+  const latest = history[0] ?? null
+
   return (
+    <div className="space-y-6">
     <div className="grid gap-6 lg:grid-cols-3">
       <form onSubmit={onSubmit} className="space-y-4 lg:col-span-2">
         <Card>
@@ -377,6 +401,77 @@ export function NutritionAssessmentClient({ canWrite }: { canWrite: boolean }) {
         <ResultPanel composition={live.composition} energy={live.energy} />
         <HistoryPanel history={history} hasPatient={!!patient} />
       </div>
+    </div>
+
+      {patient ? (
+        <EvolutionSection
+          patientId={patient.id}
+          metricTypes={metricTypes}
+          measurements={measurements}
+          latest={latest}
+          canWrite={canWrite}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+/** T033/T034/T035 — evolução dos derivados + metas do paciente + VET da última avaliação. */
+function EvolutionSection({
+  patientId,
+  metricTypes,
+  measurements,
+  latest,
+  canWrite,
+}: {
+  patientId: string
+  metricTypes: PatientMetricType[]
+  measurements: Record<string, MeasurementDTO[]>
+  latest: AssessmentSummary | null
+  canWrite: boolean
+}) {
+  const chartsWithData = metricTypes.filter((t) => (measurements[t.metricType] ?? []).length >= 1)
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Metas e evolução</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {latest && (latest.targetKcal !== null || latest.getKcal !== null) ? (
+            <div className="rounded-md border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm">
+              <span className="text-slate-500">Meta da última avaliação ({latest.assessedAt}):</span>{' '}
+              <span className="font-semibold text-slate-800">
+                {latest.targetKcal !== null
+                  ? `VET ${latest.targetKcal} kcal`
+                  : `GET ${latest.getKcal} kcal`}
+              </span>
+            </div>
+          ) : null}
+          <GoalsEditor patientId={patientId} metricTypes={metricTypes} canWrite={canWrite} />
+        </CardContent>
+      </Card>
+
+      {chartsWithData.length > 0 ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {chartsWithData.map((t) => (
+            <MetricEvolutionChart
+              key={t.metricType}
+              label={t.label}
+              unit={t.unit}
+              points={(measurements[t.metricType] ?? []).map((m) => ({
+                date: m.measuredAt,
+                value: m.value,
+              }))}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400">
+          Sem medições ainda — salve uma avaliação para ver a evolução.
+        </p>
+      )}
     </div>
   )
 }

@@ -41,6 +41,16 @@ function isMissingTable(message: string): boolean {
   return /relation .*appointment_materials.* does not exist/i.test(message)
 }
 
+/**
+ * Tamanho do lote do filtro `.in()`.
+ *
+ * O `.in()` do PostgREST vira query string num GET: cada UUID custa ~37 chars
+ * na URL (36 + vírgula). Com 500 IDs isso passa de 18 KB e o gateway responde
+ * "URI too long" — o relatório mensal quebrava em clínicas com muitos
+ * atendimentos no mês. 150 IDs ≈ 5,5 KB, com folga sob o limite usual de 8 KB.
+ */
+const IN_FILTER_CHUNK = 150
+
 /** Divide um array em blocos de tamanho `size` (para `.in()` seguro na URL). */
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = []
@@ -76,7 +86,7 @@ async function loadMaterialRows(
 ): Promise<MaterialCostRow[]> {
   if (appointmentIds.length === 0) return []
   const rows: MaterialCostRow[] = []
-  for (const ids of chunk(appointmentIds, 500)) {
+  for (const ids of chunk(appointmentIds, IN_FILTER_CHUNK)) {
     const { data, error } = await supabase
       .from('appointment_materials' as never)
       .select('unit_cost_cents, quantity, appointment_id, material_name, tuss_description, tuss_code')

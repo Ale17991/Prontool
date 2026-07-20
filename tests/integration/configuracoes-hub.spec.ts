@@ -1,11 +1,11 @@
 /**
  * Feature 014 — US3 — verifica o contrato do hub /configuracoes:
- *  - INV-1: HUB_CARDS tem exatamente 13 entradas.
+ *  - INV-1: HUB_CARDS tem exatamente 14 entradas.
  *  - INV-2: Auditoria é SEMPRE o último card.
- *  - INV-3: admin com todas flags-on vê os 13 cards.
+ *  - INV-3: admin com todas flags-on vê os 14 cards.
  *  - INV-4: roles com permissões mínimas veem pelo menos "Meu Perfil".
  *  - INV-5: cada `card.id` é único.
- *  - Ordem fixa (FR-009): clinica, perfil, usuarios, procedimentos,
+ *  - Ordem fixa (FR-009): clinica, perfil, usuarios, procedimentos, materiais,
  *    convenios, profissionais, modelos-anamnese, agendamento-publico,
  *    portal-paciente, lembretes, google-agenda, integracoes, auditoria.
  */
@@ -41,8 +41,8 @@ function ctx(role: TenantRole, flags = ALL_FLAGS_ON): HubCardCtx {
 }
 
 describe('HUB_CARDS — invariantes estruturais', () => {
-  it('INV-1: HUB_CARDS.length === 13', () => {
-    expect(HUB_CARDS).toHaveLength(13)
+  it('INV-1: HUB_CARDS.length === 14', () => {
+    expect(HUB_CARDS).toHaveLength(14)
   })
 
   it('INV-2: último card é "auditoria"', () => {
@@ -55,6 +55,7 @@ describe('HUB_CARDS — invariantes estruturais', () => {
       'perfil',
       'usuarios',
       'procedimentos',
+      'materiais',
       'convenios',
       'profissionais',
       'modelos-anamnese',
@@ -91,14 +92,15 @@ describe('HUB_CARDS — invariantes estruturais', () => {
 })
 
 describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
-  it('INV-3: admin com todas flags ON vê os 13 cards na ordem fixa', () => {
+  it('INV-3: admin com todas flags ON vê os 14 cards na ordem fixa', () => {
     const visible = getVisibleHubCards(ctx('admin'))
-    expect(visible).toHaveLength(13)
+    expect(visible).toHaveLength(14)
     expect(visible.map((c) => c.id)).toEqual([
       'clinica',
       'perfil',
       'usuarios',
       'procedimentos',
+      'materiais',
       'convenios',
       'profissionais',
       'modelos-anamnese',
@@ -111,10 +113,10 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
     ])
   })
 
-  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 12)', () => {
+  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 13)', () => {
     const visible = getVisibleHubCards(ctx('admin', { ...ALL_FLAGS_ON, anamnese: false }))
     expect(visible.map((c) => c.id)).not.toContain('modelos-anamnese')
-    expect(visible).toHaveLength(12)
+    expect(visible).toHaveLength(13)
     // Auditoria continua sendo o último visível.
     expect(visible[visible.length - 1]?.id).toBe('auditoria')
   })
