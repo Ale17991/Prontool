@@ -14,6 +14,9 @@ import { GoalsEditor } from '../pacientes/[id]/goals-editor'
 import {
   computeComposition,
   computeEnergy,
+  compositionAdvisories,
+  energyAdvisories,
+  type Advisory,
   ACTIVITY_FACTORS,
   DOBRA_PROTOCOLS,
   TMB_EQUATIONS,
@@ -36,6 +39,15 @@ const SKINFOLD_LABEL: Record<SkinfoldSite, string> = {
   coxa: 'Coxa',
   panturrilha: 'Panturrilha',
 }
+
+/** Níveis de atividade do EER (IOM 2005 / NASEM 2023) — o PA sai da tabela
+ *  oficial por sexo e faixa etária no motor; aqui escolhe-se só o nível. */
+const EER_ACTIVITY_LEVELS = [
+  { value: '1', label: 'Sedentário / inativo' },
+  { value: '2', label: 'Pouco ativo' },
+  { value: '3', label: 'Ativo' },
+  { value: '4', label: 'Muito ativo' },
+]
 
 function num(s: string): number | undefined {
   if (s.trim() === '') return undefined
@@ -179,6 +191,16 @@ export function NutritionAssessmentClient({
     sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, fatPctInput,
     equation, activity, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
   ])
+
+  // Avisos de domínio de validação — não bloqueiam nada, só informam.
+  const advisories = useMemo(() => {
+    const ageN = num(age)
+    if (ageN === undefined) return []
+    return [
+      ...(protocol ? compositionAdvisories({ protocol, sex, ageYears: ageN }) : []),
+      ...(equation ? energyAdvisories({ equation, ageYears: ageN }) : []),
+    ]
+  }, [protocol, equation, sex, age])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -359,11 +381,13 @@ export function NutritionAssessmentClient({
                   </select>
                 </div>
               ) : null}
-              {eqMeta?.eer === 'category' ? (
+              {eqMeta?.eer === 'category' || eqMeta?.eer === 'pa' ? (
                 <div>
-                  <Label htmlFor="na_cat">Categoria de atividade (1–4)</Label>
+                  <Label htmlFor="na_cat">Nível de atividade</Label>
                   <select id="na_cat" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={eerCategory} onChange={(e) => setEerCategory(e.target.value)}>
-                    {[1, 2, 3, 4].map((c) => (<option key={c} value={c}>{c}</option>))}
+                    {EER_ACTIVITY_LEVELS.map((a) => (
+                      <option key={a.value} value={a.value}>{a.label}</option>
+                    ))}
                   </select>
                 </div>
               ) : null}
@@ -398,7 +422,7 @@ export function NutritionAssessmentClient({
       </form>
 
       <div className="space-y-4">
-        <ResultPanel composition={live.composition} energy={live.energy} />
+        <ResultPanel composition={live.composition} energy={live.energy} advisories={advisories} />
         <HistoryPanel history={history} hasPatient={!!patient} />
       </div>
     </div>
@@ -485,7 +509,15 @@ function Row({ label, value }: { label: string; value: string }) {
   )
 }
 
-function ResultPanel({ composition, energy }: { composition: CompositionResult | null; energy: EnergyResult | null }) {
+function ResultPanel({
+  composition,
+  energy,
+  advisories,
+}: {
+  composition: CompositionResult | null
+  energy: EnergyResult | null
+  advisories: Advisory[]
+}) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-sm">Resultado</CardTitle></CardHeader>
@@ -508,6 +540,16 @@ function ResultPanel({ composition, energy }: { composition: CompositionResult |
           </>
         ) : null}
         {!composition && !energy ? <p className="text-xs text-slate-400">Preencha o formulário para ver o resultado.</p> : null}
+
+        {advisories.length > 0 ? (
+          <div className="space-y-1.5 border-t border-slate-100 pt-2">
+            {advisories.map((a) => (
+              <p key={a.code} className="text-[11px] leading-snug text-amber-700">
+                {a.message}
+              </p>
+            ))}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   )
