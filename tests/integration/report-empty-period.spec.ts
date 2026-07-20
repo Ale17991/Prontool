@@ -28,6 +28,7 @@ describe('T136 — empty monthly report', () => {
     expect(report.totals).toEqual({
       netRevenueCents: 0,
       netCommissionCents: 0,
+      materialsCostCents: 0,
       appointmentCount: 0,
       reversalCount: 0,
     })
@@ -57,6 +58,7 @@ describe('T136 — empty monthly report', () => {
       totals: {
         net_revenue_cents: number
         net_commission_cents: number
+        materials_cost_cents: number
         appointment_count: number
         reversal_count: number
       }
@@ -66,6 +68,7 @@ describe('T136 — empty monthly report', () => {
     expect(body.totals).toEqual({
       net_revenue_cents: 0,
       net_commission_cents: 0,
+      materials_cost_cents: 0,
       appointment_count: 0,
       reversal_count: 0,
     })
