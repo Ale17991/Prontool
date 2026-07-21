@@ -78,6 +78,49 @@ function sum(vals: number[]): number {
   return vals.reduce((s, v) => s + v, 0)
 }
 
+/**
+ * Durnin & Womersley (1974), Table 5 — coeficientes [c, m] de
+ * `Dc = c − m·log10(Σ4 dobras)`, por sexo e faixa etária.
+ *
+ * O artigo publica coeficientes POR FAIXA ETÁRIA e uma coluna agrupada
+ * ("all ages"). Usávamos a agrupada, que é legítima mas perde 1–3 p.p. nos
+ * extremos etários — desperdício, já que a idade do paciente está à mão.
+ * A agrupada fica como fallback fora das faixas publicadas (17–72 H / 16–68 M).
+ */
+const DURNIN_BANDS: Record<Sex, { maxAge: number; c: number; m: number }[]> = {
+  M: [
+    { maxAge: 19, c: 1.162, m: 0.063 },
+    { maxAge: 29, c: 1.1631, m: 0.0632 },
+    { maxAge: 39, c: 1.1422, m: 0.0544 },
+    { maxAge: 49, c: 1.162, m: 0.07 },
+    { maxAge: 200, c: 1.1715, m: 0.0779 },
+  ],
+  F: [
+    { maxAge: 19, c: 1.1549, m: 0.0678 },
+    { maxAge: 29, c: 1.1599, m: 0.0717 },
+    { maxAge: 39, c: 1.1423, m: 0.0632 },
+    { maxAge: 49, c: 1.1333, m: 0.0612 },
+    { maxAge: 200, c: 1.1339, m: 0.0645 },
+  ],
+}
+
+/** Coeficientes agrupados ("all ages") — fallback. */
+const DURNIN_ALL: Record<Sex, { c: number; m: number }> = {
+  M: { c: 1.1765, m: 0.0744 },
+  F: { c: 1.1567, m: 0.0717 },
+}
+
+function durninWomersley(S: number, sex: Sex, ageYears: number): number {
+  const lower = sex === 'M' ? 17 : 16
+  if (ageYears < lower) {
+    const { c, m } = DURNIN_ALL[sex]
+    return c - m * log10(S)
+  }
+  const band = DURNIN_BANDS[sex].find((b) => ageYears <= b.maxAge) ?? null
+  const { c, m } = band ?? DURNIN_ALL[sex]
+  return c - m * log10(S)
+}
+
 /** Densidade corporal por protocolo (protocolos baseados em densidade). */
 function bodyDensity(input: CompositionInput): number {
   const { sex, ageYears: I } = input
@@ -87,7 +130,7 @@ function bodyDensity(input: CompositionInput): number {
 
   switch (input.protocol) {
     case 'durnin_womersley':
-      return sex === 'M' ? 1.1765 - 0.0744 * log10(S) : 1.1567 - 0.0717 * log10(S)
+      return durninWomersley(S, sex, I)
     case 'guedes':
       return sex === 'M' ? 1.17136 - 0.06706 * log10(S) : 1.1665 - 0.07063 * log10(S)
     case 'jp3':
@@ -145,10 +188,15 @@ function fatPercent(input: CompositionInput): { fatPct: number; density: number 
       return { fatPct: S * 0.153 + 5.783, density: null }
     }
     case 'weltman': {
-      const cw = input.circumferences?.abdomen
-      if (typeof cw !== 'number' || !Number.isFinite(cw) || cw <= 0) {
+      const ab1 = input.circumferences?.abdomen
+      const ab2 = input.circumferences?.abdomen2
+      if (typeof ab1 !== 'number' || !Number.isFinite(ab1) || ab1 <= 0) {
         throw new NutritionInputError('MISSING_CIRCUMFERENCE', 'Informe a circunferência abdominal (Weltman).')
       }
+      // Weltman usa a MÉDIA de duas medidas abdominais. Com só uma informada,
+      // usamos ela (e a UI avisa) — não vale bloquear o atendimento por isso.
+      const cw =
+        typeof ab2 === 'number' && Number.isFinite(ab2) && ab2 > 0 ? (ab1 + ab2) / 2 : ab1
       if (sex === 'M') return { fatPct: 0.31457 * cw - 0.10969 * P + 10.8336, density: null }
       if (typeof heightCm !== 'number') {
         throw new NutritionInputError('MISSING_HEIGHT', 'Weltman (feminino) exige altura.')

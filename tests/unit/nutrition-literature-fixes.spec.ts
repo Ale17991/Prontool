@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 import { computeComposition } from '@/lib/core/nutrition/body-composition'
 import { computeEnergy } from '@/lib/core/nutrition/energy'
 import { compositionAdvisories, energyAdvisories } from '@/lib/core/nutrition/advisories'
+import { TMB_EQUATIONS } from '@/lib/core/nutrition/protocols'
 
 describe('EER/IOM 2005 — fator de atividade (PA) deixa de ser ignorado', () => {
   const base = {
@@ -98,6 +99,100 @@ describe('Slaughter — constante do pré-púbere é a publicada (−1,7)', () =
     const S = 22
     // O motor arredonda o %gordura em 2 casas.
     expect(r.fatPct).toBeCloseTo(1.21 * S - 0.008 * S * S - 1.7, 2)
+  })
+})
+
+describe('Durnin-Womersley — coeficientes por faixa etária', () => {
+  const mk = (ageYears: number) =>
+    computeComposition({
+      sex: 'M',
+      ageYears,
+      weightKg: 80,
+      heightCm: 180,
+      protocol: 'durnin_womersley',
+      skinfolds: { biceps: 6, triceps: 10, subescapular: 12, suprailiaca: 14 },
+      circumferences: {},
+      fatPctInput: null,
+    })
+
+  it('usa a faixa 20-29, não a agrupada', () => {
+    // Σ = 42; faixa 20-29 (H): 1.1631 − 0.0632·log10(42)
+    const dc = 1.1631 - 0.0632 * Math.log10(42)
+    expect(mk(25).bodyDensity).toBeCloseTo(dc, 4)
+  })
+
+  it('faixas diferentes dão densidades diferentes', () => {
+    expect(mk(25).bodyDensity).not.toBe(mk(55).bodyDensity)
+  })
+
+  it('abaixo da faixa publicada cai no agrupado e avisa', () => {
+    const dc = 1.1765 - 0.0744 * Math.log10(42)
+    expect(mk(14).bodyDensity).toBeCloseTo(dc, 4)
+    expect(
+      compositionAdvisories({ protocol: 'durnin_womersley', sex: 'M', ageYears: 14 }).map((a) => a.code),
+    ).toContain('DURNIN_BELOW_RANGE')
+  })
+
+  it('dentro da faixa NÃO avisa', () => {
+    expect(
+      compositionAdvisories({ protocol: 'durnin_womersley', sex: 'M', ageYears: 30 }).map((a) => a.code),
+    ).not.toContain('DURNIN_BELOW_RANGE')
+  })
+})
+
+describe('Weltman — usa a média de duas medidas abdominais', () => {
+  const mk = (circumferences: Record<string, number>) =>
+    computeComposition({
+      sex: 'M',
+      ageYears: 40,
+      weightKg: 95,
+      heightCm: 175,
+      protocol: 'weltman',
+      skinfolds: {},
+      circumferences,
+      fatPctInput: null,
+    })
+
+  it('com duas medidas, usa a média', () => {
+    const media = mk({ abdomen: 100, abdomen2: 110 })
+    const direta = mk({ abdomen: 105 })
+    expect(media.fatPct).toBe(direta.fatPct)
+  })
+
+  it('com uma medida só, usa ela e avisa', () => {
+    expect(mk({ abdomen: 100 }).fatPct).toBeGreaterThan(0)
+    expect(
+      compositionAdvisories({
+        protocol: 'weltman',
+        sex: 'M',
+        ageYears: 40,
+        hasSecondAbdomen: false,
+      }).map((a) => a.code),
+    ).toContain('WELTMAN_SINGLE_ABDOMEN')
+  })
+
+  it('com as duas informadas, não avisa sobre medida única', () => {
+    expect(
+      compositionAdvisories({
+        protocol: 'weltman',
+        sex: 'M',
+        ageYears: 40,
+        hasSecondAbdomen: true,
+      }).map((a) => a.code),
+    ).not.toContain('WELTMAN_SINGLE_ABDOMEN')
+  })
+})
+
+describe('Rótulos: Cunningham 1980 e 1991 na mesma linhagem', () => {
+  it('"Katch-McArdle" é rotulada como Cunningham (1991)', () => {
+    expect(TMB_EQUATIONS.katch_mcardle.label).toContain('Cunningham (1991)')
+    expect(TMB_EQUATIONS.cunningham.label).toContain('Cunningham (1980)')
+  })
+
+  it('toda equação declara a fonte para exibição', () => {
+    for (const eq of Object.values(TMB_EQUATIONS)) {
+      expect(eq.source, `sem fonte: ${eq.slug}`).toBeTruthy()
+    }
   })
 })
 

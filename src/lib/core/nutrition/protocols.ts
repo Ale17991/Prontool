@@ -23,7 +23,15 @@ export type SkinfoldSite =
   | 'coxa'
   | 'panturrilha'
 
-export type CircumferenceSite = 'cintura' | 'quadril' | 'abdomen' | 'braco' | 'panturrilha' | 'pescoco'
+export type CircumferenceSite =
+  | 'cintura'
+  | 'quadril'
+  | 'abdomen'
+  /** 2ª medida abdominal — Weltman usa a MÉDIA de abdômen 1 e 2. */
+  | 'abdomen2'
+  | 'braco'
+  | 'panturrilha'
+  | 'pescoco'
 
 export type DobraProtocol =
   | 'durnin_womersley'
@@ -51,12 +59,15 @@ export interface ProtocolMeta {
   ageMax?: number
   /** Entrada direta de %gordura (bioimpedância) — não calcula por dobras. */
   directFatInput?: boolean
+  /** Citação da publicação de origem, exibida junto do resultado. */
+  source?: string
 }
 
 export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
   durnin_womersley: {
     slug: 'durnin_womersley',
     label: 'Durnin & Womersley (1974)',
+    source: 'Durnin & Womersley, Br J Nutr 1974;32:77-97 (equação agrupada)',
     sites: {
       M: ['biceps', 'triceps', 'subescapular', 'suprailiaca'],
       F: ['biceps', 'triceps', 'subescapular', 'suprailiaca'],
@@ -67,6 +78,7 @@ export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
   guedes: {
     slug: 'guedes',
     label: 'Guedes (1985)',
+    source: 'Guedes, 1995 — amostra brasileira; sítios distintos por sexo',
     sites: {
       M: ['triceps', 'abdominal', 'suprailiaca'],
       F: ['subescapular', 'suprailiaca', 'coxa'],
@@ -77,6 +89,7 @@ export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
   jp3: {
     slug: 'jp3',
     label: 'Jackson-Pollock-Ward 3 dobras (1980)',
+    source: 'Jackson & Pollock 1978 (H) / Jackson, Pollock & Ward 1980 (M)',
     sites: {
       M: ['peitoral', 'abdominal', 'coxa'],
       F: ['triceps', 'suprailiaca', 'coxa'],
@@ -86,6 +99,7 @@ export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
   jp7: {
     slug: 'jp7',
     label: 'Jackson-Pollock-Ward 7 dobras (1980)',
+    source: 'Jackson & Pollock 1978 / Jackson, Pollock & Ward 1980',
     sites: {
       M: ['triceps', 'peitoral', 'axilar_media', 'subescapular', 'abdominal', 'suprailiaca', 'coxa'],
       F: ['triceps', 'peitoral', 'axilar_media', 'subescapular', 'abdominal', 'suprailiaca', 'coxa'],
@@ -95,6 +109,7 @@ export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
   petroski: {
     slug: 'petroski',
     label: 'Petroski (1995)',
+    source: 'Petroski, tese UFSM 1995 — equações distintas por sexo',
     sites: {
       M: ['triceps', 'subescapular', 'suprailiaca', 'panturrilha'],
       F: ['axilar_media', 'suprailiaca', 'coxa', 'panturrilha'],
@@ -115,7 +130,7 @@ export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
     slug: 'weltman',
     label: 'Weltman & col. (1988)',
     sites: { M: [], F: [] },
-    circumferences: { M: ['abdomen'], F: ['abdomen'] },
+    circumferences: { M: ['abdomen', 'abdomen2'], F: ['abdomen', 'abdomen2'] },
     needsHeight: true,
     ageMin: 20,
     ageMax: 68,
@@ -178,25 +193,121 @@ export interface TmbMeta {
   eer?: 'pa' | 'category'
   /** Só para mulheres (gestante/lactante). */
   femaleOnly?: boolean
+  /**
+   * Citação da publicação de origem, exibida junto do resultado.
+   *
+   * Não é enfeite acadêmico: prontuário exige rastreabilidade do método, e a
+   * nutricionista precisa saber qual equação e de que ano gerou o número para
+   * poder conferir contra a referência dela.
+   */
+  source?: string
 }
 
 export const TMB_EQUATIONS: Record<TmbEquation, TmbMeta> = {
-  harris_benedict_1919: { slug: 'harris_benedict_1919', label: 'Harris-Benedict (1919)', usesHeight: true },
-  harris_benedict_1984: { slug: 'harris_benedict_1984', label: 'Harris-Benedict (1984)', usesHeight: true },
-  mifflin: { slug: 'mifflin', label: 'Mifflin-St Jeor (1990)', usesHeight: true },
-  fao_who_1985: { slug: 'fao_who_1985', label: 'FAO/OMS (1985)' },
-  fao_who_2004: { slug: 'fao_who_2004', label: 'FAO/WHO (2004)' },
-  schofield: { slug: 'schofield', label: 'Schofield (1985)', usesHeight: true },
-  henry_rees: { slug: 'henry_rees', label: 'Henry-Rees (1991)' },
-  cunningham: { slug: 'cunningham', label: 'Cunningham (1980)', usesLeanMass: true },
-  tinsley_peso: { slug: 'tinsley_peso', label: 'Tinsley — por peso (2018)' },
-  tinsley_mlg: { slug: 'tinsley_mlg', label: 'Tinsley — por massa magra (2018)', usesLeanMass: true },
-  katch_mcardle: { slug: 'katch_mcardle', label: 'Katch-McArdle (1996)', usesLeanMass: true },
-  eer_iom_2005: { slug: 'eer_iom_2005', label: 'EER/IOM (2005)', usesHeight: true, eer: 'pa' },
-  eer_2023: { slug: 'eer_2023', label: 'EER (2023)', usesHeight: true, eer: 'category' },
-  eer_gestante: { slug: 'eer_gestante', label: 'EER Gestante (2023)', usesHeight: true, eer: 'category', femaleOnly: true },
-  eer_lactante_0_6: { slug: 'eer_lactante_0_6', label: 'EER Lactante 0–6 meses (2023)', usesHeight: true, eer: 'category', femaleOnly: true },
-  eer_lactante_7_12: { slug: 'eer_lactante_7_12', label: 'EER Lactante 7–12 meses (2023)', usesHeight: true, eer: 'category', femaleOnly: true },
+  harris_benedict_1919: {
+    slug: 'harris_benedict_1919',
+    label: 'Harris-Benedict (1919)',
+    usesHeight: true,
+    source: 'Harris & Benedict, Carnegie Institution, 1919',
+  },
+  harris_benedict_1984: {
+    slug: 'harris_benedict_1984',
+    label: 'Harris-Benedict revisada (1984)',
+    usesHeight: true,
+    source: 'Roza & Shizgal, Am J Clin Nutr 1984;40(1):168-82',
+  },
+  mifflin: {
+    slug: 'mifflin',
+    label: 'Mifflin-St Jeor (1990)',
+    usesHeight: true,
+    source: 'Mifflin et al., Am J Clin Nutr 1990;51(2):241-7',
+  },
+  fao_who_1985: {
+    slug: 'fao_who_1985',
+    label: 'FAO/OMS/UNU (1985)',
+    source: 'FAO/WHO/UNU, WHO Technical Report Series 724, 1985',
+  },
+  fao_who_2004: {
+    slug: 'fao_who_2004',
+    label: 'FAO/OMS (2004) — peso',
+    source: 'FAO, Human Energy Requirements, 2004 (readota Schofield peso)',
+  },
+  schofield: {
+    slug: 'schofield',
+    label: 'Schofield (1985) — peso',
+    usesHeight: true,
+    source: 'Schofield, Hum Nutr Clin Nutr 1985;39C Suppl 1:5-41',
+  },
+  henry_rees: {
+    slug: 'henry_rees',
+    label: 'Henry-Rees (1991)',
+    source: 'Henry & Rees, Eur J Clin Nutr 1991;45:177-85 (3-60 anos)',
+  },
+  // Cunningham 1980 e 1991 são a MESMA linhagem: a de 1991 é revisão do próprio
+  // autor, popularizada como "Katch-McArdle" pelo livro-texto de McArdle/Katch.
+  // Rotular como escolas distintas fazia a nutricionista ler os 156 kcal/dia de
+  // diferença como divergência metodológica, quando é atualização de amostra.
+  cunningham: {
+    slug: 'cunningham',
+    label: 'Cunningham (1980) — MLG',
+    usesLeanMass: true,
+    source: 'Cunningham, Am J Clin Nutr 1980;33(11):2372-4 (reanálise de Harris-Benedict)',
+  },
+  katch_mcardle: {
+    slug: 'katch_mcardle',
+    label: 'Cunningham (1991) — MLG · "Katch-McArdle"',
+    usesLeanMass: true,
+    source: 'Cunningham, Am J Clin Nutr 1991;54(6):963-9 — revisão da de 1980',
+  },
+  tinsley_peso: {
+    slug: 'tinsley_peso',
+    label: 'Tinsley — por peso (2019)',
+    source: 'Tinsley et al., Appl Physiol Nutr Metab 2019;44(4):397-406 (atletas)',
+  },
+  tinsley_mlg: {
+    slug: 'tinsley_mlg',
+    label: 'Tinsley — por massa magra (2019)',
+    usesLeanMass: true,
+    source: 'Tinsley et al., Appl Physiol Nutr Metab 2019;44(4):397-406 (atletas)',
+  },
+  eer_iom_2005: {
+    slug: 'eer_iom_2005',
+    label: 'EER/IOM (2005)',
+    usesHeight: true,
+    eer: 'pa',
+    source: 'IOM, DRI for Energy…, 2005, cap. 5 — já é o gasto total',
+  },
+  eer_2023: {
+    slug: 'eer_2023',
+    label: 'EER/NASEM (2023)',
+    usesHeight: true,
+    eer: 'category',
+    source: 'NASEM, DRI for Energy, 2023, cap. 5 — já é o gasto total',
+  },
+  eer_gestante: {
+    slug: 'eer_gestante',
+    label: 'EER Gestante (2023)',
+    usesHeight: true,
+    eer: 'category',
+    femaleOnly: true,
+    source: 'NASEM, DRI for Energy, 2023, Tab. 5-5 — 2º/3º trimestre',
+  },
+  eer_lactante_0_6: {
+    slug: 'eer_lactante_0_6',
+    label: 'EER Lactante 0–6 meses (2023)',
+    usesHeight: true,
+    eer: 'category',
+    femaleOnly: true,
+    source: 'NASEM, DRI for Energy, 2023',
+  },
+  eer_lactante_7_12: {
+    slug: 'eer_lactante_7_12',
+    label: 'EER Lactante 7–12 meses (2023)',
+    usesHeight: true,
+    eer: 'category',
+    femaleOnly: true,
+    source: 'NASEM, DRI for Energy, 2023',
+  },
 }
 
 /** Fator de atividade (PAL) clássico — multiplicador do TMB para equações não-EER. */

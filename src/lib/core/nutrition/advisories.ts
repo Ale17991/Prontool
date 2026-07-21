@@ -24,6 +24,8 @@ export function compositionAdvisories(args: {
   protocol: DobraProtocol
   sex: Sex
   ageYears: number
+  /** Weltman: se a 2ª medida abdominal foi informada (a equação usa a média). */
+  hasSecondAbdomen?: boolean
 }): Advisory[] {
   const { protocol, ageYears } = args
   const out: Advisory[] = []
@@ -48,15 +50,24 @@ export function compositionAdvisories(args: {
     out.push({
       code: 'WELTMAN_DOMAIN',
       message:
-        'Weltman foi derivada em população com obesidade e usa a MÉDIA de duas medidas abdominais. Em pacientes eutróficos ou atletas, tende a desviar.',
+        'Weltman foi derivada em população com obesidade — em pacientes eutróficos ou atletas, tende a desviar.',
     })
+    if (!args.hasSecondAbdomen) {
+      out.push({
+        code: 'WELTMAN_SINGLE_ABDOMEN',
+        message:
+          'Weltman usa a média de duas medidas abdominais. Com apenas uma informada, o valor é aproximado.',
+      })
+    }
   }
 
-  if (protocol === 'durnin_womersley') {
+  // Só avisa quando de fato caímos no fallback agrupado — dentro das faixas
+  // publicadas o cálculo já usa os coeficientes por idade, mais precisos.
+  if (protocol === 'durnin_womersley' && ageYears < (args.sex === 'M' ? 17 : 16)) {
     out.push({
-      code: 'DURNIN_GROUPED',
+      code: 'DURNIN_BELOW_RANGE',
       message:
-        'Usando a equação agrupada (todas as idades). Durnin-Womersley também publicou coeficientes por faixa etária, mais precisos nos extremos.',
+        'Durnin-Womersley foi publicada a partir de 17 anos (16 para mulheres). Abaixo disso usamos a equação agrupada — valor indicativo.',
     })
   }
 

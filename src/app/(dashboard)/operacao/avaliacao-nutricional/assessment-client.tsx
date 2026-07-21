@@ -88,6 +88,7 @@ export function NutritionAssessmentClient({
   const [cintura, setCintura] = useState('')
   const [quadril, setQuadril] = useState('')
   const [abdomen, setAbdomen] = useState('')
+  const [abdomen2, setAbdomen2] = useState('')
   const [fatPctInput, setFatPctInput] = useState('')
 
   // Energia
@@ -159,7 +160,12 @@ export function NutritionAssessmentClient({
           skinfolds: Object.fromEntries(
             Object.entries(skinfolds).map(([k, v]) => [k, num(v)]),
           ) as Partial<Record<SkinfoldSite, number>>,
-          circumferences: { cintura: num(cintura), quadril: num(quadril), abdomen: num(abdomen) },
+          circumferences: {
+            cintura: num(cintura),
+            quadril: num(quadril),
+            abdomen: num(abdomen),
+            abdomen2: num(abdomen2),
+          },
           fatPctInput: num(fatPctInput) ?? null,
         })
       } catch (e) {
@@ -188,7 +194,7 @@ export function NutritionAssessmentClient({
     }
     return { composition, compositionError, energy, energyError }
   }, [
-    sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, fatPctInput,
+    sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, abdomen2, fatPctInput,
     equation, activity, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
   ])
 
@@ -197,10 +203,17 @@ export function NutritionAssessmentClient({
     const ageN = num(age)
     if (ageN === undefined) return []
     return [
-      ...(protocol ? compositionAdvisories({ protocol, sex, ageYears: ageN }) : []),
+      ...(protocol
+        ? compositionAdvisories({
+            protocol,
+            sex,
+            ageYears: ageN,
+            hasSecondAbdomen: num(abdomen2) !== undefined,
+          })
+        : []),
       ...(equation ? energyAdvisories({ equation, ageYears: ageN }) : []),
     ]
-  }, [protocol, equation, sex, age])
+  }, [protocol, equation, sex, age, abdomen2])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -233,6 +246,7 @@ export function NutritionAssessmentClient({
             ['cintura', num(cintura)],
             ['quadril', num(quadril)],
             ['abdomen', num(abdomen)],
+            ['abdomen2', num(abdomen2)],
           ].filter(([, v]) => v !== undefined),
         )
         if (protocol === 'bioimpedancia') body.fat_pct_input = num(fatPctInput) ?? null
@@ -327,10 +341,16 @@ export function NutritionAssessmentClient({
                   </div>
                 ))}
                 {protocol === 'weltman' ? (
-                  <div>
-                    <Label htmlFor="c_abd">Circ. abdominal (cm)</Label>
-                    <Input id="c_abd" inputMode="decimal" value={abdomen} onChange={(e) => setAbdomen(e.target.value)} />
-                  </div>
+                  <>
+                    <div>
+                      <Label htmlFor="c_abd">Circ. abdominal 1 (cm)</Label>
+                      <Input id="c_abd" inputMode="decimal" value={abdomen} onChange={(e) => setAbdomen(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label htmlFor="c_abd2">Circ. abdominal 2 (cm)</Label>
+                      <Input id="c_abd2" inputMode="decimal" value={abdomen2} onChange={(e) => setAbdomen2(e.target.value)} />
+                    </div>
+                  </>
                 ) : null}
               </div>
             ) : null}
@@ -422,7 +442,12 @@ export function NutritionAssessmentClient({
       </form>
 
       <div className="space-y-4">
-        <ResultPanel composition={live.composition} energy={live.energy} advisories={advisories} />
+        <ResultPanel
+          composition={live.composition}
+          energy={live.energy}
+          advisories={advisories}
+          sources={[protoMeta?.source, eqMeta?.source].filter((s): s is string => !!s)}
+        />
         <HistoryPanel history={history} hasPatient={!!patient} />
       </div>
     </div>
@@ -513,10 +538,12 @@ function ResultPanel({
   composition,
   energy,
   advisories,
+  sources,
 }: {
   composition: CompositionResult | null
   energy: EnergyResult | null
   advisories: Advisory[]
+  sources: string[]
 }) {
   return (
     <Card>
@@ -546,6 +573,16 @@ function ResultPanel({
             {advisories.map((a) => (
               <p key={a.code} className="text-[11px] leading-snug text-amber-700">
                 {a.message}
+              </p>
+            ))}
+          </div>
+        ) : null}
+
+        {sources.length > 0 ? (
+          <div className="space-y-0.5 border-t border-slate-100 pt-2">
+            {sources.map((s) => (
+              <p key={s} className="text-[10px] leading-snug text-slate-400">
+                {s}
               </p>
             ))}
           </div>
