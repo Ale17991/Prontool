@@ -139,6 +139,35 @@ function eerCategoryIdx(input: EnergyInput): number {
   return Math.min(4, Math.max(1, c)) - 1
 }
 
+/**
+ * Coeficientes PA do EER/IOM 2005, por nível de atividade (sedentário, pouco
+ * ativo, ativo, muito ativo).
+ *
+ * São QUATRO tabelas distintas: variam por sexo E entre adulto (≥19) e
+ * pediátrico (3–18). Reusar a tabela adulta em criança (ou trocar M/F) é erro
+ * silencioso — daí estarem separadas explicitamente.
+ *
+ * Fonte: IOM, DRI for Energy… (2005), cap. 5.
+ */
+const EER2005_PA = {
+  adult: { M: [1.0, 1.11, 1.25, 1.48], F: [1.0, 1.12, 1.27, 1.45] },
+  child: { M: [1.0, 1.13, 1.26, 1.42], F: [1.0, 1.16, 1.31, 1.56] },
+} as const
+
+/**
+ * PA efetivo do EER/IOM 2005.
+ *
+ * Precedência: `eerPa` explícito (permite a nutricionista informar um PA
+ * próprio) > tabela oficial pela categoria escolhida. Antes isto caía direto
+ * em 1.0 quando só a categoria era informada — o EER saía sempre como
+ * sedentário, subestimando ~560 kcal/dia num adulto ativo.
+ */
+function eer2005Pa(input: EnergyInput): number {
+  if (typeof input.eerPa === 'number' && Number.isFinite(input.eerPa)) return input.eerPa
+  const table = input.ageYears >= 19 ? EER2005_PA.adult : EER2005_PA.child
+  return table[input.sex][eerCategoryIdx(input)] ?? 1.0
+}
+
 /** EER 2023 base (sem adicionais de lactação). Já é o gasto total. */
 function eer2023(input: EnergyInput): number {
   const { sex, ageYears: I, weightKg: P } = input
@@ -156,7 +185,7 @@ function eer2023(input: EnergyInput): number {
 function eer2005(input: EnergyInput): number {
   const { sex, ageYears: I, weightKg: P } = input
   const hM = requireHeight(input) / 100
-  const pa = input.eerPa ?? 1.0
+  const pa = eer2005Pa(input)
   if (I >= 19) {
     return sex === 'M'
       ? 662 - 9.53 * I + pa * (15.91 * P + 539.6 * hM)

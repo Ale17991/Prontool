@@ -99,8 +99,13 @@ function bodyDensity(input: CompositionInput): number {
         ? 1.112 - 0.00043499 * S + 0.00000055 * S * S - 0.00028826 * I
         : 1.097 - 0.00046971 * S + 0.00000056 * S * S - 0.00012828 * I
     case 'petroski':
-      // Mesmos coeficientes para ambos os sexos (mudam os sítios, via meta).
-      return 1.1954713 - 0.07513507 * log10(S) - 0.00041072 * I
+      // Petroski (1995) publicou equações DIFERENTES por sexo — e não é só o
+      // coeficiente: o masculino é quadrático em Σ, o feminino é logarítmico.
+      // Antes o masculino usava a equação feminina (~1,8 p.p. de erro no
+      // %gordura). Os sítios já eram os corretos por sexo (ver protocols.ts).
+      return sex === 'M'
+        ? 1.10726863 - 0.00081201 * S + 0.00000212 * S * S - 0.00041761 * I
+        : 1.1954713 - 0.07513507 * log10(S) - 0.00041072 * I
     case 'mcardle': {
       const tri = sf.triceps
       const sub = sf.subescapular
@@ -158,10 +163,12 @@ function fatPercent(input: CompositionInput): { fatPct: number; density: number 
         return { fatPct, density: null }
       }
       // Masculino: Σ > 35 tem fórmula fechada; ≤ 35 depende do estágio de
-      // maturação (média branca/negra). Aproximação por faixa etária pendente
-      // de extração completa das constantes (ver formulas-referencia.md B9).
+      // maturação. Slaughter (1988) estratifica por estágio de TANNER (e por
+      // etnia); aqui aproximamos por idade — simplificação assumida, sinalizada
+      // na UI. Constantes da coluna "brancos": pré-púbere −1,7, púbere −3,4,
+      // pós-púbere −5,5. (O −2,6 que estava aqui não existe na publicação.)
       if (S > 35) return { fatPct: 0.783 * S + 1.6, density: null }
-      const C = input.ageYears <= 12 ? -2.6 : input.ageYears <= 14 ? -3.4 : -5.5
+      const C = input.ageYears <= 12 ? -1.7 : input.ageYears <= 14 ? -3.4 : -5.5
       return { fatPct: 1.21 * S - 0.008 * S * S + C, density: null }
     }
     default: {

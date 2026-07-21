@@ -6,13 +6,66 @@ Objetivo: replicar em código, com fidelidade absoluta, as equações de Gasto E
 > **Regra de rigor**: todas as fórmulas abaixo foram transcritas **verbatim** das células. Onde algo
 > não foi localizado, está marcado como **NÃO ENCONTRADO**. Onde depende de macro VBA, está marcado.
 
+## Conferência contra a literatura primária (2026-07-20)
+
+Todas as 16 equações de gasto e 10 protocolos de dobras foram conferidos contra as
+publicações originais. **Nenhum coeficiente de FAO/WHO 1985, FAO/WHO 2004, Schofield,
+Henry-Rees, Harris-Benedict (1919/1984), Mifflin, Cunningham, Tinsley, Jackson-Pollock
+(3 e 7), Durnin-Womersley, Guedes, Faulkner, Weltman ou Siri estava errado.**
+
+Corrigido (com teste de regressão em `tests/unit/nutrition-literature-fixes.spec.ts`):
+
+1. **EER/IOM 2005 ignorava o nível de atividade.** A tela não renderizava campo para
+   `eer: 'pa'` e o motor lia `eerPa`, que nunca era preenchido → PA caía em 1.0 e o EER
+   saía sempre sedentário (−561 kcal/dia num adulto ativo). Agora o PA vem da tabela
+   oficial do IOM 2005, que tem **quatro variantes** (sexo × adulto/pediátrico).
+2. **Petroski masculino usava a equação feminina.** São famílias diferentes: masculino é
+   quadrático em Σ (`1.10726863 − 0.00081201·Σ + 0.00000212·Σ² − 0.00041761·I`), feminino é
+   logarítmico. Os sítios por sexo já estavam corretos. ~1,8 p.p. de erro no %gordura.
+3. **Slaughter, constante do pré-púbere masculino: `−2.6` → `−1.7`.** O −2,6 não existe na
+   publicação; a tabela de Slaughter (1988) traz −1,7 (pré-púbere branco), −3,4 (púbere),
+   −5,5 (pós-púbere).
+
+Registrado como **aviso não-bloqueante** (`advisories.ts`) em vez de correção de fórmula —
+são usos fora do domínio de validação, e a decisão é clínica:
+
+- **McArdle** é pediátrica (9–16 anos); o código não tinha teto etário.
+- **Henry-Rees** foi publicada para 3–60 anos; o código extrapolava em ambas as pontas.
+- **FAO/WHO 2004 e Schofield são a mesma equação em adultos** — o FAO 2004 readotou as
+  equações de peso do Schofield. Devolvem o mesmo número (±0,05 kcal).
+- **Schofield adulto usa só o peso** (a altura é coletada mas não entra); a família
+  peso+altura existe e não está implementada.
+- **Tinsley** foi derivada de 27 atletas de físico; **Harris-Benedict** superestima ~5%.
+- **Slaughter** estratifica por estágio de Tanner, não por idade (até ~4 p.p. entre 12–14 anos).
+- **EER/IOM 2005 abaixo de 3 anos** tem equação própria (`89·P − 100` + depósito).
+
+Pendências conhecidas (não corrigidas):
+
+- **"Cunningham" e "Katch-McArdle" são a mesma equação** (Cunningham 1980 e 1991; o segundo
+  nome vem do livro-texto de McArdle/Katch). Hoje aparecem como se fossem escolas distintas,
+  com 156 kcal/dia de diferença sem explicação. Correção é de rótulo.
+- **Durnin-Womersley** usa a coluna agrupada (correta, porém menos precisa que a versão por
+  faixa etária, que o sistema poderia usar já que tem a idade).
+- **Weltman** pede a MÉDIA de duas medidas abdominais; a UI coleta uma só.
+- Precisão da 3ª casa em Schofield pediátrico (`19.59`/`16.252`/`16.969` vs `19.6`/`16.25`/`16.97`)
+  e no subescapular de McArdle 9–12 (`0.038` vs `0.0388`): **NÃO CONFIRMADAS** — artigos originais
+  pagos/indisponíveis. Impacto < 1 kcal / desprezível.
+
+> Os textos primários de Harris & Benedict (1919) e Roza & Shizgal (1984) não puderam ser lidos
+> (indisponível e paywalled); a confirmação veio de artigos revisados por pares que os citam.
+
 ## Decisões de implementação (2026-07-16)
 
 1. **Coeficientes = equação canônica publicada** (decisão do usuário). Onde a planilha diverge claramente
    do publicado (arredondamento/erro do autor), usar os **valores canônicos com precisão cheia**; a planilha
    é a autoridade para a **estrutura** (quais faixas etárias, quais sítios de dobra, adicionais de
    gestante/lactante, PAL, fatores de injúria) e para o que não for equação padrão. Correções conhecidas a aplicar:
-   - **Mifflin-St Jeor**: usar `10·P + 6.25·A − 5·I (+5 H / −161 M)` (planilha tinha `9.99`/`4.92`).
+   - **Mifflin-St Jeor**: usar `10·P + 6.25·A − 5·I (+5 H / −161 M)`.
+     > **Corrigido em 2026-07-20**: a nota original dizia que a planilha "divergia" por ter
+     > `9.99`/`4.92`. Não divergia — o artigo de 1990 publica **as duas formas**, e os autores
+     > afirmam que a simplificação não afeta o poder preditivo. O termo `166·sexo − 161` do
+     > original reduz-se exatamente a `+5` (H) / `−161` (M). Diferença: ~1,6 kcal/dia.
+     > Mantemos a arredondada por ser a que as calculadoras de referência usam.
    - **Harris-Benedict 1984 (Roza-Shizgal)**: `13.397·P + 4.799·A − 5.677·I + 88.362` (H) / `9.247·P + 3.098·A − 4.330·I + 447.593` (F).
    - **Harris-Benedict 1919**: `66.473 + 13.7516·P + 5.0033·A − 6.7550·I` (H) / `655.0955 + 9.5634·P + 1.8496·A − 4.6756·I` (F).
    - **EER/IOM 2005**: reconferir a parentização (PA deve multiplicar peso **e** altura) e o termo aditivo `+107/+144` célula a célula antes de codar — possível quirk da planilha.
