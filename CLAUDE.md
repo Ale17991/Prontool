@@ -7,6 +7,8 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0172_material_costs.sql` (045-custo-materiais-financeiro)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (gráficos de evolução já em uso). **Sem novas deps** — o motor de cálculo é TS puro (sem libs de estatística/nutrição). (047-plano-alimentar)
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0175_nutrition_assessments.sql`. Reuso: `patient_measurements`, `patient_metric_types` (+1 métrica), `patient_metric_goals`, `patients`, `vital_signs`. (047-plano-alimentar)
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas deps** — o cálculo é aritmética simples (regra de três sobre a porção de referência). (047-plano-alimentar)
+- PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0176_food_catalog_and_diet_plan.sql`. **Tabelas novas**: `food_groups`, `foods`, `food_household_measures`, `food_equivalence_lists`, `food_equivalence_items`, `diet_plan_prescriptions`. **Tabelas estendidas**: `diet_plans`, `diet_meal_items`. **Reuso (leitura)**: `nutrition_assessments` (meta VET/macros da 046), `patients`, `tenant_entitlements`. (047-plano-alimentar)
 
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
 - N/A — feature de UI pura, não persiste nada (003-responsive-design)
@@ -114,10 +116,10 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 047-plano-alimentar: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas deps** — o cálculo é aritmética simples (regra de três sobre a porção de referência).
 - 047-plano-alimentar: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (gráficos de evolução já em uso). **Sem novas deps** — o motor de cálculo é TS puro (sem libs de estatística/nutrição).
 - 045-custo-materiais-financeiro: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (PDF), `exceljs` (Excel) — **sem novas deps**
 
-- 044-admin-painel-plataforma: Added TypeScript 5.4 / Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui, `recharts` (já em uso, p/ gráficos opcionais), `date-fns`. **Sem novas deps.**
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

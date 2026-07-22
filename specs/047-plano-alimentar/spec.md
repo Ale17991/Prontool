@@ -116,6 +116,9 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 **Entrega (US4)**
 - **FR-016**: O sistema MUST disponibilizar o plano prescrito ao paciente na seção **"Plano alimentar" do portal** e em versão para **impressão/compartilhamento**.
 
+**Proveniência e atribuição das fontes**
+- **FR-020**: O sistema MUST registrar a **fonte** de cada alimento (TACO, IBGE/POF ou cadastro próprio da clínica) e exibi-la ao profissional na tela do catálogo. A atribuição das bases oficiais — **"Fonte: Tabela Brasileira de Composição de Alimentos – TACO, 4ª ed., NEPA/UNICAMP, 2011"** e **"IBGE, POF 2008-2009"** — MUST aparecer na tela do catálogo e em **todo material exportado/impresso** que contenha valores nutricionais dessas bases. *(A citação da TACO é condição da licença de uso da base, não item estético.)*
+
 **Qualidade e conformidade**
 - **FR-017**: O sistema MUST **congelar** os valores nutricionais usados no momento da prescrição, de modo que edições posteriores na base não alterem planos já prescritos.
 - **FR-018**: O sistema MUST **auditar** a prescrição de planos e o cadastro/edição de alimentos próprios.
@@ -141,10 +144,12 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 - **SC-005**: Alimentos próprios e planos de uma clínica **nunca** são visíveis para outra (isolamento verificado por teste).
 - **SC-006**: Clínicas **sem** o módulo `dieta` não veem a tela nem o item de menu, e o acesso direto é negado.
 - **SC-007**: O paciente vê no portal **exatamente** o plano que foi prescrito.
+- **SC-008**: A atribuição das fontes oficiais (TACO, IBGE/POF) aparece na tela do catálogo e em todo material impresso/exportado com valores nutricionais dessas bases.
 
 ## Assumptions
 
-- **Base pronta = catálogo global**: a base TACO/IBGE é semeada como catálogo global somente leitura (padrão dos catálogos existentes, ex.: tabela de procedimentos); os alimentos próprios são por clínica (padrão de métricas customizadas já existente no projeto).
+- **Base pronta = catálogo global**: a base é semeada como catálogo global somente leitura (padrão dos catálogos existentes, ex.: tabela de procedimentos); os alimentos próprios são por clínica (padrão de métricas customizadas já existente no projeto). **Fonte da base pronta (definido na pesquisa, ver `research.md` D1)**: **IBGE/POF 2008-2009** como espinha dorsal (única base pública com **medida caseira** de licença utilizável) + **TACO 4ª ed.** sobreposta nos alimentos onde existe (análise laboratorial brasileira; licença de atribuição). A **TBCA foi descartada** por licença CC BY-NC-ND (proíbe uso comercial e alteração). *Risco aberto*: a licença do IBGE é **não confirmada** (estatística pública, redistribuição sem outorga expressa) — mitigação é confirmar com o IBGE antes de clientes que auditam fornecedor.
+- **Ausência de industrializados/marcas**: ambas as bases oficiais são de 2011 e **não contêm produtos industrializados nem marcas comerciais** (ex.: "Whey marca X", "iogurte marca Y"). Por isso o **cadastro de alimentos próprios por clínica (US1) é condição de viabilidade do módulo**, não conveniência — é o que cobre o dia a dia do consultório.
 - **Conexão com a Avaliação (046)**: a meta (calorias/macros) vem da feature 046 quando existir; o plano também funciona **sem** meta (sem a comparação).
 - **Reuso do portal do paciente**: a entrega usa a seção "Plano alimentar" já existente no portal; o armazenamento de plano existente (estrutura básica atual) é estendido, não recriado.
 - **Versionamento por prescrição**: o plano é editável enquanto em elaboração; ao prescrever, gera uma versão imutável (padrão de versionamento já usado no projeto para preços/comissões).
