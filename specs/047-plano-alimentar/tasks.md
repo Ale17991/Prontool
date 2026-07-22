@@ -131,8 +131,8 @@ description: "Task list — Plano Alimentar (feature 047)"
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [ ] T043 [P] Revisar textos/labels (grupos, medidas caseiras, mensagens de plausibilidade e de plano prescrito) para consistência
-- [ ] T044 Rodar `pnpm lint:auth`, `pnpm typecheck`, `pnpm test` e o roteiro de `quickstart.md`; garantir os testes do motor de soma verdes
-- [ ] T045 Re-seed pós-testes (`seed:demo`); confirmar que o catálogo de alimentos sobrevive ao reset via `catalog_baseline` (gotcha 0170)
+- [X] T044 Rodar `pnpm lint:auth`, `pnpm typecheck`, `pnpm test` e o roteiro de `quickstart.md`; garantir os testes do motor de soma verdes
+- [X] T045 Re-seed pós-testes (`seed:demo`); confirmar que o catálogo de alimentos sobrevive ao reset via `catalog_baseline` (gotcha 0170)
 - [ ] T046 [P] Atualizar `CLAUDE.md`/docs com a decisão de fontes (POF+TACO, TBCA descartada) e o passo pendente de confirmar a licença do IBGE
 - [ ] T047 [P] Validar amostra de alimentos e de um plano real com a nutricionista (SC-002 na prática) — a homologação clínica que os testes não cobrem
 
