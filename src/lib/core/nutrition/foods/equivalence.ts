@@ -1,9 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
+import { DomainError, NotFoundError } from '@/lib/observability/errors'
 
 /**
  * Feature 047 — grupos alimentares e listas de substituição/equivalentes.
- * Leitura (US1/US3). A escrita das listas próprias da clínica é T036 (US3).
+ * Leitura (US1) + escrita das listas próprias da clínica (US3).
  */
 
 export interface FoodGroupDTO {
@@ -90,4 +91,138 @@ export async function listEquivalenceLists(
     isCustom: r.tenant_id !== null,
     items: byList.get(r.id) ?? [],
   }))
+}
+
+// =========================================================================
+// Escrita — listas de substituição próprias da clínica (US3, FR-015)
+// =========================================================================
+
+export interface EquivalenceItemInput {
+  foodId: string
+  grams: number
+}
+export interface SaveEquivalenceListInput {
+  tenantId: string
+  groupSlug: string
+  name: string
+  referenceKcal?: number | null
+  items: EquivalenceItemInput[]
+}
+
+async function groupIdBySlug(
+  supabase: SupabaseClient<Database>,
+  slug: string,
+): Promise<string> {
+  const { data } = await supabase.from('food_groups').select('id').eq('slug', slug).maybeSingle()
+  const id = (data as { id: string } | null)?.id
+  if (!id) throw new DomainError('INVALID_GROUP', 'Grupo alimentar inválido.', { status: 422 })
+  return id
+}
+
+/** Valida que os alimentos são visíveis à clínica (globais ou próprios). */
+async function assertFoodsVisible(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  foodIds: string[],
+): Promise<void> {
+  if (foodIds.length === 0) return
+  const { data } = await supabase
+    .from('foods')
+    .select('id, tenant_id')
+    .in('id', foodIds)
+  const rows = (data ?? []) as Array<{ id: string; tenant_id: string | null }>
+  const ok = new Set(rows.filter((r) => r.tenant_id === null || r.tenant_id === tenantId).map((r) => r.id))
+  for (const id of foodIds) {
+    if (!ok.has(id)) throw new DomainError('FOOD_NOT_VISIBLE', 'Alimento indisponível.', { status: 422 })
+  }
+}
+
+export async function createEquivalenceList(
+  supabase: SupabaseClient<Database>,
+  input: SaveEquivalenceListInput,
+): Promise<{ id: string }> {
+  const name = input.name.trim()
+  if (name.length < 1 || name.length > 120) {
+    throw new DomainError('INVALID_LIST', 'Nome da lista inválido (1 a 120 caracteres).', { status: 422 })
+  }
+  const groupId = await groupIdBySlug(supabase, input.groupSlug)
+  await assertFoodsVisible(supabase, input.tenantId, input.items.map((i) => i.foodId))
+
+  const { data, error } = await supabase
+    .from('food_equivalence_lists')
+    .insert({
+      tenant_id: input.tenantId,
+      group_id: groupId,
+      name,
+      reference_kcal: input.referenceKcal ?? null,
+    } as never)
+    .select('id')
+    .single()
+  if (error || !data) throw new Error(`createEquivalenceList: ${error?.message}`)
+  const listId = (data as { id: string }).id
+
+  const items = input.items.filter((i) => i.grams > 0)
+  if (items.length > 0) {
+    const { error: iErr } = await supabase.from('food_equivalence_items').insert(
+      items.map((i) => ({
+        list_id: listId,
+        tenant_id: input.tenantId,
+        food_id: i.foodId,
+        grams: i.grams,
+      })) as never,
+    )
+    if (iErr) throw new Error(`createEquivalenceList items: ${iErr.message}`)
+  }
+  return { id: listId }
+}
+
+/** Substitui a lista inteira (nome, meta e itens) — só listas PRÓPRIAS. */
+export async function updateEquivalenceList(
+  supabase: SupabaseClient<Database>,
+  input: SaveEquivalenceListInput & { listId: string },
+): Promise<void> {
+  const existing = await supabase
+    .from('food_equivalence_lists')
+    .select('tenant_id')
+    .eq('id', input.listId)
+    .maybeSingle()
+  const row = existing.data as { tenant_id: string | null } | null
+  if (!row) throw new NotFoundError('equivalence_list', input.listId)
+  if (row.tenant_id !== input.tenantId) {
+    throw new DomainError('LIST_NOT_EDITABLE', 'Lista não editável.', { status: 403 })
+  }
+  const groupId = await groupIdBySlug(supabase, input.groupSlug)
+  await assertFoodsVisible(supabase, input.tenantId, input.items.map((i) => i.foodId))
+
+  const upd = await supabase
+    .from('food_equivalence_lists')
+    .update({ name: input.name.trim(), reference_kcal: input.referenceKcal ?? null, group_id: groupId } as never)
+    .eq('id', input.listId)
+    .eq('tenant_id', input.tenantId)
+  if (upd.error) throw new Error(`updateEquivalenceList: ${upd.error.message}`)
+
+  await supabase.from('food_equivalence_items').delete().eq('list_id', input.listId).eq('tenant_id', input.tenantId)
+  const items = input.items.filter((i) => i.grams > 0)
+  if (items.length > 0) {
+    const { error } = await supabase.from('food_equivalence_items').insert(
+      items.map((i) => ({ list_id: input.listId, tenant_id: input.tenantId, food_id: i.foodId, grams: i.grams })) as never,
+    )
+    if (error) throw new Error(`updateEquivalenceList items: ${error.message}`)
+  }
+}
+
+export async function deleteEquivalenceList(
+  supabase: SupabaseClient<Database>,
+  args: { tenantId: string; listId: string },
+): Promise<void> {
+  const { data, error } = await supabase
+    .from('food_equivalence_lists')
+    .delete()
+    .eq('id', args.listId)
+    .eq('tenant_id', args.tenantId)
+    .select('id')
+  if (error) throw new Error(`deleteEquivalenceList: ${error.message}`)
+  if (!data || (data as unknown[]).length === 0) {
+    throw new DomainError('LIST_NOT_EDITABLE', 'Lista não encontrada ou não editável.', { status: 404 })
+  }
 }

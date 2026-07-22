@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { listFoodGroups } from '@/lib/core/nutrition/foods/equivalence'
 import { FoodsCatalogClient } from './foods-catalog-client'
+import { EquivalenceListsClient } from './equivalence-lists-client'
 
 /**
  * Feature 047 US1 — base de alimentos (gated por `dieta`).
@@ -38,6 +39,8 @@ export default async function AlimentosConfigPage() {
       </div>
 
       <FoodsCatalogClient groups={groups.map((g) => ({ slug: g.slug, label: g.label }))} />
+
+      <EquivalenceListsClient groups={groups.map((g) => ({ slug: g.slug, label: g.label }))} />
 
       <p className="text-[11px] leading-snug text-slate-400">
         Fontes da base pronta: Tabela Brasileira de Composição de Alimentos — TACO, 4ª ed.,

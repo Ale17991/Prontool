@@ -104,10 +104,10 @@ description: "Task list — Plano Alimentar (feature 047)"
 
 **Independent Test**: definir porção equivalente e alimentos de um grupo; usar no cardápio e ver as opções "ou".
 
-- [ ] T035 [P] [US3] Integration test `tests/integration/diet-equivalence.spec.ts` — criar lista de substituição da clínica; associar itens; item do cardápio vinculado à lista expõe as opções equivalentes; isolamento (lista própria não vaza)
-- [ ] T036 [US3] `src/lib/core/nutrition/foods/equivalence.ts` — CRUD de grupos (leitura) e de listas/itens de substituição por clínica (escrita)
-- [ ] T037 [US3] Estender `src/app/api/alimentos/grupos/route.ts` — `POST`/`PATCH`/`DELETE` de listas de substituição próprias (RBAC + gate)
-- [ ] T038 [US3] UI: no `meal-editor` marcar um item como pertencente a uma lista de substituição e exibir as opções "ou"; gestão de listas na tela de Configurações → Alimentos
+- [X] T035 [P] [US3] Integration test `tests/integration/diet-equivalence.spec.ts` — criar lista de substituição da clínica; associar itens; item do cardápio vinculado à lista expõe as opções equivalentes; isolamento (lista própria não vaza)
+- [X] T036 [US3] `src/lib/core/nutrition/foods/equivalence.ts` — CRUD de grupos (leitura) e de listas/itens de substituição por clínica (escrita)
+- [X] T037 [US3] Estender `src/app/api/alimentos/grupos/route.ts` — `POST`/`PATCH`/`DELETE` de listas de substituição próprias (RBAC + gate)
+- [X] T038 [US3] UI: no `meal-editor` marcar um item como pertencente a uma lista de substituição e exibir as opções "ou"; gestão de listas na tela de Configurações → Alimentos
 
 **Checkpoint**: US3 funcional — cardápio com flexibilidade de substituição.
 
