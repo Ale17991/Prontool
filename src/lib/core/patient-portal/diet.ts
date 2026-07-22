@@ -216,3 +216,124 @@ export async function getDietPlan(
     },
   )
 }
+
+// =========================================================================
+// Feature 047 US4 — entrega da PRESCRIÇÃO no portal do paciente.
+// =========================================================================
+
+export interface PortalDietItem {
+  name: string
+  quantity: string | null
+  energyKcal: number | null
+}
+export interface PortalDietMeal {
+  name: string
+  timeLabel: string | null
+  items: PortalDietItem[]
+  energyKcal: number | null
+}
+export interface PortalDietPlan {
+  title: string
+  prescribedAt: string | null
+  meals: PortalDietMeal[]
+  totalKcal: number | null
+  /** Atribuição das fontes (FR-020) quando o plano usa a base pronta. */
+  attribution: boolean
+}
+
+interface SnapItem {
+  name: string
+  grams: number | null
+  measureLabel?: string | null
+  measureQty?: number | null
+  nutrients?: { energyKcal?: number } | null
+}
+interface SnapMeal {
+  name: string
+  timeLabel?: string | null
+  totals?: { energyKcal?: number } | null
+  items: SnapItem[]
+}
+interface Snapshot {
+  title?: string
+  totals?: { energyKcal?: number } | null
+  meals?: SnapMeal[]
+}
+
+/**
+ * Plano a exibir no portal: prioriza a PRESCRIÇÃO mais recente (snapshot
+ * imutável — SC-007). Sem prescrição, cai no plano de texto livre da feature
+ * 032 (compat) — mas NUNCA num rascunho 047 (itens com food_id), que é
+ * trabalho interno ainda não entregue.
+ */
+export async function getPortalDietPlan(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  patientId: string,
+): Promise<PortalDietPlan | null> {
+  const sb = loose(supabase)
+
+  const presc = await sb
+    .from('diet_plan_prescriptions')
+    .select('snapshot, prescribed_at')
+    .eq('tenant_id', tenantId)
+    .eq('patient_id', patientId)
+    .order('prescribed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (presc.data) {
+    const row = presc.data as { snapshot: Snapshot; prescribed_at: string }
+    const snap = row.snapshot ?? {}
+    const meals: PortalDietMeal[] = (snap.meals ?? []).map((m) => ({
+      name: m.name,
+      timeLabel: m.timeLabel ?? null,
+      energyKcal: m.totals?.energyKcal ?? null,
+      items: (m.items ?? []).map((i) => ({
+        name: i.name,
+        quantity:
+          i.measureLabel && i.measureQty
+            ? `${i.measureQty} ${i.measureLabel}${i.grams ? ` (${i.grams} g)` : ''}`
+            : i.grams
+              ? `${i.grams} g`
+              : null,
+        energyKcal: i.nutrients?.energyKcal ?? null,
+      })),
+    }))
+    return {
+      title: snap.title ?? 'Plano alimentar',
+      prescribedAt: row.prescribed_at,
+      meals,
+      totalKcal: snap.totals?.energyKcal ?? null,
+      attribution: true,
+    }
+  }
+
+  // Sem prescrição: só o plano LEGADO (032) de texto livre. Rascunho 047 fica oculto.
+  const active = await getActiveDietPlan(supabase, tenantId, patientId)
+  if (!active) return null
+  // Itens estruturados (com food_id) DESTE plano → é rascunho 047 não entregue.
+  const mealIdsRes = await sb.from('diet_meals').select('id').eq('plan_id', active.id).eq('tenant_id', tenantId)
+  const mealIds = ((mealIdsRes.data ?? []) as Array<{ id: string }>).map((m) => m.id)
+  if (mealIds.length > 0) {
+    const structured = await sb
+      .from('diet_meal_items')
+      .select('id', { count: 'exact', head: true })
+      .in('meal_id', mealIds)
+      .not('food_id', 'is', null)
+    if ((structured.count ?? 0) > 0) return null
+  }
+
+  return {
+    title: active.title,
+    prescribedAt: null,
+    meals: active.meals.map((m) => ({
+      name: m.name,
+      timeLabel: m.timeLabel,
+      energyKcal: null,
+      items: m.items.map((it) => ({ name: it.food, quantity: it.quantity, energyKcal: null })),
+    })),
+    totalKcal: null,
+    attribution: false,
+  }
+}

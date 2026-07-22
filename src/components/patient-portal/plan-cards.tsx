@@ -1,6 +1,6 @@
 import { Dumbbell, UtensilsCrossed } from 'lucide-react'
 import type { WorkoutPlan } from '@/lib/core/patient-portal/workout'
-import type { DietPlan } from '@/lib/core/patient-portal/diet'
+import type { PortalDietPlan } from '@/lib/core/patient-portal/diet'
 
 /**
  * Feature 032 — render do plano de treino e do plano alimentar ATIVOS no portal
@@ -49,7 +49,7 @@ export function WorkoutCard({ plan }: { plan: WorkoutPlan }) {
   )
 }
 
-export function DietCard({ plan }: { plan: DietPlan }) {
+export function DietCard({ plan }: { plan: PortalDietPlan }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="flex items-center gap-2.5 text-sm font-bold text-slate-700">
@@ -58,21 +58,30 @@ export function DietCard({ plan }: { plan: DietPlan }) {
         </span>
         Plano alimentar
       </h2>
-      <p className="mt-1 text-xs text-slate-400">{plan.title}</p>
-      {plan.notes ? <p className="mt-1 text-xs text-slate-500">{plan.notes}</p> : null}
+      <p className="mt-1 flex items-baseline justify-between text-xs text-slate-400">
+        <span>{plan.title}</span>
+        {plan.totalKcal !== null ? (
+          <span className="font-semibold text-slate-500">{plan.totalKcal} kcal/dia</span>
+        ) : null}
+      </p>
       <div className="mt-3 space-y-3">
         {plan.meals.map((m, i) => (
           <div key={i} className="rounded-xl border border-slate-100 p-3">
             <p className="flex items-baseline justify-between text-sm font-semibold text-slate-800">
-              {m.name}
-              {m.timeLabel ? (
-                <span className="text-xs font-normal text-slate-400">{m.timeLabel}</span>
+              <span>
+                {m.name}
+                {m.timeLabel ? (
+                  <span className="ml-1.5 text-xs font-normal text-slate-400">{m.timeLabel}</span>
+                ) : null}
+              </span>
+              {m.energyKcal !== null ? (
+                <span className="text-xs font-normal tabular-nums text-slate-400">{m.energyKcal} kcal</span>
               ) : null}
             </p>
             <ul className="mt-1 space-y-0.5">
               {m.items.map((it, k) => (
                 <li key={k} className="text-sm text-slate-600">
-                  {it.food}
+                  {it.name}
                   {it.quantity ? <span className="text-slate-400"> — {it.quantity}</span> : null}
                 </li>
               ))}
@@ -80,6 +89,11 @@ export function DietCard({ plan }: { plan: DietPlan }) {
           </div>
         ))}
       </div>
+      {plan.attribution ? (
+        <p className="mt-3 text-[10px] leading-snug text-slate-300">
+          Valores nutricionais: TACO (NEPA/UNICAMP, 2011) e IBGE/POF 2008-2009.
+        </p>
+      ) : null}
     </section>
   )
 }

@@ -119,10 +119,10 @@ description: "Task list — Plano Alimentar (feature 047)"
 
 **Independent Test**: prescrever e confirmar que o paciente vê no portal exatamente o prescrito; gerar versão de impressão.
 
-- [ ] T039 [P] [US4] Integration test `tests/integration/diet-portal-delivery.spec.ts` — prescrição → portal lê o snapshot mais recente; rascunho não aparece; conteúdo == prescrito (SC-007)
-- [ ] T040 [US4] Estender `src/lib/core/patient-portal/diet.ts` — passar a ler `diet_plan_prescriptions.snapshot` (prescrição vigente) em vez do rascunho
-- [ ] T041 [US4] Estender `src/components/patient-portal/plan-cards.tsx` — exibir refeições/itens/medidas/substituições/totais da prescrição (somente leitura)
-- [ ] T042 [US4] Versão para impressão/compartilhamento do plano prescrito — **com a atribuição das fontes (TACO/IBGE)** no rodapé (FR-016/FR-020/SC-008)
+- [X] T039 [P] [US4] Integration test `tests/integration/diet-portal-delivery.spec.ts` — prescrição → portal lê o snapshot mais recente; rascunho não aparece; conteúdo == prescrito (SC-007)
+- [X] T040 [US4] Estender `src/lib/core/patient-portal/diet.ts` — passar a ler `diet_plan_prescriptions.snapshot` (prescrição vigente) em vez do rascunho
+- [X] T041 [US4] Estender `src/components/patient-portal/plan-cards.tsx` — exibir refeições/itens/medidas/substituições/totais da prescrição (somente leitura)
+- [X] T042 [US4] Versão para impressão/compartilhamento do plano prescrito — **com a atribuição das fontes (TACO/IBGE)** no rodapé (FR-016/FR-020/SC-008)
 
 **Checkpoint**: US4 funcional — paciente recebe o plano.
 

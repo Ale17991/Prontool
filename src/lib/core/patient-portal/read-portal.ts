@@ -6,7 +6,7 @@ import { listEnabledMetricTypesForTenant, type PatientMetricType } from './metri
 import { listCareNotes, type CareNote } from './care-notes'
 import { listGoals, type PatientGoal } from './goals'
 import { getActiveWorkoutPlan, type WorkoutPlan } from './workout'
-import { getActiveDietPlan, type DietPlan } from './diet'
+import { getPortalDietPlan, type PortalDietPlan } from './diet'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 
 /**
@@ -47,8 +47,8 @@ export interface PatientPortalBundle {
   goals: PatientGoal[]
   /** Plano de treino ativo (seção `treino`), ou null. */
   workout: WorkoutPlan | null
-  /** Plano alimentar ativo (seção `dieta`), ou null. */
-  diet: DietPlan | null
+  /** Plano alimentar entregue (prescrição 047 ou plano legado 032), ou null. */
+  diet: PortalDietPlan | null
 }
 
 export async function buildPatientPortalBundle(
@@ -78,7 +78,7 @@ export async function buildPatientPortalBundle(
     listCareNotes(supabase, args.tenantId, args.patientId),
     listGoals(supabase, args.tenantId, args.patientId),
     getActiveWorkoutPlan(supabase, args.tenantId, args.patientId),
-    getActiveDietPlan(supabase, args.tenantId, args.patientId),
+    getPortalDietPlan(supabase, args.tenantId, args.patientId),
     getTenantEntitlements(supabase, args.tenantId),
   ])
 
