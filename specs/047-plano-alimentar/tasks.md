@@ -20,7 +20,7 @@ description: "Task list — Plano Alimentar (feature 047)"
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 [P] Criar diretórios `src/lib/core/nutrition/diet/` e `src/lib/core/nutrition/foods/` com barrels `index.ts` vazios
+- [X] T001 [P] Criar diretórios `src/lib/core/nutrition/diet/` e `src/lib/core/nutrition/foods/` com barrels `index.ts` vazios
 - [X] T002 [P] `scripts/build-foods-seed.ts` — normaliza os 3 CSVs (POF composição, TACO, medidas POF), deriva energia por Atwater, mapeia grupo, e injeta o seed (INSERT em lote, staging por external_code) na migration 0176. **2568 alimentos (597 TACO + 1971 POF) + 11801 medidas.**
 - [X] T003 [P] Grupos alimentares (11) seedados na própria migration; TACO mapeada por `categoria`, POF em `outros` (refinar depois — US3 usa listas curadas)
 
@@ -79,20 +79,20 @@ description: "Task list — Plano Alimentar (feature 047)"
 
 ### Tests for US2 ⚠️
 
-- [ ] T024 [P] [US2] Unit test `tests/unit/nutrition-diet-totals.spec.ts` — item→nutrientes por regra de três sobre `reference_grams`; conversão medida caseira→gramas; soma por refeição/dia; delta vs meta; **números batem exatamente** (SC-002)
-- [ ] T025 [P] [US2] Contract test `tests/contract/diet-prescription-immutability.spec.ts` — `diet_plan_prescriptions` rejeita UPDATE/DELETE; plano prescrito não muda quando o alimento de origem é editado (gate a / SC-004)
-- [ ] T026 [P] [US2] Contract test `tests/contract/diet-plan-rbac.spec.ts` — criar/editar/prescrever plano só `admin`/`profissional_saude`; sem módulo → negado (gate c)
+- [X] T024 [P] [US2] Unit test `tests/unit/nutrition-diet-totals.spec.ts` — item→nutrientes por regra de três sobre `reference_grams`; conversão medida caseira→gramas; soma por refeição/dia; delta vs meta; **números batem exatamente** (SC-002)
+- [X] T025 [P] [US2] Contract test `tests/contract/diet-prescription-immutability.spec.ts` — `diet_plan_prescriptions` rejeita UPDATE/DELETE; plano prescrito não muda quando o alimento de origem é editado (gate a / SC-004)
+- [X] T026 [P] [US2] Contract test `tests/contract/diet-plan-rbac.spec.ts` — criar/editar/prescrever plano só `admin`/`profissional_saude`; sem módulo → negado (gate c)
 
 ### Implementation for US2
 
-- [ ] T027 [P] [US2] `src/lib/core/nutrition/diet/totals.ts` — motor puro isomórfico: nutrientes do item, totais por refeição/dia, delta vs meta (`target_kcal`/`target_macros`)
-- [ ] T028 [US2] `src/lib/core/nutrition/diet/plan.ts` — montar/editar rascunho (upsert do cardápio inteiro; converte medida caseira→gramas na persistência; grava `food` = nome do alimento no momento)
-- [ ] T029 [US2] `src/lib/core/nutrition/diet/prescribe.ts` — operação atômica: calcula e grava `snap_*`, copia meta vigente de `nutrition_assessments`, insere `diet_plan_prescriptions` (snapshot JSONB), marca `status='prescrito'` (transação única)
-- [ ] T030 [US2] Rota `src/app/api/pacientes/[id]/plano-alimentar/route.ts` — `GET` plano vigente + meta + delta; `POST`/`PATCH` rascunho (contrato §5/§6); `409` ao editar plano prescrito
-- [ ] T031 [US2] Rota `src/app/api/pacientes/[id]/plano-alimentar/prescrever/route.ts` — `POST` prescreve (contrato §7)
-- [ ] T032 [US2] Tela `src/app/(dashboard)/operacao/plano-alimentar/page.tsx` (RSC, gate) + `plan-builder-client.tsx` + `_components/{food-typeahead,meal-editor,totals-panel}.tsx` — cardápio, totais ao vivo (motor no cliente), comparação com a meta, botão Prescrever
-- [ ] T033 [US2] Item de menu "Plano Alimentar" na sidebar (`sidebar-sections.ts`), em Operação, gated `hasModule('dieta')` + papel de escrita — **atualizar `tests/unit/dashboard-shell-sections.spec.ts`** (a lista de itens muda)
-- [ ] T034 [P] [US2] Integration test `tests/integration/diet-plan-build-and-prescribe.spec.ts` — montar → total confere → prescrever → snapshot criado + `status` prescrito + auditoria; plano sem avaliação monta sem delta (edge case)
+- [X] T027 [P] [US2] `src/lib/core/nutrition/diet/totals.ts` — motor puro isomórfico: nutrientes do item, totais por refeição/dia, delta vs meta (`target_kcal`/`target_macros`)
+- [X] T028 [US2] `src/lib/core/nutrition/diet/plan.ts` — montar/editar rascunho (upsert do cardápio inteiro; converte medida caseira→gramas na persistência; grava `food` = nome do alimento no momento)
+- [X] T029 [US2] `src/lib/core/nutrition/diet/prescribe.ts` — operação atômica: calcula e grava `snap_*`, copia meta vigente de `nutrition_assessments`, insere `diet_plan_prescriptions` (snapshot JSONB), marca `status='prescrito'` (transação única)
+- [X] T030 [US2] Rota `src/app/api/pacientes/[id]/plano-alimentar/route.ts` — `GET` plano vigente + meta + delta; `POST`/`PATCH` rascunho (contrato §5/§6); `409` ao editar plano prescrito
+- [X] T031 [US2] Rota `src/app/api/pacientes/[id]/plano-alimentar/prescrever/route.ts` — `POST` prescreve (contrato §7)
+- [X] T032 [US2] Tela `src/app/(dashboard)/operacao/plano-alimentar/page.tsx` (RSC, gate) + `plan-builder-client.tsx` + `_components/{food-typeahead,meal-editor,totals-panel}.tsx` — cardápio, totais ao vivo (motor no cliente), comparação com a meta, botão Prescrever
+- [X] T033 [US2] Item de menu "Plano Alimentar" na sidebar (`sidebar-sections.ts`), em Operação, gated `hasModule('dieta')` + papel de escrita — **atualizar `tests/unit/dashboard-shell-sections.spec.ts`** (a lista de itens muda)
+- [X] T034 [P] [US2] Integration test `tests/integration/diet-plan-build-and-prescribe.spec.ts` — montar → total confere → prescrever → snapshot criado + `status` prescrito + auditoria; plano sem avaliação monta sem delta (edge case)
 
 **Checkpoint**: US1+US2 = MVP — a clínica monta o cardápio, vê a comparação com a meta e prescreve.
 

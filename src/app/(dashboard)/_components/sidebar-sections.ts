@@ -25,6 +25,7 @@ import {
   TrendingDown,
   TrendingUp,
   Users,
+  UtensilsCrossed,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
@@ -86,6 +87,13 @@ export const SECTIONS: readonly NavSection[] = [
         show: ({ role, ent }) =>
           ent.hasModule('nutri_avaliacao') &&
           (role === 'admin' || role === 'profissional_saude' || role === 'recepcionista'),
+      },
+      {
+        href: '/operacao/plano-alimentar',
+        label: 'Plano Alimentar',
+        icon: UtensilsCrossed,
+        show: ({ role, ent }) =>
+          ent.hasModule('dieta') && (role === 'admin' || role === 'profissional_saude'),
       },
       {
         href: '/operacao/tarefas',

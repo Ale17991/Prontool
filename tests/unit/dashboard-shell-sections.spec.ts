@@ -1,7 +1,7 @@
 /**
  * Feature 014 — US1 — matriz role × itens visíveis na sidebar após a
  * reorganização. Garante que:
- *  - admin com todas flags + módulos vê Operação (incl. Odontologia/Nutrição) + Análise + Configurações.
+ *  - admin com todas flags + módulos vê Operação (incl. Odontologia/Nutrição/Plano Alimentar) + Análise + Configurações.
  *  - Notificações, Alertas do sistema, Pendências e Auditoria saíram da
  *    sidebar para qualquer role.
  *  - Configurações é o único item da terceira seção e visível para todos.
@@ -47,13 +47,14 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
     expect(SECTIONS.map((s) => s.id)).toEqual(['operacao', 'analise', 'configuracoes'])
   })
 
-  it('Operação has exactly 6 items: Agenda, Pacientes, Odontologia, Nutrição, Tarefas, Chat', () => {
+  it('Operação has exactly 7 items: Agenda, Pacientes, Odontologia, Nutrição, Plano Alimentar, Tarefas, Chat', () => {
     const op = SECTIONS.find((s) => s.id === 'operacao')!
     expect(op.items.map((it) => it.label)).toEqual([
       'Agenda',
       'Pacientes',
       'Odontologia',
       'Nutrição',
+      'Plano Alimentar',
       'Tarefas',
       'Chat',
     ])
@@ -111,6 +112,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Pacientes',
       'Odontologia',
       'Nutrição',
+      'Plano Alimentar',
       'Tarefas',
       'Chat',
       'Relatórios',
@@ -154,6 +156,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Pacientes',
       'Odontologia',
       'Nutrição',
+      'Plano Alimentar',
       'Tarefas',
       'Chat',
       'Repasse Médico',

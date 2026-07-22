@@ -7922,6 +7922,21 @@ export type Database = {
           sites_measured: number
         }[]
       }
+      prescribe_diet_plan: {
+        Args: {
+          p_actor_user_id: string
+          p_item_snaps: Json
+          p_patient_id: string
+          p_plan_id: string
+          p_snapshot: Json
+          p_target_kcal: number
+          p_target_macros: Json
+          p_tenant_id: string
+          p_total_kcal: number
+          p_total_macros: Json
+        }
+        Returns: string
+      }
       public_booking_find_patient_by_cpf: {
         Args: { p_cpf: string; p_key: string; p_tenant_id: string }
         Returns: {
