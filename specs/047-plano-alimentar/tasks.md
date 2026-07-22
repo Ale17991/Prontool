@@ -21,8 +21,8 @@ description: "Task list — Plano Alimentar (feature 047)"
 ## Phase 1: Setup (Shared Infrastructure)
 
 - [ ] T001 [P] Criar diretórios `src/lib/core/nutrition/diet/` e `src/lib/core/nutrition/foods/` com barrels `index.ts` vazios
-- [ ] T002 [P] Converter/normalizar os CSVs de origem para `supabase/seed-data/foods/` (composição POF, composição TACO, medidas caseiras POF) a partir dos arquivos já baixados no scratchpad da sessão — colunas alvo: `source, external_code, name, group_slug, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g` e `food_external_code, label, grams, is_default`
-- [ ] T003 [P] Definir o mapa de **grupos alimentares** (slug + rótulo + ordem) em `supabase/seed-data/foods/groups.csv` e a associação alimento→grupo usada na normalização
+- [X] T002 [P] `scripts/build-foods-seed.ts` — normaliza os 3 CSVs (POF composição, TACO, medidas POF), deriva energia por Atwater, mapeia grupo, e injeta o seed (INSERT em lote, staging por external_code) na migration 0176. **2568 alimentos (597 TACO + 1971 POF) + 11801 medidas.**
+- [X] T003 [P] Grupos alimentares (11) seedados na própria migration; TACO mapeada por `categoria`, POF em `outros` (refinar depois — US3 usa listas curadas)
 
 ---
 
@@ -30,14 +30,14 @@ description: "Task list — Plano Alimentar (feature 047)"
 
 **⚠️ CRITICAL**: nenhuma história começa antes desta fase.
 
-- [ ] T004 Migration `supabase/migrations/0176_food_catalog_and_diet_plan.sql` — parte 1: `CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA extensions` + wrapper `IMMUTABLE` `public.immutable_unaccent(text)` para permitir índice (ver research D5)
-- [ ] T005 Migration 0176 — parte 2: tabelas `food_groups`, `foods`, `food_household_measures`, `food_equivalence_lists`, `food_equivalence_items` conforme `data-model.md` (colunas, `NUMERIC` para nutrientes, CHECKs de plausibilidade, `tenant_id NULL` = global)
-- [ ] T006 Migration 0176 — parte 3: índices (`(tenant_id, active, name)`, GIN trigram sobre `immutable_unaccent(lower(name))`, `UNIQUE (source, external_code) WHERE tenant_id IS NULL`) + RLS padrão 0123 (SELECT global-ou-próprio; escrita `admin`/`profissional_saude` do tenant) + trigger anti-escrita nas linhas globais
-- [ ] T007 Migration 0176 — parte 4: `ALTER TABLE diet_plans` (`status`, `assessment_id`, `target_kcal`, `target_macros`) e `ALTER TABLE diet_meal_items` (`food_id`, `grams`, `measure_label`, `measure_qty`, `equivalence_list_id`, `snap_*`), todas aditivas/nullable
-- [ ] T008 Migration 0176 — parte 5: `diet_plan_prescriptions` (append-only) — tabela + `enforce_append_only` (BEFORE UPDATE/DELETE) + `REVOKE UPDATE,DELETE FROM authenticated` + RLS + trigger `AFTER INSERT` de auditoria (`log_audit_event`) + índice `(tenant_id, patient_id, prescribed_at DESC)`
-- [ ] T009 Migration 0176 — parte 6: seed do catálogo global via `COPY` (grupos → foods → medidas → listas de equivalência de fábrica) a partir de `supabase/seed-data/foods/`; energia derivada por Atwater onde ausente
-- [ ] T010 Migration 0176 — parte 7: registrar `food_groups`, `foods`, `food_household_measures`, `food_equivalence_lists`, `food_equivalence_items` no mecanismo `catalog_baseline` (captura na 1ª chamada + refresh se já existir), espelhando o que a 0175 fez (gotcha da 0170 — research D3)
-- [ ] T011 Rodar `pnpm supabase:reset && pnpm supabase:gen-types`; conferir tipos gerados em `src/lib/db/generated`; validar contagem do catálogo (~2.500 alimentos, ~11.800 medidas)
+- [X] T004 Migration `supabase/migrations/0176_food_catalog_and_diet_plan.sql` — parte 1: `CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA extensions` + wrapper `IMMUTABLE` `public.immutable_unaccent(text)` para permitir índice (ver research D5)
+- [X] T005 Migration 0176 — parte 2: tabelas `food_groups`, `foods`, `food_household_measures`, `food_equivalence_lists`, `food_equivalence_items` conforme `data-model.md` (colunas, `NUMERIC` para nutrientes, CHECKs de plausibilidade, `tenant_id NULL` = global)
+- [X] T006 Migration 0176 — parte 3: índices (`(tenant_id, active, name)`, GIN trigram sobre `immutable_unaccent(lower(name))`, `UNIQUE (source, external_code) WHERE tenant_id IS NULL`) + RLS padrão 0123 (SELECT global-ou-próprio; escrita `admin`/`profissional_saude` do tenant) + trigger anti-escrita nas linhas globais
+- [X] T007 Migration 0176 — parte 4: `ALTER TABLE diet_plans` (`status`, `assessment_id`, `target_kcal`, `target_macros`) e `ALTER TABLE diet_meal_items` (`food_id`, `grams`, `measure_label`, `measure_qty`, `equivalence_list_id`, `snap_*`), todas aditivas/nullable
+- [X] T008 Migration 0176 — parte 5: `diet_plan_prescriptions` (append-only) — tabela + `enforce_append_only` (BEFORE UPDATE/DELETE) + `REVOKE UPDATE,DELETE FROM authenticated` + RLS + trigger `AFTER INSERT` de auditoria (`log_audit_event`) + índice `(tenant_id, patient_id, prescribed_at DESC)`
+- [X] T009 Migration 0176 — parte 6: seed do catálogo global via `COPY` (grupos → foods → medidas → listas de equivalência de fábrica) a partir de `supabase/seed-data/foods/`; energia derivada por Atwater onde ausente
+- [X] T010 Migration 0176 — parte 7: registrar `food_groups`, `foods`, `food_household_measures`, `food_equivalence_lists`, `food_equivalence_items` no mecanismo `catalog_baseline` (captura na 1ª chamada + refresh se já existir), espelhando o que a 0175 fez (gotcha da 0170 — research D3)
+- [X] T011 Rodar `pnpm supabase:reset && pnpm supabase:gen-types`; conferir tipos gerados em `src/lib/db/generated`; validar contagem do catálogo (~2.500 alimentos, ~11.800 medidas)
 - [ ] T012 [P] `scripts/seed-foods.ts` + script `seed:foods` / `seed:foods:prod` no `package.json` — reingestão idempotente do catálogo global (por `source`+`external_code`) para aplicar em produção sem depender do reset
 
 **Checkpoint**: schema, catálogo global, imutabilidade e baseline prontos — histórias podem começar.
