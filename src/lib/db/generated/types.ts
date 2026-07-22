@@ -1530,35 +1530,79 @@ export type Database = {
       diet_meal_items: {
         Row: {
           created_at: string
+          equivalence_list_id: string | null
           food: string
+          food_id: string | null
+          grams: number | null
           id: string
           meal_id: string
+          measure_label: string | null
+          measure_qty: number | null
           notes: string | null
           position: number
           quantity: string | null
+          snap_carb_g: number | null
+          snap_energy_kcal: number | null
+          snap_fat_g: number | null
+          snap_fiber_g: number | null
+          snap_protein_g: number | null
           tenant_id: string
         }
         Insert: {
           created_at?: string
+          equivalence_list_id?: string | null
           food: string
+          food_id?: string | null
+          grams?: number | null
           id?: string
           meal_id: string
+          measure_label?: string | null
+          measure_qty?: number | null
           notes?: string | null
           position?: number
           quantity?: string | null
+          snap_carb_g?: number | null
+          snap_energy_kcal?: number | null
+          snap_fat_g?: number | null
+          snap_fiber_g?: number | null
+          snap_protein_g?: number | null
           tenant_id: string
         }
         Update: {
           created_at?: string
+          equivalence_list_id?: string | null
           food?: string
+          food_id?: string | null
+          grams?: number | null
           id?: string
           meal_id?: string
+          measure_label?: string | null
+          measure_qty?: number | null
           notes?: string | null
           position?: number
           quantity?: string | null
+          snap_carb_g?: number | null
+          snap_energy_kcal?: number | null
+          snap_fat_g?: number | null
+          snap_fiber_g?: number | null
+          snap_protein_g?: number | null
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "diet_meal_items_equivalence_list_id_fkey"
+            columns: ["equivalence_list_id"]
+            isOneToOne: false
+            referencedRelation: "food_equivalence_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_meal_items_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "diet_meal_items_meal_id_fkey"
             columns: ["meal_id"]
@@ -1623,41 +1667,124 @@ export type Database = {
           },
         ]
       }
+      diet_plan_prescriptions: {
+        Row: {
+          id: string
+          patient_id: string
+          plan_id: string
+          prescribed_at: string
+          prescribed_by_user_id: string
+          snapshot: Json
+          target_kcal: number | null
+          target_macros: Json | null
+          tenant_id: string
+          total_kcal: number
+          total_macros: Json
+        }
+        Insert: {
+          id?: string
+          patient_id: string
+          plan_id: string
+          prescribed_at?: string
+          prescribed_by_user_id: string
+          snapshot: Json
+          target_kcal?: number | null
+          target_macros?: Json | null
+          tenant_id: string
+          total_kcal: number
+          total_macros: Json
+        }
+        Update: {
+          id?: string
+          patient_id?: string
+          plan_id?: string
+          prescribed_at?: string
+          prescribed_by_user_id?: string
+          snapshot?: Json
+          target_kcal?: number | null
+          target_macros?: Json | null
+          tenant_id?: string
+          total_kcal?: number
+          total_macros?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_plan_prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_prescriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diet_plan_prescriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diet_plans: {
         Row: {
           active: boolean
+          assessment_id: string | null
           created_at: string
           created_by_user_id: string
           id: string
           notes: string | null
           patient_id: string
+          status: string
+          target_kcal: number | null
+          target_macros: Json | null
           tenant_id: string
           title: string
           updated_at: string
         }
         Insert: {
           active?: boolean
+          assessment_id?: string | null
           created_at?: string
           created_by_user_id: string
           id?: string
           notes?: string | null
           patient_id: string
+          status?: string
+          target_kcal?: number | null
+          target_macros?: Json | null
           tenant_id: string
           title: string
           updated_at?: string
         }
         Update: {
           active?: boolean
+          assessment_id?: string | null
           created_at?: string
           created_by_user_id?: string
           id?: string
           notes?: string | null
           patient_id?: string
+          status?: string
+          target_kcal?: number | null
+          target_macros?: Json | null
           tenant_id?: string
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "diet_plans_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "nutrition_assessments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "diet_plans_patient_id_fkey"
             columns: ["patient_id"]
@@ -2391,6 +2518,238 @@ export type Database = {
           },
           {
             foreignKeyName: "eyeglass_prescriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_equivalence_items: {
+        Row: {
+          food_id: string
+          grams: number
+          id: string
+          list_id: string
+          tenant_id: string | null
+        }
+        Insert: {
+          food_id: string
+          grams: number
+          id?: string
+          list_id: string
+          tenant_id?: string | null
+        }
+        Update: {
+          food_id?: string
+          grams?: number
+          id?: string
+          list_id?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_equivalence_items_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_equivalence_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "food_equivalence_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_equivalence_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_equivalence_lists: {
+        Row: {
+          active: boolean
+          created_at: string
+          group_id: string
+          id: string
+          name: string
+          reference_kcal: number | null
+          tenant_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          group_id: string
+          id?: string
+          name: string
+          reference_kcal?: number | null
+          tenant_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          group_id?: string
+          id?: string
+          name?: string
+          reference_kcal?: number | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_equivalence_lists_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "food_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_equivalence_lists_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_groups: {
+        Row: {
+          active: boolean
+          display_order: number
+          id: string
+          label: string
+          slug: string
+        }
+        Insert: {
+          active?: boolean
+          display_order?: number
+          id?: string
+          label: string
+          slug: string
+        }
+        Update: {
+          active?: boolean
+          display_order?: number
+          id?: string
+          label?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      food_household_measures: {
+        Row: {
+          food_id: string
+          grams: number
+          id: string
+          is_default: boolean
+          label: string
+          tenant_id: string | null
+        }
+        Insert: {
+          food_id: string
+          grams: number
+          id?: string
+          is_default?: boolean
+          label: string
+          tenant_id?: string | null
+        }
+        Update: {
+          food_id?: string
+          grams?: number
+          id?: string
+          is_default?: boolean
+          label?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_household_measures_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_household_measures_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      foods: {
+        Row: {
+          active: boolean
+          carb_g: number
+          created_at: string
+          created_by_user_id: string | null
+          energy_kcal: number
+          external_code: string | null
+          fat_g: number
+          fiber_g: number | null
+          group_id: string | null
+          id: string
+          micros: Json
+          name: string
+          protein_g: number
+          reference_grams: number
+          source: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          carb_g?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          energy_kcal: number
+          external_code?: string | null
+          fat_g?: number
+          fiber_g?: number | null
+          group_id?: string | null
+          id?: string
+          micros?: Json
+          name: string
+          protein_g?: number
+          reference_grams?: number
+          source: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          carb_g?: number
+          created_at?: string
+          created_by_user_id?: string | null
+          energy_kcal?: number
+          external_code?: string | null
+          fat_g?: number
+          fiber_g?: number | null
+          group_id?: string | null
+          id?: string
+          micros?: Json
+          name?: string
+          protein_g?: number
+          reference_grams?: number
+          source?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "foods_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "food_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foods_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -7493,6 +7852,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      immutable_unaccent: { Args: { "": string }; Returns: string }
       is_last_active_admin: {
         Args: { p_tenant_id: string; p_user_id: string }
         Returns: boolean
