@@ -1,4 +1,5 @@
 import {
+  Apple,
   BellRing,
   Boxes,
   Building2,
@@ -36,6 +37,7 @@ export type HubCardId =
   | 'usuarios'
   | 'procedimentos'
   | 'materiais'
+  | 'alimentos'
   | 'convenios'
   | 'profissionais'
   | 'modelos-anamnese'
@@ -102,6 +104,15 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Catálogo de insumos e custos usados nos atendimentos.',
     icon: Boxes,
     show: ({ role }) => role === 'admin' || role === 'financeiro',
+  },
+  {
+    id: 'alimentos',
+    href: '/configuracoes/alimentos',
+    title: 'Alimentos',
+    description: 'Base de alimentos (TACO/IBGE) e cadastro dos alimentos da clínica.',
+    icon: Apple,
+    show: ({ role, ent }) =>
+      ent.hasModule('dieta') && (role === 'admin' || role === 'profissional_saude'),
   },
   {
     id: 'convenios',

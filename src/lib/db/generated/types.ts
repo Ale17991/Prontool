@@ -7980,6 +7980,29 @@ export type Database = {
         Args: { p_month: string; p_reason: string; p_tenant_id: string }
         Returns: Json
       }
+      search_foods: {
+        Args: {
+          p_group?: string
+          p_limit?: number
+          p_query?: string
+          p_scope?: string
+          p_tenant_id: string
+        }
+        Returns: {
+          carb_g: number
+          energy_kcal: number
+          fat_g: number
+          fiber_g: number
+          group_label: string
+          group_slug: string
+          id: string
+          name: string
+          protein_g: number
+          reference_grams: number
+          source: string
+          tenant_id: string
+        }[]
+      }
       session_text: { Args: { key: string }; Returns: string }
       session_uuid: { Args: { key: string }; Returns: string }
       set_appointment_material_cost: {

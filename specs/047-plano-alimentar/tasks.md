@@ -52,20 +52,20 @@ description: "Task list — Plano Alimentar (feature 047)"
 
 ### Tests for US1 ⚠️
 
-- [ ] T013 [P] [US1] Contract test `tests/contract/foods-tenant-isolation.spec.ts` — catálogo global legível por dois tenants; alimento próprio do tenant A invisível ao B; nenhum tenant edita/insere linha global (gate b)
-- [ ] T014 [P] [US1] Contract test `tests/contract/foods-rbac.spec.ts` — `POST/PATCH/DELETE /api/alimentos` só `admin`/`profissional_saude`; recepcionista/financeiro negados; sem módulo `dieta` → negado (gate c)
-- [ ] T015 [P] [US1] Unit test `tests/unit/nutrition-food-atwater.spec.ts` — energia derivada `4P+4C+9L` quando ausente; plausibilidade (energia 0–1000/100g, macros 0–100/100g) rejeita valores absurdos
+- [X] T013 [P] [US1] Contract test `tests/contract/foods-tenant-isolation.spec.ts` — catálogo global legível por dois tenants; alimento próprio do tenant A invisível ao B; nenhum tenant edita/insere linha global (gate b)
+- [X] T014 [P] [US1] Contract test `tests/contract/foods-rbac.spec.ts` — `POST/PATCH/DELETE /api/alimentos` só `admin`/`profissional_saude`; recepcionista/financeiro negados; sem módulo `dieta` → negado (gate c)
+- [X] T015 [P] [US1] Unit test `tests/unit/nutrition-food-atwater.spec.ts` — energia derivada `4P+4C+9L` quando ausente; plausibilidade (energia 0–1000/100g, macros 0–100/100g) rejeita valores absurdos
 
 ### Implementation for US1
 
-- [ ] T016 [P] [US1] `src/lib/core/nutrition/foods/atwater.ts` — derivação de energia + validação de plausibilidade (puro, reusável no cliente e servidor)
-- [ ] T017 [US1] `src/lib/core/nutrition/foods/search.ts` — busca escopada (global + próprio do tenant) com `immutable_unaccent`/trigram, filtro por grupo e `scope`
-- [ ] T018 [US1] `src/lib/core/nutrition/foods/custom.ts` — criar/editar/desativar alimento próprio (Atwater na ausência de energia; grava `source:'custom'` + `tenant_id` da sessão; medidas caseiras)
-- [ ] T019 [US1] Rota `src/app/api/alimentos/route.ts` — `GET` busca + `POST` alimento próprio (`requireRole` escrita, gate `hasModule('dieta')`, Zod conforme contrato §1/§2)
-- [ ] T020 [US1] Rota `src/app/api/alimentos/[id]/route.ts` — `PATCH`/`DELETE` (desativação lógica) de alimento próprio; nega sobre linha global (contrato §3)
-- [ ] T021 [US1] Rota `src/app/api/alimentos/grupos/route.ts` — `GET` grupos + listas de substituição visíveis à clínica (contrato §4)
-- [ ] T022 [US1] Tela `src/app/(dashboard)/configuracoes/alimentos/page.tsx` (RSC, gate `hasModule('dieta')`) + client de busca/cadastro; card "Alimentos" no hub de Configurações (`_cards.ts`) — **exibe a fonte de cada alimento e a atribuição TACO/IBGE** (FR-020/SC-008)
-- [ ] T023 [US1] Integration test `tests/integration/diet-food-catalog.spec.ts` — buscar global; cadastrar próprio; energia derivada; próprio isolado; global não editável
+- [X] T016 [P] [US1] `src/lib/core/nutrition/foods/atwater.ts` — derivação de energia + validação de plausibilidade (puro, reusável no cliente e servidor)
+- [X] T017 [US1] `src/lib/core/nutrition/foods/search.ts` — busca escopada (global + próprio do tenant) com `immutable_unaccent`/trigram, filtro por grupo e `scope`
+- [X] T018 [US1] `src/lib/core/nutrition/foods/custom.ts` — criar/editar/desativar alimento próprio (Atwater na ausência de energia; grava `source:'custom'` + `tenant_id` da sessão; medidas caseiras)
+- [X] T019 [US1] Rota `src/app/api/alimentos/route.ts` — `GET` busca + `POST` alimento próprio (`requireRole` escrita, gate `hasModule('dieta')`, Zod conforme contrato §1/§2)
+- [X] T020 [US1] Rota `src/app/api/alimentos/[id]/route.ts` — `PATCH`/`DELETE` (desativação lógica) de alimento próprio; nega sobre linha global (contrato §3)
+- [X] T021 [US1] Rota `src/app/api/alimentos/grupos/route.ts` — `GET` grupos + listas de substituição visíveis à clínica (contrato §4)
+- [X] T022 [US1] Tela `src/app/(dashboard)/configuracoes/alimentos/page.tsx` (RSC, gate `hasModule('dieta')`) + client de busca/cadastro; card "Alimentos" no hub de Configurações (`_cards.ts`) — **exibe a fonte de cada alimento e a atribuição TACO/IBGE** (FR-020/SC-008)
+- [X] T023 [US1] Integration test `tests/integration/diet-food-catalog.spec.ts` — buscar global; cadastrar próprio; energia derivada; próprio isolado; global não editável
 
 **Checkpoint**: US1 funcional — a clínica tem catálogo nutricional consultável e cadastra os próprios alimentos.
 
