@@ -9,6 +9,7 @@ import {
   measureToGrams,
   targetDelta,
   roundNutrients,
+  groupNutrients,
   type FoodRef,
 } from '@/lib/core/nutrition/diet/totals'
 
@@ -73,6 +74,45 @@ describe('mealTotals / dayTotals — soma bate exatamente (SC-002)', () => {
   it('dia vazio = zero', () => {
     expect(dayTotals([]).energyKcal).toBe(0)
     expect(dayTotals([{ items: [] }]).energyKcal).toBe(0)
+  })
+})
+
+describe('groupNutrients — grupo (lista OU) conta como 1 porção por reference_kcal', () => {
+  // Dois itens porcionados p/ ~80 kcal cada: arroz integral 65g (~80.6 kcal),
+  // batata 100g (fictícia 80 kcal).
+  const arroz: FoodRef = { referenceGrams: 100, energyKcal: 124, proteinG: 2.6, carbG: 25.8, fatG: 1, fiberG: 2.7 }
+  const batata: FoodRef = { referenceGrams: 100, energyKcal: 80, proteinG: 2, carbG: 18, fatG: 0, fiberG: 1.5 }
+
+  it('energia = reference_kcal quando definida; macros proporcionais', () => {
+    const n = groupNutrients({
+      referenceKcal: 80,
+      items: [
+        { grams: 65, food: arroz },
+        { grams: 100, food: batata },
+      ],
+    })
+    expect(n.energyKcal).toBe(80)
+    // macros > 0 e coerentes com carboidrato dominante
+    expect(n.carbG).toBeGreaterThan(0)
+    expect(n.proteinG).toBeGreaterThan(0)
+  })
+
+  it('sem reference_kcal → usa a média de energia dos itens', () => {
+    const n = groupNutrients({
+      referenceKcal: null,
+      items: [
+        { grams: 100, food: arroz }, // 124 kcal
+        { grams: 100, food: batata }, // 80 kcal
+      ],
+    })
+    expect(n.energyKcal).toBeCloseTo(102, 6) // (124 + 80) / 2
+  })
+
+  it('grupo vazio → energia = reference_kcal, macros zero', () => {
+    const n = groupNutrients({ referenceKcal: 80, items: [] })
+    expect(n.energyKcal).toBe(80)
+    expect(n.proteinG).toBe(0)
+    expect(n.carbG).toBe(0)
   })
 })
 

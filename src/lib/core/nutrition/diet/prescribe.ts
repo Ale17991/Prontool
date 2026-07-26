@@ -70,6 +70,8 @@ export async function prescribeDietPlan(
         grams: i.grams,
         measureLabel: i.measureLabel,
         measureQty: i.measureQty,
+        isGroup: i.isGroup,
+        options: i.groupOptions,
         nutrients: i.nutrients,
       })),
     })),

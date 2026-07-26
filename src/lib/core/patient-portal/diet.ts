@@ -225,6 +225,8 @@ export interface PortalDietItem {
   name: string
   quantity: string | null
   energyKcal: number | null
+  /** Grupo (lista de substituição): alimentos que o paciente pode trocar. */
+  options: { name: string; grams: number }[] | null
 }
 export interface PortalDietMeal {
   name: string
@@ -246,6 +248,8 @@ interface SnapItem {
   grams: number | null
   measureLabel?: string | null
   measureQty?: number | null
+  isGroup?: boolean
+  options?: { name: string; grams: number }[] | null
   nutrients?: { energyKcal?: number } | null
 }
 interface SnapMeal {
@@ -298,6 +302,7 @@ export async function getPortalDietPlan(
               ? `${i.grams} g`
               : null,
         energyKcal: i.nutrients?.energyKcal ?? null,
+        options: i.isGroup && i.options && i.options.length > 0 ? i.options : null,
       })),
     }))
     return {
@@ -331,7 +336,7 @@ export async function getPortalDietPlan(
       name: m.name,
       timeLabel: m.timeLabel,
       energyKcal: null,
-      items: m.items.map((it) => ({ name: it.food, quantity: it.quantity, energyKcal: null })),
+      items: m.items.map((it) => ({ name: it.food, quantity: it.quantity, energyKcal: null, options: null })),
     })),
     totalKcal: null,
     attribution: false,

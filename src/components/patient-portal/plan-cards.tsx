@@ -83,6 +83,11 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
                 <li key={k} className="text-sm text-slate-600">
                   {it.name}
                   {it.quantity ? <span className="text-slate-400"> — {it.quantity}</span> : null}
+                  {it.options && it.options.length > 0 ? (
+                    <span className="block pl-3 text-xs text-slate-400">
+                      ou: {it.options.map((o) => `${o.name} ${o.grams}g`).join(' · ')}
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

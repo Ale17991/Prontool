@@ -47,13 +47,13 @@ describe('SECTIONS shape (Feature 014 — US1)', () => {
     expect(SECTIONS.map((s) => s.id)).toEqual(['operacao', 'analise', 'configuracoes'])
   })
 
-  it('Operação has exactly 7 items: Agenda, Pacientes, Odontologia, Nutrição, Plano Alimentar, Tarefas, Chat', () => {
+  it('Operação has exactly 7 items: Agenda, Pacientes, Odontologia, Planejamento Nutricional, Plano Alimentar, Tarefas, Chat', () => {
     const op = SECTIONS.find((s) => s.id === 'operacao')!
     expect(op.items.map((it) => it.label)).toEqual([
       'Agenda',
       'Pacientes',
       'Odontologia',
-      'Nutrição',
+      'Planejamento Nutricional',
       'Plano Alimentar',
       'Tarefas',
       'Chat',
@@ -111,7 +111,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Agenda',
       'Pacientes',
       'Odontologia',
-      'Nutrição',
+      'Planejamento Nutricional',
       'Plano Alimentar',
       'Tarefas',
       'Chat',
@@ -155,7 +155,7 @@ describe('getVisibleSections — role matrix with all flags ON', () => {
       'Agenda',
       'Pacientes',
       'Odontologia',
-      'Nutrição',
+      'Planejamento Nutricional',
       'Plano Alimentar',
       'Tarefas',
       'Chat',

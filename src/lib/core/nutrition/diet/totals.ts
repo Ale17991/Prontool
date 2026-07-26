@@ -72,6 +72,41 @@ export function mealTotals(meal: MealInput): Nutrients {
   return meal.items.map(itemNutrients).reduce(addNutrients, ZERO)
 }
 
+/**
+ * Um grupo (lista de substituição / "OU") adicionado a uma refeição conta como
+ * UMA porção padronizada: `referenceGrams` não se aplica — a energia é a
+ * `referenceKcal` da lista e os macros são proporcionais à composição média dos
+ * seus itens. Cada item da lista já é porcionado (`grams`) para ser equivalente,
+ * então a média dos itens representa bem "1 porção" do grupo; escalamos essa
+ * média para bater exatamente com `referenceKcal` (quando definida).
+ */
+export interface GroupRef {
+  referenceKcal: number | null
+  items: PlanItemInput[]
+}
+
+export function groupNutrients(group: GroupRef): Nutrients {
+  const n = group.items.length
+  if (n === 0) return { ...ZERO, energyKcal: group.referenceKcal ?? 0 }
+  const total = group.items.map(itemNutrients).reduce(addNutrients, ZERO)
+  const avg: Nutrients = {
+    energyKcal: total.energyKcal / n,
+    proteinG: total.proteinG / n,
+    carbG: total.carbG / n,
+    fatG: total.fatG / n,
+    fiberG: total.fiberG / n,
+  }
+  const targetKcal = group.referenceKcal ?? avg.energyKcal
+  const factor = avg.energyKcal > 0 ? targetKcal / avg.energyKcal : 1
+  return {
+    energyKcal: targetKcal,
+    proteinG: avg.proteinG * factor,
+    carbG: avg.carbG * factor,
+    fatG: avg.fatG * factor,
+    fiberG: avg.fiberG * factor,
+  }
+}
+
 export function dayTotals(meals: MealInput[]): Nutrients {
   return meals.map(mealTotals).reduce(addNutrients, ZERO)
 }

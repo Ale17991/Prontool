@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { DomainError, NotFoundError } from '@/lib/observability/errors'
+import { groupNutrients, type Nutrients, type PlanItemInput } from '../diet/totals'
 
 /**
  * Feature 047 — grupos alimentares e listas de substituição/equivalentes.
@@ -26,6 +27,9 @@ export interface EquivalenceListDTO {
   referenceKcal: number | null
   isCustom: boolean
   items: EquivalenceItemDTO[]
+  /** Nutrientes de "1 porção" do grupo — energia = referenceKcal, macros
+   * proporcionais à composição média dos itens (ver `groupNutrients`). */
+  nutrients: Nutrients
 }
 
 export async function listFoodGroups(
@@ -67,30 +71,62 @@ export async function listEquivalenceLists(
   const ids = rows.map((r) => r.id)
   const { data: items, error: iErr } = await supabase
     .from('food_equivalence_items')
-    .select('list_id, grams, foods(id, name)')
+    .select(
+      'list_id, grams, foods(id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g)',
+    )
     .in('list_id', ids)
   if (iErr) throw new Error(`listEquivalenceLists items failed: ${iErr.message}`)
 
   const byList = new Map<string, EquivalenceItemDTO[]>()
+  // Itens resolvidos p/ o cálculo dos nutrientes representativos do grupo.
+  const calcByList = new Map<string, PlanItemInput[]>()
   for (const it of (items ?? []) as Array<{
     list_id: string
     grams: number
-    foods: { id: string; name: string } | null
+    foods: {
+      id: string
+      name: string
+      reference_grams: number
+      energy_kcal: number
+      protein_g: number
+      carb_g: number
+      fat_g: number
+      fiber_g: number | null
+    } | null
   }>) {
     if (!it.foods) continue
+    const grams = Number(it.grams)
     const arr = byList.get(it.list_id) ?? []
-    arr.push({ foodId: it.foods.id, name: it.foods.name, grams: Number(it.grams) })
+    arr.push({ foodId: it.foods.id, name: it.foods.name, grams })
     byList.set(it.list_id, arr)
+
+    const calc = calcByList.get(it.list_id) ?? []
+    calc.push({
+      grams,
+      food: {
+        referenceGrams: Number(it.foods.reference_grams),
+        energyKcal: Number(it.foods.energy_kcal),
+        proteinG: Number(it.foods.protein_g),
+        carbG: Number(it.foods.carb_g),
+        fatG: Number(it.foods.fat_g),
+        fiberG: it.foods.fiber_g === null ? null : Number(it.foods.fiber_g),
+      },
+    })
+    calcByList.set(it.list_id, calc)
   }
 
-  return rows.map((r) => ({
-    id: r.id,
-    groupSlug: r.food_groups?.slug ?? null,
-    name: r.name,
-    referenceKcal: r.reference_kcal === null ? null : Number(r.reference_kcal),
-    isCustom: r.tenant_id !== null,
-    items: byList.get(r.id) ?? [],
-  }))
+  return rows.map((r) => {
+    const referenceKcal = r.reference_kcal === null ? null : Number(r.reference_kcal)
+    return {
+      id: r.id,
+      groupSlug: r.food_groups?.slug ?? null,
+      name: r.name,
+      referenceKcal,
+      isCustom: r.tenant_id !== null,
+      items: byList.get(r.id) ?? [],
+      nutrients: groupNutrients({ referenceKcal, items: calcByList.get(r.id) ?? [] }),
+    }
+  })
 }
 
 // =========================================================================

@@ -82,7 +82,7 @@ export const SECTIONS: readonly NavSection[] = [
       },
       {
         href: '/operacao/avaliacao-nutricional',
-        label: 'Nutrição',
+        label: 'Planejamento Nutricional',
         icon: Salad,
         show: ({ role, ent }) =>
           ent.hasModule('nutri_avaliacao') &&

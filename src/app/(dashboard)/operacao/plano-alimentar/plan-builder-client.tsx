@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Save, Search, Stamp, Trash2, UtensilsCrossed } from 'lucide-react'
+import { Layers, Loader2, Plus, Save, Search, Stamp, Trash2, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,8 @@ import type { FoodDTO } from '@/lib/core/nutrition/foods/search'
 // ---- estado local do cardápio (edição) ---------------------------------
 interface EditItem {
   key: string
+  kind: 'food' | 'group'
+  // Alimento único (kind === 'food'): base por `referenceGrams`, escala por grama.
   foodId: string
   name: string
   referenceGrams: number
@@ -27,12 +29,25 @@ interface EditItem {
   fatG: number
   fiberG: number | null
   grams: number
+  // Grupo / lista de substituição (kind === 'group'): 1 porção padronizada.
+  equivalenceListId?: string
+  groupOptions?: { name: string; grams: number }[]
+  groupNutrients?: Nutrients
 }
 interface EditMeal {
   key: string
   name: string
   timeLabel: string
   items: EditItem[]
+}
+/** Grupo (lista de substituição) como devolvido por /api/alimentos/grupos. */
+interface GroupDTO {
+  id: string
+  name: string
+  referenceKcal: number | null
+  isCustom: boolean
+  items: { name: string; grams: number }[]
+  nutrients: Nutrients
 }
 interface PlanMeta {
   id: string | null
@@ -44,6 +59,7 @@ let seq = 0
 const nextKey = () => `k${++seq}`
 
 function toNutrients(it: EditItem): Nutrients {
+  if (it.kind === 'group') return roundNutrients(it.groupNutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 })
   return roundNutrients(
     itemNutrients({
       grams: it.grams,
@@ -82,6 +98,17 @@ export function PlanBuilderClient() {
   const [saving, setSaving] = useState(false)
   const [prescribing, setPrescribing] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
+  const [groups, setGroups] = useState<GroupDTO[]>([])
+
+  useEffect(() => {
+    void (async () => {
+      const res = await fetch('/api/alimentos/grupos')
+      if (res.ok) {
+        const { equivalenceLists } = (await res.json()) as { equivalenceLists: GroupDTO[] }
+        setGroups(equivalenceLists ?? [])
+      }
+    })()
+  }, [])
 
   const load = useCallback(async (patientId: string) => {
     setLoading(true)
@@ -98,22 +125,46 @@ export function PlanBuilderClient() {
             name: m.name,
             timeLabel: m.timeLabel ?? '',
             items: m.items
-              .filter((i) => i.foodId && i.grams !== null)
-              .map((i) => ({
-                key: nextKey(),
-                foodId: i.foodId!,
-                name: i.name,
-                referenceGrams: 100,
-                energyKcal: i.nutrients?.energyKcal ?? 0,
-                proteinG: i.nutrients?.proteinG ?? 0,
-                carbG: i.nutrients?.carbG ?? 0,
-                fatG: i.nutrients?.fatG ?? 0,
-                fiberG: i.nutrients?.fiberG ?? null,
-                grams: i.grams!,
-                // NB: os nutrientes vêm já escalados; reconstruímos a base a partir da porção.
-              }))
-              // Reescala a base para 100 g equivalente (a UI recomputa por grama).
-              .map((i) => rescaleToBase(i)),
+              .map((i): EditItem | null => {
+                // Grupo (lista de substituição): 1 porção, nutrientes fixos.
+                if (i.isGroup && i.equivalenceListId) {
+                  return {
+                    key: nextKey(),
+                    kind: 'group',
+                    foodId: '',
+                    name: i.name,
+                    referenceGrams: 100,
+                    energyKcal: 0,
+                    proteinG: 0,
+                    carbG: 0,
+                    fatG: 0,
+                    fiberG: null,
+                    grams: 0,
+                    equivalenceListId: i.equivalenceListId,
+                    groupOptions: i.groupOptions ?? [],
+                    groupNutrients: i.nutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
+                  }
+                }
+                // Alimento único: nutrientes vêm já escalados; reconstruímos a
+                // base (100 g equiv.) para a UI recomputar por grama.
+                if (i.foodId && i.grams !== null) {
+                  return rescaleToBase({
+                    key: nextKey(),
+                    kind: 'food',
+                    foodId: i.foodId,
+                    name: i.name,
+                    referenceGrams: 100,
+                    energyKcal: i.nutrients?.energyKcal ?? 0,
+                    proteinG: i.nutrients?.proteinG ?? 0,
+                    carbG: i.nutrients?.carbG ?? 0,
+                    fatG: i.nutrients?.fatG ?? 0,
+                    fiberG: i.nutrients?.fiberG ?? null,
+                    grams: i.grams,
+                  })
+                }
+                return null
+              })
+              .filter((x): x is EditItem => x !== null),
           })),
         )
       } else {
@@ -159,6 +210,7 @@ export function PlanBuilderClient() {
                 ...m.items,
                 {
                   key: nextKey(),
+                  kind: 'food',
                   foodId: food.id,
                   name: food.name,
                   referenceGrams: food.referenceGrams,
@@ -168,6 +220,36 @@ export function PlanBuilderClient() {
                   fatG: food.fatG,
                   fiberG: food.fiberG,
                   grams: defaultGrams,
+                },
+              ],
+            }
+          : m,
+      ),
+    )
+  }
+  function addGroup(mealKey: string, group: GroupDTO) {
+    setMeals((v) =>
+      v.map((m) =>
+        m.key === mealKey
+          ? {
+              ...m,
+              items: [
+                ...m.items,
+                {
+                  key: nextKey(),
+                  kind: 'group',
+                  foodId: '',
+                  name: group.name,
+                  referenceGrams: 100,
+                  energyKcal: 0,
+                  proteinG: 0,
+                  carbG: 0,
+                  fatG: 0,
+                  fiberG: null,
+                  grams: 0,
+                  equivalenceListId: group.id,
+                  groupOptions: group.items,
+                  groupNutrients: group.nutrients,
                 },
               ],
             }
@@ -202,7 +284,11 @@ export function PlanBuilderClient() {
           name: m.name,
           time_label: m.timeLabel || null,
           position: mi,
-          items: m.items.map((i) => ({ food_id: i.foodId, grams: i.grams })),
+          items: m.items.map((i) =>
+            i.kind === 'group'
+              ? { equivalence_list_id: i.equivalenceListId, notes: i.name }
+              : { food_id: i.foodId, grams: i.grams },
+          ),
         })),
       }
       const res = await fetch(`/api/pacientes/${patient.id}/plano-alimentar`, {
@@ -280,9 +366,11 @@ export function PlanBuilderClient() {
               <MealCard
                 key={meal.key}
                 meal={meal}
+                groups={groups}
                 onName={(name) => setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, name } : m)))}
                 onTime={(t) => setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, timeLabel: t } : m)))}
                 onAddItem={(f) => addItem(meal.key, f)}
+                onAddGroup={(g) => addGroup(meal.key, g)}
                 onGrams={(ik, g) => setItemGrams(meal.key, ik, g)}
                 onRemoveItem={(ik) => removeItem(meal.key, ik)}
                 onRemove={() => removeMeal(meal.key)}
@@ -321,17 +409,21 @@ export function PlanBuilderClient() {
 
 function MealCard({
   meal,
+  groups,
   onName,
   onTime,
   onAddItem,
+  onAddGroup,
   onGrams,
   onRemoveItem,
   onRemove,
 }: {
   meal: EditMeal
+  groups: GroupDTO[]
   onName: (v: string) => void
   onTime: (v: string) => void
   onAddItem: (f: FoodDTO) => void
+  onAddGroup: (g: GroupDTO) => void
   onGrams: (itemKey: string, grams: number) => void
   onRemoveItem: (itemKey: string) => void
   onRemove: () => void
@@ -362,6 +454,38 @@ function MealCard({
       <CardContent className="space-y-2">
         {meal.items.map((it) => {
           const n = toNutrients(it)
+          if (it.kind === 'group') {
+            return (
+              <div key={it.key} className="rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-sm">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-3.5 w-3.5 shrink-0 text-primary" />
+                  <span className="flex-1 truncate font-medium">{it.name}</span>
+                  <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                    grupo
+                  </span>
+                  <span className="w-16 text-right text-xs tabular-nums text-slate-500">{n.energyKcal} kcal</span>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveItem(it.key)}
+                    className="text-slate-300 hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {it.groupOptions && it.groupOptions.length > 0 ? (
+                  <p className="mt-0.5 pl-5 text-[11px] text-slate-500">
+                    ou:{' '}
+                    {it.groupOptions.map((o, idx) => (
+                      <span key={idx}>
+                        {idx > 0 ? ' · ' : ''}
+                        {o.name} {o.grams}g
+                      </span>
+                    ))}
+                  </p>
+                ) : null}
+              </div>
+            )
+          }
           return (
             <div key={it.key} className="flex items-center gap-2 text-sm">
               <span className="flex-1 truncate">{it.name}</span>
@@ -384,8 +508,50 @@ function MealCard({
           )
         })}
         <FoodSearch onPick={onAddItem} />
+        <GroupPicker groups={groups} onPick={onAddGroup} />
       </CardContent>
     </Card>
+  )
+}
+
+function GroupPicker({ groups, onPick }: { groups: GroupDTO[]; onPick: (g: GroupDTO) => void }) {
+  const [open, setOpen] = useState(false)
+  if (groups.length === 0) return null
+  return (
+    <div className="relative">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => setOpen((o) => !o)}
+        className="h-8 gap-1.5 text-xs text-primary hover:bg-primary/5"
+      >
+        <Layers className="h-3.5 w-3.5" /> Adicionar grupo (OU)
+      </Button>
+      {open ? (
+        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => {
+                onPick(g)
+                setOpen(false)
+              }}
+              className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+            >
+              <span className="truncate">
+                {g.name}
+                {g.isCustom ? null : <span className="ml-1 text-[10px] text-slate-400">(base)</span>}
+              </span>
+              <span className="ml-2 shrink-0 text-[10px] text-slate-400">
+                {Math.round(g.nutrients.energyKcal)} kcal
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -546,6 +712,9 @@ interface PlanApiView {
       foodId: string | null
       name: string
       grams: number | null
+      equivalenceListId: string | null
+      isGroup: boolean
+      groupOptions: { name: string; grams: number }[] | null
       nutrients: Nutrients | null
     }>
   }>
