@@ -18,10 +18,22 @@ interface DraftItem {
   foodId: string
   name: string
   grams: number
+  referenceGrams: number
+  energyKcal: number
 }
 
 let seq = 0
 const key = () => `e${++seq}`
+
+/** Gramas de um alimento para bater uma meta de kcal (regra de três). */
+function gramsForKcal(targetKcal: number, referenceGrams: number, energyKcal: number): number {
+  if (!targetKcal || energyKcal <= 0 || referenceGrams <= 0) return referenceGrams
+  return Math.round((targetKcal * referenceGrams) / energyKcal)
+}
+/** kcal que a gramatura atual do item entrega. */
+function itemKcal(it: DraftItem): number {
+  return it.referenceGrams > 0 ? Math.round((it.grams * it.energyKcal) / it.referenceGrams) : 0
+}
 
 export function EquivalenceListsClient({ groups }: { groups: GroupOption[] }) {
   const [lists, setLists] = useState<EquivalenceListDTO[]>([])
@@ -124,6 +136,15 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Muda a meta → recalcula a grama de cada alimento pra bater a nova meta.
+  function setTarget(v: string) {
+    setRefKcal(v)
+    const t = Number(v.replace(',', '.')) || 0
+    if (t > 0) {
+      setItems((list) => list.map((i) => ({ ...i, grams: gramsForKcal(t, i.referenceGrams, i.energyKcal) })))
+    }
+  }
+
   async function submit() {
     setError(null)
     if (!name.trim()) return setError('Informe o nome da lista.')
@@ -174,10 +195,20 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
           </select>
         </div>
         <div>
-          <Label htmlFor="el_kcal">≈ kcal (opc.)</Label>
-          <Input id="el_kcal" inputMode="decimal" value={refKcal} onChange={(e) => setRefKcal(e.target.value)} />
+          <Label htmlFor="el_kcal">Meta (kcal)</Label>
+          <Input
+            id="el_kcal"
+            inputMode="decimal"
+            placeholder="120"
+            value={refKcal}
+            onChange={(e) => setTarget(e.target.value)}
+          />
         </div>
       </div>
+      <p className="text-[11px] text-slate-400">
+        Defina a meta de kcal e adicione os alimentos — a gramatura de cada um é calculada
+        automaticamente para bater a meta. Você pode ajustar qualquer grama à mão.
+      </p>
 
       <div className="space-y-1.5">
         {items.map((it) => (
@@ -194,6 +225,7 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
               }
             />
             <span className="text-xs text-slate-400">g</span>
+            <span className="w-16 text-right text-xs tabular-nums text-slate-500">{itemKcal(it)} kcal</span>
             <button
               type="button"
               onClick={() => setItems((v) => v.filter((x) => x.key !== it.key))}
@@ -204,12 +236,24 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
           </div>
         ))}
         <FoodPicker
-          onPick={(f) =>
+          onPick={(f) => {
+            const t = Number(refKcal.replace(',', '.')) || 0
+            const grams =
+              t > 0
+                ? gramsForKcal(t, f.referenceGrams, f.energyKcal)
+                : (f.measures.find((m) => m.isDefault)?.grams ?? f.referenceGrams)
             setItems((v) => [
               ...v,
-              { key: key(), foodId: f.id, name: f.name, grams: f.measures.find((m) => m.isDefault)?.grams ?? f.referenceGrams },
+              {
+                key: key(),
+                foodId: f.id,
+                name: f.name,
+                grams,
+                referenceGrams: f.referenceGrams,
+                energyKcal: f.energyKcal,
+              },
             ])
-          }
+          }}
         />
       </div>
 
