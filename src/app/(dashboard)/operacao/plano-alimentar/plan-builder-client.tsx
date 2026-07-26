@@ -516,7 +516,6 @@ function MealCard({
 
 function GroupPicker({ groups, onPick }: { groups: GroupDTO[]; onPick: (g: GroupDTO) => void }) {
   const [open, setOpen] = useState(false)
-  if (groups.length === 0) return null
   return (
     <div className="relative">
       <Button
@@ -530,25 +529,35 @@ function GroupPicker({ groups, onPick }: { groups: GroupDTO[]; onPick: (g: Group
       </Button>
       {open ? (
         <div className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
-          {groups.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => {
-                onPick(g)
-                setOpen(false)
-              }}
-              className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-slate-50"
-            >
-              <span className="truncate">
-                {g.name}
-                {g.isCustom ? null : <span className="ml-1 text-[10px] text-slate-400">(base)</span>}
+          {groups.length === 0 ? (
+            <p className="px-3 py-2 text-xs leading-snug text-slate-500">
+              Nenhum grupo criado ainda. Crie em{' '}
+              <span className="font-medium text-slate-700">
+                Configurações → Alimentos → Listas de substituição
               </span>
-              <span className="ml-2 shrink-0 text-[10px] text-slate-400">
-                {Math.round(g.nutrients.energyKcal)} kcal
-              </span>
-            </button>
-          ))}
+              .
+            </p>
+          ) : (
+            groups.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => {
+                  onPick(g)
+                  setOpen(false)
+                }}
+                className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+              >
+                <span className="truncate">
+                  {g.name}
+                  {g.isCustom ? null : <span className="ml-1 text-[10px] text-slate-400">(base)</span>}
+                </span>
+                <span className="ml-2 shrink-0 text-[10px] text-slate-400">
+                  {Math.round(g.nutrients.energyKcal)} kcal
+                </span>
+              </button>
+            ))
+          )}
         </div>
       ) : null}
     </div>
