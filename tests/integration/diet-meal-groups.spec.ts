@@ -88,4 +88,42 @@ describe('Feature 047 — grupo (lista OU) na refeição', () => {
     expect(pItem.options).not.toBeNull()
     expect(pItem.options!.length).toBe(2)
   })
+
+  it('opções do grupo são editáveis por paciente (remove batata, adiciona frango)', async () => {
+    const sb = serviceClient()
+    const [arroz, , frango] = await pickFoods(sb, ['arroz', 'batata', 'frango'])
+    const batata = (await pickFoods(sb, ['batata']))[0]!
+    await saveDietPlanDraft(sb, {
+      tenantId,
+      patientId,
+      actorUserId,
+      title: 'Plano custom',
+      meals: [
+        {
+          name: 'Almoço',
+          position: 0,
+          items: [
+            {
+              equivalenceListId: listId,
+              notes: 'Carboidratos ~80 kcal',
+              groupOptions: [
+                { foodId: arroz!.id, grams: 65 },
+                { foodId: frango!.id, grams: 40 },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    const view = await getDietPlanForPatient(sb, tenantId, patientId)
+    const item = view!.meals[0]!.items[0]!
+    expect(item.isGroup).toBe(true)
+    // energia contada segue = meta da lista (reference_kcal), estável
+    expect(item.nutrients?.energyKcal).toBe(80)
+    expect(item.groupReferenceKcal).toBe(80)
+    const optIds = item.groupOptions!.map((o) => o.foodId)
+    expect(optIds).toContain(arroz!.id)
+    expect(optIds).toContain(frango!.id)
+    expect(optIds).not.toContain(batata.id) // removida só para este paciente
+  })
 })

@@ -31,7 +31,8 @@ interface EditItem {
   grams: number
   // Grupo / lista de substituição (kind === 'group'): 1 porção padronizada.
   equivalenceListId?: string
-  groupOptions?: { name: string; grams: number }[]
+  groupOptions?: { foodId: string; name: string; grams: number }[]
+  groupReferenceKcal?: number | null
   groupNutrients?: Nutrients
 }
 interface EditMeal {
@@ -46,7 +47,7 @@ interface GroupDTO {
   name: string
   referenceKcal: number | null
   isCustom: boolean
-  items: { name: string; grams: number }[]
+  items: { foodId: string; name: string; grams: number }[]
   nutrients: Nutrients
 }
 interface PlanMeta {
@@ -142,6 +143,7 @@ export function PlanBuilderClient() {
                     grams: 0,
                     equivalenceListId: i.equivalenceListId,
                     groupOptions: i.groupOptions ?? [],
+                    groupReferenceKcal: i.groupReferenceKcal ?? null,
                     groupNutrients: i.nutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
                   }
                 }
@@ -249,9 +251,49 @@ export function PlanBuilderClient() {
                   grams: 0,
                   equivalenceListId: group.id,
                   groupOptions: group.items,
+                  groupReferenceKcal: group.referenceKcal,
                   groupNutrients: group.nutrients,
                 },
               ],
+            }
+          : m,
+      ),
+    )
+  }
+  function removeGroupOption(mealKey: string, itemKey: string, foodId: string) {
+    setMeals((v) =>
+      v.map((m) =>
+        m.key === mealKey
+          ? {
+              ...m,
+              items: m.items.map((it) =>
+                it.key === itemKey
+                  ? { ...it, groupOptions: (it.groupOptions ?? []).filter((o) => o.foodId !== foodId) }
+                  : it,
+              ),
+            }
+          : m,
+      ),
+    )
+  }
+  function addGroupOption(mealKey: string, itemKey: string, food: FoodDTO) {
+    setMeals((v) =>
+      v.map((m) =>
+        m.key === mealKey
+          ? {
+              ...m,
+              items: m.items.map((it) => {
+                if (it.key !== itemKey) return it
+                const opts = it.groupOptions ?? []
+                if (opts.some((o) => o.foodId === food.id)) return it
+                // Grama que bate a meta de kcal do grupo (regra de três).
+                const target = it.groupReferenceKcal ?? 0
+                const grams =
+                  target > 0 && food.energyKcal > 0
+                    ? Math.round((target * food.referenceGrams) / food.energyKcal)
+                    : (food.measures.find((mm) => mm.isDefault)?.grams ?? food.referenceGrams)
+                return { ...it, groupOptions: [...opts, { foodId: food.id, name: food.name, grams }] }
+              }),
             }
           : m,
       ),
@@ -286,7 +328,11 @@ export function PlanBuilderClient() {
           position: mi,
           items: m.items.map((i) =>
             i.kind === 'group'
-              ? { equivalence_list_id: i.equivalenceListId, notes: i.name }
+              ? {
+                  equivalence_list_id: i.equivalenceListId,
+                  notes: i.name,
+                  group_options: (i.groupOptions ?? []).map((o) => ({ food_id: o.foodId, grams: o.grams })),
+                }
               : { food_id: i.foodId, grams: i.grams },
           ),
         })),
@@ -326,7 +372,7 @@ export function PlanBuilderClient() {
         setMsg(b.error?.message ?? 'Falha ao prescrever.')
         return
       }
-      setMsg('Plano prescrito e disponível no portal do paciente.')
+      setMsg('Plano enviado — já aparece no portal do paciente.')
       await load(patient.id)
     } finally {
       setPrescribing(false)
@@ -359,9 +405,15 @@ export function PlanBuilderClient() {
           <>
             {meta.status === 'prescrito' ? (
               <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                Este plano está <strong>prescrito</strong>. Edite e salve para criar uma nova versão.
+                Este plano foi <strong>enviado ao paciente</strong> (visível no portal). Edite e salve para
+                criar uma nova versão — depois envie de novo.
               </p>
-            ) : null}
+            ) : (
+              <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                Rascunho — <strong>ainda não aparece no portal</strong> do paciente. Clique em
+                “Enviar ao paciente” quando estiver pronto.
+              </p>
+            )}
             {meals.map((meal) => (
               <MealCard
                 key={meal.key}
@@ -373,6 +425,8 @@ export function PlanBuilderClient() {
                 onAddGroup={(g) => addGroup(meal.key, g)}
                 onGrams={(ik, g) => setItemGrams(meal.key, ik, g)}
                 onRemoveItem={(ik) => removeItem(meal.key, ik)}
+                onRemoveGroupOption={(ik, fid) => removeGroupOption(meal.key, ik, fid)}
+                onAddGroupOption={(ik, f) => addGroupOption(meal.key, ik, f)}
                 onRemove={() => removeMeal(meal.key)}
               />
             ))}
@@ -397,7 +451,8 @@ export function PlanBuilderClient() {
                 disabled={prescribing || meals.every((m) => m.items.length === 0)}
                 className="flex-1 gap-1.5"
               >
-                {prescribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stamp className="h-4 w-4" />} Prescrever
+                {prescribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stamp className="h-4 w-4" />} Enviar ao
+                paciente
               </Button>
             </div>
           </div>
@@ -416,6 +471,8 @@ function MealCard({
   onAddGroup,
   onGrams,
   onRemoveItem,
+  onRemoveGroupOption,
+  onAddGroupOption,
   onRemove,
 }: {
   meal: EditMeal
@@ -426,6 +483,8 @@ function MealCard({
   onAddGroup: (g: GroupDTO) => void
   onGrams: (itemKey: string, grams: number) => void
   onRemoveItem: (itemKey: string) => void
+  onRemoveGroupOption: (itemKey: string, foodId: string) => void
+  onAddGroupOption: (itemKey: string, food: FoodDTO) => void
   onRemove: () => void
 }) {
   const total = sum(meal.items.map(toNutrients))
@@ -472,17 +531,31 @@ function MealCard({
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                {it.groupOptions && it.groupOptions.length > 0 ? (
-                  <p className="mt-0.5 pl-5 text-[11px] text-slate-500">
-                    ou:{' '}
-                    {it.groupOptions.map((o, idx) => (
-                      <span key={idx}>
-                        {idx > 0 ? ' · ' : ''}
-                        {o.name} {o.grams}g
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
+                <p className="mt-1 pl-5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  Opções — o paciente escolhe uma
+                </p>
+                <ul className="mt-0.5 space-y-0.5 pl-5">
+                  {(it.groupOptions ?? []).map((o) => (
+                    <li key={o.foodId} className="flex items-center gap-2 text-xs text-slate-600">
+                      <span className="flex-1 truncate">{o.name}</span>
+                      <span className="tabular-nums text-slate-400">{o.grams} g</span>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveGroupOption(it.key, o.foodId)}
+                        className="text-slate-300 hover:text-destructive"
+                        title="Remover esta opção para este paciente"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </li>
+                  ))}
+                  {(it.groupOptions ?? []).length === 0 ? (
+                    <li className="text-[11px] text-amber-600">Sem opções — adicione ao menos uma.</li>
+                  ) : null}
+                </ul>
+                <div className="mt-1 pl-5">
+                  <FoodSearch placeholder="Adicionar opção…" onPick={(f) => onAddGroupOption(it.key, f)} />
+                </div>
               </div>
             )
           }
@@ -564,7 +637,7 @@ function GroupPicker({ groups, onPick }: { groups: GroupDTO[]; onPick: (g: Group
   )
 }
 
-function FoodSearch({ onPick }: { onPick: (f: FoodDTO) => void }) {
+function FoodSearch({ onPick, placeholder }: { onPick: (f: FoodDTO) => void; placeholder?: string }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<FoodDTO[]>([])
   const [open, setOpen] = useState(false)
@@ -587,7 +660,7 @@ function FoodSearch({ onPick }: { onPick: (f: FoodDTO) => void }) {
         <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
         <Input
           className="h-8 pl-8 text-sm"
-          placeholder="Adicionar alimento…"
+          placeholder={placeholder ?? 'Adicionar alimento…'}
           value={q}
           onChange={(e) => {
             setQ(e.target.value)
@@ -723,7 +796,8 @@ interface PlanApiView {
       grams: number | null
       equivalenceListId: string | null
       isGroup: boolean
-      groupOptions: { name: string; grams: number }[] | null
+      groupOptions: { foodId: string; name: string; grams: number }[] | null
+      groupReferenceKcal: number | null
       nutrients: Nutrients | null
     }>
   }>

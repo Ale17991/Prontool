@@ -20,6 +20,11 @@ const itemSchema = z.object({
   measure_label: z.string().max(60).optional().nullable(),
   measure_qty: z.number().positive().optional().nullable(),
   equivalence_list_id: z.string().uuid().optional().nullable(),
+  group_options: z
+    .array(z.object({ food_id: z.string().uuid(), grams: z.number().positive().max(5000) }))
+    .max(50)
+    .optional()
+    .nullable(),
   notes: z.string().max(300).optional().nullable(),
 })
 const mealSchema = z.object({
@@ -94,6 +99,9 @@ async function save(req: Request, patientId: string): Promise<Response> {
         measureLabel: i.measure_label ?? null,
         measureQty: i.measure_qty ?? null,
         equivalenceListId: i.equivalence_list_id ?? null,
+        groupOptions: i.group_options
+          ? i.group_options.map((o) => ({ foodId: o.food_id, grams: o.grams }))
+          : null,
         notes: i.notes ?? null,
       })),
     })),

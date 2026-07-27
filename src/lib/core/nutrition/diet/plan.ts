@@ -5,6 +5,7 @@ import {
   itemNutrients,
   roundNutrients,
   targetDelta,
+  groupNutrients,
   type FoodRef,
   type Nutrients,
   type TargetDelta,
@@ -29,6 +30,8 @@ export interface PlanItemInputDTO {
   measureLabel?: string | null
   measureQty?: number | null
   equivalenceListId?: string | null
+  /** Opções efetivas do grupo p/ ESTE paciente (remover/adicionar trocas). */
+  groupOptions?: { foodId: string; grams: number }[] | null
   notes?: string | null
 }
 export interface PlanMealInputDTO {
@@ -56,8 +59,11 @@ export interface PlanItemView {
   equivalenceListId: string | null
   /** Item é um grupo (lista de substituição) em vez de um alimento único. */
   isGroup: boolean
-  /** Alimentos elegíveis do grupo (o "OU"), quando `isGroup`. */
-  groupOptions: { name: string; grams: number }[] | null
+  /** Alimentos elegíveis do grupo (o "OU"), quando `isGroup` — já com as
+   * personalizações do paciente (opções removidas/adicionadas). */
+  groupOptions: { foodId: string; name: string; grams: number }[] | null
+  /** Meta de kcal do grupo (da lista base) — p/ auto-calcular grama de novas opções. */
+  groupReferenceKcal: number | null
   nutrients: Nutrients | null
 }
 export interface PlanMealView {
@@ -269,6 +275,10 @@ export async function saveDietPlanDraft(
         measure_label: it.measureLabel?.trim() || null,
         measure_qty: it.measureQty ?? null,
         equivalence_list_id: it.equivalenceListId ?? null,
+        group_options:
+          it.groupOptions && it.groupOptions.length > 0
+            ? it.groupOptions.map((o) => ({ food_id: o.foodId, grams: o.grams }))
+            : null,
         quantity: grams ? `${grams} g` : (it.measureLabel ?? null),
         notes: it.notes?.trim() || null,
       })
@@ -327,6 +337,7 @@ export async function getDietPlanForPatient(
     measure_label: string | null
     measure_qty: number | null
     equivalence_list_id: string | null
+    group_options: unknown
     snap_energy_kcal: number | null
     snap_protein_g: number | null
     snap_carb_g: number | null
@@ -338,7 +349,7 @@ export async function getDietPlanForPatient(
     const itemsRes = await sb
       .from('diet_meal_items')
       .select(
-        'id, meal_id, food_id, food, grams, measure_label, measure_qty, equivalence_list_id, snap_energy_kcal, snap_protein_g, snap_carb_g, snap_fat_g, snap_fiber_g, position',
+        'id, meal_id, food_id, food, grams, measure_label, measure_qty, equivalence_list_id, group_options, snap_energy_kcal, snap_protein_g, snap_carb_g, snap_fat_g, snap_fiber_g, position',
       )
       .in(
         'meal_id',
@@ -348,21 +359,42 @@ export async function getDietPlanForPatient(
     allItems.push(...((itemsRes.data ?? []) as typeof allItems))
   }
 
-  const refs = await loadFoodRefs(
-    supabase,
-    allItems.map((i) => i.food_id).filter(Boolean) as string[],
-  )
-
-  // Itens que são grupo (lista de substituição, sem alimento único) precisam
-  // dos nutrientes representativos da lista. Carrega só se houver algum.
+  // Itens que são grupo (lista de substituição) precisam da lista base (nome +
+  // meta). Carrega só se houver algum grupo.
   const listsById = new Map<string, EquivalenceListDTO>()
   if (allItems.some((i) => i.equivalence_list_id && !i.food_id)) {
     for (const l of await listEquivalenceLists(supabase, tenantId)) listsById.set(l.id, l)
   }
 
+  function parseGroupOptions(v: unknown): { foodId: string; grams: number }[] | null {
+    if (!Array.isArray(v)) return null
+    const out = (v as Array<{ food_id?: string; grams?: number | string }>)
+      .filter((o) => o && o.food_id)
+      .map((o) => ({ foodId: String(o.food_id), grams: Number(o.grams) }))
+      .filter((o) => o.grams > 0)
+    return out.length ? out : null
+  }
+  // Opções efetivas do grupo: personalizadas (group_options) ou a lista base.
+  function effectiveOptions(row: (typeof allItems)[number]): { foodId: string; grams: number }[] {
+    const custom = parseGroupOptions(row.group_options)
+    if (custom) return custom
+    const list = row.equivalence_list_id ? listsById.get(row.equivalence_list_id) : undefined
+    return list ? list.items.map((it) => ({ foodId: it.foodId, grams: it.grams })) : []
+  }
+
+  // Carrega TODOS os alimentos referenciados: item único + opções dos grupos.
+  const groupOptionIds = allItems
+    .filter((i) => !i.food_id && i.equivalence_list_id)
+    .flatMap((i) => effectiveOptions(i).map((o) => o.foodId))
+  const refs = await loadFoodRefs(supabase, [
+    ...(allItems.map((i) => i.food_id).filter(Boolean) as string[]),
+    ...groupOptionIds,
+  ])
+
   function itemView(row: (typeof allItems)[number]): PlanItemView {
     const list = row.equivalence_list_id ? listsById.get(row.equivalence_list_id) : undefined
     const isGroup = !row.food_id && !!row.equivalence_list_id
+    const opts = isGroup ? effectiveOptions(row) : []
     // Prescrito: usa o snapshot congelado; rascunho: calcula ao vivo da base.
     let nutrients: Nutrients | null = null
     if (row.snap_energy_kcal !== null) {
@@ -375,8 +407,20 @@ export async function getDietPlanForPatient(
       }
     } else if (row.food_id && row.grams !== null && refs.has(row.food_id)) {
       nutrients = roundNutrients(itemNutrients({ grams: Number(row.grams), food: refs.get(row.food_id)! }))
-    } else if (isGroup && list) {
-      nutrients = roundNutrients(list.nutrients)
+    } else if (isGroup) {
+      // Energia contada = meta da lista (reference_kcal), estável mesmo quando a
+      // nutri remove/adiciona opções (o grupo é 1 porção ~ meta). Sem lista base
+      // (raro), cai no cálculo pelas opções efetivas.
+      nutrients = list
+        ? roundNutrients(list.nutrients)
+        : roundNutrients(
+            groupNutrients({
+              referenceKcal: null,
+              items: opts
+                .filter((o) => refs.has(o.foodId))
+                .map((o) => ({ grams: o.grams, food: refs.get(o.foodId)! })),
+            }),
+          )
     }
     return {
       id: row.id,
@@ -387,7 +431,10 @@ export async function getDietPlanForPatient(
       measureQty: row.measure_qty === null ? null : Number(row.measure_qty),
       equivalenceListId: row.equivalence_list_id,
       isGroup,
-      groupOptions: isGroup && list ? list.items.map((it) => ({ name: it.name, grams: it.grams })) : null,
+      groupOptions: isGroup
+        ? opts.map((o) => ({ foodId: o.foodId, name: refs.get(o.foodId)?.name ?? 'Alimento', grams: o.grams }))
+        : null,
+      groupReferenceKcal: isGroup ? (list?.referenceKcal ?? null) : null,
       nutrients,
     }
   }
