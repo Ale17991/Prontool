@@ -34,6 +34,8 @@
     "supabase:gen-types": "supabase gen types typescript --local > src/lib/db/generated/types.ts",
     "seed:foods-micros": "tsx --env-file=.env.local scripts/build-foods-micros.ts",
     "seed:foods-micros:prod": "tsx --env-file=.env.production.local scripts/build-foods-micros.ts",
+    "seed:dris": "tsx --env-file=.env.local scripts/build-dris-seed.ts",
+    "seed:dris:prod": "tsx --env-file=.env.production.local scripts/build-dris-seed.ts",
     "seed:tuss": "tsx --env-file=.env.local scripts/seed-tuss.ts",
     "seed:tuss:22": "tsx --env-file=.env.local scripts/seed-tuss.ts --table 22",
     "seed:tuss:19": "tsx --env-file=.env.local scripts/seed-tuss.ts --table 19",

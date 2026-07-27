@@ -99,6 +99,8 @@ export function PlanBuilderClient() {
   const [prescribing, setPrescribing] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [groups, setGroups] = useState<GroupDTO[]>([])
+  const [adequacy, setAdequacy] = useState<AdequacyView | null>(null)
+  const [adeqLoading, setAdeqLoading] = useState(false)
 
   useEffect(() => {
     void (async () => {
@@ -356,6 +358,19 @@ export function PlanBuilderClient() {
     }
   }
 
+  async function loadAdequacy() {
+    if (!patient) return
+    setAdeqLoading(true)
+    setMsg(null)
+    try {
+      await save() // persiste o rascunho para a análise refletir o cardápio atual
+      const res = await fetch(`/api/pacientes/${patient.id}/adequacao`)
+      setAdequacy(res.ok ? ((await res.json()) as AdequacyView) : null)
+    } finally {
+      setAdeqLoading(false)
+    }
+  }
+
   async function prescribe() {
     if (!patient) return
     const planId = await save()
@@ -440,6 +455,9 @@ export function PlanBuilderClient() {
 
       <div className="space-y-4">
         <TotalsPanel dayTotal={dayTotal} target={meta.target} delta={delta} />
+        {patient ? (
+          <AdequacyPanel data={adequacy} loading={adeqLoading} onAnalyze={loadAdequacy} />
+        ) : null}
         {patient ? (
           <div className="space-y-2">
             {msg ? <p className="text-xs text-slate-500">{msg}</p> : null}
@@ -782,6 +800,75 @@ function DeltaRow({ label, v, unit }: { label: string; v: number; unit: string }
         {Math.round(v * 10) / 10} {unit}
       </span>
     </div>
+  )
+}
+
+interface AdequacyItemView {
+  nutrientKey: string
+  label: string
+  unit: string
+  total: number
+  dri: number | null
+  pct: number | null
+  class: 'abaixo' | 'adequado' | 'acima' | 'sem_referencia'
+}
+interface AdequacyView {
+  adequacy: { items: AdequacyItemView[]; deficits: number; excesses: number } | null
+  patient?: { ageYears: number; sex: string; state: string }
+  need?: { age: boolean; sex: boolean }
+}
+
+function AdequacyPanel({
+  data,
+  loading,
+  onAnalyze,
+}: {
+  data: AdequacyView | null
+  loading: boolean
+  onAnalyze: () => void
+}) {
+  const cls = (c: AdequacyItemView['class']) =>
+    c === 'adequado'
+      ? 'text-emerald-600'
+      : c === 'acima'
+        ? 'text-amber-600'
+        : c === 'abaixo'
+          ? 'text-sky-600'
+          : 'text-slate-400'
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm">Adequação (DRI)</CardTitle>
+        <Button size="sm" variant="outline" onClick={onAnalyze} disabled={loading} className="h-7 gap-1.5 text-xs">
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null} Analisar
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-1 text-xs">
+        {!data ? (
+          <p className="text-slate-400">Clique em “Analisar” para comparar o plano com a recomendação do paciente.</p>
+        ) : data.need && (data.need.age || data.need.sex) ? (
+          <p className="text-amber-600">Informe idade (data de nascimento) e sexo no cadastro do paciente.</p>
+        ) : !data.adequacy ? (
+          <p className="text-slate-400">Salve um plano com itens para analisar.</p>
+        ) : (
+          <>
+            <p className="mb-1 text-[11px] text-slate-500">
+              {data.adequacy.deficits} carência(s) · {data.adequacy.excesses} excesso(s)
+              {data.patient ? ` · ${data.patient.ageYears}a ${data.patient.sex}` : ''}
+            </p>
+            {data.adequacy.items.map((i) => (
+              <div key={i.nutrientKey} className="flex items-center justify-between">
+                <span className="text-slate-600">{i.label}</span>
+                <span className={`tabular-nums ${cls(i.class)}`}>
+                  {i.total}/{i.dri ?? '—'} {i.unit}
+                  {i.pct !== null ? ` · ${i.pct}%` : ''}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 

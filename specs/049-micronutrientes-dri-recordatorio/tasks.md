@@ -74,17 +74,17 @@
 
 ### Tests (US2)
 
-- [ ] T016 [P] [US2] Unit test do motor de adequação (`<90% abaixo`, `90–110% adequado`, `>110% acima`, `sem_referencia`) em `tests/unit/nutrition-adequacy.spec.ts`
-- [ ] T017 [P] [US2] Integration test `GET /api/pacientes/[id]/adequacao?source=plano` (idade da data de nascimento; override manual) em `tests/integration/adequacao-plano.spec.ts`
+- [X] T016 [P] [US2] Unit test do motor de adequação (`<90% abaixo`, `90–110% adequado`, `>110% acima`, `sem_referencia`) em `tests/unit/nutrition-adequacy.spec.ts`
+- [X] T017 [P] [US2] Integration test `GET /api/pacientes/[id]/adequacao?source=plano` (idade da data de nascimento; override manual) em `tests/integration/adequacao-plano.spec.ts`
 
 ### Implementation (US2)
 
-- [ ] T018 [US2] Migration `supabase/migrations/0182_dietary_reference_intakes.sql`: tabela global `dietary_reference_intakes` (RLS read-only, UNIQUE `(nutrient_key,sex,age_min,age_max,state)`, índice de lookup) + refresh do `catalog_baseline`
-- [ ] T019 [US2] Script/seed `scripts/build-dris-seed.ts` + `pnpm seed:dris` populando a tabela a partir do CSV/JSON de T002
-- [ ] T020 [P] [US2] `src/lib/core/nutrition/dri/read.ts`: lookup por `(nutrient_key, sex, ageYears, state)` com fallback `any`/`padrao`
-- [ ] T021 [US2] `src/lib/core/nutrition/adequacy.ts`: motor puro (totais + paciente + DRIs → `AdequacyItem[]` + resumo de carências/excessos)
-- [ ] T022 [US2] Route `src/app/api/pacientes/[id]/adequacao/route.ts` (GET; source=plano; gate `dieta`; RBAC; idade/sexo/estado do cadastro com override)
-- [ ] T023 [US2] Painel de adequação na tela de Plano Alimentar (client): tabela por nutriente (total × DRI × % × classe), destaque de carências/excessos, ajuste de idade/sexo/estado
+- [X] T018 [US2] Migration `supabase/migrations/0182_dietary_reference_intakes.sql`: tabela global `dietary_reference_intakes` (RLS read-only, UNIQUE `(nutrient_key,sex,age_min,age_max,state)`, índice de lookup) + refresh do `catalog_baseline`
+- [X] T019 [US2] Script/seed `scripts/build-dris-seed.ts` + `pnpm seed:dris` populando a tabela a partir do CSV/JSON de T002
+- [X] T020 [P] [US2] `src/lib/core/nutrition/dri/read.ts`: lookup por `(nutrient_key, sex, ageYears, state)` com fallback `any`/`padrao`
+- [X] T021 [US2] `src/lib/core/nutrition/adequacy.ts`: motor puro (totais + paciente + DRIs → `AdequacyItem[]` + resumo de carências/excessos)
+- [X] T022 [US2] Route `src/app/api/pacientes/[id]/adequacao/route.ts` (GET; source=plano; gate `dieta`; RBAC; idade/sexo/estado do cadastro com override)
+- [X] T023 [US2] Painel de adequação na tela de Plano Alimentar (client): tabela por nutriente (total × DRI × % × classe), destaque de carências/excessos, ajuste de idade/sexo/estado
 
 **Checkpoint**: US1 + US2 funcionam de forma independente.
 
