@@ -116,6 +116,53 @@ describe('groupNutrients — grupo (lista OU) conta como 1 porção por referenc
   })
 })
 
+describe('micronutrientes na soma (049 US1)', () => {
+  const arrozMicro: FoodRef = {
+    referenceGrams: 100,
+    energyKcal: 124,
+    proteinG: 2.6,
+    carbG: 25.8,
+    fatG: 1,
+    fiberG: 2.7,
+    micros: { ferro_mg: 0.3, calcio_mg: 4 },
+  }
+  const feijaoMicro: FoodRef = {
+    referenceGrams: 100,
+    energyKcal: 76,
+    proteinG: 4.8,
+    carbG: 13.6,
+    fatG: 0.5,
+    fiberG: 8.5,
+    micros: { ferro_mg: 1.3, potassio_mg: 255 }, // sem calcio
+  }
+
+  it('itemNutrients escala os micros por regra de três', () => {
+    const n = itemNutrients({ grams: 200, food: arrozMicro })
+    expect(n.micros!.ferro_mg).toBeCloseTo(0.6, 6)
+    expect(n.micros!.calcio_mg).toBeCloseTo(8, 6)
+  })
+
+  it('a soma acumula micros; chave ausente num item não vira zero forçado', () => {
+    const t = mealTotals({
+      items: [
+        { grams: 100, food: arrozMicro },
+        { grams: 100, food: feijaoMicro },
+      ],
+    })
+    // ferro presente nos dois: 0.3 + 1.3
+    expect(t.micros!.ferro_mg).toBeCloseTo(1.6, 6)
+    // calcio só no arroz; potassio só no feijão — cada um acumula o que tem
+    expect(t.micros!.calcio_mg).toBeCloseTo(4, 6)
+    expect(t.micros!.potassio_mg).toBeCloseTo(255, 6)
+  })
+
+  it('alimento sem micros não adiciona chaves', () => {
+    const semMicro: FoodRef = { referenceGrams: 100, energyKcal: 100, proteinG: 0, carbG: 25, fatG: 0, fiberG: 0 }
+    const n = itemNutrients({ grams: 50, food: semMicro })
+    expect(n.micros).toBeUndefined()
+  })
+})
+
 describe('measureToGrams (FR-012)', () => {
   it('2 fatias de 25 g = 50 g', () => {
     expect(measureToGrams(2, 25)).toBe(50)

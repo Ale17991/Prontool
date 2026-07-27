@@ -1534,6 +1534,7 @@ export type Database = {
           food: string
           food_id: string | null
           grams: number | null
+          group_options: Json | null
           id: string
           meal_id: string
           measure_label: string | null
@@ -1554,6 +1555,7 @@ export type Database = {
           food: string
           food_id?: string | null
           grams?: number | null
+          group_options?: Json | null
           id?: string
           meal_id: string
           measure_label?: string | null
@@ -1574,6 +1576,7 @@ export type Database = {
           food?: string
           food_id?: string | null
           grams?: number | null
+          group_options?: Json | null
           id?: string
           meal_id?: string
           measure_label?: string | null
@@ -2694,6 +2697,7 @@ export type Database = {
           fiber_g: number | null
           group_id: string | null
           id: string
+          micronutrients: Json | null
           micros: Json
           name: string
           protein_g: number
@@ -2713,6 +2717,7 @@ export type Database = {
           fiber_g?: number | null
           group_id?: string | null
           id?: string
+          micronutrients?: Json | null
           micros?: Json
           name: string
           protein_g?: number
@@ -2732,6 +2737,7 @@ export type Database = {
           fiber_g?: number | null
           group_id?: string | null
           id?: string
+          micronutrients?: Json | null
           micros?: Json
           name?: string
           protein_g?: number

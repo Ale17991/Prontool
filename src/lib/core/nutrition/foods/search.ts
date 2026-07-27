@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
+import type { MicronutrientMap } from '../micronutrients'
 
 /**
  * Feature 047 — busca de alimentos (catálogo global + próprios da clínica).
@@ -26,6 +27,8 @@ export interface FoodDTO {
   carbG: number
   fatG: number
   fiberG: number | null
+  /** Micronutrientes por porção de referência (chaves do catálogo), ou null. */
+  micronutrients: MicronutrientMap | null
   measures: FoodMeasureDTO[]
 }
 
@@ -67,13 +70,21 @@ export async function searchFoods(
   const rows = (data ?? []) as unknown as RpcRow[]
   if (rows.length === 0) return []
 
-  // Medidas caseiras num único fetch (visíveis por RLS/escopo do serviço).
+  // Medidas caseiras + micronutrientes num fetch cada (a RPC não os retorna).
   const ids = rows.map((r) => r.id)
-  const { data: measData, error: measErr } = await supabase
-    .from('food_household_measures')
-    .select('food_id, label, grams, is_default')
-    .in('food_id', ids)
+  const [{ data: measData, error: measErr }, { data: microData, error: microErr }] = await Promise.all([
+    supabase.from('food_household_measures').select('food_id, label, grams, is_default').in('food_id', ids),
+    supabase.from('foods').select('id, micronutrients').in('id', ids),
+  ])
   if (measErr) throw new Error(`searchFoods measures failed: ${measErr.message}`)
+  if (microErr) throw new Error(`searchFoods micros failed: ${microErr.message}`)
+  const microsByFood = new Map<string, MicronutrientMap>()
+  for (const f of (microData ?? []) as unknown as Array<{
+    id: string
+    micronutrients: MicronutrientMap | null
+  }>) {
+    if (f.micronutrients) microsByFood.set(f.id, f.micronutrients)
+  }
 
   const byFood = new Map<string, FoodMeasureDTO[]>()
   for (const m of (measData ?? []) as Array<{
@@ -100,6 +111,7 @@ export async function searchFoods(
     carbG: Number(r.carb_g),
     fatG: Number(r.fat_g),
     fiberG: r.fiber_g === null ? null : Number(r.fiber_g),
+    micronutrients: microsByFood.get(r.id) ?? null,
     measures: (byFood.get(r.id) ?? []).sort((a, b) => Number(b.isDefault) - Number(a.isDefault)),
   }))
 }

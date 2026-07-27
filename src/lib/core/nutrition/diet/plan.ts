@@ -3,6 +3,7 @@ import type { Database } from '@/lib/db/types'
 import { DomainError, NotFoundError } from '@/lib/observability/errors'
 import {
   itemNutrients,
+  addNutrients,
   roundNutrients,
   targetDelta,
   groupNutrients,
@@ -99,10 +100,10 @@ async function loadFoodRefs(
   if (foodIds.length === 0) return map
   const { data, error } = await supabase
     .from('foods')
-    .select('id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g')
+    .select('id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients')
     .in('id', foodIds)
   if (error) throw new Error(`loadFoodRefs: ${error.message}`)
-  for (const f of (data ?? []) as Array<{
+  for (const f of (data ?? []) as unknown as Array<{
     id: string
     name: string
     reference_grams: number
@@ -111,6 +112,7 @@ async function loadFoodRefs(
     carb_g: number
     fat_g: number
     fiber_g: number | null
+    micronutrients: Record<string, number> | null
   }>) {
     map.set(f.id, {
       name: f.name,
@@ -120,6 +122,7 @@ async function loadFoodRefs(
       carbG: Number(f.carb_g),
       fatG: Number(f.fat_g),
       fiberG: f.fiber_g === null ? null : Number(f.fiber_g),
+      micros: f.micronutrients ?? null,
     })
   }
   return map
@@ -444,16 +447,7 @@ export async function getDietPlanForPatient(
   // nutrientes por item já foram resolvidos acima (podem vir do snapshot).
   function sumItems(items: PlanItemView[]): Nutrients {
     return items.reduce<Nutrients>(
-      (acc, i) =>
-        i.nutrients
-          ? {
-              energyKcal: acc.energyKcal + i.nutrients.energyKcal,
-              proteinG: acc.proteinG + i.nutrients.proteinG,
-              carbG: acc.carbG + i.nutrients.carbG,
-              fatG: acc.fatG + i.nutrients.fatG,
-              fiberG: acc.fiberG + i.nutrients.fiberG,
-            }
-          : acc,
+      (acc, i) => (i.nutrients ? addNutrients(acc, i.nutrients) : acc),
       { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
     )
   }
@@ -471,16 +465,13 @@ export async function getDietPlanForPatient(
   })
 
   const dayTotal = roundNutrients(
-    meals.reduce<Nutrients>(
-      (acc, m) => ({
-        energyKcal: acc.energyKcal + m.totals.energyKcal,
-        proteinG: acc.proteinG + m.totals.proteinG,
-        carbG: acc.carbG + m.totals.carbG,
-        fatG: acc.fatG + m.totals.fatG,
-        fiberG: acc.fiberG + m.totals.fiberG,
-      }),
-      { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
-    ),
+    meals.reduce<Nutrients>((acc, m) => addNutrients(acc, m.totals), {
+      energyKcal: 0,
+      proteinG: 0,
+      carbG: 0,
+      fatG: 0,
+      fiberG: 0,
+    }),
   )
 
   const target: PlanTarget | null =

@@ -10,12 +10,16 @@
  * quebraria o SC-002 ("números batendo").
  */
 
+import type { MicronutrientMap } from '../micronutrients'
+
 export interface Nutrients {
   energyKcal: number
   proteinG: number
   carbG: number
   fatG: number
   fiberG: number
+  /** Micronutrientes somados (chaves do catálogo). Opcional — ausência = sem dado. */
+  micros?: MicronutrientMap
 }
 
 /** Referência nutricional de um alimento (por `referenceGrams`). */
@@ -26,6 +30,30 @@ export interface FoodRef {
   carbG: number
   fatG: number
   fiberG: number | null
+  /** Micronutrientes por porção de referência (chaves do catálogo). */
+  micros?: MicronutrientMap | null
+}
+
+/** Escala um mapa de micros por um fator (regra de três). Ausente = {}. */
+function scaleMicros(micros: MicronutrientMap | null | undefined, factor: number): MicronutrientMap | undefined {
+  if (!micros) return undefined
+  const out: MicronutrientMap = {}
+  for (const [k, v] of Object.entries(micros)) {
+    if (typeof v === 'number' && Number.isFinite(v)) out[k] = v * factor
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
+/** Soma dois mapas de micros; chave presente em qualquer lado é acumulada. */
+function addMicros(
+  a: MicronutrientMap | undefined,
+  b: MicronutrientMap | undefined,
+): MicronutrientMap | undefined {
+  if (!a) return b
+  if (!b) return a
+  const out: MicronutrientMap = { ...a }
+  for (const [k, v] of Object.entries(b)) out[k] = (out[k] ?? 0) + v
+  return out
 }
 
 export interface PlanItemInput {
@@ -55,6 +83,7 @@ export function itemNutrients(item: PlanItemInput): Nutrients {
     carbG: food.carbG * factor,
     fatG: food.fatG * factor,
     fiberG: (food.fiberG ?? 0) * factor,
+    micros: scaleMicros(food.micros, factor),
   }
 }
 
@@ -65,6 +94,7 @@ export function addNutrients(a: Nutrients, b: Nutrients): Nutrients {
     carbG: a.carbG + b.carbG,
     fatG: a.fatG + b.fatG,
     fiberG: a.fiberG + b.fiberG,
+    micros: addMicros(a.micros, b.micros),
   }
 }
 
@@ -144,11 +174,17 @@ export function targetDelta(
 /** Arredonda em 2 casas — só na fronteira (apresentação/gravação). */
 export function roundNutrients(n: Nutrients): Nutrients {
   const r = (v: number) => Math.round(v * 100) / 100
+  let micros: MicronutrientMap | undefined
+  if (n.micros) {
+    micros = {}
+    for (const [k, v] of Object.entries(n.micros)) micros[k] = r(v)
+  }
   return {
     energyKcal: r(n.energyKcal),
     proteinG: r(n.proteinG),
     carbG: r(n.carbG),
     fatG: r(n.fatG),
     fiberG: r(n.fiberG),
+    micros,
   }
 }
