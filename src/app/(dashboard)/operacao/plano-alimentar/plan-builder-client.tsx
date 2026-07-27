@@ -386,7 +386,7 @@ export function PlanBuilderClient() {
           <CardContent className="grid gap-3 pt-6 md:grid-cols-2">
             <div>
               <Label>Paciente</Label>
-              <PatientTypeahead value={patient?.id ?? null} onChange={setPatient} />
+              <PatientTypeahead value={patient?.id ?? null} onChange={setPatient} allowCreate />
             </div>
             <div>
               <Label htmlFor="pa_title">Título do plano</Label>

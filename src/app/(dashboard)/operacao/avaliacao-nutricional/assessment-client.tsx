@@ -55,6 +55,17 @@ function num(s: string): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
+/** Idade em anos a partir da data de nascimento (ISO). */
+function ageFromBirth(iso: string): number | null {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  const now = new Date()
+  let a = now.getFullYear() - d.getFullYear()
+  const m = now.getMonth() - d.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--
+  return a >= 0 && a < 130 ? a : null
+}
+
 interface AssessmentSummary {
   id: string
   assessedAt: string
@@ -126,9 +137,27 @@ export function NutritionAssessmentClient({
     )
   }
 
+  // Reaproveita o que já está no cadastro: idade (da data de nascimento) e sexo.
+  async function prefillFromPatient(patientId: string) {
+    const res = await fetch(`/api/pacientes/${patientId}`)
+    if (!res.ok) return
+    const { patient: p } = (await res.json()) as {
+      patient: { birthDate: string | null; sex: string | null } | null
+    }
+    if (!p) return
+    if (p.birthDate) {
+      const a = ageFromBirth(p.birthDate)
+      if (a !== null) setAge(String(a))
+    }
+    if (p.sex === 'masculino') setSex('M')
+    else if (p.sex === 'feminino') setSex('F')
+  }
+
   useEffect(() => {
-    if (patient) void loadPatientData(patient.id)
-    else {
+    if (patient) {
+      void loadPatientData(patient.id)
+      void prefillFromPatient(patient.id)
+    } else {
       setHistory([])
       setMeasurements({})
     }
@@ -288,7 +317,13 @@ export function NutritionAssessmentClient({
           <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <div className="col-span-2 md:col-span-4">
               <Label>Paciente</Label>
-              <PatientTypeahead value={patient?.id ?? null} onChange={setPatient} />
+              <PatientTypeahead value={patient?.id ?? null} onChange={setPatient} allowCreate />
+              {patient ? (
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Sexo e idade vêm do cadastro do paciente (idade calculada da data de nascimento) —
+                  ajuste se necessário.
+                </p>
+              ) : null}
             </div>
             <div>
               <Label htmlFor="na_date">Data</Label>

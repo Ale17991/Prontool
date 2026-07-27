@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, ChevronsUpDown, Loader2, X } from 'lucide-react'
+import { Check, ChevronsUpDown, Loader2, UserPlus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { TagBadge } from '@/components/patient-tags/tag-badge'
 import type { PatientTagColor } from '@/lib/core/patient-tags/palette'
 import {
@@ -13,6 +15,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
@@ -59,6 +68,8 @@ export interface PatientTypeaheadProps {
   placeholder?: string
   id?: string
   disabled?: boolean
+  /** Mostra a opção de cadastrar um paciente novo direto do seletor. */
+  allowCreate?: boolean
 }
 
 function maskCpf(raw: string | null | undefined): string {
@@ -87,8 +98,10 @@ export function PatientTypeahead({
   placeholder = 'Buscar paciente por nome ou CPF…',
   id,
   disabled,
+  allowCreate = false,
 }: PatientTypeaheadProps) {
   const [open, setOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [items, setItems] = useState<PatientTypeaheadValue[]>([])
   const [loading, setLoading] = useState(false)
@@ -203,6 +216,7 @@ export function PatientTypeahead({
   }, [selected, placeholder])
 
   return (
+    <>
     <Popover open={open} onOpenChange={(v) => !disabled && setOpen(v)}>
       <PopoverTrigger asChild>
         <Button
@@ -287,8 +301,162 @@ export function PatientTypeahead({
               </CommandGroup>
             )}
           </CommandList>
+          {allowCreate ? (
+            <div className="border-t border-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false)
+                  setCreateOpen(true)
+                }}
+                className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-xs font-medium text-primary hover:bg-primary/5"
+              >
+                <UserPlus className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">
+                  Cadastrar novo paciente{search.trim() ? `: “${search.trim()}”` : ''}
+                </span>
+              </button>
+            </div>
+          ) : null}
         </Command>
       </PopoverContent>
     </Popover>
+    {allowCreate ? (
+        <QuickCreatePatient
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          initialName={search.trim()}
+          onCreated={(p) => {
+            setCreateOpen(false)
+            pick(p)
+          }}
+        />
+      ) : null}
+    </>
+  )
+}
+
+/** Cadastro rápido de paciente a partir do seletor (nome obrigatório). */
+function QuickCreatePatient({
+  open,
+  onOpenChange,
+  initialName,
+  onCreated,
+}: {
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  initialName: string
+  onCreated: (p: PatientTypeaheadValue) => void
+}) {
+  const [name, setName] = useState(initialName)
+  const [cpf, setCpf] = useState('')
+  const [birth, setBirth] = useState('')
+  const [sex, setSex] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (open) {
+      setName(initialName)
+      setCpf('')
+      setBirth('')
+      setSex('')
+      setErr(null)
+    }
+  }, [open, initialName])
+
+  async function submit() {
+    if (name.trim().length < 2) {
+      setErr('Informe o nome (mínimo 2 letras).')
+      return
+    }
+    setSaving(true)
+    setErr(null)
+    try {
+      const body: Record<string, unknown> = { full_name: name.trim() }
+      const cpfDigits = cpf.replace(/\D/g, '')
+      if (cpfDigits.length === 11) body.cpf = cpfDigits
+      if (birth) body.birth_date = birth
+      if (sex) body.sex = sex
+      const res = await fetch('/api/pacientes', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const b = (await res.json().catch(() => ({}))) as { error?: { message?: string } }
+        setErr(b.error?.message ?? 'Falha ao cadastrar o paciente.')
+        return
+      }
+      const r = (await res.json()) as { patientId: string }
+      onCreated({
+        id: r.patientId,
+        fullName: name.trim(),
+        cpf: cpfDigits.length === 11 ? cpfDigits : '',
+        planId: null,
+        planName: null,
+        tags: [],
+      })
+    } catch {
+      setErr('Falha ao cadastrar o paciente.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Novo paciente</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="qp_name">Nome completo *</Label>
+            <Input id="qp_name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="qp_birth">Data de nascimento</Label>
+              <Input id="qp_birth" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="qp_sex">Sexo</Label>
+              <select
+                id="qp_sex"
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
+              >
+                <option value="">—</option>
+                <option value="feminino">Feminino</option>
+                <option value="masculino">Masculino</option>
+                <option value="intersexo">Intersexo</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="qp_cpf">CPF (opcional)</Label>
+            <Input
+              id="qp_cpf"
+              inputMode="numeric"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+              placeholder="somente números"
+            />
+          </div>
+          {err ? <p className="text-xs font-semibold text-destructive">{err}</p> : null}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={submit} disabled={saving} className="gap-1.5">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Cadastrar
+            e selecionar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

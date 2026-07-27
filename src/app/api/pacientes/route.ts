@@ -187,7 +187,7 @@ export async function GET(req: Request): Promise<Response> {
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const session = await requireRole(['admin', 'recepcionista'], {
+    const session = await requireRole(['admin', 'recepcionista', 'profissional_saude'], {
       entity: 'patients',
       route: '/api/pacientes',
       request: req,
