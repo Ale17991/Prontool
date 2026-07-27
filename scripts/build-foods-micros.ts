@@ -71,6 +71,12 @@ async function parse(): Promise<FoodRow[]> {
       const kcal = num(g(5))
       if (!name || kcal === null) continue
       const refG = num(g(4)) ?? 100
+      // CHECKs do banco: macros ∈ [0, refG]; energia ∈ [0, 10·refG]. Alguns
+      // alimentos da planilha têm valor levemente fora (erro de dado) — clamp
+      // mantém o alimento sem violar a constraint.
+      const clamp = (v: number | null, max: number) =>
+        v === null ? null : Math.min(Math.max(v, 0), max)
+      const fiber = clamp(num(g(9)), refG)
       const micros: Record<string, number> = {}
       for (const m of MICRONUTRIENTS) {
         const v = num(g(m.col))
@@ -81,11 +87,11 @@ async function parse(): Promise<FoodRow[]> {
         external_code: txt(g(1)).trim() || String(rows.length + 1),
         name,
         reference_grams: refG,
-        energy_kcal: kcal,
-        protein_g: num(g(6)) ?? 0,
-        fat_g: num(g(7)) ?? 0, // BD ALIMENTOS: [7]=LIPÍDEOS, [8]=CARBOIDRATO
-        carb_g: num(g(8)) ?? 0,
-        fiber_g: num(g(9)),
+        energy_kcal: clamp(kcal, 10 * refG) ?? 0,
+        protein_g: clamp(num(g(6)), refG) ?? 0,
+        fat_g: clamp(num(g(7)), refG) ?? 0, // BD ALIMENTOS: [7]=LIPÍDEOS, [8]=CARBOIDRATO
+        carb_g: clamp(num(g(8)), refG) ?? 0,
+        fiber_g: fiber,
         micronutrients: Object.keys(micros).length ? micros : null,
         active: true,
         tenant_id: null,

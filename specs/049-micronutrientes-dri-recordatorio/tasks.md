@@ -18,7 +18,7 @@
 
 **Purpose**: preparar os gabaritos vindos de `nutri-doc/` antes de codar.
 
-- [ ] T001 Extrair a aba `BD ALIMENTOS` de `nutri-doc/AF..xlsm` (6570 alimentos, por 100 g) para CSV/JSON com nome+energia+macros+os ~37 micros, via streaming (`ExcelJS.stream.xlsx.WorkbookReader`), salvando em `scratchpad/` ou `scripts/data/`
+- [X] T001 Extrair a aba `BD ALIMENTOS` de `nutri-doc/AF..xlsm` (6570 alimentos, por 100 g) para CSV/JSON com nome+energia+macros+os ~37 micros, via streaming (`ExcelJS.stream.xlsx.WorkbookReader`), salvando em `scratchpad/` ou `scripts/data/`
 - [ ] T002 Extrair a aba `BD_DRIs` de `nutri-doc/Evonut.xlsm` para CSV/JSON de recomendações por nutriente × sexo × faixa etária × estado
 - [ ] T003 [P] Levantar as colunas de micros da `BD ALIMENTOS` e mapear cada uma para uma `nutrient_key` canônica (ex.: `calcio_mg`, `ferro_mg`, `vitamina_c_mg`) + unidade + `driKey`, registrando em `specs/049-micronutrientes-dri-recordatorio/research.md` (apêndice de mapeamento)
 
@@ -58,7 +58,7 @@
 - [ ] T013 [P] [US1] Estender `src/lib/core/nutrition/foods/custom.ts` + `src/app/api/alimentos/route.ts` (schema Zod) para aceitar/gravar `micronutrients` (opcionais, validação de plausibilidade)
 - [ ] T014 [US1] UI Config→Alimentos (`src/app/(dashboard)/configuracoes/alimentos/foods-catalog-client.tsx`): exibir os micros disponíveis do alimento e campo (opcional) de micros no cadastro próprio
 - [ ] T015 [US1] Plano Alimentar (`src/app/(dashboard)/operacao/plano-alimentar/plan-builder-client.tsx` + `diet/plan.ts`): totais do dia passam a exibir os principais micros; leitura/gravação carregam micros
-- [ ] T015b [US1] Limpeza das listas de substituição em prod (Ambiente de testes): com os alimentos individuais da base AF disponíveis, **expandir opções agrupadas** (ex.: "Carnes Magras: Patinho, Acém, Frango, Tilápia…") em **opções OU individuais**, cada uma com a grama calibrada pela meta de kcal da lista; desativar o alimento agrupado. Varrer todas as listas por nomes com múltiplos alimentos (`:` / lista separada por vírgula que não seja nome TACO). Script tsx idempotente.
+- [X] T015b [US1] Limpeza das listas de substituição em prod (Ambiente de testes): com os alimentos individuais da base AF disponíveis, **expandir opções agrupadas** (ex.: "Carnes Magras: Patinho, Acém, Frango, Tilápia…") em **opções OU individuais**, cada uma com a grama calibrada pela meta de kcal da lista; desativar o alimento agrupado. Varrer todas as listas por nomes com múltiplos alimentos (`:` / lista separada por vírgula que não seja nome TACO). Script tsx idempotente.
 
 **Checkpoint**: US1 funcional e testável isolada.
 
