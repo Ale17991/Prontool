@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { energyFromMacros } from '@/lib/core/nutrition/foods/atwater'
+import { MICRONUTRIENTS_PRIMARY, micronutrientDef } from '@/lib/core/nutrition/micronutrients'
 import type { FoodDTO } from '@/lib/core/nutrition/foods/search'
 
 interface GroupOption {
@@ -121,6 +122,16 @@ export function FoodsCatalogClient({ groups }: { groups: GroupOption[] }) {
                       /{f.referenceGrams} g
                       {f.groupLabel ? ` · ${f.groupLabel}` : ''}
                     </span>
+                    {f.micronutrients ? (
+                      <div className="mt-0.5 text-[10px] text-slate-400">
+                        {MICRONUTRIENTS_PRIMARY.filter((k) => f.micronutrients![k] !== undefined)
+                          .map((k) => {
+                            const d = micronutrientDef(k)
+                            return `${d?.label ?? k} ${Math.round(f.micronutrients![k]! * 10) / 10}${d?.unit ?? ''}`
+                          })
+                          .join(' · ') || '—'}
+                      </div>
+                    ) : null}
                   </td>
                   <td className="px-3 py-2">
                     <SourceBadge source={f.source} isCustom={f.isCustom} />

@@ -9,10 +9,16 @@ import { Label } from '@/components/ui/label'
 import { PatientTypeahead, type PatientTypeaheadValue } from '@/components/patients/patient-typeahead'
 import {
   itemNutrients,
+  addNutrients,
   roundNutrients,
   targetDelta,
   type Nutrients,
 } from '@/lib/core/nutrition/diet/totals'
+import {
+  MICRONUTRIENTS_PRIMARY,
+  micronutrientDef,
+  type MicronutrientMap,
+} from '@/lib/core/nutrition/micronutrients'
 import type { FoodDTO } from '@/lib/core/nutrition/foods/search'
 
 // ---- estado local do cardápio (edição) ---------------------------------
@@ -28,6 +34,7 @@ interface EditItem {
   carbG: number
   fatG: number
   fiberG: number | null
+  micros?: MicronutrientMap
   grams: number
   // Grupo / lista de substituição (kind === 'group'): 1 porção padronizada.
   equivalenceListId?: string
@@ -71,22 +78,14 @@ function toNutrients(it: EditItem): Nutrients {
         carbG: it.carbG,
         fatG: it.fatG,
         fiberG: it.fiberG,
+        micros: it.micros,
       },
     }),
   )
 }
 function sum(list: Nutrients[]): Nutrients {
   return roundNutrients(
-    list.reduce(
-      (a, b) => ({
-        energyKcal: a.energyKcal + b.energyKcal,
-        proteinG: a.proteinG + b.proteinG,
-        carbG: a.carbG + b.carbG,
-        fatG: a.fatG + b.fatG,
-        fiberG: a.fiberG + b.fiberG,
-      }),
-      { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
-    ),
+    list.reduce(addNutrients, { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 }),
   )
 }
 
@@ -161,6 +160,7 @@ export function PlanBuilderClient() {
                     carbG: i.nutrients?.carbG ?? 0,
                     fatG: i.nutrients?.fatG ?? 0,
                     fiberG: i.nutrients?.fiberG ?? null,
+                    micros: i.nutrients?.micros,
                     grams: i.grams,
                   })
                 }
@@ -221,6 +221,7 @@ export function PlanBuilderClient() {
                   carbG: food.carbG,
                   fatG: food.fatG,
                   fiberG: food.fiberG,
+                  micros: food.micronutrients ?? undefined,
                   grams: defaultGrams,
                 },
               ],
@@ -715,6 +716,23 @@ function TotalsPanel({
         <Row label="Carboidrato" value={`${dayTotal.carbG} g`} />
         <Row label="Lipídio" value={`${dayTotal.fatG} g`} />
         <Row label="Fibra" value={`${dayTotal.fiberG} g`} />
+        {dayTotal.micros && MICRONUTRIENTS_PRIMARY.some((k) => dayTotal.micros![k] !== undefined) ? (
+          <div className="mt-2 border-t border-slate-100 pt-2">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Micronutrientes
+            </p>
+            {MICRONUTRIENTS_PRIMARY.filter((k) => dayTotal.micros![k] !== undefined).map((k) => {
+              const def = micronutrientDef(k)
+              return (
+                <Row
+                  key={k}
+                  label={def?.label ?? k}
+                  value={`${Math.round(dayTotal.micros![k]! * 10) / 10} ${def?.unit ?? ''}`}
+                />
+              )
+            })}
+          </div>
+        ) : null}
         {target ? (
           <div className="mt-2 border-t border-slate-100 pt-2">
             <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -771,6 +789,11 @@ function DeltaRow({ label, v, unit }: { label: string; v: number; unit: string }
 // base (por 100 g equivalente) para a UI recomputar ao vivo conforme a grama.
 function rescaleToBase(i: EditItem): EditItem {
   const f = i.grams > 0 ? 100 / i.grams : 0
+  let micros: MicronutrientMap | undefined
+  if (i.micros) {
+    micros = {}
+    for (const [k, v] of Object.entries(i.micros)) micros[k] = v * f
+  }
   return {
     ...i,
     referenceGrams: 100,
@@ -779,6 +802,7 @@ function rescaleToBase(i: EditItem): EditItem {
     carbG: i.carbG * f,
     fatG: i.fatG * f,
     fiberG: i.fiberG === null ? null : i.fiberG * f,
+    micros,
   }
 }
 

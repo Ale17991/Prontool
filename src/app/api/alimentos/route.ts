@@ -31,6 +31,7 @@ const createSchema = z.object({
   carb_g: z.number().nonnegative(),
   fat_g: z.number().nonnegative(),
   fiber_g: z.number().nonnegative().optional().nullable(),
+  micronutrients: z.record(z.string(), z.number().nonnegative()).optional().nullable(),
   measures: z.array(measureSchema).max(20).optional(),
 })
 
@@ -102,6 +103,7 @@ export async function POST(req: Request): Promise<Response> {
       carbG: b.carb_g,
       fatG: b.fat_g,
       fiberG: b.fiber_g ?? null,
+      micronutrients: b.micronutrients ?? null,
       measures: b.measures?.map((m) => ({ label: m.label, grams: m.grams, isDefault: m.is_default })),
     })
     return NextResponse.json(result, { status: 201 })

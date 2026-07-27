@@ -2,6 +2,20 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { DomainError, NotFoundError } from '@/lib/observability/errors'
 import { normalizeFoodNutrients, FoodInputError } from './atwater'
+import { MICRONUTRIENT_KEYS } from '../micronutrients'
+
+/** Mantém só chaves conhecidas do catálogo, valores numéricos ≥ 0. */
+function sanitizeMicros(
+  micros: Record<string, number> | null | undefined,
+): Record<string, number> | null {
+  if (!micros) return null
+  const out: Record<string, number> = {}
+  for (const k of MICRONUTRIENT_KEYS) {
+    const v = micros[k]
+    if (typeof v === 'number' && Number.isFinite(v) && v >= 0) out[k] = v
+  }
+  return Object.keys(out).length ? out : null
+}
 
 /**
  * Feature 047 — cadastro de alimentos próprios da clínica (US1).
@@ -30,6 +44,8 @@ export interface CreateCustomFoodInput {
   carbG: number
   fatG: number
   fiberG?: number | null
+  /** Micronutrientes por porção de referência (opcionais). */
+  micronutrients?: Record<string, number> | null
   measures?: CustomFoodMeasureInput[]
 }
 
@@ -91,6 +107,7 @@ export async function createCustomFood(
       carb_g: nutrients.carbG,
       fat_g: nutrients.fatG,
       fiber_g: nutrients.fiberG,
+      micronutrients: sanitizeMicros(input.micronutrients),
       created_by_user_id: input.actorUserId,
     } as never)
     .select('id')

@@ -53,11 +53,11 @@
 ### Implementation (US1)
 
 - [X] T010 [US1] Script de importação `scripts/build-foods-micros.ts`: lê o CSV/JSON de T001 e faz upsert dos alimentos globais em `public.foods` (source `af_bdalimentos`, `tenant_id NULL`) preenchendo `energy/macros/fibra + micronutrients`; idempotente por `(source, external_code)`/nome
-- [ ] T011 [US1] Adicionar target `pnpm seed:foods-micros` (roda o import) em `package.json` + garantir sobrevivência ao reset via `catalog_baseline`
+- [X] T011 [US1] Adicionar target `pnpm seed:foods-micros` (roda o import) em `package.json` + garantir sobrevivência ao reset via `catalog_baseline`
 - [X] T012 [P] [US1] Estender `src/lib/core/nutrition/foods/search.ts` (DTO `FoodDTO` + RPC/select) para incluir `micronutrients`
-- [ ] T013 [P] [US1] Estender `src/lib/core/nutrition/foods/custom.ts` + `src/app/api/alimentos/route.ts` (schema Zod) para aceitar/gravar `micronutrients` (opcionais, validação de plausibilidade)
-- [ ] T014 [US1] UI Config→Alimentos (`src/app/(dashboard)/configuracoes/alimentos/foods-catalog-client.tsx`): exibir os micros disponíveis do alimento e campo (opcional) de micros no cadastro próprio
-- [ ] T015 [US1] Plano Alimentar (`src/app/(dashboard)/operacao/plano-alimentar/plan-builder-client.tsx` + `diet/plan.ts`): totais do dia passam a exibir os principais micros; leitura/gravação carregam micros
+- [X] T013 [P] [US1] Estender `src/lib/core/nutrition/foods/custom.ts` + `src/app/api/alimentos/route.ts` (schema Zod) para aceitar/gravar `micronutrients` (opcionais, validação de plausibilidade)
+- [X] T014 [US1] UI Config→Alimentos (`src/app/(dashboard)/configuracoes/alimentos/foods-catalog-client.tsx`): exibir os micros disponíveis do alimento e campo (opcional) de micros no cadastro próprio
+- [X] T015 [US1] Plano Alimentar (`src/app/(dashboard)/operacao/plano-alimentar/plan-builder-client.tsx` + `diet/plan.ts`): totais do dia passam a exibir os principais micros; leitura/gravação carregam micros
 - [X] T015b [US1] Limpeza das listas de substituição em prod (Ambiente de testes): com os alimentos individuais da base AF disponíveis, **expandir opções agrupadas** (ex.: "Carnes Magras: Patinho, Acém, Frango, Tilápia…") em **opções OU individuais**, cada uma com a grama calibrada pela meta de kcal da lista; desativar o alimento agrupado. Varrer todas as listas por nomes com múltiplos alimentos (`:` / lista separada por vírgula que não seja nome TACO). Script tsx idempotente.
 
 **Checkpoint**: US1 funcional e testável isolada.
