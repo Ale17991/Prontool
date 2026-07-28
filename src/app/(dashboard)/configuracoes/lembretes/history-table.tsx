@@ -6,6 +6,8 @@ import type { HistoryRow } from '@/lib/core/reminders/history'
 
 interface HistoryTableProps {
   rows: HistoryRow[]
+  /** Feature 051 — reminderId → status de entrega, resolvido por precedência. */
+  entregas?: Record<string, string>
 }
 
 function formatBrasilia(iso: string): string {
@@ -15,6 +17,24 @@ function formatBrasilia(iso: string): string {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(iso))
+}
+
+/**
+ * Feature 051 — evolução de entrega, resolvida por precedência de rank e não
+ * pelo evento mais recente (FR-019). Só o WhatsApp devolve isso; e-mail não
+ * tem confirmação de leitura na integração atual.
+ */
+function entregaBadge(entrega: string | null): { label: string; cls: string } | null {
+  switch (entrega) {
+    case 'delivered':
+      return { label: 'Entregue', cls: 'bg-info-bg text-info-text' }
+    case 'read':
+      return { label: 'Lida', cls: 'bg-success-bg text-success-strong' }
+    case 'error':
+      return { label: 'Não entregue', cls: 'bg-destructive/10 text-destructive' }
+    default:
+      return null
+  }
 }
 
 function statusBadge(status: string): { label: string; cls: string } {
@@ -33,12 +53,20 @@ function statusBadge(status: string): { label: string; cls: string } {
       return { label: 'Sem email', cls: 'bg-muted text-slate-600' }
     case 'skipped_doctor_inactive':
       return { label: 'Médico inativo', cls: 'bg-muted text-slate-600' }
+    // Feature 051 — os três status novos. O texto é o que a recepção lê para
+    // saber o que FAZER, não o nome interno do estado (FR-021).
+    case 'skipped_no_phone':
+      return { label: 'Sem telefone', cls: 'bg-muted text-slate-600' }
+    case 'skipped_opt_out_channel':
+      return { label: 'Não quer WhatsApp', cls: 'bg-muted text-slate-600' }
+    case 'skipped_no_connection':
+      return { label: 'WhatsApp desconectado', cls: 'bg-warning-bg text-warning-text' }
     default:
       return { label: status, cls: 'bg-muted text-slate-600' }
   }
 }
 
-export function HistoryTable({ rows }: HistoryTableProps) {
+export function HistoryTable({ rows, entregas = {} }: HistoryTableProps) {
   const [pending, startTransition] = useTransition()
   const [resending, setResending] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
@@ -111,13 +139,16 @@ export function HistoryTable({ rows }: HistoryTableProps) {
               <th className="px-3 py-2">Procedimento</th>
               <th className="px-3 py-2">Antecedência</th>
               <th className="px-3 py-2">Enviado em</th>
+              <th className="px-3 py-2">Canal</th>
               <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2">Entrega</th>
               <th className="px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => {
               const badge = statusBadge(r.status)
+              const entrega = r.channel === 'whatsapp' ? entregaBadge(entregas[r.id] ?? null) : null
               return (
                 <tr key={r.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-2 text-slate-900">{formatBrasilia(r.appointmentAt)}</td>
@@ -129,6 +160,9 @@ export function HistoryTable({ rows }: HistoryTableProps) {
                   <td className="px-3 py-2 text-slate-700">
                     {r.sentAt ? formatBrasilia(r.sentAt) : '—'}
                   </td>
+                  <td className="px-3 py-2 text-slate-700">
+                    {r.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail'}
+                  </td>
                   <td className="px-3 py-2">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}
@@ -137,6 +171,17 @@ export function HistoryTable({ rows }: HistoryTableProps) {
                     </span>
                     {r.isManual && (
                       <span className="ml-1 text-[10px] text-slate-400">(manual)</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {entrega ? (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${entrega.cls}`}
+                      >
+                        {entrega.label}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-right">

@@ -8,6 +8,7 @@ import type { Database } from '@/lib/db/types'
 import { getReminderConfig } from '@/lib/core/reminders/config'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { isWhatsAppConnected } from '@/lib/core/whatsapp/config'
+import { resolveDeliveryStatuses } from '@/lib/core/whatsapp/delivery'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listRemindersHistory } from '@/lib/core/reminders/history'
 import { ConfigForm } from './config-form'
@@ -30,6 +31,16 @@ export default async function LembretesPage() {
     getTenantEntitlements(supabase, session.tenantId),
     isWhatsAppConnected(svc, session.tenantId).catch(() => false),
   ])
+
+  // Um SELECT só para o histórico inteiro — a resolução por precedência é
+  // feita em memória, não com N+1.
+  const entregas = Object.fromEntries(
+    await resolveDeliveryStatuses(
+      svc,
+      session.tenantId,
+      history.filter((h) => h.channel === 'whatsapp').map((h) => h.id),
+    ).catch(() => new Map<string, string>()),
+  )
 
   return (
     <div className="space-y-6">
@@ -55,7 +66,7 @@ export default async function LembretesPage() {
           Últimos 20 lembretes processados pelo motor. Clique em &quot;Reenviar&quot; para disparar
           uma nova tentativa.
         </p>
-        <HistoryTable rows={history} />
+        <HistoryTable rows={history} entregas={entregas} />
       </section>
     </div>
   )

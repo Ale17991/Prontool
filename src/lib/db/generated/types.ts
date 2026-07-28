@@ -6383,6 +6383,7 @@ export type Database = {
       tenant_whatsapp_config: {
         Row: {
           api_key_enc: string
+          callback_secret_enc: string | null
           connected_at: string | null
           connection_status: string
           created_at: string
@@ -6397,6 +6398,7 @@ export type Database = {
         }
         Insert: {
           api_key_enc: string
+          callback_secret_enc?: string | null
           connected_at?: string | null
           connection_status?: string
           created_at?: string
@@ -6411,6 +6413,7 @@ export type Database = {
         }
         Update: {
           api_key_enc?: string
+          callback_secret_enc?: string | null
           connected_at?: string | null
           connection_status?: string
           created_at?: string

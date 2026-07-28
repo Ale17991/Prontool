@@ -88,6 +88,8 @@ export async function saveWhatsAppCredentials(
     tenantId: string
     serviceTenantSlug: string
     apiKey: string
+    /** Bearer que o serviço apresenta no callback de entrega (US4). */
+    callbackSecret?: string | null
     createdByUserId?: string | null
   },
 ): Promise<void> {
@@ -96,22 +98,57 @@ export async function saveWhatsAppCredentials(
     throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required to store the WhatsApp api key')
   }
 
-  const enc = await supabase.rpc('enc_text_with_key', { plain: args.apiKey, key })
-  if (enc.error || enc.data === null || enc.data === undefined) {
-    throw new Error(`enc_text_with_key failed: ${enc.error?.message ?? 'null ciphertext'}`)
+  const cifrar = async (plain: string) => {
+    const r = await supabase.rpc('enc_text_with_key', { plain, key })
+    if (r.error || r.data === null || r.data === undefined) {
+      throw new Error(`enc_text_with_key failed: ${r.error?.message ?? 'null ciphertext'}`)
+    }
+    return r.data as unknown as string
   }
 
-  const { error } = await supabase.from('tenant_whatsapp_config').upsert(
-    {
-      tenant_id: args.tenantId,
-      api_key_enc: enc.data as unknown as string,
-      service_tenant_slug: args.serviceTenantSlug,
-      connection_status: 'connecting',
-      created_by_user_id: args.createdByUserId ?? null,
-    },
-    { onConflict: 'tenant_id' },
-  )
+  const payload: Database['public']['Tables']['tenant_whatsapp_config']['Insert'] = {
+    tenant_id: args.tenantId,
+    api_key_enc: await cifrar(args.apiKey),
+    service_tenant_slug: args.serviceTenantSlug,
+    connection_status: 'connecting',
+    created_by_user_id: args.createdByUserId ?? null,
+  }
+  // Só sobrescreve o segredo quando o provisionamento devolveu um: uma
+  // reconexão que não reprovisiona não pode apagar o que já está guardado.
+  if (args.callbackSecret) payload.callback_secret_enc = await cifrar(args.callbackSecret)
+
+  const { error } = await supabase
+    .from('tenant_whatsapp_config')
+    .upsert(payload, { onConflict: 'tenant_id' })
   if (error) throw new Error(`saveWhatsAppCredentials failed: ${error.message}`)
+}
+
+/**
+ * Decifra o segredo do callback de entrega. Usado só pela rota de webhook,
+ * para comparar com o Bearer apresentado — em tempo constante, no chamador.
+ */
+export async function getDecryptedCallbackSecret(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+): Promise<string | null> {
+  const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
+  if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required')
+
+  const { data, error } = await supabase
+    .from('tenant_whatsapp_config')
+    .select('callback_secret_enc')
+    .eq('tenant_id', tenantId)
+    .maybeSingle()
+  if (error) throw new Error(`getDecryptedCallbackSecret failed: ${error.message}`)
+  const cipher = (data as { callback_secret_enc?: string | null } | null)?.callback_secret_enc
+  if (!cipher) return null
+
+  const dec = await supabase.rpc('dec_text_with_key', { cipher, key })
+  if (dec.error || dec.data === null || dec.data === undefined) {
+    logger.error({ tenantId }, 'whatsapp-callback-secret-decrypt-failed')
+    return null
+  }
+  return dec.data as unknown as string
 }
 
 /**

@@ -161,15 +161,15 @@ histórico progredir.
 
 ### Tests for User Story 4
 
-- [ ] T038 [P] [US4] Teste de contrato em `tests/contract/whatsapp-status-callback.spec.ts`: sem Bearer → `401` e nada gravado; Bearer errado → `401`; `externalId` desconhecido → `200` sem efeito; `tenant_id` derivado do lembrete e não do corpo
-- [ ] T039 [P] [US4] Teste unitário em `tests/unit/delivery-precedence.spec.ts`: um `delivered` que chega depois de um `read` fica registrado mas não rebaixa o status exibido (FR-019)
+- [X] T038 [P] [US4] Teste de contrato em `tests/contract/whatsapp-status-callback.spec.ts`: sem Bearer → `401` e nada gravado; Bearer errado → `401`; `externalId` desconhecido → `200` sem efeito; `tenant_id` derivado do lembrete e não do corpo
+- [X] T039 [P] [US4] Teste unitário em `tests/unit/delivery-precedence.spec.ts`: um `delivered` que chega depois de um `read` fica registrado mas não rebaixa o status exibido (FR-019)
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Criar `src/lib/core/whatsapp/delivery.ts` — gravação de `whatsapp_delivery_events` e resolução do status corrente por precedência de rank (`sent=1 < delivered=2 < read=3 < error=9`)
-- [ ] T041 [US4] Criar a rota `src/app/api/webhooks/whatsapp-status/route.ts` conforme `contracts/status-callback.md`, com validação de Bearer por `timingSafeEqual` e descarte do telefone recebido no payload (nunca persistido nem logado)
-- [ ] T042 [US4] Acrescentar a coluna de status de entrega em `src/app/(dashboard)/configuracoes/lembretes/history-table.tsx`, lendo pela precedência de rank
-- [ ] T043 [P] [US4] Mapear os motivos de falha para linguagem de recepção (FR-021) — sem código de erro nem jargão técnico na tela
+- [X] T040 [US4] Criar `src/lib/core/whatsapp/delivery.ts` — gravação de `whatsapp_delivery_events` e resolução do status corrente por precedência de rank (`sent=1 < delivered=2 < read=3 < error=9`)
+- [X] T041 [US4] Criar a rota `src/app/api/webhooks/whatsapp-status/route.ts` conforme `contracts/status-callback.md`, com validação de Bearer por `timingSafeEqual` e descarte do telefone recebido no payload (nunca persistido nem logado)
+- [X] T042 [US4] Acrescentar a coluna de status de entrega em `src/app/(dashboard)/configuracoes/lembretes/history-table.tsx`, lendo pela precedência de rank
+- [X] T043 [P] [US4] Mapear os motivos de falha para linguagem de recepção (FR-021) — sem código de erro nem jargão técnico na tela
 
 **Checkpoint**: a clínica confia no canal porque enxerga o que aconteceu.
 

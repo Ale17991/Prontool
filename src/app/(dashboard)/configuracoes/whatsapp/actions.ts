@@ -167,6 +167,7 @@ export async function connectWhatsApp(): Promise<ActionResult<{ qrCode: string |
         tenantId: auth.tenantId,
         serviceTenantSlug: provisioned.slug,
         apiKey: provisioned.apiKey,
+        callbackSecret: provisioned.callbackSecret,
         createdByUserId: auth.userId,
       })
       connection = await getWhatsAppConnection(db, auth.tenantId)
