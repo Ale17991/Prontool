@@ -44,6 +44,11 @@ function syntheticEmptyRow(tenantId: string): Row {
     reminder_template_subject: null,
     reminder_template_body: null,
     reminder_last_run_at: null,
+    // Feature 051 — defaults consistentes com a migration 0185. `{email}` como
+    // canal único preserva o comportamento de quem já usava a 018.
+    reminder_channels: ['email'],
+    reminder_whatsapp_fallback_email: true,
+    reminder_template_whatsapp: null,
     // Default consistente com a migration 0131 (NOT NULL DEFAULT 60).
     calendar_slot_interval_minutes: 60,
     // Defaults consistentes com a migration 0133 (07:00–22:00).

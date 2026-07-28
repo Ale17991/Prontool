@@ -4395,6 +4395,7 @@ export type Database = {
           photo_uploaded_at: string | null
           plan_id: string | null
           reminders_opt_in: boolean
+          reminders_whatsapp_opt_in: boolean
           rg_enc: string | null
           sex: string | null
           social_name_enc: string | null
@@ -4431,6 +4432,7 @@ export type Database = {
           photo_uploaded_at?: string | null
           plan_id?: string | null
           reminders_opt_in?: boolean
+          reminders_whatsapp_opt_in?: boolean
           rg_enc?: string | null
           sex?: string | null
           social_name_enc?: string | null
@@ -4467,6 +4469,7 @@ export type Database = {
           photo_uploaded_at?: string | null
           plan_id?: string | null
           reminders_opt_in?: boolean
+          reminders_whatsapp_opt_in?: boolean
           rg_enc?: string | null
           sex?: string | null
           social_name_enc?: string | null
@@ -5839,12 +5842,15 @@ export type Database = {
           public_booking_max_days_advance: number
           public_booking_min_hours_advance: number
           public_booking_slug: string | null
+          reminder_channels: string[]
           reminder_enabled: boolean
           reminder_last_run_at: string | null
           reminder_offsets_hours: number[]
           reminder_send_weekends: boolean
           reminder_template_body: string | null
           reminder_template_subject: string | null
+          reminder_template_whatsapp: string | null
+          reminder_whatsapp_fallback_email: boolean
           reminder_window_end: string
           reminder_window_start: string
           surgical_scan_required: boolean
@@ -5879,12 +5885,15 @@ export type Database = {
           public_booking_max_days_advance?: number
           public_booking_min_hours_advance?: number
           public_booking_slug?: string | null
+          reminder_channels?: string[]
           reminder_enabled?: boolean
           reminder_last_run_at?: string | null
           reminder_offsets_hours?: number[]
           reminder_send_weekends?: boolean
           reminder_template_body?: string | null
           reminder_template_subject?: string | null
+          reminder_template_whatsapp?: string | null
+          reminder_whatsapp_fallback_email?: boolean
           reminder_window_end?: string
           reminder_window_start?: string
           surgical_scan_required?: boolean
@@ -5919,12 +5928,15 @@ export type Database = {
           public_booking_max_days_advance?: number
           public_booking_min_hours_advance?: number
           public_booking_slug?: string | null
+          reminder_channels?: string[]
           reminder_enabled?: boolean
           reminder_last_run_at?: string | null
           reminder_offsets_hours?: number[]
           reminder_send_weekends?: boolean
           reminder_template_body?: string | null
           reminder_template_subject?: string | null
+          reminder_template_whatsapp?: string | null
+          reminder_whatsapp_fallback_email?: boolean
           reminder_window_end?: string
           reminder_window_start?: string
           surgical_scan_required?: boolean
@@ -6363,6 +6375,59 @@ export type Database = {
             foreignKeyName: "tenant_tiss_operator_config_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_whatsapp_config: {
+        Row: {
+          api_key_enc: string
+          connected_at: string | null
+          connection_status: string
+          created_at: string
+          created_by_user_id: string | null
+          disconnect_reason: string | null
+          instance_name: string | null
+          last_status_at: string | null
+          number_connected: string | null
+          service_tenant_slug: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_enc: string
+          connected_at?: string | null
+          connection_status?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          disconnect_reason?: string | null
+          instance_name?: string | null
+          last_status_at?: string | null
+          number_connected?: string | null
+          service_tenant_slug: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_enc?: string
+          connected_at?: string | null
+          connection_status?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          disconnect_reason?: string | null
+          instance_name?: string | null
+          last_status_at?: string | null
+          number_connected?: string | null
+          service_tenant_slug?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_whatsapp_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -7391,6 +7456,54 @@ export type Database = {
           },
           {
             foreignKeyName: "webhook_event_transitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_delivery_events: {
+        Row: {
+          error_detail: string | null
+          id: string
+          occurred_at: string
+          provider_message_id: string | null
+          received_at: string
+          reminder_id: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          error_detail?: string | null
+          id?: string
+          occurred_at: string
+          provider_message_id?: string | null
+          received_at?: string
+          reminder_id: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          error_detail?: string | null
+          id?: string
+          occurred_at?: string
+          provider_message_id?: string | null
+          received_at?: string
+          reminder_id?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_delivery_events_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_reminders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_delivery_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

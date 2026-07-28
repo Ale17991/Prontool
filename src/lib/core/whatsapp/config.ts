@@ -10,14 +10,13 @@
  *   RLS ativo — o cron usa service-role e não teria a proteção do RLS.
  * - V RBAC: o caller é responsável (server action chama requireRole('admin')).
  *
- * NOTA sobre tipo Supabase: recebemos `SupabaseClient` sem o genérico
- * `Database` porque o tipo gerado ainda não conhece `tenant_whatsapp_config`
- * (T010 depende de `pnpm supabase:gen-types`, que exige o banco local). Mesmo
- * padrão já usado em `core/reminders/select-due.ts`. Quando os tipos forem
- * regenerados, o genérico pode voltar sem mudar a lógica.
+ * O client é genérico em `Database` desde a T010 — os tipos foram regenerados
+ * com a 0185 aplicada, então `tenant_whatsapp_config` é conhecida pelo
+ * compilador e as queries daqui são checadas de verdade.
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
 import type { WhatsAppConnection, WhatsAppConnectionStatus, WhatsAppDisconnectReason } from './types'
 
@@ -54,7 +53,7 @@ function mapRow(row: ConnectionRow): WhatsAppConnection {
  * Projeção segura: não traz a credencial.
  */
 export async function getWhatsAppConnection(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<WhatsAppConnection | null> {
   const { data, error } = await supabase
@@ -70,7 +69,7 @@ export async function getWhatsAppConnection(
 
 /** Atalho para o motor de lembretes: a clínica pode enviar agora? */
 export async function isWhatsAppConnected(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<boolean> {
   const conn = await getWhatsAppConnection(supabase, tenantId)
@@ -84,7 +83,7 @@ export async function isWhatsAppConnected(
  * `ON CONFLICT` atualiza a linha existente — reprovisionar não duplica.
  */
 export async function saveWhatsAppCredentials(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   args: {
     tenantId: string
     serviceTenantSlug: string
@@ -123,7 +122,7 @@ export async function saveWhatsAppCredentials(
  * RLS não expõe `api_key_enc` a usuário autenticado).
  */
 export async function getDecryptedApiKey(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<string | null> {
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
@@ -155,7 +154,7 @@ export async function getDecryptedApiKey(
  * espelho existe para o cron não precisar de round-trip por lote.
  */
 export async function updateConnectionState(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
   patch: {
     status: WhatsAppConnectionStatus
@@ -165,7 +164,7 @@ export async function updateConnectionState(
   },
 ): Promise<void> {
   const nowIso = new Date().toISOString()
-  const update: Record<string, unknown> = {
+  const update: Database['public']['Tables']['tenant_whatsapp_config']['Update'] = {
     connection_status: patch.status,
     last_status_at: nowIso,
     // FR-012a: o motivo só faz sentido enquanto NÃO está conectado.
@@ -184,7 +183,7 @@ export async function updateConnectionState(
 
 /** Desvincula a clínica. O histórico de entrega é preservado (append-only). */
 export async function deleteWhatsAppConnection(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<void> {
   const { error } = await supabase

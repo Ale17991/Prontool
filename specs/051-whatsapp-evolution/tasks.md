@@ -66,7 +66,7 @@ envio da clínica.
 ### Esquema e cápsula (Clinni)
 
 - [X] T009 Criar `supabase/migrations/0185_whatsapp_reminders.sql` conforme `data-model.md`: tabelas `tenant_whatsapp_config` e `whatsapp_delivery_events` (ambas com `tenant_id` + RLS + trigger de auditoria), expansão do CHECK de `status` em `appointment_reminders` com os 3 novos valores, ajuste do trigger `enforce_reminders_status_transition` para aceitá-los como destino de `queued →`, `patients.reminders_whatsapp_opt_in`, e as 3 colunas novas em `tenant_clinic_profile`
-- [ ] T010 🔒 Aplicar a migration local (`pnpm supabase:reset`) e regerar os tipos (`pnpm supabase:gen-types`) em `src/lib/db/generated/types.ts`
+- [X] T010 🔒 Aplicar a migration local (`pnpm supabase:reset`) e regerar os tipos (`pnpm supabase:gen-types`) em `src/lib/db/generated/types.ts`
 - [X] T011 [P] Portar a normalização de telefone BR para `src/lib/core/whatsapp/phone.ts` a partir de `_shared/phone.ts` do braço, preservando a regra de nunca remover o 9 de número de 13 dígitos
 - [X] T012 [P] Criar teste unitário em `tests/unit/whatsapp-phone.spec.ts` cobrindo: celular 11 dígitos com DDD, fixo de 8 dígitos (não ganha o 9), celular de 8 dígitos sem o 9 (ganha), número de 13 dígitos com 9 seguido de 0-5 (não perde o 9), entrada com máscara e entrada vazia
 - [X] T013 [P] Criar `src/lib/core/whatsapp/service-client.ts` — cliente HTTP do braço (provision, create/connect/delete instance, get instances, send message) com `AbortSignal.timeout`, mapeando os códigos de erro da tabela em `contracts/whatsapp-service.md` §3
