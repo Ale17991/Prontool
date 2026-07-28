@@ -110,7 +110,7 @@ confirmar a chegada no celular; rodar o ciclo de novo e confirmar que **não** c
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Teste de idempotência em `tests/integration/whatsapp-reminder-idempotency.spec.ts`: dois ciclos consecutivos sobre o mesmo agendamento/offset/canal geram um único envio (SC-003)
+- [X] T022 [P] [US2] Teste de idempotência em `tests/integration/whatsapp-reminder-idempotency.spec.ts`: dois ciclos consecutivos sobre o mesmo agendamento/offset/canal geram um único envio (SC-003)
 - [X] T023 [P] [US2] Teste de imutabilidade em `tests/contract/reminder-append-only.spec.ts`: um lembrete em estado terminal recusa `UPDATE` de status, e os 3 status novos são aceitos como destino de `queued →`
 - [X] T024 [P] [US2] Teste unitário em `tests/unit/render-whatsapp.spec.ts`: os 5 placeholders são substituídos, a saída não contém tag HTML, o texto traz a orientação de cancelamento, avisa que respostas não são lidas, e cai corretamente nos 3 níveis de fallback de contato (link público → telefone → orientação genérica)
 
@@ -124,7 +124,7 @@ confirmar a chegada no celular; rodar o ciclo de novo e confirmar que **não** c
 - [X] T030 [US2] Estender `src/lib/core/reminders/process-batch.ts`: iterar os canais habilitados do tenant, verificar a conexão **antes** do lote e registrar uma única ocorrência `skipped_no_connection` quando ausente (FR-012), e enfileirar cada envio de WhatsApp no QStash com `delay = índice × 4s` em vez do `Promise.allSettled` em rajada da linha 164
 - [X] T031 [US2] Implementar o fallback de execução inline (lote reduzido, espaçamento menor) para quando `isQstashConfigured()` for falso, para o fluxo continuar testável em dev
 - [X] T031a [US2] Habilitar o **reenvio manual** de um lembrete no canal WhatsApp, reusando o caminho `is_manual = TRUE` já existente para e-mail (FR-027) — inclui o botão na tela de histórico de lembretes e a garantia de que o reenvio não é bloqueado pela regra de idempotência
-- [ ] T032 [P] [US2] Teste de integração em `tests/integration/whatsapp-batch-guards.spec.ts`: número desconectado gera **uma** ocorrência agregada e não uma falha por paciente; paciente sem telefone vira `skipped_no_phone`; agendamento estornado não gera envio
+- [X] T032 [P] [US2] Teste de integração em `tests/integration/whatsapp-batch-guards.spec.ts`: número desconectado gera **uma** ocorrência agregada e não uma falha por paciente; paciente sem telefone vira `skipped_no_phone`; agendamento estornado não gera envio
 
 **Checkpoint**: o lembrete chega no WhatsApp. US1 + US2 = produto utilizável.
 

@@ -20,6 +20,7 @@ import { sendOneReminder } from './send-one'
 import { sendOneWhatsAppReminder } from './send-one-whatsapp'
 import { isWhatsAppConnected, getDecryptedApiKey } from '@/lib/core/whatsapp/config'
 import { enqueueWhatsAppReminder } from '@/lib/integrations/queue/qstash-client'
+import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
 import { isQstashConfigured } from '@/lib/integrations/queue/qstash-client'
 import { isWeekend, isWithinWindow, selectDueAppointments } from './select-due'
 import type {
@@ -177,6 +178,21 @@ export async function processBatch(
           )
           if (!whatsappUsable) {
             logger.warn({ tenantId: t.tenant_id }, 'whatsapp-not-connected-skipping-channel')
+            // FR-012 — UMA ocorrência agregada, não uma falha por paciente. O
+            // dispatchAlert deduplica por (tenant, tipo, subject_ref) numa
+            // janela de 1h, então ciclos seguidos não empilham alerta.
+            await dispatchAlert({
+              tenantId: t.tenant_id,
+              type: 'integration_sync_failed',
+              subjectRef: { provider: 'whatsapp', reason: 'not_connected' },
+              detail: {
+                provider: 'whatsapp',
+                mensagem:
+                  'O WhatsApp da clínica não está conectado. Os lembretes por WhatsApp não foram enviados neste ciclo.',
+              },
+            }).catch(() => {
+              // Alerta é best-effort: não pode derrubar o ciclo de e-mail.
+            })
           }
         }
 
@@ -268,7 +284,7 @@ export async function processBatch(
   // espaçamento é por clínica: duas clínicas não precisam esperar uma à outra,
   // porque quem arrisca bloqueio é cada número isoladamente.
   const queuedPerTenant = new Map<string, number>()
-  for (const item of whatsappItems) {
+  for (const item of isQstashConfigured() ? whatsappItems : []) {
     const tenantId = item.eligible.tenantId
     const idx = queuedPerTenant.get(tenantId) ?? 0
     queuedPerTenant.set(tenantId, idx + 1)
