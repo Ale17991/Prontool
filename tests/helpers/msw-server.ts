@@ -1,6 +1,12 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import { resendSpy, qstashSpy, resendArchive, ghlOauthTokenSpy } from './msw-spies'
+import {
+  resendSpy,
+  qstashSpy,
+  resendArchive,
+  ghlOauthTokenSpy,
+  whatsappSendSpy,
+} from './msw-spies'
 
 /**
  * MSW server used across integration tests. Intercepts outbound calls to
@@ -23,6 +29,23 @@ interface QstashRequestBody {
 }
 
 export const mswServer = setupServer(
+  // Feature 051 — serviço de WhatsApp. O host é fake (forçado em setup.ts);
+  // se alguma chamada escapar para o host REAL, ela NÃO casa aqui e o
+  // onUnhandledRequest:'bypass' deixaria passar — por isso o override do env é
+  // a trava primária, e este handler é a rede de segurança.
+  http.post('https://whatsapp-service.test/functions/v1/send-message', async ({ request }) => {
+    const body = (await request.clone().json().catch(() => ({}))) as {
+      externalId?: string
+      to?: string
+    }
+    whatsappSendSpy.calls.push({ to: body.to ?? '', externalId: body.externalId ?? '' })
+    return HttpResponse.json({
+      messageId: `msg-${body.externalId ?? 'x'}`,
+      evolutionMessageId: 'evo-1',
+      status: 'sent',
+    })
+  }),
+
   http.post('https://api.resend.com/emails', async ({ request }) => {
     const body = (await request
       .clone()

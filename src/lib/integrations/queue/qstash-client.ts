@@ -23,6 +23,50 @@ function getQstash(token: string): Client {
  * guaranteed delivery should gate on `isQstashConfigured()` and 503 upfront;
  * best-effort callers can ignore the null result.
  */
+/**
+ * Feature 051 — publica UM envio de lembrete por WhatsApp, com atraso.
+ *
+ * O `delaySeconds` crescente é o que espaça o lote (FR-013). Disparar em
+ * rajada aumenta o risco de bloqueio do número da clínica, e é a única
+ * mitigação real que existe usando uma solução não-oficial.
+ *
+ * Não usamos cron mais frequente para isso: no plano Hobby da Vercel, cron
+ * acima de diário trava TODOS os deploys, em silêncio.
+ */
+export async function enqueueWhatsAppReminder(args: {
+  payload: Record<string, unknown>
+  delaySeconds: number
+  traceId: string
+}): Promise<{ messageId: string | null }> {
+  const token = process.env.QSTASH_TOKEN
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!token || !appUrl) {
+    logger.warn(
+      { has_token: Boolean(token), has_app_url: Boolean(appUrl) },
+      'qstash-not-configured-skipping-whatsapp-enqueue',
+    )
+    return { messageId: null }
+  }
+
+  const callback = new URL('/api/workers/send-whatsapp-reminder', appUrl).toString()
+
+  try {
+    const res = await getQstash(token).publishJSON({
+      url: callback,
+      body: args.payload,
+      delay: Math.max(0, Math.round(args.delaySeconds)),
+      // Menos que o GHL: uma mensagem de lembrete tem validade curta. Insistir
+      // por muito tempo entregaria um "sua consulta é amanhã" depois da consulta.
+      retries: 2,
+      headers: { 'X-Trace-Id': args.traceId },
+    })
+    return { messageId: res.messageId }
+  } catch (err) {
+    logger.error({ err }, 'qstash-whatsapp-publish-failed')
+    return { messageId: null }
+  }
+}
+
 export async function enqueueGhlEvent(args: {
   rawEventId: string
   tenantId: string

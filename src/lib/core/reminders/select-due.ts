@@ -20,13 +20,20 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
-import type { EligibleAppointment } from './types'
+import type { EligibleAppointment, ReminderChannel } from './types'
 
 const WINDOW_MINUTES = 15
 
 export interface SelectDueInput {
   tenantId: string
   offsetHours: number
+  /**
+   * Feature 051 — canal do ciclo. Antes era 'email' fixo em duas dimensões: o
+   * antijoin de idempotência e o contato exigido do paciente. O índice parcial
+   * da 0094 já discrimina por canal, então e-mail e WhatsApp do mesmo
+   * agendamento/offset convivem — que é o que o modo "ambos" precisa.
+   */
+  channel: ReminderChannel
   /** Now em UTC; passar explicitamente facilita teste com vi.setSystemTime. */
   now: Date
 }
@@ -54,7 +61,7 @@ export async function selectDueAppointments(
       id, tenant_id, appointment_at, doctor_id, procedure_id, patient_id,
       doctors!inner(id, full_name, active),
       procedures!inner(id, display_name, tuss_code),
-      patients!inner(id, email_enc, reminders_opt_in, status)
+      patients!inner(id, email_enc, phone_enc, reminders_opt_in, reminders_whatsapp_opt_in, status)
     `,
     )
     .eq('tenant_id', input.tenantId)
@@ -85,7 +92,7 @@ export async function selectDueAppointments(
       .select('appointment_id')
       .eq('tenant_id', input.tenantId)
       .eq('scheduled_offset_hours', input.offsetHours)
-      .eq('channel', 'email')
+      .eq('channel', input.channel)
       .eq('is_manual', false)
       .in('appointment_id', apptIds),
   ])
@@ -118,7 +125,9 @@ export async function selectDueAppointments(
     patients: {
       id: string
       email_enc: string | null
+      phone_enc: string | null
       reminders_opt_in: boolean | null
+      reminders_whatsapp_opt_in: boolean | null
       status: string | null
     } | null
   }>
@@ -148,7 +157,9 @@ export async function selectDueAppointments(
       // email_enc é ciphertext. O decrypt é feito no send-one.ts para evitar
       // expor o claro em buffer durante seleção (LGPD §8).
       patientEmail: patient?.email_enc ? '__encrypted__' : null,
+      patientPhone: patient?.phone_enc ? '__encrypted__' : null,
       remindersOptIn: patient?.reminders_opt_in !== false,
+      remindersWhatsappOptIn: patient?.reminders_whatsapp_opt_in !== false,
       isReversed: false,
     })
   }

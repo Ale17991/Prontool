@@ -95,7 +95,14 @@ export interface EligibleAppointment {
   patientId: string
   patientFullName: string
   patientEmail: string | null
+  /**
+   * Feature 051 — sentinela de "tem telefone?", não o valor. Igual ao e-mail,
+   * o claro só é decifrado no `send-one`, nunca no buffer de seleção (LGPD).
+   */
+  patientPhone: string | null
   remindersOptIn: boolean
+  /** Feature 051 — recusa do canal WhatsApp; só consultada se a mestra é TRUE. */
+  remindersWhatsappOptIn: boolean
   /** Se há reversal — preenchido por query antijoin. */
   isReversed: boolean
 }

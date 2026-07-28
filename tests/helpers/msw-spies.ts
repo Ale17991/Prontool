@@ -35,6 +35,13 @@ class CallRecorder<T> {
 export const resendSpy = new CallRecorder<ResendCall>()
 export const qstashSpy = new CallRecorder<QstashCall>()
 
+/** Feature 051 — cada disparo ao serviço de WhatsApp interceptado pelo MSW. */
+export interface WhatsAppSendCall {
+  to: string
+  externalId: string
+}
+export const whatsappSendSpy = new CallRecorder<WhatsAppSendCall>()
+
 /**
  * Feature 008 — GHL OAuth token endpoint spy + per-test response override.
  *
@@ -144,5 +151,6 @@ export function resetAllSpies(): void {
   resendSpy.reset()
   qstashSpy.reset()
   ghlOauthTokenSpy.reset()
+  whatsappSendSpy.reset()
   // resendArchive and piiRegistry intentionally persist.
 }

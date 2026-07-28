@@ -17,20 +17,45 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
 import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { sendOneReminder } from './send-one'
+import { sendOneWhatsAppReminder } from './send-one-whatsapp'
+import { isWhatsAppConnected, getDecryptedApiKey } from '@/lib/core/whatsapp/config'
+import { enqueueWhatsAppReminder } from '@/lib/integrations/queue/qstash-client'
+import { isQstashConfigured } from '@/lib/integrations/queue/qstash-client'
 import { isWeekend, isWithinWindow, selectDueAppointments } from './select-due'
-import type { EligibleAppointment, ProcessBatchResult, TenantReminderSettings } from './types'
+import type {
+  EligibleAppointment,
+  ProcessBatchResult,
+  ReminderChannel,
+  TenantReminderSettings,
+} from './types'
 
 const MAX_BATCH = 200
 const MAX_TENANTS_PARALLEL = 5
 const DEFAULT_TZ = 'America/Sao_Paulo'
 
+/**
+ * Feature 051 — segundos entre um envio de WhatsApp e o seguinte, POR CLÍNICA
+ * (FR-013). Rajada é o que mais aumenta risco de bloqueio do número, e é a
+ * única mitigação real disponível numa solução não-oficial.
+ */
+const WHATSAPP_SPACING_SECONDS = 4
+
+/**
+ * Sem QStash configurado (dev), o envio acontece inline. Aí o lote precisa ser
+ * pequeno: o espaçamento roda dentro da própria função e estouraria o timeout.
+ */
+const WHATSAPP_INLINE_MAX = 10
+const WHATSAPP_INLINE_SPACING_MS = 1000
+
 interface BatchItem {
   eligible: EligibleAppointment
   settings: TenantReminderSettings
   offsetHours: number
+  channel: ReminderChannel
   clinicName: string
   clinicPhone: string | null
   publicBookingUrl: string | null
+  templateWhatsApp: string | null
 }
 
 export async function processBatch(
@@ -46,6 +71,7 @@ export async function processBatch(
       `tenant_id, reminder_enabled, reminder_offsets_hours, reminder_send_weekends,
        reminder_window_start, reminder_window_end,
        reminder_template_subject, reminder_template_body,
+       reminder_channels, reminder_whatsapp_fallback_email, reminder_template_whatsapp,
        phone, corporate_name, public_booking_slug, public_booking_enabled`,
     )
     .eq('reminder_enabled', true)
@@ -74,6 +100,9 @@ export async function processBatch(
     reminder_window_end: string
     reminder_template_subject: string | null
     reminder_template_body: string | null
+    reminder_channels: string[] | null
+    reminder_whatsapp_fallback_email: boolean | null
+    reminder_template_whatsapp: string | null
     phone: string | null
     corporate_name: string | null
     public_booking_slug: string | null
@@ -132,23 +161,62 @@ export async function processBatch(
             ? `${appUrl}/agendar/${t.public_booking_slug}`
             : null
 
+        // Feature 051 — canais habilitados. Default {email} preserva o
+        // comportamento de quem já usava a 018 e nunca abriu a tela nova.
+        const channels = ((t.reminder_channels?.length
+          ? t.reminder_channels
+          : ['email']) as ReminderChannel[]).filter((c) => c === 'email' || c === 'whatsapp')
+
+        // FR-012 — a conexão é verificada UMA vez, antes do lote. Sem isso, uma
+        // clínica com o número fora do ar geraria uma falha por paciente em vez
+        // de uma ocorrência agregada, enchendo o histórico de ruído.
+        let whatsappUsable = channels.includes('whatsapp')
+        if (whatsappUsable) {
+          whatsappUsable = await isWhatsAppConnected(supabase as never, t.tenant_id).catch(
+            () => false,
+          )
+          if (!whatsappUsable) {
+            logger.warn({ tenantId: t.tenant_id }, 'whatsapp-not-connected-skipping-channel')
+          }
+        }
+
         for (const offsetHours of t.reminder_offsets_hours) {
           if (buffer.length >= MAX_BATCH) break
-          const eligibleList = await selectDueAppointments(supabase, {
-            tenantId: t.tenant_id,
-            offsetHours,
-            now,
-          })
-          for (const eligible of eligibleList) {
+          for (const channel of channels) {
             if (buffer.length >= MAX_BATCH) break
-            buffer.push({
-              eligible,
-              settings,
+            const eligibleList = await selectDueAppointments(supabase, {
+              tenantId: t.tenant_id,
               offsetHours,
-              clinicName,
-              clinicPhone,
-              publicBookingUrl,
+              now,
+              channel,
             })
+            for (const eligible of eligibleList) {
+              if (buffer.length >= MAX_BATCH) break
+
+              // Fallback (US3): canal é WhatsApp, mas o paciente não tem
+              // telefone (ou o número da clínica caiu). Avisar por e-mail é
+              // melhor que não avisar ninguém.
+              let effective: ReminderChannel = channel
+              if (channel === 'whatsapp' && (!whatsappUsable || !eligible.patientPhone)) {
+                const canFallback =
+                  t.reminder_whatsapp_fallback_email !== false &&
+                  !channels.includes('email') &&
+                  Boolean(eligible.patientEmail)
+                if (!canFallback) continue
+                effective = 'email'
+              }
+
+              buffer.push({
+                eligible,
+                settings,
+                offsetHours,
+                channel: effective,
+                clinicName,
+                clinicPhone,
+                publicBookingUrl,
+                templateWhatsApp: t.reminder_template_whatsapp,
+              })
+            }
           }
         }
         tenantsTouched.add(t.tenant_id)
@@ -161,8 +229,13 @@ export async function processBatch(
   let failed = 0
   let skipped = 0
 
+  // E-mail continua saindo em paralelo: o provedor aguenta, e nenhum e-mail
+  // "queima" o remetente do jeito que uma rajada de WhatsApp queima o número.
+  const emailItems = buffer.filter((i) => i.channel === 'email')
+  const whatsappItems = buffer.filter((i) => i.channel === 'whatsapp')
+
   const results = await Promise.allSettled(
-    buffer.map((item) =>
+    emailItems.map((item) =>
       sendOneReminder({
         supabase,
         eligible: item.eligible,
@@ -189,6 +262,80 @@ export async function processBatch(
     if (rec.status === 'sent') sent++
     else if (rec.status === 'failed') failed++
     else skipped++
+  }
+
+  // WhatsApp vai ESPAÇADO (FR-013). O contador por tenant garante que o
+  // espaçamento é por clínica: duas clínicas não precisam esperar uma à outra,
+  // porque quem arrisca bloqueio é cada número isoladamente.
+  const queuedPerTenant = new Map<string, number>()
+  for (const item of whatsappItems) {
+    const tenantId = item.eligible.tenantId
+    const idx = queuedPerTenant.get(tenantId) ?? 0
+    queuedPerTenant.set(tenantId, idx + 1)
+
+    const enq = await enqueueWhatsAppReminder({
+      payload: {
+        tenantId,
+        eligible: item.eligible,
+        settings: item.settings,
+        offsetHours: item.offsetHours,
+        clinicName: item.clinicName,
+        clinicPhone: item.clinicPhone,
+        publicBookingUrl: item.publicBookingUrl,
+        templateWhatsApp: item.templateWhatsApp,
+      },
+      delaySeconds: idx * WHATSAPP_SPACING_SECONDS,
+      traceId: `reminders-${tenantId}`,
+    })
+    // Enfileirado conta como processado; o desfecho real vira registro quando
+    // o worker rodar. Sem messageId, o QStash não está configurado e o envio
+    // inline abaixo assume.
+    if (enq.messageId) sent++
+  }
+
+  // Degradação sem QStash (dev): envia inline, com lote pequeno e espaçamento
+  // curto — o suficiente para exercitar o fluxo sem estourar o timeout.
+  if (!isQstashConfigured() && whatsappItems.length > 0) {
+    const inline = whatsappItems.slice(0, WHATSAPP_INLINE_MAX)
+    if (whatsappItems.length > inline.length) {
+      logger.warn(
+        { total: whatsappItems.length, enviados: inline.length },
+        'whatsapp-inline-batch-truncated',
+      )
+    }
+    const abortedTenants = new Set<string>()
+    for (const item of inline) {
+      const tenantId = item.eligible.tenantId
+      if (abortedTenants.has(tenantId)) {
+        skipped++
+        continue
+      }
+      const apiKey = await getDecryptedApiKey(supabase as never, tenantId).catch(() => null)
+      if (!apiKey) {
+        skipped++
+        continue
+      }
+      const res = await sendOneWhatsAppReminder({
+        supabase,
+        eligible: item.eligible,
+        settings: item.settings,
+        offsetHours: item.offsetHours,
+        isManual: false,
+        clinicName: item.clinicName,
+        clinicPhone: item.clinicPhone,
+        publicBookingUrl: item.publicBookingUrl,
+        templateWhatsApp: item.templateWhatsApp,
+        apiKey,
+      })
+      // FR-012: número caiu no meio do lote — para de tentar por esta clínica
+      // em vez de gerar uma falha por paciente.
+      if (res.abortBatch) abortedTenants.add(tenantId)
+      const st = res.record?.status
+      if (st === 'sent') sent++
+      else if (st === 'failed') failed++
+      else if (st) skipped++
+      await new Promise((r) => setTimeout(r, WHATSAPP_INLINE_SPACING_MS))
+    }
   }
 
   // 4. UPDATE last_run_at por tenant tocado (best-effort)

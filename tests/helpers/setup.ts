@@ -39,6 +39,15 @@ process.env.GHL_SCOPES ??=
 process.env.GHL_MARKETPLACE_SHARED_SECRET ??= 'test_marketplace_shared_secret_min_32_chars_xxxx'
 process.env.GHL_SSO_JWKS_URL ??= 'https://services.leadconnectorhq.com/.well-known/jwks.json'
 
+// Feature 051 — TRAVA DE SEGURANÇA. O bloco acima carrega .env.local, que em
+// máquina de desenvolvimento tem a URL REAL do serviço de WhatsApp. Sem este
+// override, um teste de integração que chegasse em `sendText` mandaria mensagem
+// de verdade, pela Evolution de produção, para o telefone que estivesse no
+// fixture. Forçamos um host fake — o MSW intercepta e devolve resposta
+// sintética. É `=` e não `??=` DE PROPÓSITO: precisa sobrescrever.
+process.env.WHATSAPP_SERVICE_URL = 'https://whatsapp-service.test/functions/v1'
+process.env.WHATSAPP_SERVICE_MASTER_KEY = 'test-master-key'
+
 // Feature 030 — segredo do cookie HMAC do portal do paciente. Produção usa
 // env dedicado; nos testes basta um valor estável e forte o bastante.
 process.env.PATIENT_SESSION_SECRET ??= 'test_patient_session_secret_min_32_chars_xxxxxxxx'
