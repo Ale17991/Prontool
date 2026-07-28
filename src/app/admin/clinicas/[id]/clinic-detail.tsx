@@ -57,6 +57,7 @@ const MODULE_LABEL: Record<ModuleId, string> = {
   nutri_recordatorio: 'Recordatório alimentar',
   nutri_rotulo: 'Rótulo nutricional',
   exames_lab: 'Exames laboratoriais',
+  whatsapp: 'WhatsApp (lembretes)',
 }
 
 export type BillingStatus = 'trial' | 'active' | 'past_due' | 'canceled'

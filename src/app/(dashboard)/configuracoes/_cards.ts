@@ -170,7 +170,7 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     title: 'WhatsApp',
     description: 'Vincule o número da clínica para enviar lembretes por WhatsApp.',
     icon: MessageCircle,
-    show: ({ role }) => can(role, 'whatsapp.config'),
+    show: ({ role, ent }) => ent.hasModule('whatsapp') && can(role, 'whatsapp.config'),
   },
   {
     id: 'google-agenda',

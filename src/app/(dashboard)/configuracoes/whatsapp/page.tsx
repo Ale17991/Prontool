@@ -3,8 +3,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { MessageCircle } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { can } from '@/lib/auth/rbac'
+import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import type { Database } from '@/lib/db/types'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { getWhatsAppConnection } from '@/lib/core/whatsapp/config'
 import { ConnectionPanel } from './connection-panel'
 
@@ -21,6 +23,14 @@ export default async function WhatsAppPage() {
   const session = await getSession()
   if (!session) redirect('/login')
   if (!can(session.role, 'whatsapp.config')) redirect('/configuracoes')
+
+  // Rollout por clínica (051): o canal ainda não está entregue por completo —
+  // conectar o número funciona, mas o lembrete só passa a sair por WhatsApp na
+  // US2. Enquanto isso, só as clínicas com o módulo ligado veem a tela.
+  // Esconder o card do hub não basta: a URL é adivinhável.
+  const rls = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+  const ent = await getTenantEntitlements(rls, session.tenantId)
+  if (!ent.hasModule('whatsapp')) redirect('/configuracoes')
 
   // Cliente de serviço: `api_key_enc` não é projetada para usuário autenticado.
   // O escopo de tenant é explícito na query (Princípio III).

@@ -25,6 +25,7 @@ export type ModuleId =
   | 'nutri_recordatorio' // recordatório alimentar (R24h)
   | 'nutri_rotulo' // rótulo nutricional
   | 'exames_lab' // exames laboratoriais com faixas (cross-especialidade)
+  | 'whatsapp' // canal WhatsApp nos lembretes (051) — rollout por clínica
 
 export type Feature =
   // núcleo (Essencial)
@@ -67,6 +68,7 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'nutri_recordatorio',
   'nutri_rotulo',
   'exames_lab',
+  'whatsapp',
 ]
 
 /**
