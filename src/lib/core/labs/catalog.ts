@@ -41,19 +41,24 @@ export const LAB_ANALYTES: readonly LabAnalyteDef[] = [
   { key: 'lab_homa_beta', label: 'HOMA-beta', unit: 'mmol/L', group: 'Metabolismo da Glicose', displayOrder: 30, aliases: ['HOMA beta'] },
   { key: 'lab_insulina', label: 'Insulina', unit: 'mUI/L', group: 'Metabolismo da Glicose', displayOrder: 40 },
   { key: 'lab_proinsulina', label: 'Pró-insulina', unit: 'pmol/L', group: 'Metabolismo da Glicose', displayOrder: 50 },
+  // Sem faixa na fonte (a planilha não traz limites para colesterol total), mas
+  // PRECISA estar aqui: é a chave legada da 0113 e, fora do catálogo, ficaria
+  // órfã na seção "Métricas metabólicas" enquanto LDL/HDL/triglicérides vivem
+  // aqui — o perfil lipídico partido em duas telas. Aparece como "sem referência".
+  { key: 'colesterol_total', label: 'Colesterol total', unit: 'mg/dL', group: 'Perfil Lipídico', displayOrder: 55 },
   { key: 'lab_apo_a1', label: 'Apolipoproteína A-I', unit: 'mg/dL', group: 'Perfil Lipídico', displayOrder: 60, aliases: ['Apolipoproteína A-I (apo A-I)', 'Apoliproteína A'] },
   { key: 'lab_apo_b', label: 'Apolipoproteína B', unit: 'mg/dL', group: 'Perfil Lipídico', displayOrder: 70, aliases: ['Apolipoproteína b', 'Apolipoproteína B (apo B)'] },
   { key: 'ldl', label: 'LDL', unit: 'mg/dL', group: 'Perfil Lipídico', displayOrder: 80, aliases: ['Lipoproteína de baixa densidade (LDL)'] },
   { key: 'lab_adiponectina', label: 'Adiponectina', unit: 'mcg/mL', group: 'Função Cardíaca', displayOrder: 90 },
   { key: 'lab_coenzima_q10', label: 'Coenzima Q10', unit: 'mg/L', group: 'Função Cardíaca', displayOrder: 100 },
-  { key: 'hdl', label: 'HDL', unit: 'mg/dL', group: 'Função Cardíaca', displayOrder: 110 },
+  { key: 'hdl', label: 'HDL', unit: 'mg/dL', group: 'Perfil Lipídico', displayOrder: 82 },
   { key: 'lab_homocisteina', label: 'Homocisteína', unit: 'µmol/L', group: 'Função Cardíaca', displayOrder: 120 },
-  { key: 'lab_ldl_oxidado', label: 'LDL oxidado', unit: 'mcg/mL', group: 'Função Cardíaca', displayOrder: 130 },
+  { key: 'lab_ldl_oxidado', label: 'LDL oxidado', unit: 'mcg/mL', group: 'Perfil Lipídico', displayOrder: 86 },
   { key: 'lab_lp_pla2', label: 'Lp-PLA2', unit: 'ng/mL', group: 'Função Cardíaca', displayOrder: 140 },
   { key: 'lab_lipoproteina_a', label: 'Lp(a)', unit: 'mg/dL', group: 'Função Cardíaca', displayOrder: 150 },
   { key: 'lab_mieloperoxidase', label: 'Mieloperoxidase', unit: 'pmol/L', group: 'Função Cardíaca', displayOrder: 160 },
   { key: 'lab_pcr_us', label: 'PCR ultrassensível', unit: 'mg/dL', group: 'Função Cardíaca', displayOrder: 170, aliases: ['Proteína C-reativa ultrassensível (PC-R)'] },
-  { key: 'triglicerides', label: 'Triglicérides', unit: 'mg/dL', group: 'Função Cardíaca', displayOrder: 180 },
+  { key: 'triglicerides', label: 'Triglicérides', unit: 'mg/dL', group: 'Perfil Lipídico', displayOrder: 84 },
   { key: 'lab_basofilos', label: 'Basófilos', unit: '%', group: 'Hemograma', displayOrder: 190 },
   { key: 'lab_chcm', label: 'CHCM', unit: 'g/dL', group: 'Hemograma', displayOrder: 200, aliases: ['Concentração de HCM (CHCM)'] },
   { key: 'lab_eosinofilos', label: 'Eosinófilos', unit: '%', group: 'Hemograma', displayOrder: 210 },

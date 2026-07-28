@@ -43,12 +43,9 @@ describe('catálogo de exames laboratoriais', () => {
   it('reusa a chave legada dos exames já semeados na 0113, sem prefixo lab_', () => {
     const keys = new Set(LAB_ANALYTES.map((a) => a.key))
     for (const legacy of LEGACY_KEYS) {
-      // `colesterol_total` não tem faixa na fonte — pode não estar no catálogo;
-      // o que não pode é existir um `lab_<legado>` concorrente.
       expect(keys.has(`lab_${legacy}`), `chave duplicada para ${legacy}`).toBe(false)
     }
-    // Os 5 legados que TÊM faixa na fonte precisam estar presentes.
-    for (const legacy of ['glicemia_jejum', 'hba1c', 'ldl', 'hdl', 'triglicerides']) {
+    for (const legacy of LEGACY_KEYS) {
       expect(keys.has(legacy), `legado ausente: ${legacy}`).toBe(true)
     }
   })
@@ -125,6 +122,24 @@ describe('catálogo de exames laboratoriais', () => {
         expect(prev === undefined || prev === a.key, `nome "${n}" em ${prev} e ${a.key}`).toBe(true)
         seen.set(k, a.key)
       }
+    }
+  })
+
+  it('o perfil lipídico inteiro vive num painel só', () => {
+    // A planilha espalhava os lipídios entre "Perfil Lipídico" e "Função
+    // Cardíaca" (LDL num, HDL e triglicérides no outro) — o exame chegava
+    // partido em duas listas na tela.
+    for (const key of ['colesterol_total', 'ldl', 'hdl', 'triglicerides']) {
+      expect(labAnalyte(key)?.group, `${key} fora do perfil lipídico`).toBe('Perfil Lipídico')
+    }
+  })
+
+  it('todo exame legado da 0113 está no catálogo, inclusive o sem faixa', () => {
+    // `colesterol_total` não tem faixa na fonte, mas precisa estar aqui: fora do
+    // catálogo ele ficaria órfão na seção "Métricas metabólicas" enquanto o
+    // resto do perfil lipídico vive em "Exames laboratoriais".
+    for (const legacy of LEGACY_KEYS) {
+      expect(isLabAnalyte(legacy), `legado ausente do catálogo: ${legacy}`).toBe(true)
     }
   })
 

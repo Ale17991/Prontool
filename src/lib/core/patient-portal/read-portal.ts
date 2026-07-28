@@ -94,23 +94,6 @@ export async function buildPatientPortalBundle(
     getTenantEntitlements(supabase, args.tenantId),
   ])
 
-  // Módulo Endócrino off ⇒ esconde as métricas metabólicas (peso/IMC seguem,
-  // pois vêm de vital_signs e não são endócrino-específicos).
-  const showEndocrino = ent.hasModule('endocrino')
-  const metrics = showEndocrino ? metricsRaw : {}
-  const metricTypes = showEndocrino ? metricTypesRaw : []
-
-  // Peso/IMC: reusa vital_signs (FR-007), ordem cronológica ascendente,
-  // só pontos com peso ou IMC.
-  const weightImc: WeightImcPoint[] = vitals
-    .filter((v) => v.weightGrams !== null || v.bmi !== null)
-    .map((v) => ({
-      measuredAt: v.measuredAt,
-      weightKg: v.weightGrams !== null ? v.weightGrams / 1000 : null,
-      bmi: v.bmi,
-    }))
-    .reverse()
-
   // Feature 050 US3 — exames laboratoriais no portal. Só com o módulo; sem sexo
   // ou idade no cadastro não há faixa aplicável, então nada é exibido (o
   // paciente não deve ver valor cru sem interpretação).
@@ -136,6 +119,35 @@ export async function buildPatientPortalBundle(
       labResults = classifyLabResults(inputs, ranges).items
     }
   }
+
+  // Módulo Endócrino off ⇒ esconde as métricas metabólicas (peso/IMC seguem,
+  // pois vêm de vital_signs e não são endócrino-específicos).
+  const showEndocrino = ent.hasModule('endocrino')
+  const metricsAll = showEndocrino ? metricsRaw : {}
+  const metricTypesAll = showEndocrino ? metricTypesRaw : []
+
+  // Os 5 exames legados da 0113 (glicemia, HbA1c, LDL, HDL, triglicérides)
+  // carregam `specialty='endocrino'` no banco — linhas globais são append-only
+  // e não podem ser remarcadas. Sem este filtro eles apareceriam DUAS vezes na
+  // mesma tela: em "Minha evolução" e no card de exames. Quando o card não está
+  // sendo exibido, seguem em "Minha evolução" como sempre.
+  const metrics = labResults
+    ? Object.fromEntries(Object.entries(metricsAll).filter(([k]) => !isLabAnalyte(k)))
+    : metricsAll
+  const metricTypes = labResults
+    ? metricTypesAll.filter((t) => !isLabAnalyte(t.metricType))
+    : metricTypesAll
+
+  // Peso/IMC: reusa vital_signs (FR-007), ordem cronológica ascendente,
+  // só pontos com peso ou IMC.
+  const weightImc: WeightImcPoint[] = vitals
+    .filter((v) => v.weightGrams !== null || v.bmi !== null)
+    .map((v) => ({
+      measuredAt: v.measuredAt,
+      weightKg: v.weightGrams !== null ? v.weightGrams / 1000 : null,
+      bmi: v.bmi,
+    }))
+    .reverse()
 
   return {
     patient: { firstName: identity.firstName },
