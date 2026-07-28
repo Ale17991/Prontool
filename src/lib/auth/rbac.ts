@@ -41,6 +41,11 @@ type Action =
   | 'public_booking.config'
   | 'patient_portal.config'
   | 'reminders.config'
+  // Feature 051 — conectar/desconectar o número de WhatsApp da clínica.
+  // Deliberadamente MAIS restrito que `reminders.config` (que inclui
+  // recepcionista): vincular o número é ato de titularidade da clínica, com
+  // risco de bloqueio do número em jogo. FR-024.
+  | 'whatsapp.config'
   // Ver VALORES monetários em telas de leitura/agregação (ficha financeira do
   // paciente, somatórios, etc.). Recepção NÃO tem — ela só vê/digita o valor no
   // ato do registro (form de atendimento/pagamento), nunca em relatórios.
@@ -81,6 +86,7 @@ const MATRIX: Record<TenantRole, readonly Action[]> = {
     'public_booking.config',
     'patient_portal.config',
     'reminders.config',
+    'whatsapp.config',
     'finance.view_values',
   ],
   financeiro: [

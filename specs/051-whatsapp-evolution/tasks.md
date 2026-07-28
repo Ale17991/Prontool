@@ -86,8 +86,8 @@ aparecendo, desconectar e ver voltar para "Desconectado".
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Teste de contrato em `tests/contract/whatsapp-connection-rbac.spec.ts`: cada server action de conexão/desconexão testada contra cada papel — só `admin` passa; `financeiro`, `recepcionista` e `profissional_saude` recebem negação
-- [ ] T017 [P] [US1] Teste de isolamento em `tests/integration/whatsapp-tenant-isolation.spec.ts`: tenant A não lê, não conecta e não desconecta a instância do tenant B; a `api_key` de A nunca aparece em resposta de rota
+- [X] T016 [P] [US1] Teste de contrato em `tests/contract/whatsapp-connection-rbac.spec.ts`: cada server action de conexão/desconexão testada contra cada papel — só `admin` passa; `financeiro`, `recepcionista` e `profissional_saude` recebem negação
+- [X] T017 [P] [US1] Teste de isolamento em `tests/integration/whatsapp-tenant-isolation.spec.ts`: tenant A não lê, não conecta e não desconecta a instância do tenant B; a `api_key` de A nunca aparece em resposta de rota
 
 ### Implementation for User Story 1
 
