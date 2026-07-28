@@ -91,11 +91,11 @@ aparecendo, desconectar e ver voltar para "Desconectado".
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Criar as server actions em `src/app/(dashboard)/configuracoes/whatsapp/actions.ts` (conectar, obter QR, atualizar estado, desconectar), todas sob `requireRole('admin')`, provisionando o tenant no braço na primeira conexão e gravando a `api_key` cifrada
-- [ ] T019 [US1] Criar a tela `src/app/(dashboard)/configuracoes/whatsapp/page.tsx` + componente cliente de QR e estado, com os três estados visuais (desconectado / conectando / conectado com número) e polling do estado enquanto estiver conectando
-- [ ] T020 [P] [US1] Acrescentar a entrada "WhatsApp" no hub de configurações em `src/app/(dashboard)/configuracoes/page.tsx`
-- [ ] T020a [US1] Exibir aviso em destaque na tela de conexão quando o motivo da queda indicar **bloqueio** do número pelo WhatsApp, sem desligar o canal automaticamente (FR-012a) — depende de T005a
-- [ ] T021 [US1] Registrar auditoria (`log_audit_event`) na conexão e na desconexão, conforme Princípio II
+- [X] T018 [US1] Criar as server actions em `src/app/(dashboard)/configuracoes/whatsapp/actions.ts` (conectar, obter QR, atualizar estado, desconectar), todas sob `requireRole('admin')`, provisionando o tenant no braço na primeira conexão e gravando a `api_key` cifrada
+- [X] T019 [US1] Criar a tela `src/app/(dashboard)/configuracoes/whatsapp/page.tsx` + componente cliente de QR e estado, com os três estados visuais (desconectado / conectando / conectado com número) e polling do estado enquanto estiver conectando
+- [X] T020 [P] [US1] Acrescentar a entrada "WhatsApp" no hub de configurações em `src/app/(dashboard)/configuracoes/page.tsx`
+- [X] T020a [US1] Exibir aviso em destaque na tela de conexão quando o motivo da queda indicar **bloqueio** do número pelo WhatsApp, sem desligar o canal automaticamente (FR-012a) — depende de T005a
+- [X] T021 [US1] Registrar auditoria (`log_audit_event`) na conexão e na desconexão, conforme Princípio II
 
 **Checkpoint**: a clínica conecta o número sozinha. Nada é enviado ainda.
 

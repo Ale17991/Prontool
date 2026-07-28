@@ -9,6 +9,7 @@ import {
   DollarSign,
   HeartPulse,
   ListChecks,
+  MessageCircle,
   Plug,
   ScrollText,
   UserCheck,
@@ -44,6 +45,7 @@ export type HubCardId =
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
+  | 'whatsapp'
   | 'google-agenda'
   | 'integracoes'
   | 'auditoria'
@@ -161,6 +163,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Envia email antes da consulta. Reduz no-show.',
     icon: BellRing,
     show: ({ role }) => can(role, 'reminders.config'),
+  },
+  {
+    id: 'whatsapp',
+    href: '/configuracoes/whatsapp',
+    title: 'WhatsApp',
+    description: 'Vincule o número da clínica para enviar lembretes por WhatsApp.',
+    icon: MessageCircle,
+    show: ({ role }) => can(role, 'whatsapp.config'),
   },
   {
     id: 'google-agenda',
