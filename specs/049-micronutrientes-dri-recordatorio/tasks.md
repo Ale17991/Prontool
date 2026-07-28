@@ -100,17 +100,17 @@
 
 ### Tests (US3)
 
-- [ ] T024 [P] [US3] Contract/RBAC test: gate `nutri_recordatorio` (404 desligado) + papéis `admin`/`profissional_saude`, em `tests/contract/recordatorio-rbac.spec.ts`
-- [ ] T025 [P] [US3] Integration test: montar/salvar recordatório, totais batendo, isolamento entre tenants, em `tests/integration/recordatorio.spec.ts`
+- [X] T024 [P] [US3] Contract/RBAC test: gate `nutri_recordatorio` (404 desligado) + papéis `admin`/`profissional_saude`, em `tests/contract/recordatorio-rbac.spec.ts`
+- [X] T025 [P] [US3] Integration test: montar/salvar recordatório, totais batendo, isolamento entre tenants, em `tests/integration/recordatorio.spec.ts`
 
 ### Implementation (US3)
 
-- [ ] T026 [US3] Migration `supabase/migrations/0183_food_recalls.sql`: `food_recalls` + `food_recall_items` (RLS por tenant, FK paciente/food, cascade) + auditoria
-- [ ] T027 [US3] Domínio `src/lib/core/nutrition/recall/plan.ts`: `saveRecall`/`listRecalls`/`getRecall` reusando o motor de soma (energia+macros+micros)
-- [ ] T028 [US3] Routes `src/app/api/pacientes/[id]/recordatorio/route.ts` (GET/POST; gate `nutri_recordatorio`; RBAC)
-- [ ] T029 [US3] Estender `src/app/api/pacientes/[id]/adequacao/route.ts` para aceitar `source=recordatorio&ref_id=` (gate `nutri_recordatorio`)
-- [ ] T030 [US3] Tela `src/app/(dashboard)/operacao/recordatorio/` (page RSC + client): seletor de paciente (com criar/prefill já existentes), montagem por refeições reusando `FoodSearch`+medidas, totais ao vivo, painel de adequação, histórico
-- [ ] T031 [US3] Item de menu "Recordatório" na sidebar (`src/app/(dashboard)/_components/sidebar-sections.ts`) gated `nutri_recordatorio` + ajustar teste `tests/unit/dashboard-shell-sections.spec.ts`
+- [X] T026 [US3] Migration `supabase/migrations/0183_food_recalls.sql`: `food_recalls` + `food_recall_items` (RLS por tenant, FK paciente/food, cascade) + auditoria
+- [X] T027 [US3] Domínio `src/lib/core/nutrition/recall/plan.ts`: `saveRecall`/`listRecalls`/`getRecall` reusando o motor de soma (energia+macros+micros)
+- [X] T028 [US3] Routes `src/app/api/pacientes/[id]/recordatorio/route.ts` (GET/POST; gate `nutri_recordatorio`; RBAC)
+- [X] T029 [US3] Estender `src/app/api/pacientes/[id]/adequacao/route.ts` para aceitar `source=recordatorio&ref_id=` (gate `nutri_recordatorio`)
+- [X] T030 [US3] Tela `src/app/(dashboard)/operacao/recordatorio/` (page RSC + client): seletor de paciente (com criar/prefill já existentes), montagem por refeições reusando `FoodSearch`+medidas, totais ao vivo, painel de adequação, histórico
+- [X] T031 [US3] Item de menu "Recordatório" na sidebar (`src/app/(dashboard)/_components/sidebar-sections.ts`) gated `nutri_recordatorio` + ajustar teste `tests/unit/dashboard-shell-sections.spec.ts`
 
 **Checkpoint**: todas as histórias funcionais e independentes.
 

@@ -96,6 +96,13 @@ export const SECTIONS: readonly NavSection[] = [
           ent.hasModule('dieta') && (role === 'admin' || role === 'profissional_saude'),
       },
       {
+        href: '/operacao/recordatorio',
+        label: 'Recordatório',
+        icon: ScrollText,
+        show: ({ role, ent }) =>
+          ent.hasModule('nutri_recordatorio') && (role === 'admin' || role === 'profissional_saude'),
+      },
+      {
         href: '/operacao/tarefas',
         label: 'Tarefas',
         icon: ClipboardCheck,
