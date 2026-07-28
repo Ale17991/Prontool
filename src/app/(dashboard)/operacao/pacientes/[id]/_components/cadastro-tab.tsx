@@ -17,6 +17,7 @@ import { PatientCardEditor } from '../patient-card-editor'
 import { MedicalHistorySection } from '../medical-history-section'
 import { VitalSignsSection } from '../vital-signs-section'
 import { MetabolicMetricsSection } from '../metabolic-metrics-section'
+import { LabResultsSection } from '../lab-results-section'
 import { DiagnosticsSection } from '../diagnosticos-section'
 import { ClinicalRecordsSection } from '../clinical-records-section'
 import {
@@ -66,6 +67,7 @@ interface Props {
   hasConvenio: boolean
   /** Módulo Oftalmologia ativo. Off ⇒ esconde exames oftalmológicos e receita de óculos. */
   hasOftalmo: boolean
+  hasExamesLab: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
   canDeleteDiagnosis: boolean
@@ -98,6 +100,7 @@ export function CadastroTab({
   hasEndocrino,
   hasConvenio,
   hasOftalmo,
+  hasExamesLab,
   canWriteVitals,
   canWriteDiagnosis,
   canDeleteDiagnosis,
@@ -195,6 +198,11 @@ export function CadastroTab({
           metricTypes={metricTypes}
           canWrite={canWriteVitals}
         />
+      ) : null}
+
+      {/* Exames laboratoriais (050) — cross-especialidade, módulo `exames_lab`. */}
+      {hasExamesLab ? (
+        <LabResultsSection patientId={patientId} canWrite={canWriteVitals} />
       ) : null}
 
       <DiagnosticsSection

@@ -81,6 +81,7 @@ interface Props {
     hasEndocrino: boolean
     hasConvenio: boolean
     hasOftalmo: boolean
+    hasExamesLab: boolean
     canWriteVitals: boolean
     canWriteDiagnosis: boolean
     canDeleteDiagnosis: boolean
@@ -294,6 +295,7 @@ export function PatientDetailLayout({
                   hasEndocrino={cadastro.hasEndocrino}
                   hasConvenio={cadastro.hasConvenio}
                   hasOftalmo={cadastro.hasOftalmo}
+                  hasExamesLab={cadastro.hasExamesLab}
                   canWriteVitals={cadastro.canWriteVitals}
                   canWriteDiagnosis={cadastro.canWriteDiagnosis}
                   canDeleteDiagnosis={cadastro.canDeleteDiagnosis}

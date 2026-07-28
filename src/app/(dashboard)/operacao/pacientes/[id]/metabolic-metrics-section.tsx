@@ -17,6 +17,7 @@ import {
 import { MetricEvolutionChart, formatDateLabel } from '@/components/patient-portal/evolution-chart'
 import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
 import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
+import { isLabAnalyte } from '@/lib/core/labs/catalog'
 import { GoalsEditor } from './goals-editor'
 
 /**
@@ -37,9 +38,16 @@ interface Props {
 export function MetabolicMetricsSection({
   patientId,
   initialMeasurements,
-  metricTypes,
+  metricTypes: allMetricTypes,
   canWrite,
 }: Props) {
+  // Feature 050 acrescentou ~80 exames laboratoriais ao catálogo de medições.
+  // Eles têm seção própria (`lab-results-section.tsx`, com faixa de referência
+  // e classificação) — aqui só inundariam o seletor e os gráficos.
+  const metricTypes = useMemo(
+    () => allMetricTypes.filter((t) => !isLabAnalyte(t.metricType)),
+    [allMetricTypes],
+  )
   const [measurements, setMeasurements] = useState(initialMeasurements)
   const [showForm, setShowForm] = useState(false)
   const [showBia, setShowBia] = useState(false)
@@ -59,7 +67,10 @@ export function MetabolicMetricsSection({
   }
 
   const recent = useMemo(() => {
-    const all = Object.values(measurements).flat()
+    // Exames laboratoriais ficam fora daqui — têm seção própria.
+    const all = Object.entries(measurements)
+      .filter(([metricType]) => !isLabAnalyte(metricType))
+      .flatMap(([, list]) => list)
     return all
       .sort((a, b) =>
         a.measuredAt === b.measuredAt

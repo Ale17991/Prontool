@@ -400,6 +400,8 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
   const hasConvenio = ent.hasModule('convenio')
   const hasOdonto = ent.hasModule('odonto')
   const hasOftalmo = ent.hasModule('oftalmo')
+  // Feature 050 — exames laboratoriais (cross-especialidade).
+  const hasExamesLab = ent.hasModule('exames_lab')
   const hasTreino = ent.hasModule('treino')
   const hasDieta = ent.hasModule('dieta')
   const canConfigReminders = can(session.role, 'reminders.config')
@@ -498,6 +500,7 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
           hasEndocrino,
           hasConvenio,
           hasOftalmo,
+          hasExamesLab,
           canWriteVitals,
           canWriteDiagnosis,
           canDeleteDiagnosis,

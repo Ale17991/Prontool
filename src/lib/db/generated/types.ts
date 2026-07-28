@@ -1804,6 +1804,42 @@ export type Database = {
           },
         ]
       }
+      dietary_reference_intakes: {
+        Row: {
+          age_max_years: number
+          age_min_years: number
+          id: string
+          nutrient_key: string
+          sex: string
+          source_label: string | null
+          state: string
+          unit: string
+          value: number
+        }
+        Insert: {
+          age_max_years: number
+          age_min_years: number
+          id?: string
+          nutrient_key: string
+          sex: string
+          source_label?: string | null
+          state?: string
+          unit: string
+          value: number
+        }
+        Update: {
+          age_max_years?: number
+          age_min_years?: number
+          id?: string
+          nutrient_key?: string
+          sex?: string
+          source_label?: string | null
+          state?: string
+          unit?: string
+          value?: number
+        }
+        Relationships: []
+      }
       doctor_commission_history: {
         Row: {
           created_at: string
@@ -2685,6 +2721,112 @@ export type Database = {
           },
         ]
       }
+      food_recall_items: {
+        Row: {
+          food_id: string
+          grams: number | null
+          id: string
+          meal_name: string
+          measure_label: string | null
+          measure_qty: number | null
+          position: number
+          recall_id: string
+          tenant_id: string
+        }
+        Insert: {
+          food_id: string
+          grams?: number | null
+          id?: string
+          meal_name: string
+          measure_label?: string | null
+          measure_qty?: number | null
+          position?: number
+          recall_id: string
+          tenant_id: string
+        }
+        Update: {
+          food_id?: string
+          grams?: number | null
+          id?: string
+          meal_name?: string
+          measure_label?: string | null
+          measure_qty?: number | null
+          position?: number
+          recall_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_recall_items_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_recall_items_recall_id_fkey"
+            columns: ["recall_id"]
+            isOneToOne: false
+            referencedRelation: "food_recalls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_recall_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_recalls: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          recall_date: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          recall_date: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          recall_date?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_recalls_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_recalls_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foods: {
         Row: {
           active: boolean
@@ -2895,6 +3037,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lab_reference_ranges: {
+        Row: {
+          age_max_years: number
+          age_min_years: number
+          analyte_key: string
+          id: string
+          ref_max: number | null
+          ref_min: number | null
+          sex: string
+          source_label: string | null
+          state: string
+          unit: string
+        }
+        Insert: {
+          age_max_years: number
+          age_min_years: number
+          analyte_key: string
+          id?: string
+          ref_max?: number | null
+          ref_min?: number | null
+          sex: string
+          source_label?: string | null
+          state?: string
+          unit: string
+        }
+        Update: {
+          age_max_years?: number
+          age_min_years?: number
+          analyte_key?: string
+          id?: string
+          ref_max?: number | null
+          ref_min?: number | null
+          sex?: string
+          source_label?: string | null
+          state?: string
+          unit?: string
+        }
+        Relationships: []
       }
       liberal_payment_settlements: {
         Row: {

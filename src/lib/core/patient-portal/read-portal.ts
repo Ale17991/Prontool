@@ -8,6 +8,13 @@ import { listGoals, type PatientGoal } from './goals'
 import { getActiveWorkoutPlan, type WorkoutPlan } from './workout'
 import { getPortalDietPlan, type PortalDietPlan } from './diet'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import { isLabAnalyte } from '@/lib/core/labs/catalog'
+import {
+  classifyLabResults,
+  type LabResultInput,
+  type LabResultItem,
+} from '@/lib/core/labs/classify'
+import { listLabRangesForPatient } from '@/lib/core/labs/reference-ranges'
 
 /**
  * Feature 030 — bundle de leitura do portal do paciente (FR-006..FR-010).
@@ -49,6 +56,11 @@ export interface PatientPortalBundle {
   workout: WorkoutPlan | null
   /** Plano alimentar entregue (prescrição 047 ou plano legado 032), ou null. */
   diet: PortalDietPlan | null
+  /**
+   * Exames laboratoriais recentes já classificados (seção `exames`, 050), ou
+   * null quando o módulo está off ou falta sexo/idade para aplicar a faixa.
+   */
+  labResults: LabResultItem[] | null
 }
 
 export async function buildPatientPortalBundle(
@@ -59,7 +71,7 @@ export async function buildPatientPortalBundle(
   if (!key) throw new Error('PATIENT_DATA_ENCRYPTION_KEY is required for the patient portal')
 
   const [
-    firstName,
+    identity,
     vitals,
     metricsRaw,
     metricTypesRaw,
@@ -70,7 +82,7 @@ export async function buildPatientPortalBundle(
     diet,
     ent,
   ] = await Promise.all([
-    resolvePatientFirstName(supabase, args, key),
+    resolvePatientIdentity(supabase, args, key),
     listVitalSigns(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
     listMeasurements(supabase, { tenantId: args.tenantId, patientId: args.patientId }),
     listEnabledMetricTypesForTenant(supabase, args.tenantId, { specialty: 'endocrino' }),
@@ -99,8 +111,34 @@ export async function buildPatientPortalBundle(
     }))
     .reverse()
 
+  // Feature 050 US3 — exames laboratoriais no portal. Só com o módulo; sem sexo
+  // ou idade no cadastro não há faixa aplicável, então nada é exibido (o
+  // paciente não deve ver valor cru sem interpretação).
+  let labResults: LabResultItem[] | null = null
+  if (ent.hasModule('exames_lab') && identity.sex && identity.ageYears !== null) {
+    const inputs: LabResultInput[] = []
+    for (const [metricType, list] of Object.entries(metricsRaw)) {
+      if (!isLabAnalyte(metricType)) continue
+      for (const m of list) {
+        inputs.push({
+          analyteKey: metricType,
+          value: m.value,
+          unit: m.unit,
+          measuredAt: m.measuredAt,
+        })
+      }
+    }
+    if (inputs.length > 0) {
+      const ranges = await listLabRangesForPatient(supabase, {
+        ageYears: identity.ageYears,
+        sex: identity.sex,
+      })
+      labResults = classifyLabResults(inputs, ranges).items
+    }
+  }
+
   return {
-    patient: { firstName },
+    patient: { firstName: identity.firstName },
     weightImc,
     metrics,
     metricTypes,
@@ -109,6 +147,7 @@ export async function buildPatientPortalBundle(
     goals,
     workout,
     diet,
+    labResults,
   }
 }
 
@@ -121,23 +160,43 @@ export async function buildPatientPortalBundle(
  * degrada para saudação sem nome em vez de quebrar a página inteira — o login
  * (que só decifra CPF+nascimento) já validou a identidade.
  */
-async function resolvePatientFirstName(
+async function resolvePatientIdentity(
   supabase: SupabaseClient<Database>,
   args: { tenantId: string; patientId: string },
   key: string,
-): Promise<string> {
+): Promise<{ firstName: string; sex: 'M' | 'F' | null; ageYears: number | null }> {
+  const empty = { firstName: '', sex: null, ageYears: null }
   try {
     const { data, error } = await supabase.rpc('get_patient_for_tenant', {
       p_tenant_id: args.tenantId,
       p_patient_id: args.patientId,
       p_key: key,
     } as never)
-    if (error) return ''
-    const patient = ((data as unknown as Array<{ full_name: string | null }>) ?? [])[0]
-    return (patient?.full_name ?? '').trim().split(/\s+/)[0] ?? ''
+    if (error) return empty
+    const patient = ((data as unknown as Array<{
+      full_name: string | null
+      sex: string | null
+      birth_date: string | null
+    }>) ?? [])[0]
+    if (!patient) return empty
+    return {
+      firstName: (patient.full_name ?? '').trim().split(/\s+/)[0] ?? '',
+      sex: patient.sex === 'masculino' ? 'M' : patient.sex === 'feminino' ? 'F' : null,
+      ageYears: patient.birth_date ? ageFromBirth(patient.birth_date) : null,
+    }
   } catch {
-    return ''
+    return empty
   }
+}
+
+function ageFromBirth(iso: string): number | null {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  const now = new Date()
+  let a = now.getFullYear() - d.getFullYear()
+  const m = now.getMonth() - d.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--
+  return a >= 0 && a < 130 ? a : null
 }
 
 /**

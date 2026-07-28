@@ -29,7 +29,7 @@ export type PortalSectionKey =
 export type SectionSensitivity = 'baixa' | 'media' | 'alta'
 
 /** Módulos pagos (entitlements 031) que algumas seções exigem. */
-export type PortalSectionModule = 'treino' | 'dieta' | 'telemedicina'
+export type PortalSectionModule = 'treino' | 'dieta' | 'telemedicina' | 'exames_lab'
 
 export interface PortalSectionDef {
   key: PortalSectionKey
@@ -104,9 +104,12 @@ export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
     key: 'exames',
     label: 'Resultados de exames',
     description: 'Resultados com interpretação (nunca o valor cru isolado).',
+    // Dado sensível: nasce desligada mesmo com o módulo contratado. A clínica
+    // opta por expor (feature 050 US3).
     defaultEnabled: false,
     sensitivity: 'alta',
-    implemented: false,
+    requiredModule: 'exames_lab',
+    implemented: true,
     order: 60,
   },
   {

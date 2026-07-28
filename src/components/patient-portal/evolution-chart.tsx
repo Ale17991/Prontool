@@ -5,6 +5,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -59,19 +60,61 @@ function bmiClassification(bmi: number | null): { label: string; className: stri
 
 const TICK = { fontSize: 10, fill: '#64748b' } as const
 
-/** Gráfico de uma métrica (glicemia, HbA1c, etc.) com último valor em destaque. */
+/**
+ * Feature 050 US2 — domínio do eixo Y que engloba os pontos E a faixa de
+ * referência. Sem isto a banda pode ficar fora da área visível quando todos os
+ * resultados estão de um lado só da faixa (que é justamente o caso alterado).
+ *
+ * Exportado para teste unitário: é a única lógica não-trivial do gráfico.
+ */
+export function yDomainWithRange(
+  values: readonly number[],
+  refMin?: number | null,
+  refMax?: number | null,
+): [number, number] | ['auto', 'auto'] {
+  const bounds = [refMin, refMax].filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  if (bounds.length === 0) return ['auto', 'auto']
+  const finite = values.filter((v) => Number.isFinite(v))
+  const all = [...finite, ...bounds]
+  const lo = Math.min(...all)
+  const hi = Math.max(...all)
+  // 8% de folga para a linha não encostar na borda; piso nunca abaixo de zero
+  // quando os dados são todos não-negativos (exame não tem valor negativo).
+  const pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.08 || 1
+  return [lo >= 0 ? Math.max(0, lo - pad) : lo - pad, hi + pad]
+}
+
+/**
+ * Gráfico de uma métrica (glicemia, HbA1c, etc.) com último valor em destaque.
+ *
+ * `refMin`/`refMax` (Feature 050) desenham a faixa normal como banda ao fundo.
+ * São opcionais: os usos que não passam nada seguem exatamente como antes.
+ */
 export function MetricEvolutionChart({
   label,
   unit,
   points,
+  refMin,
+  refMax,
 }: {
   label: string
   unit: string
   points: SeriesPoint[]
+  refMin?: number | null
+  refMax?: number | null
 }) {
   if (points.length === 0) return null
   const last = points[points.length - 1]!
   const data = points.map((p) => ({ date: formatDateLabel(p.date), valor: p.value }))
+  const domain = yDomainWithRange(
+    points.map((p) => p.value),
+    refMin,
+    refMax,
+  )
+  const hasBand = domain[0] !== 'auto'
+  // Banda aberta de um lado (ex.: "≤ 100") se estende até a borda do domínio.
+  const bandY1 = refMin ?? (hasBand ? (domain[0] as number) : undefined)
+  const bandY2 = refMax ?? (hasBand ? (domain[1] as number) : undefined)
 
   return (
     <Card>
@@ -89,7 +132,19 @@ export function MetricEvolutionChart({
               <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="date" tick={TICK} />
-                <YAxis tick={TICK} width={40} domain={['auto', 'auto']} />
+                <YAxis tick={TICK} width={40} domain={domain} />
+                {hasBand ? (
+                  <ReferenceArea
+                    y1={bandY1}
+                    y2={bandY2}
+                    fill="#16a34a"
+                    fillOpacity={0.08}
+                    stroke="#16a34a"
+                    strokeOpacity={0.25}
+                    strokeDasharray="3 3"
+                    ifOverflow="extendDomain"
+                  />
+                ) : null}
                 <Tooltip />
                 <Line
                   type="monotone"
@@ -108,6 +163,13 @@ export function MetricEvolutionChart({
             segunda medição.
           </p>
         )}
+        {hasBand ? (
+          <p className="mt-1 text-[10px] text-slate-500">
+            Faixa de referência: {refMin !== null && refMin !== undefined ? formatValue(refMin) : '—'}
+            {' a '}
+            {refMax !== null && refMax !== undefined ? formatValue(refMax) : '—'} {unit}
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   )

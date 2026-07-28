@@ -11,6 +11,8 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0176_food_catalog_and_diet_plan.sql`. **Tabelas novas**: `food_groups`, `foods`, `food_household_measures`, `food_equivalence_lists`, `food_equivalence_items`, `diet_plan_prescriptions`. **Tabelas estendidas**: `diet_plans`, `diet_meal_items`. **Reuso (leitura)**: `nutrition_assessments` (meta VET/macros da 046), `patients`, `tenant_entitlements`. (047-plano-alimentar)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (gráficos, já em uso), `lucide-react`. **Sem novas dependências** — cálculo é aritmética simples (regra de três + comparação com faixa). (049-micronutrientes-dri-recordatorio)
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migrations novas** (próximo número livre após 0180): `micronutrients JSONB` em `foods`; tabela global `dietary_reference_intakes`; tabelas `food_recalls` + `food_recall_items`. **Seed**: micros importados da `BD ALIMENTOS` (AF, 6570 alimentos) como base global; DRIs da `BD_DRIs` (Evonut). Gabarito = planilhas em `nutri-doc/`. (049-micronutrientes-dri-recordatorio)
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (já em uso), `lucide-react`. **Sem novas dependências** — comparação com faixa é aritmética simples; a banda de referência no gráfico usa `ReferenceArea`, já disponível no recharts instalado. (050-exames-laboratoriais)
+- PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0184_lab_reference_ranges.sql` — tabela global `lab_reference_ranges` + seed dos exames em `patient_metric_types` (`specialty='laboratorio'`) + refresh do `catalog_baseline.patient_metric_types` (gotcha 0170). **Sem alteração** em `patient_measurements` (resultados usam o schema existente). **Gabarito das faixas**: `nutri-doc/Evonut.xlsm` → aba `BD_Exames` (a aba do AF tem as colunas de unidade e faixa **100% vazias** — ver research.md D9). (050-exames-laboratoriais)
 
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
 - N/A — feature de UI pura, não persiste nada (003-responsive-design)
@@ -118,10 +120,38 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 050-exames-laboratoriais: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (já em uso), `lucide-react`. **Sem novas dependências** — comparação com faixa é aritmética simples; a banda de referência no gráfico usa `ReferenceArea`, já disponível no recharts instalado.
 - 049-micronutrientes-dri-recordatorio: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (gráficos, já em uso), `lucide-react`. **Sem novas dependências** — cálculo é aritmética simples (regra de três + comparação com faixa).
 - 047-plano-alimentar: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas deps** — o cálculo é aritmética simples (regra de três sobre a porção de referência).
-- 047-plano-alimentar: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (gráficos de evolução já em uso). **Sem novas deps** — o motor de cálculo é TS puro (sem libs de estatística/nutrição).
 
 
 <!-- MANUAL ADDITIONS START -->
+
+## Exames laboratoriais (feature 050)
+
+Resultado de exame **não tem tabela própria**: reusa o motor de medições da 030.
+Cada analito é uma linha em `patient_metric_types` com `specialty='laboratorio'`
+(os 6 exames da 0113 — `glicemia_jejum`, `hba1c`, `colesterol_total`, `ldl`,
+`hdl`, `triglicerides` — mantêm `specialty='endocrino'` e a **chave legada**,
+porque linhas globais são append-only); cada resultado é uma linha append-only em
+`patient_measurements`.
+
+- **Catálogo TS**: `src/lib/core/labs/catalog.ts` (85 analitos) é a fonte da
+  verdade de "o que é exame e em que painel aparece" — resolve o fato de os
+  legados estarem marcados como endócrino. `units.ts` normaliza as unidades da
+  planilha e **lança** em grafia desconhecida.
+- **Faixas**: `lab_reference_ranges` (0184), catálogo global read-only espelhando
+  `dietary_reference_intakes`, com `ref_min`/`ref_max` **nuláveis independentes**
+  (há exame só-com-teto e só-com-piso). Seed: `pnpm seed:lab-ranges`
+  (fonte: `nutri-doc/Evonut.xlsm` → aba `BD_Exames`; a aba do AF tem as faixas
+  vazias e não serve).
+- **Classificação** (`classify.ts`) é **derivada, nunca persistida**: corrigir uma
+  faixa reclassifica o histórico sem reescrever registro.
+- **Limitação conhecida**: a fonte só recorta por **sexo**. O schema e o lookup
+  implementam sexo × idade × estado, mas o seed grava tudo como `0–130/padrao`.
+  Inserir faixas etárias depois não exige código novo.
+- `min_plausible`/`max_plausible` do catálogo são **anti-typo, não faixa clínica**
+  — ficam folgados (~10× o limite de referência) para não rejeitar no INSERT o
+  resultado gravemente alterado.
+
 <!-- MANUAL ADDITIONS END -->

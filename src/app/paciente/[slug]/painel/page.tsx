@@ -27,6 +27,7 @@ import { PatientTimeline } from '@/components/patient-portal/patient-timeline'
 import { GoalsCard } from '@/components/patient-portal/goals-card'
 import { DashboardSummary } from '@/components/patient-portal/dashboard-summary'
 import { WorkoutCard, DietCard } from '@/components/patient-portal/plan-cards'
+import { LabResultsCard } from '@/components/patient-portal/lab-results-card'
 import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
@@ -57,6 +58,10 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
   const showOrientacoes = enabled.has('orientacoes')
   const showTreino = enabled.has('treino')
   const showDieta = enabled.has('dieta')
+  // Feature 050 US3 — só exibe com a seção ligada E resultados classificados
+  // (sem faixa aplicável o bundle devolve null: valor cru isolado não vai ao
+  // paciente).
+  const showExames = enabled.has('exames') && (bundle.labResults?.length ?? 0) > 0
 
   const h = headers()
   const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
@@ -139,9 +144,16 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
           )}
         </div>
 
-        {dietaCol ? (
-          <div className="order-3 lg:col-start-3">
-            {bundle.diet ? <DietCard plan={bundle.diet} /> : <PlanPlaceholder kind="dieta" />}
+        {dietaCol || showExames ? (
+          <div className="order-3 space-y-6 lg:col-start-3">
+            {dietaCol ? (
+              bundle.diet ? (
+                <DietCard plan={bundle.diet} />
+              ) : (
+                <PlanPlaceholder kind="dieta" />
+              )
+            ) : null}
+            {showExames ? <LabResultsCard items={bundle.labResults ?? []} /> : null}
           </div>
         ) : null}
       </div>
