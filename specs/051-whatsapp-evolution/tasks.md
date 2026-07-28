@@ -61,7 +61,7 @@ envio da clínica.
 - [X] T005a [braço] Capturar o **motivo** da queda de conexão em `supabase/functions/status-webhook/index.ts` — hoje `status_reason` grava só `connection.update: ${state}`; persistir o código de motivo do payload da Evolution e expô-lo em `get-instances`, para o Clinni distinguir "bloqueado" de "apenas desconectado" (FR-012a)
 - [X] T006 [braço] Corrigir o lookup do ACK em `supabase/functions/status-webhook/index.ts:71`: filtrar por instância junto de `evolution_message_id` (o índice unique é `(instance_id, evolution_message_id)`; hoje o `.maybeSingle()` erra e descarta o ACK em silêncio quando há colisão de `keyId`)
 - [X] T007 [braço] Criar `supabase/functions/provision-tenant/index.ts` conforme `contracts/whatsapp-service.md` §1 — autenticado por `x-master-key`, idempotente por `slug`, sem rotacionar a chave em rechamada
-- [ ] T008 [braço] Aplicar a migration e deployar as funções alteradas (`send-message`, `status-webhook`, `provision-tenant`) com `--no-verify-jwt`, confirmando que `verify_jwt` continuou `false` em `supabase/config.toml`
+- [X] T008 [braço] Aplicar a migration e deployar as funções alteradas (`send-message`, `status-webhook`, `provision-tenant`) com `--no-verify-jwt`, confirmando que `verify_jwt` continuou `false` em `supabase/config.toml`
 
 ### Esquema e cápsula (Clinni)
 
