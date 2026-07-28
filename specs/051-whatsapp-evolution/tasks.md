@@ -139,14 +139,14 @@ canais a mensagem sai.
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Teste de integração em `tests/integration/reminder-channels.spec.ts`: modo "somente WhatsApp" não manda e-mail; modo "ambos" gera dois registros independentes para o mesmo agendamento/offset; modo "WhatsApp com fallback" manda e-mail quando falta telefone
+- [X] T033 [P] [US3] Teste de integração em `tests/integration/reminder-channels.spec.ts`: modo "somente WhatsApp" não manda e-mail; modo "ambos" gera dois registros independentes para o mesmo agendamento/offset; modo "WhatsApp com fallback" manda e-mail quando falta telefone
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Estender `src/lib/core/reminders/config.ts` — ler e gravar `reminder_channels`, `reminder_whatsapp_fallback_email` e `reminder_template_whatsapp`, com validação Zod (array não-vazio, subconjunto de `email`/`whatsapp`)
-- [ ] T035 [US3] Acrescentar a escolha de canal e o editor do template de WhatsApp em `src/app/(dashboard)/configuracoes/lembretes/config-form.tsx`
-- [ ] T036 [US3] Impedir a ativação do canal WhatsApp sem número conectado (FR-005), com mensagem que diga o que falta e link para a tela de conexão
-- [ ] T037 [US3] Implementar o fallback para e-mail em `process-batch.ts` quando o canal é WhatsApp, o paciente não tem telefone e `reminder_whatsapp_fallback_email` está ligado
+- [X] T034 [US3] Estender `src/lib/core/reminders/config.ts` — ler e gravar `reminder_channels`, `reminder_whatsapp_fallback_email` e `reminder_template_whatsapp`, com validação Zod (array não-vazio, subconjunto de `email`/`whatsapp`)
+- [X] T035 [US3] Acrescentar a escolha de canal e o editor do template de WhatsApp em `src/app/(dashboard)/configuracoes/lembretes/config-form.tsx`
+- [X] T036 [US3] Impedir a ativação do canal WhatsApp sem número conectado (FR-005), com mensagem que diga o que falta e link para a tela de conexão
+- [X] T037 [US3] Implementar o fallback para e-mail em `process-batch.ts` quando o canal é WhatsApp, o paciente não tem telefone e `reminder_whatsapp_fallback_email` está ligado
 
 **Checkpoint**: a clínica controla por onde o lembrete sai.
 

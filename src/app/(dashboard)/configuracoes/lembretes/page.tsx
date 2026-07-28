@@ -6,6 +6,9 @@ import { can } from '@/lib/auth/rbac'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import type { Database } from '@/lib/db/types'
 import { getReminderConfig } from '@/lib/core/reminders/config'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import { isWhatsAppConnected } from '@/lib/core/whatsapp/config'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listRemindersHistory } from '@/lib/core/reminders/history'
 import { ConfigForm } from './config-form'
 import { HistoryTable } from './history-table'
@@ -18,9 +21,14 @@ export default async function LembretesPage() {
   if (!can(session.role, 'reminders.config')) redirect('/configuracoes')
 
   const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
-  const [config, history] = await Promise.all([
+  // `tenant_whatsapp_config` não é projetada para usuário autenticado — a
+  // leitura do estado da conexão usa service-role, com tenant explícito.
+  const svc = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
+  const [config, history, ent, whatsappConnected] = await Promise.all([
     getReminderConfig(supabase, session.tenantId),
     listRemindersHistory(supabase, { tenantId: session.tenantId, limit: 20 }).catch(() => []),
+    getTenantEntitlements(supabase, session.tenantId),
+    isWhatsAppConnected(svc, session.tenantId).catch(() => false),
   ])
 
   return (
@@ -35,7 +43,11 @@ export default async function LembretesPage() {
         </p>
       </div>
 
-      <ConfigForm initial={config} />
+      <ConfigForm
+        initial={config}
+        whatsappConnected={whatsappConnected}
+        whatsappModuleEnabled={ent.hasModule('whatsapp')}
+      />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-slate-900">Histórico de envios</h2>

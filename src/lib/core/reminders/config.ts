@@ -13,7 +13,7 @@
 import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import type { ReminderConfig } from './types'
+import type { ReminderChannel, ReminderConfig } from './types'
 
 // =========================================================================
 // Schema Zod
@@ -32,6 +32,12 @@ export const ReminderConfigUpdateSchema = z
     windowEnd: timeSchema,
     templateSubject: z.string().max(200).nullable(),
     templateBody: z.string().max(10000).nullable(),
+    // Feature 051 — canais. Não-vazio: desligar tudo é o que o toggle
+    // `enabled` faz; um array vazio seria um segundo jeito de dizer a mesma
+    // coisa, e os dois poderiam divergir.
+    channels: z.array(z.enum(['email', 'whatsapp'])).min(1).max(2),
+    whatsappFallbackEmail: z.boolean(),
+    templateWhatsApp: z.string().max(4000).nullable(),
   })
   .refine((v) => v.windowEnd > v.windowStart, {
     message: 'Janela inválida: fim deve ser maior que início.',
@@ -60,7 +66,7 @@ export async function getReminderConfig(
   const { data, error } = await supabase
     .from('tenant_clinic_profile')
     .select(
-      'reminder_enabled, reminder_offsets_hours, reminder_send_weekends, reminder_window_start, reminder_window_end, reminder_template_subject, reminder_template_body, reminder_last_run_at',
+      'reminder_enabled, reminder_offsets_hours, reminder_send_weekends, reminder_window_start, reminder_window_end, reminder_template_subject, reminder_template_body, reminder_last_run_at, reminder_channels, reminder_whatsapp_fallback_email, reminder_template_whatsapp',
     )
     .eq('tenant_id', tenantId)
     .maybeSingle()
@@ -78,6 +84,9 @@ export async function getReminderConfig(
     reminder_template_subject: string | null
     reminder_template_body: string | null
     reminder_last_run_at: string | null
+    reminder_channels: string[] | null
+    reminder_whatsapp_fallback_email: boolean | null
+    reminder_template_whatsapp: string | null
   } | null
 
   return {
@@ -89,6 +98,13 @@ export async function getReminderConfig(
     templateSubject: row?.reminder_template_subject ?? null,
     templateBody: row?.reminder_template_body ?? null,
     lastRunAt: row?.reminder_last_run_at ?? null,
+    // Default {email} preserva o comportamento de quem já usava a 018 e nunca
+    // abriu a tela nova.
+    channels: (row?.reminder_channels?.length
+      ? row.reminder_channels
+      : ['email']) as ReminderChannel[],
+    whatsappFallbackEmail: row?.reminder_whatsapp_fallback_email ?? true,
+    templateWhatsApp: row?.reminder_template_whatsapp ?? null,
   }
 }
 
@@ -123,6 +139,9 @@ export async function updateReminderConfig(
       reminder_window_end: input.windowEnd,
       reminder_template_subject: input.templateSubject,
       reminder_template_body: input.templateBody,
+      reminder_channels: input.channels,
+      reminder_whatsapp_fallback_email: input.whatsappFallbackEmail,
+      reminder_template_whatsapp: input.templateWhatsApp,
     } as never)
     .eq('tenant_id', tenantId)
   if (error) {

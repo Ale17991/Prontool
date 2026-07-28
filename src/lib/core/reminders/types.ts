@@ -56,6 +56,12 @@ export interface ReminderConfig {
   templateBody: string | null
   /** Última execução do cron para este tenant (read-only). */
   lastRunAt: string | null
+  /** Feature 051 — por onde o lembrete sai. Subconjunto não-vazio. */
+  channels: ReminderChannel[]
+  /** Feature 051 — cai para e-mail quando o paciente não tem telefone. */
+  whatsappFallbackEmail: boolean
+  /** Feature 051 — template TEXTO PURO do WhatsApp; null = default. */
+  templateWhatsApp: string | null
 }
 
 /**

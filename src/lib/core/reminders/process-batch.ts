@@ -154,6 +154,11 @@ export async function processBatch(
           templateSubject: t.reminder_template_subject,
           templateBody: t.reminder_template_body,
           lastRunAt: null,
+          channels: (t.reminder_channels?.length
+            ? t.reminder_channels
+            : ['email']) as ReminderChannel[],
+          whatsappFallbackEmail: t.reminder_whatsapp_fallback_email ?? true,
+          templateWhatsApp: t.reminder_template_whatsapp,
         }
         const clinicName = t.corporate_name ?? 'Clínica'
         const clinicPhone = t.phone

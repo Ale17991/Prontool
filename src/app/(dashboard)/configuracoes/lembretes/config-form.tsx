@@ -5,8 +5,14 @@ import { X } from 'lucide-react'
 import { saveReminderConfig } from './actions'
 import type { ReminderConfig } from '@/lib/core/reminders/types'
 
+type CanalOferecido = 'email' | 'whatsapp'
+
 interface ConfigFormProps {
   initial: ReminderConfig
+  /** FR-005 — a clínica tem número de WhatsApp conectado agora? */
+  whatsappConnected: boolean
+  /** O módulo de rollout está ligado para esta clínica? */
+  whatsappModuleEnabled: boolean
 }
 
 const PLACEHOLDER_HINTS = [
@@ -17,7 +23,11 @@ const PLACEHOLDER_HINTS = [
   ['{{clinica}}', 'Nome da clínica'],
 ] as const
 
-export function ConfigForm({ initial }: ConfigFormProps) {
+export function ConfigForm({
+  initial,
+  whatsappConnected,
+  whatsappModuleEnabled,
+}: ConfigFormProps) {
   const [pending, startTransition] = useTransition()
   const [enabled, setEnabled] = useState(initial.enabled)
   const [offsets, setOffsets] = useState<number[]>(initial.offsetsHours)
@@ -28,6 +38,14 @@ export function ConfigForm({ initial }: ConfigFormProps) {
   const [templateSubject, setTemplateSubject] = useState(initial.templateSubject ?? '')
   const [templateBody, setTemplateBody] = useState(initial.templateBody ?? '')
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+  // Feature 051 — canais.
+  // `sms` existe no tipo do motor mas não é oferecido: não há implementação.
+  // Restringir aqui mantém o formulário alinhado com o schema Zod do save.
+  const [channels, setChannels] = useState<CanalOferecido[]>(
+    initial.channels.filter((c): c is CanalOferecido => c === 'email' || c === 'whatsapp'),
+  )
+  const [fallbackEmail, setFallbackEmail] = useState(initial.whatsappFallbackEmail)
+  const [templateWhatsApp, setTemplateWhatsApp] = useState(initial.templateWhatsApp ?? '')
 
   function addOffset() {
     const n = parseInt(offsetInput, 10)
@@ -62,6 +80,19 @@ export function ConfigForm({ initial }: ConfigFormProps) {
       setFeedback({ type: 'error', msg: 'Hora final deve ser maior que hora inicial.' })
       return
     }
+    if (channels.length === 0) {
+      setFeedback({ type: 'error', msg: 'Escolha ao menos um canal de envio.' })
+      return
+    }
+    // FR-005 — sem número conectado o canal não funciona, e descobrir isso só
+    // no dia seguinte (quando ninguém foi avisado) é o pior desfecho.
+    if (channels.includes('whatsapp') && !whatsappConnected) {
+      setFeedback({
+        type: 'error',
+        msg: 'Conecte o WhatsApp da clínica antes de habilitar esse canal — em Configurações › WhatsApp.',
+      })
+      return
+    }
     setFeedback(null)
     startTransition(async () => {
       const result = await saveReminderConfig({
@@ -72,6 +103,9 @@ export function ConfigForm({ initial }: ConfigFormProps) {
         windowEnd,
         templateSubject: templateSubject.trim() ? templateSubject.trim() : null,
         templateBody: templateBody.trim() ? templateBody.trim() : null,
+        channels,
+        whatsappFallbackEmail: fallbackEmail,
+        templateWhatsApp: templateWhatsApp.trim() ? templateWhatsApp.trim() : null,
       })
       if (result.ok) {
         setFeedback({ type: 'success', msg: 'Configuração salva.' })
@@ -117,6 +151,90 @@ export function ConfigForm({ initial }: ConfigFormProps) {
           </div>
         </label>
       </section>
+
+      {/* Canais (feature 051) */}
+      {whatsappModuleEnabled && (
+        <section className="rounded-lg border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold text-slate-900">Por onde enviar</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            O paciente lê WhatsApp muito mais que e-mail. Você pode usar os dois.
+          </p>
+
+          <div className="mt-3 space-y-2">
+            {(['email', 'whatsapp'] as const).map((c) => {
+              const marcado = channels.includes(c)
+              const bloqueado = c === 'whatsapp' && !whatsappConnected
+              return (
+                <label
+                  key={c}
+                  className={`flex items-start gap-3 rounded-md border p-3 ${
+                    bloqueado ? 'border-border bg-slate-50 opacity-70' : 'border-border'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={marcado}
+                    disabled={bloqueado}
+                    onChange={(e) =>
+                      setChannels((prev) =>
+                        e.target.checked ? [...prev, c] : prev.filter((x) => x !== c),
+                      )
+                    }
+                  />
+                  <span className="text-sm">
+                    <span className="font-medium text-slate-900">
+                      {c === 'email' ? 'E-mail' : 'WhatsApp'}
+                    </span>
+                    {bloqueado && (
+                      <span className="mt-0.5 block text-xs text-amber-700">
+                        Conecte o número da clínica em Configurações › WhatsApp para liberar.
+                      </span>
+                    )}
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+
+          {channels.includes('whatsapp') && (
+            <>
+              <label className="mt-4 flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={fallbackEmail}
+                  onChange={(e) => setFallbackEmail(e.target.checked)}
+                />
+                <span className="text-sm text-slate-700">
+                  Se o paciente não tiver telefone, avisar por e-mail
+                  <span className="mt-0.5 block text-xs text-slate-500">
+                    Sem isso, quem não tem telefone simplesmente não é avisado.
+                  </span>
+                </span>
+              </label>
+
+              <div className="mt-4">
+                <label className="text-xs font-medium text-slate-700">
+                  Mensagem do WhatsApp (opcional)
+                </label>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Texto puro — o WhatsApp não entende HTML. Use *asteriscos* para negrito. Deixe
+                  vazio para usar a mensagem padrão. Os mesmos campos entre chaves da mensagem de
+                  e-mail funcionam aqui.
+                </p>
+                <textarea
+                  value={templateWhatsApp}
+                  onChange={(e) => setTemplateWhatsApp(e.target.value)}
+                  rows={6}
+                  placeholder={'Olá, {{paciente}}! Lembrete da sua consulta em {{horario}}.'}
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       {/* Antecedências */}
       <section className="rounded-lg border border-border bg-card p-5">

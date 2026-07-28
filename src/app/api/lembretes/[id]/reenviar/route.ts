@@ -177,6 +177,11 @@ export async function POST(request: NextRequest, context: { params: { id: string
     templateSubject: clinic.reminder_template_subject,
     templateBody: clinic.reminder_template_body,
     lastRunAt: null,
+    channels: (clinic.reminder_channels?.length
+      ? clinic.reminder_channels
+      : ['email']) as ReminderChannel[],
+    whatsappFallbackEmail: true,
+    templateWhatsApp: clinic.reminder_template_whatsapp,
   }
 
   const eligible: EligibleAppointment = {
