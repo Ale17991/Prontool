@@ -20,6 +20,7 @@ import { isLabAnalyte, LAB_ANALYTES } from '@/lib/core/labs/catalog'
 import { classifyLabResults, type LabResultInput } from '@/lib/core/labs/classify'
 import {
   listLabRangesForPatient,
+  listSexDependentAnalytes,
   type LabSex,
   type LabState,
 } from '@/lib/core/labs/reference-ranges'
@@ -120,20 +121,28 @@ async function buildPayload(
     }
   }
 
-  if (ageYears === null || !sex) {
-    return {
-      patient: null,
-      panel: null,
-      series,
-      need: { age: ageYears === null, sex: !sex },
-    }
+  // Classifica com o que houver. Sem sexo, os 16 analitos que dependem dele
+  // saem como "sem referência" e o resto (69 das 85 faixas são iguais para
+  // ambos) classifica normalmente — exigir o dado bloquearia tudo à toa, já que
+  // em produção quase nenhum cadastro tem sexo/nascimento preenchidos.
+  const ranges = await listLabRangesForPatient(supabase, { ageYears, sex, state })
+  const panel = classifyLabResults(results, ranges)
+
+  // Quantos exames JÁ LANÇADOS ficariam classificáveis se o sexo fosse
+  // informado — é o que justifica pedir o dado, em vez de pedir sempre.
+  let blockedBySex = 0
+  if (!sex) {
+    const sexDependent = await listSexDependentAnalytes(supabase)
+    blockedBySex = panel.items.filter(
+      (i) => i.class === 'sem_referencia' && sexDependent.has(i.analyteKey),
+    ).length
   }
 
-  const ranges = await listLabRangesForPatient(supabase, { ageYears, sex, state })
   return {
     patient: { ageYears, sex, state },
-    panel: classifyLabResults(results, ranges),
+    panel,
     series,
+    need: { age: ageYears === null, sex: !sex, blockedBySex },
   }
 }
 

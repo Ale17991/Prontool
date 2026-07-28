@@ -5,7 +5,10 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
-import { listLabRangesForPatient } from '@/lib/core/labs/reference-ranges'
+import {
+  listLabRangesForPatient,
+  listSexDependentAnalytes,
+} from '@/lib/core/labs/reference-ranges'
 import { classifyLabResults } from '@/lib/core/labs/classify'
 
 type RangeSeed = {
@@ -84,6 +87,39 @@ describe('Feature 050 US1 — lookup de faixa por sexo/idade/estado', () => {
     const adulto = await listLabRangesForPatient(sb, { ageYears: 30, sex: 'F' })
     expect(crianca.has('lab_vitamina_d')).toBe(false)
     expect(adulto.get('lab_vitamina_d')).toMatchObject({ refMin: 40, refMax: 60 })
+  })
+
+  it("sem sexo, devolve só as faixas 'any' — não bloqueia o resto", async () => {
+    // Caso real: 699 de 712 pacientes em produção não têm sexo cadastrado.
+    const sb = serviceClient()
+    const semSexo = await listLabRangesForPatient(sb, { ageYears: 40, sex: null })
+    expect(semSexo.get('lab_tsh')).toMatchObject({ refMin: 1, refMax: 2.5 })
+    expect(semSexo.get('lab_hemoglobina')).toMatchObject({ refMin: 12, refMax: 18 })
+    // Ferritina só tem linha M e F: sem sexo, fica de fora (vira sem_referencia).
+    expect(semSexo.has('lab_ferritina')).toBe(false)
+  })
+
+  it('sem idade, não filtra faixa etária e usa a banda mais abrangente', async () => {
+    const sb = serviceClient()
+    const semIdade = await listLabRangesForPatient(sb, { ageYears: null, sex: 'F' })
+    expect(semIdade.get('lab_ferritina')).toMatchObject({ refMin: 70, refMax: 200 })
+    // Vitamina D só tem faixa 18–130; sem idade ela entra (é a única banda).
+    expect(semIdade.get('lab_vitamina_d')).toMatchObject({ refMin: 40, refMax: 60 })
+  })
+
+  it('sem sexo NEM idade, ainda classifica o que independe dos dois', async () => {
+    const sb = serviceClient()
+    const nada = await listLabRangesForPatient(sb, {})
+    expect(nada.get('lab_tsh')).toMatchObject({ refMin: 1, refMax: 2.5 })
+    expect(nada.has('lab_ferritina')).toBe(false)
+  })
+
+  it('listSexDependentAnalytes acha os que só têm faixa por sexo', async () => {
+    const sb = serviceClient()
+    const dependentes = await listSexDependentAnalytes(sb)
+    expect(dependentes.has('lab_ferritina')).toBe(true) // só M e F
+    expect(dependentes.has('lab_tsh')).toBe(false) // tem 'any'
+    expect(dependentes.has('lab_hemoglobina')).toBe(false) // tem 'any' + F
   })
 
   it('carrega unidade e procedência para exibição', async () => {

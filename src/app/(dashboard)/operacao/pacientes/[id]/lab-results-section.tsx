@@ -37,7 +37,7 @@ interface Payload {
   patient: { ageYears: number; sex: 'M' | 'F'; state: string } | null
   panel: LabPanelResult | null
   series: Record<string, SeriesPoint[]>
-  need?: { age: boolean; sex: boolean }
+  need?: { age: boolean; sex: boolean; blockedBySex: number }
 }
 
 const CLASS_STYLE: Record<LabClass, { label: string; className: string }> = {
@@ -151,16 +151,17 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {data?.need && (data.need.age || data.need.sex) ? (
+        {/* Só pede o sexo quando ele REALMENTE muda alguma coisa: a maioria das
+            faixas é igual para ambos e já foi aplicada. */}
+        {data?.need?.sex && (data.need.blockedBySex ?? 0) > 0 ? (
           <div className="rounded-md border border-[hsl(var(--warning)/0.4)] bg-[hsl(var(--warning)/0.08)] p-3">
             <p className="text-xs text-slate-700">
-              A faixa de referência depende do <strong>sexo</strong> e da <strong>idade</strong>.
-              {data.need.sex && data.need.age
-                ? ' Nenhum dos dois está no cadastro.'
-                : data.need.sex
-                  ? ' O sexo não está no cadastro.'
-                  : ' A data de nascimento não está no cadastro.'}{' '}
-              Informe abaixo para classificar — os resultados já ficam registrados de qualquer forma.
+              <strong>
+                {data.need.blockedBySex} exame{data.need.blockedBySex > 1 ? 's' : ''}
+              </strong>{' '}
+              {data.need.blockedBySex > 1 ? 'têm' : 'tem'} faixa diferente para homem e mulher, e o
+              sexo não está no cadastro deste paciente — {data.need.blockedBySex > 1 ? 'eles aparecem' : 'ele aparece'}{' '}
+              como “sem referência”. Os demais já estão classificados. Informe abaixo para completar.
             </p>
             <div className="mt-2 flex flex-wrap items-end gap-2">
               {data.need.sex ? (
@@ -180,22 +181,10 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
                   </select>
                 </div>
               ) : null}
-              {data.need.age ? (
-                <div>
-                  <Label htmlFor="lab-age" className="text-[10px]">
-                    Idade (anos)
-                  </Label>
-                  <Input
-                    id="lab-age"
-                    type="number"
-                    min={0}
-                    max={129}
-                    value={ageOverride}
-                    onChange={(e) => setAgeOverride(e.target.value)}
-                    className="h-9 w-24"
-                  />
-                </div>
-              ) : null}
+              <p className="pb-2 text-[10px] text-slate-500">
+                Vale só para esta consulta — para valer sempre, preencha o sexo no cadastro do
+                paciente.
+              </p>
             </div>
           </div>
         ) : null}

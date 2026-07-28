@@ -97,8 +97,12 @@ export async function buildPatientPortalBundle(
   // Feature 050 US3 — exames laboratoriais no portal. Só com o módulo; sem sexo
   // ou idade no cadastro não há faixa aplicável, então nada é exibido (o
   // paciente não deve ver valor cru sem interpretação).
+  // Sexo/idade são opcionais: sem eles classificam-se as 69 faixas iguais para
+  // ambos os sexos, e os 16 analitos sexo-dependentes ficam de fora. O card do
+  // portal omite o que estiver "sem referência", então o paciente nunca vê
+  // valor cru sem interpretação.
   let labResults: LabResultItem[] | null = null
-  if (ent.hasModule('exames_lab') && identity.sex && identity.ageYears !== null) {
+  if (ent.hasModule('exames_lab')) {
     const inputs: LabResultInput[] = []
     for (const [metricType, list] of Object.entries(metricsRaw)) {
       if (!isLabAnalyte(metricType)) continue
@@ -116,7 +120,12 @@ export async function buildPatientPortalBundle(
         ageYears: identity.ageYears,
         sex: identity.sex,
       })
-      labResults = classifyLabResults(inputs, ranges).items
+      // "Sem referência" não vai ao paciente: valor cru sem interpretação é
+      // exatamente o que a def da seção proíbe.
+      const classified = classifyLabResults(inputs, ranges).items.filter(
+        (i) => i.class !== 'sem_referencia',
+      )
+      labResults = classified.length > 0 ? classified : null
     }
   }
 

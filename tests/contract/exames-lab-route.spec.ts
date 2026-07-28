@@ -171,34 +171,81 @@ describe('Feature 050 — validação e atomicidade do laudo', () => {
     expect(res.status).toBe(201)
   })
 
-  it('GET devolve 200 com `need` quando falta sexo/idade, sem bloquear (FR-006)', async () => {
+  it('sem sexo no cadastro, ainda classifica o que não depende de sexo (FR-006)', async () => {
+    // Em produção 699 de 712 pacientes não têm sexo e 667 não têm nascimento.
+    // Exigir os dois bloquearia tudo — quando 69 das 85 faixas são iguais para
+    // ambos os sexos. TSH tem faixa `any`: precisa classificar mesmo assim.
+    const sb = serviceClient()
+    const ins = await sb.from('lab_reference_ranges').insert({
+      analyte_key: 'lab_tsh',
+      sex: 'any',
+      age_min_years: 0,
+      age_max_years: 130,
+      state: 'padrao',
+      ref_min: 1,
+      ref_max: 2.5,
+      unit: 'mUI/L',
+      source_label: 'teste',
+    } as never)
+    if (ins.error) throw new Error(ins.error.message)
+
+    const post = await postExames(patientId, jwt, {
+      measured_at: '2026-07-22',
+      results: [{ analyte_key: 'lab_tsh', value: 8 }],
+    })
+    expect(post.status).toBe(201)
+
     const res = await getExames(patientId, jwt)
     expect(res.status).toBe(200)
     const body = (await res.json()) as {
-      panel: unknown
-      need?: { age: boolean; sex: boolean }
+      panel: { items: Array<{ analyteKey: string; class: string }> } | null
+      need?: { age: boolean; sex: boolean; blockedBySex: number }
       series: Record<string, unknown>
     }
-    // O paciente semeado não tem sexo/nascimento: classifica nada, mas devolve
-    // os valores e diz o que falta.
-    expect(body.need).toBeDefined()
-    expect(body.panel).toBeNull()
+    expect(body.panel).not.toBeNull()
+    const tsh = body.panel!.items.find((i) => i.analyteKey === 'lab_tsh')
+    expect(tsh?.class).toBe('alto')
+    expect(body.need?.sex).toBe(true)
     expect(Object.keys(body.series)).toContain('lab_ferritina')
+  })
+
+  it('sinaliza quantos exames ficaram sem classificar por falta de sexo', async () => {
+    // A ferritina lançada antes só tem faixa por sexo (M/F, sem `any`), então
+    // fica "sem referência" e conta como motivo concreto para pedir o dado.
+    const sb = serviceClient()
+    const ins = await sb.from('lab_reference_ranges').insert([
+      { analyte_key: 'lab_ferritina', sex: 'M', age_min_years: 0, age_max_years: 130, state: 'padrao', ref_min: 70, ref_max: 150, unit: 'mcg/L', source_label: 'teste' },
+      { analyte_key: 'lab_ferritina', sex: 'F', age_min_years: 0, age_max_years: 130, state: 'padrao', ref_min: 70, ref_max: 200, unit: 'mcg/L', source_label: 'teste' },
+    ] as never)
+    if (ins.error) throw new Error(ins.error.message)
+
+    const res = await getExames(patientId, jwt)
+    const body = (await res.json()) as {
+      panel: { items: Array<{ analyteKey: string; class: string }> }
+      need: { sex: boolean; blockedBySex: number }
+    }
+    const ferritina = body.panel.items.find((i) => i.analyteKey === 'lab_ferritina')
+    expect(ferritina?.class).toBe('sem_referencia')
+    expect(body.need.blockedBySex).toBeGreaterThanOrEqual(1)
   })
 
   it('GET com sexo e idade por query param classifica sem depender do cadastro', async () => {
     const sb = serviceClient()
-    const { error } = await sb.from('lab_reference_ranges').insert({
-      analyte_key: 'lab_ferritina',
-      sex: 'M',
-      age_min_years: 0,
-      age_max_years: 130,
-      state: 'padrao',
-      ref_min: 70,
-      ref_max: 150,
-      unit: 'mcg/L',
-      source_label: 'teste',
-    } as never)
+    // Upsert: o teste anterior deste bloco já pode ter semeado esta faixa.
+    const { error } = await sb.from('lab_reference_ranges').upsert(
+      {
+        analyte_key: 'lab_ferritina',
+        sex: 'M',
+        age_min_years: 0,
+        age_max_years: 130,
+        state: 'padrao',
+        ref_min: 70,
+        ref_max: 150,
+        unit: 'mcg/L',
+        source_label: 'teste',
+      } as never,
+      { onConflict: 'analyte_key,sex,age_min_years,age_max_years,state' },
+    )
     if (error) throw new Error(error.message)
 
     const res = await getExames(patientId, jwt, '?sex=M&age=40')
@@ -210,6 +257,6 @@ describe('Feature 050 — validação e atomicidade do laudo', () => {
     expect(body.patient).toMatchObject({ sex: 'M', ageYears: 40 })
     const ferritina = body.panel.items.find((i) => i.analyteKey === 'lab_ferritina')
     expect(ferritina?.class).toBe('alto') // 2000 contra teto 150
-    expect(body.panel.high).toBe(1)
+    expect(body.panel.high).toBeGreaterThanOrEqual(1)
   })
 })
