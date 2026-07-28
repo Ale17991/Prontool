@@ -16,6 +16,13 @@ export type ReminderStatus =
   | 'skipped_reversed'
   | 'skipped_no_email'
   | 'skipped_doctor_inactive'
+  // Feature 051 — canal WhatsApp. Espelham a expansão do CHECK em 0185.
+  /** Paciente sem telefone cadastrado — equivalente de `skipped_no_email`. */
+  | 'skipped_no_phone'
+  /** Número da clínica não conectado no momento do lote (FR-012). */
+  | 'skipped_no_connection'
+  /** Paciente recusou ESTE canal; segue recebendo pelos outros (FR-016). */
+  | 'skipped_opt_out_channel'
 
 /** Status finais (terminais — não admitem transição). */
 export const TERMINAL_STATUSES: readonly ReminderStatus[] = [
@@ -25,6 +32,9 @@ export const TERMINAL_STATUSES: readonly ReminderStatus[] = [
   'skipped_reversed',
   'skipped_no_email',
   'skipped_doctor_inactive',
+  'skipped_no_phone',
+  'skipped_no_connection',
+  'skipped_opt_out_channel',
 ] as const
 
 /**

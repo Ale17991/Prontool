@@ -1,0 +1,99 @@
+/**
+ * T012 (Feature 051) — normalização de telefone BR, testes puros (sem DB).
+ *
+ * O caso que justifica o arquivo inteiro é o último bloco: número de 13
+ * dígitos cujo 9 é seguido de 0-5. Uma implementação ingênua "corrige" isso
+ * removendo o 9, e o paciente nunca recebe a mensagem.
+ */
+import { describe, it, expect } from 'vitest'
+import {
+  getOnlyNumbers,
+  normalizePhone,
+  isSendablePhone,
+  toWhatsAppJid,
+} from '@/lib/core/whatsapp/phone'
+
+describe('Feature 051 — getOnlyNumbers', () => {
+  it('remove máscara', () => {
+    expect(getOnlyNumbers('+55 (11) 99999-8888')).toBe('5511999998888')
+  })
+
+  it('descarta o sufixo de JID', () => {
+    expect(getOnlyNumbers('5511999998888@s.whatsapp.net')).toBe('5511999998888')
+  })
+
+  it('entrada vazia devolve string vazia', () => {
+    expect(getOnlyNumbers('')).toBe('')
+  })
+})
+
+describe('Feature 051 — normalizePhone', () => {
+  it('celular completo (13 dígitos) passa intacto', () => {
+    expect(normalizePhone('5511999998888')).toBe('5511999998888')
+  })
+
+  it('celular de 8 dígitos sem o 9 ganha o 9', () => {
+    // 55 + 11 + 88887777 → primeiro dígito 8 (fora de 2-5) = celular antigo
+    expect(normalizePhone('551188887777')).toBe('5511988887777')
+  })
+
+  it('fixo de 8 dígitos NÃO ganha o 9', () => {
+    // primeiro dígito 3 está na faixa 2-5 = fixo
+    expect(normalizePhone('551133334444')).toBe('551133334444')
+  })
+
+  it.each(['2', '3', '4', '5'])('fixo começando em %s permanece fixo', (d) => {
+    const input = `5511${d}1112222`
+    expect(normalizePhone(input)).toBe(input)
+  })
+
+  it('aceita entrada com máscara', () => {
+    expect(normalizePhone('(11) 99999-8888')).toBe('11999998888')
+  })
+})
+
+describe('Feature 051 — nunca remove o 9 de número de 13 dígitos', () => {
+  // Faixas novas emitem 9 seguido de 0-5. Remover o 9 aqui quebra o envio.
+  it.each(['0', '1', '2', '3', '4', '5'])(
+    'celular 9%s… de 13 dígitos permanece com 13 dígitos',
+    (second) => {
+      const input = `55119${second}1112222`
+      expect(input).toHaveLength(13)
+      const out = normalizePhone(input)
+      expect(out).toBe(input)
+      expect(out).toHaveLength(13)
+    },
+  )
+})
+
+describe('Feature 051 — isSendablePhone', () => {
+  it('celular BR de 13 dígitos é enviável', () => {
+    expect(isSendablePhone('5511999998888')).toBe(true)
+  })
+
+  it('fixo BR de 12 dígitos é enviável', () => {
+    expect(isSendablePhone('551133334444')).toBe(true)
+  })
+
+  it('número BR truncado não é enviável', () => {
+    expect(isSendablePhone('5511999')).toBe(false)
+  })
+
+  it('string vazia não é enviável', () => {
+    expect(isSendablePhone('')).toBe(false)
+  })
+
+  it('só a máscara, sem dígitos, não é enviável', () => {
+    expect(isSendablePhone('() -')).toBe(false)
+  })
+})
+
+describe('Feature 051 — toWhatsAppJid', () => {
+  it('monta o JID individual a partir do número normalizado', () => {
+    expect(toWhatsAppJid('55 (11) 8888-7777')).toBe('5511988887777@s.whatsapp.net')
+  })
+
+  it('sem o prefixo 55 o número passa intacto — a regra do 9 é brasileira', () => {
+    expect(toWhatsAppJid('(11) 8888-7777')).toBe('1188887777@s.whatsapp.net')
+  })
+})
