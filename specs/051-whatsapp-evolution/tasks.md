@@ -55,12 +55,12 @@ envio da clínica.
 
 ### Endurecimento do serviço (repo separado)
 
-- [ ] T003 [P] [braço] Criar `supabase/migrations/0002_hardening.sql` habilitando RLS nas 4 tabelas (`tenants`, `instances`, `outbound_messages`, `webhook_events`) com `REVOKE ALL` de `anon` e `authenticated` — hoje `tenants.api_key` está legível por qualquer um que use a anon key
-- [ ] T004 [P] [braço] Acrescentar `UNIQUE (tenant_id, external_id)` em `outbound_messages` na mesma migration e fazer `supabase/functions/send-message/index.ts` responder `200` com a mensagem existente em caso de conflito, em vez de enviar de novo
-- [ ] T005 [braço] Autenticar `supabase/functions/status-webhook/index.ts` por token secreto no path da URL registrada na Evolution, validado com comparação em tempo constante; gerar e persistir o token em `instances.webhook_token` e passá-lo em `setWebhook` (`_shared/evolution.ts`)
-- [ ] T005a [braço] Capturar o **motivo** da queda de conexão em `supabase/functions/status-webhook/index.ts` — hoje `status_reason` grava só `connection.update: ${state}`; persistir o código de motivo do payload da Evolution e expô-lo em `get-instances`, para o Clinni distinguir "bloqueado" de "apenas desconectado" (FR-012a)
-- [ ] T006 [braço] Corrigir o lookup do ACK em `supabase/functions/status-webhook/index.ts:71`: filtrar por instância junto de `evolution_message_id` (o índice unique é `(instance_id, evolution_message_id)`; hoje o `.maybeSingle()` erra e descarta o ACK em silêncio quando há colisão de `keyId`)
-- [ ] T007 [braço] Criar `supabase/functions/provision-tenant/index.ts` conforme `contracts/whatsapp-service.md` §1 — autenticado por `x-master-key`, idempotente por `slug`, sem rotacionar a chave em rechamada
+- [X] T003 [P] [braço] Criar `supabase/migrations/0002_hardening.sql` habilitando RLS nas 4 tabelas (`tenants`, `instances`, `outbound_messages`, `webhook_events`) com `REVOKE ALL` de `anon` e `authenticated` — hoje `tenants.api_key` está legível por qualquer um que use a anon key
+- [X] T004 [P] [braço] Acrescentar `UNIQUE (tenant_id, external_id)` em `outbound_messages` na mesma migration e fazer `supabase/functions/send-message/index.ts` responder `200` com a mensagem existente em caso de conflito, em vez de enviar de novo
+- [X] T005 [braço] Autenticar `supabase/functions/status-webhook/index.ts` por token secreto no path da URL registrada na Evolution, validado com comparação em tempo constante; gerar e persistir o token em `instances.webhook_token` e passá-lo em `setWebhook` (`_shared/evolution.ts`)
+- [X] T005a [braço] Capturar o **motivo** da queda de conexão em `supabase/functions/status-webhook/index.ts` — hoje `status_reason` grava só `connection.update: ${state}`; persistir o código de motivo do payload da Evolution e expô-lo em `get-instances`, para o Clinni distinguir "bloqueado" de "apenas desconectado" (FR-012a)
+- [X] T006 [braço] Corrigir o lookup do ACK em `supabase/functions/status-webhook/index.ts:71`: filtrar por instância junto de `evolution_message_id` (o índice unique é `(instance_id, evolution_message_id)`; hoje o `.maybeSingle()` erra e descarta o ACK em silêncio quando há colisão de `keyId`)
+- [X] T007 [braço] Criar `supabase/functions/provision-tenant/index.ts` conforme `contracts/whatsapp-service.md` §1 — autenticado por `x-master-key`, idempotente por `slug`, sem rotacionar a chave em rechamada
 - [ ] T008 [braço] Aplicar a migration e deployar as funções alteradas (`send-message`, `status-webhook`, `provision-tenant`) com `--no-verify-jwt`, confirmando que `verify_jwt` continuou `false` em `supabase/config.toml`
 
 ### Esquema e cápsula (Clinni)

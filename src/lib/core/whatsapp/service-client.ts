@@ -58,11 +58,18 @@ export interface ProvisionResult {
 }
 
 /**
- * Cria (ou recupera) a clínica no serviço de envio. Idempotente por slug:
- * rechamar devolve o tenant existente SEM rotacionar a chave — importante,
- * porque rotacionar invalidaria a `api_key_enc` já gravada aqui.
+ * Cria (ou recupera) a clínica no serviço de envio.
+ *
+ * Idempotente por `externalTenantId` (o `tenants.id` daqui), **não** por slug:
+ * rechamar devolve as mesmas credenciais SEM rotacionar a chave, porque
+ * rotacionar invalidaria em silêncio a `api_key_enc` já gravada.
+ *
+ * A identidade ser o uuid, e não o slug, é o que impede uma clínica de assumir
+ * a conexão de outra — o slug é derivado do nome e portanto adivinhável. Slug
+ * que já pertence a outro tenant responde 409.
  */
 export async function provisionTenant(args: {
+  externalTenantId: string
   slug: string
   name: string
   callbackUrl: string

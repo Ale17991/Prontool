@@ -15,16 +15,24 @@ browser.
 Headers: `Content-Type: application/json`, `x-master-key: <WHATSAPP_SERVICE_MASTER_KEY>`
 
 ```jsonc
-{ "slug": "clinica-exemplo", "name": "Clínica Exemplo",
+{ "externalTenantId": "<uuid de tenants.id no Clinni>",
+  "slug": "clinica-exemplo", "name": "Clínica Exemplo",
   "callbackUrl": "https://app.clinnipro.com.br/api/webhooks/whatsapp-status" }
 ```
 
 Resposta `200`:
 ```jsonc
-{ "apiKey": "ck_...", "slug": "clinica-exemplo", "callbackSecret": "..." }
+{ "apiKey": "ck_...", "slug": "clinica-exemplo", "callbackSecret": "...",
+  "alreadyProvisioned": false }
 ```
 
-- Idempotente por `slug`: chamar de novo devolve o tenant existente, **sem** rotacionar a chave.
+- Idempotente por **`externalTenantId`**, não por slug: chamar de novo devolve o tenant
+  existente, **sem** rotacionar a chave (rotacionar invalidaria a `api_key_enc` já gravada).
+- A identidade é o uuid justamente porque o **slug é adivinhável**. Se fosse a chave da
+  idempotência, a clínica X pedindo o slug da clínica Y receberia a `api_key` de Y e passaria a
+  mandar mensagem pelo número de Y. Slug já pertencente a outro tenant responde `409`.
+- `callbackUrl` é o único campo que a rechamada atualiza, e precisa ser `https` — ele carrega o
+  `callbackSecret` como Bearer.
 - `apiKey` e `callbackSecret` são gravados cifrados em `tenant_whatsapp_config` e no segredo da
   rota de callback. Nunca logados, nunca devolvidos em rota do Clinni.
 - Erros: `401` (master key inválida), `409` (slug tomado por outro tenant).
