@@ -184,13 +184,13 @@ confirmar que só o e-mail saiu.
 
 ### Tests for User Story 5
 
-- [ ] T044 [P] [US5] Teste de integração em `tests/integration/reminder-optout-per-channel.spec.ts`: recusa de WhatsApp bloqueia só o WhatsApp; recusa mestra (`reminders_opt_in = FALSE`) bloqueia todos os canais
+- [X] T044 [P] [US5] Teste de integração em `tests/integration/reminder-optout-per-channel.spec.ts`: recusa de WhatsApp bloqueia só o WhatsApp; recusa mestra (`reminders_opt_in = FALSE`) bloqueia todos os canais
 
 ### Implementation for User Story 5
 
-- [ ] T045 [US5] Estender `src/lib/core/reminders/opt-in.ts` com leitura e escrita de `reminders_whatsapp_opt_in`, mantendo `reminders_opt_in` como mestre
-- [ ] T046 [US5] Acrescentar o controle de recusa por canal no cadastro do paciente em `src/app/(dashboard)/operacao/pacientes/[id]/_components/cadastro-tab.tsx`
-- [ ] T047 [US5] Aplicar a recusa na revalidação JIT de `send-one-whatsapp.ts`, finalizando como `skipped_opt_out_channel`
+- [X] T045 [US5] Estender `src/lib/core/reminders/opt-in.ts` com leitura e escrita de `reminders_whatsapp_opt_in`, mantendo `reminders_opt_in` como mestre
+- [X] T046 [US5] Acrescentar o controle de recusa por canal no cadastro do paciente em `src/app/(dashboard)/operacao/pacientes/[id]/_components/cadastro-tab.tsx`
+- [X] T047 [US5] Aplicar a recusa na revalidação JIT de `send-one-whatsapp.ts`, finalizando como `skipped_opt_out_channel`
 
 **Checkpoint**: todas as user stories funcionam de forma independente.
 

@@ -2,23 +2,47 @@
 
 import { useState, useTransition } from 'react'
 import { BellOff, BellRing } from 'lucide-react'
-import { setPatientReminderOptIn } from '@/app/(dashboard)/configuracoes/lembretes/actions'
+import {
+  setPatientReminderOptIn,
+  setPatientWhatsAppReminderOptIn,
+} from '@/app/(dashboard)/configuracoes/lembretes/actions'
 
 interface RemindersOptInToggleProps {
   patientId: string
   initialOptIn: boolean
   /** Se o admin tem permissão para alternar; false = render read-only. */
   canEdit: boolean
+  /** Feature 051 — recusa específica do WhatsApp. */
+  initialWhatsAppOptIn?: boolean
+  /** Só mostra o controle de canal se a clínica tiver o canal disponível. */
+  whatsappDisponivel?: boolean
 }
 
 export function RemindersOptInToggle({
   patientId,
   initialOptIn,
   canEdit,
+  initialWhatsAppOptIn = true,
+  whatsappDisponivel = false,
 }: RemindersOptInToggleProps) {
   const [pending, startTransition] = useTransition()
   const [optIn, setOptIn] = useState(initialOptIn)
+  const [waOptIn, setWaOptIn] = useState(initialWhatsAppOptIn)
   const [error, setError] = useState<string | null>(null)
+
+  function toggleWhatsApp() {
+    if (!canEdit || pending) return
+    const next = !waOptIn
+    setError(null)
+    setWaOptIn(next) // otimista
+    startTransition(async () => {
+      const result = await setPatientWhatsAppReminderOptIn(patientId, next)
+      if (!result.ok) {
+        setWaOptIn(!next)
+        setError(`Erro ao salvar (${result.error})`)
+      }
+    })
+  }
 
   function toggle() {
     if (!canEdit || pending) return
@@ -69,6 +93,36 @@ export function RemindersOptInToggle({
           </button>
         ) : null}
       </div>
+      {/*
+        Feature 051 — recusa POR CANAL. Só aparece quando a clínica tem o canal
+        disponível, e some quando o paciente já recusou tudo: oferecer "não
+        quero WhatsApp" a quem não recebe nada seria confuso.
+      */}
+      {whatsappDisponivel && optIn && (
+        <div className="mt-3 flex items-start justify-between gap-3 border-t border-border pt-3">
+          <div>
+            <div className="text-sm font-medium text-slate-900">
+              {waOptIn ? 'Aceita WhatsApp' : 'Não quer WhatsApp'}
+            </div>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {waOptIn
+                ? 'Recebe os lembretes também por WhatsApp.'
+                : 'Continua recebendo por e-mail — a recusa vale só para o WhatsApp.'}
+            </p>
+          </div>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={toggleWhatsApp}
+              disabled={pending}
+              className="shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {pending ? '...' : waOptIn ? 'Não enviar' : 'Voltar a enviar'}
+            </button>
+          ) : null}
+        </div>
+      )}
+
       {error && (
         <div role="alert" className="mt-2 text-xs text-destructive">
           {error}

@@ -18,7 +18,7 @@ import {
   updateReminderConfig,
   type ReminderConfigUpdate,
 } from '@/lib/core/reminders/config'
-import { setPatientOptIn } from '@/lib/core/reminders/opt-in'
+import { setPatientOptIn, setPatientWhatsAppOptIn } from '@/lib/core/reminders/opt-in'
 
 interface ActionOk {
   ok: true
@@ -105,6 +105,46 @@ export async function setPatientReminderOptIn(
 
   try {
     await setPatientOptIn(supabase, patientId, auth.tenantId, optIn)
+    revalidatePath(`/operacao/pacientes/${patientId}`)
+    return { ok: true }
+  } catch (err) {
+    return {
+      ok: false,
+      error: 'INTERNAL_ERROR',
+      message: err instanceof Error ? err.message : 'unknown',
+    }
+  }
+}
+
+/**
+ * Feature 051 — US5 (FR-016) — recusa APENAS do canal WhatsApp.
+ *
+ * Separada da action mestra de propósito: recusar WhatsApp não pode, por
+ * acidente, cancelar o e-mail. São consentimentos distintos, e em LGPD tratá-los
+ * como um só é assumir permissão que o paciente não deu.
+ *
+ * Mesmo RBAC do opt-out mestre (`reminders.config`): quem já podia registrar a
+ * recusa geral registra a do canal.
+ */
+export async function setPatientWhatsAppReminderOptIn(
+  patientId: string,
+  optIn: boolean,
+): Promise<ActionOk | ActionErr> {
+  const auth = await authorize()
+  if (!auth.ok) return auth.response
+
+  if (typeof patientId !== 'string' || patientId.length === 0) {
+    return {
+      ok: false,
+      error: 'INVALID_PAYLOAD',
+      details: [{ field: 'patientId', message: 'patientId obrigatório' }],
+    }
+  }
+
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+
+  try {
+    await setPatientWhatsAppOptIn(supabase, patientId, auth.tenantId, optIn)
     revalidatePath(`/operacao/pacientes/${patientId}`)
     return { ok: true }
   } catch (err) {

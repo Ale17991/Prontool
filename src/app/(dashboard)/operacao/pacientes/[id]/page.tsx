@@ -187,15 +187,23 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
     patientId: params.id,
   }).catch(safeFail<typeof paymentsFallback>('payments', paymentsFallback))
 
+  // Preenchido junto do opt-in mestre, na mesma query — não vale um round-trip
+  // a mais só para um booleano.
+  let remindersWhatsAppOptIn = true
   const remindersOptInPromise: Promise<boolean> = (async () => {
     try {
       const res = await typedClient
         .from('patients')
-        .select('reminders_opt_in')
+        .select('reminders_opt_in, reminders_whatsapp_opt_in')
         .eq('id', params.id)
         .eq('tenant_id', session.tenantId)
         .maybeSingle()
-      const row = res.data as { reminders_opt_in: boolean | null } | null
+      const row = res.data as {
+        reminders_opt_in: boolean | null
+        reminders_whatsapp_opt_in: boolean | null
+      } | null
+      // Feature 051 — o consentimento vira par: mestre + canal.
+      remindersWhatsAppOptIn = row?.reminders_whatsapp_opt_in !== false
       return row?.reminders_opt_in !== false
     } catch {
       return true
@@ -488,6 +496,8 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
           healthPlansList,
           doctorsList,
           remindersOptIn,
+          remindersWhatsAppOptIn,
+          whatsappDisponivel: ent.hasModule('whatsapp'),
           anamnesePrefill,
           canEditPatient,
           canConfigReminders,

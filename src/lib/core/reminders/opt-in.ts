@@ -45,3 +45,62 @@ export async function setPatientOptIn(
     throw new Error(`setPatientOptIn failed: ${error.message}`)
   }
 }
+
+// ---------------------------------------------------------------------------
+// Feature 051 — consentimento POR CANAL (FR-016)
+//
+// `reminders_opt_in` continua sendo o MESTRE: FALSE nele cala todos os canais.
+// `reminders_whatsapp_opt_in` só é consultado quando o mestre é TRUE — recusar
+// WhatsApp não pode, sozinho, cancelar o e-mail. Em LGPD isso importa: são
+// consentimentos distintos, e tratá-los como um só é assumir permissão que o
+// paciente não deu (ou remover uma que ele deu).
+// ---------------------------------------------------------------------------
+
+export interface PatientReminderConsent {
+  /** Mestre — FALSE cala todos os canais. */
+  optIn: boolean
+  /** Específico do WhatsApp. Só tem efeito quando o mestre é TRUE. */
+  whatsappOptIn: boolean
+}
+
+export async function getPatientConsent(
+  supabase: SupabaseClient<Database>,
+  patientId: string,
+  tenantId: string,
+): Promise<PatientReminderConsent> {
+  const { data, error } = await supabase
+    .from('patients')
+    .select('reminders_opt_in, reminders_whatsapp_opt_in')
+    .eq('id', patientId)
+    .eq('tenant_id', tenantId)
+    .maybeSingle()
+  if (error) throw new Error(`getPatientConsent failed: ${error.message}`)
+
+  const row = data as {
+    reminders_opt_in: boolean | null
+    reminders_whatsapp_opt_in: boolean | null
+  } | null
+  // Default TRUE nos dois: ausência de registro é "nunca disse não", não
+  // "recusou". Espelha o default da coluna.
+  return {
+    optIn: row?.reminders_opt_in !== false,
+    whatsappOptIn: row?.reminders_whatsapp_opt_in !== false,
+  }
+}
+
+/** Recusa (ou volta a aceitar) APENAS o canal WhatsApp. */
+export async function setPatientWhatsAppOptIn(
+  supabase: SupabaseClient<Database>,
+  patientId: string,
+  tenantId: string,
+  optIn: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('patients')
+    .update({ reminders_whatsapp_opt_in: optIn } as never)
+    .eq('id', patientId)
+    .eq('tenant_id', tenantId)
+  if (error) {
+    throw new Error(`setPatientWhatsAppOptIn failed: ${error.message}`)
+  }
+}

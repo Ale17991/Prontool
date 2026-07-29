@@ -53,6 +53,8 @@ interface Props {
   healthPlansList: HealthPlanOption[]
   doctorsList: DoctorOption[]
   remindersOptIn: boolean
+  remindersWhatsAppOptIn: boolean
+  whatsappDisponivel: boolean
   anamnesePrefill: AnamnesePatientPrefill | undefined
   canEditPatient: boolean
   canConfigReminders: boolean
@@ -88,6 +90,8 @@ export function CadastroTab({
   healthPlansList,
   doctorsList,
   remindersOptIn,
+  remindersWhatsAppOptIn,
+  whatsappDisponivel,
   anamnesePrefill,
   canEditPatient,
   canConfigReminders,
@@ -137,6 +141,8 @@ export function CadastroTab({
       <RemindersOptInToggle
         patientId={patientId}
         initialOptIn={remindersOptIn}
+        initialWhatsAppOptIn={remindersWhatsAppOptIn}
+        whatsappDisponivel={whatsappDisponivel}
         canEdit={canConfigReminders}
       />
 
