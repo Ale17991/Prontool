@@ -32,12 +32,17 @@ export const ReminderConfigUpdateSchema = z
     windowEnd: timeSchema,
     templateSubject: z.string().max(200).nullable(),
     templateBody: z.string().max(10000).nullable(),
-    // Feature 051 — canais. Não-vazio: desligar tudo é o que o toggle
-    // `enabled` faz; um array vazio seria um segundo jeito de dizer a mesma
-    // coisa, e os dois poderiam divergir.
-    channels: z.array(z.enum(['email', 'whatsapp'])).min(1).max(2),
-    whatsappFallbackEmail: z.boolean(),
-    templateWhatsApp: z.string().max(4000).nullable(),
+    // Feature 051 — canais. OPCIONAIS de propósito: omitido significa "não
+    // mexe", não "usa o default". Com `.default()` um save vindo de qualquer
+    // caller que não conheça esses campos resetaria `channels` para {email} e
+    // desligaria o WhatsApp da clínica em SILÊNCIO.
+    //
+    // Não-vazio quando presente: desligar tudo é o que o toggle `enabled` faz;
+    // um array vazio seria um segundo jeito de dizer a mesma coisa, e os dois
+    // poderiam divergir.
+    channels: z.array(z.enum(['email', 'whatsapp'])).min(1).max(2).optional(),
+    whatsappFallbackEmail: z.boolean().optional(),
+    templateWhatsApp: z.string().max(4000).nullable().optional(),
   })
   .refine((v) => v.windowEnd > v.windowStart, {
     message: 'Janela inválida: fim deve ser maior que início.',
@@ -139,9 +144,14 @@ export async function updateReminderConfig(
       reminder_window_end: input.windowEnd,
       reminder_template_subject: input.templateSubject,
       reminder_template_body: input.templateBody,
-      reminder_channels: input.channels,
-      reminder_whatsapp_fallback_email: input.whatsappFallbackEmail,
-      reminder_template_whatsapp: input.templateWhatsApp,
+      // Só entram no UPDATE quando o caller realmente mandou (ver o schema).
+      ...(input.channels !== undefined ? { reminder_channels: input.channels } : {}),
+      ...(input.whatsappFallbackEmail !== undefined
+        ? { reminder_whatsapp_fallback_email: input.whatsappFallbackEmail }
+        : {}),
+      ...(input.templateWhatsApp !== undefined
+        ? { reminder_template_whatsapp: input.templateWhatsApp }
+        : {}),
     } as never)
     .eq('tenant_id', tenantId)
   if (error) {

@@ -198,10 +198,10 @@ confirmar que só o e-mail saiu.
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T048 [P] Acrescentar a seção da feature 051 no `CLAUDE.md` (padrão das features anteriores): por que WhatsApp não está no registry de adapters, por que a entrega vai em tabela separada, e o risco de bloqueio aceito
-- [ ] T049 [P] Documentar no `HANDOFF.md` do braço as mudanças de contrato (token do webhook, `provision-tenant`, idempotência por `external_id`)
-- [ ] T050 Rodar `pnpm typecheck` e `pnpm lint:auth` e corrigir o que aparecer
-- [ ] T051 🔒 Rodar `pnpm test` e re-semear com `pnpm seed:demo`
+- [X] T048 [P] Acrescentar a seção da feature 051 no `CLAUDE.md` (padrão das features anteriores): por que WhatsApp não está no registry de adapters, por que a entrega vai em tabela separada, e o risco de bloqueio aceito
+- [X] T049 [P] Documentar no `HANDOFF.md` do braço as mudanças de contrato (token do webhook, `provision-tenant`, idempotência por `external_id`)
+- [X] T050 Rodar `pnpm typecheck` e `pnpm lint:auth` e corrigir o que aparecer
+- [X] T051 🔒 Rodar `pnpm test` e re-semear com `pnpm seed:demo`
 - [ ] T052 Percorrer o `quickstart.md` de ponta a ponta com um número real, incluindo os 5 cenários da tabela da seção 7
 - [ ] T053 Confirmar que o SC-004 (≥ 70% dos lembretes entregues lidos em 24h) é apurável com os dados de `whatsapp_delivery_events` — a consulta que apura isso deve existir antes de a feature ser considerada validada
 

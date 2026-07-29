@@ -158,3 +158,41 @@ porque linhas globais são append-only); cada resultado é uma linha append-only
   resultado gravemente alterado.
 
 <!-- MANUAL ADDITIONS END -->
+
+## Lembretes por WhatsApp (feature 051)
+
+O canal WhatsApp do motor de lembretes (018). O envio **não** acontece aqui: passa
+por um **serviço separado** (repo `Homio-CRM/clinni-whatsapp`, projeto Supabase
+próprio `clinni-whatsapp` em sa-east-1) que fala com a Evolution API. Um número
+por clínica, conectado por QR em autoatendimento.
+
+- **WhatsApp NÃO está no registry de `IntegrationAdapter`.** Aquele contrato é
+  event-bus (`handleDomainEvent`), e lembrete é request/response disparado pelo
+  cron horas depois — o adapter ficaria com o método vazio, e a tela genérica de
+  `/configuracoes/integracoes/[provider]` não sabe renderizar um QR. Seguimos o
+  precedente da Memed (026 D1): cápsula própria em `src/lib/core/whatsapp/` com
+  tabela dedicada.
+- **A confirmação de entrega vive em `whatsapp_delivery_events`**, append-only, e
+  NÃO em `appointment_reminders`: o trigger `enforce_reminders_status_transition`
+  (0094) só permite `queued → terminal`. "Status atual" é regra de **leitura**,
+  resolvida por precedência de rank (`sent < delivered < read < error`) — nunca
+  pelo evento mais recente, porque confirmações chegam fora de ordem.
+- **Espaçamento via QStash com delay crescente, por clínica** (`process-batch`).
+  Não é cron mais frequente: acima de diário trava TODOS os deploys no Hobby.
+  Sem `QSTASH_TOKEN` o ciclo cai num envio inline de lote pequeno (dev).
+- **Idempotência ponta a ponta**: o `externalId` mandado ao serviço é o **id do
+  lembrete**, e o serviço tem `UNIQUE (tenant_id, external_id)`. Retentativa não
+  duplica mensagem.
+- **Consentimento é hierárquico**: `patients.reminders_opt_in` é o mestre e cala
+  todos os canais; `reminders_whatsapp_opt_in` só é consultado quando o mestre é
+  TRUE. São manifestações distintas em LGPD.
+- **Rollout por módulo** `whatsapp` (`ent.hasModule`), ligável por clínica no
+  `/admin`. O gate está na PÁGINA também, não só no card do hub.
+- **Migrations**: `0185_whatsapp_reminders.sql` (tabelas + colunas de canal) e
+  `0186_whatsapp_callback_secret.sql` (Bearer do callback, por clínica).
+- **Risco aceito**: Evolution/Baileys é não-oficial. Se o número **da clínica**
+  for bloqueado, o problema é de suporte nosso, não da Meta. Decisão consciente
+  de 2026-07-28. A única mitigação implementada é o espaçamento.
+- **Testes**: `setup.ts` SOBRESCREVE `WHATSAPP_SERVICE_URL` para um host fake. O
+  `.env.local` de desenvolvimento aponta para o serviço de **produção**, e sem o
+  override um teste de integração mandaria mensagem de verdade.
