@@ -71,15 +71,19 @@ export function HistoryTable({ rows, entregas = {} }: HistoryTableProps) {
   const [resending, setResending] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
 
-  function reenviar(appointmentId: string) {
+  // O canal PRECISA ir junto: sem ele a rota assume e-mail (default de
+  // compatibilidade), e reenviar uma linha de WhatsApp mandaria um e-mail —
+  // silenciosamente, com a tela dizendo "reenviado com sucesso".
+  function reenviar(appointmentId: string, canal: string) {
     if (pending) return
     setResending(appointmentId)
     setFeedback(null)
     startTransition(async () => {
       try {
-        const res = await fetch(`/api/lembretes/${encodeURIComponent(appointmentId)}/reenviar`, {
-          method: 'POST',
-        })
+        const res = await fetch(
+          `/api/lembretes/${encodeURIComponent(appointmentId)}/reenviar?canal=${encodeURIComponent(canal)}`,
+          { method: 'POST' },
+        )
         const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
         if (!res.ok) {
           const code = (json.error as string) ?? 'UNKNOWN'
@@ -187,7 +191,7 @@ export function HistoryTable({ rows, entregas = {} }: HistoryTableProps) {
                   <td className="px-3 py-2 text-right">
                     <button
                       type="button"
-                      onClick={() => reenviar(r.appointmentId)}
+                      onClick={() => reenviar(r.appointmentId, r.channel)}
                       disabled={pending}
                       title="Reenviar lembrete"
                       className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
