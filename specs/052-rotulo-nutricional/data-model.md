@@ -1,6 +1,6 @@
 # Data Model — 052 Rótulo Nutricional
 
-Migration nova: **`0186_nutrition_labels.sql`** (a última é a `0185` da feature 051).
+Migration nova: **`0187_nutrition_labels.sql`** (a última é a `0186` da feature 051).
 
 Padrões herdados: `tenant_id` + RLS em tudo que é da clínica; `log_audit_event` nas escritas; nada de catálogo global novo (research D2).
 

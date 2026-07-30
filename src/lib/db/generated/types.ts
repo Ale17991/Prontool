@@ -3573,6 +3573,123 @@ export type Database = {
           },
         ]
       }
+      nutrition_label_ingredients: {
+        Row: {
+          food_id: string
+          grams: number
+          id: string
+          label_id: string
+          position: number
+          tenant_id: string
+        }
+        Insert: {
+          food_id: string
+          grams: number
+          id?: string
+          label_id: string
+          position?: number
+          tenant_id: string
+        }
+        Update: {
+          food_id?: string
+          grams?: number
+          id?: string
+          label_id?: string
+          position?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_label_ingredients_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "foods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_label_ingredients_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "nutrition_labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_label_ingredients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutrition_labels: {
+        Row: {
+          allergens_text: string | null
+          basis: string
+          client_name: string | null
+          created_at: string
+          created_by_user_id: string | null
+          household_measure: string | null
+          id: string
+          ingredients_text: string | null
+          manual_values: Json
+          normative_version: string
+          portion_size: number
+          portions_per_package: number | null
+          product_name: string
+          storage_text: string | null
+          tenant_id: string
+          total_yield: number
+          updated_at: string
+        }
+        Insert: {
+          allergens_text?: string | null
+          basis?: string
+          client_name?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          household_measure?: string | null
+          id?: string
+          ingredients_text?: string | null
+          manual_values?: Json
+          normative_version: string
+          portion_size: number
+          portions_per_package?: number | null
+          product_name: string
+          storage_text?: string | null
+          tenant_id: string
+          total_yield: number
+          updated_at?: string
+        }
+        Update: {
+          allergens_text?: string | null
+          basis?: string
+          client_name?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          household_measure?: string | null
+          id?: string
+          ingredients_text?: string | null
+          manual_values?: Json
+          normative_version?: string
+          portion_size?: number
+          portions_per_package?: number | null
+          product_name?: string
+          storage_text?: string | null
+          tenant_id?: string
+          total_yield?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_labels_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ophthalmology_exams: {
         Row: {
           av_od_cc: string | null

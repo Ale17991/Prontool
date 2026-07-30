@@ -26,10 +26,10 @@ Projeto único Next.js: `src/` e `tests/` na raiz; migrations em `supabase/migra
 
 **Purpose**: fixar os números da norma antes de qualquer cálculo depender deles.
 
-- [ ] T001 Criar `src/lib/core/nutrition/labeling/reference.ts` com `NORMATIVE_VERSION = 'IN 75/2020 + RDC 429/2020'`, a interface `LabelNutrientDef` e a constante `LABEL_NUTRIENTS` com os **10 nutrientes obrigatórios na ordem da norma** — valor energético (kcal), carboidratos totais, açúcares totais, açúcares adicionados, proteínas, gorduras totais, gorduras saturadas, gorduras trans, fibra alimentar, sódio. Cada um com `dv` (VDR do Anexo II), `insignificantBelow` (Anexo IV), `unit` e `source` (de onde sai na base: campo direto de `foods` ou chave do JSONB de micronutrientes). Valores exatos em `research.md` D1. **Açúcares totais MUST ter `dv: null`** — a norma não estabelece VDR para eles.
-- [ ] T002 [P] No mesmo `reference.ts`, adicionar `FRONT_OF_PACK` com os 6 limites da RDC 429/2020 (açúcares adicionados 15 g/7,5 g · gorduras saturadas 6 g/3 g · sódio 600 mg/300 mg, por 100 g sólido / 100 mL líquido).
-- [ ] T003 [P] Mapear cada nutriente do rótulo para a origem real na base: energia/proteína/carboidrato/gordura/fibra são colunas de `foods`; **gorduras saturadas (`ag_saturados_g`), trans (`ag_trans_g`), açúcares totais (`acucar_total_g`) e adicionados (`acucar_adicao_g`) vêm do JSONB `micronutrients`**, importados na 049 — conferir as chaves contra `src/lib/core/nutrition/micronutrients.ts` e falhar o build se alguma não existir.
-- [ ] T004 [P] Teste unitário em `tests/unit/labeling-reference.spec.ts`: os 10 nutrientes presentes e sem duplicata; `order` único; toda `source` resolve para coluna existente de `foods` ou chave existente do catálogo de micronutrientes; açúcares totais com `dv: null`; nenhum outro nutriente com `dv` nulo; os 6 limites de `FRONT_OF_PACK` presentes e positivos.
+- [X] T001 Criar `src/lib/core/nutrition/labeling/reference.ts` com `NORMATIVE_VERSION = 'IN 75/2020 + RDC 429/2020'`, a interface `LabelNutrientDef` e a constante `LABEL_NUTRIENTS` com os **10 nutrientes obrigatórios na ordem da norma** — valor energético (kcal), carboidratos totais, açúcares totais, açúcares adicionados, proteínas, gorduras totais, gorduras saturadas, gorduras trans, fibra alimentar, sódio. Cada um com `dv` (VDR do Anexo II), `insignificantBelow` (Anexo IV), `unit` e `source` (de onde sai na base: campo direto de `foods` ou chave do JSONB de micronutrientes). Valores exatos em `research.md` D1. **Açúcares totais MUST ter `dv: null`** — a norma não estabelece VDR para eles.
+- [X] T002 [P] No mesmo `reference.ts`, adicionar `FRONT_OF_PACK` com os 6 limites da RDC 429/2020 (açúcares adicionados 15 g/7,5 g · gorduras saturadas 6 g/3 g · sódio 600 mg/300 mg, por 100 g sólido / 100 mL líquido).
+- [X] T003 [P] Mapear cada nutriente do rótulo para a origem real na base: energia/proteína/carboidrato/gordura/fibra são colunas de `foods`; **gorduras saturadas (`ag_saturados_g`), trans (`ag_trans_g`), açúcares totais (`acucar_total_g`) e adicionados (`acucar_adicao_g`) vêm do JSONB `micronutrients`**, importados na 049 — conferir as chaves contra `src/lib/core/nutrition/micronutrients.ts` e falhar o build se alguma não existir.
+- [X] T004 [P] Teste unitário em `tests/unit/labeling-reference.spec.ts`: os 10 nutrientes presentes e sem duplicata; `order` único; toda `source` resolve para coluna existente de `foods` ou chave existente do catálogo de micronutrientes; açúcares totais com `dv: null`; nenhum outro nutriente com `dv` nulo; os 6 limites de `FRONT_OF_PACK` presentes e positivos.
 
 ---
 
@@ -39,11 +39,11 @@ Projeto único Next.js: `src/` e `tests/` na raiz; migrations em `supabase/migra
 
 **⚠️ CRÍTICO**: nenhuma user story começa antes desta fase fechar.
 
-- [ ] T005 Criar `supabase/migrations/0186_nutrition_labels.sql` — tabela `public.nutrition_labels` conforme `data-model.md` §1: `tenant_id`, `product_name`, `client_name`, `basis` CHECK (`solido`,`liquido`), `total_yield` CHECK > 0, `portion_size` CHECK > 0, `household_measure`, `portions_per_package`, `ingredients_text`, `allergens_text`, `storage_text`, `manual_values JSONB DEFAULT '{}'`, `normative_version`, autoria e timestamps. **CHECK `portion_size <= total_yield`**. Índice `(tenant_id, updated_at DESC)`. RLS: SELECT same-tenant; escrita `admin`/`profissional_saude`. Trigger `touch_updated_at`. Idempotente.
-- [ ] T006 Na mesma migration, tabela `public.nutrition_label_ingredients` (`label_id` → labels ON DELETE CASCADE, `tenant_id`, `food_id` → foods, `grams` CHECK > 0, `position`), índice `(label_id, position)`, mesma RLS da tabela pai.
-- [ ] T007 Rodar `npx supabase migration up --local` e `pnpm supabase:gen-types` para aplicar a 0186 e regenerar `src/lib/db/generated/types.ts`.
-- [ ] T008 [P] Implementar `src/lib/core/nutrition/labeling/rounding.ts` — puro, sem I/O. `roundForLabel(value, unit)` aplica o **Anexo III**: ≥10 arredonda pela 1ª decimal e expressa inteiro; 1 a <10 arredonda pela 2ª decimal e expressa inteiro se a 1ª for 0, senão 1 decimal; <1 em gramas arredonda pela 2ª decimal com 1 decimal; <1 em mg/µg arredonda pela 3ª decimal, com 1 decimal se a 2ª for 0, senão 2. E `isInsignificant(value, nutrient)` aplica o **Anexo IV** (energia ≤4 kcal, carboidratos/açúcares totais/proteínas/gorduras totais/fibras ≤0,5 g, saturadas/trans ≤0,1 g, sódio ≤5 mg) → declara `0`.
-- [ ] T009 [P] Teste unitário em `tests/unit/labeling-rounding.spec.ts` com casos de fronteira de cada faixa do Anexo III (9,94 · 9,95 · 10,4 · 10,5 · 0,94 · 0,95) e de cada limite do Anexo IV. **Asserção central**: `isInsignificant` devolve o zero DECLARATÓRIO, que é um estado distinto de dado desconhecido — os dois nunca se confundem.
+- [X] T005 Criar `supabase/migrations/0187_nutrition_labels.sql` — tabela `public.nutrition_labels` conforme `data-model.md` §1: `tenant_id`, `product_name`, `client_name`, `basis` CHECK (`solido`,`liquido`), `total_yield` CHECK > 0, `portion_size` CHECK > 0, `household_measure`, `portions_per_package`, `ingredients_text`, `allergens_text`, `storage_text`, `manual_values JSONB DEFAULT '{}'`, `normative_version`, autoria e timestamps. **CHECK `portion_size <= total_yield`**. Índice `(tenant_id, updated_at DESC)`. RLS: SELECT same-tenant; escrita `admin`/`profissional_saude`. Trigger `touch_updated_at`. Idempotente.
+- [X] T006 Na mesma migration, tabela `public.nutrition_label_ingredients` (`label_id` → labels ON DELETE CASCADE, `tenant_id`, `food_id` → foods, `grams` CHECK > 0, `position`), índice `(label_id, position)`, mesma RLS da tabela pai.
+- [X] T007 Rodar `npx supabase migration up --local` e `pnpm supabase:gen-types` para aplicar a 0187 e regenerar `src/lib/db/generated/types.ts`.
+- [X] T008 [P] Implementar `src/lib/core/nutrition/labeling/rounding.ts` — puro, sem I/O. `roundForLabel(value, unit)` aplica o **Anexo III**: ≥10 arredonda pela 1ª decimal e expressa inteiro; 1 a <10 arredonda pela 2ª decimal e expressa inteiro se a 1ª for 0, senão 1 decimal; <1 em gramas arredonda pela 2ª decimal com 1 decimal; <1 em mg/µg arredonda pela 3ª decimal, com 1 decimal se a 2ª for 0, senão 2. E `isInsignificant(value, nutrient)` aplica o **Anexo IV** (energia ≤4 kcal, carboidratos/açúcares totais/proteínas/gorduras totais/fibras ≤0,5 g, saturadas/trans ≤0,1 g, sódio ≤5 mg) → declara `0`.
+- [X] T009 [P] Teste unitário em `tests/unit/labeling-rounding.spec.ts` com casos de fronteira de cada faixa do Anexo III (9,94 · 9,95 · 10,4 · 10,5 · 0,94 · 0,95) e de cada limite do Anexo IV. **Asserção central**: `isInsignificant` devolve o zero DECLARATÓRIO, que é um estado distinto de dado desconhecido — os dois nunca se confundem.
 
 **Checkpoint**: schema aplicado e as regras da norma implementadas e testadas.
 
@@ -146,7 +146,7 @@ Projeto único Next.js: `src/` e `tests/` na raiz; migrations em `supabase/migra
 - [ ] T036 [P] Atualizar o `CLAUDE.md` com a arquitetura da 052 (a seção "Active Technologies" já foi atualizada pelo script do plano).
 - [ ] T037 Executar o roteiro de `quickstart.md` ponta a ponta com o app rodando — **incluindo abrir a tela com olho humano**, que é a dívida recorrente das features de nutrição (046, 047, 049 e 050 foram a produção sem isso).
 - [ ] T038 Validação com a nutricionista: gerar o rótulo de um produto real que ela já tenha rotulado e comparar linha a linha com o que foi para a embalagem.
-- [ ] T039 Deploy: mergear em `master` + push (a integração Supabase aplica a 0186 sozinha — **não** aplicar à mão) e ligar `nutri_rotulo` no `/admin` para as clínicas de nutrição. Se der `MIDDLEWARE_INVOCATION_FAILED`, redeploy na Vercel **sem** cache de build.
+- [ ] T039 Deploy: mergear em `master` + push (a integração Supabase aplica a 0187 sozinha — **não** aplicar à mão) e ligar `nutri_rotulo` no `/admin` para as clínicas de nutrição. Se der `MIDDLEWARE_INVOCATION_FAILED`, redeploy na Vercel **sem** cache de build.
 
 ---
 
@@ -187,7 +187,7 @@ Task: "Teste de contrato em tests/contract/rotulos-route.spec.ts"
 
 # Fundação em paralelo com a migration:
 Task: "Implementar src/lib/core/nutrition/labeling/rounding.ts"
-Task: "Criar supabase/migrations/0186_nutrition_labels.sql"
+Task: "Criar supabase/migrations/0187_nutrition_labels.sql"
 ```
 
 ---

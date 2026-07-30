@@ -6,7 +6,7 @@ Roteiro de validação manual. Os testes automatizados provam que as contas fech
 
 ```bash
 npx supabase start
-pnpm supabase:reset       # aplica a 0186
+pnpm supabase:reset       # aplica a 0187
 pnpm seed:demo
 pnpm dev
 ```

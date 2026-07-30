@@ -18,7 +18,7 @@ Gerar a tabela **INFORMAÇÃO NUTRICIONAL** de um produto alimentício a partir 
 
 **Language/Version**: TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel)
 **Primary Dependencies**: Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (já em uso — receituário e relatórios). **Sem novas dependências** — o cálculo é regra de três mais comparação com limite.
-**Storage**: PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0186_nutrition_labels.sql` (última é a `0185` da feature 051) — tabelas `nutrition_labels` e `nutrition_label_ingredients`. **Sem alteração** em `foods` (os nutrientes de rótulo já existem no JSONB de micronutrientes desde a 049). **Sem tabela de referências normativas** (research D2).
+**Storage**: PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0187_nutrition_labels.sql` (última é a `0186` da feature 051) — tabelas `nutrition_labels` e `nutrition_label_ingredients`. **Sem alteração** em `foods` (os nutrientes de rótulo já existem no JSONB de micronutrientes desde a 049). **Sem tabela de referências normativas** (research D2).
 **Testing**: Vitest (unit + integration + contract). Motor de composição e arredondamento com testes unitários (números batendo contra o cálculo manual — SC-002); rota com contract/RBAC + gate de módulo + isolamento multi-tenant.
 **Target Platform**: Web (tela em Operação + rota API + exportação PDF).
 **Project Type**: Web application (Next.js App Router, projeto único em `src/`).
@@ -79,7 +79,7 @@ src/
 ├── app/(dashboard)/_components/sidebar-sections.ts   # ESTENDER: item gated nutri_rotulo
 └── components/labels/nutrition-label-pdf.tsx  # NOVO — documento para impressão
 
-supabase/migrations/0186_nutrition_labels.sql  # 2 tabelas por tenant + RLS
+supabase/migrations/0187_nutrition_labels.sql  # 2 tabelas por tenant + RLS
 tests/{unit,integration,contract}/             # arredondamento; composição; lupa; RBAC/gate/isolamento
 ```
 
