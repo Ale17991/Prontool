@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { AVAILABLE_PLACEHOLDERS } from '@/lib/core/document-templates/placeholders'
+import { READY_MADE_DOCUMENTS } from '@/lib/core/document-templates/ready-made'
 
 type DocType = 'atestado' | 'declaracao' | 'receita' | 'laudo' | 'outro'
 type PaperSize = 'A4' | 'A5' | 'LETTER'
@@ -125,6 +126,47 @@ export function TemplatesManager({ initial }: { initial: TemplateDTO[] }) {
           ) : null}
         </CardHeader>
         <CardContent className="space-y-3">
+          {/*
+            Biblioteca inicial. Instalar é CÓPIA: abre o modelo já preenchido no
+            formulário para a clínica revisar antes de salvar — texto de
+            atestado e de consentimento tem exigência de conselho que varia por
+            categoria, e salvar direto empurraria o nosso texto como se fosse
+            conduta dela.
+          */}
+          {!editing ? (
+            <div className="space-y-1 rounded-md border border-slate-200 p-2">
+              <p className="text-[11px] font-bold uppercase text-slate-500">
+                Biblioteca — abrir um modelo pronto
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {READY_MADE_DOCUMENTS.map((d) => (
+                  <button
+                    key={d.slug}
+                    type="button"
+                    title={d.hint}
+                    onClick={() => {
+                      setForm({
+                        id: null,
+                        name: d.name,
+                        docType: d.docType,
+                        body: d.body,
+                        paperSize: d.paperSize,
+                        fontSize: d.fontSize,
+                      })
+                      setEditing(true)
+                    }}
+                    className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:border-primary hover:text-primary"
+                  >
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400">
+                O texto abre para revisão — confira antes de salvar.
+              </p>
+            </div>
+          ) : null}
+
           {editing ? (
             <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

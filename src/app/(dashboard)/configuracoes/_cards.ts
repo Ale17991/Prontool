@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   ClipboardCheck,
   DollarSign,
+  FileText,
   HeartPulse,
   ListChecks,
   MessageCircle,
@@ -42,6 +43,7 @@ export type HubCardId =
   | 'convenios'
   | 'profissionais'
   | 'modelos-anamnese'
+  | 'modelos-documento'
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
@@ -139,6 +141,17 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Modelos clínicos reutilizáveis nos atendimentos.',
     icon: ClipboardCheck,
     show: ({ role, flags, ent }) => flags.anamnese && ent.has('anamnese') && role === 'admin',
+  },
+  {
+    // A tela existia desde a 0141 mas só era alcançável por um link dentro da
+    // ficha do paciente — quem nunca emitiu documento não sabia que havia
+    // biblioteca de modelos.
+    id: 'modelos-documento',
+    href: '/configuracoes/modelos-documento',
+    title: 'Modelos de Documento',
+    description: 'Atestados, declarações e termos reutilizáveis, com variáveis do paciente.',
+    icon: FileText,
+    show: ({ role }) => role === 'admin' || role === 'profissional_saude',
   },
   {
     id: 'agendamento-publico',
