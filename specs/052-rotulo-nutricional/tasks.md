@@ -146,7 +146,7 @@ Projeto único Next.js: `src/` e `tests/` na raiz; migrations em `supabase/migra
 - [X] T036 [P] Atualizar o `CLAUDE.md` com a arquitetura da 052 (a seção "Active Technologies" já foi atualizada pelo script do plano).
 - [ ] T037 Executar o roteiro de `quickstart.md` ponta a ponta com o app rodando — **incluindo abrir a tela com olho humano**, que é a dívida recorrente das features de nutrição (046, 047, 049 e 050 foram a produção sem isso).
 - [ ] T038 Validação com a nutricionista: gerar o rótulo de um produto real que ela já tenha rotulado e comparar linha a linha com o que foi para a embalagem.
-- [ ] T039 Deploy: mergear em `master` + push (a integração Supabase aplica a 0187 sozinha — **não** aplicar à mão) e ligar `nutri_rotulo` no `/admin` para as clínicas de nutrição. Se der `MIDDLEWARE_INVOCATION_FAILED`, redeploy na Vercel **sem** cache de build.
+- [X] T039 Deploy FEITO 2026-08-02 (0187 aplicada sozinha; `nutri_rotulo` já estava ligado em "Ambiente de testes"): mergear em `master` + push (a integração Supabase aplica a 0187 sozinha — **não** aplicar à mão) e ligar `nutri_rotulo` no `/admin` para as clínicas de nutrição. Se der `MIDDLEWARE_INVOCATION_FAILED`, redeploy na Vercel **sem** cache de build.
 
 ---
 
