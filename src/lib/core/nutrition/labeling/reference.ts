@@ -9,12 +9,12 @@
  *
  * Fontes: IN nº 75/2020 (Anexos II, III e IV) e RDC nº 429/2020.
  *
- * ⚠️ PENDÊNCIA BLOQUEANTE (tarefa T033): cada valor abaixo foi levantado em
- * duas fontes secundárias independentes, que concordam entre si, mas AINDA NÃO
- * foi conferido contra o texto oficial publicado pela ANVISA. Conferir antes do
- * merge. Atenção especial ao VDR de gorduras trans (2 g) — a norma anterior
- * (RDC 360/2003) não estabelecia valor diário para trans, então é o número com
- * maior chance de estar errado nas fontes secundárias.
+ * CONFERIDO em 2026-08-02 (T033) contra o texto da IN nº 75/2020 em duas fontes
+ * independentes que reproduzem o ato na íntegra. Os 10 VDR batem, inclusive o
+ * de gorduras trans (2 g) — o número de maior risco, por não existir na RDC
+ * 360/2003. A conferência achou um erro: açúcares adicionados NÃO tem limiar de
+ * quantidade não significativa (ver `insignificantAtOrBelow`). Registro em
+ * `specs/052-rotulo-nutricional/research.md`.
  *
  * NÃO copiar valores da planilha `nutri-doc/AF..xlsm` (aba "Rótulos
  * Nutricionais"): ela usa referências da revogada RDC 360/2003 e declara
@@ -43,8 +43,15 @@ export interface LabelNutrientDef {
    * Anexo IV — quantidade não significativa. Valor calculado igual ou abaixo
    * disso é DECLARADO como zero. Este zero é correto e é coisa diferente de
    * dado desconhecido.
+   *
+   * `null` = a norma NÃO fixa limite numérico para este nutriente. É o caso de
+   * açúcares adicionados, cuja regra do Anexo IV é de CRITÉRIO ("o produto
+   * atende ao atributo sem adição de açúcares"), não de grandeza. Sem isso,
+   * 0,4 g de açúcar adicionado por 100 g seria declarado como zero — o produto
+   * TEM açúcar adicionado, e zerar a linha subdeclara e ainda sugere um
+   * atributo nutricional que ele não possui.
    */
-  insignificantAtOrBelow: number
+  insignificantAtOrBelow: number | null
   source: NutrientSource
   order: number
 }
@@ -87,7 +94,9 @@ export const LABEL_NUTRIENTS: readonly LabelNutrientDef[] = [
     label: 'Açúcares adicionados',
     unit: 'g',
     dv: 50,
-    insignificantAtOrBelow: 0.5,
+    // Anexo IV não fixa grandeza aqui — a regra é o critério "sem adição de
+    // açúcares". Qualquer quantidade calculada é declarada como tal.
+    insignificantAtOrBelow: null,
     source: { kind: 'micro', key: 'acucar_adicao_g' },
     order: 40,
   },

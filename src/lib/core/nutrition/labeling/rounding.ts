@@ -9,7 +9,7 @@ import type { LabelNutrientDef } from './reference'
  * dado bruto irrecuperável. Estas funções só entram na hora de exibir na tela
  * ou imprimir no PDF.
  *
- * ⚠️ Números pendentes de conferência contra o texto oficial (tarefa T033).
+ * Limites conferidos contra o texto oficial em 2026-08-02 (T033).
  */
 
 /**
@@ -68,6 +68,9 @@ function round(value: number, decimals: number): number {
  */
 export function isInsignificant(value: number, nutrient: LabelNutrientDef): boolean {
   if (!Number.isFinite(value)) return false
+  // Sem limite numérico na norma (açúcares adicionados) não existe zero
+  // declaratório: o valor é declarado como calculado, só arredondado.
+  if (nutrient.insignificantAtOrBelow === null) return false
   return Math.abs(value) <= nutrient.insignificantAtOrBelow
 }
 

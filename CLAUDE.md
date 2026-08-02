@@ -197,3 +197,55 @@ por clínica, conectado por QR em autoatendimento.
 - **Testes**: `setup.ts` SOBRESCREVE `WHATSAPP_SERVICE_URL` para um host fake. O
   `.env.local` de desenvolvimento aponta para o serviço de **produção**, e sem o
   override um teste de integração mandaria mensagem de verdade.
+
+## Rótulo nutricional (feature 052)
+
+Consultoria para quem **vende** comida: a nutricionista monta o preparo e obtém
+a tabela INFORMAÇÃO NUTRICIONAL da embalagem (IN 75/2020 + RDC 429/2020). O
+rótulo **não pertence a paciente nenhum** — é o produto de um cliente da
+clínica, então as tabelas (`nutrition_labels`, `nutrition_label_ingredients`,
+migration **0187**) não têm `patient_id` e as rotas ficam em `/api/rotulos`, não
+sob `/api/pacientes/[id]`. Módulo `nutri_rotulo`.
+
+- **Os números da norma são código, não tabela** (`labeling/reference.ts`): ~25
+  constantes federais que clínica nenhuma pode editar. Em TS ficam versionadas
+  no git, revisáveis em PR e cobertas por teste — tratamento que um número
+  impresso em embalagem merece. **Não copiar da planilha `nutri-doc/AF..xlsm`**:
+  ela usa a revogada RDC 360/2003 e declara açúcares adicionados contra 300 g em
+  vez de 50 g, subdeclarando o %VD de um doce em seis vezes.
+- **Dois zeros distintos, e confundi-los é falsear rótulo.** O zero do Anexo IV
+  é declaratório e correto ("praticamente não tem sódio"); o dado ausente é
+  `null` e a linha inteira fica `incompleto` com a lista de quais ingredientes
+  faltaram. Um único ingrediente sem a chave já torna o total **indefinido** —
+  somar só o conhecido subdeclararia. Isto é o oposto de `diet/totals.ts`, onde
+  micro ausente simplesmente não entra na soma.
+- **A entrada manual é o caminho principal, não a exceção**: a base tem **7%**
+  de cobertura de açúcares adicionados e 18% de trans. Sobrescrita por chave em
+  `manual_values`; `null` no PATCH **apaga a chave** do JSONB (gravar null
+  deixaria o motor com valor presente-porém-nulo e o desfazer não voltaria ao
+  calculado).
+- **O `LabelResult` nunca é gravado** — só os insumos, e a tabela é recomposta a
+  cada leitura. Assim uma correção na base ou na norma alcança o rótulo. É o
+  oposto da prescrição da 047, que congela snapshot de propósito porque o
+  documento já foi entregue ao paciente.
+- **Arredondar só na apresentação** (`rounding.ts`, Anexo III): antes de somar
+  propaga erro; antes de gravar torna o informado irrecuperável. A sobrescrita
+  de 18,5 g fica 18,5 no banco e sai 19 na tabela.
+- **A lupa nunca conclui pela ausência** (`inconclusivo`, jamais `nao_aplica`):
+  concluir "liberado" a partir de dado faltante põe produto irregular na
+  prateleira. Compara o valor **declarado** (já arredondado) para a marca nunca
+  contradizer o número impresso ao lado.
+- **PDF incompleto sai marcado** (FR-018): tarja de "não utilizável em
+  embalagem" + lista dos pendentes. Não existe exportação limpa de rótulo com
+  lacuna.
+- **`/api/alimentos` deixou de exigir `dieta`**: o catálogo serve plano
+  alimentar (047), recordatório (049) e rótulo (052), vendidos separadamente —
+  exigir `dieta` tornava o plano alimentar pré-requisito dos outros dois.
+- **Conferência normativa feita em 2026-08-02** (T033, registro em
+  `specs/052-rotulo-nutricional/research.md`): os 10 VDR batem, inclusive trans
+  (2 g). A conferência pegou um erro real — açúcares adicionados **não tem
+  limiar de quantidade não significativa**: o Anexo IV trata esse nutriente por
+  CRITÉRIO ("sem adição de açúcares"), não por grandeza. `insignificantAtOrBelow`
+  é `null` nesse caso, e `null` significa "não existe zero declaratório aqui".
+  O código antes usava 0,5 g e declararia zero para um produto que TEM açúcar
+  adicionado.

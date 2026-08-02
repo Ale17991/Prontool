@@ -42,6 +42,16 @@ Declara-se **0** quando: energia ≤ 4 kcal · carboidratos ≤ 0,5 g · açúca
 
 **Este zero é declaratório e NÃO é o mesmo que dado desconhecido** (D5). São dois estados diferentes que a tela precisa distinguir.
 
+**Açúcares adicionados não está nessa lista, e não é esquecimento**: o Anexo IV trata esse nutriente por **critério**, não por grandeza — declara-se 0 quando o produto atende ao atributo "sem adição de açúcares". Não existe limiar em gramas. Ver a conferência de T033 abaixo.
+
+### T033 — conferência contra o texto oficial (feita em 2026-08-02)
+
+Conferidos, um a um, os 10 VDR do Anexo II, os limites do Anexo IV e os 6 limites da RDC 429/2020 contra o texto da IN nº 75/2020 em duas fontes independentes que reproduzem o ato na íntegra (`in75.tabelanutricional.com.br` e LegisWeb, ambas batendo entre si).
+
+**Resultado**: os 10 VDR de `reference.ts` estão corretos, **inclusive o de gorduras trans (2 g)** — que era o número de maior risco, por não existir na RDC 360/2003. Açúcares totais confirmados **sem VDR**. Os 6 limites da lupa (15/7,5 g · 6/3 g · 600/300 mg) batem exatamente.
+
+**Um erro encontrado e corrigido**: o código trazia `insignificantAtOrBelow: 0,5 g` para **açúcares adicionados**, limiar que a norma não estabelece. Na prática, um preparo com 0,4 g de açúcar adicionado por 100 g seria declarado como **zero** — subdeclaração, e ainda insinuando um atributo nutricional ("sem adição de açúcares") que o produto não possui. O campo passou a aceitar `null` para "a norma não fixa grandeza aqui", e nesse caso não existe zero declaratório: o valor é declarado como calculado, apenas arredondado pelo Anexo III.
+
 ### O que a planilha de origem tem de errado
 
 A aba "Rótulos Nutricionais" do `AF..xlsm` usa referências que **não são as da IN 75/2020** — várias coincidem com a revogada RDC 360/2003:

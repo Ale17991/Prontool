@@ -263,14 +263,35 @@ async function loadIngredients(
   sb: SupabaseClient<Database>,
   labelId: string,
 ): Promise<{ views: LabelIngredientView[]; refs: LabelIngredient[] }> {
+  const byLabel = await loadIngredientsForLabels(sb, [labelId])
+  return byLabel.get(labelId) ?? { views: [], refs: [] }
+}
+
+/**
+ * Carrega os ingredientes de VÁRIOS rótulos de uma vez. A listagem precisa do
+ * estado de completude de cada rótulo, e resolver isso um a um custaria duas
+ * consultas por linha da lista.
+ */
+async function loadIngredientsForLabels(
+  sb: SupabaseClient<Database>,
+  labelIds: string[],
+): Promise<Map<string, { views: LabelIngredientView[]; refs: LabelIngredient[] }>> {
+  const out = new Map<string, { views: LabelIngredientView[]; refs: LabelIngredient[] }>()
+  if (labelIds.length === 0) return out
+
   const c = loose(sb)
   const res = await c
     .from('nutrition_label_ingredients')
-    .select('food_id, grams, position')
-    .eq('label_id', labelId)
+    .select('label_id, food_id, grams, position')
+    .in('label_id', labelIds)
     .order('position', { ascending: true })
-  const items = (res.data ?? []) as Array<{ food_id: string; grams: number | string; position: number }>
-  if (items.length === 0) return { views: [], refs: [] }
+  const items = (res.data ?? []) as Array<{
+    label_id: string
+    food_id: string
+    grams: number | string
+    position: number
+  }>
+  if (items.length === 0) return out
 
   const foods = await c
     .from('foods')
@@ -302,16 +323,16 @@ async function loadIngredients(
     })
   }
 
-  const views: LabelIngredientView[] = []
-  const refs: LabelIngredient[] = []
   for (const it of items) {
     const food = byId.get(it.food_id)
     if (!food) continue
     const grams = num(it.grams)
-    views.push({ foodId: it.food_id, name: food.name, grams, food: food.ref })
-    refs.push({ foodId: it.food_id, name: food.name, grams, food: food.ref })
+    const entry = out.get(it.label_id) ?? { views: [], refs: [] }
+    entry.views.push({ foodId: it.food_id, name: food.name, grams, food: food.ref })
+    entry.refs.push({ foodId: it.food_id, name: food.name, grams, food: food.ref })
+    out.set(it.label_id, entry)
   }
-  return { views, refs }
+  return out
 }
 
 export async function listLabels(
@@ -326,13 +347,17 @@ export async function listLabels(
     .order('updated_at', { ascending: false })
     .limit(200)
   const rows = (res.data ?? []) as unknown as LabelRow[]
+  const ingredientsByLabel = await loadIngredientsForLabels(
+    sb,
+    rows.map((r) => r.id),
+  )
 
   const out: LabelSummary[] = []
   for (const row of rows) {
     // A lista mostra quais rótulos ainda não servem para embalagem, então o
     // `incomplete` precisa ser real — vem do motor, não de um flag gravado que
     // envelheceria assim que a base de alimentos mudasse.
-    const { refs } = await loadIngredients(sb, row.id)
+    const refs = ingredientsByLabel.get(row.id)?.refs ?? []
     const result = composeLabel({
       ingredients: refs,
       totalYield: num(row.total_yield),

@@ -103,11 +103,14 @@ describe('referências da rotulagem — valores diários (Anexo II)', () => {
 
 describe('referências da rotulagem — não significativos (Anexo IV)', () => {
   it('crava os limites abaixo dos quais se declara zero', () => {
-    const esperado: Record<string, number> = {
+    // Açúcares adicionados é `null` de propósito: o Anexo IV trata esse
+    // nutriente por CRITÉRIO ("sem adição de açúcares"), não por grandeza —
+    // conferido no texto oficial em 2026-08-02 (T033).
+    const esperado: Record<string, number | null> = {
       energia: 4,
       carboidratos: 0.5,
       acucares_totais: 0.5,
-      acucares_adicionados: 0.5,
+      acucares_adicionados: null,
       proteinas: 0.5,
       gorduras_totais: 0.5,
       gorduras_saturadas: 0.1,
