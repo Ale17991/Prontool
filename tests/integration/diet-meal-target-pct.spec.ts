@@ -56,7 +56,6 @@ describe('distribuição de macros — meta por refeição', () => {
         { name: 'Almoço', position: 1, targetPct: 40, items: [{ foodId, grams: 150 }] },
         { name: 'Jantar', position: 2, targetPct: 35, items: [{ foodId, grams: 120 }] },
       ],
-      nutrients: null,
     })
 
     const plan = await getDietPlanForPatient(sb, tenantId, patientId)
@@ -75,7 +74,6 @@ describe('distribuição de macros — meta por refeição', () => {
         { name: 'Café', position: 0, items: [{ foodId, grams: 100 }] },
         { name: 'Almoço', position: 1, targetPct: 0, items: [{ foodId, grams: 150 }] },
       ],
-      nutrients: null,
     })
 
     const plan = await getDietPlanForPatient(sb, tenantId, patientId)

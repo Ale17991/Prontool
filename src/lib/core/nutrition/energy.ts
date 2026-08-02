@@ -12,6 +12,7 @@
 import type { Sex } from './age-sex'
 import { NutritionInputError } from './body-composition'
 import type { TmbEquation } from './protocols'
+import { prescribeMacros } from './macro-distribution'
 
 export interface EnergyInput {
   sex: Sex
@@ -342,9 +343,21 @@ function computeMacros(targetKcal: number, input: EnergyInput): MacroResult | nu
   if (!m) return null
   let protG: number, carbG: number, lipG: number
   if (m.protGkg !== undefined || m.carbGkg !== undefined || m.lipGkg !== undefined) {
-    protG = (m.protGkg ?? 0) * input.weightKg
-    carbG = (m.carbGkg ?? 0) * input.weightKg
-    lipG = (m.lipGkg ?? 0) * input.weightKg
+    // Prescrição por quilo de peso. O carboidrato NÃO informado fecha o VET —
+    // é como a conta é feita na clínica (fixa-se proteína e gordura, o
+    // carboidrato completa). Antes ele virava zero, o que nunca é prescrição
+    // real. `carbGkg: 0` explícito continua sendo respeitado (cetogênica).
+    const p = prescribeMacros({
+      mode: 'gkg',
+      targetKcal,
+      weightKg: input.weightKg,
+      protGkg: m.protGkg,
+      lipGkg: m.lipGkg,
+      carbGkg: m.carbGkg,
+    })
+    protG = p.protG
+    carbG = p.carbG
+    lipG = p.lipG
   } else {
     const sumPct = (m.protPct ?? 0) + (m.carbPct ?? 0) + (m.lipPct ?? 0)
     if (Math.round(sumPct) !== 100) {

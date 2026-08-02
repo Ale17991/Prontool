@@ -110,6 +110,11 @@ export function NutritionAssessmentClient({
   const [protPct, setProtPct] = useState('30')
   const [carbPct, setCarbPct] = useState('40')
   const [lipPct, setLipPct] = useState('30')
+  // Prescrição por quilo de peso: fixa proteína e gordura, o carboidrato
+  // fecha o VET. É como a conta é feita na clínica.
+  const [macroMode, setMacroMode] = useState<'percent' | 'gkg'>('percent')
+  const [protGkg, setProtGkg] = useState('1.8')
+  const [lipGkg, setLipGkg] = useState('1')
 
   const [notes, setNotes] = useState('')
   const [pending, setPending] = useState(false)
@@ -215,7 +220,9 @@ export function NutritionAssessmentClient({
           eerCategory: (Number(eerCategory) as 1 | 2 | 3 | 4) ?? 1,
           objective: 'manutencao',
           objectiveDeltaKcal: num(objectiveDelta) ?? 0,
-          macros: { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) },
+          macros: macroMode === 'gkg'
+            ? { protGkg: num(protGkg) ?? 0, lipGkg: num(lipGkg) ?? 0 }
+            : { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) },
         })
       } catch (e) {
         energyError = (e as Error).message
@@ -225,6 +232,7 @@ export function NutritionAssessmentClient({
   }, [
     sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, abdomen2, fatPctInput,
     equation, activity, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
+    macroMode, protGkg, lipGkg,
   ])
 
   // Avisos de domínio de validação — não bloqueiam nada, só informam.
@@ -285,7 +293,9 @@ export function NutritionAssessmentClient({
         if (!TMB_EQUATIONS[equation].eer) body.activity_factor = num(activity) ?? null
         else body.eer_category = Number(eerCategory)
         body.objective_delta_kcal = num(objectiveDelta) ?? 0
-        body.macros = { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) }
+        body.macros = macroMode === 'gkg'
+            ? { protGkg: num(protGkg) ?? 0, lipGkg: num(lipGkg) ?? 0 }
+            : { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) }
       }
       const res = await fetch(`/api/pacientes/${patient.id}/avaliacao-nutricional`, {
         method: 'POST',
@@ -451,11 +461,33 @@ export function NutritionAssessmentClient({
                 <Input id="na_delta" inputMode="numeric" value={objectiveDelta} onChange={(e) => setObjectiveDelta(e.target.value)} />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div><Label htmlFor="m_p">Proteína %</Label><Input id="m_p" inputMode="numeric" value={protPct} onChange={(e) => setProtPct(e.target.value)} /></div>
-              <div><Label htmlFor="m_c">Carboidrato %</Label><Input id="m_c" inputMode="numeric" value={carbPct} onChange={(e) => setCarbPct(e.target.value)} /></div>
-              <div><Label htmlFor="m_l">Lipídio %</Label><Input id="m_l" inputMode="numeric" value={lipPct} onChange={(e) => setLipPct(e.target.value)} /></div>
+            <div>
+              <Label htmlFor="m_mode">Prescrição dos macros</Label>
+              <select
+                id="m_mode"
+                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                value={macroMode}
+                onChange={(e) => setMacroMode(e.target.value as 'percent' | 'gkg')}
+              >
+                <option value="percent">Por percentual do VET</option>
+                <option value="gkg">Por g/kg de peso (carboidrato fecha o VET)</option>
+              </select>
             </div>
+            {macroMode === 'gkg' ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label htmlFor="m_pk">Proteína g/kg</Label><Input id="m_pk" inputMode="decimal" value={protGkg} onChange={(e) => setProtGkg(e.target.value)} /></div>
+                <div><Label htmlFor="m_lk">Lipídio g/kg</Label><Input id="m_lk" inputMode="decimal" value={lipGkg} onChange={(e) => setLipGkg(e.target.value)} /></div>
+                <p className="col-span-2 text-[11px] text-slate-400">
+                  O carboidrato completa o valor energético — não precisa informar.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                <div><Label htmlFor="m_p">Proteína %</Label><Input id="m_p" inputMode="numeric" value={protPct} onChange={(e) => setProtPct(e.target.value)} /></div>
+                <div><Label htmlFor="m_c">Carboidrato %</Label><Input id="m_c" inputMode="numeric" value={carbPct} onChange={(e) => setCarbPct(e.target.value)} /></div>
+                <div><Label htmlFor="m_l">Lipídio %</Label><Input id="m_l" inputMode="numeric" value={lipPct} onChange={(e) => setLipPct(e.target.value)} /></div>
+              </div>
+            )}
             {live.energyError ? <p className="text-xs text-amber-600">{live.energyError}</p> : null}
           </CardContent>
         </Card>
