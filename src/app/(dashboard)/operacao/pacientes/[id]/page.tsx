@@ -411,6 +411,7 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
   // Feature 050 — exames laboratoriais (cross-especialidade).
   const hasExamesLab = ent.hasModule('exames_lab')
   const hasHabitos = ent.hasModule('habitos')
+  const hasNutriAvaliacao = ent.hasModule('nutri_avaliacao')
   const hasTreino = ent.hasModule('treino')
   const hasDieta = ent.hasModule('dieta')
   const canConfigReminders = can(session.role, 'reminders.config')
@@ -513,6 +514,7 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
           hasOftalmo,
           hasExamesLab,
           hasHabitos,
+          hasNutriAvaliacao,
           canWriteVitals,
           canWriteDiagnosis,
           canDeleteDiagnosis,

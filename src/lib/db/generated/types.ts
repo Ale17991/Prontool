@@ -2908,6 +2908,54 @@ export type Database = {
           },
         ]
       }
+      growth_percentiles: {
+        Row: {
+          age_months: number
+          id: number
+          indicator: string
+          p01: number
+          p10: number
+          p15: number
+          p3: number
+          p5: number
+          p50: number
+          p85: number
+          p97: number
+          p999: number
+          sex: string
+        }
+        Insert: {
+          age_months: number
+          id?: number
+          indicator: string
+          p01: number
+          p10: number
+          p15: number
+          p3: number
+          p5: number
+          p50: number
+          p85: number
+          p97: number
+          p999: number
+          sex: string
+        }
+        Update: {
+          age_months?: number
+          id?: number
+          indicator?: string
+          p01?: number
+          p10?: number
+          p15?: number
+          p3?: number
+          p5?: number
+          p50?: number
+          p85?: number
+          p97?: number
+          p999?: number
+          sex?: string
+        }
+        Relationships: []
+      }
       habit_checklist_marks: {
         Row: {
           checklist_id: string

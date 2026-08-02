@@ -19,6 +19,7 @@ import { VitalSignsSection } from '../vital-signs-section'
 import { MetabolicMetricsSection } from '../metabolic-metrics-section'
 import { LabResultsSection } from '../lab-results-section'
 import { HabitsSection } from '../habits-section'
+import { GrowthSection } from '../growth-section'
 import { DiagnosticsSection } from '../diagnosticos-section'
 import { ClinicalRecordsSection } from '../clinical-records-section'
 import {
@@ -72,6 +73,7 @@ interface Props {
   hasOftalmo: boolean
   hasExamesLab: boolean
   hasHabitos: boolean
+  hasNutriAvaliacao: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
   canDeleteDiagnosis: boolean
@@ -108,6 +110,7 @@ export function CadastroTab({
   hasOftalmo,
   hasExamesLab,
   hasHabitos,
+  hasNutriAvaliacao,
   canWriteVitals,
   canWriteDiagnosis,
   canDeleteDiagnosis,
@@ -216,6 +219,9 @@ export function CadastroTab({
 
       {/* Checklist de hábitos — a equipe monta, o paciente marca no portal. */}
       {hasHabitos ? <HabitsSection patientId={patientId} canWrite={canWriteVitals} /> : null}
+
+      {/* Curvas de crescimento — some sozinha em adulto e sem aferição. */}
+      {hasNutriAvaliacao ? <GrowthSection patientId={patientId} /> : null}
 
       <DiagnosticsSection
         patientId={patientId}

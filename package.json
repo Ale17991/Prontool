@@ -58,7 +58,9 @@
     "simulate:webhook": "tsx --env-file=.env.local scripts/simulate-ghl-webhook.ts",
     "bench:webhook": "tsx --env-file=.env.local scripts/bench-webhook.ts",
     "format": "prettier --write \"**/*.{ts,tsx,md,json,yaml,yml}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yaml,yml}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json,yaml,yml}\"",
+    "seed:growth": "tsx scripts/build-growth-percentiles.ts",
+    "seed:growth:prod": "tsx scripts/build-growth-percentiles.ts --prod"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",
