@@ -22,6 +22,7 @@ import {
   ScrollText,
   Settings,
   Smile,
+  Tag,
   TrendingDown,
   TrendingUp,
   Users,
@@ -101,6 +102,13 @@ export const SECTIONS: readonly NavSection[] = [
         icon: ScrollText,
         show: ({ role, ent }) =>
           ent.hasModule('nutri_recordatorio') && (role === 'admin' || role === 'profissional_saude'),
+      },
+      {
+        href: '/operacao/rotulo-nutricional',
+        label: 'Rótulo Nutricional',
+        icon: Tag,
+        show: ({ role, ent }) =>
+          ent.hasModule('nutri_rotulo') && (role === 'admin' || role === 'profissional_saude'),
       },
       {
         href: '/operacao/tarefas',

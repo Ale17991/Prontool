@@ -35,10 +35,19 @@ const createSchema = z.object({
   measures: z.array(measureSchema).max(20).optional(),
 })
 
+/**
+ * A base de alimentos serve a mais de um módulo: plano alimentar (047),
+ * recordatório (049) e rótulo nutricional (052). Exigir `dieta` para todos
+ * tornaria o plano alimentar pré-requisito dos outros dois, que são vendidos
+ * separadamente — uma clínica só de rotulagem não conseguiria buscar
+ * ingrediente. Basta ter algum módulo que legitimamente consome o catálogo.
+ */
+const FOOD_CATALOG_MODULES = ['dieta', 'nutri_recordatorio', 'nutri_rotulo'] as const
+
 async function gateModule(tenantId: string): Promise<boolean> {
   const supabase = createSupabaseServiceClient()
   const ent = await getTenantEntitlements(supabase, tenantId)
-  return ent.hasModule('dieta')
+  return FOOD_CATALOG_MODULES.some((m) => ent.hasModule(m))
 }
 
 function moduleDisabled(): Response {
