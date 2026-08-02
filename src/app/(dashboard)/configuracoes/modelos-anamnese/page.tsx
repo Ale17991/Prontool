@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
 import { TemplateActiveToggle } from './template-active-toggle'
+import { ReadyMadeTemplates } from './ready-made-templates'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,6 +55,15 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
   const { data: raw } = await q
   const templates = (raw ?? []) as TemplateRow[]
   const canWrite = can(session.role, 'anamnesis.write')
+
+  // Títulos de TODOS os modelos, inclusive inativos: `anamnesis_templates` tem
+  // UNIQUE (tenant_id, title, version), então oferecer "instalar" um título que
+  // já existe — mesmo desativado — daria violação de unicidade, não duplicata.
+  const { data: allTitles } = await supabase
+    .from('anamnesis_templates')
+    .select('title')
+    .eq('tenant_id', session.tenantId)
+  const installedTitles = [...new Set((allTitles ?? []).map((r) => r.title as string))]
 
   // Rows arrive ordered by (title asc, version desc) — primeiro de cada title
   // é a versão mais recente; só nela o atalho "Usar modelo" aparece.
@@ -96,6 +106,8 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
           ) : null}
         </div>
       </div>
+
+      {isAdmin ? <ReadyMadeTemplates installedTitles={installedTitles} /> : null}
 
       <Card>
         <CardHeader>
