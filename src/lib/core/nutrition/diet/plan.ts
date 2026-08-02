@@ -39,6 +39,11 @@ export interface PlanMealInputDTO {
   name: string
   timeLabel?: string | null
   position: number
+  /**
+   * Fatia do VET destinada a esta refeição, em %. `null` = sem meta própria —
+   * estado legítimo, e diferente de 0%, que é meta de não comer nada.
+   */
+  targetPct?: number | null
   items: PlanItemInputDTO[]
 }
 export interface SaveDietPlanArgs {
@@ -72,6 +77,7 @@ export interface PlanMealView {
   name: string
   timeLabel: string | null
   position: number
+  targetPct: number | null
   items: PlanItemView[]
   totals: Nutrients
 }
@@ -257,6 +263,7 @@ export async function saveDietPlanDraft(
         position: meal.position,
         name: meal.name.trim() || 'Refeição',
         time_label: meal.timeLabel?.trim() || null,
+        target_pct: meal.targetPct ?? null,
       })
       .select('id')
       .single()
@@ -321,7 +328,7 @@ export async function getDietPlanForPatient(
 
   const mealsRes = await sb
     .from('diet_meals')
-    .select('id, name, time_label, position')
+    .select('id, name, time_label, position, target_pct')
     .eq('plan_id', plan.id)
     .order('position', { ascending: true })
   const mealRows = (mealsRes.data ?? []) as Array<{
@@ -329,6 +336,7 @@ export async function getDietPlanForPatient(
     name: string
     time_label: string | null
     position: number
+    target_pct: number | string | null
   }>
 
   const allItems: Array<{
@@ -459,6 +467,7 @@ export async function getDietPlanForPatient(
       name: m.name,
       timeLabel: m.time_label,
       position: m.position,
+      targetPct: m.target_pct === null ? null : Number(m.target_pct),
       items,
       totals: roundNutrients(sumItems(items)),
     }

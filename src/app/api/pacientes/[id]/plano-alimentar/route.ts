@@ -31,6 +31,8 @@ const mealSchema = z.object({
   name: z.string().min(1).max(80),
   time_label: z.string().max(20).optional().nullable(),
   position: z.number().int().min(0),
+  // Fatia do VET desta refeição. `null` = sem meta própria; 0 é meta de fato.
+  target_pct: z.number().min(0).max(100).optional().nullable(),
   items: z.array(itemSchema).max(50),
 })
 const saveSchema = z.object({
@@ -93,6 +95,7 @@ async function save(req: Request, patientId: string): Promise<Response> {
       name: m.name,
       timeLabel: m.time_label ?? null,
       position: m.position,
+      targetPct: m.target_pct ?? null,
       items: m.items.map((i) => ({
         foodId: i.food_id ?? null,
         grams: i.grams ?? null,

@@ -1630,6 +1630,7 @@ export type Database = {
           notes: string | null
           plan_id: string
           position: number
+          target_pct: number | null
           tenant_id: string
           time_label: string | null
         }
@@ -1640,6 +1641,7 @@ export type Database = {
           notes?: string | null
           plan_id: string
           position?: number
+          target_pct?: number | null
           tenant_id: string
           time_label?: string | null
         }
@@ -1650,6 +1652,7 @@ export type Database = {
           notes?: string | null
           plan_id?: string
           position?: number
+          target_pct?: number | null
           tenant_id?: string
           time_label?: string | null
         }

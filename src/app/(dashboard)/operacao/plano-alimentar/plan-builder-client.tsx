@@ -20,6 +20,11 @@ import {
   type MicronutrientMap,
 } from '@/lib/core/nutrition/micronutrients'
 import type { FoodDTO } from '@/lib/core/nutrition/foods/search'
+import {
+  distributeMacros,
+  suggestedShares,
+  type MealTarget,
+} from '@/lib/core/nutrition/macro-distribution'
 
 // ---- estado local do cardápio (edição) ---------------------------------
 interface EditItem {
@@ -46,6 +51,8 @@ interface EditMeal {
   key: string
   name: string
   timeLabel: string
+  /** Fatia do VET desta refeição, em %. `null` = sem meta própria. */
+  targetPct: number | null
   items: EditItem[]
 }
 /** Grupo (lista de substituição) como devolvido por /api/alimentos/grupos. */
@@ -126,6 +133,7 @@ export function PlanBuilderClient() {
             key: nextKey(),
             name: m.name,
             timeLabel: m.timeLabel ?? '',
+            targetPct: m.targetPct ?? null,
             items: m.items
               .map((i): EditItem | null => {
                 // Grupo (lista de substituição): 1 porção, nutrientes fixos.
@@ -197,8 +205,43 @@ export function PlanBuilderClient() {
     [dayTotal, meta.target],
   )
 
+  /**
+   * Meta de cada refeição. Só existe quando a avaliação definiu VET e macros —
+   * sem meta diária não há o que repartir, e inventar uma seria pior que não
+   * mostrar nada.
+   */
+  const distribution = useMemo(() => {
+    const t = meta.target
+    if (!t || !t.macros) return null
+    return distributeMacros({
+      targetKcal: t.kcal,
+      macros: { protG: t.macros.protG, carbG: t.macros.carbG, lipG: t.macros.fatG },
+      meals: meals.map((m) => ({ key: m.key, name: m.name, pct: m.targetPct ?? 0 })),
+    })
+  }, [meals, meta.target])
+
+  const targetByMeal = useMemo(() => {
+    const map = new Map<string, MealTarget>()
+    for (const t of distribution?.meals ?? []) {
+      // Refeição sem % informada não recebe meta: 0% é meta de não comer nada,
+      // e mostrar isso como alvo faria toda refeição nova nascer "estourada".
+      const m = meals.find((x) => x.key === t.key)
+      if (m?.targetPct === null || m?.targetPct === undefined) continue
+      map.set(t.key, t)
+    }
+    return map
+  }, [distribution, meals])
+
+  /** Reparte o dia entre as refeições existentes, no padrão de consultório. */
+  function distribuirSugerido() {
+    setMeals((v) => {
+      const shares = suggestedShares(v.length)
+      return v.map((m, i) => ({ ...m, targetPct: shares[i] ?? null }))
+    })
+  }
+
   function addMeal() {
-    setMeals((v) => [...v, { key: nextKey(), name: 'Refeição', timeLabel: '', items: [] }])
+    setMeals((v) => [...v, { key: nextKey(), name: 'Refeição', timeLabel: '', targetPct: null, items: [] }])
   }
   function removeMeal(key: string) {
     setMeals((v) => v.filter((m) => m.key !== key))
@@ -329,6 +372,7 @@ export function PlanBuilderClient() {
           name: m.name,
           time_label: m.timeLabel || null,
           position: mi,
+          target_pct: m.targetPct,
           items: m.items.map((i) =>
             i.kind === 'group'
               ? {
@@ -444,6 +488,10 @@ export function PlanBuilderClient() {
                 onRemoveGroupOption={(ik, fid) => removeGroupOption(meal.key, ik, fid)}
                 onAddGroupOption={(ik, f) => addGroupOption(meal.key, ik, f)}
                 onRemove={() => removeMeal(meal.key)}
+                onTargetPct={(pct) =>
+                  setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, targetPct: pct } : m)))
+                }
+                target={targetByMeal.get(meal.key) ?? null}
               />
             ))}
             <Button variant="outline" size="sm" onClick={addMeal} className="gap-1.5">
@@ -455,6 +503,14 @@ export function PlanBuilderClient() {
 
       <div className="space-y-4">
         <TotalsPanel dayTotal={dayTotal} target={meta.target} delta={delta} />
+        {distribution && meals.length > 0 ? (
+          <DistributionPanel
+            pctSum={distribution.pctSum}
+            balanced={distribution.balanced}
+            unallocatedKcal={distribution.unallocatedKcal}
+            onDistribute={distribuirSugerido}
+          />
+        ) : null}
         {patient ? (
           <AdequacyPanel data={adequacy} loading={adeqLoading} onAnalyze={loadAdequacy} />
         ) : null}
@@ -493,6 +549,8 @@ function MealCard({
   onRemoveGroupOption,
   onAddGroupOption,
   onRemove,
+  onTargetPct,
+  target,
 }: {
   meal: EditMeal
   groups: GroupDTO[]
@@ -505,6 +563,8 @@ function MealCard({
   onRemoveGroupOption: (itemKey: string, foodId: string) => void
   onAddGroupOption: (itemKey: string, food: FoodDTO) => void
   onRemove: () => void
+  onTargetPct: (pct: number | null) => void
+  target: MealTarget | null
 }) {
   const total = sum(meal.items.map(toNutrients))
   return (
@@ -522,7 +582,24 @@ function MealCard({
           value={meal.timeLabel}
           onChange={(e) => onTime(e.target.value)}
         />
-        <span className="ml-auto text-xs font-semibold tabular-nums text-slate-600">
+        <div className="ml-auto flex items-center gap-1">
+          <Input
+            className="h-8 w-16 text-xs tabular-nums"
+            placeholder="%"
+            inputMode="decimal"
+            value={meal.targetPct ?? ''}
+            onChange={(e) => {
+              const raw = e.target.value.trim().replace(',', '.')
+              // Campo vazio volta a "sem meta" — que é diferente de 0%.
+              if (raw === '') return onTargetPct(null)
+              const n = Number(raw)
+              if (Number.isFinite(n) && n >= 0 && n <= 100) onTargetPct(n)
+            }}
+            title="Fatia do dia destinada a esta refeição"
+          />
+          <span className="text-[10px] text-slate-400">%</span>
+        </div>
+        <span className="text-xs font-semibold tabular-nums text-slate-600">
           {total.energyKcal} kcal
         </span>
         <button type="button" onClick={onRemove} className="text-slate-400 hover:text-destructive">
@@ -601,6 +678,7 @@ function MealCard({
         })}
         <FoodSearch onPick={onAddItem} />
         <GroupPicker groups={groups} onPick={onAddGroup} />
+        {target ? <MealTargetRow target={target} actual={total} /> : null}
       </CardContent>
     </Card>
   )
@@ -901,6 +979,7 @@ interface PlanApiView {
   meals: Array<{
     name: string
     timeLabel: string | null
+    targetPct: number | null
     items: Array<{
       foodId: string | null
       name: string
@@ -912,4 +991,88 @@ interface PlanApiView {
       nutrients: Nutrients | null
     }>
   }>
+}
+
+/**
+ * Meta desta refeição contra o que já foi montado. A diferença é o número que
+ * importa: sem ela a nutricionista teria que subtrair de cabeça, refeição por
+ * refeição, para saber onde pesou a mão.
+ */
+function MealTargetRow({ target, actual }: { target: MealTarget; actual: Nutrients }) {
+  const r = (n: number) => Math.round(n)
+  const diffKcal = actual.energyKcal - target.kcal
+  // Folga de 5% do alvo: exigir bater na casa da kcal transformaria o montador
+  // num jogo de encaixe, e a precisão do dado de alimento não sustenta isso.
+  const tol = Math.max(target.kcal * 0.05, 20)
+  const cor =
+    Math.abs(diffKcal) <= tol
+      ? 'text-emerald-600'
+      : diffKcal > 0
+        ? 'text-amber-600'
+        : 'text-sky-600'
+
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-slate-50 px-2 py-1.5 text-[11px]">
+      <span className="font-semibold text-slate-500">
+        Meta {target.pct}% · {r(target.kcal)} kcal
+      </span>
+      <span className="text-slate-400">
+        P {r(target.protG)}g · C {r(target.carbG)}g · G {r(target.lipG)}g
+      </span>
+      <span className={`ml-auto font-semibold tabular-nums ${cor}`}>
+        {diffKcal >= 0 ? '+' : ''}
+        {r(diffKcal)} kcal
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Fechamento da distribuição do dia. Existe para responder uma pergunta só:
+ * "o que eu reparti entre as refeições cobre o dia inteiro?".
+ */
+function DistributionPanel({
+  pctSum,
+  balanced,
+  unallocatedKcal,
+  onDistribute,
+}: {
+  pctSum: number
+  balanced: boolean
+  unallocatedKcal: number
+  onDistribute: () => void
+}) {
+  const sobra = Math.round(unallocatedKcal)
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Distribuição do dia</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-slate-500">Repartido</span>
+          <span
+            className={`font-semibold tabular-nums ${balanced ? 'text-emerald-600' : 'text-amber-600'}`}
+          >
+            {Math.round(pctSum * 100) / 100}%
+          </span>
+        </div>
+        {!balanced ? (
+          <p className="text-[11px] text-amber-700">
+            {sobra > 0
+              ? `Faltam ${sobra} kcal sem refeição — some ${Math.round((100 - pctSum) * 100) / 100}% em alguma.`
+              : `Passou ${Math.abs(sobra)} kcal do dia — as refeições somam mais que 100%.`}
+          </p>
+        ) : (
+          <p className="text-[11px] text-emerald-700">O dia inteiro está repartido.</p>
+        )}
+        <Button variant="outline" size="sm" className="w-full" onClick={onDistribute}>
+          Repartir automaticamente
+        </Button>
+        <p className="text-[10px] text-slate-400">
+          Ponto de partida por número de refeições — ajuste como preferir.
+        </p>
+      </CardContent>
+    </Card>
+  )
 }
