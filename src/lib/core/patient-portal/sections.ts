@@ -25,11 +25,17 @@ export type PortalSectionKey =
   | 'faturas'
   | 'treino'
   | 'dieta'
+  | 'habitos'
 
 export type SectionSensitivity = 'baixa' | 'media' | 'alta'
 
 /** Módulos pagos (entitlements 031) que algumas seções exigem. */
-export type PortalSectionModule = 'treino' | 'dieta' | 'telemedicina' | 'exames_lab'
+export type PortalSectionModule =
+  | 'treino'
+  | 'dieta'
+  | 'telemedicina'
+  | 'exames_lab'
+  | 'habitos'
 
 export interface PortalSectionDef {
   key: PortalSectionKey
@@ -149,6 +155,20 @@ export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
     requiredModule: 'dieta',
     implemented: true,
     order: 100,
+  },
+  {
+    key: 'habitos',
+    label: 'Meus hábitos',
+    description:
+      'Grade de hábitos que o paciente marca no dia a dia. É a única seção em que ele ESCREVE.',
+    // Nasce ligada: não é dado clínico, é a própria pessoa registrando o que
+    // fez. A cautela do CFM que mantém as outras seções desligadas por padrão
+    // não se aplica aqui.
+    defaultEnabled: true,
+    sensitivity: 'baixa',
+    requiredModule: 'habitos',
+    implemented: true,
+    order: 110,
   },
 ]
 

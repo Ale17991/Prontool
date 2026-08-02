@@ -28,9 +28,20 @@ import { GoalsCard } from '@/components/patient-portal/goals-card'
 import { DashboardSummary } from '@/components/patient-portal/dashboard-summary'
 import { WorkoutCard, DietCard } from '@/components/patient-portal/plan-cards'
 import { LabResultsCard } from '@/components/patient-portal/lab-results-card'
+import { HabitsCard } from '@/components/patient-portal/habits-card'
 import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
+
+/** Dia civil da clínica — o mesmo critério que a rota de marcação usa. */
+function todayInClinicTz(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: process.env.CLINIC_TIMEZONE || 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+}
 
 export default async function PacientePainelPage({ params }: { params: { slug: string } }) {
   const supabase = createSupabaseServiceClient()
@@ -61,6 +72,7 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
   // Feature 050 US3 — só exibe com a seção ligada E resultados classificados
   // (sem faixa aplicável o bundle devolve null: valor cru isolado não vai ao
   // paciente).
+  const showHabitos = enabled.has('habitos')
   const showExames = enabled.has('exames') && (bundle.labResults?.length ?? 0) > 0
 
   const h = headers()
@@ -103,6 +115,10 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
           metricTypes={bundle.metricTypes}
         />
       ) : null}
+
+      {/* Hábitos vêm ANTES da evolução: é a única coisa que o paciente FAZ
+          aqui, e enterrá-la sob os gráficos é enterrar o próprio engajamento. */}
+      {showHabitos ? <HabitsCard today={todayInClinicTz()} /> : null}
 
       {showGoals ? (
         <GoalsCard

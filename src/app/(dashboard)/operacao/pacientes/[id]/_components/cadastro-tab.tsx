@@ -18,6 +18,7 @@ import { MedicalHistorySection } from '../medical-history-section'
 import { VitalSignsSection } from '../vital-signs-section'
 import { MetabolicMetricsSection } from '../metabolic-metrics-section'
 import { LabResultsSection } from '../lab-results-section'
+import { HabitsSection } from '../habits-section'
 import { DiagnosticsSection } from '../diagnosticos-section'
 import { ClinicalRecordsSection } from '../clinical-records-section'
 import {
@@ -70,6 +71,7 @@ interface Props {
   /** Módulo Oftalmologia ativo. Off ⇒ esconde exames oftalmológicos e receita de óculos. */
   hasOftalmo: boolean
   hasExamesLab: boolean
+  hasHabitos: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
   canDeleteDiagnosis: boolean
@@ -105,6 +107,7 @@ export function CadastroTab({
   hasConvenio,
   hasOftalmo,
   hasExamesLab,
+  hasHabitos,
   canWriteVitals,
   canWriteDiagnosis,
   canDeleteDiagnosis,
@@ -210,6 +213,9 @@ export function CadastroTab({
       {hasExamesLab ? (
         <LabResultsSection patientId={patientId} canWrite={canWriteVitals} />
       ) : null}
+
+      {/* Checklist de hábitos — a equipe monta, o paciente marca no portal. */}
+      {hasHabitos ? <HabitsSection patientId={patientId} canWrite={canWriteVitals} /> : null}
 
       <DiagnosticsSection
         patientId={patientId}

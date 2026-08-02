@@ -26,6 +26,7 @@ export type ModuleId =
   | 'nutri_rotulo' // rótulo nutricional
   | 'exames_lab' // exames laboratoriais com faixas (cross-especialidade)
   | 'whatsapp' // canal WhatsApp nos lembretes (051) — rollout por clínica
+  | 'habitos' // checklist de hábitos marcado pelo paciente (cross-especialidade)
 
 export type Feature =
   // núcleo (Essencial)
@@ -69,6 +70,7 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'nutri_rotulo',
   'exames_lab',
   'whatsapp',
+  'habitos',
 ]
 
 /**

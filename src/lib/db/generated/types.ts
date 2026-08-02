@@ -2908,6 +2908,99 @@ export type Database = {
           },
         ]
       }
+      habit_checklist_marks: {
+        Row: {
+          checklist_id: string
+          created_at: string
+          id: string
+          item_id: string
+          mark_date: string
+          marked_by: string
+          patient_id: string
+          tenant_id: string
+        }
+        Insert: {
+          checklist_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          mark_date: string
+          marked_by?: string
+          patient_id: string
+          tenant_id: string
+        }
+        Update: {
+          checklist_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          mark_date?: string
+          marked_by?: string
+          patient_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_checklist_marks_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "patient_habit_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "habit_checklist_marks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "habit_checklist_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habit_checklist_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          items: Json
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          items?: Json
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          items?: Json
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_checklist_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_plans: {
         Row: {
           active: boolean
@@ -4024,6 +4117,63 @@ export type Database = {
           },
           {
             foreignKeyName: "patient_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_habit_checklists: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          items: Json
+          patient_id: string
+          period_kind: string
+          start_date: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          items?: Json
+          patient_id: string
+          period_kind?: string
+          start_date: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          items?: Json
+          patient_id?: string
+          period_kind?: string
+          start_date?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_habit_checklists_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_habit_checklists_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

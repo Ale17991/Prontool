@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto'
  * (mesma filosofia de `public-booking/ip-hash.ts`).
  */
 
-export type PatientAccessAction = 'login_ok' | 'login_fail' | 'view'
+export type PatientAccessAction = 'login_ok' | 'login_fail' | 'view' | 'habit_mark'
 
 /** Hash de IP escopado ao tenant (defesa em profundidade — não vira ID global). */
 export function hashIpForPatientPortal(ip: string, tenantId: string): string {
