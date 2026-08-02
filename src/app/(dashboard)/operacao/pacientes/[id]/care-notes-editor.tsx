@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { ClipboardList, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { READY_MADE_CARE_NOTES } from '@/lib/core/care-notes/ready-made'
 
 /**
  * Feature 032 — orientações ao paciente (autoria pela equipe).
@@ -108,11 +109,32 @@ export function CareNotesEditor({ patientId, canWrite }: { patientId: string; ca
 
         {canWrite ? (
           <div className="space-y-2">
+            {/*
+              Orientações prontas: inserir é uma CÓPIA para o campo abaixo. A
+              profissional edita antes de salvar — o texto gravado é dela, e
+              melhorar o catálogo depois não reescreve o que já foi entregue.
+            */}
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[11px] text-slate-400">Começar de um modelo:</span>
+              {READY_MADE_CARE_NOTES.map((m) => (
+                <button
+                  key={m.slug}
+                  type="button"
+                  title={m.hint}
+                  onClick={() => setBody((cur) => (cur.trim() ? `${cur}
+
+${m.body}` : m.body))}
+                  className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:border-primary hover:text-primary"
+                >
+                  {m.title}
+                </button>
+              ))}
+            </div>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               maxLength={5000}
-              rows={3}
+              rows={body.length > 400 ? 10 : 3}
               placeholder="Ex.: Manter caminhada 30 min, 5x/semana. Retornar em 30 dias com exames."
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
