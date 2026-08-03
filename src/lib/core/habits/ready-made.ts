@@ -29,7 +29,7 @@ export interface ReadyMadeChecklist {
  */
 const BASICO: ReadyMadeChecklist = {
   slug: 'habitos-basico',
-  title: 'Hábitos — básico',
+  title: 'Hábitos básicos',
   hint: 'Cinco hábitos do dia a dia. Bom ponto de partida.',
   items: [
     { id: 'alimentacao', label: 'Seguiu o plano alimentar hoje?' },
@@ -42,7 +42,7 @@ const BASICO: ReadyMadeChecklist = {
 
 const COMPLETO: ReadyMadeChecklist = {
   slug: 'habitos-completo',
-  title: 'Hábitos — completo',
+  title: 'Hábitos completos',
   hint: 'O básico mais álcool e ultraprocessados.',
   items: [
     ...BASICO.items.map((i) => ({ ...i })),

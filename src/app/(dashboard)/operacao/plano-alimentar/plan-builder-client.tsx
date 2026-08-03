@@ -432,7 +432,7 @@ export function PlanBuilderClient() {
         setMsg(b.error?.message ?? 'Falha ao prescrever.')
         return
       }
-      setMsg('Plano enviado — já aparece no portal do paciente.')
+      setMsg('Plano enviado. Já aparece no portal do paciente.')
       await load(patient.id)
     } finally {
       setPrescribing(false)
@@ -466,11 +466,11 @@ export function PlanBuilderClient() {
             {meta.status === 'prescrito' ? (
               <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                 Este plano foi <strong>enviado ao paciente</strong> (visível no portal). Edite e salve para
-                criar uma nova versão — depois envie de novo.
+                criar uma nova versão e depois enviar de novo.
               </p>
             ) : (
               <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                Rascunho — <strong>ainda não aparece no portal</strong> do paciente. Clique em
+                Rascunho: <strong>ainda não aparece no portal</strong> do paciente. Clique em
                 “Enviar ao paciente” quando estiver pronto.
               </p>
             )}
@@ -628,7 +628,7 @@ function MealCard({
                   </button>
                 </div>
                 <p className="mt-1 pl-5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  Opções — o paciente escolhe uma
+                  Opções (o paciente escolhe uma)
                 </p>
                 <ul className="mt-0.5 space-y-0.5 pl-5">
                   {(it.groupOptions ?? []).map((o) => (
@@ -646,7 +646,7 @@ function MealCard({
                     </li>
                   ))}
                   {(it.groupOptions ?? []).length === 0 ? (
-                    <li className="text-[11px] text-amber-600">Sem opções — adicione ao menos uma.</li>
+                    <li className="text-[11px] text-amber-600">Sem opções. Adicione ao menos uma.</li>
                   ) : null}
                 </ul>
                 <div className="mt-1 pl-5">
@@ -849,7 +849,7 @@ function TotalsPanel({
           </div>
         ) : (
           <p className="mt-2 border-t border-slate-100 pt-2 text-[11px] text-slate-400">
-            Sem meta — faça uma avaliação nutricional para comparar o plano com o alvo.
+            Sem meta. Faça uma avaliação nutricional para comparar o plano com o alvo.
           </p>
         )}
       </CardContent>
@@ -938,7 +938,7 @@ function AdequacyPanel({
               <div key={i.nutrientKey} className="flex items-center justify-between">
                 <span className="text-slate-600">{i.label}</span>
                 <span className={`tabular-nums ${cls(i.class)}`}>
-                  {i.total}/{i.dri ?? '—'} {i.unit}
+                  {i.total}/{i.dri ?? '-'} {i.unit}
                   {i.pct !== null ? ` · ${i.pct}%` : ''}
                 </span>
               </div>
@@ -1060,8 +1060,8 @@ function DistributionPanel({
         {!balanced ? (
           <p className="text-[11px] text-amber-700">
             {sobra > 0
-              ? `Faltam ${sobra} kcal sem refeição — some ${Math.round((100 - pctSum) * 100) / 100}% em alguma.`
-              : `Passou ${Math.abs(sobra)} kcal do dia — as refeições somam mais que 100%.`}
+              ? `Faltam ${sobra} kcal sem refeição. Some ${Math.round((100 - pctSum) * 100) / 100}% em alguma.`
+              : `Passou ${Math.abs(sobra)} kcal do dia. As refeições somam mais que 100%.`}
           </p>
         ) : (
           <p className="text-[11px] text-emerald-700">O dia inteiro está repartido.</p>
@@ -1070,7 +1070,7 @@ function DistributionPanel({
           Repartir automaticamente
         </Button>
         <p className="text-[10px] text-slate-400">
-          Ponto de partida por número de refeições — ajuste como preferir.
+          Ponto de partida por número de refeições. Ajuste como preferir.
         </p>
       </CardContent>
     </Card>

@@ -195,7 +195,7 @@ export function HabitsSection({ patientId, canWrite }: { patientId: string; canW
                 ))}
               </div>
               <p className="mt-1 text-[10px] text-slate-400">
-                Os hábitos abrem para edição — acrescente, remova ou reescreva antes de salvar.
+                Os hábitos abrem para edição. Acrescente, remova ou reescreva antes de salvar.
               </p>
             </div>
 
@@ -287,7 +287,7 @@ export function HabitsSection({ patientId, canWrite }: { patientId: string; canW
               Salvar checklist
             </Button>
             <p className="text-[10px] text-slate-400">
-              Alterar aqui muda só a grade deste paciente — o modelo da clínica fica intacto.
+              Alterar aqui muda só a grade deste paciente. O modelo da clínica fica intacto.
             </p>
           </div>
         ) : null}
@@ -323,7 +323,7 @@ export function HabitsSection({ patientId, canWrite }: { patientId: string; canW
               "60% de aderência" seria inventar precisão sobre o silêncio.
             */}
             <p className="text-[10px] text-slate-400">
-              Dias em branco não significam que o hábito não foi cumprido — só que não foi marcado.
+              Dias em branco não significam que o hábito não foi cumprido, só que não foi marcado.
             </p>
 
             {history.length > 0 ? (

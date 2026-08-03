@@ -68,7 +68,7 @@ export function ReadyMadeTemplates({ installedTitles }: { installedTitles: strin
                 <p className="text-sm font-semibold text-slate-900">{m.title}</p>
                 <p className="text-xs text-slate-500">{m.description}</p>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  {m.fields.filter((f) => !f.label.startsWith('—')).length} perguntas
+                  {m.fields.filter((f) => !f.id.startsWith('sec_')).length} perguntas
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
