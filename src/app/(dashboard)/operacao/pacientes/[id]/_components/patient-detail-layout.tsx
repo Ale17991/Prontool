@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientQuickView } from './patient-quick-view'
 import { ClinicalTimeline } from './clinical-timeline'
 import { CadastroTab } from './cadastro-tab'
+import { HabitsSection } from '../habits-section'
 import { CareNotesEditor } from '../care-notes-editor'
 import { WorkoutEditor } from '../workout-editor'
 import { DietEditor } from '../diet-editor'
@@ -261,6 +262,14 @@ export function PatientDetailLayout({
               {!isAnonymized ? (
                 <>
                   <CareNotesEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  {/*
+                    Fica aqui, e não na aba Cadastro: é a mesma família de
+                    Orientações/Treino/Dieta — a profissional monta e o paciente
+                    vê no portal. Entre exames e diagnósticos ninguém achava.
+                  */}
+                  {cadastro.hasHabitos ? (
+                    <HabitsSection patientId={patientId} canWrite={cadastro.canWriteClinical} />
+                  ) : null}
                   {hasTreino ? (
                     <WorkoutEditor patientId={patientId} canWrite={cadastro.canWriteClinical} />
                   ) : null}
@@ -302,7 +311,6 @@ export function PatientDetailLayout({
                   hasConvenio={cadastro.hasConvenio}
                   hasOftalmo={cadastro.hasOftalmo}
                   hasExamesLab={cadastro.hasExamesLab}
-                  hasHabitos={cadastro.hasHabitos}
                   hasNutriAvaliacao={cadastro.hasNutriAvaliacao}
                   canWriteVitals={cadastro.canWriteVitals}
                   canWriteDiagnosis={cadastro.canWriteDiagnosis}

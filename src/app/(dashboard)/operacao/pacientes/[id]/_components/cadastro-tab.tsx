@@ -18,7 +18,6 @@ import { MedicalHistorySection } from '../medical-history-section'
 import { VitalSignsSection } from '../vital-signs-section'
 import { MetabolicMetricsSection } from '../metabolic-metrics-section'
 import { LabResultsSection } from '../lab-results-section'
-import { HabitsSection } from '../habits-section'
 import { GrowthSection } from '../growth-section'
 import { DiagnosticsSection } from '../diagnosticos-section'
 import { ClinicalRecordsSection } from '../clinical-records-section'
@@ -72,7 +71,6 @@ interface Props {
   /** Módulo Oftalmologia ativo. Off ⇒ esconde exames oftalmológicos e receita de óculos. */
   hasOftalmo: boolean
   hasExamesLab: boolean
-  hasHabitos: boolean
   hasNutriAvaliacao: boolean
   canWriteVitals: boolean
   canWriteDiagnosis: boolean
@@ -109,7 +107,6 @@ export function CadastroTab({
   hasConvenio,
   hasOftalmo,
   hasExamesLab,
-  hasHabitos,
   hasNutriAvaliacao,
   canWriteVitals,
   canWriteDiagnosis,
@@ -216,9 +213,6 @@ export function CadastroTab({
       {hasExamesLab ? (
         <LabResultsSection patientId={patientId} canWrite={canWriteVitals} />
       ) : null}
-
-      {/* Checklist de hábitos — a equipe monta, o paciente marca no portal. */}
-      {hasHabitos ? <HabitsSection patientId={patientId} canWrite={canWriteVitals} /> : null}
 
       {/* Curvas de crescimento — some sozinha em adulto e sem aferição. */}
       {hasNutriAvaliacao ? <GrowthSection patientId={patientId} canWrite={canWriteVitals} /> : null}
