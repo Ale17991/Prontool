@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { READY_MADE_CHECKLISTS } from '@/lib/core/habits/ready-made'
 
 /**
  * Checklist de hábitos no prontuário — a equipe MONTA a grade; quem marca é o
@@ -172,6 +173,32 @@ export function HabitsSection({ patientId, canWrite }: { patientId: string; canW
 
         {editing ? (
           <div className="space-y-3 rounded-md border border-slate-200 p-3">
+            <div>
+              <Label className="text-xs">Partir de um modelo pronto</Label>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {READY_MADE_CHECKLISTS.map((m) => (
+                  <Button
+                    key={m.slug}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    title={m.hint}
+                    onClick={() => {
+                      // Cópia: a partir daqui a grade é DESTE paciente. Editar
+                      // aqui não mexe no catálogo nem em outro paciente.
+                      setTitle(m.title)
+                      setItems(m.items.map((i) => ({ ...i })))
+                    }}
+                  >
+                    {m.title}
+                  </Button>
+                ))}
+              </div>
+              <p className="mt-1 text-[10px] text-slate-400">
+                Os hábitos abrem para edição — acrescente, remova ou reescreva antes de salvar.
+              </p>
+            </div>
+
             {templates.length > 0 ? (
               <div>
                 <Label className="text-xs">Partir de um modelo da clínica</Label>

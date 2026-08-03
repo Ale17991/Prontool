@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Check, Download, Loader2, Sparkles } from 'lucide-react'
+import { Check, Copy, Download, Loader2, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { READY_MADE_TEMPLATES } from '@/lib/core/anamnesis/ready-made'
@@ -70,26 +71,34 @@ export function ReadyMadeTemplates({ installedTitles }: { installedTitles: strin
                   {m.fields.filter((f) => !f.label.startsWith('—')).length} perguntas
                 </p>
               </div>
-              {already ? (
-                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-emerald-600">
-                  <Check className="h-3.5 w-3.5" />
-                  Já instalado
-                </span>
-              ) : (
-                <Button
-                  size="sm"
-                  className="shrink-0"
-                  disabled={busy === m.slug}
-                  onClick={() => void install(m.slug)}
-                >
-                  {busy === m.slug ? (
-                    <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Download className="mr-1 h-3.5 w-3.5" />
-                  )}
-                  Instalar
+              <div className="flex shrink-0 items-center gap-2">
+                {already ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                    <Check className="h-3.5 w-3.5" />
+                    Já instalado
+                  </span>
+                ) : (
+                  <Button size="sm" disabled={busy === m.slug} onClick={() => void install(m.slug)}>
+                    {busy === m.slug ? (
+                      <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Download className="mr-1 h-3.5 w-3.5" />
+                    )}
+                    Instalar
+                  </Button>
+                )}
+                {/*
+                  Clonar abre o builder já preenchido, para criar um modelo NOVO
+                  a partir deste. Continua disponível depois de instalado — é
+                  justamente o caso de quem quer uma variação do que já usa.
+                */}
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={{ pathname: '/configuracoes/modelos-anamnese/novo', query: { modelo: m.slug } }}>
+                    <Copy className="mr-1 h-3.5 w-3.5" />
+                    Clonar
+                  </Link>
                 </Button>
-              )}
+              </div>
             </div>
           )
         })}

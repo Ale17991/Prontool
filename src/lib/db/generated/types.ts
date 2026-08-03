@@ -4702,6 +4702,7 @@ export type Database = {
           emergency_contact_phone_enc: string | null
           full_name_enc: string
           ghl_contact_id: string | null
+          growth_tracking_enabled: boolean
           guardian_cpf_enc: string | null
           guardian_name_enc: string | null
           guardian_relationship_enc: string | null
@@ -4739,6 +4740,7 @@ export type Database = {
           emergency_contact_phone_enc?: string | null
           full_name_enc: string
           ghl_contact_id?: string | null
+          growth_tracking_enabled?: boolean
           guardian_cpf_enc?: string | null
           guardian_name_enc?: string | null
           guardian_relationship_enc?: string | null
@@ -4776,6 +4778,7 @@ export type Database = {
           emergency_contact_phone_enc?: string | null
           full_name_enc?: string
           ghl_contact_id?: string | null
+          growth_tracking_enabled?: boolean
           guardian_cpf_enc?: string | null
           guardian_name_enc?: string | null
           guardian_relationship_enc?: string | null

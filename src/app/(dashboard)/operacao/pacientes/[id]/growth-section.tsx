@@ -11,7 +11,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Baby, Loader2 } from 'lucide-react'
+import { Baby, Loader2, LineChart } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 /**
@@ -52,6 +53,8 @@ interface Curve {
   latest: { percentile: number; label: string; classification: string } | null
 }
 interface Report {
+  /** Acompanhamento ligado para ESTE paciente. */
+  enabled: boolean
   curves: Curve[]
   ageMonthsNow: number | null
   missing: { birthDate: boolean; sex: boolean }
@@ -74,9 +77,16 @@ function ageLabel(months: number): string {
   return m === 0 ? `${y}a` : `${y}a${m}m`
 }
 
-export function GrowthSection({ patientId }: { patientId: string }) {
+export function GrowthSection({
+  patientId,
+  canWrite,
+}: {
+  patientId: string
+  canWrite: boolean
+}) {
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
+  const [toggling, setToggling] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -91,6 +101,20 @@ export function GrowthSection({ patientId }: { patientId: string }) {
     void load()
   }, [load])
 
+  async function toggle(enabled: boolean) {
+    setToggling(true)
+    try {
+      const res = await fetch(`/api/pacientes/${patientId}/crescimento`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      })
+      if (res.ok) await load()
+    } finally {
+      setToggling(false)
+    }
+  }
+
   if (loading) {
     return (
       <Card>
@@ -102,13 +126,32 @@ export function GrowthSection({ patientId }: { patientId: string }) {
   }
   if (!report) return null
 
-  // Adulto não tem curva pediátrica — some em silêncio em vez de ocupar espaço
-  // com um aviso que vale para a maioria dos pacientes da clínica.
-  if (report.outOfRange) return null
+  // Desligado: em vez de sumir, oferece ligar. Acompanhar crescimento é decisão
+  // da profissional — antes isso era deduzido de "tem dado suficiente", o que
+  // fazia a curva brotar em qualquer paciente jovem de clínica de adulto.
+  if (!report.enabled) {
+    if (!canWrite) return null
+    return (
+      <Card>
+        <CardContent className="flex flex-wrap items-center gap-3 py-4">
+          <LineChart className="h-4 w-4 shrink-0 text-slate-400" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-slate-700">Curvas de crescimento</p>
+            <p className="text-xs text-slate-500">
+              Acompanhe peso, estatura e IMC deste paciente contra os percentis da OMS.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" disabled={toggling} onClick={() => void toggle(true)}>
+            {toggling ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}
+            Ativar
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const faltando = report.missing.birthDate || report.missing.sex
   const semDados = !faltando && report.curves.every((c) => c.points.length === 0)
-  if (semDados) return null
 
   return (
     <Card>
@@ -116,12 +159,32 @@ export function GrowthSection({ patientId }: { patientId: string }) {
         <Baby className="h-4 w-4 text-primary" />
         <CardTitle className="text-sm">Curvas de crescimento</CardTitle>
         {report.ageMonthsNow !== null ? (
-          <span className="ml-auto text-xs text-slate-400">
-            {ageLabel(report.ageMonthsNow)}
-          </span>
+          <span className="ml-auto text-xs text-slate-400">{ageLabel(report.ageMonthsNow)}</span>
+        ) : null}
+        {canWrite ? (
+          <button
+            type="button"
+            disabled={toggling}
+            onClick={() => void toggle(false)}
+            className={`text-[11px] text-slate-400 hover:text-slate-600 ${report.ageMonthsNow === null ? 'ml-auto' : ''}`}
+          >
+            desativar
+          </button>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-4">
+        {report.outOfRange ? (
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            As curvas de percentil vão até 19 anos e não se aplicam a este paciente. Para adultos,
+            use a avaliação nutricional.
+          </p>
+        ) : null}
+        {semDados && !report.outOfRange ? (
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            Ainda não há peso ou estatura registrados em sinais vitais. Assim que houver a primeira
+            aferição, a curva aparece aqui.
+          </p>
+        ) : null}
         {faltando ? (
           <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
             Para traçar as curvas é preciso{' '}

@@ -221,7 +221,7 @@ export function CadastroTab({
       {hasHabitos ? <HabitsSection patientId={patientId} canWrite={canWriteVitals} /> : null}
 
       {/* Curvas de crescimento — some sozinha em adulto e sem aferição. */}
-      {hasNutriAvaliacao ? <GrowthSection patientId={patientId} /> : null}
+      {hasNutriAvaliacao ? <GrowthSection patientId={patientId} canWrite={canWriteVitals} /> : null}
 
       <DiagnosticsSection
         patientId={patientId}

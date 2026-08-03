@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Copy, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -61,6 +61,17 @@ export function TemplatesManager({ initial }: { initial: TemplateDTO[] }) {
   }
   function startEdit(t: TemplateDTO) {
     setForm({ ...t })
+    setEditing(true)
+    setError(null)
+  }
+
+  /**
+   * Duplicar: abre o formulário com o conteúdo deste modelo, mas SEM o id — o
+   * save cria um registro novo em vez de sobrescrever o original. O nome já vem
+   * marcado para a lista não ficar com dois itens idênticos.
+   */
+  function startDuplicate(t: TemplateDTO) {
+    setForm({ ...t, id: null, name: `${t.name} (cópia)` })
     setEditing(true)
     setError(null)
   }
@@ -296,8 +307,19 @@ export function TemplatesManager({ initial }: { initial: TemplateDTO[] }) {
                     variant="ghost"
                     className="h-7 px-2"
                     onClick={() => startEdit(t)}
+                    title="Editar"
                   >
                     <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2"
+                    onClick={() => startDuplicate(t)}
+                    title="Duplicar — cria um modelo novo a partir deste"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     type="button"

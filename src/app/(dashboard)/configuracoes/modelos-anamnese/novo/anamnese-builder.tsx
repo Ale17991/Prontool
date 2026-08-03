@@ -123,18 +123,40 @@ const FIELD_TYPES: Array<{
 
 const HAS_OPTIONS = new Set<FieldType>(['radio', 'select', 'checkbox'])
 
-export function AnamneseBuilder() {
+/**
+ * Base para clonar: um modelo existente (ou pronto) que abre o builder já
+ * preenchido. Clonar é CÓPIA — o novo modelo nasce solto do original, e editar
+ * um não mexe no outro.
+ */
+export interface BuilderBase {
+  title: string
+  description: string
+  fields: Field[]
+  /**
+   * Presente só no fluxo "nova versão": mantém o vínculo com o original e faz
+   * o backend gravar `version + 1`. Ausente = modelo NOVO e solto (clonar).
+   * Sem isso, salvar com o mesmo título colidiria no UNIQUE (tenant, título,
+   * versão) — que era exatamente o que acontecia antes.
+   */
+  previousVersionId?: string | null
+}
+
+export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+  const [title, setTitle] = useState(base?.title ?? '')
+  const [description, setDescription] = useState(base?.description ?? '')
   // Defaults pré-marcados (controlados via includedDefaults). Custom fields
   // ficam num array separado pra preservar ordem das duas seções.
-  const [includedDefaults, setIncludedDefaults] = useState<Record<string, boolean>>(
-    Object.fromEntries(DEFAULT_FIELDS.map((d) => [d.id, true])),
-  )
-  const [fields, setFields] = useState<Field[]>([])
+  const [includedDefaults, setIncludedDefaults] = useState<Record<string, boolean>>(() => {
+    if (!base) return Object.fromEntries(DEFAULT_FIELDS.map((d) => [d.id, true]))
+    // Ao clonar, marca só os campos padrão que o original de fato usava — senão
+    // a cópia viria com campos que o autor tinha removido de propósito.
+    const usados = new Set(base.fields.filter((f) => f.is_default).map((f) => f.id))
+    return Object.fromEntries(DEFAULT_FIELDS.map((d) => [d.id, usados.has(d.id)]))
+  })
+  const [fields, setFields] = useState<Field[]>(base ? base.fields.filter((f) => !f.is_default) : [])
   const [activeTab, setActiveTab] = useState<'build' | 'preview'>('build')
 
   function addField(type: FieldType) {
@@ -203,6 +225,7 @@ export function AnamneseBuilder() {
           title: title.trim(),
           description: description.trim() || null,
           fields: finalFields,
+          previous_version_id: base?.previousVersionId ?? null,
         }),
       })
       if (!res.ok) {

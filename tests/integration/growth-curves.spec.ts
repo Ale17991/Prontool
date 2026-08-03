@@ -136,3 +136,34 @@ describe('curvas de crescimento', () => {
     expect(r.curves.every((c) => c.points.length === 0)).toBe(true)
   })
 })
+
+describe('acompanhamento é opt-in por paciente', () => {
+  it('a coluna nasce desligada e o toggle liga/desliga', async () => {
+    await resetDatabase()
+    const tenantId = (await seedTenant('growth-toggle')).tenantId
+    const patientId = await seedPatient(tenantId)
+    const sb = serviceClient()
+
+    const inicial = await sb
+      .from('patients')
+      .select('growth_tracking_enabled')
+      .eq('id', patientId)
+      .single()
+    // Numa clínica de adultos a curva não pode brotar sozinha.
+    expect((inicial.data as { growth_tracking_enabled: boolean }).growth_tracking_enabled).toBe(
+      false,
+    )
+
+    await sb
+      .from('patients')
+      .update({ growth_tracking_enabled: true } as never)
+      .eq('tenant_id', tenantId)
+      .eq('id', patientId)
+    const ligado = await sb
+      .from('patients')
+      .select('growth_tracking_enabled')
+      .eq('id', patientId)
+      .single()
+    expect((ligado.data as { growth_tracking_enabled: boolean }).growth_tracking_enabled).toBe(true)
+  })
+})

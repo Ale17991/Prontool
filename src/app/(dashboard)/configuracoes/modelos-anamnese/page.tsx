@@ -193,6 +193,20 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
                             Nova versão <ChevronRight className="h-3 w-3" />
                           </Link>
                         ) : null}
+                        {canWrite ? (
+                          /*
+                            Duplicar difere de "Nova versão": cria um modelo
+                            SOLTO a partir deste, para variações que devem
+                            coexistir com o original.
+                          */
+                          <Link
+                            href={`/configuracoes/modelos-anamnese/novo?base=${t.id}`}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
+                            title="Criar um modelo novo a partir deste"
+                          >
+                            Duplicar
+                          </Link>
+                        ) : null}
                         {isAdmin ? (
                           <TemplateActiveToggle
                             templateId={t.id}
