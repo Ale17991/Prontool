@@ -115,7 +115,7 @@ export async function refreshConnection(): Promise<ActionResult<{ connection: Wh
       numberConnected: live.numberConnected,
       disconnectReason: live.disconnectReason,
     })
-    revalidatePath('/configuracoes/whatsapp')
+    revalidatePath('/configuracoes/lembretes')
     return { ok: true, connection: await getWhatsAppConnection(db, auth.tenantId) }
   } catch (err) {
     logger.error({ tenantId: auth.tenantId }, 'whatsapp-refresh-failed')
@@ -194,7 +194,7 @@ export async function connectWhatsApp(): Promise<ActionResult<{ qrCode: string |
       detail: result.instanceName ?? connection?.instanceName ?? 'nova instância',
     })
 
-    revalidatePath('/configuracoes/whatsapp')
+    revalidatePath('/configuracoes/lembretes')
     return { ok: true, qrCode: result.qrCode }
   } catch (err) {
     logger.error({ tenantId: auth.tenantId }, 'whatsapp-connect-failed')
@@ -230,7 +230,7 @@ export async function disconnectWhatsApp(): Promise<{ ok: true } | ActionErr> {
       action: 'disconnect',
       detail: connection.instanceName ?? 'sem instância',
     })
-    revalidatePath('/configuracoes/whatsapp')
+    revalidatePath('/configuracoes/lembretes')
     return { ok: true }
   } catch (err) {
     logger.error({ tenantId: auth.tenantId }, 'whatsapp-disconnect-failed')

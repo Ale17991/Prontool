@@ -89,7 +89,7 @@ export function ConfigForm({
     if (channels.includes('whatsapp') && !whatsappConnected) {
       setFeedback({
         type: 'error',
-        msg: 'Conecte o WhatsApp da clínica antes de habilitar esse canal — em Configurações › WhatsApp.',
+        msg: 'Conecte o WhatsApp da clínica antes de habilitar esse canal — no painel "Número de WhatsApp", acima.',
       })
       return
     }
@@ -188,7 +188,7 @@ export function ConfigForm({
                     </span>
                     {bloqueado && (
                       <span className="mt-0.5 block text-xs text-amber-700">
-                        Conecte o número da clínica em Configurações › WhatsApp para liberar.
+                        Conecte o número da clínica no painel acima para liberar.
                       </span>
                     )}
                   </span>
