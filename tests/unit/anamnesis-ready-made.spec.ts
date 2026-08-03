@@ -71,7 +71,7 @@ describe('catálogo de modelos prontos', () => {
 
       it('o título de seção não é confundível com pergunta obrigatória', () => {
         for (const f of model.fields) {
-          if (!f.label.startsWith('—')) continue
+          if (!f.id.startsWith('sec_')) continue
           expect(f.required, `seção ${f.id} não pode ser obrigatória`).toBe(false)
         }
       })

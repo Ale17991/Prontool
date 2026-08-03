@@ -31,7 +31,10 @@ export interface ReadyMadeTemplate {
  * está em uso por anamneses já respondidas.
  */
 function secao(id: string, titulo: string): AnamnesisField {
-  return { id, type: 'texto_curto', label: `— ${titulo.toUpperCase()} —`, required: false }
+  // Seção se identifica pelo PREFIXO DO ID (`sec_`), não pelo rótulo: marcar
+  // com travessões no texto obrigava quem lê a decorar uma convenção
+  // tipográfica, e quebrava se alguém renomeasse o título.
+  return { id, type: 'texto_curto', label: titulo.toUpperCase(), required: false }
 }
 
 const t = (id: string, label: string, required = false): AnamnesisField => ({
@@ -81,7 +84,7 @@ const ANAMNESE_ALIMENTAR: ReadyMadeTemplate = {
   slug: 'anamnese-alimentar',
   title: 'Anamnese Alimentar',
   description:
-    'Anamnese completa de nutrição — hábitos de vida, patologias, avaliação clínica, alimentação, atividade física e saúde da mulher. Baseada no roteiro de consulta da nutricionista.',
+    'Anamnese completa de nutrição: hábitos de vida, patologias, avaliação clínica, alimentação, atividade física e saúde da mulher. Baseada no roteiro de consulta da nutricionista.',
   specialty: 'nutricao',
   fields: [
     secao('sec_motivo', 'Motivo da consulta'),
@@ -130,14 +133,14 @@ const ANAMNESE_ALIMENTAR: ReadyMadeTemplate = {
     secao('sec_patologias', 'Patologias'),
     longo('sintomas_gerais', 'Sintomas gerais'),
     longo('outros_sintomas', 'Outros sintomas'),
-    longo('cirurgias', 'Cirurgias — se sim, quais e quando'),
+    longo('cirurgias', 'Cirurgias (se sim, quais e quando)'),
     longo('patologias', 'Patologias diagnosticadas'),
     longo('medicamentos', 'Medicamentos em uso (nome, dose e horário)'),
     longo('historico_familiar', 'Histórico familiar'),
 
     secao('sec_clinica', 'Avaliação clínica'),
     longo('fisico_almejado', 'Existe um físico que almeja? (referência, físico antigo)'),
-    longo('dificuldade_dieta', 'Dificuldade de seguir uma dieta regrada — qual?'),
+    longo('dificuldade_dieta', 'Dificuldade de seguir uma dieta regrada. Qual?'),
     escolha('habito_intestinal', 'Hábito intestinal', [
       'Diário',
       'A cada 2 dias',
@@ -147,13 +150,13 @@ const ANAMNESE_ALIMENTAR: ReadyMadeTemplate = {
     ]),
     t('cor_fezes', 'Cor das fezes'),
     lista('formato_fezes', 'Formato das fezes (escala de Bristol)', [
-      'Tipo 1 — bolinhas duras',
-      'Tipo 2 — grumosa',
-      'Tipo 3 — rachaduras na superfície',
-      'Tipo 4 — lisa e macia',
-      'Tipo 5 — pedaços macios',
-      'Tipo 6 — pastosa',
-      'Tipo 7 — líquida',
+      'Tipo 1: bolinhas duras',
+      'Tipo 2: grumosa',
+      'Tipo 3: rachaduras na superfície',
+      'Tipo 4: lisa e macia',
+      'Tipo 5: pedaços macios',
+      'Tipo 6: pastosa',
+      'Tipo 7: líquida',
     ]),
     num('ingestao_hidrica_litros', 'Ingestão hídrica (litros por dia)'),
     escolha('hidratacao_urinaria', 'Coloração da urina', [
@@ -201,7 +204,7 @@ const ANAMNESE_ALIMENTAR: ReadyMadeTemplate = {
     // a pessoa está cadastrada — quem não se aplica deixa em branco.
     secao('sec_saude_mulher', 'Saúde da mulher (quando se aplicar)'),
     { id: 'ultima_menstruacao', type: 'data', label: 'Última menstruação', required: false },
-    longo('tpm', 'TPM — sintomas'),
+    longo('tpm', 'TPM (sintomas)'),
     t('ciclo_menstrual', 'Ciclo menstrual (regularidade e duração)'),
     t('contraceptivo', 'Contraceptivo em uso'),
     escolha('colicas', 'Cólicas', ['Ausentes', 'Leves', 'Moderadas', 'Intensas']),

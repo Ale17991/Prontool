@@ -130,7 +130,7 @@ const ORIENTACAO_JEJUM = [
   '',
   'Antes da coleta:',
   '• Jejum de ______ horas. Água pode, e é bem-vinda.',
-  '• Mantenha sua alimentação habitual nos três dias anteriores — dieta diferente do normal altera o resultado e atrapalha a interpretação.',
+  '• Mantenha sua alimentação habitual nos três dias anteriores. Dieta diferente do normal altera o resultado e atrapalha a interpretação.',
   '• Evite bebida alcoólica nas 72 horas anteriores.',
   '• Evite exercício físico intenso nas 24 horas anteriores.',
   '',
@@ -163,7 +163,7 @@ export const READY_MADE_DOCUMENTS: readonly ReadyMadeDocument[] = [
     docType: 'declaracao',
     paperSize: 'A5',
     fontSize: 12,
-    hint: 'Comprova o horário do atendimento — não é afastamento.',
+    hint: 'Comprova o horário do atendimento. Não é afastamento.',
     body: DECLARACAO_COMPARECIMENTO,
   },
   {

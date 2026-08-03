@@ -301,7 +301,7 @@ export function RotuloClient() {
     // novo rótulo com a composição atual.
     setLabelId(null)
     set('productName', `${form.productName} (cópia)`)
-    setMsg('Cópia em edição — salve para criar o novo rótulo.')
+    setMsg('Cópia em edição. Salve para criar o novo rótulo.')
   }
 
   function startEdit(row: LabelNutrientRow) {
@@ -363,8 +363,8 @@ export function RotuloClient() {
                 value={form.basis}
                 onChange={(e) => set('basis', e.target.value as LabelBasis)}
               >
-                <option value="solido">Sólido — por 100 g</option>
-                <option value="liquido">Líquido — por 100 mL</option>
+                <option value="solido">Sólido (por 100 g)</option>
+                <option value="liquido">Líquido (por 100 mL)</option>
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -458,7 +458,7 @@ export function RotuloClient() {
             {ingredients.length === 0 ? (
               <p className="text-xs text-slate-400">
                 Adicione os ingredientes com as quantidades da receita. O rendimento é informado
-                separadamente — a perda por cocção é real e não pode ser deduzida da soma.
+                separadamente, porque a perda por cocção é real e não pode ser deduzida da soma.
               </p>
             ) : null}
           </CardContent>
@@ -511,7 +511,7 @@ export function RotuloClient() {
               <div className="flex gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
                 <p className="text-xs text-red-700">
-                  Rótulo incompleto — não utilizável em embalagem. Informe os valores das linhas
+                  Rótulo incompleto, não utilizável em embalagem. Informe os valores das linhas
                   marcadas.
                 </p>
               </div>
@@ -602,11 +602,11 @@ export function RotuloClient() {
                         </td>
                         <td className="py-1 text-right tabular-nums">
                           {row.perPortion === null
-                            ? '—'
+                            ? '-'
                             : `${formatDeclared(row.perPortion)} ${row.unit === 'kcal' ? 'kcal' : row.unit}`}
                         </td>
                         <td className="py-1 text-right tabular-nums">
-                          {row.dvPercent === null ? '—' : `${formatDeclared(row.dvPercent)}%`}
+                          {row.dvPercent === null ? '-' : `${formatDeclared(row.dvPercent)}%`}
                         </td>
                       </>
                     )}

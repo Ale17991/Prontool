@@ -193,7 +193,7 @@ export function GrowthSection({
               : report.missing.birthDate
                 ? 'a data de nascimento'
                 : 'o sexo'}{' '}
-            no cadastro. A referência da OMS é por idade e sexo — sem isso não há com o que comparar.
+            no cadastro. A referência da OMS é por idade e sexo, e sem isso não há com o que comparar.
           </p>
         ) : null}
 
