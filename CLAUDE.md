@@ -188,7 +188,18 @@ por clínica, conectado por QR em autoatendimento.
   todos os canais; `reminders_whatsapp_opt_in` só é consultado quando o mestre é
   TRUE. São manifestações distintas em LGPD.
 - **Rollout por módulo** `whatsapp` (`ent.hasModule`), ligável por clínica no
-  `/admin`. O gate está na PÁGINA também, não só no card do hub.
+  `/admin`. O gate está na PÁGINA e no **MOTOR** (`process-batch.ts`), não só no
+  card do hub: `reminder_channels` é estado persistido, então o gate de UI só
+  impede de LIGAR o canal — sem a checagem no motor, uma clínica que teve o
+  módulo revogado continuaria enviando para sempre. Módulo desligado não gera
+  alerta (não é falha operacional, é ausência de contratação).
+- **O SC-004 é derivado, nunca gravado** (`whatsapp/metrics.ts`): a taxa de
+  leitura em 24h é recomposta de `whatsapp_delivery_events` a cada leitura, então
+  corrigir a regra reapura o histórico. A apuração é em DOIS passos — descobre os
+  candidatos, depois lê o histórico completo de cada um — porque julgar um
+  lembrete por um pedaço da sua linha do tempo erra nas duas bordas: no fim a
+  leitura que atravessa a virada some, no início um `read` órfão é contado neste
+  período E no anterior. Taxa é `null` (não `0`) quando não houve entrega.
 - **Migrations**: `0185_whatsapp_reminders.sql` (tabelas + colunas de canal) e
   `0186_whatsapp_callback_secret.sql` (Bearer do callback, por clínica).
 - **Risco aceito**: Evolution/Baileys é não-oficial. Se o número **da clínica**

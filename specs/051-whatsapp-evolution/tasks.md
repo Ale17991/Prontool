@@ -203,7 +203,9 @@ confirmar que só o e-mail saiu.
 - [X] T050 Rodar `pnpm typecheck` e `pnpm lint:auth` e corrigir o que aparecer
 - [X] T051 🔒 Rodar `pnpm test` e re-semear com `pnpm seed:demo`
 - [ ] T052 Percorrer o `quickstart.md` de ponta a ponta com um número real, incluindo os 5 cenários da tabela da seção 7
-- [ ] T053 Confirmar que o SC-004 (≥ 70% dos lembretes entregues lidos em 24h) é apurável com os dados de `whatsapp_delivery_events` — a consulta que apura isso deve existir antes de a feature ser considerada validada
+- [X] T053 Confirmar que o SC-004 (≥ 70% dos lembretes entregues lidos em 24h) é apurável com os dados de `whatsapp_delivery_events` — a consulta que apura isso deve existir antes de a feature ser considerada validada
+  - Feito em `src/lib/core/whatsapp/metrics.ts` (`getWhatsAppReadRate`), exposto na tela de lembretes (últimos 30 dias). Métrica derivada, nunca persistida. 13 casos em `tests/unit/whatsapp-read-rate.spec.ts`.
+- [X] T054 Gate do módulo `whatsapp` no MOTOR, não só na UI — `reminder_channels` é estado persistido e a revogação no /admin não tinha efeito retroativo (`process-batch.ts`)
 
 ---
 

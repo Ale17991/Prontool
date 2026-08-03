@@ -19,6 +19,7 @@ import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { sendOneReminder } from './send-one'
 import { sendOneWhatsAppReminder } from './send-one-whatsapp'
 import { isWhatsAppConnected, getDecryptedApiKey } from '@/lib/core/whatsapp/config'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { enqueueWhatsAppReminder } from '@/lib/integrations/queue/qstash-client'
 import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
 import { isQstashConfigured } from '@/lib/integrations/queue/qstash-client'
@@ -177,6 +178,26 @@ export async function processBatch(
         // clínica com o número fora do ar geraria uma falha por paciente em vez
         // de uma ocorrência agregada, enchendo o histórico de ruído.
         let whatsappUsable = channels.includes('whatsapp')
+
+        // O módulo é verificado ANTES da conexão, e no MOTOR — não só na tela.
+        // `reminder_channels` é estado persistido: uma clínica que ligou o canal
+        // e depois teve o módulo revogado no /admin continuaria enviando para
+        // sempre, porque o gate da UI só impede de LIGAR, não de continuar
+        // ligado. Revogação sem efeito retroativo é cobrança indevida.
+        //
+        // Módulo desligado NÃO gera alerta: não é falha operacional da clínica,
+        // é ausência de contratação. O canal simplesmente sai do lote (e o
+        // fallback de e-mail abaixo assume, se estiver configurado).
+        if (whatsappUsable) {
+          const ent = await getTenantEntitlements(supabase as never, t.tenant_id).catch(() => null)
+          // Fail-open no mesmo espírito de `getTenantEntitlements`: erro de
+          // leitura não deve calar o lembrete de quem contratou.
+          if (ent && !ent.hasModule('whatsapp')) {
+            whatsappUsable = false
+            logger.info({ tenantId: t.tenant_id }, 'whatsapp-module-off-skipping-channel')
+          }
+        }
+
         if (whatsappUsable) {
           whatsappUsable = await isWhatsAppConnected(supabase as never, t.tenant_id).catch(
             () => false,

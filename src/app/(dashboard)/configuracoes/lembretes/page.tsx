@@ -9,6 +9,7 @@ import { getReminderConfig } from '@/lib/core/reminders/config'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { isWhatsAppConnected } from '@/lib/core/whatsapp/config'
 import { resolveDeliveryStatuses } from '@/lib/core/whatsapp/delivery'
+import { getWhatsAppReadRate } from '@/lib/core/whatsapp/metrics'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listRemindersHistory } from '@/lib/core/reminders/history'
 import { ConfigForm } from './config-form'
@@ -42,6 +43,16 @@ export default async function LembretesPage() {
     ).catch(() => new Map<string, string>()),
   )
 
+  // SC-004 nos últimos 30 dias. Só faz sentido para quem tem o canal; para as
+  // demais clínicas seria um bloco vazio pedindo explicação.
+  const agora = new Date()
+  const leitura = ent.hasModule('whatsapp')
+    ? await getWhatsAppReadRate(svc, session.tenantId, {
+        since: new Date(agora.getTime() - 30 * 24 * 3600_000).toISOString(),
+        until: agora.toISOString(),
+      }).catch(() => null)
+    : null
+
   return (
     <div className="space-y-6">
       <div>
@@ -59,6 +70,24 @@ export default async function LembretesPage() {
         whatsappConnected={whatsappConnected}
         whatsappModuleEnabled={ent.hasModule('whatsapp')}
       />
+
+      {leitura && leitura.taxa !== null && (
+        <section className="rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="text-sm font-semibold text-slate-900">Leitura no WhatsApp</h2>
+          <p className="mt-2 text-2xl font-black tracking-tight text-slate-900">
+            {Math.round(leitura.taxa * 100)}%
+            <span className="ml-2 align-middle text-sm font-medium text-slate-500">
+              dos {leitura.entregues} lembretes entregues foram lidos em até 24h
+            </span>
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Últimos 30 dias.
+            {leitura.lidosDepois > 0 && ` Outros ${leitura.lidosDepois} foram lidos depois disso.`}
+            {leitura.enviadosSemEntrega > 0 &&
+              ` ${leitura.enviadosSemEntrega} sairam sem confirmação de entrega.`}
+          </p>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-slate-900">Histórico de envios</h2>
