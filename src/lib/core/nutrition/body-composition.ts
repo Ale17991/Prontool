@@ -79,15 +79,19 @@ function sum(vals: number[]): number {
 }
 
 /**
- * Durnin & Womersley (1974), Table 5 — coeficientes [c, m] de
- * `Dc = c − m·log10(Σ4 dobras)`, por sexo e faixa etária.
+ * Durnin & Womersley (1974) — `Dc = c − m·log10(Σ4 dobras)`.
  *
- * O artigo publica coeficientes POR FAIXA ETÁRIA e uma coluna agrupada
- * ("all ages"). Usávamos a agrupada, que é legítima mas perde 1–3 p.p. nos
- * extremos etários — desperdício, já que a idade do paciente está à mão.
- * A agrupada fica como fallback fora das faixas publicadas (17–72 H / 16–68 M).
+ * Usa a coluna AGRUPADA ("all ages"), um coeficiente por sexo, que é o que a
+ * planilha de referência da clínica aplica. O artigo também publica
+ * coeficientes por faixa etária, e o sistema chegou a usá-los; a decisão
+ * (2026-08-03) foi alinhar com a planilha, para o %gordura conferir com o que
+ * a profissional já valida à mão.
+ *
+ * As faixas etárias ficam registradas abaixo, sem uso, para a escolha não se
+ * perder: se um dia a decisão mudar, o dado está aqui e não em histórico de
+ * commit.
  */
-const DURNIN_BANDS: Record<Sex, { maxAge: number; c: number; m: number }[]> = {
+const DURNIN_BANDS_NAO_USADO: Record<Sex, { maxAge: number; c: number; m: number }[]> = {
   M: [
     { maxAge: 19, c: 1.162, m: 0.063 },
     { maxAge: 29, c: 1.1631, m: 0.0632 },
@@ -104,20 +108,14 @@ const DURNIN_BANDS: Record<Sex, { maxAge: number; c: number; m: number }[]> = {
   ],
 }
 
-/** Coeficientes agrupados ("all ages") — fallback. */
+/** Coeficientes agrupados ("all ages") — os que valem. */
 const DURNIN_ALL: Record<Sex, { c: number; m: number }> = {
   M: { c: 1.1765, m: 0.0744 },
   F: { c: 1.1567, m: 0.0717 },
 }
 
-function durninWomersley(S: number, sex: Sex, ageYears: number): number {
-  const lower = sex === 'M' ? 17 : 16
-  if (ageYears < lower) {
-    const { c, m } = DURNIN_ALL[sex]
-    return c - m * log10(S)
-  }
-  const band = DURNIN_BANDS[sex].find((b) => ageYears <= b.maxAge) ?? null
-  const { c, m } = band ?? DURNIN_ALL[sex]
+function durninWomersley(S: number, sex: Sex): number {
+  const { c, m } = DURNIN_ALL[sex]
   return c - m * log10(S)
 }
 
@@ -130,7 +128,7 @@ function bodyDensity(input: CompositionInput): number {
 
   switch (input.protocol) {
     case 'durnin_womersley':
-      return durninWomersley(S, sex, I)
+      return durninWomersley(S, sex)
     case 'guedes':
       return sex === 'M' ? 1.17136 - 0.06706 * log10(S) : 1.1665 - 0.07063 * log10(S)
     case 'jp3':
@@ -146,9 +144,10 @@ function bodyDensity(input: CompositionInput): number {
       // coeficiente: o masculino é quadrático em Σ, o feminino é logarítmico.
       // Antes o masculino usava a equação feminina (~1,8 p.p. de erro no
       // %gordura). Os sítios já eram os corretos por sexo (ver protocols.ts).
-      return sex === 'M'
-        ? 1.10726863 - 0.00081201 * S + 0.00000212 * S * S - 0.00041761 * I
-        : 1.1954713 - 0.07513507 * log10(S) - 0.00041072 * I
+      // A planilha aplica a MESMA equação logarítmica aos dois sexos: o que
+      // muda entre eles são os sítios (ver protocols.ts), não a fórmula.
+      // Decisão de 2026-08-03, alinhando com o documento de base.
+      return 1.1954713 - 0.07513507 * log10(S) - 0.00041072 * I
     case 'mcardle': {
       const tri = sf.triceps
       const sub = sf.subescapular
@@ -188,15 +187,14 @@ function fatPercent(input: CompositionInput): { fatPct: number; density: number 
       return { fatPct: S * 0.153 + 5.783, density: null }
     }
     case 'weltman': {
-      const ab1 = input.circumferences?.abdomen
-      const ab2 = input.circumferences?.abdomen2
-      if (typeof ab1 !== 'number' || !Number.isFinite(ab1) || ab1 <= 0) {
+      const cw = input.circumferences?.abdomen
+      if (typeof cw !== 'number' || !Number.isFinite(cw) || cw <= 0) {
         throw new NutritionInputError('MISSING_CIRCUMFERENCE', 'Informe a circunferência abdominal (Weltman).')
       }
-      // Weltman usa a MÉDIA de duas medidas abdominais. Com só uma informada,
-      // usamos ela (e a UI avisa) — não vale bloquear o atendimento por isso.
-      const cw =
-        typeof ab2 === 'number' && Number.isFinite(ab2) && ab2 > 0 ? (ab1 + ab2) / 2 : ab1
+      // UMA medida abdominal, como no documento de base. O sistema chegou a
+      // pedir duas e usar a média (o protocolo original prevê isso), mas a
+      // decisão de 2026-08-03 foi alinhar o CAMPO com a planilha que a
+      // profissional usa.
       if (sex === 'M') return { fatPct: 0.31457 * cw - 0.10969 * P + 10.8336, density: null }
       if (typeof heightCm !== 'number') {
         throw new NutritionInputError('MISSING_HEIGHT', 'Weltman (feminino) exige altura.')

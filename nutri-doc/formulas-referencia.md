@@ -600,3 +600,39 @@ snapshot da avaliação já diz qual foi usada.
 **Tamanho da diferença**: no adulto é de ~129 kcal/dia (peso 80 kg, altura
 1,75 m, PA 1,25), porque o termo de altura do adulto é 539,6. Em criança a
 distância é bem maior, já que ali o coeficiente é 903.
+
+## Conferência da antropometria (2026-08-03)
+
+Fonte: `Evonut.xlsm`, aba `Calc_Antropometria`. Bloco masculino nas linhas 4–13,
+feminino nas 16–25 (as colunas Q/T/W são as avaliações 1 a 7, não os sexos).
+Os sítios foram decodificados pelas colunas de `BD_Antropometria`:
+DG bíceps · DH tríceps · DI peitoral · DJ axilar média · DK subescapular ·
+DL abdominal · DM suprailíaca · DO coxa média · DP panturrilha ·
+CW circunferência abdominal · CE peso.
+
+### Sítios: batem todos
+
+Inclusive onde mudam por sexo. Guedes: homem tríceps/abdominal/suprailíaca,
+mulher subescapular/suprailíaca/coxa. Jackson-Pollock 3D: homem
+peitoral/abdominal/coxa, mulher tríceps/suprailíaca/coxa. Petroski: homem
+tríceps/subescapular/suprailíaca/panturrilha, mulher
+axilar média/suprailíaca/coxa/panturrilha.
+
+### Densidade: sete batem exatamente
+
+Guedes, Jackson-Pollock 3D, Jackson-Pollock 7D, Faulkner, McArdle, Slaughter
+(nos dois sexos) e Siri.
+
+### Três alinhados com a planilha nesta revisão
+
+| Protocolo | Antes | Agora |
+|---|---|---|
+| Durnin & Womersley | coeficiente por faixa etária (5 faixas por sexo) | coeficiente agrupado, um por sexo (1,1765 H / 1,1567 M) |
+| Petroski | quadrática no homem, logarítmica na mulher | a MESMA logarítmica nos dois sexos; só os sítios diferem |
+| Weltman | duas circunferências abdominais, com média | uma única circunferência |
+
+As três vinham da conferência de literatura de julho, que tratou a forma da
+planilha como imprecisão. A decisão de 2026-08-03 foi o contrário: o documento
+de base manda, porque é contra ele que a profissional confere os números à mão.
+Os coeficientes por faixa etária do Durnin ficaram no código, sem uso e
+nomeados como tal, para a alternativa não se perder.

@@ -99,7 +99,6 @@ export function NutritionAssessmentClient({
   const [cintura, setCintura] = useState('')
   const [quadril, setQuadril] = useState('')
   const [abdomen, setAbdomen] = useState('')
-  const [abdomen2, setAbdomen2] = useState('')
   const [fatPctInput, setFatPctInput] = useState('')
 
   // Energia
@@ -198,7 +197,6 @@ export function NutritionAssessmentClient({
             cintura: num(cintura),
             quadril: num(quadril),
             abdomen: num(abdomen),
-            abdomen2: num(abdomen2),
           },
           fatPctInput: num(fatPctInput) ?? null,
         })
@@ -230,7 +228,7 @@ export function NutritionAssessmentClient({
     }
     return { composition, compositionError, energy, energyError }
   }, [
-    sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, abdomen2, fatPctInput,
+    sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, fatPctInput,
     equation, activity, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
     macroMode, protGkg, lipGkg,
   ])
@@ -245,12 +243,11 @@ export function NutritionAssessmentClient({
             protocol,
             sex,
             ageYears: ageN,
-            hasSecondAbdomen: num(abdomen2) !== undefined,
           })
         : []),
       ...(equation ? energyAdvisories({ equation, ageYears: ageN }) : []),
     ]
-  }, [protocol, equation, sex, age, abdomen2])
+  }, [protocol, equation, sex, age])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -283,7 +280,6 @@ export function NutritionAssessmentClient({
             ['cintura', num(cintura)],
             ['quadril', num(quadril)],
             ['abdomen', num(abdomen)],
-            ['abdomen2', num(abdomen2)],
           ].filter(([, v]) => v !== undefined),
         )
         if (protocol === 'bioimpedancia') body.fat_pct_input = num(fatPctInput) ?? null
@@ -385,17 +381,13 @@ export function NutritionAssessmentClient({
                     <Input id={`sf_${s}`} inputMode="decimal" value={skinfolds[s] ?? ''} onChange={(e) => setSkinfolds((v) => ({ ...v, [s]: e.target.value }))} />
                   </div>
                 ))}
+                {/* Weltman pede UMA circunferência abdominal, como no documento
+                    de base. O segundo campo saiu em 2026-08-03. */}
                 {protocol === 'weltman' ? (
-                  <>
-                    <div>
-                      <Label htmlFor="c_abd">Circ. abdominal 1 (cm)</Label>
-                      <Input id="c_abd" inputMode="decimal" value={abdomen} onChange={(e) => setAbdomen(e.target.value)} />
-                    </div>
-                    <div>
-                      <Label htmlFor="c_abd2">Circ. abdominal 2 (cm)</Label>
-                      <Input id="c_abd2" inputMode="decimal" value={abdomen2} onChange={(e) => setAbdomen2(e.target.value)} />
-                    </div>
-                  </>
+                  <div>
+                    <Label htmlFor="c_abd">Circ. abdominal (cm)</Label>
+                    <Input id="c_abd" inputMode="decimal" value={abdomen} onChange={(e) => setAbdomen(e.target.value)} />
+                  </div>
                 ) : null}
               </div>
             ) : null}

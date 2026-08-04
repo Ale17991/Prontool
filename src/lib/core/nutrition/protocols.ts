@@ -130,7 +130,8 @@ export const DOBRA_PROTOCOLS: Record<DobraProtocol, ProtocolMeta> = {
     slug: 'weltman',
     label: 'Weltman & col. (1988)',
     sites: { M: [], F: [] },
-    circumferences: { M: ['abdomen', 'abdomen2'], F: ['abdomen', 'abdomen2'] },
+    // Uma medida só, como no documento de base (decisão de 2026-08-03).
+    circumferences: { M: ['abdomen'], F: ['abdomen'] },
     needsHeight: true,
     ageMin: 20,
     ageMax: 68,

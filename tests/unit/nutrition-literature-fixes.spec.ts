@@ -46,10 +46,18 @@ describe('EER/IOM 2005 — fator de atividade (PA) deixa de ser ignorado', () =>
   })
 })
 
-describe('Petroski — masculino usa a equação masculina (quadrática)', () => {
+/**
+ * ATUALIZADO em 2026-08-03. A conferência de julho tinha trocado o Petroski
+ * masculino para a quadrática publicada. Ao comparar com o documento de base da
+ * clínica (Evonut.xlsm, Calc_Antropometria), o usuário decidiu seguir a
+ * planilha: ela aplica a MESMA equação logarítmica aos dois sexos, e o que muda
+ * entre eles são os sítios. O mesmo vale para Durnin (coeficiente agrupado) e
+ * Weltman (uma única circunferência).
+ */
+describe('Petroski — mesma equação nos dois sexos, como no documento de base', () => {
   const skinfolds = { triceps: 10, subescapular: 12, suprailiaca: 14, panturrilha: 9 }
 
-  it('homem: Dc pela quadrática, não pela logarítmica feminina', () => {
+  it('homem: usa a logarítmica, igual à mulher (só os sítios diferem)', () => {
     const r = computeComposition({
       sex: 'M',
       ageYears: 30,
@@ -60,14 +68,14 @@ describe('Petroski — masculino usa a equação masculina (quadrática)', () =>
       circumferences: {},
       fatPctInput: null,
     })
-    // Σ = 45; quadrática: 1.10726863 − 0.00081201·45 + 0.00000212·45² − 0.00041761·30
+    // Σ = 45; a planilha usa a logarítmica para os dois sexos.
     const S = 45
-    const dc = 1.10726863 - 0.00081201 * S + 0.00000212 * S * S - 0.00041761 * 30
+    const dc = 1.1954713 - 0.07513507 * Math.log10(S) - 0.00041072 * 30
     // O motor arredonda a densidade em 5 casas.
     expect(r.bodyDensity).toBeCloseTo(dc, 4)
   })
 
-  it('mulher: mantém a logarítmica publicada', () => {
+  it('mulher: a mesma logarítmica, com os sítios femininos', () => {
     const r = computeComposition({
       sex: 'F',
       ageYears: 30,
@@ -102,7 +110,7 @@ describe('Slaughter — constante do pré-púbere é a publicada (−1,7)', () =
   })
 })
 
-describe('Durnin-Womersley — coeficientes por faixa etária', () => {
+describe('Durnin-Womersley — coeficiente agrupado, como no documento de base', () => {
   const mk = (ageYears: number) =>
     computeComposition({
       sex: 'M',
@@ -115,17 +123,18 @@ describe('Durnin-Womersley — coeficientes por faixa etária', () => {
       fatPctInput: null,
     })
 
-  it('usa a faixa 20-29, não a agrupada', () => {
-    // Σ = 42; faixa 20-29 (H): 1.1631 − 0.0632·log10(42)
-    const dc = 1.1631 - 0.0632 * Math.log10(42)
+  it('usa o agrupado (1,1765 H / 1,1567 M) em qualquer idade', () => {
+    // Σ = 42; agrupado masculino: 1.1765 − 0.0744·log10(42)
+    const dc = 1.1765 - 0.0744 * Math.log10(42)
     expect(mk(25).bodyDensity).toBeCloseTo(dc, 4)
   })
 
-  it('faixas diferentes dão densidades diferentes', () => {
-    expect(mk(25).bodyDensity).not.toBe(mk(55).bodyDensity)
+  it('idades diferentes dão a MESMA densidade — o coeficiente não varia', () => {
+    // É a consequência de seguir a planilha: a idade não entra nesta equação.
+    expect(mk(25).bodyDensity).toBe(mk(55).bodyDensity)
   })
 
-  it('abaixo da faixa publicada cai no agrupado e avisa', () => {
+  it('adolescente usa o mesmo coeficiente, e o aviso de faixa permanece', () => {
     const dc = 1.1765 - 0.0744 * Math.log10(42)
     expect(mk(14).bodyDensity).toBeCloseTo(dc, 4)
     expect(
@@ -140,7 +149,7 @@ describe('Durnin-Womersley — coeficientes por faixa etária', () => {
   })
 })
 
-describe('Weltman — usa a média de duas medidas abdominais', () => {
+describe('Weltman — uma única circunferência abdominal', () => {
   const mk = (circumferences: Record<string, number>) =>
     computeComposition({
       sex: 'M',
@@ -153,10 +162,12 @@ describe('Weltman — usa a média de duas medidas abdominais', () => {
       fatPctInput: null,
     })
 
-  it('com duas medidas, usa a média', () => {
-    const media = mk({ abdomen: 100, abdomen2: 110 })
-    const direta = mk({ abdomen: 105 })
-    expect(media.fatPct).toBe(direta.fatPct)
+  it('usa a medida informada; um segundo valor é ignorado', () => {
+    // O documento de base pede UMA circunferência. Um `abdomen2` que sobre de
+    // avaliação antiga não pode mudar o resultado pelas costas.
+    const comExtra = mk({ abdomen: 100, abdomen2: 110 })
+    const so = mk({ abdomen: 100 })
+    expect(comExtra.fatPct).toBe(so.fatPct)
   })
 
   it('com uma medida só, usa ela e avisa', () => {
