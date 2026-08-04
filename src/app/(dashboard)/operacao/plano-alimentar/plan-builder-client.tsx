@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Layers, Loader2, Plus, Save, Search, Stamp, Trash2, UtensilsCrossed } from 'lucide-react'
+import { Layers, Loader2, Plus, Printer, Save, Search, Stamp, Trash2, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -530,6 +530,16 @@ export function PlanBuilderClient() {
                 paciente
               </Button>
             </div>
+            {/*
+              O impresso fica AQUI, e não num menu de documentos: o fluxo real é
+              "terminei o plano, quero entregar". Sai mesmo em rascunho — nesse
+              caso o PDF vem com tarja de não definitivo.
+            */}
+            <Button variant="outline" size="sm" className="w-full gap-1.5" asChild>
+              <a href={`/api/pacientes/${patient.id}/plano-alimentar/pdf`} target="_blank" rel="noreferrer">
+                <Printer className="h-3.5 w-3.5" /> Imprimir plano
+              </a>
+            </Button>
           </div>
         ) : null}
       </div>

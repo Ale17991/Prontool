@@ -88,10 +88,15 @@ function main() {
     // getSession/getSessionFromRequest (qualquer papel do tenant via client RLS,
     // ex.: /api/support-tickets — getSession devolve 401 e a RLS isola o tenant)
     // OU superAdminUserId/platformAdminUserId (gate de plataforma — retorna null
-    // ⇒ 403; usado pelas rotas /api/admin/*, ex.: impersonation).
+    // ⇒ 403; usado pelas rotas /api/admin/*, ex.: impersonation)
+    // OU openPrintout (feature 054): guard único dos impressos, que chama
+    // requireRole internamente e ainda aplica gate de módulo, isolamento por
+    // clínica e recusa de paciente anonimizado. É reconhecido como autenticador,
+    // e NÃO isento: uma rota que não chame nenhum destes continua reprovando.
     const hasAuth =
       /requireRole\s*\(/.test(src) ||
       /getSession(FromRequest)?\s*\(/.test(src) ||
+      /openPrintout\s*\(/.test(src) ||
       /(superAdminUserId|platformAdminUserId)\s*\(/.test(src)
     if (!hasAuth) {
       offenders.push({ rel, verbs })

@@ -26,7 +26,7 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 **Purpose**: nada a instalar. Esta fase só confirma o terreno.
 
-- [ ] T001 Confirmar que `@react-pdf/renderer` ^3.4.4 responde no ambiente e que `Svg`, `Polyline` e `Circle` estão exportados (research D3 depende disso). Um teste unitário em `tests/unit/printouts-renderer-primitives.spec.ts` que importa as primitivas serve de guarda: se uma atualização de dependência removê-las, a curva de crescimento quebra silenciosamente.
+- [X] T001 Confirmar que `@react-pdf/renderer` ^3.4.4 responde no ambiente e que `Svg`, `Polyline` e `Circle` estão exportados (research D3 depende disso). Um teste unitário em `tests/unit/printouts-renderer-primitives.spec.ts` que importa as primitivas serve de guarda: se uma atualização de dependência removê-las, a curva de crescimento quebra silenciosamente.
 
 ---
 
@@ -34,12 +34,12 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 **Purpose**: os blocos que todo impresso usa. **Nenhuma user story começa antes desta fase fechar.**
 
-- [ ] T002 Criar `src/lib/core/nutrition/printouts/shared.tsx` com os estilos comuns (página A4, Helvetica, corpo 9–11) e os blocos: `PatientBlock` (nome, nascimento, idade), `PrintFooter` (paginação `página X de Y`, profissional emissor, data de emissão) e `DraftStamp`. **O rodapé e a identificação do paciente MUST repetir em toda página** (FR-015) — folhas soltas se separam.
-- [ ] T003 [P] No mesmo `shared.tsx`, `fmt(value, unit)` e `dash(value)`: número ausente vira travessão, **nunca zero** (FR-008, research D4). É a mesma distinção que o rótulo nutricional já faz entre "é zero" e "não sei"; aqui ela vale para todos os nove documentos.
-- [ ] T004 [P] Criar `src/lib/pdf/evolution-columns.tsx` — layout de **até três** colunas de avaliação em A4 retrato, cada coluna com data e **protocolo** no cabeçalho. Com menos de três, renderiza só as existentes (FR-005), sem coluna vazia.
-- [ ] T005 [P] Teste unitário em `tests/unit/printouts-shared.spec.ts`: `dash` devolve travessão para `null`/`undefined`/`NaN` e devolve `"0"` para o zero de verdade; `evolution-columns` com 1, 2 e 3 colunas produz respectivamente 1, 2 e 3 colunas, e com 5 entradas usa as 3 mais recentes.
-- [ ] T006 Criar `src/lib/core/nutrition/printouts/guard.ts` — helper único de rota: resolve sessão, aplica `requireRole(['admin','profissional_saude'])`, checa o módulo exigido, recusa **paciente anonimizado com 409** e devolve 404 (não 403) para paciente de outra clínica. Centralizar evita que a sétima rota esqueça uma das quatro regras.
-- [ ] T007 [P] Teste de contrato em `tests/contract/printouts-rbac.spec.ts` cobrindo o guard: `recepcionista` e `financeiro` → 403; módulo desligado → 404 `MODULE_DISABLED`; paciente de outra clínica → **404** (nunca 403, que confirmaria a existência); paciente anonimizado → 409.
+- [X] T002 Criar `src/lib/core/nutrition/printouts/shared.tsx` com os estilos comuns (página A4, Helvetica, corpo 9–11) e os blocos: `PatientBlock` (nome, nascimento, idade), `PrintFooter` (paginação `página X de Y`, profissional emissor, data de emissão) e `DraftStamp`. **O rodapé e a identificação do paciente MUST repetir em toda página** (FR-015) — folhas soltas se separam.
+- [X] T003 [P] No mesmo `shared.tsx`, `fmt(value, unit)` e `dash(value)`: número ausente vira travessão, **nunca zero** (FR-008, research D4). É a mesma distinção que o rótulo nutricional já faz entre "é zero" e "não sei"; aqui ela vale para todos os nove documentos.
+- [X] T004 [P] Criar `src/lib/pdf/evolution-columns.tsx` — layout de **até três** colunas de avaliação em A4 retrato, cada coluna com data e **protocolo** no cabeçalho. Com menos de três, renderiza só as existentes (FR-005), sem coluna vazia.
+- [X] T005 [P] Teste unitário em `tests/unit/printouts-shared.spec.ts`: `dash` devolve travessão para `null`/`undefined`/`NaN` e devolve `"0"` para o zero de verdade; `evolution-columns` com 1, 2 e 3 colunas produz respectivamente 1, 2 e 3 colunas, e com 5 entradas usa as 3 mais recentes.
+- [X] T006 Criar `src/lib/core/nutrition/printouts/guard.ts` — helper único de rota: resolve sessão, aplica `requireRole(['admin','profissional_saude'])`, checa o módulo exigido, recusa **paciente anonimizado com 409** e devolve 404 (não 403) para paciente de outra clínica. Centralizar evita que a sétima rota esqueça uma das quatro regras.
+- [X] T007 [P] Teste de contrato em `tests/contract/printouts-rbac.spec.ts` cobrindo o guard: `recepcionista` e `financeiro` → 403; módulo desligado → 404 `MODULE_DISABLED`; paciente de outra clínica → **404** (nunca 403, que confirmaria a existência); paciente anonimizado → 409.
 
 **Checkpoint**: blocos comuns prontos e o guard testado. As histórias podem começar.
 
@@ -53,16 +53,16 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Teste unitário em `tests/unit/printouts-plan.spec.ts`: montar o mesmo plano pela função da tela (`diet/totals`) e pelo modelo do PDF; **os totais MUST ser idênticos**. É o teste que trava o risco nº 1 do plano — divergência entre papel e tela.
-- [ ] T009 [P] [US1] No mesmo arquivo: refeição com grupo de substituição conta a energia do grupo **uma vez**, e não uma por opção (FR-009). Plano em rascunho produz `isDraft: true`.
+- [X] T008 [P] [US1] Teste unitário em `tests/unit/printouts-plan.spec.ts`: montar o mesmo plano pela função da tela (`diet/totals`) e pelo modelo do PDF; **os totais MUST ser idênticos**. É o teste que trava o risco nº 1 do plano — divergência entre papel e tela.
+- [X] T009 [P] [US1] No mesmo arquivo: refeição com grupo de substituição conta a energia do grupo **uma vez**, e não uma por opção (FR-009). Plano em rascunho produz `isDraft: true`.
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Criar `src/lib/core/nutrition/printouts/plan-pdf.tsx` — refeições com horário e `%` da meta quando houver, itens com gramas e medida caseira, grupos como alternativas marcadas "ou", totais de energia e macros, textos de observação. **Recebe o resultado pronto de `getDietPlanForPatient`; não recalcula nada** (research D2).
-- [ ] T011 [US1] Tarja de rascunho quando `status = 'rascunho'` (FR-010): plano não enviado não pode circular como prescrição.
-- [ ] T012 [US1] Criar `src/app/api/pacientes/[id]/plano-alimentar/pdf/route.ts` usando o guard (T006), gate `dieta`, `runtime = 'nodejs'`, `content-disposition` com nome legível e `cache-control: no-store` (o conteúdo tem PII).
-- [ ] T013 [US1] Botão "Imprimir plano" em `src/app/(dashboard)/operacao/plano-alimentar/plan-builder-client.tsx`, ao lado de Salvar e Enviar (research D5 — o botão fica onde o dado nasce).
-- [ ] T014 [US1] Registrar a emissão em `log_audit_event` (Princípio II), no padrão do prontuário.
+- [X] T010 [US1] Criar `src/lib/core/nutrition/printouts/plan-pdf.tsx` — refeições com horário e `%` da meta quando houver, itens com gramas e medida caseira, grupos como alternativas marcadas "ou", totais de energia e macros, textos de observação. **Recebe o resultado pronto de `getDietPlanForPatient`; não recalcula nada** (research D2).
+- [X] T011 [US1] Tarja de rascunho quando `status = 'rascunho'` (FR-010): plano não enviado não pode circular como prescrição.
+- [X] T012 [US1] Criar `src/app/api/pacientes/[id]/plano-alimentar/pdf/route.ts` usando o guard (T006), gate `dieta`, `runtime = 'nodejs'`, `content-disposition` com nome legível e `cache-control: no-store` (o conteúdo tem PII).
+- [X] T013 [US1] Botão "Imprimir plano" em `src/app/(dashboard)/operacao/plano-alimentar/plan-builder-client.tsx`, ao lado de Salvar e Enviar (research D5 — o botão fica onde o dado nasce).
+- [X] T014 [US1] Registrar a emissão em `log_audit_event` (Princípio II), no padrão do prontuário.
 
 **Checkpoint**: US1 sozinha já resolve o que acontece em toda consulta. É o MVP.
 
