@@ -27,6 +27,7 @@ export type ModuleId =
   | 'exames_lab' // exames laboratoriais com faixas (cross-especialidade)
   | 'whatsapp' // canal WhatsApp nos lembretes (051) — rollout por clínica
   | 'habitos' // checklist de hábitos marcado pelo paciente (cross-especialidade)
+  | 'acompanhamento' // notificações por comportamento do paciente (053)
 
 export type Feature =
   // núcleo (Essencial)
@@ -71,6 +72,7 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'exames_lab',
   'whatsapp',
   'habitos',
+  'acompanhamento',
 ]
 
 /**

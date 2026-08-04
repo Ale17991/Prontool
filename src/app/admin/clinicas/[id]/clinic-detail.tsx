@@ -59,6 +59,7 @@ const MODULE_LABEL: Record<ModuleId, string> = {
   exames_lab: 'Exames laboratoriais',
   whatsapp: 'WhatsApp (lembretes)',
   habitos: 'Checklist de hábitos',
+  acompanhamento: 'Notificações por comportamento',
 }
 
 export type BillingStatus = 'trial' | 'active' | 'past_due' | 'canceled'

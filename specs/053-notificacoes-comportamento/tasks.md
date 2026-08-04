@@ -29,9 +29,9 @@ implementável e demonstrável sozinha.
 
 ## Phase 1: Setup
 
-- [ ] T001 Criar a cápsula `src/lib/core/signals/` com `types.ts` (família, candidato, desfecho, contexto de avaliação) e `index.ts` como barrel
-- [ ] T002 [P] Criar `src/lib/core/messaging/` com `types.ts` (resultado de envio classificado, finalidade) — separada de `signals/` de propósito, ver plan.md
-- [ ] T003 [P] Acrescentar o módulo `acompanhamento` em `ModuleId` e `ALL_MODULES` em `src/lib/core/entitlements/plans.ts`
+- [X] T001 Criar a cápsula `src/lib/core/signals/` com `types.ts` (família, candidato, desfecho, contexto de avaliação) e `index.ts` como barrel
+- [X] T002 [P] Criar `src/lib/core/messaging/` com `types.ts` (resultado de envio classificado, finalidade) — separada de `signals/` de propósito, ver plan.md
+- [X] T003 [P] Acrescentar o módulo `acompanhamento` em `ModuleId` e `ALL_MODULES` em `src/lib/core/entitlements/plans.ts`
 
 ---
 
@@ -46,34 +46,34 @@ assumindo ausência — e é o tipo de retrofit que deixa um filtro para trás.
 
 ### Esquema
 
-- [ ] T004 Escrever `supabase/migrations/0192_patient_signal_rules.sql`: tabelas `signal_rules`, `signal_occurrences`, `patient_messages` conforme `data-model.md`, com RLS por `jwt_tenant_id()`, GRANTs e índices
-- [ ] T005 Na mesma migration: trigger anti-UPDATE/DELETE em `signal_occurrences` e `patient_messages` (padrão `whatsapp_delivery_events` da 0185)
-- [ ] T006 Na mesma migration: `UNIQUE (rule_id, patient_id, cycle_date)` em `signal_occurrences` — é a idempotência do ciclo (FR-024), não um índice de performance
-- [ ] T007 Na mesma migration: `patients.outreach_opt_in BOOLEAN NOT NULL DEFAULT FALSE` + `COMMENT` explicando por que o default é FALSE (finalidade distinta, research D5)
-- [ ] T008 Na mesma migration: `tenant_clinic_profile.outreach_weekly_cap SMALLINT NOT NULL DEFAULT 2 CHECK (BETWEEN 1 AND 7)`
-- [ ] T009 Na mesma migration: trigger de auditoria em `signal_rules` (INSERT/UPDATE/DELETE) via `log_audit_event` (FR-007)
-- [ ] T010 🔒 Aplicar a migration localmente (`pnpm supabase:reset`), regenerar tipos (`pnpm supabase:gen-types`) e re-semear (`pnpm seed:demo`)
+- [X] T004 Escrever `supabase/migrations/0192_patient_signal_rules.sql`: tabelas `signal_rules`, `signal_occurrences`, `patient_messages` conforme `data-model.md`, com RLS por `jwt_tenant_id()`, GRANTs e índices
+- [X] T005 Na mesma migration: trigger anti-UPDATE/DELETE em `signal_occurrences` e `patient_messages` (padrão `whatsapp_delivery_events` da 0185)
+- [X] T006 Na mesma migration: `UNIQUE (rule_id, patient_id, cycle_date)` em `signal_occurrences` — é a idempotência do ciclo (FR-024), não um índice de performance
+- [X] T007 Na mesma migration: `patients.outreach_opt_in BOOLEAN NOT NULL DEFAULT FALSE` + `COMMENT` explicando por que o default é FALSE (finalidade distinta, research D5)
+- [X] T008 Na mesma migration: `tenant_clinic_profile.outreach_weekly_cap SMALLINT NOT NULL DEFAULT 2 CHECK (BETWEEN 1 AND 7)`
+- [X] T009 Na mesma migration: trigger de auditoria em `signal_rules` (INSERT/UPDATE/DELETE) via `log_audit_event` (FR-007)
+- [X] T010 🔒 Aplicar a migration localmente (`pnpm supabase:reset`), regenerar tipos (`pnpm supabase:gen-types`) e re-semear (`pnpm seed:demo`)
 
 ### Contrato de família e catálogo
 
-- [ ] T011 Definir a interface `SignalFamily` em `src/lib/core/signals/types.ts` conforme `contracts/rule-catalog.md`, com `nature: 'celebracao' | 'ausencia'`, `paramsSchema`, `placeholders`, `defaultTemplate`, `requiresPortalActivity`, `priority`, `earliestObservable`, `evaluate`
-- [ ] T012 Criar `src/lib/core/signals/catalog.ts` com o registro das famílias e os lookups por id
-- [ ] T013 [P] Criar `src/lib/core/signals/forbidden-phrases.ts` com a lista de expressões acusatórias e a função de verificação, aplicável **só a famílias de ausência**
-- [ ] T014 [P] Criar `src/lib/core/signals/template.ts`: valida placeholders contra os declarados pela família e renderiza `{{campo}}`
-- [ ] T015 [P] Teste unitário das invariantes do catálogo em `tests/unit/signals-catalog.spec.ts` — as 7 do `contracts/rule-catalog.md`, com destaque para: `priority` única; celebração `< 10` e ausência `>= 10`; nenhuma celebração com `requiresPortalActivity`; nenhuma família de meta com placeholder numérico
-- [ ] T016 [P] Teste unitário em `tests/unit/signals-forbidden-phrases.spec.ts`: cada `defaultTemplate` de ausência passa; frases acusatórias conhecidas são recusadas; templates de celebração não são submetidos à lista
+- [X] T011 Definir a interface `SignalFamily` em `src/lib/core/signals/types.ts` conforme `contracts/rule-catalog.md`, com `nature: 'celebracao' | 'ausencia'`, `paramsSchema`, `placeholders`, `defaultTemplate`, `requiresPortalActivity`, `priority`, `earliestObservable`, `evaluate`
+- [X] T012 Criar `src/lib/core/signals/catalog.ts` com o registro das famílias e os lookups por id
+- [X] T013 [P] Criar `src/lib/core/signals/forbidden-phrases.ts` com a lista de expressões acusatórias e a função de verificação, aplicável **só a famílias de ausência**
+- [X] T014 [P] Criar `src/lib/core/signals/template.ts`: valida placeholders contra os declarados pela família e renderiza `{{campo}}`
+- [X] T015 [P] Teste unitário das invariantes do catálogo em `tests/unit/signals-catalog.spec.ts` — as 7 do `contracts/rule-catalog.md`, com destaque para: `priority` única; celebração `< 10` e ausência `>= 10`; nenhuma celebração com `requiresPortalActivity`; nenhuma família de meta com placeholder numérico
+- [X] T016 [P] Teste unitário em `tests/unit/signals-forbidden-phrases.spec.ts`: cada `defaultTemplate` de ausência passa; frases acusatórias conhecidas são recusadas; templates de celebração não são submetidos à lista
 
 ### Envio a um paciente
 
-- [ ] T017 Implementar `src/lib/core/messaging/send-to-patient.ts`: resolve contato via RPC `get_patient_for_tenant`, aplica consentimento (finalidade `outreach_opt_in` + canal `reminders_whatsapp_opt_in`), escolhe canal, despacha por `sendText`/`sendBookingEmail`, grava `patient_messages`
-- [ ] T018 Resolver o canal `preferencial` em `send-to-patient.ts`: WhatsApp quando a clínica está conectada (`isWhatsAppConnected`) e o paciente aceita o canal; senão e-mail
-- [ ] T019 [P] Teste unitário da precedência de consentimento em `tests/unit/outreach-consent.spec.ts`: `outreach_opt_in=FALSE` cala tudo; canal recusado cala só o WhatsApp; `reminders_opt_in` **não** participa
+- [X] T017 Implementar `src/lib/core/messaging/send-to-patient.ts`: resolve contato via RPC `get_patient_for_tenant`, aplica consentimento (finalidade `outreach_opt_in` + canal `reminders_whatsapp_opt_in`), escolhe canal, despacha por `sendText`/`sendBookingEmail`, grava `patient_messages`
+- [X] T018 Resolver o canal `preferencial` em `send-to-patient.ts`: WhatsApp quando a clínica está conectada (`isWhatsAppConnected`) e o paciente aceita o canal; senão e-mail
+- [X] T019 [P] Teste unitário da precedência de consentimento em `tests/unit/outreach-consent.spec.ts`: `outreach_opt_in=FALSE` cala tudo; canal recusado cala só o WhatsApp; `reminders_opt_in` **não** participa
 
 ### Portões do ciclo
 
-- [ ] T020 Implementar `src/lib/core/signals/gates.ts`: consentimento, contato, atividade no portal (D4), silêncio por regra, teto global — cada um devolvendo o desfecho correspondente, nunca um booleano
-- [ ] T021 Implementar `src/lib/core/signals/occurrences.ts`: grava ocorrência (sempre, com desfecho) e consulta silêncio e teto sobre a própria tabela (D6, sem contador materializado)
-- [ ] T022 Implementar a resolução de público em `src/lib/core/signals/audience.ts`: `todos_ativos` e `por_profissional` via `DISTINCT ON (patient_id) ... ORDER BY appointment_at DESC`, uma query por ciclo e não por paciente
+- [X] T020 Implementar `src/lib/core/signals/gates.ts`: consentimento, contato, atividade no portal (D4), silêncio por regra, teto global — cada um devolvendo o desfecho correspondente, nunca um booleano
+- [X] T021 Implementar `src/lib/core/signals/occurrences.ts`: grava ocorrência (sempre, com desfecho) e consulta silêncio e teto sobre a própria tabela (D6, sem contador materializado)
+- [X] T022 Implementar a resolução de público em `src/lib/core/signals/audience.ts`: `todos_ativos` e `por_profissional` via `DISTINCT ON (patient_id) ... ORDER BY appointment_at DESC`, uma query por ciclo e não por paciente
 
 **Checkpoint**: fundação pronta — as user stories podem começar.
 

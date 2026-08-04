@@ -49,6 +49,8 @@ function syntheticEmptyRow(tenantId: string): Row {
     reminder_channels: ['email'],
     reminder_whatsapp_fallback_email: true,
     reminder_template_whatsapp: null,
+    // Feature 053 — default consistente com a migration 0192 (NOT NULL DEFAULT 2).
+    outreach_weekly_cap: 2,
     // Default consistente com a migration 0131 (NOT NULL DEFAULT 60).
     calendar_slot_interval_minutes: 60,
     // Defaults consistentes com a migration 0133 (07:00–22:00).

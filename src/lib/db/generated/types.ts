@@ -4450,6 +4450,57 @@ export type Database = {
           },
         ]
       }
+      patient_messages: {
+        Row: {
+          body: string
+          channel: string
+          error_detail: string | null
+          id: string
+          patient_id: string
+          purpose: string
+          sent_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          body: string
+          channel: string
+          error_detail?: string | null
+          id?: string
+          patient_id: string
+          purpose: string
+          sent_at?: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          error_detail?: string | null
+          id?: string
+          patient_id?: string
+          purpose?: string
+          sent_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_metric_goals: {
         Row: {
           active: boolean
@@ -4709,6 +4760,7 @@ export type Database = {
           id: string
           insurance_card_number_enc: string | null
           mother_name_enc: string | null
+          outreach_opt_in: boolean
           phone_enc: string | null
           photo_path: string | null
           photo_uploaded_at: string | null
@@ -4747,6 +4799,7 @@ export type Database = {
           id?: string
           insurance_card_number_enc?: string | null
           mother_name_enc?: string | null
+          outreach_opt_in?: boolean
           phone_enc?: string | null
           photo_path?: string | null
           photo_uploaded_at?: string | null
@@ -4785,6 +4838,7 @@ export type Database = {
           id?: string
           insurance_card_number_enc?: string | null
           mother_name_enc?: string | null
+          outreach_opt_in?: boolean
           phone_enc?: string | null
           photo_path?: string | null
           photo_uploaded_at?: string | null
@@ -5849,6 +5903,141 @@ export type Database = {
           },
         ]
       }
+      signal_occurrences: {
+        Row: {
+          created_at: string
+          cycle_date: string
+          id: string
+          message_id: string | null
+          observed: Json
+          outcome: string
+          patient_id: string
+          rule_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_date: string
+          id?: string
+          message_id?: string | null
+          observed?: Json
+          outcome: string
+          patient_id: string
+          rule_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          cycle_date?: string
+          id?: string
+          message_id?: string | null
+          observed?: Json
+          outcome?: string
+          patient_id?: string
+          rule_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_occurrences_message_fk"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "patient_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_occurrences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_occurrences_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "signal_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_occurrences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signal_rules: {
+        Row: {
+          active: boolean
+          audience: string
+          audience_doctor_id: string | null
+          channel: string
+          created_at: string
+          created_by_user_id: string | null
+          family: string
+          id: string
+          message_template: string
+          params: Json
+          silence_days: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          audience?: string
+          audience_doctor_id?: string | null
+          channel?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          family: string
+          id?: string
+          message_template: string
+          params?: Json
+          silence_days: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          audience?: string
+          audience_doctor_id?: string | null
+          channel?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          family?: string
+          id?: string
+          message_template?: string
+          params?: Json
+          silence_days?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_rules_audience_doctor_id_fkey"
+            columns: ["audience_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_rules_audience_doctor_id_fkey"
+            columns: ["audience_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "signal_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           created_at: string
@@ -6156,6 +6345,7 @@ export type Database = {
           email: string | null
           logo_path: string | null
           logo_uploaded_at: string | null
+          outreach_weekly_cap: number
           patient_portal_enabled: boolean
           phone: string | null
           public_booking_cancel_min_hours: number
@@ -6199,6 +6389,7 @@ export type Database = {
           email?: string | null
           logo_path?: string | null
           logo_uploaded_at?: string | null
+          outreach_weekly_cap?: number
           patient_portal_enabled?: boolean
           phone?: string | null
           public_booking_cancel_min_hours?: number
@@ -6242,6 +6433,7 @@ export type Database = {
           email?: string | null
           logo_path?: string | null
           logo_uploaded_at?: string | null
+          outreach_weekly_cap?: number
           patient_portal_enabled?: boolean
           phone?: string | null
           public_booking_cancel_min_hours?: number
