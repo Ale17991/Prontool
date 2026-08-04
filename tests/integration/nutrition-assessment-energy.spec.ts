@@ -51,13 +51,13 @@ describe('Feature 046 US2 — salvar gasto energético', () => {
       objectiveDeltaKcal: -500,
       macros: { protPct: 30, carbPct: 40, lipPct: 30 },
     })
-    expect(result.energy?.tmbKcal).toBe(1780)
-    expect(result.energy?.getKcal).toBe(2759)
-    expect(result.energy?.targetKcal).toBe(2259)
+    expect(result.energy?.tmbKcal).toBe(1782)
+    expect(result.energy?.getKcal).toBe(2761)
+    expect(result.energy?.targetKcal).toBe(2261)
 
     const grouped = await listMeasurements(sb, { tenantId, patientId })
-    expect(grouped['taxa_metabolica_basal']?.[0]?.value).toBe(1780)
-    expect(grouped['gasto_energetico_total']?.[0]?.value).toBe(2759)
+    expect(grouped['taxa_metabolica_basal']?.[0]?.value).toBe(1782)
+    expect(grouped['gasto_energetico_total']?.[0]?.value).toBe(2761)
   })
 
   it('Katch-McArdle sem composição → 422 (massa magra)', async () => {

@@ -567,3 +567,36 @@ intermediários exatos da composição corporal (CMB/AMB/peso ósseo) e tabelas 
 (IMC graus extremos, RCQ) são **lookup** e estão parcialmente transcritas.
 
 **Golden cases**: NÃO ENCONTRADOS (planilhas sem dados de paciente).
+
+---
+
+## Conferência contra a planilha (2026-08-03)
+
+Fonte: `Evonut.xlsm`, aba `Calc_GastoEnerg`, colunas **AP/AQ/AR** (protocolo,
+fórmula masculina, fórmula feminina). As fórmulas foram lidas do XML do
+arquivo, não transcritas à mão.
+
+### Batem exatamente, nas duas colunas de sexo
+
+FAO/WHO 1985, FAO/WHO 2004, Schofield, Henry-Rees, Cunningham, Katch-McArdle,
+Tinsley (por peso e por MLG).
+
+### Divergiam
+
+| Equação | Planilha | Sistema (antes) | Decisão |
+|---|---|---|---|
+| Mifflin-St Jeor | `9,99·P + 6,25·A − 4,92·I ± sexo` | `10·P + 6,25·A − 5·I` | **Corrigido para a planilha.** Ela reproduz o artigo de 1990; a forma 10/5 circula em livro-texto mas não é a publicada. Diferença de ~2 kcal. |
+| Harris-Benedict 1919 e 1984 | coeficientes arredondados (13,4 / 4,8 / 5,68) | precisão do artigo (13,397 / 4,799 / 5,677) | **Mantida a precisão do artigo** (decisão do usuário). Diferença menor que 1 kcal. |
+| EER/IOM 2005 | fator de atividade multiplica **só o peso**; altura fora do fator; **acréscimo fixo por sexo e faixa** (+107 M / +144 F adulto; +140 M / +232 F em 9–18; +174 M / +198 F em 3–8) | forma publicada: fator multiplica peso **e** altura, sem acréscimo | **Convivem as duas.** A variante da planilha entrou como equação própria (`eer_iom_2005_planilha`), não como comportamento por clínica. |
+
+### Por que o EER virou equação separada e não regra por clínica
+
+A avaliação nutricional é registro clínico e precisa ser reproduzível. Se duas
+clínicas obtivessem kcal diferentes de uma equação com o **mesmo nome**, o
+histórico ficaria impossível de auditar: ninguém saberia, olhando um cálculo de
+seis meses atrás, qual fórmula o produziu. Com duas entradas nomeadas, o
+snapshot da avaliação já diz qual foi usada.
+
+**Tamanho da diferença**: no adulto é de ~129 kcal/dia (peso 80 kg, altura
+1,75 m, PA 1,25), porque o termo de altura do adulto é 539,6. Em criança a
+distância é bem maior, já que ali o coeficiente é 903.

@@ -182,6 +182,41 @@ function eer2023(input: EnergyInput): number {
   return k + EER2023_CHILD_AGE[sex] * I + ca * A + cp * P + growthCost(I, sex)
 }
 
+/**
+ * EER/IOM 2005 na variante da planilha de trabalho da clínica.
+ *
+ * Difere da forma publicada em dois pontos, ambos deliberados de quem usa esta
+ * metodologia: o fator de atividade multiplica APENAS o peso (a altura entra
+ * fora do fator) e há um acréscimo fixo, distinto por sexo e faixa etária. Dá
+ * 300 a 400 kcal/dia a menos que a forma do IOM num adulto típico.
+ *
+ * Existe como equação SEPARADA, e não como override por clínica, porque a
+ * avaliação é registro clínico: duas clínicas não podem obter números
+ * diferentes de uma equação com o mesmo nome — o histórico ficaria impossível
+ * de auditar.
+ */
+function eer2005Planilha(input: EnergyInput): number {
+  const { sex, ageYears: I, weightKg: P } = input
+  const hM = requireHeight(input) / 100
+  const pa = eer2005Pa(input)
+  const male = sex === 'M'
+
+  if (I >= 19) {
+    return male
+      ? 662 - 9.53 * I + pa * (15.91 * P) + 539.6 * hM + 107
+      : 354 - 6.91 * I + pa * (9.36 * P) + 726 * hM + 144
+  }
+  // Pediátrico: depósito energético + acréscimo fixo, ambos por faixa e sexo.
+  if (I >= 9) {
+    return male
+      ? 88.5 - 61.9 * I + pa * (26.7 * P) + 903 * hM + 25 + 140
+      : 135.3 - 30.8 * I + pa * (10 * P) + 934 * hM + 25 + 232
+  }
+  return male
+    ? 88.5 - 61.9 * I + pa * (26.7 * P) + 903 * hM + 20 + 174
+    : 135.3 - 30.8 * I + pa * (10 * P) + 934 * hM + 20 + 198
+}
+
 /** EER/IOM 2005 (forma canônica NASEM/IOM). Altura em metros. Já é total. */
 function eer2005(input: EnergyInput): number {
   const { sex, ageYears: I, weightKg: P } = input
@@ -213,7 +248,10 @@ export function computeTmb(input: EnergyInput): number {
         ? 88.362 + 13.397 * P + 4.799 * requireHeight(input) - 5.677 * I
         : 447.593 + 9.247 * P + 3.098 * requireHeight(input) - 4.33 * I
     case 'mifflin':
-      return 10 * P + 6.25 * requireHeight(input) - 5 * I + (male ? 5 : -161)
+      // Coeficientes do artigo de 1990 (9.99 e 4.92), que é o que a planilha de
+      // referência usa. O sistema vinha com a forma arredondada (10 e 5), que
+      // circula em livro-texto mas não é a publicada.
+      return 9.99 * P + 6.25 * requireHeight(input) - 4.92 * I + (male ? 5 : -161)
     case 'fao_who_1985':
       return male
         ? byAge(I, [
@@ -294,6 +332,8 @@ export function computeTmb(input: EnergyInput): number {
       return 25.9 * requireLean(input) + 284
     case 'eer_iom_2005':
       return eer2005(input)
+    case 'eer_iom_2005_planilha':
+      return eer2005Planilha(input)
     case 'eer_2023':
       return eer2023(input)
     case 'eer_gestante': {

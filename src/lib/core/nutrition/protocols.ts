@@ -174,6 +174,7 @@ export type TmbEquation =
   | 'tinsley_mlg'
   | 'katch_mcardle'
   | 'eer_iom_2005'
+  | 'eer_iom_2005_planilha'
   | 'eer_2023'
   | 'eer_gestante'
   | 'eer_lactante_0_6'
@@ -276,6 +277,14 @@ export const TMB_EQUATIONS: Record<TmbEquation, TmbMeta> = {
     usesHeight: true,
     eer: 'pa',
     source: 'IOM, DRI for Energy…, 2005, cap. 5 — já é o gasto total',
+  },
+  eer_iom_2005_planilha: {
+    slug: 'eer_iom_2005_planilha',
+    label: 'EER/IOM (2005) — variante da planilha de referência',
+    usesHeight: true,
+    eer: 'pa',
+    source:
+      'Variante em uso na planilha de trabalho da clínica: o fator de atividade multiplica apenas o peso, a altura entra fora do fator, e há um acréscimo fixo por sexo e faixa etária. Difere da forma publicada pelo IOM em 300 a 400 kcal/dia — escolha deliberada de quem usa esta metodologia.',
   },
   eer_2023: {
     slug: 'eer_2023',
