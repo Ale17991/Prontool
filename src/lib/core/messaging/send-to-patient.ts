@@ -166,6 +166,7 @@ async function record(
     id,
     tenant_id: input.tenantId,
     patient_id: input.patientId,
+    occurrence_id: input.occurrenceId ?? null,
     purpose: input.purpose,
     channel,
     body: input.body,

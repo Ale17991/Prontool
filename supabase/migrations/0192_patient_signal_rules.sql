@@ -112,7 +112,6 @@ CREATE TABLE IF NOT EXISTS public.signal_occurrences (
   cycle_date  DATE NOT NULL,
   outcome     TEXT NOT NULL,
   observed    JSONB NOT NULL DEFAULT '{}'::jsonb,
-  message_id  UUID NULL,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT signal_occurrences_outcome_valid CHECK (outcome IN (
@@ -162,6 +161,11 @@ CREATE TABLE IF NOT EXISTS public.patient_messages (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id     UUID NOT NULL REFERENCES public.tenants(id) ON DELETE RESTRICT,
   patient_id    UUID NOT NULL REFERENCES public.patients(id) ON DELETE RESTRICT,
+  -- A FK aponta DAQUI para a ocorrência, e não o contrário. As duas tabelas são
+  -- append-only, e a ocorrência é gravada ANTES do envio (é ela que segura a
+  -- idempotência do ciclo) — se o vínculo morasse lá, preenchê-lo exigiria um
+  -- UPDATE que o trigger proíbe. A mensagem nasce depois e já sabe de quem é.
+  occurrence_id UUID NULL REFERENCES public.signal_occurrences(id) ON DELETE RESTRICT,
   purpose       TEXT NOT NULL,
   channel       TEXT NOT NULL,
   -- O texto JÁ RENDERIZADO, como o paciente leu. O template pode ser editado
@@ -201,9 +205,8 @@ CREATE POLICY patient_messages_tenant_read ON public.patient_messages
 GRANT SELECT ON public.patient_messages TO authenticated;
 GRANT SELECT, INSERT ON public.patient_messages TO service_role;
 
-ALTER TABLE public.signal_occurrences
-  ADD CONSTRAINT signal_occurrences_message_fk
-  FOREIGN KEY (message_id) REFERENCES public.patient_messages(id) ON DELETE RESTRICT;
+CREATE INDEX IF NOT EXISTS patient_messages_occurrence_idx
+  ON public.patient_messages (occurrence_id) WHERE occurrence_id IS NOT NULL;
 
 -- ---------------------------------------------------------------------
 -- 4. Append-only: bloqueio de UPDATE e DELETE

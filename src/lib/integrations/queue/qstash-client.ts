@@ -67,6 +67,47 @@ export async function enqueueWhatsAppReminder(args: {
   }
 }
 
+/**
+ * Feature 053 — publica UMA mensagem de acompanhamento, com atraso.
+ *
+ * Mesmo raciocínio do lembrete: espaçar por clínica é a mitigação real contra
+ * bloqueio do número. A diferença está no `retries`: aqui vale insistir mais.
+ * Um lembrete de consulta vence — entregar "sua consulta é amanhã" depois da
+ * consulta é pior que não entregar. Uma mensagem de acompanhamento continua
+ * fazendo sentido algumas horas depois.
+ */
+export async function enqueuePatientMessage(args: {
+  payload: Record<string, unknown>
+  delaySeconds: number
+  traceId: string
+}): Promise<{ messageId: string | null }> {
+  const token = process.env.QSTASH_TOKEN
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!token || !appUrl) {
+    logger.warn(
+      { has_token: Boolean(token), has_app_url: Boolean(appUrl) },
+      'qstash-not-configured-skipping-patient-message-enqueue',
+    )
+    return { messageId: null }
+  }
+
+  const callback = new URL('/api/workers/send-patient-message', appUrl).toString()
+
+  try {
+    const res = await getQstash(token).publishJSON({
+      url: callback,
+      body: args.payload,
+      delay: Math.max(0, Math.round(args.delaySeconds)),
+      retries: 3,
+      headers: { 'X-Trace-Id': args.traceId },
+    })
+    return { messageId: res.messageId }
+  } catch (err) {
+    logger.error({ err }, 'qstash-patient-message-publish-failed')
+    return { messageId: null }
+  }
+}
+
 export async function enqueueGhlEvent(args: {
   rawEventId: string
   tenantId: string

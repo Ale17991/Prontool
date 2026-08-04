@@ -95,36 +95,36 @@ segundo a de reengajamento.
 
 ### Famílias
 
-- [ ] T023 [P] [US1] Implementar `src/lib/core/signals/families/ausencia/habito-sem-registro.ts`, reusando `itemStats`/`period.ts` de `src/lib/core/habits/`, com piso da janela em `patient_habit_checklists.start_date` (D10) e agregação de múltiplos itens num único candidato (FR-013)
-- [ ] T024 [P] [US2] Implementar `src/lib/core/signals/families/ausencia/sem-acesso-portal.ts` sobre `patient_portal_access_log`, com elegibilidade "já entrou alguma vez"
+- [X] T023 [P] [US1] Implementar `src/lib/core/signals/families/ausencia/habito-sem-registro.ts`, reusando `itemStats`/`period.ts` de `src/lib/core/habits/`, com piso da janela em `patient_habit_checklists.start_date` (D10) e agregação de múltiplos itens num único candidato (FR-013)
+- [X] T024 [P] [US2] Implementar `src/lib/core/signals/families/ausencia/sem-acesso-portal.ts` sobre `patient_portal_access_log`, com elegibilidade "já entrou alguma vez"
 
 ### Ciclo
 
-- [ ] T025 [US1] Implementar `src/lib/core/signals/evaluate-cycle.ts`: itera clínicas com o módulo ligado e regras ativas, aplica a janela horária dos lembretes, avalia por prioridade, grava ocorrência com desfecho e enfileira as `enviada`
-- [ ] T026 [US1] Gate do módulo `acompanhamento` **no motor** dentro de `evaluate-cycle.ts` — não só na tela (research D12, lição da 051)
-- [ ] T027 [US1] Criar `src/app/api/cron/patient-signals/route.ts` (POST, `Bearer CRON_SECRET`, `maxDuration=60`) devolvendo contadores **por desfecho**
-- [ ] T028 [US1] Acrescentar o cron diário em `vercel.json` — **diário, nunca mais frequente**; frequência maior trava todos os deploys no plano Hobby
-- [ ] T029 [US1] Criar `src/app/api/workers/send-patient-message/route.ts` autenticada por assinatura QStash, com revalidação na hora do envio (consentimento, status, regra ativa, módulo) — a decisão de ontem não autoriza o envio de hoje
-- [ ] T030 [US1] Enfileiramento com atraso crescente por clínica em `evaluate-cycle.ts`, reusando o padrão de `enqueueWhatsAppReminder`, com degradação inline sem `QSTASH_TOKEN`
+- [X] T025 [US1] Implementar `src/lib/core/signals/evaluate-cycle.ts`: itera clínicas com o módulo ligado e regras ativas, aplica a janela horária dos lembretes, avalia por prioridade, grava ocorrência com desfecho e enfileira as `enviada`
+- [X] T026 [US1] Gate do módulo `acompanhamento` **no motor** dentro de `evaluate-cycle.ts` — não só na tela (research D12, lição da 051)
+- [X] T027 [US1] Criar `src/app/api/cron/patient-signals/route.ts` (POST, `Bearer CRON_SECRET`, `maxDuration=60`) devolvendo contadores **por desfecho**
+- [X] T028 [US1] Acrescentar o cron diário em `vercel.json` — **diário, nunca mais frequente**; frequência maior trava todos os deploys no plano Hobby
+- [X] T029 [US1] Criar `src/app/api/workers/send-patient-message/route.ts` autenticada por assinatura QStash, com revalidação na hora do envio (consentimento, status, regra ativa, módulo) — a decisão de ontem não autoriza o envio de hoje
+- [X] T030 [US1] Enfileiramento com atraso crescente por clínica em `evaluate-cycle.ts`, reusando o padrão de `enqueueWhatsAppReminder`, com degradação inline sem `QSTASH_TOKEN`
 
 ### Tela mínima e CRUD
 
-- [ ] T031 [P] [US1] Implementar `src/lib/core/signals/rules.ts` (CRUD com validação por família)
-- [ ] T032 [US1] Criar `src/app/api/notificacoes-automaticas/route.ts` (GET lista + catálogo + contagem de aceite; POST cria) conforme `contracts/api.md`
-- [ ] T033 [US1] Criar `src/app/api/notificacoes-automaticas/[id]/route.ts` (PATCH; DELETE **desativa**, não apaga)
-- [ ] T034 [US1] Criar a tela `src/app/(dashboard)/configuracoes/notificacoes-automaticas/page.tsx` com gate de `reminders.config` + módulo
-- [ ] T035 [P] [US1] Criar `rule-list.tsx` e `rule-form.tsx` na mesma pasta
-- [ ] T036 [US1] Criar `consent-banner.tsx`: diz, **antes** de a clínica ligar a primeira regra, quantos pacientes têm aceite e por que a base nasce sem ele (research D5) — sem isso a clínica liga a regra, nada sai, e conclui que está quebrado
-- [ ] T037 [P] [US1] Acrescentar o card do hub em `src/app/(dashboard)/configuracoes/_cards.ts` e atualizar a contagem em `tests/integration/configuracoes-hub.spec.ts`
+- [X] T031 [P] [US1] Implementar `src/lib/core/signals/rules.ts` (CRUD com validação por família)
+- [X] T032 [US1] Criar `src/app/api/notificacoes-automaticas/route.ts` (GET lista + catálogo + contagem de aceite; POST cria) conforme `contracts/api.md`
+- [X] T033 [US1] Criar `src/app/api/notificacoes-automaticas/[id]/route.ts` (PATCH; DELETE **desativa**, não apaga)
+- [X] T034 [US1] Criar a tela `src/app/(dashboard)/configuracoes/notificacoes-automaticas/page.tsx` com gate de `reminders.config` + módulo
+- [X] T035 [P] [US1] Criar `rule-list.tsx` e `rule-form.tsx` na mesma pasta
+- [X] T036 [US1] Criar `consent-banner.tsx`: diz, **antes** de a clínica ligar a primeira regra, quantos pacientes têm aceite e por que a base nasce sem ele (research D5) — sem isso a clínica liga a regra, nada sai, e conclui que está quebrado
+- [X] T037 [P] [US1] Acrescentar o card do hub em `src/app/(dashboard)/configuracoes/_cards.ts` e atualizar a contagem em `tests/integration/configuracoes-hub.spec.ts`
 - [ ] T038 [P] [US1] Consentimento na ficha do paciente: exibir e alternar `outreach_opt_in` **em um clique** (FR-017a), com auditoria da alteração (FR-016)
 
 ### Testes
 
-- [ ] T039 [P] [US1] Teste unitário do predicado de hábito em `tests/unit/signals-habito.spec.ts`: dias corridos, piso da grade, dia em curso não conta, agregação de itens
-- [ ] T040 [P] [US2] Teste unitário da supressão em `tests/unit/signals-portal-gate.spec.ts`: sem acesso na janela suprime; sem acesso nenhum na história torna inelegível; acesso recente libera
+- [X] T039 [P] [US1] Teste unitário do predicado de hábito em `tests/unit/signals-habito.spec.ts`: dias corridos, piso da grade, dia em curso não conta, agregação de itens
+- [X] T040 [P] [US2] Teste unitário da supressão em `tests/unit/signals-portal-gate.spec.ts`: sem acesso na janela suprime; sem acesso nenhum na história torna inelegível; acesso recente libera
 - [ ] T041 [US1] Teste de integração do ciclo em `tests/integration/signals-cycle.spec.ts`: disparo, idempotência de dois ciclos no mesmo dia, ocorrência gravada em cada desfecho
 - [ ] T042 [P] [US1] Teste de isolamento multi-tenant em `tests/integration/signals-tenant-isolation.spec.ts` — Princípio III
-- [ ] T043 [P] [US1] Teste de RBAC das rotas novas em `tests/unit/signals-rbac.spec.ts` — Princípio V, cada papel contra cada ação
+- [X] T043 [P] [US1] Teste de RBAC das rotas novas em `tests/unit/signals-rbac.spec.ts` — Princípio V, cada papel contra cada ação
 - [ ] T044 [P] [US1] Teste de imutabilidade em `tests/contract/signals-append-only.spec.ts`: UPDATE e DELETE em `signal_occurrences` e `patient_messages` falham
 
 **Checkpoint**: MVP. A clínica liga uma regra, ela dispara para quem deve e cala para quem sumiu.

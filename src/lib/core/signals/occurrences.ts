@@ -21,32 +21,38 @@ export interface RecordOccurrenceInput {
   cycleDate: string
   outcome: SignalOutcome
   observed: Record<string, unknown>
-  messageId?: string | null
 }
 
 /**
- * Grava a ocorrência. Devolve `false` quando a linha já existia para
+ * Grava a ocorrência e devolve o id, ou `null` quando a linha já existia para
  * `(regra, paciente, dia)` — a unique da 0192 é a idempotência do ciclo
  * (FR-024), então conflito aqui é **funcionamento correto**, não erro:
  * significa que este dia já foi processado.
+ *
+ * O id volta porque a mensagem, quando sair, aponta para cá. A FK vai nesse
+ * sentido justamente porque as duas tabelas são append-only: o vínculo tem que
+ * nascer com quem chega por último.
  */
 export async function recordOccurrence(
   supabase: SupabaseClient<Database>,
   input: RecordOccurrenceInput,
-): Promise<boolean> {
-  const { error } = await supabase.from('signal_occurrences').insert({
-    tenant_id: input.tenantId,
-    rule_id: input.ruleId,
-    patient_id: input.patientId,
-    cycle_date: input.cycleDate,
-    outcome: input.outcome,
-    observed: input.observed as never,
-    message_id: input.messageId ?? null,
-  } as never)
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('signal_occurrences')
+    .insert({
+      tenant_id: input.tenantId,
+      rule_id: input.ruleId,
+      patient_id: input.patientId,
+      cycle_date: input.cycleDate,
+      outcome: input.outcome,
+      observed: input.observed as never,
+    } as never)
+    .select('id')
+    .single()
 
-  if (!error) return true
+  if (!error) return (data as { id: string }).id
   // 23505 = unique_violation.
-  if ((error as { code?: string }).code === '23505') return false
+  if ((error as { code?: string }).code === '23505') return null
   throw new Error(`recordOccurrence failed: ${error.message}`)
 }
 

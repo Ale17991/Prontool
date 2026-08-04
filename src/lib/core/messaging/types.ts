@@ -49,4 +49,10 @@ export interface SendToPatientInput {
   preference: ChannelPreference
   /** Assunto do e-mail. Ignorado no WhatsApp. */
   subject?: string
+  /**
+   * Ocorrência que originou a mensagem, quando houver. A cápsula não sabe o que
+   * é regra nem sinal — só carrega o vínculo para o registro, para o histórico
+   * conseguir ligar "o que foi decidido" a "o que foi entregue".
+   */
+  occurrenceId?: string | null
 }

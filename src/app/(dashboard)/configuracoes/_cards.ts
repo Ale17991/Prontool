@@ -47,6 +47,7 @@ export type HubCardId =
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
+  | 'notificacoes-automaticas'
   | 'whatsapp'
   | 'google-agenda'
   | 'integracoes'
@@ -176,6 +177,18 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Envia email antes da consulta. Reduz no-show.',
     icon: BellRing,
     show: ({ role }) => can(role, 'reminders.config'),
+  },
+  {
+    // Feature 053 — vizinho de "Lembretes automáticos" de propósito: são as
+    // duas telas de "o que sai sozinho para o paciente", e separá-las faria a
+    // clínica procurar mensagem automática em dois lugares diferentes.
+    id: 'notificacoes-automaticas',
+    href: '/configuracoes/notificacoes-automaticas',
+    title: 'Notificações automáticas',
+    description: 'Mensagens que saem sozinhas a partir do que o paciente registra.',
+    icon: BellRing,
+    show: ({ role, ent }) =>
+      ent.hasModule('acompanhamento') && can(role, 'reminders.config'),
   },
   {
     id: 'whatsapp',

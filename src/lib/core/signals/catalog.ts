@@ -34,6 +34,8 @@
 
 import { z } from 'zod'
 import type { SignalFamily, SignalFamilyId, SignalNature } from './types'
+import { evaluateHabitoSemRegistro } from './families/ausencia/habito-sem-registro'
+import { evaluateSemAcessoPortal } from './families/ausencia/sem-acesso-portal'
 
 const dias = (min: number, max: number) => z.number().int().min(min).max(max)
 
@@ -159,8 +161,8 @@ const AUSENCIA: SignalFamilyDef[] = [
     // FALSE de propósito: é justamente ela que observa o sumiço. Aplicar o
     // filtro de atividade no portal aqui anularia a própria família.
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('sem_acesso_portal'),
+    implemented: true,
+    evaluate: evaluateSemAcessoPortal,
   },
   {
     id: 'habito_sem_registro',
@@ -174,8 +176,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Não vimos seu registro de {{habito}} nos últimos {{dias}} dias. Se estiver tudo certo e só faltou marcar, é só abrir o portal quando puder. Se algo atrapalhou, conte pra gente — a gente ajusta junto.',
     defaultSilenceDays: 7,
     requiresPortalActivity: true,
-    implemented: false,
-    evaluate: naoImplementada('habito_sem_registro'),
+    implemented: true,
+    evaluate: evaluateHabitoSemRegistro,
   },
   {
     id: 'sem_registrar_medicao',
