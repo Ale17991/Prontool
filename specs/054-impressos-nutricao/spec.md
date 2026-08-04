@@ -250,11 +250,20 @@ e conferir que a curva e o percentil batem com a seção do prontuário.
 Estes itens saíram do levantamento da planilha junto com os impressos, mas são
 features próprias e merecem spec separado:
 
-- **Pedido de exames** (solicitar, com data do pedido, e depois lançar o
-  resultado). Hoje o sistema só registra resultado.
 - **Plano alimentar por dia da semana** (cardápio diferente por dia).
 - **Prescrições estruturadas** com tipo e categoria.
 - Envio automático dos impressos por WhatsApp ou e-mail.
+
+## Correção do levantamento
+
+O levantamento inicial listou **pedido de exames** como lacuna. Estava errado:
+existe desde a migration `0149_exam_requests.sql`, com indicação clínica, lista
+de exames do catálogo TUSS, PDF e seção própria na ficha do paciente. Foi
+verificado no código antes do plano.
+
+Achado real e adjacente: `anamnesis/export-pdf.tsx` **existe e não é
+alcançável** — o componente monta o PDF da anamnese, mas nenhuma rota o importa.
+É código morto que a US3 aproveita em vez de reescrever.
 
 ## Dependencies
 
