@@ -695,3 +695,43 @@ exibido ao lado do valor.
 
 Fora de 18 a 65 anos devolve nada, em vez de esticar a faixa mais próxima:
 extrapolar referência de composição corporal é inventar diagnóstico.
+
+---
+
+## O que a planilha tem e o sistema ainda não (2026-08-03)
+
+Levantamento por aba, nos dois arquivos.
+
+### Já coberto pelo sistema
+
+Anamnese · recordatório R24h · resultado de exames com faixa · antropometria e
+dobras · gasto energético · definição de metas · plano alimentar · listas de
+equivalência · cadastro de alimentos e medidas caseiras · rótulo nutricional ·
+orientações · percentis de crescimento · DRIs · documentos do paciente ·
+materiais · agendamentos · dados da clínica.
+
+### Falta
+
+1. **Impressos da consulta.** A AF tem NOVE abas de impressão (anamnese,
+   recordatório, exames, antropometria, bioimpedância, avaliação infantil,
+   avaliação gestacional, plano alimentar, orientações) e a Evonut tem
+   `BD_Entregaveis` 1 a 3 mais a tela Entregáveis. O sistema só exporta o
+   rótulo. É o maior buraco: a nutricionista entrega papel ao paciente.
+
+2. **Pedido de exames.** `BD_PedidoExames` guarda `Data Pedido` e
+   `Data Resultado` — ou seja, solicita e depois lança o resultado.
+   `BD_Cad_Pedidos` é o catálogo de exames para montar o pedido. O sistema
+   (050) só registra resultado. Isto já tinha sido declarado fora do escopo v1.
+
+3. **Plano alimentar por dia da semana.** `BD_DiasSemana` tem uma coluna por
+   dia (Dom a Sáb) por atendimento. O plano do sistema é de um dia só. A aba
+   está vazia neste arquivo, então é capacidade da planilha, não
+   necessariamente uso corrente — confirmar com a profissional.
+
+4. **Prescrições estruturadas.** `BD_Prescrições` guarda descrição, **tipo** e
+   **categoria** além do texto. O sistema tem receituário (Memed) e orientações
+   em texto livre, mas não uma prescrição classificada.
+
+5. **Avaliação gestacional e infantil como fluxo próprio.** As equações existem
+   (EER gestante e lactante) e as curvas de crescimento entraram, mas a
+   planilha trata cada uma como entregável com impresso dedicado.
