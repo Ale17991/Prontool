@@ -665,3 +665,33 @@ gasto DIMINUI. Sem elas o cálculo só sabia aumentar.
 Pior que a lista incompleta: **não havia campo na tela**. O fator existia no
 motor e na rota desde a 046, mas a profissional não tinha como escolher. Agora
 há um seletor com as 25 condições, mostrando o valor e a faixa publicada.
+
+## Classificações (2026-08-03)
+
+### IMC e relação cintura-quadril — batem
+
+IMC adulto na tabela da OMS (16 · 17 · 18,5 · 25 · 30 · 35 · 40) e a faixa de
+idoso acima de 60 anos (Lipschitz: magreza < 22 · eutrofia 22–27 ·
+sobrepeso > 27). Idênticos ao documento.
+
+Relação cintura-quadril: as **10 faixas** (5 etárias × 2 sexos) conferem valor a
+valor. Homem 20–29: 0,83 / 0,88 / 0,94 … 60–69: 0,91 / 0,98 / 1,03. Mulher
+20–29: 0,71 / 0,77 / 0,82 … 60–69: 0,76 / 0,83 / 0,90.
+
+Nota: a tabela publicada vai de 20 a 69 anos e o sistema estende a última faixa
+para idades acima de 69.
+
+### %gordura — FALTAVA por inteiro
+
+O documento traz a classificação de **Pollock & Wilmore (1993)** por sexo e
+faixa etária (18–25 · 26–35 · 36–45 · 46–55 · 56–65), com sete faixas:
+excelente · bom · melhor que a média · média · acima da média · ruim ·
+muito ruim.
+
+O sistema calculava o percentual de gordura e **não dizia o que ele significa** —
+a profissional tinha de consultar a tabela por fora, que é justamente o
+trabalho que o software deveria poupar. Implementado em `classifyBodyFat` e
+exibido ao lado do valor.
+
+Fora de 18 a 65 anos devolve nada, em vez de esticar a faixa mais próxima:
+extrapolar referência de composição corporal é inventar diagnóstico.

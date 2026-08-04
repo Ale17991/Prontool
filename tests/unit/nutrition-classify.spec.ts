@@ -2,7 +2,7 @@
  * T018 (Feature 046) — classificação de IMC e RCQ.
  */
 import { describe, it, expect } from 'vitest'
-import { classifyImc, classifyWaistHip } from '@/lib/core/nutrition/classify'
+import { classifyBodyFat, classifyImc, classifyWaistHip } from '@/lib/core/nutrition/classify'
 
 describe('Feature 046 — classificação IMC', () => {
   it('faixas OMS (adulto)', () => {
@@ -36,5 +36,38 @@ describe('Feature 046 — classificação RCQ', () => {
 
   it('< 20 anos não classifica', () => {
     expect(classifyWaistHip(0.9, 'M', 18)).toBeNull()
+  })
+})
+
+describe('classificação do %gordura (Pollock & Wilmore 1993)', () => {
+  it('classifica homem de 30 anos pelas faixas da tabela', () => {
+    // 26-35: excelente ≤12 · bom ≤16 · melhor ≤18 · média ≤22 · acima ≤24 · ruim ≤28
+    expect(classifyBodyFat(10, 'M', 30)).toBe('Excelente')
+    expect(classifyBodyFat(15, 'M', 30)).toBe('Bom')
+    expect(classifyBodyFat(17, 'M', 30)).toBe('Melhor que a média')
+    expect(classifyBodyFat(21, 'M', 30)).toBe('Média')
+    expect(classifyBodyFat(23, 'M', 30)).toBe('Acima da média')
+    expect(classifyBodyFat(27, 'M', 30)).toBe('Ruim')
+    expect(classifyBodyFat(35, 'M', 30)).toBe('Muito ruim')
+  })
+
+  it('a mulher tem faixas próprias, mais altas que as do homem', () => {
+    // 26-35 feminino: excelente ≤18 · média ≤27.
+    expect(classifyBodyFat(17, 'F', 30)).toBe('Excelente')
+    expect(classifyBodyFat(26, 'F', 30)).toBe('Média')
+    // O mesmo 26% no homem já é "Muito ruim"… não: é "Ruim". O ponto é que
+    // difere — usar a tabela masculina numa mulher a classificaria pior.
+    expect(classifyBodyFat(26, 'M', 30)).not.toBe(classifyBodyFat(26, 'F', 30))
+  })
+
+  it('o limite exato da faixa pertence à faixa de baixo', () => {
+    expect(classifyBodyFat(12, 'M', 30)).toBe('Excelente')
+    expect(classifyBodyFat(12.1, 'M', 30)).toBe('Bom')
+  })
+
+  it('fora de 18 a 65 anos devolve null em vez de esticar a tabela', () => {
+    // Extrapolar referência de composição corporal é inventar diagnóstico.
+    expect(classifyBodyFat(20, 'M', 17)).toBeNull()
+    expect(classifyBodyFat(20, 'M', 70)).toBeNull()
   })
 })

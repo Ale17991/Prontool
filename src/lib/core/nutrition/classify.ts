@@ -58,3 +58,60 @@ export function classifyWaistHip(ratio: number, sex: Sex, ageYears: number): str
   if (ratio <= high) return 'Risco alto'
   return 'Risco muito alto'
 }
+
+/**
+ * Classificação do %gordura por sexo e faixa etária — Pollock & Wilmore (1993),
+ * transcrita da aba `Calc_Antropometria` do documento de base.
+ *
+ * Faltava por inteiro: o sistema entregava o percentual de gordura sem dizer o
+ * que ele significa, e a profissional tinha de consultar a tabela por fora —
+ * que é justamente o trabalho que o software deveria poupar.
+ *
+ * Cada faixa é [limite superior, rótulo], em ordem crescente. A tabela publicada
+ * vai de 18 a 65 anos; fora disso devolve `null` em vez de esticar a faixa mais
+ * próxima, porque extrapolar referência de composição corporal é inventar
+ * diagnóstico.
+ */
+type FatBand = { maxAge: number; cuts: [number, number, number, number, number, number] }
+
+/** Cortes: excelente≤ · bom≤ · melhor que a média≤ · média≤ · acima da média≤ · ruim≤ ; acima = muito ruim. */
+const FAT_TABLE: Record<Sex, FatBand[]> = {
+  M: [
+    { maxAge: 25, cuts: [8, 12, 14, 17, 20, 26] },
+    { maxAge: 35, cuts: [12, 16, 18, 22, 24, 28] },
+    { maxAge: 45, cuts: [16, 19, 21, 24, 27, 30] },
+    { maxAge: 55, cuts: [18, 21, 24, 26, 28, 32] },
+    { maxAge: 65, cuts: [20, 22, 24, 26, 28, 32] },
+  ],
+  F: [
+    { maxAge: 25, cuts: [17, 20, 23, 26, 29, 33] },
+    { maxAge: 35, cuts: [18, 21, 24, 27, 31, 36] },
+    { maxAge: 45, cuts: [20, 24, 27, 30, 33, 38] },
+    { maxAge: 55, cuts: [23, 26, 29, 32, 35, 39] },
+    { maxAge: 65, cuts: [24, 27, 30, 33, 36, 39] },
+  ],
+}
+
+const FAT_LABELS = [
+  'Excelente',
+  'Bom',
+  'Melhor que a média',
+  'Média',
+  'Acima da média',
+  'Ruim',
+  'Muito ruim',
+] as const
+
+export function classifyBodyFat(
+  fatPct: number,
+  sex: Sex,
+  ageYears: number,
+): string | null {
+  if (!Number.isFinite(fatPct) || ageYears < 18 || ageYears > 65) return null
+  const band = FAT_TABLE[sex].find((b) => ageYears <= b.maxAge)
+  if (!band) return null
+  for (let i = 0; i < band.cuts.length; i++) {
+    if (fatPct <= band.cuts[i]!) return FAT_LABELS[i]!
+  }
+  return FAT_LABELS[FAT_LABELS.length - 1]!
+}

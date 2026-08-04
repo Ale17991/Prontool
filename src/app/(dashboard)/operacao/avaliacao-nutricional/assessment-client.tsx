@@ -18,6 +18,7 @@ import {
   energyAdvisories,
   type Advisory,
   ACTIVITY_FACTORS,
+  classifyBodyFat,
   INJURY_FACTORS,
   DOBRA_PROTOCOLS,
   TMB_EQUATIONS,
@@ -528,6 +529,8 @@ export function NutritionAssessmentClient({
           energy={live.energy}
           advisories={advisories}
           sources={[protoMeta?.source, eqMeta?.source].filter((s): s is string => !!s)}
+          sex={sex}
+          ageYears={num(age) ?? null}
         />
         <HistoryPanel history={history} hasPatient={!!patient} />
       </div>
@@ -620,11 +623,16 @@ function ResultPanel({
   energy,
   advisories,
   sources,
+  sex,
+  ageYears,
 }: {
   composition: CompositionResult | null
   energy: EnergyResult | null
   advisories: Advisory[]
   sources: string[]
+  sex: Sex
+  /** `null` quando a idade ainda não foi informada. */
+  ageYears: number | null
 }) {
   return (
     <Card>
@@ -632,7 +640,16 @@ function ResultPanel({
       <CardContent className="space-y-1.5">
         {composition ? (
           <>
-            <Row label="% de gordura" value={`${composition.fatPct}%`} />
+            <Row
+              label="% de gordura"
+              value={(() => {
+                const cls =
+                  ageYears !== null ? classifyBodyFat(composition.fatPct, sex, ageYears) : null
+                // A classificação (Pollock & Wilmore) só existe de 18 a 65 anos;
+                // fora disso mostra só o número, sem inventar diagnóstico.
+                return cls ? `${composition.fatPct}% · ${cls}` : `${composition.fatPct}%`
+              })()}
+            />
             <Row label="Massa gorda" value={`${composition.fatMassKg} kg`} />
             <Row label="Massa magra" value={`${composition.leanMassKg} kg`} />
             {composition.imc !== null ? <Row label="IMC" value={`${composition.imc} (${composition.imcClass})`} /> : null}
