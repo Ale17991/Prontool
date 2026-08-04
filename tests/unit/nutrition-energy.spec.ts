@@ -167,3 +167,38 @@ describe('coeficientes conferidos contra a planilha de referência', () => {
     expect(planilhaM).not.toBeCloseTo(planilhaF, 0)
   })
 })
+
+describe('fatores de injúria conferidos contra o documento de base', () => {
+  it('traz as 25 condições, e as duas que REDUZEM o gasto estão entre elas', async () => {
+    const { INJURY_FACTORS } = await import('@/lib/core/nutrition/protocols')
+    expect(INJURY_FACTORS.length).toBe(25)
+
+    // O catálogo antigo omitia exatamente estas duas — os únicos casos em que o
+    // gasto cai. Sem elas, o cálculo só sabia aumentar.
+    const abaixoDeUm = INJURY_FACTORS.filter((f) => f.value < 1)
+    expect(abaixoDeUm.map((f) => f.label).sort()).toEqual([
+      'Doença cardiopulmonar',
+      'Jejum ou inanição',
+    ])
+    expect(abaixoDeUm.find((f) => f.label === 'Doença cardiopulmonar')?.value).toBe(0.9)
+    expect(abaixoDeUm.find((f) => f.label === 'Jejum ou inanição')?.value).toBe(0.925)
+  })
+
+  it('o fator de injúria reduz mesmo o GET quando é menor que 1', () => {
+    const base = {
+      sex: 'M' as const, ageYears: 40, weightKg: 80, heightCm: 175,
+      equation: 'mifflin' as const, activityFactor: 1.55,
+    }
+    const semInjuria = computeEnergy({ ...base, injuryFactor: 1 })
+    const cardiopulmonar = computeEnergy({ ...base, injuryFactor: 0.9 })
+    expect(cardiopulmonar.getKcal).toBeLessThan(semInjuria.getKcal)
+    expect(cardiopulmonar.getKcal).toBe(Math.round(semInjuria.getKcal * 0.9))
+  })
+
+  it('os fatores de atividade batem com a coluna da planilha', () => {
+    // 1,2 · 1,375 · 1,55 · 1,725 · 1,9
+    return import('@/lib/core/nutrition/protocols').then(({ ACTIVITY_FACTORS }) => {
+      expect(ACTIVITY_FACTORS.map((a) => a.value)).toEqual([1.2, 1.375, 1.55, 1.725, 1.9])
+    })
+  })
+})

@@ -329,23 +329,43 @@ export const ACTIVITY_FACTORS: { value: number; label: string }[] = [
   { value: 1.9, label: 'Muito intensa' },
 ]
 
-/** Fator de injúria/estresse (FI médio) — Long. */
-export const INJURY_FACTORS: { value: number; label: string }[] = [
+/**
+ * Fator de injúria/estresse.
+ *
+ * As 25 condições do documento de base (`Evonut.xlsm`, aba Calc_GastoEnerg,
+ * colunas Condição clínica / FI / FI média), uma por linha e com o valor MÉDIO
+ * da faixa — que é o que a planilha aplica. O `range` guarda a faixa publicada,
+ * porque a profissional às vezes precisa justificar por que usou o extremo.
+ *
+ * Antes esta lista agrupava condições diferentes na mesma linha e OMITIA quatro
+ * delas. Duas das omitidas eram as únicas com fator ABAIXO de 1 — doença
+ * cardiopulmonar e jejum/inanição —, ou seja, justamente os casos em que o
+ * gasto DIMINUI. Sem elas, o cálculo só sabia aumentar.
+ */
+export const INJURY_FACTORS: { value: number; label: string; range?: string }[] = [
   { value: 1.0, label: 'Paciente não complicado' },
-  { value: 1.05, label: 'Cirurgia eletiva' },
+  { value: 0.9, label: 'Doença cardiopulmonar', range: '0,8 a 1,0' },
+  { value: 0.925, label: 'Jejum ou inanição', range: '0,85 a 1,0' },
+  { value: 1.05, label: 'Cirurgia eletiva', range: '1,0 a 1,1' },
   { value: 1.1, label: 'Pós-operatório' },
-  { value: 1.2, label: 'Fratura / Pequena cirurgia' },
-  { value: 1.25, label: 'PO cirurgia geral / Queimadura até 20%' },
-  { value: 1.275, label: 'Câncer / Fraturas múltiplas' },
+  { value: 1.2, label: 'Fratura' },
+  { value: 1.2, label: 'Pequena cirurgia' },
+  { value: 1.25, label: 'PO cirurgia geral', range: '1,0 a 1,5' },
+  { value: 1.25, label: 'Queimadura até 20%', range: '1,0 a 1,5' },
+  { value: 1.255, label: 'Pequeno trauma de tecido', range: '1,14 a 1,37' },
+  { value: 1.275, label: 'Câncer', range: '1,1 a 1,45' },
+  { value: 1.275, label: 'Fraturas múltiplas', range: '1,2 a 1,35' },
   { value: 1.3, label: 'Insuficiência renal aguda' },
-  { value: 1.325, label: 'Infecção grave' },
-  { value: 1.35, label: 'Peritonite / Sepse leve / Transplante hepático' },
-  { value: 1.4, label: 'Insuficiência cardíaca' },
-  { value: 1.425, label: 'Insuficiência hepática / Cardiopulmonar c/ cirurgia' },
-  { value: 1.45, label: 'Sepse' },
-  { value: 1.5, label: 'Desnutrição grave / Multitrauma' },
+  { value: 1.325, label: 'Infecção grave', range: '1,3 a 1,35' },
+  { value: 1.35, label: 'Peritonite', range: '1,2 a 1,5' },
+  { value: 1.35, label: 'PO cirurgia cardíaca', range: '1,2 a 1,5' },
+  { value: 1.4, label: 'Insuficiência cardíaca', range: '1,3 a 1,5' },
+  { value: 1.425, label: 'Doença cardiopulmonar com cirurgia', range: '1,3 a 1,55' },
+  { value: 1.425, label: 'Insuficiência hepática', range: '1,3 a 1,55' },
+  { value: 1.5, label: 'Desnutrição grave' },
+  { value: 1.5, label: 'Multitrauma (reabilitação)' },
   { value: 1.6, label: 'Multitrauma + sepse' },
-  { value: 1.7, label: 'Queimadura 30–50%' },
-  { value: 1.8, label: 'Queimadura 50–70%' },
-  { value: 2.0, label: 'Queimadura 70–90%' },
+  { value: 1.7, label: 'Queimadura 30 a 50%' },
+  { value: 1.8, label: 'Queimadura 50 a 70%' },
+  { value: 2.0, label: 'Queimadura 70 a 90%' },
 ]

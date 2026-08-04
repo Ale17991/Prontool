@@ -18,6 +18,7 @@ import {
   energyAdvisories,
   type Advisory,
   ACTIVITY_FACTORS,
+  INJURY_FACTORS,
   DOBRA_PROTOCOLS,
   TMB_EQUATIONS,
   type CompositionResult,
@@ -104,6 +105,9 @@ export function NutritionAssessmentClient({
   // Energia
   const [equation, setEquation] = useState<TmbEquation | ''>('')
   const [activity, setActivity] = useState('1.55')
+  // Fator de injúria: existia no motor e na rota desde a 046, mas nunca teve
+  // campo — o catálogo inteiro ficava inacessível. Default 1 = sem injúria.
+  const [injury, setInjury] = useState('1')
   const [eerCategory, setEerCategory] = useState('1')
   const [objectiveDelta, setObjectiveDelta] = useState('0')
   const [protPct, setProtPct] = useState('30')
@@ -215,6 +219,7 @@ export function NutritionAssessmentClient({
           leanMassKg: composition?.leanMassKg ?? null,
           equation,
           activityFactor: num(activity) ?? null,
+          injuryFactor: num(injury) ?? null,
           eerCategory: (Number(eerCategory) as 1 | 2 | 3 | 4) ?? 1,
           objective: 'manutencao',
           objectiveDeltaKcal: num(objectiveDelta) ?? 0,
@@ -229,7 +234,7 @@ export function NutritionAssessmentClient({
     return { composition, compositionError, energy, energyError }
   }, [
     sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, fatPctInput,
-    equation, activity, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
+    equation, activity, injury, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
     macroMode, protGkg, lipGkg,
   ])
 
@@ -288,6 +293,7 @@ export function NutritionAssessmentClient({
         body.tmb_equation = equation
         if (!TMB_EQUATIONS[equation].eer) body.activity_factor = num(activity) ?? null
         else body.eer_category = Number(eerCategory)
+        body.injury_factor = num(injury) ?? null
         body.objective_delta_kcal = num(objectiveDelta) ?? 0
         body.macros = macroMode === 'gkg'
             ? { protGkg: num(protGkg) ?? 0, lipGkg: num(lipGkg) ?? 0 }
@@ -438,6 +444,22 @@ export function NutritionAssessmentClient({
                   </select>
                 </div>
               ) : null}
+              <div>
+                <Label htmlFor="na_inj">Fator de injúria</Label>
+                <select
+                  id="na_inj"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={injury}
+                  onChange={(e) => setInjury(e.target.value)}
+                >
+                  {INJURY_FACTORS.map((f, i) => (
+                    <option key={`${f.value}-${i}`} value={String(f.value)}>
+                      {f.value} · {f.label}
+                      {f.range ? ` (faixa ${f.range})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {eqMeta?.eer === 'category' || eqMeta?.eer === 'pa' ? (
                 <div>
                   <Label htmlFor="na_cat">Nível de atividade</Label>

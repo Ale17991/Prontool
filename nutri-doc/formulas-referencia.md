@@ -636,3 +636,32 @@ planilha como imprecisão. A decisão de 2026-08-03 foi o contrário: o document
 de base manda, porque é contra ele que a profissional confere os números à mão.
 Os coeficientes por faixa etária do Durnin ficaram no código, sem uso e
 nomeados como tal, para a alternativa não se perder.
+
+## Fatores de atividade e injúria (2026-08-03)
+
+### Atividade — batem
+
+Escala clássica (não-EER): 1,2 · 1,375 · 1,55 · 1,725 · 1,9. Idêntica à coluna
+da planilha.
+
+Níveis do EER, por sexo e faixa etária, também idênticos:
+adulto homem 1,0 / 1,11 / 1,25 / 1,48 · adulto mulher 1,0 / 1,12 / 1,27 / 1,45 ·
+3 a 18 homem 1,0 / 1,13 / 1,26 / 1,42 · 3 a 18 mulher 1,0 / 1,16 / 1,31 / 1,56.
+
+**Pendência**: a planilha tem uma SEGUNDA escala de atividade (1,55 leve ·
+1,85 moderada · 2,2 intensa), que o sistema não oferece. Precisa de decisão
+sobre a qual equação ela se aplica.
+
+### Injúria — corrigido
+
+O documento lista **25 condições clínicas** com faixa e valor médio. O sistema
+tinha 17, agrupava condições distintas na mesma linha e **omitia quatro**:
+doença cardiopulmonar (0,9), jejum ou inanição (0,925), pequeno trauma de
+tecido (1,255) e PO cirurgia cardíaca (1,35).
+
+As duas primeiras são as **únicas com fator abaixo de 1** — os casos em que o
+gasto DIMINUI. Sem elas o cálculo só sabia aumentar.
+
+Pior que a lista incompleta: **não havia campo na tela**. O fator existia no
+motor e na rota desde a 046, mas a profissional não tinha como escolher. Agora
+há um seletor com as 25 condições, mostrando o valor e a faixa publicada.
