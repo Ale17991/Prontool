@@ -150,10 +150,10 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T037 Conferir quebra de página em documento longo: anamnese de 60 perguntas e plano de 8 refeições. Linha não pode partir ao meio, e a identificação do paciente repete em todas (FR-015).
-- [ ] T038 Rodar `pnpm typecheck`, `pnpm lint:auth` e `pnpm lint` — zero erros. `lint:auth` confirma `requireRole` nas sete rotas novas.
+- [X] T037 Conferir quebra de página em documento longo: anamnese de 60 perguntas e plano de 8 refeições. Linha não pode partir ao meio, e a identificação do paciente repete em todas (FR-015).
+- [X] T038 Rodar `pnpm typecheck`, `pnpm lint:auth` e `pnpm lint` — zero erros. `lint:auth` confirma `requireRole` nas sete rotas novas.
 - [ ] T039 Rodar a suíte completa **em lotes** (`tests/unit`, depois `tests/contract`, depois `tests/integration`) — a suíte inteira de uma vez é morta pelo runner. ⚠️ `vitest` apaga o banco local: re-semear com `pnpm seed:demo` depois.
-- [ ] T040 [P] Atualizar o `CLAUDE.md` com a arquitetura da 054.
+- [X] T040 [P] Atualizar o `CLAUDE.md` com a arquitetura da 054.
 - [ ] T041 **Abrir os nove PDFs com olho humano**, seguindo `quickstart.md`. É a dívida recorrente da vertical (046, 047, 049, 050 e 052 foram a produção sem isso) e aqui pesa mais: o artefato É visual.
 - [ ] T042 **Conferência com a nutricionista (SC-003)** — comparar cada impresso com o equivalente da planilha, campo a campo, no mesmo paciente. Divergência de número é defeito; divergência de layout é ajuste opcional. **Agendar no início da implementação**, não no fim.
 - [ ] T043 Deploy: mergear em `master` + push. **Sem migration**, então a integração Supabase não tem nada a aplicar — é deploy só de código. Se der `MIDDLEWARE_INVOCATION_FAILED`, redeploy na Vercel **sem** cache de build.
