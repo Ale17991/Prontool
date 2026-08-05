@@ -76,15 +76,15 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 ### Tests for User Story 2
 
-- [ ] T015 [P] [US2] Teste unitário em `tests/unit/printouts-assessment.spec.ts`: com cinco avaliações, saem **as três mais recentes**, da mais antiga para a mais nova. Com uma, sai uma. Nenhuma coluna vazia é criada.
-- [ ] T016 [P] [US2] No mesmo arquivo: **coluna sem protocolo não é renderizada** (invariante 4 do data-model). Comparar dobras com bioimpedância lado a lado sem dizer o método induz a leitura errada, porque os dois não são comparáveis.
+- [X] T015 [P] [US2] Teste unitário em `tests/unit/printouts-assessment.spec.ts`: com cinco avaliações, saem **as três mais recentes**, da mais antiga para a mais nova. Com uma, sai uma. Nenhuma coluna vazia é criada.
+- [X] T016 [P] [US2] No mesmo arquivo: **coluna sem protocolo não é renderizada** (invariante 4 do data-model). Comparar dobras com bioimpedância lado a lado sem dizer o método induz a leitura errada, porque os dois não são comparáveis.
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Criar `src/lib/core/nutrition/printouts/assessment-pdf.tsx` sobre o `evolution-columns`: peso, IMC e classificação, dobras informadas, %gordura **com a classificação de Pollock & Wilmore**, massa magra e gorda, circunferências, RCQ e classificação, TMB, GET e VET.
-- [ ] T018 [US2] Linha de variação entre a primeira e a última coluna (peso, %gordura, massa magra) — é o número que responde "melhorei?".
-- [ ] T019 [US2] Criar `src/app/api/pacientes/[id]/avaliacao-nutricional/pdf/route.ts`, com `?limite=3` (padrão e máximo 3, research D7).
-- [ ] T020 [US2] Botão na tela de avaliação nutricional (`assessment-client.tsx`).
+- [X] T017 [US2] Criar `src/lib/core/nutrition/printouts/assessment-pdf.tsx` sobre o `evolution-columns`: peso, IMC e classificação, dobras informadas, %gordura **com a classificação de Pollock & Wilmore**, massa magra e gorda, circunferências, RCQ e classificação, TMB, GET e VET.
+- [X] T018 [US2] Linha de variação entre a primeira e a última coluna (peso, %gordura, massa magra) — é o número que responde "melhorei?".
+- [X] T019 [US2] Criar `src/app/api/pacientes/[id]/avaliacao-nutricional/pdf/route.ts`, com `?limite=3` (padrão e máximo 3, research D7).
+- [X] T020 [US2] Botão na tela de avaliação nutricional (`assessment-client.tsx`).
 
 **Checkpoint**: US1 e US2 cobrem as duas entregas de maior valor.
 
