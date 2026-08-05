@@ -197,6 +197,27 @@ export async function listRecalls(
   return { summaries, latest }
 }
 
+/**
+ * Id do recordatório de uma data — ou o mais recente, quando a data é omitida.
+ *
+ * `listRecalls` também resolveria, mas monta a view completa de até 30
+ * recordatórios (com carga de alimentos) só para descobrir um id. Aqui basta o
+ * cabeçalho.
+ */
+export async function findRecallId(
+  sb: SupabaseClient<Database>,
+  args: { tenantId: string; patientId: string; recallDate?: string | null },
+): Promise<string | null> {
+  let q = loose(sb)
+    .from('food_recalls')
+    .select('id, recall_date')
+    .eq('tenant_id', args.tenantId)
+    .eq('patient_id', args.patientId)
+  if (args.recallDate) q = q.eq('recall_date', args.recallDate)
+  const { data } = await q.order('recall_date', { ascending: false }).limit(1).maybeSingle()
+  return (data as { id: string } | null)?.id ?? null
+}
+
 export async function getRecall(
   sb: SupabaseClient<Database>,
   tenantId: string,

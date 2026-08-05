@@ -117,15 +117,15 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 ### Tests for User Story 4
 
-- [ ] T026 [P] [US4] Teste unitário em `tests/unit/printouts-labs.spec.ts`: **exame sem faixa cadastrada sai SEM classificação** (FR-011). Classificá-lo como normal seria afirmar o que não se sabe — é o mesmo erro que a 050 já evitou na tela.
-- [ ] T027 [P] [US4] Teste unitário em `tests/unit/printouts-recall.spec.ts`: totais do recordatório iguais aos da tela.
+- [X] T026 [P] [US4] Teste unitário em `tests/unit/printouts-labs.spec.ts`: **exame sem faixa cadastrada sai SEM classificação** (FR-011). Classificá-lo como normal seria afirmar o que não se sabe — é o mesmo erro que a 050 já evitou na tela.
+- [X] T027 [P] [US4] Teste unitário em `tests/unit/printouts-recall.spec.ts`: totais do recordatório iguais aos da tela.
 
 ### Implementation for User Story 4
 
-- [ ] T028 [P] [US4] Criar `src/lib/core/nutrition/printouts/recall-pdf.tsx` — refeições, itens, totais e adequação quando houver.
-- [ ] T029 [P] [US4] Criar `src/lib/core/nutrition/printouts/labs-pdf.tsx` — por painel: exame, valor, unidade, faixa e classificação.
-- [ ] T030 [US4] Criar as rotas `recordatorio/pdf` (com `?data=`) e `exames/pdf`.
-- [ ] T031 [US4] Botões nas telas de Recordatório e na seção de Exames.
+- [X] T028 [P] [US4] Criar `src/lib/core/nutrition/printouts/recall-pdf.tsx` — refeições, itens, totais e adequação quando houver.
+- [X] T029 [P] [US4] Criar `src/lib/core/nutrition/printouts/labs-pdf.tsx` — por painel: exame, valor, unidade, faixa e classificação.
+- [X] T030 [US4] Criar as rotas `recordatorio/pdf` (com `?data=`) e `exames/pdf`.
+- [X] T031 [US4] Botões nas telas de Recordatório e na seção de Exames.
 
 ---
 
