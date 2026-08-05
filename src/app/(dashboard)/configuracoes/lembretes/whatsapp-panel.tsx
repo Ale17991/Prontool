@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { AlertTriangle, Loader2, QrCode, Smartphone, Unplug } from 'lucide-react'
-import { connectWhatsApp, disconnectWhatsApp, refreshConnection } from './actions'
+import { connectWhatsApp, disconnectWhatsApp, refreshConnection } from './whatsapp-actions'
 import type { WhatsAppConnection } from '@/lib/core/whatsapp/types'
 
 interface Props {

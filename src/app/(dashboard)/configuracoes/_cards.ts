@@ -10,7 +10,6 @@ import {
   FileText,
   HeartPulse,
   ListChecks,
-  MessageCircle,
   Plug,
   ScrollText,
   UserCheck,
@@ -47,7 +46,6 @@ export type HubCardId =
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
-  | 'whatsapp'
   | 'google-agenda'
   | 'integracoes'
   | 'auditoria'
@@ -169,21 +167,18 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     icon: HeartPulse,
     show: ({ role, ent }) => ent.hasModule('portal_paciente') && can(role, 'patient_portal.config'),
   },
+  // A conexão do número de WhatsApp NÃO tem card próprio: ela mora dentro desta
+  // tela. Vincular o número só existe para servir o lembrete, e dois cards
+  // faziam a clínica configurar o canal num lugar e descobrir no outro que
+  // faltava conectar. O RBAC mais restrito de `whatsapp.config` continua
+  // valendo lá dentro, na seção.
   {
     id: 'lembretes',
     href: '/configuracoes/lembretes',
     title: 'Lembretes automáticos',
-    description: 'Envia email antes da consulta. Reduz no-show.',
+    description: 'Avisa o paciente por email ou WhatsApp antes da consulta. Reduz no-show.',
     icon: BellRing,
     show: ({ role }) => can(role, 'reminders.config'),
-  },
-  {
-    id: 'whatsapp',
-    href: '/configuracoes/whatsapp',
-    title: 'WhatsApp',
-    description: 'Vincule o número da clínica para enviar lembretes por WhatsApp.',
-    icon: MessageCircle,
-    show: ({ role, ent }) => ent.hasModule('whatsapp') && can(role, 'whatsapp.config'),
   },
   {
     id: 'google-agenda',
