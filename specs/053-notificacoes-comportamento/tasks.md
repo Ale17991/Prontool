@@ -138,9 +138,9 @@ segundo a de reengajamento.
 **Independent Test**: três regras aplicáveis ao mesmo paciente com teto 1 — sai
 uma, e a escolha é a mesma entre execuções.
 
-- [ ] T045 [US4] Implementar o teto semanal em `gates.ts`, lendo `outreach_weekly_cap` do perfil da clínica
-- [ ] T046 [US4] Implementar o desempate determinístico em `evaluate-cycle.ts`: prioridade da família → `created_at` da regra → id. Nunca a ordem em que o loop encontrou
-- [ ] T047 [US4] Registrar a regra preterida como `adiada`, não silenciosamente descartada (FR-021)
+- [X] T045 [US4] Implementar o teto semanal em `gates.ts`, lendo `outreach_weekly_cap` do perfil da clínica
+- [X] T046 [US4] Implementar o desempate determinístico em `evaluate-cycle.ts`: prioridade da família → `created_at` da regra → id. Nunca a ordem em que o loop encontrou
+- [X] T047 [US4] Registrar a regra preterida como `adiada`, não silenciosamente descartada (FR-021)
 - [ ] T048 [US4] Campo do teto na tela, em `src/app/(dashboard)/configuracoes/notificacoes-automaticas/`
 - [ ] T049 [P] [US4] Teste unitário do desempate em `tests/unit/signals-tiebreak.spec.ts`: mesma entrada devolve a mesma escolha, sempre
 - [ ] T050 [US4] Teste de integração do teto em `tests/integration/signals-weekly-cap.spec.ts`: teto respeitado, virada de semana libera, preteridas ficam `adiada`
@@ -160,15 +160,15 @@ que nenhuma regra de ausência exista.
 > (nenhum filtro se aplica a evento presente) e são o que impede a feature de ir
 > a público sabendo só cobrar.
 
-- [ ] T051 [P] [US5] `families/celebracao/meta-atingida.ts` — dispara na **virada** (a anterior não tinha alcançado), não todo dia depois
-- [ ] T052 [P] [US5] `families/celebracao/sequencia-habito.ts` — reusa `currentStreak` de `habits/period.ts`
-- [ ] T053 [P] [US5] `families/celebracao/aniversario.ts`
-- [ ] T054 [P] [US5] `families/celebracao/aniversario-acompanhamento.ts`
-- [ ] T055 [P] [US5] `families/celebracao/pos-consulta.ts`
-- [ ] T056 [US5] Fazer `evaluate-cycle.ts` e `gates.ts` pularem o filtro de portal e a lista de expressões para `nature: 'celebracao'` (FR-002a)
-- [ ] T057 [US5] Agrupar o catálogo por natureza na tela, com a celebração visível primeiro — se as regras de reconhecimento ficam no fim da lista, ninguém liga (SC-009)
+- [X] T051 [P] [US5] `families/celebracao/meta-atingida.ts` — dispara na **virada** (a anterior não tinha alcançado), não todo dia depois
+- [X] T052 [P] [US5] `families/celebracao/sequencia-habito.ts` — reusa `currentStreak` de `habits/period.ts`
+- [X] T053 [P] [US5] `families/celebracao/aniversario.ts`
+- [X] T054 [P] [US5] `families/celebracao/aniversario-acompanhamento.ts`
+- [X] T055 [P] [US5] `families/celebracao/pos-consulta.ts`
+- [X] T056 [US5] Fazer `evaluate-cycle.ts` e `gates.ts` pularem o filtro de portal e a lista de expressões para `nature: 'celebracao'` (FR-002a)
+- [X] T057 [US5] Agrupar o catálogo por natureza na tela, com a celebração visível primeiro — se as regras de reconhecimento ficam no fim da lista, ninguém liga (SC-009)
 - [ ] T058 [US5] Teste de integração da precedência em `tests/integration/signals-celebration-precedence.spec.ts`: com teto 1 e uma celebração concorrendo com duas ausências, a celebração é a que sai (FR-002b)
-- [ ] T059 [P] [US5] Teste unitário das cinco famílias em `tests/unit/signals-celebracao.spec.ts`, com atenção ao disparo na virada da meta
+- [X] T059 [P] [US5] Teste unitário das cinco famílias em `tests/unit/signals-celebracao.spec.ts`, com atenção ao disparo na virada da meta
 
 **Checkpoint**: a feature já sabe reconhecer, não só cobrar.
 
@@ -181,8 +181,8 @@ que nenhuma regra de ausência exista.
 **Independent Test**: editar o texto de uma regra, ver a prévia preenchida e
 receber a mensagem com o texto novo.
 
-- [ ] T060 [US3] Validação de placeholder desconhecido na criação e edição, devolvendo `400 UNKNOWN_PLACEHOLDER` com o nome do campo
-- [ ] T061 [US3] Validação de expressão proibida (só ausência), devolvendo `400 FORBIDDEN_PHRASE` com a frase encontrada e uma sugestão de reescrita
+- [X] T060 [US3] Validação de placeholder desconhecido na criação e edição, devolvendo `400 UNKNOWN_PLACEHOLDER` com o nome do campo
+- [X] T061 [US3] Validação de expressão proibida (só ausência), devolvendo `400 FORBIDDEN_PHRASE` com a frase encontrada e uma sugestão de reescrita
 - [ ] T062 [US3] Criar `src/app/api/notificacoes-automaticas/previa/route.ts` com dados de exemplo **fixos e fictícios** — prévia com paciente real vazaria dado de quem só queria ver o texto
 - [ ] T063 [US3] Prévia na tela, dentro de `rule-form.tsx`
 - [ ] T064 [P] [US3] Teste de contrato das validações em `tests/contract/signals-template-validation.spec.ts`

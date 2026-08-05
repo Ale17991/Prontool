@@ -36,6 +36,11 @@ import { z } from 'zod'
 import type { SignalFamily, SignalFamilyId, SignalNature } from './types'
 import { evaluateHabitoSemRegistro } from './families/ausencia/habito-sem-registro'
 import { evaluateSemAcessoPortal } from './families/ausencia/sem-acesso-portal'
+import { evaluateMetaAtingida } from './families/celebracao/meta-atingida'
+import { evaluateSequenciaHabito } from './families/celebracao/sequencia-habito'
+import { evaluateAniversario } from './families/celebracao/aniversario'
+import { evaluateAniversarioAcompanhamento } from './families/celebracao/aniversario-acompanhamento'
+import { evaluatePosConsulta } from './families/celebracao/pos-consulta'
 
 const dias = (min: number, max: number) => z.number().int().min(min).max(max)
 
@@ -74,8 +79,8 @@ const CELEBRACAO: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Vimos que você alcançou sua meta de {{metrica}}. Parabéns pela constância — isso é resultado do seu esforço. Seguimos juntos!',
     defaultSilenceDays: 30,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('meta_atingida'),
+    implemented: true,
+    evaluate: evaluateMetaAtingida,
   },
   {
     id: 'sequencia_habito',
@@ -89,8 +94,8 @@ const CELEBRACAO: SignalFamilyDef[] = [
       'Oi {{paciente}}! São {{dias}} dias seguidos com {{habito}} em dia. Que sequência! A {{clinica}} está torcendo por você.',
     defaultSilenceDays: 14,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('sequencia_habito'),
+    implemented: true,
+    evaluate: evaluateSequenciaHabito,
   },
   {
     id: 'aniversario',
@@ -103,8 +108,8 @@ const CELEBRACAO: SignalFamilyDef[] = [
     defaultTemplate: 'Oi {{paciente}}, feliz aniversário! Um abraço de todos nós da {{clinica}}.',
     defaultSilenceDays: 300,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('aniversario'),
+    implemented: true,
+    evaluate: evaluateAniversario,
   },
   {
     id: 'aniversario_acompanhamento',
@@ -118,8 +123,8 @@ const CELEBRACAO: SignalFamilyDef[] = [
       'Oi {{paciente}}! Hoje faz {{meses}} meses que você começou seu acompanhamento com a {{clinica}}. Obrigado pela confiança em todo esse caminho.',
     defaultSilenceDays: 60,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('aniversario_acompanhamento'),
+    implemented: true,
+    evaluate: evaluateAniversarioAcompanhamento,
   },
   {
     id: 'pos_consulta',
@@ -133,8 +138,8 @@ const CELEBRACAO: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Faz {{dias}} dias da sua consulta e queríamos saber como você está se sentindo. Qualquer dúvida, é só chamar.',
     defaultSilenceDays: 7,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('pos_consulta'),
+    implemented: true,
+    evaluate: evaluatePosConsulta,
   },
 ]
 

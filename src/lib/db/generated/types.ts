@@ -4456,6 +4456,7 @@ export type Database = {
           channel: string
           error_detail: string | null
           id: string
+          occurrence_id: string | null
           patient_id: string
           purpose: string
           sent_at: string
@@ -4467,6 +4468,7 @@ export type Database = {
           channel: string
           error_detail?: string | null
           id?: string
+          occurrence_id?: string | null
           patient_id: string
           purpose: string
           sent_at?: string
@@ -4478,6 +4480,7 @@ export type Database = {
           channel?: string
           error_detail?: string | null
           id?: string
+          occurrence_id?: string | null
           patient_id?: string
           purpose?: string
           sent_at?: string
@@ -4485,6 +4488,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "patient_messages_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "signal_occurrences"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "patient_messages_patient_id_fkey"
             columns: ["patient_id"]
@@ -5908,7 +5918,6 @@ export type Database = {
           created_at: string
           cycle_date: string
           id: string
-          message_id: string | null
           observed: Json
           outcome: string
           patient_id: string
@@ -5919,7 +5928,6 @@ export type Database = {
           created_at?: string
           cycle_date: string
           id?: string
-          message_id?: string | null
           observed?: Json
           outcome: string
           patient_id: string
@@ -5930,7 +5938,6 @@ export type Database = {
           created_at?: string
           cycle_date?: string
           id?: string
-          message_id?: string | null
           observed?: Json
           outcome?: string
           patient_id?: string
@@ -5938,13 +5945,6 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "signal_occurrences_message_fk"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "patient_messages"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "signal_occurrences_patient_id_fkey"
             columns: ["patient_id"]
@@ -8868,6 +8868,12 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      signals_birthdays_today: {
+        Args: { p_key: string; p_tenant_id: string; p_today: string }
+        Returns: {
+          patient_id: string
+        }[]
       }
       tenant_cash_balance_at: {
         Args: { p_date: string; p_tenant_id: string }

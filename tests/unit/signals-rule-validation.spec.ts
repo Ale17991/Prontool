@@ -40,12 +40,23 @@ describe('validateRule — família', () => {
   it('recusa família ainda não implementada', () => {
     const r = validateRule(
       com({
+        family: 'sem_retorno',
+        params: { months: 6 },
+        messageTemplate: 'Oi {{paciente}}, faz {{meses}} meses. — {{clinica}}',
+      }),
+    )
+    expect(r?.code).toBe('FAMILY_NOT_AVAILABLE')
+  })
+
+  it('aceita família de celebração já implementada', () => {
+    const r = validateRule(
+      com({
         family: 'aniversario',
         params: {},
         messageTemplate: 'Oi {{paciente}}, feliz aniversário! — {{clinica}}',
       }),
     )
-    expect(r?.code).toBe('FAMILY_NOT_AVAILABLE')
+    expect(r).toBeNull()
   })
 })
 
