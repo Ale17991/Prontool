@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { validateRule, type RuleInput } from '@/lib/core/signals/rules'
+import { CATALOG, implementedFamilies } from '@/lib/core/signals/catalog'
 
 const BASE: RuleInput = {
   family: 'habito_sem_registro',
@@ -37,26 +38,37 @@ describe('validateRule — família', () => {
    * deixaria a clínica ligando uma regra e esperando uma mensagem que o ciclo
    * não sabe produzir — pior que o botão não existir.
    */
-  it('recusa família ainda não implementada', () => {
-    const r = validateRule(
-      com({
-        family: 'sem_retorno',
-        params: { months: 6 },
-        messageTemplate: 'Oi {{paciente}}, faz {{meses}} meses. — {{clinica}}',
-      }),
-    )
-    expect(r?.code).toBe('FAMILY_NOT_AVAILABLE')
+  /**
+   * O guard `FAMILY_NOT_AVAILABLE` está DORMENTE: as catorze famílias têm
+   * `evaluate`, então nenhuma o exercita hoje. Ele continua no código porque a
+   * próxima família nasce sem implementação, e sem ele a clínica conseguiria
+   * ligar uma regra que o ciclo não sabe avaliar — ficaria esperando uma
+   * mensagem que nunca vem.
+   *
+   * Este teste é o alarme: se alguém acrescentar família ao catálogo sem
+   * `evaluate`, ele acusa, e aí o caso de recusa volta a ter cobertura real.
+   */
+  it('todas as famílias do catálogo estão implementadas, e o guard segue dormente', () => {
+    expect(implementedFamilies()).toHaveLength(CATALOG.length)
+    for (const f of CATALOG) {
+      expect(f.implemented, `${f.id} está no catálogo sem evaluate`).toBe(true)
+    }
   })
 
-  it('aceita família de celebração já implementada', () => {
-    const r = validateRule(
-      com({
-        family: 'aniversario',
-        params: {},
-        messageTemplate: 'Oi {{paciente}}, feliz aniversário! — {{clinica}}',
-      }),
-    )
-    expect(r).toBeNull()
+  it('aceita qualquer família do catálogo com o próprio texto padrão', () => {
+    for (const f of CATALOG) {
+      const params =
+        f.id === 'aniversario'
+          ? {}
+          : f.paramsSchema.safeParse({ days: 7, months: 6, consecutive: 2, metricType: 'peso' })
+              .success
+            ? { days: 7, months: 6, consecutive: 2, metricType: 'peso' }
+            : { days: 7 }
+      const r = validateRule(
+        com({ family: f.id, params, messageTemplate: f.defaultTemplate, silenceDays: 7 }),
+      )
+      expect(r, `${f.id}: ${JSON.stringify(r)}`).toBeNull()
+    }
   })
 })
 

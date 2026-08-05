@@ -26,16 +26,24 @@
  *
  * ---
  *
- * `implemented: false` marca família já definida cujo `evaluate` ainda não
- * chegou (entrega incremental por fase). A API recusa criar regra para ela e a
- * tela não a lista. As invariantes do catálogo, porém, já valem para todas —
- * é o contrato que segura o desenho enquanto as implementações chegam.
+ * `implemented` existiu para a entrega incremental: família definida mas sem
+ * `evaluate` era recusada pela API e escondida da tela, para nenhuma clínica
+ * ligar uma regra que o ciclo não sabia avaliar. As catorze estão implementadas
+ * — o campo fica porque a próxima família nova volta a precisar dele, e porque
+ * `validateRule` continua sendo o lugar certo para essa recusa.
  */
 
 import { z } from 'zod'
 import type { SignalFamily, SignalFamilyId, SignalNature } from './types'
 import { evaluateHabitoSemRegistro } from './families/ausencia/habito-sem-registro'
 import { evaluateSemAcessoPortal } from './families/ausencia/sem-acesso-portal'
+import { evaluateSemRegistrarMedicao } from './families/ausencia/sem-registrar-medicao'
+import { evaluateRecordatorioEmBranco } from './families/ausencia/recordatorio-em-branco'
+import { evaluateAfastandoDaMeta } from './families/ausencia/afastando-da-meta'
+import { evaluateExameNaoRealizado } from './families/ausencia/exame-nao-realizado'
+import { evaluateSemRetorno } from './families/ausencia/sem-retorno'
+import { evaluateAvaliacaoVencida } from './families/ausencia/avaliacao-vencida'
+import { evaluatePlanoSemRevisao } from './families/ausencia/plano-sem-revisao'
 import { evaluateMetaAtingida } from './families/celebracao/meta-atingida'
 import { evaluateSequenciaHabito } from './families/celebracao/sequencia-habito'
 import { evaluateAniversario } from './families/celebracao/aniversario'
@@ -46,12 +54,6 @@ const dias = (min: number, max: number) => z.number().int().min(min).max(max)
 
 /** Placeholder comum a todas: nome do paciente e nome da clínica. */
 const BASE_PLACEHOLDERS = ['paciente', 'clinica'] as const
-
-function naoImplementada(id: SignalFamilyId) {
-  return async () => {
-    throw new Error(`Família "${id}" ainda não tem evaluate implementado`)
-  }
-}
 
 export interface SignalFamilyDef extends SignalFamily {
   implemented: boolean
@@ -196,8 +198,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Não vimos um registro novo de {{metrica}} nos últimos {{dias}} dias. Quando puder, atualize no portal — assim conseguimos acompanhar melhor sua evolução.',
     defaultSilenceDays: 10,
     requiresPortalActivity: true,
-    implemented: false,
-    evaluate: naoImplementada('sem_registrar_medicao'),
+    implemented: true,
+    evaluate: evaluateSemRegistrarMedicao,
   },
   {
     id: 'recordatorio_em_branco',
@@ -211,8 +213,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Faz {{dias}} dias que não recebemos um recordatório alimentar seu. Se puder registrar quando der, ajuda muito no seu acompanhamento.',
     defaultSilenceDays: 10,
     requiresPortalActivity: true,
-    implemented: false,
-    evaluate: naoImplementada('recordatorio_em_branco'),
+    implemented: true,
+    evaluate: evaluateRecordatorioEmBranco,
   },
   {
     id: 'afastando_da_meta',
@@ -229,8 +231,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Demos uma olhada no seu acompanhamento de {{metrica}} e queríamos conversar sobre ele com você. Que tal marcarmos um horário?',
     defaultSilenceDays: 21,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('afastando_da_meta'),
+    implemented: true,
+    evaluate: evaluateAfastandoDaMeta,
   },
   {
     id: 'exame_nao_realizado',
@@ -244,8 +246,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Faz {{dias}} dias que pedimos seus exames e ainda não recebemos o resultado. Se já fez, pode nos enviar. Se ainda não, podemos ajudar a agendar.',
     defaultSilenceDays: 15,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('exame_nao_realizado'),
+    implemented: true,
+    evaluate: evaluateExameNaoRealizado,
   },
   {
     id: 'sem_retorno',
@@ -259,8 +261,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Faz {{meses}} meses desde sua última consulta e não vemos um retorno agendado. Se quiser retomar o acompanhamento, temos horários disponíveis.',
     defaultSilenceDays: 45,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('sem_retorno'),
+    implemented: true,
+    evaluate: evaluateSemRetorno,
   },
   {
     id: 'avaliacao_vencida',
@@ -274,8 +276,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Sua última avaliação foi há {{meses}} meses. Uma reavaliação ajuda a ajustar o que for preciso — quer marcar?',
     defaultSilenceDays: 30,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('avaliacao_vencida'),
+    implemented: true,
+    evaluate: evaluateAvaliacaoVencida,
   },
   {
     id: 'plano_sem_revisao',
@@ -289,8 +291,8 @@ const AUSENCIA: SignalFamilyDef[] = [
       'Oi {{paciente}}, aqui é da {{clinica}}. Seu plano alimentar está com {{meses}} meses. Vale uma revisão para deixá-lo alinhado ao seu momento atual. Podemos agendar?',
     defaultSilenceDays: 45,
     requiresPortalActivity: false,
-    implemented: false,
-    evaluate: naoImplementada('plano_sem_revisao'),
+    implemented: true,
+    evaluate: evaluatePlanoSemRevisao,
   },
 ]
 

@@ -196,15 +196,15 @@ receber a mensagem com o texto novo.
 **Independent Test**: ligar cada regra isoladamente e verificar disparo com um
 paciente construído para a condição.
 
-- [ ] T065 [P] [US6] `families/ausencia/sem-registrar-medicao.ts`
-- [ ] T066 [P] [US6] `families/ausencia/afastando-da-meta.ts` — **sem placeholder de valor** (invariante 5 do contrato)
-- [ ] T067 [P] [US6] `families/ausencia/sem-retorno.ts` — exige ausência de consulta futura
-- [ ] T068 [P] [US6] `families/ausencia/recordatorio-em-branco.ts`
-- [ ] T069 [P] [US6] `families/ausencia/exame-nao-realizado.ts` sobre `exam_requests` × resultados em `patient_measurements`
-- [ ] T070 [P] [US6] `families/ausencia/avaliacao-vencida.ts`
-- [ ] T071 [P] [US6] `families/ausencia/plano-sem-revisao.ts`
+- [X] T065 [P] [US6] `families/ausencia/sem-registrar-medicao.ts`
+- [X] T066 [P] [US6] `families/ausencia/afastando-da-meta.ts` — **sem placeholder de valor** (invariante 5 do contrato)
+- [X] T067 [P] [US6] `families/ausencia/sem-retorno.ts` — exige ausência de consulta futura
+- [X] T068 [P] [US6] `families/ausencia/recordatorio-em-branco.ts`
+- [X] T069 [P] [US6] `families/ausencia/exame-nao-realizado.ts` sobre `exam_requests` × resultados em `patient_measurements`
+- [X] T070 [P] [US6] `families/ausencia/avaliacao-vencida.ts`
+- [X] T071 [P] [US6] `families/ausencia/plano-sem-revisao.ts`
 - [ ] T072 [US6] Teste de integração por família em `tests/integration/signals-families.spec.ts`, uma condição construída por família
-- [ ] T073 [P] [US6] Teste unitário dos predicados em `tests/unit/signals-predicados.spec.ts`
+- [X] T073 [P] [US6] Teste unitário dos predicados em `tests/unit/signals-predicados.spec.ts`
 
 ---
 
