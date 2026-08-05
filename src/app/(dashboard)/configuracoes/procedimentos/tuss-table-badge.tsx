@@ -20,8 +20,8 @@ export const TUSS_TABLES: readonly TussTableOption[] = [
     value: '22',
     label: 'Procedimentos',
     short: 'Proc',
-    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-    selectedClass: 'border-blue-300 bg-blue-50 ring-1 ring-blue-200',
+    badgeClass: 'bg-accent text-info-text border-info/30',
+    selectedClass: 'border-info/40 bg-accent ring-1 ring-info/30',
   },
   {
     value: '19',

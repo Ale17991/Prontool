@@ -72,7 +72,7 @@ export function GoalsCard(props: Props) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <h2 className="mb-4 flex items-center gap-2.5 text-sm font-bold text-slate-700">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info-bg text-info-text">
           <Target className="h-4 w-4" />
         </span>
         Minhas metas
@@ -96,7 +96,7 @@ export function GoalsCard(props: Props) {
               </div>
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div
-                  className={`h-full rounded-full ${prog.achieved ? 'bg-emerald-500' : 'bg-sky-500'}`}
+                  className={`h-full rounded-full ${prog.achieved ? 'bg-emerald-500' : 'bg-info'}`}
                   style={{ width: `${Math.round(prog.progress * 100)}%` }}
                 />
               </div>

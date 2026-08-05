@@ -125,7 +125,7 @@ function SoapBlock({ event }: { event: EvolucaoEvent }) {
     { letter: 'P', label: 'Plano', val: soap.plan },
   ]
   return (
-    <div className="space-y-2 rounded-lg bg-blue-50/40 p-3 text-sm">
+    <div className="space-y-2 rounded-lg bg-accent/40 p-3 text-sm">
       {sections.map((s) =>
         s.val && s.val.trim() ? (
           <div key={s.letter}>
@@ -144,7 +144,7 @@ function SoapBlock({ event }: { event: EvolucaoEvent }) {
           {soap.assessment_cids.map((c) => (
             <span
               key={c.code}
-              className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-0.5 text-[10px] text-blue-800"
+              className="inline-flex items-center gap-1 rounded-md bg-info-bg px-2 py-0.5 text-[10px] text-info-text"
             >
               <span className="font-mono font-bold">{c.code}</span>
               <span>{c.description}</span>
@@ -318,7 +318,7 @@ const META_BY_KIND: Record<TimelineEvent['kind'], KindMeta> = {
   appointment: {
     label: 'Atendimento',
     Icon: Calendar,
-    iconWrapClass: 'bg-blue-50 text-blue-600',
+    iconWrapClass: 'bg-accent text-link',
     badgeVariant: 'default',
   },
   payment: {

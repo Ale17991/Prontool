@@ -33,15 +33,15 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6 font-sans">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+    <main className="flex min-h-screen items-center justify-center bg-secondary p-6 font-sans">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-white p-8 shadow-xl">
         <div className="mb-8 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-slate-900">Clinni</h1>
-            <p className="text-xs text-slate-500">
+            <h1 className="text-lg font-black tracking-tight text-foreground">Clinni</h1>
+            <p className="text-xs text-muted-foreground">
               Gestão inteligente para clínicas e consultórios
             </p>
           </div>
@@ -81,7 +81,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-[11px] text-slate-400">
+        <p className="mt-6 text-center text-[11px] text-steel">
           Esqueceu sua senha? Fale com o administrador da clínica.
         </p>
       </div>

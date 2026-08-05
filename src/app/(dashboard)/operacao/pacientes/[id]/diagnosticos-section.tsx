@@ -219,7 +219,7 @@ function DiagnosisRow({
   return (
     <TableRow>
       <TableCell>
-        <span className="rounded-md bg-blue-100 px-2 py-1 font-mono text-[11px] font-bold text-blue-800">
+        <span className="rounded-md bg-info-bg px-2 py-1 font-mono text-[11px] font-bold text-info-text">
           {diagnosis.cid10Code}
         </span>
       </TableCell>
@@ -382,8 +382,8 @@ function NewDiagnosisForm({
       <div>
         <Label className="text-[11px] font-bold uppercase text-slate-500">CID-10</Label>
         {selected ? (
-          <div className="flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
-            <span className="rounded bg-blue-100 px-2 py-0.5 font-mono text-[11px] font-bold text-blue-800">
+          <div className="flex items-center gap-2 rounded-md border border-info/30 bg-accent px-3 py-2">
+            <span className="rounded bg-info-bg px-2 py-0.5 font-mono text-[11px] font-bold text-info-text">
               {selected.code}
             </span>
             <span className="flex-1 text-sm text-slate-700">{selected.description}</span>
@@ -423,9 +423,9 @@ function NewDiagnosisForm({
                         setCidResults(null)
                         setCidQuery('')
                       }}
-                      className="flex w-full items-start gap-2 px-3 py-1.5 text-left hover:bg-blue-50"
+                      className="flex w-full items-start gap-2 px-3 py-1.5 text-left hover:bg-accent"
                     >
-                      <span className="font-mono text-[11px] font-bold text-blue-700">
+                      <span className="font-mono text-[11px] font-bold text-info-text">
                         {c.code}
                       </span>
                       <span className="text-xs text-slate-700">{c.description}</span>

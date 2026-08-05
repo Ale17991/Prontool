@@ -486,7 +486,7 @@ function TypeIcon({ type }: { type: ClinicalRecordRow['type'] }) {
   }
   if (type === 'evolucao') {
     return (
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-link">
         <NotebookPen className="h-4 w-4" />
       </div>
     )
@@ -535,7 +535,7 @@ function SoapView({ soap }: { soap: SoapData }) {
     { key: 'plan', label: 'Plano', letter: 'P' },
   ]
   return (
-    <div className="mt-3 space-y-3 rounded-lg bg-blue-50/40 p-3 print:bg-white print:p-0">
+    <div className="mt-3 space-y-3 rounded-lg bg-accent/40 p-3 print:bg-white print:p-0">
       {sections.map((s) => {
         const value = soap[s.key]
         if (typeof value !== 'string' || !value.trim()) return null
@@ -553,14 +553,14 @@ function SoapView({ soap }: { soap: SoapData }) {
       })}
       {soap.assessment_cids && soap.assessment_cids.length > 0 ? (
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-blue-700">
+          <p className="text-[10px] font-black uppercase tracking-widest text-info-text">
             CIDs vinculados
           </p>
           <div className="mt-1 flex flex-wrap gap-1.5">
             {soap.assessment_cids.map((c) => (
               <span
                 key={c.code}
-                className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] text-blue-800"
+                className="inline-flex items-center gap-1 rounded-md bg-info-bg px-2 py-1 text-[11px] text-info-text"
               >
                 <span className="font-mono font-bold">{c.code}</span>
                 <span>{c.description}</span>
@@ -1016,7 +1016,7 @@ function NewEvolutionForm({
     >
       <div className="space-y-1.5">
         <Label htmlFor="soap_s">
-          <span className="font-bold text-blue-700">S</span> — Subjetivo{' '}
+          <span className="font-bold text-info-text">S</span> — Subjetivo{' '}
           <span className="text-rose-500">*</span>
         </Label>
         <Textarea
@@ -1030,7 +1030,7 @@ function NewEvolutionForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="soap_o">
-          <span className="font-bold text-blue-700">O</span> — Objetivo
+          <span className="font-bold text-info-text">O</span> — Objetivo
         </Label>
         <Textarea
           id="soap_o"
@@ -1042,7 +1042,7 @@ function NewEvolutionForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="soap_a">
-          <span className="font-bold text-blue-700">A</span> — Avaliação{' '}
+          <span className="font-bold text-info-text">A</span> — Avaliação{' '}
           <span className="text-rose-500">*</span>
         </Label>
         <Textarea
@@ -1072,9 +1072,9 @@ function NewEvolutionForm({
                     type="button"
                     key={c.code}
                     onClick={() => addCid(c)}
-                    className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-blue-50"
+                    className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-accent"
                   >
-                    <span className="font-mono font-bold text-blue-700">{c.code}</span>
+                    <span className="font-mono font-bold text-info-text">{c.code}</span>
                     <span className="text-slate-700">{c.description}</span>
                   </button>
                 ))
@@ -1086,14 +1086,14 @@ function NewEvolutionForm({
               {cidSelected.map((c) => (
                 <span
                   key={c.code}
-                  className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-[11px] text-blue-800"
+                  className="inline-flex items-center gap-1 rounded-md bg-info-bg px-2 py-1 text-[11px] text-info-text"
                 >
                   <span className="font-mono font-bold">{c.code}</span>
                   <span className="max-w-[200px] truncate">{c.description}</span>
                   <button
                     type="button"
                     onClick={() => removeCid(c.code)}
-                    className="ml-1 text-blue-500 hover:text-blue-700"
+                    className="ml-1 text-link hover:text-info-text"
                     aria-label={`Remover ${c.code}`}
                   >
                     <X className="h-3 w-3" />
@@ -1106,7 +1106,7 @@ function NewEvolutionForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="soap_p">
-          <span className="font-bold text-blue-700">P</span> — Plano
+          <span className="font-bold text-info-text">P</span> — Plano
         </Label>
         <Textarea
           id="soap_p"
@@ -1341,7 +1341,7 @@ function FieldInput({
         {field.required ? <span className="ml-1 text-rose-500">*</span> : null}
       </span>
       {field.is_default ? (
-        <Badge variant="secondary" className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800">
+        <Badge variant="secondary" className="h-4 bg-info-bg px-1.5 text-[9px] text-info-text">
           Padrão
         </Badge>
       ) : null}

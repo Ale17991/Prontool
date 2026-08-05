@@ -55,7 +55,7 @@ export function CashFlowChart({ buckets, events }: Props) {
               type="monotone"
               dataKey="saldo"
               name="Saldo acumulado"
-              stroke="#1C4F71"
+              stroke="#003883"
               strokeWidth={2}
               dot={{ r: 3 }}
             />

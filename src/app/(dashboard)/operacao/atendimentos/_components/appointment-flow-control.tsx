@@ -17,8 +17,8 @@ export const FLOW_META: Record<FlowStatus, { label: string; pill: string; dot: s
   },
   em_consulta: {
     label: 'Em consulta',
-    pill: 'bg-blue-100 text-blue-700 border-blue-300',
-    dot: 'bg-blue-500',
+    pill: 'bg-info-bg text-info-text border-info/40',
+    dot: 'bg-info',
   },
   atendido: {
     label: 'Atendido',

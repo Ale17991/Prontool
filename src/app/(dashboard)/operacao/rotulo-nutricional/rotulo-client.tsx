@@ -536,7 +536,7 @@ export function RotuloClient() {
                       row.state === 'incompleto'
                         ? 'border-b border-slate-100 bg-red-50/60'
                         : row.state === 'sobrescrito'
-                          ? 'border-b border-slate-100 bg-sky-50/60'
+                          ? 'border-b border-slate-100 bg-accent/60'
                           : 'border-b border-slate-100'
                     }
                   >
@@ -548,7 +548,7 @@ export function RotuloClient() {
                             type="button"
                             title="Desfazer valor informado"
                             onClick={() => undoOverride(row.key)}
-                            className="text-sky-600 hover:text-sky-800"
+                            className="text-link hover:text-info-text"
                           >
                             <RotateCcw className="h-3 w-3" />
                           </button>
@@ -569,7 +569,7 @@ export function RotuloClient() {
                         </p>
                       ) : null}
                       {row.state === 'sobrescrito' ? (
-                        <p className="text-[10px] leading-tight text-sky-600">informado à mão</p>
+                        <p className="text-[10px] leading-tight text-link">informado à mão</p>
                       ) : null}
                     </td>
                     {editingKey === row.key ? (

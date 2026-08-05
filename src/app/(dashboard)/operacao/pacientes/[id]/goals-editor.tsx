@@ -95,9 +95,9 @@ export function GoalsEditor({
   }
 
   return (
-    <div className="rounded-md border border-sky-100 bg-sky-50/40 p-3">
+    <div className="rounded-md border border-info/20 bg-accent/40 p-3">
       <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-        <Target className="h-3.5 w-3.5 text-sky-600" />
+        <Target className="h-3.5 w-3.5 text-link" />
         Metas do paciente
       </p>
 

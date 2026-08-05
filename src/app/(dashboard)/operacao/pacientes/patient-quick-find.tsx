@@ -187,7 +187,7 @@ export function PatientQuickFind() {
                     onClick={() => navigateTo(p.id)}
                     className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-accent focus:bg-accent focus:outline-none"
                   >
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-primary">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
                       <User className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">

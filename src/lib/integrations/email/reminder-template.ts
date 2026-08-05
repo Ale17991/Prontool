@@ -16,7 +16,7 @@ export function getDefaultReminderBody(): string {
   return `<!doctype html>
 <html lang="pt-BR">
   <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #0f172a;">
-    <h2 style="color: #1C4F71;">Lembrete de consulta</h2>
+    <h2 style="color: #003883;">Lembrete de consulta</h2>
     <p>Olá <strong>{{paciente}}</strong>,</p>
     <p>Este é um lembrete da sua consulta na <strong>{{clinica}}</strong>.</p>
 

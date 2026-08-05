@@ -84,9 +84,9 @@ export function FinancialRevenueChart({ data }: { data: Point[] }) {
           <Line
             type="monotone"
             dataKey="revenue"
-            stroke="#1C4F71"
+            stroke="#003883"
             strokeWidth={2.5}
-            dot={{ r: 3, fill: '#1C4F71' }}
+            dot={{ r: 3, fill: '#003883' }}
             activeDot={{ r: 5 }}
           />
         </LineChart>

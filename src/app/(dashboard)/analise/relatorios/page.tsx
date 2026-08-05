@@ -357,10 +357,10 @@ function RevenueSection({ report }: { report: FinancialReport }) {
             </CardContent>
           </Card>
 
-          <Card className="border-[#2D4E4D] bg-[#1A3741] text-white shadow-md">
+          <Card className="border-[#2C3A44] bg-[#141D23] text-white shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm text-white">
-                <Stethoscope className="h-4 w-4 text-blue-300" />
+                <Stethoscope className="h-4 w-4 text-steel" />
                 Ranking procedimentos
               </CardTitle>
               <p className="text-[11px] text-slate-300">10 procedimentos mais realizados</p>
@@ -602,7 +602,7 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
             </p>
             <Link
               href={`/analise/relatorios/materiais?from=${report.period.from}&to=${report.period.to}`}
-              className="text-xs font-medium text-blue-600 hover:underline"
+              className="text-xs font-medium text-link hover:underline"
             >
               Detalhar
             </Link>
@@ -610,7 +610,7 @@ function OperationalResultSection({ report }: { report: FinancialReport }) {
         </div>
       ) : null}
 
-      <Card className="border-[#2D4E4D] bg-[#1A3741] text-white shadow-md">
+      <Card className="border-[#2C3A44] bg-[#141D23] text-white shadow-md">
         <CardContent className="p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>

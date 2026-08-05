@@ -59,7 +59,7 @@ export function renderPatientBookingHtml(x: PatientBookingTemplateInput): string
   return `<!doctype html>
 <html lang="pt-BR">
   <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #0f172a;">
-    <h2 style="color: #1C4F71;">Agendamento confirmado!</h2>
+    <h2 style="color: #003883;">Agendamento confirmado!</h2>
     <p>Olá <strong>${escapeHtml(x.patientName)}</strong>,</p>
     <p>Seu agendamento na <strong>${escapeHtml(x.clinicName)}</strong> foi confirmado.</p>
 
@@ -108,7 +108,7 @@ export function renderAdminBookingHtml(x: AdminBookingTemplateInput): string {
   return `<!doctype html>
 <html lang="pt-BR">
   <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #0f172a;">
-    <h2 style="color: #1C4F71;">Novo agendamento online</h2>
+    <h2 style="color: #003883;">Novo agendamento online</h2>
     <p>Um paciente acabou de agendar pela página pública da clínica.</p>
 
     <table style="border-collapse: collapse; margin: 16px 0;">
@@ -131,7 +131,7 @@ export function renderAdminBookingHtml(x: AdminBookingTemplateInput): string {
     </table>
 
     <p>
-      <a href="${escapeHtml(x.dashboardUrl)}" style="background: #1C4F71; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block;">Abrir no dashboard</a>
+      <a href="${escapeHtml(x.dashboardUrl)}" style="background: #003883; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block;">Abrir no dashboard</a>
     </p>
 
     <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0 16px;" />

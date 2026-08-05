@@ -32,7 +32,7 @@ export default async function AgendarSlugPage({ params }: { params: { slug: stri
   return (
     <div className="space-y-6">
       {/* Hero da clínica */}
-      <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0AB9C7] via-[#1C7FB8] to-[#0A6BAA] px-6 py-8 text-white shadow-lg sm:px-8 sm:py-10">
+      <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#003883] via-[#12559C] to-[#558CD3] px-6 py-8 text-white shadow-lg sm:px-8 sm:py-10">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-16 -left-8 h-44 w-44 rounded-full bg-white/5" />
         <div className="relative flex flex-col items-center gap-4 text-center">

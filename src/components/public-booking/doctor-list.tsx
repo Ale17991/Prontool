@@ -31,7 +31,7 @@ export function DoctorList({ slug, doctors }: DoctorListProps) {
             href={`/agendar/${slug}/horarios?doctor_id=${d.doctorId}`}
             className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary hover:shadow-md"
           >
-            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#0AB9C7] to-[#0A6BAA] text-sm font-bold text-white">
+            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#003883] to-[#558CD3] text-sm font-bold text-white">
               {initials(d.doctorFullName)}
             </span>
             <span className="min-w-0 flex-1">

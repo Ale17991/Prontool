@@ -121,7 +121,7 @@ export default async function AdminOverviewPage() {
             </Pill>
           ) : null}
           {(ov?.trials ?? 0) > 0 ? (
-            <Pill icon={AlertTriangle} cls="bg-blue-50 text-blue-700 border-blue-200">
+            <Pill icon={AlertTriangle} cls="bg-accent text-info-text border-info/30">
               {ov?.trials} em trial
             </Pill>
           ) : null}

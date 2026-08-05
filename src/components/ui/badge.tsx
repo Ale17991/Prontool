@@ -16,7 +16,8 @@ const badgeVariants = cva(
       variant: {
         // Core
         default: 'border-transparent bg-primary text-primary-foreground',
-        secondary: 'border-transparent bg-slate-100 text-slate-700',
+        secondary: 'border-transparent bg-secondary text-secondary-foreground',
+        brand: 'border-transparent bg-brand-bg text-brand-text',
         success: 'border-transparent bg-success-bg text-success-text',
         warning:
           'border-transparent bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
@@ -25,7 +26,7 @@ const badgeVariants = cva(
         outline: 'text-foreground',
         // 016 — variantes do sistema (cobrem badges genéricos antes diferidos para feature 017)
         ativo: 'border-transparent bg-success-bg text-success-text',
-        inativo: 'border-transparent bg-slate-100 text-slate-600',
+        inativo: 'border-transparent bg-secondary text-muted-foreground',
         nao_listado: 'border-transparent bg-[#FAF5FF] text-[#6B21A8]',
         personalizado: 'border-transparent bg-[#EDE9FE] text-[#5B21B6]',
         comissionado: 'border-transparent bg-success-bg text-success-text',
@@ -34,7 +35,7 @@ const badgeVariants = cva(
         agendado: 'border-transparent bg-info-bg text-info-text',
         pendente:
           'border-transparent bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning-foreground))]',
-        cancelado: 'border-transparent bg-slate-100 text-slate-600',
+        cancelado: 'border-transparent bg-secondary text-muted-foreground',
       },
     },
     defaultVariants: { variant: 'default' },

@@ -328,7 +328,7 @@ function FieldLabel({ field, forceRequired }: { field: AnamnesisField; forceRequ
         {field.required || forceRequired ? <span className="ml-1 text-rose-500">*</span> : null}
       </span>
       {field.is_default ? (
-        <Badge variant="secondary" className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800">
+        <Badge variant="secondary" className="h-4 bg-info-bg px-1.5 text-[9px] text-info-text">
           Padrão
         </Badge>
       ) : null}

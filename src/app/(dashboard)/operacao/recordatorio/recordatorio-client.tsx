@@ -225,7 +225,7 @@ export function RecordatorioClient() {
   }
 
   const cls = (c: AdequacyItemView['class']) =>
-    c === 'adequado' ? 'text-emerald-600' : c === 'acima' ? 'text-amber-600' : c === 'abaixo' ? 'text-sky-600' : 'text-slate-400'
+    c === 'adequado' ? 'text-emerald-600' : c === 'acima' ? 'text-amber-600' : c === 'abaixo' ? 'text-link' : 'text-slate-400'
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">

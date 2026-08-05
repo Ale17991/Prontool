@@ -485,7 +485,7 @@ export function ClinicProfileForm({ initial }: Props) {
                 href={`${PUBLIC_BASE_URL}/agendar/${form.publicBookingSlug.trim()}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 truncate rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-sky-700 hover:underline"
+                className="flex-1 truncate rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-info-text hover:underline"
               >
                 {PUBLIC_BASE_URL}/agendar/{form.publicBookingSlug.trim()}
               </a>

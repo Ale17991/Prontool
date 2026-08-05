@@ -205,7 +205,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
                   </h1>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                     {doctor.role && doctor.role !== 'profissional' ? (
-                      <span className="rounded bg-blue-50 px-2 py-0.5 font-bold text-blue-700">
+                      <span className="rounded bg-accent px-2 py-0.5 font-bold text-info-text">
                         {doctor.role}
                       </span>
                     ) : null}
@@ -435,7 +435,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
                     <div
                       className={
                         isCurrent
-                          ? 'rounded-2xl border border-blue-100 bg-white p-4 shadow-sm'
+                          ? 'rounded-2xl border border-info/20 bg-white p-4 shadow-sm'
                           : 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'
                       }
                     >
@@ -504,7 +504,7 @@ function SummaryCard({
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
+        <div className="mb-3 inline-flex rounded-xl border border-info/20 bg-accent p-2.5 text-primary">
           <Percent className="h-4 w-4" />
         </div>
         <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">

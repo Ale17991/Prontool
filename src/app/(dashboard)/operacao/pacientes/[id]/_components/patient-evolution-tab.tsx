@@ -170,7 +170,7 @@ function AppointmentCard({ appointment }: { appointment: AppointmentTimelineRow 
     <li>
       <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-md">
         <header className="flex flex-wrap items-start gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-link">
             <Calendar className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">

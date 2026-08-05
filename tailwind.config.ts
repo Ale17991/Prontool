@@ -1,10 +1,11 @@
 import type { Config } from 'tailwindcss'
 
 /**
- * Paleta inspirada no design do Google AI Studio (slate + blue), porém
- * implementada via CSS variables HSL pra compatibilidade total com
- * shadcn/ui (Radix-based) e Tailwind v3. Cores específicas (slate-50…900,
- * blue-600, emerald-500) já vêm do palette padrão do Tailwind.
+ * Paleta de produto digital (revisão 2026-08): grafite #141D23, azul profundo
+ * #003883, azul médio #558CD3, azul acinzentado #8C9DB3, cinza #EBECF0 e o
+ * laranja de acento #EE4B00. Implementada via CSS variables HSL em
+ * src/app/globals.css (fonte da verdade) pra compatibilidade com shadcn/ui
+ * (Radix-based) e Tailwind v3.
  */
 const config: Config = {
   // 016 — dark mode removido (FR-015). Light mode é definitivo.
@@ -54,6 +55,16 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Acento de marca — o laranja #EE4B00. Uso escasso: badges, KPI em foco,
+        // CTA de conversão. `brand.text` é a variante legível em texto pequeno.
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
+          bg: 'hsl(var(--brand-bg))',
+          text: 'hsl(var(--brand-text))',
+        },
+        // Azul acinzentado #8C9DB3 — ícones, divisores, texto de apoio.
+        steel: 'hsl(var(--steel))',
         // 016 — semantic tokens (HSL triples consumed via hsl(var(--token)))
         success: {
           DEFAULT: 'hsl(var(--success))',

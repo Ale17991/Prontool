@@ -141,7 +141,7 @@ export function CalendarView({
                 key={`h-${idx}`}
                 className={cn(
                   'border-b border-l border-slate-200 px-2 py-2 text-center',
-                  isToday && 'bg-blue-50',
+                  isToday && 'bg-accent',
                 )}
               >
                 <div
@@ -230,7 +230,7 @@ export function CalendarView({
               return (
                 <div
                   key={`col-${dayIdx}`}
-                  className={cn('relative border-l border-slate-200', isToday && 'bg-blue-50/40')}
+                  className={cn('relative border-l border-slate-200', isToday && 'bg-accent/40')}
                 >
                   {/* Faixa de bloqueios "dia inteiro" no topo da coluna */}
                   {dayAllDayBlocks.length > 0 ? (
@@ -264,7 +264,7 @@ export function CalendarView({
                       type="button"
                       aria-label={`Criar atendimento em ${formatShort(d)} ${slot.label}`}
                       onClick={() => onSlotClick(d, slot.offsetMinutes)}
-                      className="block w-full border-b border-slate-100 transition-colors hover:bg-blue-100/40"
+                      className="block w-full border-b border-slate-100 transition-colors hover:bg-info-bg/40"
                       style={{ height: `${CALENDAR_SLOT_HEIGHT_REM}rem` }}
                     />
                   ))}

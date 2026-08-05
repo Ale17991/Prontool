@@ -63,7 +63,7 @@ function substitute(template: string, placeholders: ReminderTemplatePlaceholders
 function buildCancelFooter(input: ReminderRenderInput): string {
   if (input.publicBookingUrl) {
     return `<p style="margin-top: 16px; color: #475569; font-size: 13px;">
-  Caso precise <a href="${escapeHtml(input.publicBookingUrl)}" style="color: #1C4F71;">cancelar ou reagendar</a>,
+  Caso precise <a href="${escapeHtml(input.publicBookingUrl)}" style="color: #003883;">cancelar ou reagendar</a>,
   entre em contato com a clínica.
 </p>`
   }

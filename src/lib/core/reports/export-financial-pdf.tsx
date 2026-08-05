@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
   },
   profitLabel: { color: '#94a3b8', fontSize: 8, letterSpacing: 1 },
   profitValue: { color: '#ffffff', fontSize: 22, fontFamily: 'Helvetica-Bold' },
-  // 016 — paleta do designer: success medium (#1CABB0) sobre fundo escuro
+  // 016 — paleta do designer: success medium (#0B835B) sobre fundo escuro
   // (slate-900), destructive (#DC2626) para negativo
-  profitMargin: { color: '#1CABB0', fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 4 },
+  profitMargin: { color: '#0B835B', fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 4 },
   profitMarginNeg: { color: '#DC2626' },
   footer: {
     marginTop: 18,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e2e8f0',
   },
   // 016 — designer success-strong para positivo, destructive para negativo
-  pos: { color: '#126F72', fontFamily: 'Helvetica-Bold' },
+  pos: { color: '#086D4F', fontFamily: 'Helvetica-Bold' },
   neg: { color: '#DC2626', fontFamily: 'Helvetica-Bold' },
 })
 

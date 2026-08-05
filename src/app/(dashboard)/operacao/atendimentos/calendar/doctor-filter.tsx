@@ -117,7 +117,7 @@ export function DoctorFilter({ doctors, selected }: Props) {
                   onClick={() => toggle(d.id)}
                   className={cn(
                     'flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-slate-50',
-                    checked && 'bg-blue-50',
+                    checked && 'bg-accent',
                   )}
                 >
                   <span

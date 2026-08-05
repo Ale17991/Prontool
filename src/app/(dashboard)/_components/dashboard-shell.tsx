@@ -150,8 +150,8 @@ export function DashboardShell({
 
   return (
     <ChatProvider userId={userId} tenantId={tenantId}>
-      <div className="flex h-screen w-full overflow-hidden bg-slate-100 font-sans">
-        {/* Sidebar fixa (≥md) — 016: bg #0E3C5B (azul institucional do designer) */}
+      <div className="flex h-screen w-full overflow-hidden bg-secondary font-sans">
+        {/* Sidebar fixa (≥md) — bg #141D23 (grafite azulado da paleta) */}
         <aside className="z-20 hidden w-64 shrink-0 flex-col bg-sidebar p-6 shadow-xl md:flex">
           {sidebarInner}
         </aside>
@@ -167,8 +167,8 @@ export function DashboardShell({
           </SheetContent>
         </Sheet>
 
-        <main className="flex min-w-0 flex-1 flex-col bg-slate-50">
-          <header className="z-10 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 shadow-sm md:px-8">
+        <main className="flex min-w-0 flex-1 flex-col bg-background">
+          <header className="z-10 flex h-[72px] shrink-0 items-center justify-between gap-3 border-b border-border bg-white px-4 shadow-sm md:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -188,7 +188,7 @@ export function DashboardShell({
                 <input
                   type="text"
                   placeholder="Buscar paciente, atendimento…"
-                  className="w-64 rounded-xl border border-slate-200 bg-slate-100 py-2 pl-10 pr-4 text-xs outline-none transition-all focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
+                  className="w-64 rounded-xl border border-border bg-secondary py-2 pl-10 pr-4 text-xs outline-none transition-all focus:border-primary/30 focus:ring-2 focus:ring-primary/10"
                 />
               </div>
               <NotificationBell />
@@ -313,8 +313,8 @@ function SidebarInner({
 
       <div className="mt-auto border-t border-sidebar-separator pt-6">
         <SidebarIntegrationsBadge integrations={integrations} />
-        <div className="flex items-center gap-2 rounded-xl bg-white/5 p-2 text-slate-400">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800 text-xs font-bold uppercase text-white">
+        <div className="flex items-center gap-2 rounded-xl bg-white/5 p-2 text-sidebar-text">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-xs font-bold uppercase text-white">
             {userAvatarUrl ? (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={userAvatarUrl} alt="Avatar" className="h-full w-full object-cover" />
@@ -326,7 +326,7 @@ function SidebarInner({
             <p className="truncate text-xs font-semibold text-white">
               {userFullName ?? email ?? '—'}
             </p>
-            <p className="truncate text-[10px] text-slate-500">{labelForRole(role)}</p>
+            <p className="truncate text-[10px] text-steel">{labelForRole(role)}</p>
           </div>
         </div>
       </div>

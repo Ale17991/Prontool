@@ -154,7 +154,7 @@ export default async function ProcedimentosPage() {
                             {r.custom_procedure_tables ? (
                               <Badge
                                 variant="outline"
-                                className="border-sky-200 bg-sky-50 text-[9px] font-bold text-sky-800"
+                                className="border-info/30 bg-accent text-[9px] font-bold text-info-text"
                               >
                                 {r.custom_procedure_tables.name}
                               </Badge>

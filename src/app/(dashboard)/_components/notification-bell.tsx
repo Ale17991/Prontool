@@ -42,7 +42,7 @@ export function NotificationBell() {
   return (
     <Link
       href="/operacao/notificacoes"
-      className="relative inline-flex rounded-xl bg-slate-100 p-2.5 text-slate-500 transition-colors hover:bg-slate-200"
+      className="relative inline-flex rounded-xl bg-secondary p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
       aria-label={count > 0 ? `${count} notificações não lidas` : 'Notificações'}
     >
       <Bell className="h-4 w-4" />
@@ -50,7 +50,8 @@ export function NotificationBell() {
         <span
           className={cn(
             'absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold text-white ring-2 ring-white',
-            hasOverdue ? 'bg-destructive' : 'bg-primary',
+            // Laranja da marca no badge de atenção — é o acento, não a primária.
+            hasOverdue ? 'bg-destructive' : 'bg-brand',
           )}
         >
           {count > 99 ? '99+' : count}

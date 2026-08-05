@@ -157,7 +157,7 @@ export default async function PrecoDetailPage({ params }: { params: { id: string
             </TableHeader>
             <TableBody>
               {chain.map((v) => (
-                <TableRow key={v.id} className={v.id === seed.id ? 'bg-blue-50/40' : undefined}>
+                <TableRow key={v.id} className={v.id === seed.id ? 'bg-accent/40' : undefined}>
                   <TableCell className="text-slate-700">{formatDate(v.valid_from)}</TableCell>
                   <TableCell className="font-bold text-slate-900">
                     {formatCurrency(v.amount_cents)}
@@ -195,7 +195,7 @@ function SummaryCard({
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
+        <div className="mb-3 inline-flex rounded-xl border border-info/20 bg-accent p-2.5 text-primary">
           <Icon className="h-4 w-4" />
         </div>
         <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">

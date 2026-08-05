@@ -150,7 +150,7 @@ export function MetricEvolutionChart({
                   type="monotone"
                   dataKey="valor"
                   name={`${label} (${unit})`}
-                  stroke="#1C4F71"
+                  stroke="#003883"
                   strokeWidth={2}
                   dot={{ r: 2.5 }}
                 />
@@ -236,7 +236,7 @@ export function WeightImcChart({ points }: { points: WeightImcPointUI[] }) {
                   type="monotone"
                   dataKey="imc"
                   name="IMC"
-                  stroke="#1C4F71"
+                  stroke="#003883"
                   strokeWidth={2}
                   dot={{ r: 2.5 }}
                   connectNulls

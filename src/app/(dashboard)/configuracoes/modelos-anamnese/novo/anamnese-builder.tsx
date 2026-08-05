@@ -312,7 +312,7 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
                 whileHover={{ x: 3 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => addField(type)}
-                className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-left hover:border-blue-400"
+                className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-left hover:border-info"
               >
                 <div className={cn('rounded-md p-2', color)}>
                   <Icon className="h-4 w-4" />
@@ -369,7 +369,7 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
                           className={cn(
                             'flex items-center justify-between gap-3 rounded-md border bg-white px-3 py-2 transition-colors',
                             included
-                              ? 'border-blue-200 bg-blue-50/30'
+                              ? 'border-info/30 bg-accent/30'
                               : 'border-slate-200 opacity-70',
                           )}
                         >
@@ -397,7 +397,7 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
                           </div>
                           <Badge
                             variant="secondary"
-                            className="h-5 bg-blue-100 px-2 text-[10px] text-blue-800"
+                            className="h-5 bg-info-bg px-2 text-[10px] text-info-text"
                           >
                             Padrão
                           </Badge>
@@ -484,7 +484,7 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
                                           ],
                                         })
                                       }
-                                      className="text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-700"
+                                      className="text-[10px] font-bold uppercase tracking-widest text-link hover:text-info-text"
                                     >
                                       + adicionar opção
                                     </button>
@@ -567,7 +567,7 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
                             {field.is_default ? (
                               <Badge
                                 variant="secondary"
-                                className="h-4 bg-blue-100 px-1.5 text-[9px] text-blue-800"
+                                className="h-4 bg-info-bg px-1.5 text-[9px] text-info-text"
                               >
                                 Padrão
                               </Badge>

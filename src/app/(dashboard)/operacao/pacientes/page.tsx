@@ -153,7 +153,7 @@ export default async function PacientesPage({ searchParams }: PageProps) {
                     <TableRow key={p.id} className="group">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                             <User className="h-4 w-4" />
                           </div>
                           <span className="font-bold text-slate-900">

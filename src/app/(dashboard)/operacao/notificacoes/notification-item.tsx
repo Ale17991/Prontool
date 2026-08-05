@@ -60,7 +60,7 @@ export function NotificationItem({ notification: n }: Props) {
         onClick={onClick}
         className={cn(
           'flex w-full items-start gap-3 px-6 py-4 text-left transition hover:bg-slate-50',
-          !n.is_read && 'bg-blue-50/40',
+          !n.is_read && 'bg-accent/40',
         )}
       >
         <span

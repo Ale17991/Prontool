@@ -872,7 +872,7 @@ function DeltaRow({ label, v, unit }: { label: string; v: number; unit: string }
     <div className="flex items-center justify-between">
       <span className="text-slate-500">{label}</span>
       <span
-        className={`font-semibold tabular-nums ${near ? 'text-emerald-600' : over ? 'text-amber-600' : 'text-sky-600'}`}
+        className={`font-semibold tabular-nums ${near ? 'text-emerald-600' : over ? 'text-amber-600' : 'text-link'}`}
       >
         {over ? '+' : ''}
         {Math.round(v * 10) / 10} {unit}
@@ -911,7 +911,7 @@ function AdequacyPanel({
       : c === 'acima'
         ? 'text-amber-600'
         : c === 'abaixo'
-          ? 'text-sky-600'
+          ? 'text-link'
           : 'text-slate-400'
   return (
     <Card>
@@ -1009,7 +1009,7 @@ function MealTargetRow({ target, actual }: { target: MealTarget; actual: Nutrien
       ? 'text-emerald-600'
       : diffKcal > 0
         ? 'text-amber-600'
-        : 'text-sky-600'
+        : 'text-link'
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-slate-50 px-2 py-1.5 text-[11px]">

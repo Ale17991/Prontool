@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   soapLetter: {
     width: 12,
     height: 12,
-    backgroundColor: '#1C4F71',
+    backgroundColor: '#003883',
     color: 'white',
     fontSize: 7,
     fontFamily: 'Helvetica-Bold',

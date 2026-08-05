@@ -32,7 +32,7 @@ export interface ClinicListRow {
 }
 
 const BILLING_LABEL: Record<string, { label: string; cls: string }> = {
-  trial: { label: 'Trial', cls: 'bg-blue-100 text-blue-700' },
+  trial: { label: 'Trial', cls: 'bg-info-bg text-info-text' },
   active: { label: 'Ativo', cls: 'bg-success-bg text-success-text' },
   past_due: { label: 'Inadimplente', cls: 'bg-amber-100 text-amber-700' },
   canceled: { label: 'Cancelado', cls: 'bg-slate-200 text-slate-600' },

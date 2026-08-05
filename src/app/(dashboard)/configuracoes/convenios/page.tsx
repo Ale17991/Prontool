@@ -146,7 +146,7 @@ export default async function ConveniosPage() {
                     <TableRow key={p.id} className="group">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                             <DollarSign className="h-4 w-4" />
                           </div>
                           <p className="font-bold text-slate-900">{p.name}</p>

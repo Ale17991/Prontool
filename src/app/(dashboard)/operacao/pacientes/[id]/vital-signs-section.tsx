@@ -239,7 +239,7 @@ export function VitalSignsSection({
                       type="monotone"
                       dataKey="diastolica"
                       name="Diastólica"
-                      stroke="#1C4F71"
+                      stroke="#003883"
                       strokeWidth={2}
                       dot={{ r: 2 }}
                     />

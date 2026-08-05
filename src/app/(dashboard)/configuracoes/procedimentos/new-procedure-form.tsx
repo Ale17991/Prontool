@@ -276,9 +276,9 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
           </div>
 
           {selected ? (
-            <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+            <div className="rounded-lg border border-info/20 bg-accent px-3 py-2">
               <div className="flex items-center gap-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-link">
                   Selecionado
                 </p>
                 <TussTableBadge table={selected.tussTable} />

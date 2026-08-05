@@ -102,7 +102,7 @@ function KpiCard({
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="mb-3 inline-flex rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-primary">
+        <div className="mb-3 inline-flex rounded-xl border border-info/20 bg-accent p-2.5 text-primary">
           <Icon className="h-4 w-4" />
         </div>
         <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
