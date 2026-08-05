@@ -178,8 +178,14 @@ export async function sendOneReminder(input: SendOneInput): Promise<ReminderReco
     }
     // sendBookingEmail retorna {id:null} quando RESEND_API_KEY ausente OU
     // falha do provider — não distingue. Tratamos como sent quando há id.
-    // Sem id em dev: marcamos sent mesmo assim (motor funciona conceptualmente).
+    // Sem chave fora de produção, marcamos sent mesmo assim: o motor funciona
+    // conceptualmente e o dev não precisa de conta no Resend. Em produção o
+    // mesmo atalho seria mentira — o histórico diria "Enviada" para uma
+    // mensagem que nunca saiu, e ninguém iria atrás.
     if (!process.env.RESEND_API_KEY) {
+      if (process.env.NODE_ENV === 'production') {
+        return finalize('failed', { error: 'RESEND_API_KEY missing' })
+      }
       return finalize('sent', { providerMessageId: 'dev-bypass' })
     }
     return finalize('failed', { error: 'provider-returned-null-id' })
