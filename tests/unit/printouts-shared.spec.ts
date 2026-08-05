@@ -9,6 +9,8 @@
 import { describe, expect, it } from 'vitest'
 import * as pdf from '@react-pdf/renderer'
 import { ageAt, brDate, dash, fmt } from '@/lib/core/nutrition/printouts/shared'
+import { toColumn } from '@/lib/core/nutrition/printouts/assessment-pdf'
+import type { AssessmentForPrint } from '@/lib/core/nutrition/assessments/for-printout'
 import {
   MAX_EVOLUTION_COLUMNS,
   pickEvolutionColumns,
@@ -70,6 +72,27 @@ const col = (assessedAt: string): EvolutionColumn => ({
   cells: [],
 })
 
+/** Avaliação mínima só para exercitar o caminho real de `toColumn`. */
+const assessment = (assessedAt: string): AssessmentForPrint => ({
+  id: assessedAt,
+  assessedAt,
+  weightKg: 70,
+  heightCm: 165,
+  dobraProtocol: 'durnin_womersley',
+  fatPct: 28,
+  fatMassKg: 19.6,
+  leanMassKg: 50.4,
+  imc: 25.7,
+  imcClass: 'Sobrepeso',
+  waistHipRatio: 0.8,
+  waistHipClass: 'Baixo risco',
+  tmbEquation: 'mifflin',
+  tmbKcal: 1400,
+  getKcal: 2100,
+  targetKcal: 1800,
+  circumferences: { cintura: 84, quadril: 105 },
+})
+
 describe('colunas de evolução', () => {
   it('usa as três mais recentes, da mais antiga para a mais nova', () => {
     const escolhidas = pickEvolutionColumns([
@@ -91,5 +114,30 @@ describe('colunas de evolução', () => {
 
   it('o padrão de três colunas é o da planilha de referência', () => {
     expect(MAX_EVOLUTION_COLUMNS).toBe(3)
+  })
+
+  it('a coluna guarda a data em ISO, e não já formatada', () => {
+    // Regressão encontrada na conferência visual (T041): o impresso saía com as
+    // colunas 01/08, 10/02, 12/05. `assessedAt` vinha como `DD/MM/YYYY` e a
+    // ordenação compara strings — em BR isso ordena pelo DIA. O paciente lia a
+    // própria evolução embaralhada, e a linha de variação, calculada sobre os
+    // dados crus, contradizia as colunas ao lado.
+    const fevereiro = toColumn(assessment('2026-02-10'))
+    expect(fevereiro.assessedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
+  it('ordena por data de verdade, mesmo quando o dia engana', () => {
+    // Fev/mai/ago: em `DD/MM/YYYY` viram 10/02, 12/05 e 01/08 — e a ordenação
+    // lexicográfica poria agosto em primeiro.
+    const escolhidas = pickEvolutionColumns([
+      toColumn(assessment('2026-08-01')),
+      toColumn(assessment('2026-02-10')),
+      toColumn(assessment('2026-05-12')),
+    ])
+    expect(escolhidas.map((c) => c.assessedAt)).toEqual([
+      '2026-02-10',
+      '2026-05-12',
+      '2026-08-01',
+    ])
   })
 })

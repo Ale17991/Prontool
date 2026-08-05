@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 import { StyleSheet, Text, View } from '@react-pdf/renderer'
+import { brDate } from '@/lib/core/nutrition/printouts/shared'
 
 /**
  * Feature 054 — layout de avaliações lado a lado.
@@ -24,7 +25,16 @@ export interface EvolutionCell {
 }
 
 export interface EvolutionColumn {
-  /** Rótulo da coluna — a data da avaliação. */
+  /**
+   * Data da avaliação em **ISO** (`YYYY-MM-DD`), não formatada.
+   *
+   * A formatação é feita aqui, na hora de desenhar. Receber `01/08/2026` pronto
+   * parece inofensivo e não é: a ordenação abaixo compara strings, e em
+   * `DD/MM/YYYY` isso ordena pelo DIA — três avaliações de fevereiro, maio e
+   * agosto sairiam como 01/08, 10/02, 12/05. O paciente leria a própria
+   * evolução embaralhada, com a linha de variação (que usa os dados crus)
+   * contradizendo as colunas ao lado.
+   */
   assessedAt: string
   /**
    * Método que produziu os números.
@@ -93,7 +103,7 @@ export function EvolutionColumns({
         <Text style={styles.labelCol} />
         {cols.map((c) => (
           <View key={c.assessedAt} style={styles.colHead}>
-            <Text style={styles.date}>{c.assessedAt}</Text>
+            <Text style={styles.date}>{brDate(c.assessedAt)}</Text>
             <Text style={styles.proto}>{c.protocol}</Text>
           </View>
         ))}

@@ -62,7 +62,7 @@ function protocolLabel(a: AssessmentForPrint): string {
   return [dobra, eq].filter(Boolean).join(' · ') || 'método não informado'
 }
 
-function toColumn(a: AssessmentForPrint): EvolutionColumn {
+export function toColumn(a: AssessmentForPrint): EvolutionColumn {
   const c = a.circumferences ?? {}
   const cell = (label: string, value: string | null, classification?: string | null) => ({
     label,
@@ -72,7 +72,9 @@ function toColumn(a: AssessmentForPrint): EvolutionColumn {
   const num = (v: number | null, unit: string) => (v === null ? null : `${dash(v)} ${unit}`)
 
   return {
-    assessedAt: brDate(a.assessedAt),
+    // ISO, não formatada: quem formata é o `EvolutionColumns`, que ordena por
+    // este campo. Entregar `01/08/2026` aqui ordenaria as colunas pelo dia.
+    assessedAt: a.assessedAt,
     protocol: protocolLabel(a),
     cells: [
       cell('Peso', num(a.weightKg, 'kg')),
