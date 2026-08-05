@@ -33,6 +33,51 @@ interface DbRow {
   deleted_at: string | null
 }
 
+/**
+ * Um registro clínico pelo id, escopado por tenant **e** por paciente.
+ *
+ * Os dois filtros importam: sem o de paciente, um id válido de outro paciente
+ * da mesma clínica passaria pelo guard do impresso (que só checa o paciente da
+ * URL) e imprimiria a anamnese de terceiro no cabeçalho errado.
+ * Registro soft-deletado não sai — foi removido da ficha por decisão de alguém.
+ */
+export async function getClinicalRecord(
+  supabase: SupabaseClient<Database>,
+  input: { tenantId: string; patientId: string; recordId: string },
+): Promise<ClinicalRecordRow | null> {
+  const { data, error } = await supabase
+    .from('clinical_records')
+    .select(
+      'id, tenant_id, patient_id, title, type, content, file_name, file_url, file_size_bytes, anamnesis_data, soap_data, created_by, created_at, deleted_at',
+    )
+    .eq('tenant_id', input.tenantId)
+    .eq('patient_id', input.patientId)
+    .eq('id', input.recordId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (error) throw new Error(`getClinicalRecord failed: ${error.message}`)
+  if (!data) return null
+
+  const r = data as unknown as DbRow
+  return {
+    id: r.id,
+    tenantId: r.tenant_id,
+    patientId: r.patient_id,
+    title: r.title,
+    type: r.type as 'texto' | 'arquivo' | 'anamnese' | 'evolucao',
+    content: r.content,
+    fileName: r.file_name,
+    fileUrl: r.file_url,
+    fileSizeBytes: r.file_size_bytes,
+    anamnesisData: (r.anamnesis_data ?? null) as AnamnesisSnapshot | null,
+    soapData: (r.soap_data ?? null) as SoapData | null,
+    createdBy: r.created_by,
+    createdAt: r.created_at,
+    deletedAt: r.deleted_at,
+  }
+}
+
 export async function listClinicalRecords(
   supabase: SupabaseClient<Database>,
   input: ListClinicalRecordsInput,

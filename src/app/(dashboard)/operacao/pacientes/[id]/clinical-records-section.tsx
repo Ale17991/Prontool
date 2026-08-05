@@ -383,7 +383,27 @@ function RecordItem({
               {formatFileSize(record.fileSizeBytes)}
             </span>
           ) : null}
-          {collapsible ? (
+          {isAnamnese ? (
+            /*
+              Feature 054 US3 — a anamnese passou a ter PDF de verdade, gerado
+              no servidor. O diálogo de impressão do navegador continua para a
+              evolução SOAP: ele depende do CSS da tela, então o resultado muda
+              conforme o navegador e a impressora de quem clica, e o cabeçalho
+              da clínica não entra. Documento que vai para arquivo clínico não
+              pode sair diferente a cada máquina.
+            */
+            <Button size="sm" variant="outline" className="h-7 gap-1 px-2 text-[11px]" asChild>
+              <a
+                href={`/api/pacientes/${patientId}/anamnese/${record.id}/pdf`}
+                target="_blank"
+                rel="noreferrer"
+                title="Baixar a anamnese em PDF"
+              >
+                <Printer className="h-3 w-3" />
+                PDF
+              </a>
+            </Button>
+          ) : collapsible ? (
             <Button
               size="sm"
               variant="outline"

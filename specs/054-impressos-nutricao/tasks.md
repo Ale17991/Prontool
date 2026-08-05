@@ -98,14 +98,14 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] Teste unitário em `tests/unit/printouts-notes.spec.ts`: **pergunta sem resposta aparece em branco, não some** (cenário de aceite da US3). Uma anamnese impressa com perguntas ausentes esconderia que o dado não foi coletado.
+- [X] T021 [P] [US3] Teste unitário em `tests/unit/printouts-notes.spec.ts`: **pergunta sem resposta aparece em branco, não some** (cenário de aceite da US3). Uma anamnese impressa com perguntas ausentes esconderia que o dado não foi coletado.
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Criar `src/lib/core/care-notes/notes-pdf.tsx` — cada orientação com sua data e o texto íntegro, com quebra de página limpa (o guia FODMAP tem ~2.900 caracteres e atravessa página).
-- [ ] T023 [US3] Criar `src/app/api/pacientes/[id]/orientacoes/pdf/route.ts`.
-- [ ] T024 [US3] **Aproveitar `src/lib/core/anamnesis/export-pdf.tsx`**, que já existe e é código morto (research D1): ligar a `src/app/api/pacientes/[id]/anamnese/[recordId]/pdf/route.ts` em vez de escrever outro componente. Ajustar o que faltar (rodapé, paginação, perguntas em branco).
-- [ ] T025 [US3] Botões nas seções de Orientações e de Anamnese do prontuário.
+- [X] T022 [US3] Criar `src/lib/core/care-notes/notes-pdf.tsx` — cada orientação com sua data e o texto íntegro, com quebra de página limpa (o guia FODMAP tem ~2.900 caracteres e atravessa página).
+- [X] T023 [US3] Criar `src/app/api/pacientes/[id]/orientacoes/pdf/route.ts`.
+- [X] T024 [US3] **Aproveitar `src/lib/core/anamnesis/export-pdf.tsx`**, que já existe e é código morto (research D1): ligar a `src/app/api/pacientes/[id]/anamnese/[recordId]/pdf/route.ts` em vez de escrever outro componente. Ajustar o que faltar (rodapé, paginação, perguntas em branco).
+- [X] T025 [US3] Botões nas seções de Orientações e de Anamnese do prontuário.
 
 ---
 

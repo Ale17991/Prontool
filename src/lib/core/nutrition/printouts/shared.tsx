@@ -75,6 +75,27 @@ export function brDate(iso: string | null | undefined): string {
   return d.length === 3 ? `${d[2]}/${d[1]}/${d[0]}` : '—'
 }
 
+/**
+ * Timestamp → data (ou data e hora) no fuso da clínica.
+ *
+ * `brDate` serve a colunas `DATE`, que não têm fuso. Orientação e anamnese são
+ * `TIMESTAMPTZ`: fatiar os 10 primeiros caracteres devolveria o dia em UTC, e
+ * uma orientação escrita às 23h de São Paulo sairia impressa com a data do dia
+ * seguinte — divergindo da tela pela qual a profissional a reconhece.
+ */
+export function brDateTz(iso: string | null | undefined, withTime = false): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleString('pt-BR', {
+    timeZone: process.env.CLINIC_TIMEZONE || 'America/Sao_Paulo',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    ...(withTime ? { hour: '2-digit' as const, minute: '2-digit' as const } : {}),
+  })
+}
+
 export interface PatientHeaderInfo {
   name: string
   birthDate: string | null
