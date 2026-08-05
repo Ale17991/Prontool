@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { Baby, Loader2, LineChart } from 'lucide-react'
+import { Baby, Loader2, LineChart, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -160,6 +160,22 @@ export function GrowthSection({
         <CardTitle className="text-sm">Curvas de crescimento</CardTitle>
         {report.ageMonthsNow !== null ? (
           <span className="ml-auto text-xs text-slate-400">{ageLabel(report.ageMonthsNow)}</span>
+        ) : null}
+        {/*
+          Feature 054 US5 — só com curva calculável. Oferecer o impresso quando
+          falta nascimento, sexo ou aferição entregaria um 404 no lugar de um
+          documento.
+        */}
+        {!faltando && !report.outOfRange && !semDados ? (
+          <Button variant="outline" size="sm" className="h-7 gap-1 px-2 text-[11px]" asChild>
+            <a
+              href={`/api/pacientes/${patientId}/crescimento/pdf`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Printer className="h-3 w-3" /> PDF
+            </a>
+          </Button>
         ) : null}
         {canWrite ? (
           <button

@@ -137,14 +137,14 @@ Projeto único Next.js: `src/` e `tests/` na raiz. **Sem migrations** — esta f
 
 ### Tests for User Story 5
 
-- [ ] T032 [P] [US5] Teste unitário em `tests/unit/printouts-growth.spec.ts`: o documento usa as primitivas SVG (a curva é **desenhada**, não é tabela — research D3) e o ponto do paciente cai no lugar certo do eixo. Fora de 0–19 anos, o impresso não é gerado.
+- [X] T032 [P] [US5] Teste unitário em `tests/unit/printouts-growth.spec.ts`: o documento usa as primitivas SVG (a curva é **desenhada**, não é tabela — research D3) e o ponto do paciente cai no lugar certo do eixo. Fora de 0–19 anos, o impresso não é gerado.
 
 ### Implementation for User Story 5
 
-- [ ] T033 [US5] Criar `src/lib/core/nutrition/printouts/growth-pdf.tsx` — peso/idade, estatura/idade e IMC/idade com `Svg`/`Polyline`/`Circle`, mais a classificação da última aferição.
-- [ ] T034 [US5] Criar `src/app/api/pacientes/[id]/crescimento/pdf/route.ts`, devolvendo 404 `GROWTH_DISABLED` quando o acompanhamento não está ligado para o paciente.
-- [ ] T035 [P] [US5] Criar `src/lib/core/nutrition/printouts/pregnancy-pdf.tsx` e a rota `gestacional/pdf` — IMC pré-gestacional, ganho acumulado por semana e faixa recomendada.
-- [ ] T036 [US5] Botões nas seções de curvas de crescimento e de avaliação gestacional.
+- [X] T033 [US5] Criar `src/lib/core/nutrition/printouts/growth-pdf.tsx` — peso/idade, estatura/idade e IMC/idade com `Svg`/`Polyline`/`Circle`, mais a classificação da última aferição.
+- [X] T034 [US5] Criar `src/app/api/pacientes/[id]/crescimento/pdf/route.ts`, devolvendo 404 `GROWTH_DISABLED` quando o acompanhamento não está ligado para o paciente.
+- [ ] ⛔ **T035 BLOQUEADO — falta a fonte do dado, não o impresso.** `src/lib/core/nutrition/printouts/pregnancy-pdf.tsx` e a rota `gestacional/pdf` pediriam IMC pré-gestacional, ganho acumulado por semana e faixa recomendada. **Nada disso está gravado no sistema.** O data-model apontou `nutrition_assessments` + `vital_signs` como fonte, mas a `0175` só tem `weight_kg` da avaliação do dia: **não existe peso pré-gestacional**, nem série de ganho, nem faixa do IOM/Atalah. O único vestígio de gestação é `pregnancyWeeks`/`pregnancyDepositKcal` no JSONB de energia (046), usado para somar o depósito ao GET — não para acompanhar ganho. Emitir o documento exigiria **criar a avaliação gestacional** (campo de peso pré-gestacional + tabela de recomendação por faixa de IMC), o que é feature nova e contraria a decisão desta de não ter migration. Fica para uma feature própria; o impresso é a última etapa dela, não a primeira.
+- [X] T036 [US5] Botão na seção de curvas de crescimento. **A parte gestacional não se aplica** — não há seção de avaliação gestacional na qual pôr botão (ver T035).
 
 ---
 
