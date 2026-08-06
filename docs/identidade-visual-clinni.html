@@ -12,15 +12,17 @@
     /* ——— Paleta oficial Clinni · revisão 2026-08 (extraída de globals.css) ———
        Trocamos o azul-clínica + teal por uma paleta de produto digital.
        Os nomes de variável abaixo seguem os tokens do produto. ——— */
-    --navy-900:#141D23;   /* grafite — sidebar / wordmark */
-    --navy-800:#1C2A33;
-    --primary:#003883;    /* CTA primário */
+    --navy-900:#003883;   /* azul marinho — sidebar, moldura da marca */
+    --navy-800:#00306F;
+    --graphite:#141D23;   /* grafite — wordmark, texto, cards escuros */
+    --primary:#CC3F00;    /* laranja de botão — a ação */
     --blue-600:#0D4FA0;   /* link */
     --blue-500:#558CD3;   /* azul médio */
     --blue-100:#DFEAFA;   /* azul claro */
     --steel:#8C9DB3;      /* azul acinzentado — ícones, apoio */
     --mist:#EBECF0;       /* cinza claro — superfícies secundárias */
-    --brand:#EE4B00;      /* laranja — acento de marca */
+    --brand:#EE4B00;      /* laranja — hex da marca: filetes, badges, hover */
+    --brand-strong:#CC3F00; /* laranja de fundo de botão (rótulo de 14px em branco) */
     --brand-text:#AF3300; /* laranja legível em texto pequeno */
     --green-500:#0B835B;  /* sucesso */
     --green-700:#086D4F;  /* valores positivos */
@@ -137,7 +139,7 @@
   .sw .hex{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--fg);margin-top:3px;text-transform:uppercase;letter-spacing:.02em}
   .sw .hsl{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);margin-top:1px}
   .sw .use{font-size:11.5px;color:var(--muted);margin-top:7px;line-height:1.45}
-  .sw .wcag{position:absolute;left:10px;bottom:10px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,.9);color:#0F172A}
+  .sw .wcag{position:absolute;left:10px;bottom:10px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,.9);color:#141D23}
   .sw .wcag.onlight{right:10px;left:auto}
 
   table.spec{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -186,7 +188,7 @@
   ul.clean li::before{content:"";position:absolute;left:2px;top:14px;width:11px;height:11px;border-radius:3px;background:var(--grad)}
 
   .note{background:#F0F7FC;border:1px solid #D5E7F4;border-radius:var(--radius);padding:16px 20px;font-size:13.5px;color:#1F425C}
-  .note b{color:var(--navy-900)}
+  .note b{color:var(--graphite)}
 
   footer{border-top:1px solid var(--border);margin-top:40px;padding-top:28px;font-size:13px;color:var(--muted)}
   footer b{color:var(--fg)}
@@ -364,13 +366,13 @@
       <div class="sec-num">05 — Cores</div>
       <h2>Paleta de cores</h2>
       <div class="divider-lead"></div>
-      <p class="lead">A paleta é ancorada no <b>grafite</b> e no <b>azul profundo</b> (produto, tecnologia), sobre uma base neutra fria, com um <b>laranja</b> que aparece pouco e por isso é notado. São os mesmos valores usados no produto — copie os códigos direto daqui.</p>
+      <p class="lead">A paleta se divide em dois papéis. O <b>azul marinho</b> é a identidade — a moldura, os dados, os gráficos. O <b>laranja</b> é a ação — onde se clica e onde você está. O <b>grafite</b> escreve. São os mesmos valores usados no produto — copie os códigos direto daqui.</p>
 
       <h3>Cores primárias</h3>
       <div class="swatches">
-        <div class="sw"><div class="chip" style="background:#141D23"><span class="wcag">AAA · #fff</span></div><div class="body"><div class="name">Grafite</div><div class="hex">#141D23</div><div class="hsl">hsl(204 27% 11%)</div><div class="use">Sidebar, wordmark, texto principal, capas.</div></div></div>
-        <div class="sw"><div class="chip" style="background:#003883"><span class="wcag">AAA · #fff</span></div><div class="body"><div class="name">Azul Profundo / CTA</div><div class="hex">#003883</div><div class="hsl">hsl(214 100% 26%)</div><div class="use">Botões primários e chamadas para ação.</div></div></div>
-        <div class="sw"><div class="chip" style="background:#EE4B00"><span class="wcag">AA · #fff (texto grande)</span></div><div class="body"><div class="name">Laranja Clinni</div><div class="hex">#EE4B00</div><div class="hsl">hsl(19 100% 47%)</div><div class="use">Acento: um destaque por tela. Nunca a cor de ação padrão.</div></div></div>
+        <div class="sw"><div class="chip" style="background:#003883"><span class="wcag">AAA · #fff</span></div><div class="body"><div class="name">Azul Marinho</div><div class="hex">#003883</div><div class="hsl">hsl(214 100% 26%)</div><div class="use">Sidebar, foco, links, séries de gráfico. A cor da identidade.</div></div></div>
+        <div class="sw"><div class="chip" style="background:#EE4B00"><span class="wcag">AA · #fff (texto grande)</span></div><div class="body"><div class="name">Laranja Clinni</div><div class="hex">#EE4B00</div><div class="hsl">hsl(19 100% 47%)</div><div class="use">A ação: filete do item ativo, badge, hover de botão, detalhes.</div></div></div>
+        <div class="sw"><div class="chip" style="background:#141D23"><span class="wcag">AAA · #fff</span></div><div class="body"><div class="name">Grafite</div><div class="hex">#141D23</div><div class="hsl">hsl(204 27% 11%)</div><div class="use">Wordmark, texto principal, cards escuros.</div></div></div>
       </div>
 
       <h3>Cores de apoio</h3>
@@ -380,7 +382,8 @@
         <div class="sw"><div class="chip" style="background:#DFEAFA"><span class="wcag onlight">— · #003883</span></div><div class="body"><div class="name">Azul Claro</div><div class="hex">#DFEAFA</div><div class="hsl">hsl(214 72% 93%)</div><div class="use">Fundos de destaque informativo.</div></div></div>
         <div class="sw"><div class="chip" style="background:#8C9DB3"><span class="wcag onlight">— · #141D23</span></div><div class="body"><div class="name">Azul Acinzentado</div><div class="hex">#8C9DB3</div><div class="hsl">hsl(214 20% 63%)</div><div class="use">Ícones, divisores e apoio sobre grafite. Não use em texto sobre branco.</div></div></div>
         <div class="sw"><div class="chip" style="background:#EBECF0"><span class="wcag onlight">— · #141D23</span></div><div class="body"><div class="name">Cinza Claro</div><div class="hex">#EBECF0</div><div class="hsl">hsl(228 13% 93%)</div><div class="use">Superfícies secundárias: campo de busca, chips, fundo fora do card.</div></div></div>
-        <div class="sw"><div class="chip" style="background:#AF3300"><span class="wcag">AAA · #fff</span></div><div class="body"><div class="name">Laranja Escuro</div><div class="hex">#AF3300</div><div class="hsl">hsl(19 96% 35%)</div><div class="use">O laranja em texto pequeno, onde o #EE4B00 não tem contraste.</div></div></div>
+        <div class="sw"><div class="chip" style="background:#CC3F00"><span class="wcag">AA · #fff</span></div><div class="body"><div class="name">Laranja de Botão</div><div class="hex">#CC3F00</div><div class="hsl">hsl(19 100% 40%)</div><div class="use">Fundo de botão. O #EE4B00 puro não sustenta rótulo de 14px em branco; este dá 4,9:1 e no hover sobe para o hex da marca.</div></div></div>
+        <div class="sw"><div class="chip" style="background:#AF3300"><span class="wcag">AAA · #fff</span></div><div class="body"><div class="name">Laranja Escuro</div><div class="hex">#AF3300</div><div class="hsl">hsl(19 96% 35%)</div><div class="use">O laranja em texto pequeno sobre fundo claro.</div></div></div>
       </div>
 
       <h3>Neutros</h3>
@@ -400,7 +403,7 @@
         <div class="sw"><div class="chip" style="background:#558CD3"><span class="wcag onlight">— · #141D23</span></div><div class="body"><div class="name">Informação</div><div class="hex">#558CD3</div><div class="use">Avisos neutros e dicas.</div></div></div>
       </div>
 
-      <div class="note" style="margin-top:26px"><b>Onde o laranja entra:</b> badge de notificação, o número que precisa de olhar agora, uma conversão por tela. <b>Onde não entra:</b> botão primário de formulário (isso é o azul profundo), estado de erro (isso é o #CD1938) e categoria de dado. Cor de acento só funciona enquanto for rara.</div>
+      <div class="note" style="margin-top:26px"><b>A divisão de trabalho:</b> laranja é <b>ação e lugar</b> — botão principal, filete do item ativo na navegação e da aba aberta, badge de notificação, chip de período selecionado. Azul marinho é <b>identidade</b> — sidebar, foco, links, séries de gráfico. <b>Onde o laranja não entra:</b> duas ações laranja na mesma tela (a segunda é azul), estado de erro (isso é o #CD1938) e categoria de dado.</div>
       <div class="note" style="margin-top:14px"><b>Verde e vermelho continuam:</b> financeiro e clínico precisam de positivo e negativo, e nenhuma paleta de seis cores resolve isso sozinha. O que mudou foi o registro — o verde saiu do menta de clínica para um verde de produto, e o vermelho foi para o carmim, longe do laranja da marca.</div>
     </section>
 
@@ -418,7 +421,7 @@
         <tr><td><span class="swbox" style="background:#558CD3"></span>Azul médio</td><td class="mono">#558CD3</td><td>100%</td></tr>
       </table>
       <p style="font-size:12.5px;color:var(--muted);font-family:ui-monospace,Menlo,Consolas,monospace;margin-top:10px">linear-gradient(135deg, #003883 0%, #12559C 52%, #558CD3 100%)</p>
-      <div class="note" style="margin-top:22px"><b>Pendência:</b> os arquivos do logotipo ainda carregam o gradiente antigo, teal (#0AB9C7) → azul (#0A6BAA). O símbolo é decisão separada da paleta de interface e não foi redesenhado aqui — enquanto isso, a assinatura convive com a paleta nova. As capturas das seções 03 e 04 mostram o símbolo como ele está hoje.</div>
+      <div class="note" style="margin-top:22px"><b>Pendência — o símbolo:</b> o <b>wordmark</b> já está na paleta (<code>logoclinnipro.svg</code> em grafite, <code>logoclinnipro-negativo.svg</code> em branco). O <b>símbolo</b> — o "C" dos ícones <code>icon.png</code>, <code>apple-icon.png</code> e do favicon — continua no teal → azul antigo. Redesenhar o símbolo é decisão de marca, separada da paleta de interface, e por isso não foi feito de ofício. Enquanto não se decide, a assinatura convive com a paleta nova.</div>
     </section>
 
     <!-- 07 TIPOGRAFIA -->
@@ -497,7 +500,7 @@
             <span class="btn btn-secondary">Secundária</span>
             <span class="btn btn-ghost">Texto</span>
           </div>
-          <p style="font-size:12.5px;color:var(--muted);margin:14px 0 0">Cantos 8&nbsp;px · primário em #1C4F71.</p>
+          <p style="font-size:12.5px;color:var(--muted);margin:14px 0 0">Cantos 8&nbsp;px · ação em #CC3F00, com hover no #EE4B00.</p>
         </div>
         <div class="card">
           <h4 style="margin-top:0">Badges de status</h4>
@@ -531,7 +534,8 @@
           <tr><td><span class="swbox" style="background:#003883"></span>Branco sobre Azul Profundo</td><td class="mono">~11:1</td><td>AAA</td></tr>
           <tr><td><span class="swbox" style="background:#FFFFFF;border-color:#DBDFE6"></span>Texto #141D23 sobre Branco</td><td class="mono">~16.7:1</td><td>AAA</td></tr>
           <tr><td><span class="swbox" style="background:#F6F7FA"></span>Texto secundário #58697E sobre Fundo</td><td class="mono">~5.6:1</td><td>AA</td></tr>
-          <tr><td><span class="swbox" style="background:#EE4B00"></span>Branco sobre Laranja Clinni</td><td class="mono">~3.7:1</td><td>só botão / elemento grande</td></tr>
+          <tr><td><span class="swbox" style="background:#CC3F00"></span>Branco sobre Laranja de Botão</td><td class="mono">~4.9:1</td><td>AA</td></tr>
+          <tr><td><span class="swbox" style="background:#EE4B00"></span>Branco sobre Laranja Clinni</td><td class="mono">~3.7:1</td><td>filete, badge, hover — não texto miúdo</td></tr>
           <tr><td><span class="swbox" style="background:#558CD3"></span>Branco sobre Azul Médio</td><td class="mono">~3.5:1</td><td>só elemento de interface</td></tr>
           <tr><td><span class="swbox" style="background:#8C9DB3"></span>#8C9DB3 sobre Branco</td><td class="mono">~2.8:1</td><td>decorativo — nunca texto</td></tr>
           <tr><td><span class="swbox" style="background:#141D23"></span>#8C9DB3 sobre Grafite</td><td class="mono">~6.1:1</td><td>AA</td></tr>
@@ -568,7 +572,7 @@
               <span style="width:100%;height:8px;background:rgba(203,230,248,.9);border-radius:4px"></span>
               <span style="width:80%;height:8px;background:rgba(255,255,255,.15);border-radius:4px"></span>
             </div>
-            <div style="flex:1;padding:16px"><span style="display:block;width:60%;height:10px;background:#E2E8F0;border-radius:4px;margin-bottom:10px"></span><span style="display:block;width:90%;height:8px;background:#EEF2F6;border-radius:4px"></span></div>
+            <div style="flex:1;padding:16px"><span style="display:block;width:60%;height:10px;background:#DBDFE6;border-radius:4px;margin-bottom:10px"></span><span style="display:block;width:90%;height:8px;background:#EDEFF3;border-radius:4px"></span></div>
           </div>
           <p class="stage-caption"><b>Produto.</b> Sidebar navy + conteúdo claro.</p>
         </div>
