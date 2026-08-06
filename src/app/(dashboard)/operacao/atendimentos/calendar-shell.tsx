@@ -6,6 +6,7 @@ import { useCalendarFilters } from './use-calendar-filters'
 import { FilterBar } from './filter-bar'
 import { MonthView, type MonthViewAppointment } from './views/month-view'
 import { CalendarView } from './calendar/calendar-view'
+import { MiniCalendar } from './calendar/mini-calendar'
 import type { AppointmentWeekRow } from '@/lib/core/appointments/list-week'
 import type { ScheduleBlockRow } from '@/lib/core/schedule-blocks/types'
 import type { DoctorFilterOption } from './calendar/doctor-filter'
@@ -111,19 +112,33 @@ export function CalendarShell({
         onChangeFilters={setFilters}
         onClear={clear}
       />
-      {filters.view === 'mes' ? (
-        <MonthView date={selectedDate} appointments={monthAppts} />
-      ) : (
-        <CalendarView
-          range={calRange}
-          appointments={filtered}
-          scheduleBlocks={scheduleBlocks}
-          canManageBlocks={canManageBlocks}
-          intervalMinutes={intervalMinutes}
-          dayStartMinute={dayStartMinute}
-          dayEndMinute={dayEndMinute}
-        />
-      )}
+      {/* minmax(0,1fr) na coluna da grade: sem isso o `overflow-x-auto` interno
+          da CalendarView não segura e a página inteira rola na horizontal. */}
+      <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <div className="lg:sticky lg:top-4 lg:self-start">
+          <MiniCalendar
+            selectedDate={selectedDate}
+            rangeStart={range.from}
+            rangeEnd={range.to}
+            onSelectDate={(iso) => setFilter('date', iso)}
+          />
+        </div>
+        <div className="min-w-0">
+          {filters.view === 'mes' ? (
+            <MonthView date={selectedDate} appointments={monthAppts} />
+          ) : (
+            <CalendarView
+              range={calRange}
+              appointments={filtered}
+              scheduleBlocks={scheduleBlocks}
+              canManageBlocks={canManageBlocks}
+              intervalMinutes={intervalMinutes}
+              dayStartMinute={dayStartMinute}
+              dayEndMinute={dayEndMinute}
+            />
+          )}
+        </div>
+      </div>
     </div>
   )
 }
