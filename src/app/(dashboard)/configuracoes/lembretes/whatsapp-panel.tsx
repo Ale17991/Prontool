@@ -1,8 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
-import { AlertTriangle, Loader2, QrCode, Smartphone, Unplug } from 'lucide-react'
-import { connectWhatsApp, disconnectWhatsApp, refreshConnection } from './whatsapp-actions'
+import { AlertTriangle, Check, Loader2, QrCode, Send, Smartphone, Unplug } from 'lucide-react'
+import {
+  connectWhatsApp,
+  disconnectWhatsApp,
+  refreshConnection,
+  sendTestWhatsApp,
+} from './whatsapp-actions'
 import type { WhatsAppConnection } from '@/lib/core/whatsapp/types'
 
 interface Props {
@@ -127,6 +132,83 @@ export function ConnectionPanel({ initial }: Props) {
       </div>
 
       {qrCode && <QrPanel qrCode={qrCode} />}
+
+      {status === 'connected' && <TestSendCard />}
+    </div>
+  )
+}
+
+/**
+ * Envio de teste. Só aparece com a conexão de pé — oferecer o botão desconectado
+ * seria convidar o admin a um erro que ele não pode resolver ali.
+ *
+ * O número é digitado, e não herdado do que está conectado: mandar para si mesmo
+ * prova que a instância aceita a chamada, mas não que a mensagem SAI e chega em
+ * outro aparelho, que é o que a clínica quer saber antes do primeiro paciente.
+ */
+function TestSendCard() {
+  const [phone, setPhone] = useState('')
+  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  function onSend() {
+    setError(null)
+    setSentTo(null)
+    startTransition(async () => {
+      const res = await sendTestWhatsApp(phone)
+      if (res.ok) {
+        setSentTo(res.to)
+        return
+      }
+      setError(
+        {
+          INVALID_PHONE: 'Número inválido. Use DDD + número, como (11) 98888-7777.',
+          NO_CONNECTION:
+            'O WhatsApp aparece como conectado aqui, mas o serviço diz que não está. Gere um QR Code novo.',
+          NOT_CONFIGURED: 'O serviço de WhatsApp não está configurado. Fale com o suporte.',
+          UNAUTHORIZED: 'Você não tem permissão para enviar testes.',
+          SEND_FAILED: 'O serviço recusou o envio. Tente de novo em alguns instantes.',
+          INTERNAL_ERROR: 'Não foi possível enviar. Tente de novo.',
+        }[res.error],
+      )
+    })
+  }
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <p className="text-sm font-semibold text-slate-900">Enviar uma mensagem de teste</p>
+      <p className="mt-1 text-sm text-slate-500">
+        Confere a conexão na hora, sem esperar o próximo lembrete. O texto é fixo e avisa que é
+        teste — não vai para paciente nenhum.
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="(11) 98888-7777"
+          aria-label="Número que vai receber o teste"
+          className="w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+        <button
+          onClick={onSend}
+          disabled={pending || phone.trim().length === 0}
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-strong px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand disabled:opacity-60"
+        >
+          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          Enviar teste
+        </button>
+      </div>
+
+      {sentTo && (
+        <p className="mt-3 flex items-center gap-2 text-sm font-medium text-emerald-700">
+          <Check className="h-4 w-4" />
+          Enviado para {sentTo}. Confira o aparelho — pode levar alguns segundos.
+        </p>
+      )}
+      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
     </div>
   )
 }

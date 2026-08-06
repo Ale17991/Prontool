@@ -32,13 +32,21 @@ import {
   connectInstance,
   listInstances,
   deleteInstance,
+  sendText,
   isWhatsAppServiceConfigured,
 } from '@/lib/core/whatsapp/service-client'
+import { fromTypedInput, isSendablePhone } from '@/lib/core/whatsapp/phone'
 import type { WhatsAppConnection } from '@/lib/core/whatsapp/types'
 
 interface ActionErr {
   ok: false
-  error: 'UNAUTHORIZED' | 'NOT_CONFIGURED' | 'NO_CONNECTION' | 'INTERNAL_ERROR'
+  error:
+    | 'UNAUTHORIZED'
+    | 'NOT_CONFIGURED'
+    | 'NO_CONNECTION'
+    | 'INTERNAL_ERROR'
+    | 'INVALID_PHONE'
+    | 'SEND_FAILED'
   message?: string
 }
 type ActionResult<T> = ({ ok: true } & T) | ActionErr
@@ -238,6 +246,97 @@ export async function disconnectWhatsApp(): Promise<{ ok: true } | ActionErr> {
   }
 }
 
+// =========================================================================
+// Envio de teste
+// =========================================================================
+
+/** Nos logs e na auditoria o número vai truncado — teste também é dado pessoal. */
+function maskPhone(normalized: string): string {
+  return normalized.length <= 4 ? '****' : `****${normalized.slice(-4)}`
+}
+
+function testMessage(clinicName: string): string {
+  return [
+    `*Teste de conexão — ${clinicName}*`,
+    '',
+    'Se você está lendo isto, o WhatsApp da clínica está conectado e conseguindo enviar mensagens.',
+    '',
+    'Esta mensagem foi disparada à mão nas configurações e não foi para paciente nenhum.',
+  ].join('\n')
+}
+
+/**
+ * Manda uma mensagem de teste para um número escolhido na hora.
+ *
+ * Existe porque, sem isto, conferir a conexão exige criar um atendimento na
+ * antecedência exata e esperar o cron do dia seguinte — o que transforma cada
+ * verificação numa espera de 24 h.
+ *
+ * NÃO é o envio avulso que o FR-027 excluiu do v1: o conteúdo é fixo, não passa
+ * por caixa de texto e não tem paciente como destinatário. É diagnóstico de
+ * conexão, e o texto diz isso a quem receber.
+ *
+ * O `externalId` é um uuid novo a cada clique, de propósito: o serviço deduplica
+ * por (tenant, externalId), então reaproveitá-lo faria o segundo teste devolver
+ * sucesso sem nada sair do lugar.
+ */
+export async function sendTestWhatsApp(rawPhone: string): Promise<ActionResult<{ to: string }>> {
+  const auth = await authorize()
+  if (!auth.ok) return auth.response
+  if (!isWhatsAppServiceConfigured()) {
+    return { ok: false, error: 'NOT_CONFIGURED', message: 'WHATSAPP_SERVICE_URL não configurada' }
+  }
+
+  const to = fromTypedInput(rawPhone)
+  if (!isSendablePhone(to)) return { ok: false, error: 'INVALID_PHONE' }
+
+  const db = serviceDb()
+  try {
+    const connection = await getWhatsAppConnection(db, auth.tenantId)
+    if (!connection || connection.status !== 'connected') {
+      return { ok: false, error: 'NO_CONNECTION' }
+    }
+
+    const apiKey = await getDecryptedApiKey(db, auth.tenantId)
+    if (!apiKey) return { ok: false, error: 'INTERNAL_ERROR', message: 'credencial ausente' }
+
+    const { data: tenantRow } = await db
+      .from('tenants')
+      .select('name')
+      .eq('id', auth.tenantId)
+      .maybeSingle()
+    const clinicName = (tenantRow as { name: string | null } | null)?.name ?? 'sua clínica'
+
+    const result = await sendText({
+      apiKey,
+      to,
+      message: testMessage(clinicName),
+      externalId: crypto.randomUUID(),
+    })
+
+    if (!result.ok) {
+      logger.warn({ tenantId: auth.tenantId, kind: result.kind }, 'whatsapp-test-send-failed')
+      // `no_connection` aqui é o serviço discordando do nosso espelho: a tela
+      // dizia conectado e a instância já tinha caído. Vale o erro específico,
+      // senão o admin fica reenviando contra um número desconectado.
+      if (result.kind === 'no_connection') return { ok: false, error: 'NO_CONNECTION' }
+      return { ok: false, error: 'SEND_FAILED', message: result.kind }
+    }
+
+    await auditConnectionAction(db, {
+      tenantId: auth.tenantId,
+      actorUserId: auth.userId,
+      action: 'test_send',
+      detail: maskPhone(to),
+    })
+
+    return { ok: true, to: maskPhone(to) }
+  } catch (err) {
+    logger.error({ tenantId: auth.tenantId }, 'whatsapp-test-send-error')
+    return { ok: false, error: 'INTERNAL_ERROR', message: errText(err) }
+  }
+}
+
 function errText(err: unknown): string {
   return err instanceof Error ? err.message : 'unknown'
 }
@@ -258,7 +357,12 @@ function errText(err: unknown): string {
  */
 async function auditConnectionAction(
   db: SupabaseClient<Database>,
-  args: { tenantId: string; actorUserId: string; action: 'connect' | 'disconnect'; detail: string },
+  args: {
+    tenantId: string
+    actorUserId: string
+    action: 'connect' | 'disconnect' | 'test_send'
+    detail: string
+  },
 ): Promise<void> {
   const { error } = await db.from('audit_log').insert({
     tenant_id: args.tenantId,
@@ -269,7 +373,11 @@ async function auditConnectionAction(
     field: `whatsapp.${args.action}`,
     old_value: null,
     new_value: args.detail,
-    reason: args.action === 'connect' ? 'admin vinculou o WhatsApp' : 'admin desvinculou o WhatsApp',
+    reason: {
+      connect: 'admin vinculou o WhatsApp',
+      disconnect: 'admin desvinculou o WhatsApp',
+      test_send: 'admin enviou mensagem de teste',
+    }[args.action],
     result: 'success',
   })
   // Auditoria não pode derrubar a ação do usuário: ele conectou o número, e

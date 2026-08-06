@@ -11,6 +11,7 @@ import {
   normalizePhone,
   isSendablePhone,
   toWhatsAppJid,
+  fromTypedInput,
 } from '@/lib/core/whatsapp/phone'
 
 describe('Feature 051 — getOnlyNumbers', () => {
@@ -85,6 +86,42 @@ describe('Feature 051 — isSendablePhone', () => {
 
   it('só a máscara, sem dígitos, não é enviável', () => {
     expect(isSendablePhone('() -')).toBe(false)
+  })
+})
+
+describe('Feature 051 — fromTypedInput (envio de teste)', () => {
+  it('acrescenta o 55 no celular digitado com máscara', () => {
+    expect(fromTypedInput('(11) 98888-7777')).toBe('5511988887777')
+  })
+
+  it('acrescenta o 55 no fixo de 10 dígitos', () => {
+    expect(fromTypedInput('11 3333-4444')).toBe('551133334444')
+  })
+
+  it('celular de 10 dígitos ganha o 9 junto com o 55', () => {
+    expect(fromTypedInput('11 8888-7777')).toBe('5511988887777')
+  })
+
+  it('não duplica o 55 de quem já digitou o país', () => {
+    expect(fromTypedInput('+55 (11) 98888-7777')).toBe('5511988887777')
+  })
+
+  // 11 dígitos é celular BR (DDD+9+8) E número americano com país. O `+` é o
+  // único sinal que separa os dois — sem ele a regra brasileira ganha.
+  it('o + protege o número estrangeiro de ganhar 55', () => {
+    expect(fromTypedInput('+1 415 555 2671')).toBe('14155552671')
+  })
+
+  it('sem o +, onze dígitos são lidos como celular brasileiro', () => {
+    expect(fromTypedInput('11 98888-7777')).toBe('5511988887777')
+  })
+
+  it('o resultado de um celular digitado é enviável', () => {
+    expect(isSendablePhone(fromTypedInput('(11) 98888-7777'))).toBe(true)
+  })
+
+  it('campo vazio não vira número enviável', () => {
+    expect(isSendablePhone(fromTypedInput(''))).toBe(false)
   })
 })
 

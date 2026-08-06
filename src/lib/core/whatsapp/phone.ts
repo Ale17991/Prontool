@@ -59,6 +59,30 @@ export function isSendablePhone(phone: string): boolean {
   return true
 }
 
+/**
+ * Aceita o número do jeito que se escreve no Brasil — "(11) 98888-7777" — e
+ * devolve o formato que o serviço espera.
+ *
+ * O 55 é acrescentado quando falta: 10 ou 11 dígitos é DDD + número, e sem o
+ * código do país o serviço monta um JID que não existe. O envio não dá erro —
+ * ele simplesmente não chega, que é o desfecho mais caro de diagnosticar.
+ *
+ * Separado de `normalizePhone` de propósito: aquele é a regra portada do serviço
+ * e trata o que já vem de um cadastro; este é a tradução do que uma pessoa
+ * DIGITA num campo.
+ *
+ * O `+` inicial desliga a regra: 11 dígitos tanto é celular brasileiro (DDD + 9
+ * + 8) quanto número americano com o código do país, e o comprimento sozinho não
+ * separa os dois. Quem escreveu "+" já declarou o país, e prefixar 55 ali
+ * mandaria a mensagem para um destino inexistente.
+ */
+export function fromTypedInput(raw: string): string {
+  const digits = getOnlyNumbers(raw)
+  if (raw.trim().startsWith('+')) return normalizePhone(digits)
+  if (digits.length === 10 || digits.length === 11) return normalizePhone(`55${digits}`)
+  return normalizePhone(digits)
+}
+
 /** Monta o JID de contato individual. */
 export function toWhatsAppJid(phone: string): string {
   return `${normalizePhone(phone)}@s.whatsapp.net`
