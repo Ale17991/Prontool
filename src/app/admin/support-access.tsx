@@ -94,7 +94,7 @@ function SupportRow({ support, tenants }: { support: SupportUser; tenants: Tenan
               className={cn(
                 'rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-50',
                 on
-                  ? 'border-primary bg-primary text-primary-foreground'
+                  ? 'border-brand-strong bg-brand-strong text-brand-foreground'
                   : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
               )}
               title={t.slug}

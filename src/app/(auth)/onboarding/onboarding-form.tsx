@@ -108,7 +108,7 @@ export function OnboardingForm({ initialName }: { initialName: string }) {
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6 font-sans">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand shadow-lg shadow-brand/25">
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
           <div>

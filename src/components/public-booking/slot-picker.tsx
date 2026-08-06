@@ -284,7 +284,7 @@ export function SlotPicker({
                     !inMonth && 'text-slate-300',
                     inMonth && !clickable && 'text-slate-400',
                     clickable && !isSelected && 'text-slate-900 hover:bg-slate-100',
-                    isSelected && 'bg-primary text-primary-foreground shadow-sm',
+                    isSelected && 'bg-brand-strong text-brand-foreground shadow-sm',
                     isToday && !isSelected && 'ring-1 ring-primary/30',
                   )}
                 >
@@ -336,7 +336,7 @@ export function SlotPicker({
                   key={s.start}
                   type="button"
                   onClick={() => chooseSlot(s)}
-                  className="rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-brand-strong hover:bg-brand-strong hover:text-brand-foreground"
                 >
                   {formatHourMinute(s.start)}
                 </button>

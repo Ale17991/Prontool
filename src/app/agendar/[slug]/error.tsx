@@ -11,7 +11,7 @@ export default function AgendarError() {
       </p>
       <Link
         href="/"
-        className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        className="inline-block rounded-md bg-brand-strong px-4 py-2 text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand"
       >
         Voltar
       </Link>

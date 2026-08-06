@@ -253,7 +253,7 @@ export function PatientForm({
       <button
         type="submit"
         disabled={submitting || !consent || !turnstileToken}
-        className="w-full rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md bg-brand-strong px-4 py-3 text-sm font-semibold text-brand-foreground transition hover:bg-brand disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting ? 'Agendando...' : 'Confirmar agendamento'}
       </button>

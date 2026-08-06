@@ -269,7 +269,7 @@ function QuickJumpButtons({ period }: { period: { from: string; to: string } }) 
         href={`/analise/relatorios/mensal?from=${thisMonth.from}&to=${thisMonth.to}`}
         className={
           period.from === thisMonth.from && period.to === thisMonth.to
-            ? 'rounded-md bg-primary px-3 py-2 text-xs font-bold text-white'
+            ? 'rounded-md bg-brand-strong px-3 py-2 text-xs font-bold text-white'
             : 'rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50'
         }
       >
@@ -279,7 +279,7 @@ function QuickJumpButtons({ period }: { period: { from: string; to: string } }) 
         href={`/analise/relatorios/mensal?from=${lastMonth.from}&to=${lastMonth.to}`}
         className={
           period.from === lastMonth.from && period.to === lastMonth.to
-            ? 'rounded-md bg-primary px-3 py-2 text-xs font-bold text-white'
+            ? 'rounded-md bg-brand-strong px-3 py-2 text-xs font-bold text-white'
             : 'rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50'
         }
       >

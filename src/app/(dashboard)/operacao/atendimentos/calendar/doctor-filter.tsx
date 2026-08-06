@@ -124,7 +124,7 @@ export function DoctorFilter({ doctors, selected }: Props) {
                     className={cn(
                       'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
                       checked
-                        ? 'border-primary bg-primary text-white'
+                        ? 'border-brand-strong bg-brand-strong text-white'
                         : 'border-slate-300 bg-white',
                     )}
                   >

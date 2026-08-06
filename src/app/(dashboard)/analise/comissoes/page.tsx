@@ -86,7 +86,7 @@ export default async function ComissoesPage() {
         </div>
         <Link
           href="/configuracoes/profissionais"
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-primary/90"
+          className="inline-flex items-center gap-1.5 rounded-md bg-brand-strong px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-brand"
         >
           Gerenciar profissionais
           <ArrowRight className="h-3 w-3" />

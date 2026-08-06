@@ -108,7 +108,7 @@ export function ConnectionPanel({ initial }: Props) {
           <button
             onClick={onConnect}
             disabled={pending}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-strong px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand disabled:opacity-60"
           >
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
             {connection ? 'Gerar novo QR Code' : 'Conectar WhatsApp'}

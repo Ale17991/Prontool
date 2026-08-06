@@ -107,7 +107,7 @@ export function ClinicalTimeline({ events: allEvents, authors, canViewValues }: 
                 className={cn(
                   'rounded-full px-3 py-1 text-[11px] font-bold transition-colors',
                   active
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-brand-strong text-brand-foreground'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                   disabled && 'cursor-not-allowed opacity-40 hover:bg-slate-100',
                 )}

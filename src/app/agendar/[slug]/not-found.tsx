@@ -16,7 +16,7 @@ export default function AgendarNotFound() {
       </div>
       <Link
         href="/"
-        className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+        className="inline-flex items-center rounded-lg bg-brand-strong px-4 py-2 text-sm font-semibold text-brand-foreground transition hover:bg-brand"
       >
         Voltar ao início
       </Link>

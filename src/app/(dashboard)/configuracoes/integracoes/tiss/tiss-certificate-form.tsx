@@ -118,7 +118,7 @@ export function TissCertificateForm({
         type="button"
         onClick={upload}
         disabled={busy}
-        className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="mt-3 inline-flex items-center gap-2 rounded-md bg-brand-strong px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-brand disabled:opacity-50"
       >
         {busy && <Loader2 className="h-4 w-4 animate-spin" />}
         {initialCertificate ? 'Substituir certificado' : 'Enviar certificado'}

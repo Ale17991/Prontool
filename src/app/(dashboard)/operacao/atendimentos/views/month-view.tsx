@@ -97,7 +97,7 @@ export function MonthView({ date, appointments }: MonthViewProps) {
               <div className="flex items-center justify-between text-[11px] font-semibold">
                 <span
                   className={
-                    isToday ? 'rounded-full bg-primary px-1.5 py-0.5 text-white' : 'text-slate-600'
+                    isToday ? 'rounded-full bg-brand-strong px-1.5 py-0.5 text-white' : 'text-slate-600'
                   }
                 >
                   {d.getDate()}

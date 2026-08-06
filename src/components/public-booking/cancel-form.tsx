@@ -57,7 +57,7 @@ export function CancelForm({ slug, token }: CancelFormProps) {
         </div>
         <Link
           href={`/agendar/${slug}`}
-          className="block w-full rounded-md bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground hover:opacity-90"
+          className="block w-full rounded-md bg-brand-strong px-4 py-2 text-center text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand"
         >
           Agendar novamente
         </Link>

@@ -524,7 +524,7 @@ function DoctorBlock({
                 className={cn(
                   'rounded-md border px-2.5 py-1 text-[11px] font-bold transition-colors',
                   weekdays.includes(w.value)
-                    ? 'border-primary bg-primary text-primary-foreground'
+                    ? 'border-brand-strong bg-brand-strong text-brand-foreground'
                     : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                 )}
               >

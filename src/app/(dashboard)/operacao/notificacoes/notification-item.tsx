@@ -82,7 +82,7 @@ export function NotificationItem({ notification: n }: Props) {
               {n.title}
             </p>
             {!n.is_read ? (
-              <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-brand" />
             ) : null}
           </div>
           <p className="mt-0.5 text-xs text-slate-600">{n.body}</p>
