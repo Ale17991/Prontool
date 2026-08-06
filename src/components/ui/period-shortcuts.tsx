@@ -97,7 +97,7 @@ export function PeriodShortcuts({
             className={cn(
               'shrink-0 rounded-md border px-3 py-1.5 text-xs font-bold transition-colors',
               active
-                ? 'border-primary bg-primary text-white'
+                ? 'border-brand-strong bg-brand-strong text-white'
                 : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
             )}
           >

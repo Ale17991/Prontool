@@ -59,6 +59,7 @@ const config: Config = {
         // CTA de conversão. `brand.text` é a variante legível em texto pequeno.
         brand: {
           DEFAULT: 'hsl(var(--brand))',
+          strong: 'hsl(var(--brand-strong))',
           foreground: 'hsl(var(--brand-foreground))',
           bg: 'hsl(var(--brand-bg))',
           text: 'hsl(var(--brand-text))',
@@ -98,6 +99,7 @@ const config: Config = {
           'active-bg': 'var(--sidebar-active-bg)',
           'active-text': 'var(--sidebar-active-text)',
           switch: 'var(--sidebar-switch)',
+          mark: 'var(--sidebar-active-mark)',
           hover: 'var(--sidebar-hover)',
           'section-label': 'var(--sidebar-section-label)',
           separator: 'var(--sidebar-separator)',

@@ -255,7 +255,7 @@ function SidebarInner({
               />
             </div>
           ) : (
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand">
               <Stethoscope className="h-5 w-5 text-white" />
             </div>
           )}
@@ -326,7 +326,7 @@ function SidebarInner({
             <p className="truncate text-xs font-semibold text-white">
               {userFullName ?? email ?? '—'}
             </p>
-            <p className="truncate text-[10px] text-steel">{labelForRole(role)}</p>
+            <p className="truncate text-[10px] text-white/70">{labelForRole(role)}</p>
           </div>
         </div>
       </div>
@@ -354,14 +354,17 @@ function SidebarLink({
       href={href as never}
       onClick={onNavigate}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200',
+        // O item ativo ganha um filete laranja à esquerda — é o acento da marca
+        // aparecendo na navegação, e resolve o "qual está aberto?" sem depender
+        // só da diferença de fundo.
+        'relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200',
         active
-          ? 'bg-sidebar-active-bg text-sidebar-active-text'
+          ? 'bg-sidebar-active-bg font-semibold text-sidebar-active-text before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-sidebar-mark before:content-[""]'
           : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white',
       )}
     >
       <Icon
-        className={cn('h-4 w-4 shrink-0', active ? 'text-sidebar-active-text' : 'opacity-80')}
+        className={cn('h-4 w-4 shrink-0', active ? 'text-sidebar-mark' : 'opacity-80')}
       />
       <span className="truncate">{label}</span>
       {badge}

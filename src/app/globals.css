@@ -45,8 +45,10 @@
     --ring: 214 100% 26%;                 /* alinhado a --primary */
     --radius: 0.625rem;
 
-    /* --- acento de marca — o laranja. Uso escasso e proposital. --- */
-    --brand: 19 100% 47%;                 /* #EE4B00 */
+    /* --- acento de marca — o laranja. É ele que marca a AÇÃO. --- */
+    --brand: 19 100% 47%;                 /* #EE4B00 — o hex da marca: hover, filetes, pontos, bordas */
+    --brand-strong: 19 100% 40%;          /* #CC3F00 — fundo de botão. O #EE4B00 dá 3,7:1 com branco e o
+                                             rótulo do botão tem 14px; este dá 4,9:1 e continua laranja */
     --brand-foreground: 0 0% 100%;
     --brand-bg: 19 100% 95%;              /* fundo de badge/destaque */
     --brand-text: 19 96% 35%;             /* laranja escurecido p/ texto pequeno sobre claro (~6:1) */
@@ -74,15 +76,19 @@
     --alert: 352 88% 54%;                 /* distinto de --destructive (que continua para confirmações de delete) */
     --alert-foreground: 0 0% 100%;
 
-    /* --- sidebar tokens — alpha intrínseca, NÃO HSL (ver 016 research.md §6) --- */
-    --sidebar-bg: #141D23;                /* grafite azulado da paleta */
-    --sidebar-text: rgba(255, 255, 255, 0.72);
-    --sidebar-active-bg: rgba(85, 140, 211, 0.18);
-    --sidebar-active-text: #A9C7EC;
-    --sidebar-switch: #558CD3;            /* azul médio da paleta */
-    --sidebar-hover: rgba(255, 255, 255, 0.06);
-    --sidebar-section-label: rgba(255, 255, 255, 0.38);
-    --sidebar-separator: rgba(255, 255, 255, 0.08);
+    /* --- sidebar tokens — alpha intrínseca, NÃO HSL (ver 016 research.md §6) ---
+       Azul marinho, não grafite: o grafite pesava demais numa faixa de 256px
+       sempre presente. Como o fundo clareou, todas as alphas subiram junto —
+       o que era legível sobre #141D23 não é sobre #003883. */
+    --sidebar-bg: #003883;                /* azul marinho da paleta */
+    --sidebar-text: rgba(255, 255, 255, 0.75);
+    --sidebar-active-bg: rgba(255, 255, 255, 0.12);
+    --sidebar-active-text: #FFFFFF;
+    --sidebar-active-mark: #EE4B00;       /* filete do item ativo — o laranja na navegação */
+    --sidebar-switch: #A9C7EC;            /* azul claro: o #558CD3 só dá 3,2:1 sobre o marinho */
+    --sidebar-hover: rgba(255, 255, 255, 0.09);
+    --sidebar-section-label: rgba(255, 255, 255, 0.6);
+    --sidebar-separator: rgba(255, 255, 255, 0.16);
   }
   * {
     @apply border-border;

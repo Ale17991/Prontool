@@ -10,9 +10,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm',
-        // Acento de marca (laranja). Uso escasso: uma conversão por tela, no máximo.
-        brand: 'bg-brand text-brand-foreground hover:bg-brand/90 shadow-sm',
+        // A ação principal é laranja. O fundo usa brand-strong (#CC3F00) porque o
+        // rótulo tem 14px e o #EE4B00 puro só dá 3,7:1 com branco; o hover sobe
+        // para o hex da marca, então o botão "acende" no #EE4B00 ao passar o mouse.
+        default: 'bg-brand-strong text-brand-foreground hover:bg-brand shadow-sm',
+        brand: 'bg-brand-strong text-brand-foreground hover:bg-brand shadow-sm',
+        // Azul da marca — para quando a tela já tem uma ação laranja e a segunda
+        // ação também precisa de peso (o laranja perde força se repetir).
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm',
         outline:
           'border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm',

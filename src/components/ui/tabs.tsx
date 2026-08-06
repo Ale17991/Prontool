@@ -31,7 +31,10 @@ export const TabsTrigger = React.forwardRef<
       'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-bold ring-offset-background transition-all',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       'disabled:pointer-events-none disabled:opacity-50',
-      'data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
+      // Filete laranja embaixo da aba ativa — mesmo sinal do item ativo da sidebar.
+      // Sombra e filete numa declaracao so: duas classes de shadow brigariam pelo box-shadow.
+      'data-[state=active]:bg-background data-[state=active]:text-foreground',
+      'data-[state=active]:shadow-[0_1px_3px_0_rgb(20_29_35_/_0.12),inset_0_-2px_0_0_hsl(var(--brand))]',
       className,
     )}
     {...props}
