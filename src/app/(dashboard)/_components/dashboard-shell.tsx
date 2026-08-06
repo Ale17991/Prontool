@@ -363,9 +363,10 @@ function SidebarLink({
           : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white',
       )}
     >
-      <Icon
-        className={cn('h-4 w-4 shrink-0', active ? 'text-sidebar-mark' : 'opacity-80')}
-      />
+      {/* Icone do item ativo fica BRANCO, nao laranja: o #EE4B00 sobre o marinho
+          da 3,0:1, e icone e elemento funcional. O laranja fica no filete, que e
+          decorativo e vem acompanhado do fundo mais claro e do peso do texto. */}
+      <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-white' : 'opacity-80')} />
       <span className="truncate">{label}</span>
       {badge}
     </Link>
