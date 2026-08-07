@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { Card, CardContent } from '@/components/ui/card'
 import { getEnabledIntegrations } from '@/lib/core/integrations/config'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import type { Database } from '@/lib/db/types'
 import {
   NewPatientPageClient,
@@ -70,8 +71,12 @@ export default async function NovoPacientePage() {
   }
 
   const rls = supabase as unknown as SupabaseClient<Database>
-  const integrations = await getEnabledIntegrations(rls, session.tenantId)
+  const [integrations, ent] = await Promise.all([
+    getEnabledIntegrations(rls, session.tenantId),
+    getTenantEntitlements(rls, session.tenantId),
+  ])
   const hasIntegrations = integrations.length > 0
+  const memedPrescriber = ent.hasModule('memed')
 
   return (
     <div className="space-y-6">
@@ -92,7 +97,11 @@ export default async function NovoPacientePage() {
 
       <Card>
         <CardContent className="pt-6">
-          <NewPatientPageClient healthPlans={healthPlans} templates={templates} />
+          <NewPatientPageClient
+            healthPlans={healthPlans}
+            templates={templates}
+            memedPrescriber={memedPrescriber}
+          />
         </CardContent>
       </Card>
     </div>

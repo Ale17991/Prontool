@@ -5,6 +5,12 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listPatients } from '@/lib/core/patients/list'
 import { createPatientManually } from '@/lib/core/patients/create-manual'
 import { listTagsForPatients } from '@/lib/core/patient-tags/service'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import {
+  describeMissingFields,
+  missingRequiredPatientFields,
+  patientFieldPolicy,
+} from '@/lib/core/patients/required-fields'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -43,8 +49,9 @@ const querySchema = z.object({
     ),
 })
 
-// CPF: opcional no backend (GHL/legado podem não ter). A obrigatoriedade é
-// imposta no formulário de cadastro manual. Se preenchido, exige 11 dígitos.
+// CPF: sempre opcional NO SCHEMA — a obrigatoriedade depende da clínica ser
+// prescritora Memed, o que só se sabe depois de resolver o tenant (ver a
+// checagem de política logo após o parse). Se preenchido, exige 11 dígitos.
 const cpfOptional = z
   .union([z.string(), z.null()])
   .optional()
@@ -81,8 +88,6 @@ const optionalText = (max: number) =>
 
 const createSchema = z.object({
   full_name: z.string().trim().min(2).max(200),
-  // Memed exige CPF/celular/e-mail/nascimento — a obrigatoriedade é imposta no
-  // formulário de cadastro (cliente). Backend permanece tolerante p/ GHL/legado.
   cpf: cpfOptional,
   phone: z.string().trim().max(40).optional().nullable(),
   email: z.string().trim().email().max(200).optional().nullable(),
@@ -208,6 +213,38 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const supabase = createSupabaseServiceClient()
+
+    // Política de campos obrigatórios da CLÍNICA. Base = nome + telefone;
+    // prescritora Memed acrescenta CPF, e-mail e nascimento. Validado aqui e
+    // não no Zod porque depende do tenant, e não no core `createPatientManually`
+    // porque a ingestão do GHL precisa continuar tolerante a contato incompleto
+    // — recusar lá jogaria fora lead que a clínica já captou.
+    const ent = await getTenantEntitlements(supabase, session.tenantId)
+    const policy = patientFieldPolicy(ent.hasModule('memed'))
+    const missing = missingRequiredPatientFields(
+      {
+        full_name: parsed.data.full_name,
+        phone: parsed.data.phone ?? null,
+        cpf: parsed.data.cpf,
+        email: parsed.data.email ?? null,
+        birth_date: parsed.data.birth_date ?? null,
+      },
+      policy,
+    )
+    if (missing.length > 0) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'MISSING_REQUIRED_FIELDS',
+            message: `Preencha ${describeMissingFields(missing)}.`,
+            fields: missing,
+            memedPrescriber: policy.memedPrescriber,
+          },
+        },
+        { status: 422 },
+      )
+    }
+
     const result = await createPatientManually(supabase, {
       tenantId: session.tenantId,
       actorUserId: session.userId,

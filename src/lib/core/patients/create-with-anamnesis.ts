@@ -7,6 +7,12 @@ import {
   type CreateManualPatientResult,
 } from './create-manual'
 import { applyAnamnesisToPatient } from '@/lib/core/anamnesis/apply-to-patient'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import {
+  describeMissingFields,
+  missingRequiredPatientFields,
+  patientFieldPolicy,
+} from './required-fields'
 import { listPatients } from './list'
 
 /**
@@ -60,17 +66,34 @@ export async function createPatientWithAnamnesis(
   // 2. Extrai dados do paciente dos campos is_default.
   const fullName = pickString(input.responses, 'default_nome')
   const cpfRaw = pickString(input.responses, 'default_cpf')
+  const phone = pickString(input.responses, 'default_telefone')
+  const email = pickString(input.responses, 'default_email')
+  const birthDate = pickString(input.responses, 'default_data_nasc')
   if (!fullName || fullName.length < 2) {
     throw new ValidationError('Nome completo é obrigatório')
   }
-  // CPF opcional em fase de testes. Quando preenchido, exige 11 digitos +
-  // dedup; quando vazio, segue sem CPF.
+  // CPF: formato sempre validado quando preenchido; se é OBRIGATÓRIO depende
+  // de a clínica ser prescritora Memed (checagem de política logo abaixo).
   const cpfDigitsRaw = (cpfRaw ?? '').replace(/\D/g, '')
   const cpfDigits: string | null = cpfDigitsRaw.length === 0 ? null : cpfDigitsRaw
   if (cpfDigits !== null && cpfDigits.length !== 11) {
     throw new ValidationError(
       'CPF deve ter 11 dígitos quando preenchido (ou pode ser deixado em branco).',
     )
+  }
+
+  // 2b. Política de campos obrigatórios da clínica (nome + telefone; e mais
+  //     CPF/e-mail/nascimento quando a clínica é prescritora Memed). Mesma
+  //     regra do cadastro sem modelo — o modelo de anamnese não é uma porta
+  //     dos fundos para entrar paciente sem o mínimo.
+  const ent = await getTenantEntitlements(supabase, input.tenantId)
+  const policy = patientFieldPolicy(ent.hasModule('memed'))
+  const missingRequired = missingRequiredPatientFields(
+    { full_name: fullName, phone, cpf: cpfDigits, email, birth_date: birthDate },
+    policy,
+  )
+  if (missingRequired.length > 0) {
+    throw new ValidationError(`Preencha ${describeMissingFields(missingRequired)}.`)
   }
 
   // 3. Dedup CPF dentro do tenant (apenas se CPF foi informado).
@@ -99,9 +122,6 @@ export async function createPatientWithAnamnesis(
   //    o texto livre do default_plano. CEP/endereço default_* são salvos
   //    apenas no snapshot da anamnese — endereço estruturado fica pra
   //    edição posterior na ficha.
-  const phone = pickString(input.responses, 'default_telefone')
-  const email = pickString(input.responses, 'default_email')
-  const birthDate = pickString(input.responses, 'default_data_nasc')
   const cep = pickString(input.responses, 'default_cep')
   const enderecoFreeText = pickString(input.responses, 'default_endereco')
 

@@ -29,7 +29,8 @@ export interface SendBookingConfirmationsInput {
   tenantAddress: string | null
   appointmentId: string
   patientName: string
-  patientEmail: string
+  /** Null quando a clínica não exige e-mail — só o aviso interno é enviado. */
+  patientEmail: string | null
   doctorName: string
   procedureName: string
   scheduledAt: Date

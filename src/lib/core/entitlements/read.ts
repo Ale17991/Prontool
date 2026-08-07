@@ -10,11 +10,17 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import {
   ALL_MODULES,
+  EXPLICIT_ONLY_MODULES,
   buildEntitlements,
   type Entitlements,
   type ModuleId,
   type Plan,
 } from './plans'
+
+/** Fallback do grandfather: tudo MENOS o que exige marcação explícita. */
+const GRANDFATHER_MODULES: ModuleId[] = ALL_MODULES.filter(
+  (m) => !EXPLICIT_ONLY_MODULES.includes(m),
+)
 
 const VALID_PLANS: ReadonlySet<string> = new Set(['essencial', 'pro', 'clinica', 'legacy'])
 
@@ -31,7 +37,7 @@ export async function getTenantEntitlements(
   // ninguém por erro transitório, nem antes da migration 0115 estar aplicada
   // no ambiente (código pode subir antes da migração rodar). Grandfather é a
   // postura segura aqui — gating mais restrito sempre vem de uma row explícita.
-  if (error || !data) return buildEntitlements('legacy', [...ALL_MODULES])
+  if (error || !data) return buildEntitlements('legacy', GRANDFATHER_MODULES)
 
   const row = data as { plan: string; status: string; modules: string[] | null }
   const plan: Plan = VALID_PLANS.has(row.plan) ? (row.plan as Plan) : 'legacy'

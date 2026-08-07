@@ -243,9 +243,9 @@ export async function createPublicBooking(
           tenantId: tenant.tenantId,
           fullName: input.patient.fullName,
           cpf: input.patient.cpf ?? '',
-          email: input.patient.email,
+          email: input.patient.email ?? null,
           phone: input.patient.phone,
-          birthDate: input.patient.birthDate,
+          birthDate: input.patient.birthDate ?? null,
           planId: null,
           ghlContactId: null,
         },
@@ -293,7 +293,9 @@ export async function createPublicBooking(
       tenantAddress: tenant.addressLine,
       appointmentId: result.appointmentId,
       patientName: input.patient.fullName,
-      patientEmail: input.patient.email,
+      // Sem e-mail não há confirmação por e-mail — o agendamento vale do
+      // mesmo jeito (sendPatientEmail já ignora destinatário vazio).
+      patientEmail: input.patient.email ?? null,
       doctorName,
       procedureName: procedureDisplayName,
       scheduledAt: slotDate,

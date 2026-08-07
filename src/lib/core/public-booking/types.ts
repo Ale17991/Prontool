@@ -90,12 +90,17 @@ export interface BookingPayload {
   procedureId: string
   /** ISO 8601 UTC */
   slotStart: string
+  /**
+   * Só nome e telefone são garantidos. CPF, e-mail e nascimento passam a ser
+   * exigidos quando a clínica é prescritora Memed — a rota valida contra a
+   * política do tenant antes de chegar aqui (core/patients/required-fields).
+   */
   patient: {
     fullName: string
     cpf?: string
-    email: string
+    email?: string
     phone: string
-    birthDate: string // 'YYYY-MM-DD'
+    birthDate?: string // 'YYYY-MM-DD'
   }
   lgpdConsent: true
   turnstileToken: string

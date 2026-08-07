@@ -15,6 +15,7 @@ import {
   listPublishedDoctors,
 } from '@/lib/core/public-booking/list-published'
 import { PatientForm } from '@/components/public-booking/patient-form'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,11 @@ export default async function ConfirmarPage({
   const supabase = createSupabaseServiceClient()
   const tenant = await resolveTenantBySlug(supabase, params.slug)
   if (!tenant) notFound()
+
+  // Clínica prescritora Memed pede os dados da receita já no agendamento —
+  // é a última chance de obtê-los antes de o paciente sentar na cadeira.
+  const ent = await getTenantEntitlements(supabase, tenant.tenantId)
+  const memedPrescriber = ent.hasModule('memed')
 
   let doctorName: string
   let procedureName: string
@@ -80,6 +86,7 @@ export default async function ConfirmarPage({
         procedureName={procedureName}
         slotStart={slot_start}
         clinicName={tenant.displayName}
+        memedPrescriber={memedPrescriber}
       />
     </div>
   )

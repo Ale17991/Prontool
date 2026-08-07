@@ -20,6 +20,12 @@ import { hashIpForTenant } from '@/lib/core/public-booking/ip-hash'
 import { checkRateLimit, bumpRateLimit, RATE_LIMITS } from '@/lib/core/public-booking/rate-limit'
 import { verifyTurnstile } from '@/lib/core/public-booking/turnstile-verify'
 import { resolveTenantBySlug } from '@/lib/core/public-booking/resolve-tenant'
+import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import {
+  describeMissingFields,
+  missingRequiredPatientFields,
+  patientFieldPolicy,
+} from '@/lib/core/patients/required-fields'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -31,15 +37,22 @@ const BodySchema = z.object({
   doctor_id: z.union([z.string().uuid(), z.literal('any')]),
   procedure_id: z.string().uuid(),
   slot_start: z.string().datetime({ offset: true }),
+  // Formato validado aqui; QUAIS são obrigatórios depende de a clínica ser
+  // prescritora Memed, e isso só se sabe depois de resolver o slug. Por isso
+  // tudo além de nome/telefone entra como opcional no schema e a exigência
+  // real é aplicada logo após o resolveTenantBySlug.
   patient: z.object({
     full_name: z.string().min(3).max(120),
     cpf: z
       .string()
       .regex(/^\d{11}$/)
       .optional(),
-    email: z.string().email().max(120),
+    email: z.string().email().max(120).optional(),
     phone: z.string().min(8).max(20),
-    birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    birth_date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
   }),
   lgpd_consent: z.literal(true),
   turnstile_token: z.string().min(1).max(2048).optional(),
@@ -98,6 +111,33 @@ export async function POST(request: NextRequest, context: { params: { slug: stri
   const tenant = await resolveTenantBySlug(supabase, slugCheck.data)
   if (!tenant) {
     return NextResponse.json({ error: 'TENANT_NOT_FOUND_OR_DISABLED' }, { status: 404 })
+  }
+
+  // Política de campos da clínica. Roda ANTES do rate-limit/captcha: recusar
+  // um payload incompleto não deve gastar a cota de 3 tentativas/hora do
+  // paciente que só esqueceu de digitar o CPF.
+  const policy = patientFieldPolicy(
+    (await getTenantEntitlements(supabase, tenant.tenantId)).hasModule('memed'),
+  )
+  const missing = missingRequiredPatientFields(
+    {
+      full_name: parsed.data.patient.full_name,
+      phone: parsed.data.patient.phone,
+      cpf: parsed.data.patient.cpf ?? null,
+      email: parsed.data.patient.email ?? null,
+      birth_date: parsed.data.patient.birth_date ?? null,
+    },
+    policy,
+  )
+  if (missing.length > 0) {
+    return NextResponse.json(
+      {
+        error: 'INVALID_PAYLOAD',
+        message: `Preencha ${describeMissingFields(missing)}.`,
+        details: missing.map((f) => ({ field: `patient.${f}`, message: 'obrigatório' })),
+      },
+      { status: 400 },
+    )
   }
 
   // Rate limit submit (3/h por IP+tenant).

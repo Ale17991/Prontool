@@ -27,6 +27,10 @@ export type ModuleId =
   | 'exames_lab' // exames laboratoriais com faixas (cross-especialidade)
   | 'whatsapp' // canal WhatsApp nos lembretes (051) — rollout por clínica
   | 'habitos' // checklist de hábitos marcado pelo paciente (cross-especialidade)
+  // Prescrição digital Memed. NÃO é só "liga a tela": marca a clínica como
+  // PRESCRITORA, e isso muda quais dados do paciente são obrigatórios em todo
+  // lugar que cadastra paciente (ver core/patients/required-fields.ts).
+  | 'memed'
 
 export type Feature =
   // núcleo (Essencial)
@@ -71,6 +75,106 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'exames_lab',
   'whatsapp',
   'habitos',
+  'memed',
+]
+
+export const MODULE_LABEL: Record<ModuleId, string> = {
+  convenio: 'Convênio / TISS',
+  odonto: 'Odontograma',
+  oftalmo: 'Oftalmologia',
+  portal_paciente: 'Portal do paciente',
+  telemedicina: 'Telemedicina',
+  crm: 'CRM',
+  treino: 'Treino',
+  dieta: 'Plano alimentar',
+  endocrino: 'Endócrino',
+  nutri_avaliacao: 'Avaliação nutricional',
+  nutri_recordatorio: 'Recordatório alimentar',
+  nutri_rotulo: 'Rótulo nutricional',
+  exames_lab: 'Exames laboratoriais',
+  whatsapp: 'WhatsApp (lembretes)',
+  habitos: 'Checklist de hábitos',
+  memed: 'Prescrição digital (Memed)',
+}
+
+/** Uma linha explicando o que a clínica ganha — o /admin mostra ao lado. */
+export const MODULE_HINT: Record<ModuleId, string> = {
+  convenio: 'Faturamento TISS, guias e lotes para operadoras.',
+  odonto: 'Odontograma interativo e periograma.',
+  oftalmo: 'Exames e laudos oftalmológicos.',
+  portal_paciente: 'Área do paciente com histórico e medições.',
+  telemedicina: 'Atendimento por vídeo.',
+  crm: 'Funil e integrações de captação.',
+  treino: 'Prescrição de treino.',
+  dieta: 'Montagem e prescrição de plano alimentar.',
+  endocrino: 'Acompanhamento endocrinológico e curvas.',
+  nutri_avaliacao: 'Antropometria, dobras, TMB/GET e metas.',
+  nutri_recordatorio: 'Recordatório alimentar de 24h e adequação.',
+  nutri_rotulo: 'Tabela nutricional de embalagem (IN 75/2020).',
+  exames_lab: 'Resultados de exames com faixas de referência.',
+  whatsapp: 'Lembrete de consulta pelo WhatsApp da clínica.',
+  habitos: 'Checklist de hábitos marcado pelo paciente.',
+  memed: 'Receituário digital assinado, com validade legal.',
+}
+
+export interface ModuleBlock {
+  id: string
+  label: string
+  /** Por que este bloco existe / para quem é. */
+  hint: string
+  modules: ModuleId[]
+}
+
+/**
+ * Catálogo agrupado — como o /admin apresenta os módulos. Cada bloco liga/
+ * desliga inteiro OU item a item; a granularidade real continua sendo o
+ * módulo individual (o bloco é só um atalho de UI).
+ *
+ * INVARIANTE: todo ModuleId aparece em exatamente um bloco (coberto por teste).
+ */
+export const MODULE_BLOCKS: readonly ModuleBlock[] = [
+  {
+    id: 'geral',
+    label: 'Geral',
+    hint: 'Serve a qualquer especialidade.',
+    modules: ['crm', 'portal_paciente', 'whatsapp', 'habitos', 'exames_lab', 'convenio'],
+  },
+  {
+    id: 'prescricao',
+    label: 'Prescrição',
+    hint: 'Marca a clínica como prescritora — muda os dados obrigatórios do paciente.',
+    modules: ['memed', 'telemedicina'],
+  },
+  {
+    id: 'odontologia',
+    label: 'Odontologia',
+    hint: 'Consultório odontológico.',
+    modules: ['odonto'],
+  },
+  {
+    id: 'oftalmologia',
+    label: 'Oftalmologia',
+    hint: 'Consultório oftalmológico.',
+    modules: ['oftalmo'],
+  },
+  {
+    id: 'nutricao',
+    label: 'Nutrição',
+    hint: 'Consultório de nutrição — vendidos separadamente.',
+    modules: ['nutri_avaliacao', 'dieta', 'nutri_recordatorio', 'nutri_rotulo'],
+  },
+  {
+    id: 'endocrinologia',
+    label: 'Endocrinologia',
+    hint: 'Acompanhamento endócrino.',
+    modules: ['endocrino'],
+  },
+  {
+    id: 'educacao_fisica',
+    label: 'Educação física',
+    hint: 'Prescrição de treino.',
+    modules: ['treino'],
+  },
 ]
 
 /**
@@ -79,6 +183,18 @@ export const ALL_MODULES: readonly ModuleId[] = [
  * persiste. Hoje: telemedicina (só flag, sem implementação).
  */
 export const COMING_SOON_MODULES: readonly ModuleId[] = ['telemedicina']
+
+/**
+ * Módulos que NUNCA chegam por grandfather/fail-open — só por marcação
+ * explícita no /admin.
+ *
+ * `memed` está aqui porque ligá-lo não abre uma tela a mais: ele endurece os
+ * campos obrigatórios do paciente em toda a clínica, inclusive no agendamento
+ * público. Herdar isso de uma linha ausente em `tenant_entitlements` faria uma
+ * recepção parar de conseguir cadastrar paciente por causa de um erro
+ * transitório de leitura. Restrição de cadastro se assume, não se herda.
+ */
+export const EXPLICIT_ONLY_MODULES: readonly ModuleId[] = ['memed']
 
 const ESSENCIAL: Feature[] = [
   'agenda',
@@ -145,7 +261,9 @@ export function buildEntitlements(plan: Plan, modules: ModuleId[]): Entitlements
   // nenhuma clínica antiga perder acesso por falta de backfill (migração 0164
   // popula as legadas com o conjunto completo; daí o admin desativa o que quiser).
   if (plan === 'legacy' && modules.length === 0) {
-    for (const m of ALL_MODULES) mods.add(m)
+    for (const m of ALL_MODULES) {
+      if (!EXPLICIT_ONLY_MODULES.includes(m)) mods.add(m)
+    }
   }
   const featureSet = new Set<Feature>(features)
   return {

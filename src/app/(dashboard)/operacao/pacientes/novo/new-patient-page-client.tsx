@@ -46,11 +46,13 @@ export interface AnamnesisTemplateOption {
 interface Props {
   healthPlans: HealthPlanOption[]
   templates: AnamnesisTemplateOption[]
+  /** Clínica prescritora Memed ⇒ CPF, e-mail e nascimento viram obrigatórios. */
+  memedPrescriber: boolean
 }
 
 const BLANK = '__blank__'
 
-export function NewPatientPageClient({ healthPlans, templates }: Props) {
+export function NewPatientPageClient({ healthPlans, templates, memedPrescriber }: Props) {
   const [selected, setSelected] = useState<string>(BLANK)
   const template = templates.find((t) => t.id === selected) ?? null
 
@@ -84,9 +86,13 @@ export function NewPatientPageClient({ healthPlans, templates }: Props) {
       </div>
 
       {template ? (
-        <NewPatientWithAnamneseForm template={template} healthPlans={healthPlans} />
+        <NewPatientWithAnamneseForm
+          template={template}
+          healthPlans={healthPlans}
+          memedPrescriber={memedPrescriber}
+        />
       ) : (
-        <NewPatientForm healthPlans={healthPlans} />
+        <NewPatientForm healthPlans={healthPlans} memedPrescriber={memedPrescriber} />
       )}
     </div>
   )

@@ -4,7 +4,7 @@ import type { Database } from '@/lib/db/types'
 /**
  * Lista pacientes do tenant com PII descriptografada via RPC bulk
  * (`list_patients_for_tenant`, migration 0027). Faz busca por substring
- * de nome ou CPF + paginação no lado do TS.
+ * de nome, CPF ou telefone + paginação no lado do TS.
  *
  * Trade-off conhecido: como nome/CPF são columns BYTEA criptografadas
  * (LGPD), não dá pra usar `WHERE name ILIKE` direto no banco. Buscamos
@@ -36,7 +36,7 @@ export interface PatientListItem {
 
 export interface ListPatientsInput {
   tenantId: string
-  search?: string // substring case-insensitive em nome OU cpf
+  search?: string // substring case-insensitive em nome, CPF ou telefone
   page?: number // 1-based
   pageSize?: number // default 25, max 100
 }
@@ -84,12 +84,19 @@ export async function listPatients(
   const all = ((data ?? []) as unknown as RpcRow[]).map(toItem)
 
   const term = (input.search ?? '').trim().toLowerCase()
+  // Nome, CPF e TELEFONE. Telefone entra porque é, junto do nome, o único dado
+  // que todo paciente tem — clínica que não prescreve pela Memed pode ter base
+  // inteira sem CPF, e buscar só por nome não desempata homônimo no balcão.
+  // Comparação por dígitos: quem digita "(11) 99999" acha quem foi gravado
+  // como "11999990000", e vice-versa.
+  const termDigits = term.replace(/\D/g, '')
   const filtered = term
-    ? all.filter(
-        (p) =>
-          (p.fullName ?? '').toLowerCase().includes(term) ||
-          (p.cpf ?? '').toLowerCase().includes(term),
-      )
+    ? all.filter((p) => {
+        if ((p.fullName ?? '').toLowerCase().includes(term)) return true
+        if (termDigits.length === 0) return false
+        if ((p.cpf ?? '').replace(/\D/g, '').includes(termDigits)) return true
+        return (p.phone ?? '').replace(/\D/g, '').includes(termDigits)
+      })
     : all
 
   const pageSize = Math.min(Math.max(input.pageSize ?? 25, 1), 100)

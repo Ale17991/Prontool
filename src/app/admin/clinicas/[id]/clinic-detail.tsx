@@ -21,7 +21,11 @@ import { cn } from '@/lib/utils'
 import {
   ALL_MODULES,
   COMING_SOON_MODULES,
+  MODULE_BLOCKS,
+  MODULE_HINT,
+  MODULE_LABEL,
   PLAN_LABEL,
+  type ModuleBlock,
   type ModuleId,
   type Plan,
 } from '@/lib/core/entitlements/plans'
@@ -43,23 +47,6 @@ const BILLING_OPTIONS: { value: BillingStatus; label: string }[] = [
 ]
 
 const PLANS: Plan[] = ['essencial', 'pro', 'clinica', 'legacy']
-const MODULE_LABEL: Record<ModuleId, string> = {
-  convenio: 'Convênio',
-  odonto: 'Odontologia',
-  oftalmo: 'Oftalmologia',
-  portal_paciente: 'Portal',
-  telemedicina: 'Telemedicina',
-  crm: 'CRM',
-  treino: 'Treino',
-  dieta: 'Dieta',
-  endocrino: 'Endócrino',
-  nutri_avaliacao: 'Avaliação nutricional',
-  nutri_recordatorio: 'Recordatório alimentar',
-  nutri_rotulo: 'Rótulo nutricional',
-  exames_lab: 'Exames laboratoriais',
-  whatsapp: 'WhatsApp (lembretes)',
-  habitos: 'Checklist de hábitos',
-}
 
 export type BillingStatus = 'trial' | 'active' | 'past_due' | 'canceled'
 
@@ -155,6 +142,19 @@ export function ClinicDetail({
     })
   }
 
+  /** Atalho: liga/desliga o bloco inteiro, respeitando os "em breve". */
+  function toggleBlock(block: ModuleBlock, on: boolean) {
+    setModules((prev) => {
+      const next = new Set(prev)
+      for (const m of block.modules) {
+        if (COMING_SOON_MODULES.includes(m)) continue
+        if (on) next.add(m)
+        else next.delete(m)
+      }
+      return next
+    })
+  }
+
   function save() {
     setFeedback(null)
     // Preview do que muda + confirmação (evita desligar módulo por engano).
@@ -173,6 +173,14 @@ export function ClinicDetail({
       planChanged ? `Plano: ${PLAN_LABEL[row.plan]} → ${PLAN_LABEL[plan]}` : null,
       added.length ? `Ativar: ${added.map(lbl).join(', ')}` : null,
       removed.length ? `Desativar: ${removed.map(lbl).join(', ')}` : null,
+      // Memed não é só mais uma tela: muda o que a recepção é obrigada a
+      // digitar. Vale dizer em voz alta antes de salvar.
+      added.includes('memed')
+        ? '\n⚠ Prescrição Memed ligada: novos cadastros passarão a exigir CPF, e-mail e data de nascimento (aqui e no agendamento público).'
+        : null,
+      removed.includes('memed')
+        ? '\n⚠ Prescrição Memed desligada: o cadastro volta a exigir só nome e telefone.'
+        : null,
     ]
       .filter(Boolean)
       .join('\n')
@@ -363,39 +371,19 @@ export function ClinicDetail({
           </label>
 
           <div>
-            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-              Módulos (ative/desative individualmente)
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              Módulos por especialidade
             </p>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              {ALL_MODULES.map((m) => {
-                const comingSoon = COMING_SOON_MODULES.includes(m)
-                return (
-                  <label
-                    key={m}
-                    title={comingSoon ? 'Em breve — módulo ainda não disponível' : undefined}
-                    className={cn(
-                      'flex items-center gap-1.5 text-xs font-medium',
-                      comingSoon
-                        ? 'cursor-not-allowed text-slate-400'
-                        : 'cursor-pointer text-slate-600',
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={modules.has(m)}
-                      disabled={comingSoon}
-                      onChange={(e) => toggle(m, e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
-                    />
-                    {MODULE_LABEL[m]}
-                    {comingSoon ? (
-                      <span className="rounded bg-slate-100 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                        em breve
-                      </span>
-                    ) : null}
-                  </label>
-                )
-              })}
+            <div className="grid gap-3 md:grid-cols-2">
+              {MODULE_BLOCKS.map((block) => (
+                <ModuleBlockCard
+                  key={block.id}
+                  block={block}
+                  active={modules}
+                  onToggleModule={toggle}
+                  onToggleBlock={toggleBlock}
+                />
+              ))}
             </div>
           </div>
 
@@ -571,6 +559,90 @@ function describeAudit(a: AuditEntry): string {
   const change =
     a.oldValue !== null || a.newValue !== null ? ` ${a.oldValue ?? '∅'} → ${a.newValue ?? '∅'}` : ''
   return `${a.field ?? 'alterou'} em ${ent}${change}`
+}
+
+/**
+ * Um bloco do catálogo. O cabeçalho liga/desliga tudo de uma vez (atalho);
+ * cada linha continua ligável sozinha — clínica raramente contrata a
+ * especialidade inteira.
+ */
+function ModuleBlockCard({
+  block,
+  active,
+  onToggleModule,
+  onToggleBlock,
+}: {
+  block: ModuleBlock
+  active: Set<ModuleId>
+  onToggleModule: (m: ModuleId, on: boolean) => void
+  onToggleBlock: (block: ModuleBlock, on: boolean) => void
+}) {
+  const available = block.modules.filter((m) => !COMING_SOON_MODULES.includes(m))
+  const onCount = available.filter((m) => active.has(m)).length
+  const allOn = available.length > 0 && onCount === available.length
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-xs font-bold text-slate-900">{block.label}</p>
+          <p className="mt-0.5 text-[11px] leading-snug text-slate-400">{block.hint}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onToggleBlock(block, !allOn)}
+          className="shrink-0 rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500 transition hover:border-primary hover:text-primary"
+        >
+          {allOn ? 'Desativar tudo' : 'Ativar tudo'}
+        </button>
+      </div>
+
+      <div className="mt-2.5 space-y-1.5">
+        {block.modules.map((m) => {
+          const comingSoon = COMING_SOON_MODULES.includes(m)
+          return (
+            <label
+              key={m}
+              title={comingSoon ? 'Em breve — módulo ainda não disponível' : MODULE_HINT[m]}
+              className={cn(
+                'flex items-start gap-2 rounded-md px-1.5 py-1 text-xs font-medium',
+                comingSoon
+                  ? 'cursor-not-allowed text-slate-400'
+                  : 'cursor-pointer text-slate-700 hover:bg-white',
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={active.has(m)}
+                disabled={comingSoon}
+                onChange={(e) => onToggleModule(m, e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+              />
+              <span className="min-w-0">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  {MODULE_LABEL[m]}
+                  {comingSoon ? (
+                    <span className="rounded bg-slate-100 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                      em breve
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-0.5 block text-[10px] font-normal leading-snug text-slate-400">
+                  {MODULE_HINT[m]}
+                </span>
+                {m === 'memed' && active.has(m) ? (
+                  <span className="mt-1 block rounded bg-amber-50 px-1.5 py-1 text-[10px] font-medium leading-snug text-amber-700">
+                    Cadastro de paciente passa a exigir CPF, e-mail e nascimento — inclusive no
+                    agendamento público. Pacientes já cadastrados não são bloqueados.
+                  </span>
+                ) : null}
+              </span>
+            </label>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function MetricCard({

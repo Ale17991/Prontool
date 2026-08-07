@@ -16,6 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  describeMissingFields,
+  missingRequiredPatientFields,
+  patientFieldPolicy,
+  type PatientField,
+} from '@/lib/core/patients/required-fields'
 import type {
   AnamnesisField,
   AnamnesisTemplateOption,
@@ -24,12 +30,24 @@ import type {
 
 type ResponseValue = string | number | string[] | null
 
+/** Campo da política ↔ id do campo is_default no modelo de anamnese. */
+const FIELD_ID_BY_POLICY: Record<PatientField, string> = {
+  full_name: 'default_nome',
+  phone: 'default_telefone',
+  cpf: 'default_cpf',
+  email: 'default_email',
+  birth_date: 'default_data_nasc',
+}
+
 interface Props {
   template: AnamnesisTemplateOption
   healthPlans: HealthPlanOption[]
+  /** Clínica prescritora Memed ⇒ CPF, e-mail e nascimento viram obrigatórios. */
+  memedPrescriber: boolean
 }
 
-export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
+export function NewPatientWithAnamneseForm({ template, healthPlans, memedPrescriber }: Props) {
+  const policy = patientFieldPolicy(memedPrescriber)
   const router = useRouter()
   const [responses, setResponses] = useState<Record<string, ResponseValue>>({})
   const [planId, setPlanId] = useState<string>('')
@@ -72,15 +90,45 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
       }
     }
 
-    // CPF opcional em fase de testes; se preenchido, exige 11 digitos.
+    // Formato do CPF sempre checado quando preenchido; se é OBRIGATÓRIO vem
+    // da política da clínica logo abaixo, não do flag do template.
     const rawCpf = (responses['default_cpf'] as string | undefined) ?? ''
     const cpfDigits = rawCpf.replace(/\D/g, '')
     if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
       setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
       return
     }
-    if (!planId) {
-      setError('Selecione um plano de saúde ou "Sem plano (particular)".')
+
+    const asText = (id: string) => (responses[id] as string | undefined) ?? ''
+    const missingRequired = missingRequiredPatientFields(
+      {
+        full_name: asText('default_nome'),
+        phone: asText('default_telefone'),
+        cpf: cpfDigits,
+        email: asText('default_email'),
+        birth_date: asText('default_data_nasc'),
+      },
+      policy,
+    )
+    if (missingRequired.length > 0) {
+      // O modelo pode ter tido o campo REMOVIDO pelo autor. Pedir "preencha o
+      // telefone" quando não existe caixa de telefone na tela é um beco sem
+      // saída — nesse caso o erro aponta para o modelo, que é onde se resolve.
+      const absent = missingRequired.filter(
+        (f) => !template.fields.some((tf) => tf.id === FIELD_ID_BY_POLICY[f]),
+      )
+      if (absent.length > 0) {
+        setError(
+          `O modelo "${template.title}" não tem o campo ${describeMissingFields(absent)}. ` +
+            'Inclua em Configurações › Modelos de anamnese, ou cadastre sem modelo.',
+        )
+        return
+      }
+      setError(
+        policy.memedPrescriber
+          ? `Preencha ${describeMissingFields(missingRequired)} — obrigatórios porque esta clínica prescreve pela Memed.`
+          : `Preencha ${describeMissingFields(missingRequired)}.`,
+      )
       return
     }
 
@@ -105,7 +153,8 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
         body: JSON.stringify({
           template_id: template.id,
           responses: normalizedResponses,
-          patient_plan_id: planId === '__none__' ? null : planId,
+          // Sem escolha explícita = particular (plano deixou de ser obrigatório).
+          patient_plan_id: planId && planId !== '__none__' ? planId : null,
         }),
       })
       const body = (await res.json().catch(() => ({}))) as {
@@ -141,6 +190,12 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
           Dados do paciente
         </p>
+        {memedPrescriber ? (
+          <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800">
+            Esta clínica prescreve pela Memed: CPF, e-mail e data de nascimento são obrigatórios
+            no cadastro, senão a receita falha na hora da consulta.
+          </p>
+        ) : null}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {defaults.map((f) => (
             <DefaultFieldInput
@@ -157,9 +212,7 @@ export function NewPatientWithAnamneseForm({ template, healthPlans }: Props) {
           {/* Se o template não tem default_plano, ainda exigimos plan select */}
           {!defaults.some((f) => f.id === 'default_plano') ? (
             <div className="space-y-1.5 md:col-span-2">
-              <Label htmlFor="plan_id">
-                Plano de saúde <span className="text-rose-500">*</span>
-              </Label>
+              <Label htmlFor="plan_id">Plano de saúde (opcional)</Label>
               <Select value={planId} onValueChange={setPlanId}>
                 <SelectTrigger id="plan_id">
                   <SelectValue placeholder="Selecione um plano…" />

@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  describeMissingFields,
+  missingRequiredPatientFields,
+  patientFieldPolicy,
+  type PatientField,
+} from '@/lib/core/patients/required-fields'
 
 export interface HealthPlanOption {
   id: string
@@ -50,12 +56,31 @@ const UFS = [
   'TO',
 ]
 
+/** Asterisco só quando a política da clínica realmente exige o campo. */
+function Req({ on }: { on: boolean }) {
+  return on ? (
+    <span className="text-rose-500" title="Obrigatório">
+      *
+    </span>
+  ) : (
+    <span className="text-[11px] font-normal text-slate-400">(opcional)</span>
+  )
+}
+
 function formatCep(raw: string): string {
   const digits = raw.replace(/\D/g, '').slice(0, 8)
   return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits
 }
 
-export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[] }) {
+export function NewPatientForm({
+  healthPlans,
+  memedPrescriber,
+}: {
+  healthPlans: HealthPlanOption[]
+  memedPrescriber: boolean
+}) {
+  const policy = patientFieldPolicy(memedPrescriber)
+  const req = (f: PatientField) => policy.required.includes(f)
   const router = useRouter()
   const [fullName, setFullName] = useState('')
   const [cpf, setCpf] = useState('')
@@ -128,12 +153,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
     setError(null)
 
     const cpfDigits = cpf.replace(/\D/g, '')
-    if (fullName.trim().length < 2) {
-      setError('Informe o nome completo.')
-      return
-    }
-    // Dados exigidos pela Memed (CPF/celular/e-mail/nascimento) — por ora
-    // opcionais no cadastro; a Memed valida na hora de prescrever.
+    // Formato é sempre checado quando o campo tem conteúdo; a obrigatoriedade
+    // vem da política da clínica (base = nome + telefone; prescritora Memed
+    // acrescenta CPF, e-mail e nascimento).
     if (cpfDigits.length > 0 && cpfDigits.length !== 11) {
       setError('CPF deve ter 11 dígitos quando preenchido (ou deixe em branco).')
       return
@@ -142,8 +164,22 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
       setError('Informe um e-mail válido (ou deixe em branco).')
       return
     }
-    if (!planId) {
-      setError('Selecione um plano de saúde ou "Sem plano (particular)".')
+    const missing = missingRequiredPatientFields(
+      {
+        full_name: fullName,
+        phone,
+        cpf: cpfDigits,
+        email,
+        birth_date: birthDate,
+      },
+      policy,
+    )
+    if (missing.length > 0) {
+      setError(
+        policy.memedPrescriber
+          ? `Preencha ${describeMissingFields(missing)} — obrigatórios porque esta clínica prescreve pela Memed.`
+          : `Preencha ${describeMissingFields(missing)}.`,
+      )
       return
     }
 
@@ -174,7 +210,10 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
           phone: phone.trim() || null,
           email: email.trim() || null,
           birth_date: birthDate || null,
-          plan_id: planId === '__none__' ? null : planId,
+          // Sem escolha explícita = particular. Plano deixou de segurar o
+          // cadastro: o mínimo para existir na base é identificação, não
+          // convênio — quem paga como se resolve na hora do atendimento.
+          plan_id: planId && planId !== '__none__' ? planId : null,
           sex: sex || null,
           social_name: socialName.trim() || null,
           mother_name: motherName.trim() || null,
@@ -216,8 +255,17 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         <p className="md:col-span-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
           Dados pessoais
         </p>
+        {memedPrescriber ? (
+          <p className="md:col-span-2 rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800">
+            Esta clínica prescreve pela Memed: CPF, e-mail e data de nascimento são obrigatórios
+            no cadastro, senão a receita falha na hora da consulta.
+          </p>
+        ) : null}
+
         <div className="space-y-1.5 md:col-span-2">
-          <Label htmlFor="full_name">Nome completo</Label>
+          <Label htmlFor="full_name">
+            Nome completo <Req on={req('full_name')} />
+          </Label>
           <Input
             id="full_name"
             required
@@ -228,7 +276,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="cpf">CPF (opcional)</Label>
+          <Label htmlFor="cpf">
+            CPF <Req on={req('cpf')} />
+          </Label>
           <Input
             id="cpf"
             inputMode="numeric"
@@ -239,7 +289,9 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="phone">Celular (opcional)</Label>
+          <Label htmlFor="phone">
+            Celular <Req on={req('phone')} />
+          </Label>
           <Input
             id="phone"
             inputMode="tel"
@@ -250,12 +302,16 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="email">E-mail (opcional)</Label>
+          <Label htmlFor="email">
+            E-mail <Req on={req('email')} />
+          </Label>
           <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="birth_date">Data de nascimento (opcional)</Label>
+          <Label htmlFor="birth_date">
+            Data de nascimento <Req on={req('birth_date')} />
+          </Label>
           <Input
             id="birth_date"
             type="date"
@@ -302,9 +358,7 @@ export function NewPatientForm({ healthPlans }: { healthPlans: HealthPlanOption[
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
-          <Label htmlFor="plan_id">
-            Plano de saúde <span className="text-rose-500">*</span>
-          </Label>
+          <Label htmlFor="plan_id">Plano de saúde (opcional)</Label>
           <Select value={planId} onValueChange={setPlanId}>
             <SelectTrigger id="plan_id">
               <SelectValue placeholder="Selecione um plano…" />

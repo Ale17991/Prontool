@@ -27,6 +27,7 @@ import {
 import { can } from '@/lib/auth/rbac'
 import { userCan } from '@/lib/auth/require-action'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
+import { describeMissingFields, missingMemedFields } from '@/lib/core/patients/required-fields'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Database } from '@/lib/db/types'
 import type { ClinicalRecordRow } from '@/lib/core/clinical-records/create'
@@ -446,8 +447,37 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
 
   const showFailuresCard = session.role === 'admin' && failures.length > 0
 
+  // Pendência para prescrever pela Memed. AVISA, não bloqueia: quem entrou na
+  // base antes de a clínica virar prescritora continua sendo atendido
+  // normalmente — a lacuna se resolve na próxima vez que o paciente aparece.
+  const memedPending =
+    ent.hasModule('memed') && !isAnonymized
+      ? missingMemedFields({
+          full_name: patient.fullName,
+          phone: patient.phone,
+          cpf: patient.cpf,
+          email: patient.email,
+          birth_date: patient.birthDate,
+        })
+      : []
+
   return (
     <div className="space-y-4">
+      {memedPending.length > 0 ? (
+        <Card className="border-amber-300/60 bg-amber-50">
+          <CardContent className="flex flex-wrap items-center gap-x-2 gap-y-1 p-3 text-sm text-amber-900">
+            <span className="font-semibold">Faltam dados para emitir receita:</span>
+            <span>{describeMissingFields(memedPending)}.</span>
+            <Link
+              href={`/operacao/pacientes/${params.id}?tab=cadastro`}
+              className="font-semibold underline underline-offset-2"
+            >
+              Completar cadastro
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {showFailuresCard ? (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="space-y-2 p-4 text-sm">
