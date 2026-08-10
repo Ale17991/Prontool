@@ -60,29 +60,44 @@ A helper script for this is tracked in T157 (production provisioning).
 
 ## 3. Updating the TUSS catalog
 
-The catalog is pinned to a commit of
-[`charlesfgarcia/tabelas-ans`](https://github.com/charlesfgarcia/tabelas-ans)
-(see `scripts/seed-tuss.ts` and `docs/data-sources.md` once T152 lands).
+The catalog comes from the package published by ANS itself, pinned to a
+version in `ANS_VERSION_DEFAULT` (`scripts/tuss-ans-source.ts`). Full
+background in `docs/data-sources.md`.
 
 ```bash
-pnpm seed:tuss
+pnpm check:tuss-collision   # must exit 0 before seeding
+pnpm seed:tuss:all          # tables 22, 19, 20, 18
 ```
 
 The script:
 
-1. Downloads the pinned commit as a zipball.
-2. Verifies the repo's LICENSE file (aborts on missing or incompatible).
-3. Batches the JSON into `tuss_codes` via `UPSERT`, records the import
-   as a new `tuss_catalog_versions` row (commit SHA + content hash).
-4. Runs `detect-deprecated`, which scans each tenant's `procedures` /
-   `price_versions` for codes whose `valid_to` just became non-null and
-   fans out one `tuss_deprecated` alert per affected tenant.
+1. Downloads `Padrao_TISS_Representacao_de_Conceitos_em_Saude_<AAAAMM>.zip`
+   (~410 MB) into `.cache/tuss/`, reusing it if already there, and
+   extracts the needed `.xlsx` sheets into a version-scoped subfolder.
+2. Parses each sheet in streaming mode, matching columns by **header
+   label** — table 19 alone is 1,5 M rows across two workbooks.
+3. Batches into `tuss_codes` via `UPSERT`, retrying transient transport
+   errors with backoff, and records the import as a new
+   `tuss_catalog_versions` row (`tabela_<N>@ANS-<AAAAMM>` + content hash).
+4. Runs `detect-deprecated`, which scans each tenant's `procedures` for
+   codes whose `valid_to` is now in the past and fans out one
+   `tuss_deprecated` alert per affected tenant.
 
-**Before switching the pinned commit**, open the upstream diff and make
-sure no previously-active code was dropped entirely (deprecation is
-flagged via `valid_to`; deletion breaks referential integrity). If a
-code was removed, add it back to the catalog manually or pin a prior
-commit.
+**Do not expect a wave of deprecation alerts.** Until migration 0194 the
+mirror never published an end-of-vigência column, so `valid_to` was
+uniformly NULL. The official package carries it, but version 202607
+retires only 2 codes, both in table 18 — so the first run should be
+quiet. Counting "non-empty cell" in the table 19 spreadsheet suggests
+205 k retirements; those cells hold an empty string, not a date, and the
+parser correctly reads 0. If a future ANS release does retire a batch,
+the alerts that follow are the mechanism working.
+
+**A code that disappears from the package entirely is not the same as a
+retired one.** Retirement is expressed by `valid_to` and is handled;
+outright removal would break `procedures.tuss_code` referential
+integrity. The seed never deletes, so an absent code simply keeps its
+last known state — check the ANS release notes if a code you expect
+stops being updated.
 
 ## 4. Alert triage workflow
 

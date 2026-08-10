@@ -208,9 +208,15 @@ async function main() {
   const procIds: string[] = []
   await section('procedimentos', async () => {
     for (const p of PROCS) {
+      // Restrito à Tabela 22: sem o filtro, a busca por palavra-chave passeia
+      // pelos 1,5 milhão de materiais e 44 mil medicamentos que o catálogo
+      // oficial trouxe (0194) e pode devolver um material como se fosse
+      // procedimento — além de ficar lenta.
       const cat = await sb
         .from('tuss_codes')
         .select('code')
+        .eq('tuss_table', '22')
+        .is('valid_to', null)
         .ilike('description', `%${p.kw}%`)
         .limit(1)
         .maybeSingle()

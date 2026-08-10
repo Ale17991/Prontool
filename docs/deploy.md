@@ -54,11 +54,16 @@ Supabase primeiro desbloqueia os env vars que todo mundo precisa.
    Guarde o mesmo valor em `PATIENT_DATA_ENCRYPTION_KEY` — tem que bater.
 6. **Seed catálogo TUSS + tenant inicial** via service_role:
    ```bash
-   # .env.prod.local com os secrets de prod
-   pnpm dlx tsx --env-file=.env.prod.local scripts/seed-tuss.ts
+   # .env.production.local com os secrets de prod
+   pnpm check:tuss-collision    # precondição: exit 0
+   pnpm seed:tuss:prod:all      # tabelas 22, 19, 20 e 18
    # seed demo NÃO vai para prod — crie o tenant real manualmente via SQL
    # ou endpoint de platform operator.
    ```
+   Rodar **depois** da migration `0194` e antes do deploy do código: a
+   0194 recria uma coluna gerada (reescreve a tabela) e cria os índices
+   de busca. Baixa ~410 MB da ANS e escreve ~1,5 milhão de linhas na
+   Tabela 19 — reserve tempo. Ver `docs/operations.md` §3.
 7. **Rodar constitution suite (T057–T060) contra o Pro** — opcional mas
    recomendado para fechar T155:
    ```bash
@@ -209,8 +214,8 @@ Ver `docs/operations.md` para:
 | LGPD endpoints                   | ✅ (ver `docs/lgpd.md`)                                   |
 | Observabilidade / trace_id       | ✅ (T099)                                                 |
 | Webhook perf p95 < 1 s (SC-004)  | ✅ (ver `docs/performance-report.md`)                     |
-| TUSS license compliance          | ✅ (ver `docs/data-sources.md`)                           |
-| Seed TUSS                        | `pnpm seed:tuss` (precisa rodar em prod)                  |
+| TUSS license compliance          | ✅ fonte oficial ANS (ver `docs/data-sources.md`)         |
+| Seed TUSS                        | `pnpm seed:tuss:prod:all` (precisa rodar em prod)         |
 | Auth hook custom claims          | ⚠️ precisa habilitar manualmente no dashboard (seção 1.4) |
 | Supabase Pro sa-east-1           | ⚠️ seção 1                                                |
 | Vercel gru1                      | ⚠️ seção 4                                                |

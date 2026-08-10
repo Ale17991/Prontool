@@ -22,7 +22,7 @@ const querySchema = z.object({
     .union([z.string(), z.number()])
     .optional()
     .transform((v) => (v === undefined ? undefined : Number(v))),
-  table: z.enum(['22', '19', '20']).optional(),
+  table: z.enum(['22', '19', '20', '18']).optional(),
 })
 
 export async function GET(req: Request): Promise<Response> {

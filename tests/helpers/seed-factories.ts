@@ -216,7 +216,7 @@ export async function seedTussCode(
   code: string,
   opts: {
     retired?: boolean
-    tussTable?: '22' | '19' | '20'
+    tussTable?: '22' | '19' | '20' | '18'
     description?: string
     manufacturer?: string | null
   } = {},

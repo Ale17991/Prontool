@@ -32,6 +32,9 @@ test-results/
 *.swp
 *.swo
 
+# Fonte oficial TUSS baixada da ANS (~410 MB de zip + planilhas extraídas)
+.cache/
+
 # AI scratch / local tool state
 .AIStudio/
 .claude/settings.local.json

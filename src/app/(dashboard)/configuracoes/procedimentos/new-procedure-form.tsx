@@ -236,8 +236,10 @@ export function NewProcedureForm({ customTables }: NewProcedureFormProps) {
         <>
           <div className="space-y-1.5">
             <Label className="text-xs">Tipo de item</Label>
+            {/* 2x2: com a Tabela 18 são quatro opções, e três colunas
+                deixariam a quarta sozinha numa linha. */}
             <div
-              className="grid grid-cols-3 gap-2"
+              className="grid grid-cols-2 gap-2"
               role="radiogroup"
               aria-label="Tipo de item TUSS"
             >

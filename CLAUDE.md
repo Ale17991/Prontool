@@ -309,3 +309,57 @@ criaria cópia de PII fora do banco e congelaria número que envelhece.
   nenhum. `pregnancyWeeks` (046) só soma depósito ao GET. Emitir exigiria criar
   a avaliação gestacional inteira — feature própria, com migration. Registrado
   em `specs/054-impressos-nutricao/tasks.md` (T035).
+
+## Catálogo TUSS — fonte oficial da ANS (migration 0194)
+
+O catálogo saiu do espelho comunitário `charlesfgarcia/tabelas-ans` e passou a
+vir do pacote publicado pela própria ANS
+(`Padrao_TISS_Representacao_de_Conceitos_em_Saude_<AAAAMM>.zip`). Detalhes de
+operação em `docs/data-sources.md`; o leitor é `scripts/tuss-ans-source.ts`,
+compartilhado por `seed-tuss.ts` e `check-tuss-collision.ts`.
+
+- **O espelho estava parado e isso era invisível.** 5.851 procedimentos contra
+  5.967 do oficial; 1.114 medicamentos contra 44.574. Código publicado depois do
+  último commit dele simplesmente não existia no produto — `30310172` e
+  `20101406` (oftalmologia) foram os que apareceram no uso real. A falha não
+  aparecia em teste nenhum: o typeahead devolvia resultado, só nunca *aquele*.
+- **A versão é fixada em `ANS_VERSION_DEFAULT`, nunca descoberta.** Atualizar é
+  um PR de uma linha, revisável; auto-descobrir "a mais nova" faria o mesmo seed
+  produzir catálogos diferentes em dias diferentes.
+- **Parse por RÓTULO de coluna, jamais por índice.** A ANS move colunas entre
+  versões e põe o cabeçalho numa linha diferente em cada arquivo (22 na linha 8,
+  18 na 7, 20 na 10). Contar linhas a partir de um número fixo já custou uma
+  linha de dados perdida na conferência.
+- **Data vem como serial do Excel.** O leitor roda com `styles: 'ignore'` (ler o
+  estilo de 1,5 milhão de linhas é caro), e sem estilo o exceljs não reconhece
+  a célula como data — devolve o número cru. Sem a conversão, "2009-02-13"
+  virava `39857-01-01` e TODA vigência ficava errada.
+- **`valid_to` passa a ser importado de verdade.** O espelho não publicava fim de
+  vigência, então o trigger `enforce_tuss_code_active_on_procedure` (0024) e o
+  `detect-deprecated` nunca tinham em que pegar. Na versão 202607 a colheita é
+  magra: **2 códigos aposentados no total**, ambos na Tabela 18. Cuidado com a
+  contagem — 205 mil linhas da Tabela 19 têm a célula de fim de vigência
+  preenchida com STRING VAZIA, não com data; contar "célula não-nula" dá 205 mil
+  aposentados fantasmas. O parser lê data, e por isso acerta.
+- **A Tabela 19 completa tem ~1,5 milhão de linhas** e muda o que é uma consulta
+  aceitável. `or=(code.ilike,description.ilike,manufacturer.ilike)` não tem
+  índice que sirva: a busca virou a RPC `search_tuss_codes`, com GIN trigram
+  sobre a expressão concatenada/minúscula/sem acento.
+- **A RPC tem três caminhos, e isso é medido, não estética.** Num teste com
+  300 mil linhas: consulta única com `ORDER BY code LIMIT 50` = **5,8 s** (o
+  planejador varre o índice de código ordenado e testa o LIKE linha a linha);
+  com CTE `MATERIALIZED` como barreira = **48 ms**. Termo de 1–2 caracteres cai
+  em prefixo de código porque o trigram precisa de 3 (medido: 3,8 s ao digitar
+  UM caractere). Termo larguíssimo tem teto de varredura de 2.000 linhas antes
+  de ordenar — sem ele, "cateter" custava 2 s.
+- **`detect-deprecated` parou de puxar a lista inteira de aposentados.** O
+  PostgREST corta em 1.000 linhas por resposta, e tanto a varredura de
+  `procedures` quanto a de códigos aposentados vinham sem paginação — o scan
+  concluía em silêncio sobre um pedaço dos dados. Hoje é irrelevante em número
+  (só 2 aposentados), mas o teto não some sozinho quando a ANS aposentar um
+  lote. Agora consulta só os códigos que os procedimentos realmente usam, e
+  pagina os procedimentos.
+- **A Tabela 18 (diárias, taxas e gases) entrou** — 3.597 códigos que não
+  existiam no sistema. `tuss_table_label` é coluna gerada: acrescentar um valor
+  exige drop + add, que reescreve a tabela — por isso a 0194 tem que rodar
+  ANTES do seed, enquanto `tuss_codes` ainda é pequena.

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-export type TussTable = '22' | '19' | '20'
+export type TussTable = '22' | '19' | '20' | '18'
 
 export interface TussTableOption {
   value: TussTable
@@ -36,6 +36,13 @@ export const TUSS_TABLES: readonly TussTableOption[] = [
     short: 'Med',
     badgeClass: 'bg-orange-50 text-orange-700 border-orange-200',
     selectedClass: 'border-orange-300 bg-orange-50 ring-1 ring-orange-200',
+  },
+  {
+    value: '18',
+    label: 'Diárias e taxas',
+    short: 'Diár',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
+    selectedClass: 'border-slate-400 bg-slate-100 ring-1 ring-slate-300',
   },
 ] as const
 
