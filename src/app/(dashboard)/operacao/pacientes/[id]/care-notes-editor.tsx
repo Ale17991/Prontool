@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { ClipboardList, Loader2, Trash2 } from 'lucide-react'
+import { ClipboardList, Loader2, Printer, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { READY_MADE_CARE_NOTES } from '@/lib/core/care-notes/ready-made'
@@ -95,11 +95,27 @@ export function CareNotesEditor({ patientId, canWrite }: { patientId: string; ca
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle className="flex items-center gap-2 text-sm">
           <ClipboardList className="h-4 w-4 text-primary" />
           Orientações ao paciente
         </CardTitle>
+        {/*
+          Feature 054 US3 — o impresso fica onde o texto nasce. Só aparece com
+          orientação registrada: um botão que sempre devolve "nada a imprimir"
+          ensina a ignorá-lo.
+        */}
+        {notes.length > 0 ? (
+          <Button variant="outline" size="sm" className="h-7 gap-1.5 px-2 text-[11px]" asChild>
+            <a
+              href={`/api/pacientes/${patientId}/orientacoes/pdf`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Printer className="h-3 w-3" /> PDF
+            </a>
+          </Button>
+        ) : null}
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-xs text-slate-500">

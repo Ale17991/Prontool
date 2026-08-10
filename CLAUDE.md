@@ -260,3 +260,52 @@ sob `/api/pacientes/[id]`. Módulo `nutri_rotulo`.
   é `null` nesse caso, e `null` significa "não existe zero declaratório aqui".
   O código antes usava 0,5 g e declararia zero para um produto que TEM açúcar
   adicionado.
+
+## Impressos da consulta (feature 054)
+
+Os documentos que a nutricionista entrega ao paciente, em PDF, no formato da
+planilha `nutri-doc/AF..xlsm`. É **camada de apresentação pura**: sem tabela,
+sem migration, sem estado. O impresso é recomposto a cada emissão — arquivar
+criaria cópia de PII fora do banco e congelaria número que envelhece.
+
+- **Nenhum componente recalcula nada.** Cada PDF recebe o resultado pronto do
+  mesmo motor que alimenta a tela (`diet/totals`, `classifyLabResults`,
+  `buildGrowthReport`, `getRecall`, `getDietPlanForPatient`). Recalcular
+  reintroduziria pela impressão a divergência entre papel e tela que a revisão
+  de fórmulas de agosto acabou de eliminar. Travado por teste em `printedTotals`
+  (recordatório) e nos testes de comparação do plano.
+- **Por isso a 054 EXTRAIU motores de dentro de rotas**: `labs/panel-for-patient.ts`
+  saiu de `/api/pacientes/[id]/exames`. Quando o impresso precisa do que a tela
+  mostra, a resposta certa é extrair, nunca reimplementar.
+- **`printouts/guard.ts` é a porta única** de todo impresso: RBAC, gate de
+  módulo, **404 e nunca 403** para paciente de outra clínica (403 confirmaria a
+  existência), **409** para anonimizado, `pdfHeaders` com `no-store`,
+  `printoutFilename` e `auditPrintout`. `lint:auth` foi ensinado a reconhecer
+  `openPrintout` como autenticador (`scripts/check-require-role.mjs`) — **não é
+  isenção**: o guard comprovadamente chama `requireRole`.
+- **Ausência nunca vira zero** (`dash()`), nos nove documentos. Vale também para
+  texto: pergunta de anamnese sem resposta **continua na folha**, com travessão.
+  Omiti-la produziria documento que parece completo escondendo o que não foi
+  coletado.
+- **Exame sem faixa cadastrada sai SEM situação** — nunca "dentro da faixa".
+  Afirmar normalidade a partir de dado ausente vira tranquilidade infundada num
+  papel que fica com o paciente.
+- **Toda coluna de evolução declara o método.** Dobras e bioimpedância não são
+  comparáveis; sem o rótulo, troca de instrumento parece evolução.
+- **A curva de crescimento é desenhada** (`Svg`/`Polyline`/`Circle` do próprio
+  `@react-pdf/renderer`), não tabelada: a leitura é posicional. `recharts` não
+  serve — é React DOM. O eixo cobre bandas **e** pontos do paciente: recortar no
+  P97 esconderia a criança justamente onde a curva precisa ser lida.
+- **Botão fica na tela onde o dado nasce**, não num menu de impressos. Na
+  anamnese ele substituiu o `window.print()` do navegador, que dependia do CSS
+  da tela e saía diferente em cada máquina; a evolução SOAP segue no caminho
+  antigo (fora de escopo).
+- **Datas de `TIMESTAMPTZ` usam `brDateTz`**, não o corte da string ISO: uma
+  orientação escrita às 23h sairia com a data do dia seguinte, divergindo da
+  tela pela qual a profissional a reconhece. `brDate` continua para colunas
+  `DATE`, que não têm fuso.
+- **O impresso gestacional NÃO existe e não é esquecimento**: não há peso
+  pré-gestacional, série de ganho nem faixa recomendada gravados em lugar
+  nenhum. `pregnancyWeeks` (046) só soma depósito ao GET. Emitir exigiria criar
+  a avaliação gestacional inteira — feature própria, com migration. Registrado
+  em `specs/054-impressos-nutricao/tasks.md` (T035).

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Activity, FlaskConical, Loader2, Save } from 'lucide-react'
+import { Activity, FlaskConical, Loader2, Save, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -516,11 +516,28 @@ export function NutritionAssessmentClient({
           <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">{error}</p>
         ) : null}
 
-        {canWrite ? (
-          <Button type="submit" disabled={pending || !patient} className="gap-2">
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar avaliação
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {canWrite ? (
+            <Button type="submit" disabled={pending || !patient} className="gap-2">
+              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar avaliação
+            </Button>
+          ) : null}
+          {/*
+            Impresso de evolução: só faz sentido com avaliação já salva, porque
+            o documento lê os snapshots gravados, não o cálculo ao vivo da tela.
+          */}
+          {patient && history.length > 0 ? (
+            <Button type="button" variant="outline" className="gap-2" asChild>
+              <a
+                href={`/api/pacientes/${patient.id}/avaliacao-nutricional/pdf`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Printer className="h-4 w-4" /> Imprimir evolução
+              </a>
+            </Button>
+          ) : null}
+        </div>
       </form>
 
       <div className="space-y-4">

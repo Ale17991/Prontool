@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Save, Search, Trash2, UtensilsCrossed } from 'lucide-react'
+import { Loader2, Plus, Printer, Save, Search, Trash2, UtensilsCrossed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -355,6 +355,22 @@ export function RecordatorioClient() {
               {adeqLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Analisar (DRI)
             </Button>
           </div>
+        ) : null}
+        {/*
+          Feature 054 US4 — o impresso lê o recordatório GRAVADO daquela data, não
+          o rascunho da tela. Salvar antes de imprimir é o fluxo; imprimir estado
+          não salvo entregaria ao paciente um papel que o sistema não guarda.
+        */}
+        {patient && summaries.some((s) => s.recallDate === date) ? (
+          <Button variant="outline" size="sm" className="w-full gap-1.5" asChild>
+            <a
+              href={`/api/pacientes/${patient.id}/recordatorio/pdf?data=${date}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Printer className="h-3.5 w-3.5" /> Imprimir recordatório
+            </a>
+          </Button>
         ) : null}
         {msg ? <p className="text-xs text-slate-500">{msg}</p> : null}
 

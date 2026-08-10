@@ -1,0 +1,12 @@
+{
+  // O tsconfig do app usa `"jsx": "preserve"` porque quem transforma o JSX é o
+  // Next. Um script avulso rodado por `tsx` não passa pelo Next: sem isto, o
+  // esbuild cai na transformação clássica (`React.createElement`) e qualquer
+  // componente de PDF importado quebra com "React is not defined".
+  //
+  // Só afeta scripts executados com `--tsconfig tsconfig.scripts.json`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
+}

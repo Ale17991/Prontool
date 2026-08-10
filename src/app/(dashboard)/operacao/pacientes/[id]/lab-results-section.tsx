@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Beaker, Loader2, Plus, TrendingUp, X } from 'lucide-react'
+import { Beaker, Loader2, Plus, Printer, TrendingUp, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -124,6 +124,15 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
 
   const hasAny = (data?.panel?.items.length ?? 0) > 0 || rawLatest.length > 0
 
+  // Mesmos parâmetros que a leitura da tela usa — o impresso precisa sair com
+  // a classificação que está sendo vista, não com outra.
+  const pdfQuery = useMemo(() => {
+    const qs = new URLSearchParams()
+    if (sexOverride) qs.set('sex', sexOverride)
+    if (ageOverride) qs.set('age', ageOverride)
+    return qs.toString() ? `?${qs.toString()}` : ''
+  }, [sexOverride, ageOverride])
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -137,17 +146,31 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
             </span>
           ) : null}
         </CardTitle>
-        {canWrite ? (
-          <Button
-            size="sm"
-            variant={showForm ? 'outline' : 'default'}
-            onClick={() => setShowForm((v) => !v)}
-            className="gap-1.5"
-          >
-            {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-            {showForm ? 'Cancelar' : 'Lançar laudo'}
-          </Button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {/*
+            Feature 054 US4 — o impresso carrega o sexo/idade informados aqui na
+            tela. Sem eles na URL, o PDF classificaria menos exames que a tela
+            está mostrando neste momento, e o papel contradiria a origem.
+          */}
+          {(data?.panel?.items.length ?? 0) > 0 ? (
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" asChild>
+              <a href={`/api/pacientes/${patientId}/exames/pdf${pdfQuery}`} target="_blank" rel="noreferrer">
+                <Printer className="h-3.5 w-3.5" /> PDF
+              </a>
+            </Button>
+          ) : null}
+          {canWrite ? (
+            <Button
+              size="sm"
+              variant={showForm ? 'outline' : 'default'}
+              onClick={() => setShowForm((v) => !v)}
+              className="gap-1.5"
+            >
+              {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+              {showForm ? 'Cancelar' : 'Lançar laudo'}
+            </Button>
+          ) : null}
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
