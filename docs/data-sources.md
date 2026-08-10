@@ -82,6 +82,29 @@ phantom retirements. The parser reads a *date*, which is why it gets 0.
 Expect few or no `tuss_deprecated` alerts on the first prod run; that is
 the source being accurate, not the scan being broken.
 
+### 130 codes prod carries that ANS no longer publishes
+
+The first official import (2026-08-10) left table 22 in production at
+6.097 rows against the official 5.967. The extra 130 are real TUSS
+procedure codes inherited from the old mirror that the 202607
+publication has dropped — obsolete lab work ("Células LE",
+"Mucoproteínas"), superseded numbering ("Traqueostomia" 30801095, since
+renumbered). **None of them is referenced by any tenant's procedures**,
+checked at import time.
+
+Decision (2026-08-10): **leave them alone**. The seed never deletes —
+`procedures.tuss_code` is a FK with ON DELETE RESTRICT, so removal is
+not on the table anyway — and retiring them would mean inventing a
+`valid_to` the ANS never published. The cost is that the typeahead can
+still offer a code that cannot be billed today; the count is small,
+nothing uses them, and the alternative risks hiding a code that is
+merely restructured rather than dead. Revisit if a clinic ever reports
+a glosa traced to one of them.
+
+Note this is the difference between *retired* and *absent*: retirement
+is published as `valid_to` and the product acts on it; absence is
+silent, and the seed leaves the last known state untouched.
+
 ### Why not the community mirror any more
 
 Until 2026-08 the source was the GitHub mirror
