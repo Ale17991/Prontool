@@ -170,7 +170,21 @@ export async function sendOneWhatsAppReminder(
   const result = await sendText({ apiKey: input.apiKey, to, message, externalId: reminderId })
 
   if (result.ok) {
-    return { record: await finalize('sent', { providerMessageId: result.providerMessageId }), abortBatch: false }
+    // Desfecho indefinido (202) também entra como `sent`, e a escolha é
+    // deliberada: o trigger de 0094 só aceita `queued → terminal`, então há que
+    // cravar um dos dois. A evidência do primeiro envio real é que a mensagem
+    // SAI — o que falhou foi esperar a resposta. Marcar `failed` mandaria a
+    // recepção ligar para um paciente que já foi avisado; marcar `sent` no
+    // caso raro em que não saiu deixa o lembrete sem nenhuma confirmação de
+    // entrega, que é justamente o que a trilha de eventos mostra.
+    const indefinido = 'indefinido' in result
+    return {
+      record: await finalize('sent', {
+        providerMessageId: result.providerMessageId,
+        ...(indefinido ? { error: 'envio-indefinido: timeout do serviço, aguardando confirmação' } : {}),
+      }),
+      abortBatch: false,
+    }
   }
 
   if (result.kind === 'no_connection') {

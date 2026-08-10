@@ -228,6 +228,15 @@ export async function sendText(args: {
       if (!id) return fail('send_failed', 'service returned 200 without messageId')
       return { ok: true, providerMessageId: id }
     }
+    // 202 — o serviço aceitou, mas o HTTP dele para a Evolution deu timeout e o
+    // desfecho ficou indefinido. NÃO é falha: re-enviar cairia na idempotência
+    // por external_id e devolveria esta mesma linha, enquanto o paciente já
+    // pode ter recebido. Quem fecha a conta é a confirmação de entrega.
+    if (status === 202) {
+      const id = (body as { messageId?: string }).messageId
+      if (!id) return fail('send_failed', 'service returned 202 without messageId')
+      return { ok: true, indefinido: true, providerMessageId: id }
+    }
     if (status === 401) return fail('unauthorized', 'invalid or inactive api key')
     if (status === 409) return fail('no_connection', 'no connected instance for this clinic')
     return fail('send_failed', `service responded ${status}`)

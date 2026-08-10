@@ -61,9 +61,20 @@ export interface WhatsAppDeliveryEvent {
   receivedAt: string
 }
 
-/** Resultado de um envio pelo serviço. */
+/**
+ * Resultado de um envio pelo serviço.
+ *
+ * `indefinido` é o desfecho de um envio cuja resposta HTTP não voltou a tempo:
+ * a mensagem provavelmente SAIU (a Evolution demora a despachar a primeira de
+ * uma instância recém-vinculada), mas não temos o id dela. Não é sucesso nem
+ * falha, e tratá-lo como falha foi o defeito que o primeiro envio real expôs —
+ * a mensagem chegou no celular e o histórico dizia "falhou". O serviço reata o
+ * registro quando a confirmação da Evolution chega (`claimOrphan`), então é a
+ * trilha de `whatsapp_delivery_events` que dá a palavra final.
+ */
 export type WhatsAppSendResult =
   | { ok: true; providerMessageId: string }
+  | { ok: true; indefinido: true; providerMessageId: string }
   | { ok: false; kind: WhatsAppSendFailure; detail: string }
 
 /**
