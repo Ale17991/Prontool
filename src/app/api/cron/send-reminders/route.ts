@@ -18,6 +18,16 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 
 export async function POST(request: NextRequest) {
+  // Registrado ANTES da autenticação de propósito. O `cron-reminders-start`
+  // abaixo só é escrito depois do guard, então uma invocação recusada por
+  // credencial não deixava rastro nenhum na aplicação — e "a Vercel não chamou"
+  // ficava indistinguível de "chamou e levou 401". São causas opostas: uma se
+  // conserta no registro do cron, a outra reescrevendo a variável.
+  logger.info(
+    { temSecret: Boolean(process.env.CRON_SECRET), temHeader: request.headers.has('authorization') },
+    'cron-reminders-invocado',
+  )
+
   const secret = process.env.CRON_SECRET
   if (!secret || secret === 'PLACEHOLDER_dev_secret') {
     // Em dev sem secret real: bypass para permitir teste local (mas log de aviso)
