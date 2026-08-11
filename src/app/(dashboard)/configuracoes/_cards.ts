@@ -11,6 +11,7 @@ import {
   HeartPulse,
   ListChecks,
   Plug,
+  Printer,
   ScrollText,
   UserCheck,
   UserCircle,
@@ -43,6 +44,7 @@ export type HubCardId =
   | 'profissionais'
   | 'modelos-anamnese'
   | 'modelos-documento'
+  | 'impressos'
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
@@ -150,6 +152,14 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Atestados, declarações e termos reutilizáveis, com variáveis do paciente.',
     icon: FileText,
     show: ({ role }) => role === 'admin' || role === 'profissional_saude',
+  },
+  {
+    id: 'impressos',
+    href: '/configuracoes/impressos',
+    title: 'Impressos',
+    description: 'Quais dados do paciente aparecem nos documentos impressos.',
+    icon: Printer,
+    show: ({ role }) => role === 'admin',
   },
   {
     id: 'agendamento-publico',

@@ -11,12 +11,14 @@ import { describe, expect, it } from 'vitest'
 import { renderAnamnesisPdf } from '@/lib/core/anamnesis/export-pdf'
 import { renderRecallPdf } from '@/lib/core/nutrition/printouts/recall-pdf'
 import type { RecallView } from '@/lib/core/nutrition/recall/plan'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
-const PACIENTE = {
+const PACIENTE: PatientIdentity = {
   name: 'Paciente De Nome Bastante Longo Para Testar',
-  birthDate: '1990-05-10',
-  ageYears: 36,
-  sex: 'feminino',
+  lines: [
+    { key: 'nascimento', label: 'Nascimento', value: '10/05/1990' },
+    { key: 'idade', label: 'Idade', value: '36 anos' },
+  ],
 }
 
 /** Nº de páginas do PDF gerado. `null` se o objeto estiver comprimido. */
@@ -40,7 +42,7 @@ describe('anamnese longa (T037)', () => {
   it('atravessa páginas sem quebrar', async () => {
     const buf = await renderAnamnesisPdf({
       clinicProfile: null,
-      patient: PACIENTE,
+      identity: PACIENTE,
       templateTitle: 'Anamnese nutricional completa',
       templateVersion: 3,
       fields,
@@ -88,7 +90,7 @@ describe('recordatório de 8 refeições (T037)', () => {
   it('atravessa páginas sem quebrar', async () => {
     const buf = await renderRecallPdf({
       clinicProfile: null,
-      patient: PACIENTE,
+      identity: PACIENTE,
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       recall: longRecall(),

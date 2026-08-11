@@ -1,14 +1,17 @@
-import { requireRole } from '@/lib/auth/require-role'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getOphthalExam } from '@/lib/core/ophthalmology-exams/crud'
 import { renderOphthalExamPdf } from '@/lib/core/ophthalmology-exams/pdf'
 import { getDefaultExamReportTemplate } from '@/lib/core/exam-report-templates/crud'
 import { resolveOphthalReportTemplate } from '@/lib/core/exam-report-templates/apply'
-import { getPatient } from '@/lib/core/patients/get'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS } from '@/lib/core/clinic-profile/types'
 import { NotFoundError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
+import {
+  auditPrintout,
+  deniedResponse,
+  openPrintout,
+  PrintoutDenied,
+} from '@/lib/core/printouts/guard'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -19,23 +22,25 @@ export async function GET(
 ): Promise<Response> {
   const route = `/api/pacientes/${params.id}/exames-oftalmo/${params.examId}/pdf`
   try {
-    const session = await requireRole(['admin', 'profissional_saude', 'recepcionista'], {
+    const ctx = await openPrintout({
+      req,
+      patientId: params.id,
+      route,
       entity: 'ophthalmology_exams',
       entityId: params.examId,
-      route,
-      request: req,
+      document: 'laudo-oftalmo',
+      roles: ['admin', 'profissional_saude', 'recepcionista'],
     })
-    const supabase = createSupabaseServiceClient()
-    const ex = await getOphthalExam(supabase, { tenantId: session.tenantId, id: params.examId })
+    const supabase = ctx.supabase
+    const ex = await getOphthalExam(supabase, { tenantId: ctx.tenantId, id: params.examId })
     if (!ex) throw new NotFoundError('ophthalmology_exam', params.examId)
 
-    const [{ patient }, clinicProfile, defaultTemplate] = await Promise.all([
-      getPatient(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      getClinicProfile(supabase, session.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(
+    const [clinicProfile, defaultTemplate] = await Promise.all([
+      getClinicProfile(supabase, ctx.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(
         () => null,
       ),
       getDefaultExamReportTemplate(supabase, {
-        tenantId: session.tenantId,
+        tenantId: ctx.tenantId,
         examType: 'oftalmologico',
       }).catch(() => null),
     ])
@@ -45,8 +50,8 @@ export async function GET(
       ? (() => {
           const r = resolveOphthalReportTemplate(defaultTemplate, {
             exam: ex,
-            patientName: patient.fullName || '—',
-            birthDate: patient.birthDate,
+            patientName: ctx.patient.fullName || '—',
+            birthDate: ctx.patient.birthDate,
             clinicName: clinicProfile?.displayName ?? '',
           })
           return {
@@ -58,7 +63,7 @@ export async function GET(
       : null
 
     const buf = await renderOphthalExamPdf(ex, {
-      patientName: patient.fullName || '—',
+      identity: ctx.identity,
       clinicProfile,
       signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
       template,
@@ -68,10 +73,12 @@ export async function GET(
       await supabase
         .from('ophthalmology_exams' as never)
         .update({ issued_at: new Date().toISOString() } as never)
-        .eq('tenant_id', session.tenantId)
+        .eq('tenant_id', ctx.tenantId)
         .eq('id', params.examId)
         .is('issued_at', null)
     }
+
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,
@@ -82,6 +89,7 @@ export async function GET(
       },
     })
   } catch (err) {
+    if (err instanceof PrintoutDenied) return deniedResponse(err)
     return toHttpResponse(err, { route })
   }
 }

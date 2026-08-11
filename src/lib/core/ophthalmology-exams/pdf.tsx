@@ -2,6 +2,8 @@ import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-p
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { OphthalExam } from './crud'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 const styles = StyleSheet.create({
   page: { padding: 44, fontSize: 10, fontFamily: 'Helvetica', color: '#0f172a' },
@@ -66,7 +68,7 @@ const d = (v: string | null): string => (v && v.trim() ? v : '—')
 export async function renderOphthalExamPdf(
   ex: OphthalExam,
   meta: {
-    patientName: string
+    identity: PatientIdentity
     clinicProfile?: ClinicProfile | null
     signedLogoUrl?: string | null
     /** Backlog 2/2 — modelo de laudo resolvido (cabeçalho/conclusão/rodapé). */
@@ -96,9 +98,8 @@ export async function renderOphthalExamPdf(
           subtitle="Exame oftalmológico"
         />
         <Text style={styles.title}>{tpl?.title?.trim() || 'Exame oftalmológico'}</Text>
-        <Text style={styles.patient}>
-          Paciente: {meta.patientName} · Data: {dateBr}
-        </Text>
+        <PatientIdentityBlock identity={meta.identity} />
+        <Text style={styles.patient}>Data: {dateBr}</Text>
 
         {tpl?.headerText ? <Text style={styles.tplBlock}>{tpl.headerText}</Text> : null}
 

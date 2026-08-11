@@ -5,13 +5,13 @@ import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { LabClass, LabResultItem } from '@/lib/core/labs/classify'
 import { LAB_GROUPS } from '@/lib/core/labs/catalog'
 import {
-  PatientBlock,
   PrintFooter,
   brDate,
   dash,
   printStyles as s,
-  type PatientHeaderInfo,
 } from './shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * Feature 054 US4 — quadro de exames laboratoriais.
@@ -25,7 +25,7 @@ import {
 
 export interface LabsPdfInput {
   clinicProfile: ClinicProfile | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   professionalName: string
   issuedAt: string
   items: LabResultItem[]
@@ -78,7 +78,7 @@ function Row({ item }: { item: LabResultItem }) {
 }
 
 export async function renderLabsPdf(input: LabsPdfInput): Promise<Buffer> {
-  const { items, patient } = input
+  const { items, identity } = input
   const panels = groupByPanel(items)
   const semReferencia = items.filter((i) => i.class === 'sem_referencia').length
   // A data do exame não é a da emissão: o quadro traz o último resultado de
@@ -89,7 +89,7 @@ export async function renderLabsPdf(input: LabsPdfInput): Promise<Buffer> {
     <Document>
       <Page size="A4" style={s.page}>
         <ClinicHeader profile={input.clinicProfile} subtitle="Exames laboratoriais" />
-        <PatientBlock patient={patient} />
+        <PatientIdentityBlock identity={identity} />
 
         <Text style={s.subtle}>
           {datas.length === 1
@@ -132,7 +132,7 @@ export async function renderLabsPdf(input: LabsPdfInput): Promise<Buffer> {
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={patient.name}
+          patientName={identity.name}
         />
       </Page>
     </Document>

@@ -2,6 +2,8 @@ import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-p
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { ExamRequest } from './crud'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 const styles = StyleSheet.create({
   page: { padding: 48, fontSize: 11, fontFamily: 'Helvetica', color: '#0f172a', lineHeight: 1.5 },
@@ -41,7 +43,7 @@ function ddmmyyyyLong(iso: string): string {
 export async function renderExamRequestPdf(
   reqDoc: ExamRequest,
   meta: {
-    patientName: string
+    identity: PatientIdentity
     clinicProfile?: ClinicProfile | null
     signedLogoUrl?: string | null
   },
@@ -62,7 +64,7 @@ export async function renderExamRequestPdf(
           subtitle="Solicitação de exame"
         />
         <Text style={styles.title}>Solicitação de exame</Text>
-        <Text style={styles.patient}>Paciente: {meta.patientName}</Text>
+        <PatientIdentityBlock identity={meta.identity} />
 
         {reqDoc.clinicalIndication ? (
           <>

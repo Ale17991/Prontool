@@ -19,7 +19,7 @@ import {
   pdfHeaders,
   printoutFilename,
   PrintoutDenied,
-} from '@/lib/core/nutrition/printouts/guard'
+} from '@/lib/core/printouts/guard'
 import { ageAt, todayInClinicTz } from '@/lib/core/nutrition/printouts/shared'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -33,6 +33,7 @@ export async function GET(
   const route = `/api/pacientes/${params.id}/anamnese/${params.recordId}/pdf`
   try {
     const ctx = await openPrintout({
+      document: 'anamnese',
       req,
       patientId: params.id,
       route,
@@ -64,14 +65,7 @@ export async function GET(
 
     const buf = await renderAnamnesisPdf({
       clinicProfile,
-      patient: {
-        name: ctx.patient.fullName || 'Paciente',
-        birthDate: ctx.patient.birthDate,
-        // Idade na data em que a anamnese foi respondida, não hoje: o documento
-        // é o retrato daquele dia, e as respostas foram dadas naquela idade.
-        ageYears: ageAt(ctx.patient.birthDate, record.createdAt),
-        sex: ctx.patient.sex,
-      },
+      identity: ctx.identity,
       templateTitle: snapshot.template_title,
       templateVersion: snapshot.template_version,
       fields: snapshot.fields ?? [],
@@ -81,7 +75,7 @@ export async function GET(
       professionalName: ctx.userName,
     })
 
-    await auditPrintout(ctx, 'anamnese')
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,

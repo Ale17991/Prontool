@@ -4,12 +4,12 @@ import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { CareNote } from '@/lib/core/patient-portal/care-notes'
 import {
-  PatientBlock,
   PrintFooter,
   brDateTz,
   printStyles as s,
-  type PatientHeaderInfo,
 } from '@/lib/core/nutrition/printouts/shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * Feature 054 US3 — orientações ao paciente em papel.
@@ -26,7 +26,7 @@ import {
 
 export interface CareNotesPdfInput {
   clinicProfile: ClinicProfile | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   professionalName: string
   issuedAt: string
   /** Na ordem em que a tela mostra — mais recente primeiro. */
@@ -34,13 +34,13 @@ export interface CareNotesPdfInput {
 }
 
 export async function renderCareNotesPdf(input: CareNotesPdfInput): Promise<Buffer> {
-  const { notes, patient } = input
+  const { notes, identity } = input
 
   const doc = (
     <Document>
       <Page size="A4" style={s.page}>
         <ClinicHeader profile={input.clinicProfile} subtitle="Orientações ao paciente" />
-        <PatientBlock patient={patient} />
+        <PatientIdentityBlock identity={identity} />
 
         <Text style={s.h2}>Orientações</Text>
 
@@ -57,7 +57,7 @@ export async function renderCareNotesPdf(input: CareNotesPdfInput): Promise<Buff
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={patient.name}
+          patientName={identity.name}
         />
       </Page>
     </Document>

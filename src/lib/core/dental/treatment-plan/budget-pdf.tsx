@@ -3,6 +3,8 @@ import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-p
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import { surfaceLabel, type Surface } from '@/lib/core/dental/teeth'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 export interface BudgetPdfItem {
   toothFdi: number | null
@@ -13,7 +15,7 @@ export interface BudgetPdfItem {
 
 export interface BudgetPdfInput {
   clinicProfile: ClinicProfile | null
-  patientName: string
+  identity: PatientIdentity
   budget: { title: string | null; status: string; totalCents: number; acceptedAt: string | null }
   items: BudgetPdfItem[]
 }
@@ -76,7 +78,7 @@ export async function renderBudgetPdf(input: BudgetPdfInput): Promise<Buffer> {
 
         <View style={styles.meta}>
           <Text style={styles.title}>{input.budget.title || 'Orçamento'}</Text>
-          <Text style={styles.subtle}>Paciente: {input.patientName}</Text>
+          <PatientIdentityBlock identity={input.identity} compact />
           <Text style={styles.subtle}>
             Situação: {STATUS_LABEL[input.budget.status] ?? input.budget.status}
             {input.budget.acceptedAt

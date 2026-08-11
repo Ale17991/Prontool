@@ -363,3 +363,38 @@ compartilhado por `seed-tuss.ts` e `check-tuss-collision.ts`.
   existiam no sistema. `tuss_table_label` é coluna gerada: acrescentar um valor
   exige drop + add, que reescreve a tabela — por isso a 0194 tem que rodar
   ANTES do seed, enquanto `tuss_codes` ainda é pequena.
+
+## Dados do paciente nos impressos (migration 0195)
+
+A clínica escolhe o que aparece do paciente em cada documento. Padrão da casa
+em `tenant_clinic_profile.printout_patient_fields`, exceção por documento em
+`printout_patient_field_overrides`. Catálogo e resolução em
+`src/lib/core/printouts/fields.ts`; tela em `/configuracoes/impressos`.
+
+- **O obstáculo não era a tela de escolher, era o dado não chegar.** Quatro
+  documentos (pedido de exame, receita de óculos, orçamento odonto, laudo
+  oftalmo) recebiam `patientName: string` e nada mais — não mostrariam CPF nem
+  que a clínica mandasse. O guard da 054 saiu de `nutrition/printouts/` para
+  `printouts/` e passou de 7 para 12 documentos.
+- **O guard recebe os PAPÉIS, não os impõe.** Unificar em admin+profissional
+  era o caminho fácil e teria tirado o pedido de exame e o laudo da recepção
+  (que entrega o papel) e o orçamento do financeiro. O guard centraliza as
+  REGRAS; público de cada documento é diferença legítima.
+- **A exceção do documento SUBSTITUI o padrão, não soma.** Somar impediria o
+  caso que mais importa: mostrar MENOS num papel que o paciente leva na bolsa.
+  O preço — mudança no padrão não alcança documento personalizado — é visível
+  na tela, com "voltar ao padrão".
+- **Nome é piso, não opção**, e aparece na tela desligado-e-travado para a
+  ausência não parecer esquecimento de quem configura.
+- **Campo ligado sem dado sai com travessão; campo desligado não vira linha.**
+  Confundir os dois devolve documento que parece completo escondendo o que não
+  foi coletado — mesma regra da 054 para pergunta de anamnese sem resposta.
+- **A ordem impressa é a do catálogo**, nunca a ordem em que alguém marcou as
+  caixas: dois papéis da mesma clínica têm que ler igual.
+- **Idade recebe o DIA CIVIL, não um instante.** Emitir às 22h em São Paulo já
+  é o dia seguinte em UTC, e um `Date` envelheceria o paciente na véspera do
+  aniversário. Travado por teste.
+- **Duas ausências deliberadas**: guia TISS (conteúdo mandatório da ANS —
+  configurar o obrigatório convida glosa) e prontuário completo (lá os dados
+  são a seção 1, conteúdo e não cabeçalho; completo que esconde CPF deixa de
+  ser completo, e é a completude que o faz servir para portabilidade).

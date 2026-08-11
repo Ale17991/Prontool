@@ -5,14 +5,14 @@ import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { AdequacyResult } from '@/lib/core/nutrition/adequacy'
 import type { RecallView } from '@/lib/core/nutrition/recall/plan'
 import {
-  PatientBlock,
   PrintFooter,
   brDate,
   dash,
   fmt,
   printStyles as s,
-  type PatientHeaderInfo,
 } from './shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * Feature 054 US4 — recordatório alimentar de 24 horas.
@@ -27,7 +27,7 @@ import {
 
 export interface RecallPdfInput {
   clinicProfile: ClinicProfile | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   professionalName: string
   issuedAt: string
   recall: RecallView
@@ -61,7 +61,7 @@ const ADEQUACY_LABEL: Record<string, string> = {
 }
 
 export async function renderRecallPdf(input: RecallPdfInput): Promise<Buffer> {
-  const { recall, patient, adequacy } = input
+  const { recall, identity, adequacy } = input
   const t = printedTotals(recall)
   // Só o que tem referência entra no quadro: listar "—" para dezenas de micros
   // sem DRI encheria a página de linhas que não informam nada.
@@ -71,7 +71,7 @@ export async function renderRecallPdf(input: RecallPdfInput): Promise<Buffer> {
     <Document>
       <Page size="A4" style={s.page}>
         <ClinicHeader profile={input.clinicProfile} subtitle="Recordatório alimentar (24h)" />
-        <PatientBlock patient={patient} />
+        <PatientIdentityBlock identity={identity} />
 
         <Text style={s.subtle}>Consumo referente a {brDate(recall.recallDate)}</Text>
 
@@ -155,7 +155,7 @@ export async function renderRecallPdf(input: RecallPdfInput): Promise<Buffer> {
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={patient.name}
+          patientName={identity.name}
         />
       </Page>
     </Document>

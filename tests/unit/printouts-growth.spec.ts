@@ -116,7 +116,7 @@ describe('o PDF sai', () => {
   it('gera um documento de verdade com as três curvas', async () => {
     const buf = await renderGrowthPdf({
       clinicProfile: null,
-      patient: { name: 'Criança Teste', birthDate: '2023-08-10', ageYears: 3, sex: 'feminino' },
+      identity: { name: 'Criança Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/08/2023' }, { key: 'idade', label: 'Idade', value: '3 anos' }] },
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       curves: [

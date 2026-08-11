@@ -17,7 +17,7 @@ import {
   pdfHeaders,
   printoutFilename,
   PrintoutDenied,
-} from '@/lib/core/nutrition/printouts/guard'
+} from '@/lib/core/printouts/guard'
 import { ageAt, todayInClinicTz } from '@/lib/core/nutrition/printouts/shared'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -32,6 +32,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   const route = `/api/pacientes/${params.id}/crescimento/pdf`
   try {
     const ctx = await openPrintout({
+      document: 'crescimento',
       req,
       patientId: params.id,
       route,
@@ -84,19 +85,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
 
     const buf = await renderGrowthPdf({
       clinicProfile,
-      patient: {
-        name: ctx.patient.fullName || 'Paciente',
-        birthDate: ctx.patient.birthDate,
-        ageYears: ageAt(ctx.patient.birthDate, hoje),
-        sex: ctx.patient.sex,
-      },
+      identity: ctx.identity,
       professionalName: ctx.userName,
       issuedAt: hoje,
       // Indicador sem nenhuma aferição não vira gráfico vazio.
       curves: report.curves.filter((c) => c.points.length > 0),
     })
 
-    await auditPrintout(ctx, 'crescimento')
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,

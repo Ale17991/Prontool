@@ -1,12 +1,15 @@
-import { requireRole } from '@/lib/auth/require-role'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatientDocument } from '@/lib/core/patient-documents/list'
 import { renderPatientDocumentPdf } from '@/lib/core/patient-documents/pdf'
-import { getPatient } from '@/lib/core/patients/get'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS } from '@/lib/core/clinic-profile/types'
 import { NotFoundError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
+import {
+  auditPrintout,
+  deniedResponse,
+  openPrintout,
+  PrintoutDenied,
+} from '@/lib/core/printouts/guard'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -17,29 +20,31 @@ export async function GET(
 ): Promise<Response> {
   const route = `/api/pacientes/${params.id}/documentos/${params.docId}/pdf`
   try {
-    const session = await requireRole(['admin', 'profissional_saude', 'recepcionista'], {
+    const ctx = await openPrintout({
+      req,
+      patientId: params.id,
+      route,
       entity: 'patient_documents',
       entityId: params.docId,
-      route,
-      request: req,
+      document: 'documento',
+      roles: ['admin', 'profissional_saude', 'recepcionista'],
     })
-    const supabase = createSupabaseServiceClient()
+    const supabase = ctx.supabase
 
     const doc = await getPatientDocument(supabase, {
-      tenantId: session.tenantId,
+      tenantId: ctx.tenantId,
       documentId: params.docId,
     })
     if (!doc) throw new NotFoundError('patient_document', params.docId)
 
-    const [{ patient }, clinicProfile] = await Promise.all([
-      getPatient(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      getClinicProfile(supabase, session.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(
-        () => null,
-      ),
-    ])
+    const clinicProfile = await getClinicProfile(
+      supabase,
+      ctx.tenantId,
+      CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS,
+    ).catch(() => null)
 
     const buf = await renderPatientDocumentPdf(doc, {
-      patientName: patient.fullName || '—',
+      identity: ctx.identity,
       clinicProfile,
       signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
     })
@@ -49,10 +54,12 @@ export async function GET(
       await supabase
         .from('patient_documents' as never)
         .update({ issued_at: new Date().toISOString() } as never)
-        .eq('tenant_id', session.tenantId)
+        .eq('tenant_id', ctx.tenantId)
         .eq('id', params.docId)
         .is('issued_at', null)
     }
+
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,
@@ -63,6 +70,7 @@ export async function GET(
       },
     })
   } catch (err) {
+    if (err instanceof PrintoutDenied) return deniedResponse(err)
     return toHttpResponse(err, { route })
   }
 }

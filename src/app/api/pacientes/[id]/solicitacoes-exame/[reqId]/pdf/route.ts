@@ -1,8 +1,11 @@
-import { requireRole } from '@/lib/auth/require-role'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getExamRequest } from '@/lib/core/exam-requests/crud'
 import { renderExamRequestPdf } from '@/lib/core/exam-requests/pdf'
-import { getPatient } from '@/lib/core/patients/get'
+import {
+  auditPrintout,
+  deniedResponse,
+  openPrintout,
+  PrintoutDenied,
+} from '@/lib/core/printouts/guard'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
 import { CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS } from '@/lib/core/clinic-profile/types'
 import { NotFoundError } from '@/lib/observability/errors'
@@ -17,29 +20,31 @@ export async function GET(
 ): Promise<Response> {
   const route = `/api/pacientes/${params.id}/solicitacoes-exame/${params.reqId}/pdf`
   try {
-    const session = await requireRole(['admin', 'profissional_saude', 'recepcionista'], {
+    const ctx = await openPrintout({
+      req,
+      patientId: params.id,
+      route,
       entity: 'exam_requests',
       entityId: params.reqId,
-      route,
-      request: req,
+      document: 'pedido-exame',
+      roles: ['admin', 'profissional_saude', 'recepcionista'],
     })
-    const supabase = createSupabaseServiceClient()
+    const supabase = ctx.supabase
 
     const reqDoc = await getExamRequest(supabase, {
-      tenantId: session.tenantId,
+      tenantId: ctx.tenantId,
       id: params.reqId,
     })
     if (!reqDoc) throw new NotFoundError('exam_request', params.reqId)
 
-    const [{ patient }, clinicProfile] = await Promise.all([
-      getPatient(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      getClinicProfile(supabase, session.tenantId, CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS).catch(
-        () => null,
-      ),
-    ])
+    const clinicProfile = await getClinicProfile(
+      supabase,
+      ctx.tenantId,
+      CLINIC_LOGO_PDF_SIGNED_URL_TTL_SECONDS,
+    ).catch(() => null)
 
     const buf = await renderExamRequestPdf(reqDoc, {
-      patientName: patient.fullName || '—',
+      identity: ctx.identity,
       clinicProfile,
       signedLogoUrl: clinicProfile?.logo?.signedUrl ?? null,
     })
@@ -49,10 +54,12 @@ export async function GET(
       await supabase
         .from('exam_requests' as never)
         .update({ issued_at: new Date().toISOString() } as never)
-        .eq('tenant_id', session.tenantId)
+        .eq('tenant_id', ctx.tenantId)
         .eq('id', params.reqId)
         .is('issued_at', null)
     }
+
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,
@@ -63,6 +70,7 @@ export async function GET(
       },
     })
   } catch (err) {
+    if (err instanceof PrintoutDenied) return deniedResponse(err)
     return toHttpResponse(err, { route })
   }
 }

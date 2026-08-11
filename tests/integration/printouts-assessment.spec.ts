@@ -10,13 +10,9 @@ import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-clie
 import { seedTenant, seedUser, seedPatient } from '@/tests/helpers/seed-factories'
 import { listAssessmentsForPrintout } from '@/lib/core/nutrition/assessments/for-printout'
 import { renderAssessmentPdf, variation } from '@/lib/core/nutrition/printouts/assessment-pdf'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
-const PACIENTE = {
-  name: 'Paciente Teste',
-  birthDate: '1990-05-10',
-  ageYears: 36,
-  sex: 'feminino',
-}
+const PACIENTE: PatientIdentity = { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] }
 
 async function seedAssessment(args: {
   tenantId: string
@@ -120,7 +116,7 @@ describe('impresso de evolução da avaliação', () => {
     const list = await listAssessmentsForPrintout(serviceClient(), { tenantId, patientId })
     const buf = await renderAssessmentPdf({
       clinicProfile: null,
-      patient: PACIENTE,
+      identity: PACIENTE,
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       assessments: list,
@@ -151,7 +147,7 @@ describe('impresso de evolução da avaliação', () => {
 
     const buf = await renderAssessmentPdf({
       clinicProfile: null,
-      patient: PACIENTE,
+      identity: PACIENTE,
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       assessments: list,

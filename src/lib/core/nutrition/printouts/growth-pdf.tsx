@@ -15,13 +15,13 @@ import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { GrowthCurve } from '@/lib/core/growth/read'
 import type { PercentileRow } from '@/lib/core/growth/classify'
 import {
-  PatientBlock,
   PrintFooter,
   brDate,
   dash,
   printStyles as s,
-  type PatientHeaderInfo,
 } from './shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * Feature 054 US5 — avaliação infantil.
@@ -37,7 +37,7 @@ import {
 
 export interface GrowthPdfInput {
   clinicProfile: ClinicProfile | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   professionalName: string
   issuedAt: string
   curves: GrowthCurve[]
@@ -207,13 +207,13 @@ function CurveBlock({ curve }: { curve: GrowthCurve }) {
 }
 
 export async function renderGrowthPdf(input: GrowthPdfInput): Promise<Buffer> {
-  const { curves, patient } = input
+  const { curves, identity } = input
 
   const doc = (
     <Document>
       <Page size="A4" style={s.page}>
         <ClinicHeader profile={input.clinicProfile} subtitle="Avaliação do crescimento" />
-        <PatientBlock patient={patient} />
+        <PatientIdentityBlock identity={identity} />
 
         <Text style={s.subtle}>
           As linhas cinzas são os percentis 3, 15, 50, 85 e 97 da população da mesma idade e sexo. O
@@ -232,7 +232,7 @@ export async function renderGrowthPdf(input: GrowthPdfInput): Promise<Buffer> {
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={patient.name}
+          patientName={identity.name}
         />
       </Page>
     </Document>

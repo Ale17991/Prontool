@@ -30,6 +30,7 @@ import { renderGrowthPdf } from '@/lib/core/nutrition/printouts/growth-pdf'
 import { renderLabsPdf } from '@/lib/core/nutrition/printouts/labs-pdf'
 import { renderPlanPdf } from '@/lib/core/nutrition/printouts/plan-pdf'
 import { renderRecallPdf } from '@/lib/core/nutrition/printouts/recall-pdf'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 const EMITIDO_EM = '2026-08-05'
 const PROFISSIONAL = 'ana.ferreira@nutricaoviva.com.br'
@@ -62,19 +63,9 @@ const CLINICA: ClinicProfile = {
 }
 
 // Nome comprido de propósito: é onde o cabeçalho e o rodapé estouram.
-const ADULTA = {
-  name: 'Mariana Alves de Souza Rodrigues',
-  birthDate: '1990-05-10',
-  ageYears: 36,
-  sex: 'feminino',
-}
+const ADULTA: PatientIdentity = { name: 'Mariana Alves de Souza Rodrigues', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] }
 
-const CRIANCA = {
-  name: 'Pedro Henrique Lima',
-  birthDate: '2023-02-14',
-  ageYears: 3,
-  sex: 'masculino',
-}
+const CRIANCA: PatientIdentity = { name: 'Pedro Henrique Lima', lines: [{ key: 'nascimento', label: 'Nascimento', value: '14/02/2023' }, { key: 'idade', label: 'Idade', value: '3 anos' }] }
 
 const nut = (energyKcal: number, proteinG: number, carbG: number, fatG: number, fiberG: number) => ({
   energyKcal,
@@ -528,18 +519,18 @@ async function main(): Promise<void> {
   const comum = { clinicProfile: CLINICA, professionalName: PROFISSIONAL, issuedAt: EMITIDO_EM }
 
   const documentos: Array<[string, Promise<Buffer>]> = [
-    ['1-plano-alimentar.pdf', renderPlanPdf({ ...comum, patient: ADULTA, plan: PLANO })],
+    ['1-plano-alimentar.pdf', renderPlanPdf({ ...comum, identity: ADULTA, plan: PLANO })],
     [
       '1b-plano-alimentar-rascunho.pdf',
-      renderPlanPdf({ ...comum, patient: ADULTA, plan: { ...PLANO, status: 'rascunho' } }),
+      renderPlanPdf({ ...comum, identity: ADULTA, plan: { ...PLANO, status: 'rascunho' } }),
     ],
-    ['2-evolucao-avaliacao.pdf', renderAssessmentPdf({ ...comum, patient: ADULTA, assessments: AVALIACOES })],
-    ['3-orientacoes.pdf', renderCareNotesPdf({ ...comum, patient: ADULTA, notes: ORIENTACOES })],
+    ['2-evolucao-avaliacao.pdf', renderAssessmentPdf({ ...comum, identity: ADULTA, assessments: AVALIACOES })],
+    ['3-orientacoes.pdf', renderCareNotesPdf({ ...comum, identity: ADULTA, notes: ORIENTACOES })],
     [
       '4-anamnese.pdf',
       renderAnamnesisPdf({
         ...comum,
-        patient: ADULTA,
+        identity: ADULTA,
         templateTitle: 'Anamnese nutricional adulto',
         templateVersion: 2,
         fields: ANAMNESE_CAMPOS,
@@ -547,9 +538,9 @@ async function main(): Promise<void> {
         createdAt: '2026-02-10T14:20:00Z',
       }),
     ],
-    ['5-recordatorio.pdf', renderRecallPdf({ ...comum, patient: ADULTA, recall: RECORDATORIO, adequacy: ADEQUACAO })],
-    ['6-exames.pdf', renderLabsPdf({ ...comum, patient: ADULTA, items: PAINEL.items, blockedBySex: 0 })],
-    ['7-crescimento.pdf', renderGrowthPdf({ ...comum, patient: CRIANCA, curves: CURVAS })],
+    ['5-recordatorio.pdf', renderRecallPdf({ ...comum, identity: ADULTA, recall: RECORDATORIO, adequacy: ADEQUACAO })],
+    ['6-exames.pdf', renderLabsPdf({ ...comum, identity: ADULTA, items: PAINEL.items, blockedBySex: 0 })],
+    ['7-crescimento.pdf', renderGrowthPdf({ ...comum, identity: CRIANCA, curves: CURVAS })],
   ]
 
   for (const [nome, promessa] of documentos) {

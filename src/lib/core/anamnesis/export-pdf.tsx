@@ -3,11 +3,11 @@ import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-p
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import {
-  PatientBlock,
   PrintFooter,
   brDateTz,
-  type PatientHeaderInfo,
 } from '@/lib/core/nutrition/printouts/shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * PDF de anamnese preenchida. Mesmo padrão do `reports/export-pdf.tsx` —
@@ -88,7 +88,7 @@ export interface AnamnesisPdfInput {
   /** Feature 009 — perfil completo da clínica (logo + dados oficiais). */
   clinicProfile?: ClinicProfile | null
   signedLogoUrl?: string | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   templateTitle: string
   templateVersion: number
   fields: AnamnesisPdfField[]
@@ -160,7 +160,7 @@ export function AnamnesisPdfDocument(input: AnamnesisPdfInput) {
           subtitle={`${input.templateTitle} (v${input.templateVersion}) · Preenchida em ${brDateTz(input.createdAt)}`}
         />
 
-        <PatientBlock patient={input.patient} />
+        <PatientIdentityBlock identity={input.identity} />
 
         {rows.length === 0 ? (
           // Modelo só com campos padrão. Dizer isso é melhor que entregar uma
@@ -189,7 +189,7 @@ export function AnamnesisPdfDocument(input: AnamnesisPdfInput) {
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={input.patient.name}
+          patientName={input.identity.name}
         />
       </Page>
     </Document>

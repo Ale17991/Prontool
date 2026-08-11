@@ -96,31 +96,6 @@ export function brDateTz(iso: string | null | undefined, withTime = false): stri
   })
 }
 
-export interface PatientHeaderInfo {
-  name: string
-  birthDate: string | null
-  ageYears: number | null
-  sex: string | null
-}
-
-/**
- * Identificação do paciente. Vai em TODA página, não só na primeira: folhas
- * soltas se separam, e uma página de plano alimentar sem nome não serve para
- * nada — nem para o paciente, nem para o arquivo da clínica (FR-015).
- */
-export function PatientBlock({ patient }: { patient: PatientHeaderInfo }) {
-  return (
-    <View style={{ marginBottom: 8 }}>
-      <Text style={printStyles.h1}>{patient.name}</Text>
-      <Text style={printStyles.subtle}>
-        {patient.birthDate ? `Nascimento: ${brDate(patient.birthDate)}` : 'Nascimento não informado'}
-        {patient.ageYears !== null ? ` · ${patient.ageYears} anos` : ''}
-        {patient.sex ? ` · ${patient.sex}` : ''}
-      </Text>
-    </View>
-  )
-}
-
 /**
  * Rodapé fixo com paginação e responsável pela emissão.
  *

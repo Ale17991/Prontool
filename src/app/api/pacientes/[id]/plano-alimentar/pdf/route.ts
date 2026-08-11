@@ -16,7 +16,7 @@ import {
   pdfHeaders,
   printoutFilename,
   PrintoutDenied,
-} from '@/lib/core/nutrition/printouts/guard'
+} from '@/lib/core/printouts/guard'
 import { ageAt, todayInClinicTz } from '@/lib/core/nutrition/printouts/shared'
 import { NextResponse } from 'next/server'
 import { toHttpResponse } from '@/lib/observability/http'
@@ -29,6 +29,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   const route = `/api/pacientes/${params.id}/plano-alimentar/pdf`
   try {
     const ctx = await openPrintout({
+      document: 'plano-alimentar',
       req,
       patientId: params.id,
       route,
@@ -53,18 +54,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
 
     const buf = await renderPlanPdf({
       clinicProfile,
-      patient: {
-        name: ctx.patient.fullName || 'Paciente',
-        birthDate: ctx.patient.birthDate,
-        ageYears: ageAt(ctx.patient.birthDate, hoje),
-        sex: ctx.patient.sex,
-      },
+      identity: ctx.identity,
       professionalName: ctx.userName,
       issuedAt: hoje,
       plan,
     })
 
-    await auditPrintout(ctx, 'plano-alimentar')
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,

@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth/require-role'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getClinicProfile } from '@/lib/core/clinic-profile/read'
-import { getPatient } from '@/lib/core/patients/get'
 import { listPlan } from '@/lib/core/dental/treatment-plan/list-plan'
 import { renderBudgetPdf, type BudgetPdfItem } from '@/lib/core/dental/treatment-plan/budget-pdf'
 import type { Surface } from '@/lib/core/dental/teeth'
 import { toHttpResponse } from '@/lib/observability/http'
 import { NotFoundError } from '@/lib/observability/errors'
+import {
+  auditPrintout,
+  deniedResponse,
+  openPrintout,
+  PrintoutDenied,
+} from '@/lib/core/printouts/guard'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -19,18 +22,20 @@ export async function GET(
 ): Promise<Response> {
   const route = `/api/pacientes/${params.id}/plano/orcamentos/${params.budgetId}/pdf`
   try {
-    const session = await requireRole(['admin', 'financeiro', 'profissional_saude'], {
+    const ctx = await openPrintout({
+      req,
+      patientId: params.id,
+      route,
       entity: 'treatment_budgets',
       entityId: params.budgetId,
-      route,
-      request: req,
+      document: 'orcamento-odonto',
+      roles: ['admin', 'financeiro', 'profissional_saude'],
     })
-    const supabase = createSupabaseServiceClient()
+    const supabase = ctx.supabase
 
-    const [clinicProfile, patient, plan] = await Promise.all([
-      getClinicProfile(supabase, session.tenantId).catch(() => null),
-      getPatient(supabase, { tenantId: session.tenantId, patientId: params.id }),
-      listPlan(supabase, { tenantId: session.tenantId, patientId: params.id }),
+    const [clinicProfile, plan] = await Promise.all([
+      getClinicProfile(supabase, ctx.tenantId).catch(() => null),
+      listPlan(supabase, { tenantId: ctx.tenantId, patientId: params.id }),
     ])
 
     const budget = plan.budgets.find((b) => b.id === params.budgetId)
@@ -50,7 +55,7 @@ export async function GET(
 
     const buf = await renderBudgetPdf({
       clinicProfile,
-      patientName: patient.patient.fullName || 'Paciente',
+      identity: ctx.identity,
       budget: {
         title: budget.title,
         status: budget.status,
@@ -61,6 +66,8 @@ export async function GET(
     })
 
     const stamp = new Date().toISOString().slice(0, 10)
+    await auditPrintout(ctx)
+
     return new Response(new Uint8Array(buf), {
       status: 200,
       headers: {
@@ -70,6 +77,7 @@ export async function GET(
       },
     })
   } catch (err) {
+    if (err instanceof PrintoutDenied) return deniedResponse(err)
     return toHttpResponse(err, { route })
   }
 }

@@ -18,7 +18,7 @@ import {
   pdfHeaders,
   printoutFilename,
   PrintoutDenied,
-} from '@/lib/core/nutrition/printouts/guard'
+} from '@/lib/core/printouts/guard'
 import { ageAt, todayInClinicTz } from '@/lib/core/nutrition/printouts/shared'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -29,6 +29,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   const route = `/api/pacientes/${params.id}/exames/pdf`
   try {
     const ctx = await openPrintout({
+      document: 'exames',
       req,
       patientId: params.id,
       route,
@@ -58,19 +59,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
 
     const buf = await renderLabsPdf({
       clinicProfile,
-      patient: {
-        name: ctx.patient.fullName || 'Paciente',
-        birthDate: ctx.patient.birthDate,
-        ageYears: ageAt(ctx.patient.birthDate, hoje),
-        sex: ctx.patient.sex,
-      },
+      identity: ctx.identity,
       professionalName: ctx.userName,
       issuedAt: hoje,
       items: panel.items,
       blockedBySex: need.blockedBySex,
     })
 
-    await auditPrintout(ctx, 'exames')
+    await auditPrintout(ctx)
 
     return new Response(new Uint8Array(buf), {
       status: 200,

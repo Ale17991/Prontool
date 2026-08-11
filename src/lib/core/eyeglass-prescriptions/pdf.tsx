@@ -2,6 +2,8 @@ import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-p
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { EyeglassRx, EyeData } from './crud'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 const styles = StyleSheet.create({
   page: { padding: 44, fontSize: 10, fontFamily: 'Helvetica', color: '#0f172a' },
@@ -89,7 +91,7 @@ function EyeRow({ label, eye }: { label: string; eye: EyeData }) {
 export async function renderEyeglassRxPdf(
   rx: EyeglassRx,
   meta: {
-    patientName: string
+    identity: PatientIdentity
     clinicProfile?: ClinicProfile | null
     signedLogoUrl?: string | null
   },
@@ -111,7 +113,7 @@ export async function renderEyeglassRxPdf(
           subtitle="Receita de óculos"
         />
         <Text style={styles.title}>Receita de óculos</Text>
-        <Text style={styles.patient}>Paciente: {meta.patientName}</Text>
+        <PatientIdentityBlock identity={meta.identity} />
 
         <View style={styles.trHeader}>
           <Text style={[styles.th, styles.cEye]}>Olho</Text>

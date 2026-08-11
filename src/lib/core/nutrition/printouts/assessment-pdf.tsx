@@ -6,13 +6,13 @@ import { EvolutionColumns, type EvolutionColumn } from '@/lib/pdf/evolution-colu
 import { DOBRA_PROTOCOLS, TMB_EQUATIONS } from '@/lib/core/nutrition/protocols'
 import type { AssessmentForPrint } from '@/lib/core/nutrition/assessments/for-printout'
 import {
-  PatientBlock,
   PrintFooter,
   brDate,
   dash,
   printStyles as s,
-  type PatientHeaderInfo,
 } from './shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * Feature 054 US2 — evolução da avaliação nutricional.
@@ -28,7 +28,7 @@ import {
 
 export interface AssessmentPdfInput {
   clinicProfile: ClinicProfile | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   professionalName: string
   issuedAt: string
   assessments: AssessmentForPrint[]
@@ -117,7 +117,7 @@ function signed(v: number | null, unit: string): string {
 }
 
 export async function renderAssessmentPdf(input: AssessmentPdfInput): Promise<Buffer> {
-  const { assessments, patient } = input
+  const { assessments, identity } = input
   const columns = assessments.map(toColumn)
   const first = assessments[0]
   const last = assessments[assessments.length - 1]
@@ -131,7 +131,7 @@ export async function renderAssessmentPdf(input: AssessmentPdfInput): Promise<Bu
     <Document>
       <Page size="A4" style={s.page}>
         <ClinicHeader profile={input.clinicProfile} subtitle="Avaliação nutricional" />
-        <PatientBlock patient={patient} />
+        <PatientIdentityBlock identity={identity} />
 
         <Text style={s.h2}>Composição corporal e gasto energético</Text>
         <EvolutionColumns columns={columns} labels={LINHAS} />
@@ -160,7 +160,7 @@ export async function renderAssessmentPdf(input: AssessmentPdfInput): Promise<Bu
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={patient.name}
+          patientName={identity.name}
         />
       </Page>
     </Document>

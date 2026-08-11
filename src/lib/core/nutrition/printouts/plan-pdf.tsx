@@ -5,14 +5,14 @@ import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { DietPlanView } from '@/lib/core/nutrition/diet/plan'
 import {
   DraftStamp,
-  PatientBlock,
   PrintFooter,
   brDate,
   dash,
   fmt,
   printStyles as s,
-  type PatientHeaderInfo,
 } from './shared'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 /**
  * Feature 054 US1 — plano alimentar impresso.
@@ -30,7 +30,7 @@ import {
 
 export interface PlanPdfInput {
   clinicProfile: ClinicProfile | null
-  patient: PatientHeaderInfo
+  identity: PatientIdentity
   professionalName: string
   issuedAt: string
   plan: DietPlanView
@@ -55,14 +55,14 @@ function MealItem({
 }
 
 export async function renderPlanPdf(input: PlanPdfInput): Promise<Buffer> {
-  const { plan, patient } = input
+  const { plan, identity } = input
   const t = plan.totals
 
   const doc = (
     <Document>
       <Page size="A4" style={s.page}>
         <ClinicHeader profile={input.clinicProfile} subtitle="Plano alimentar" />
-        <PatientBlock patient={patient} />
+        <PatientIdentityBlock identity={identity} />
 
         {/* FR-010: rascunho não pode circular como prescrição fechada. */}
         {plan.status === 'rascunho' ? <DraftStamp /> : null}
@@ -143,7 +143,7 @@ export async function renderPlanPdf(input: PlanPdfInput): Promise<Buffer> {
         <PrintFooter
           professionalName={input.professionalName}
           issuedAt={input.issuedAt}
-          patientName={patient.name}
+          patientName={identity.name}
         />
       </Page>
     </Document>

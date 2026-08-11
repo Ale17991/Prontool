@@ -2,6 +2,8 @@ import { Document, Page, StyleSheet, Text, View, renderToBuffer } from '@react-p
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { PatientDocumentRow } from './list'
+import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 const TYPE_LABEL: Record<string, string> = {
   atestado: 'Atestado',
@@ -45,7 +47,7 @@ function ddmmyyyyLong(iso: string): string {
 export async function renderPatientDocumentPdf(
   doc: PatientDocumentRow,
   meta: {
-    patientName: string
+    identity: PatientIdentity
     clinicProfile?: ClinicProfile | null
     signedLogoUrl?: string | null
   },
@@ -66,7 +68,7 @@ export async function renderPatientDocumentPdf(
           subtitle={TYPE_LABEL[doc.docType] ?? 'Documento'}
         />
         <Text style={styles.title}>{doc.title}</Text>
-        <Text style={styles.patient}>Paciente: {meta.patientName}</Text>
+        <PatientIdentityBlock identity={meta.identity} />
         <Text style={[styles.body, { fontSize: doc.fontSize }]}>{doc.body}</Text>
         {doc.cidCode || doc.cidDescription ? (
           <Text style={styles.cid}>

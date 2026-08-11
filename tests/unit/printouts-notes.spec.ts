@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 import { anamnesisPrintRows } from '@/lib/core/anamnesis/export-pdf'
 import { renderCareNotesPdf } from '@/lib/core/care-notes/notes-pdf'
 import { brDateTz } from '@/lib/core/nutrition/printouts/shared'
+import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
 const FIELDS = [
   { id: 'default_nome', label: 'Nome', is_default: true },
@@ -76,18 +77,13 @@ describe('anamnese impressa (T021)', () => {
 })
 
 describe('orientações impressas (T021)', () => {
-  const patient = {
-    name: 'Paciente Teste',
-    birthDate: '1990-05-10',
-    ageYears: 36,
-    sex: 'feminino',
-  }
+  const identity: PatientIdentity = { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] }
 
   it('gera um PDF com o texto íntegro, inclusive o que atravessa página', async () => {
     const longo = 'Guia FODMAP. '.repeat(250) // ~3.200 caracteres, mais de uma página
     const buf = await renderCareNotesPdf({
       clinicProfile: null,
-      patient,
+      identity,
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       notes: [
