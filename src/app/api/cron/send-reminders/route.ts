@@ -17,14 +17,36 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
+/**
+ * O Vercel Cron invoca com **GET**, não com POST — e a rota só exportava POST,
+ * então todo disparo desde que o cron existe recebeu 405 e o ciclo NUNCA rodou
+ * sozinho em produção (descoberto em 11/08/2026 pelo log
+ * `GET /api/cron/send-reminders 405`). O sintoma era mudo: sem execução, sem
+ * erro visível, sem alerta — só `reminder_last_run_at` nulo em todas as
+ * clínicas, que é fácil confundir com "ninguém tinha lembrete para enviar".
+ *
+ * POST fica exportado junto porque é o que permite disparar o ciclo à mão.
+ */
+export async function GET(request: NextRequest) {
+  return executarCiclo(request)
+}
+
 export async function POST(request: NextRequest) {
+  return executarCiclo(request)
+}
+
+async function executarCiclo(request: NextRequest) {
   // Registrado ANTES da autenticação de propósito. O `cron-reminders-start`
   // abaixo só é escrito depois do guard, então uma invocação recusada por
   // credencial não deixava rastro nenhum na aplicação — e "a Vercel não chamou"
   // ficava indistinguível de "chamou e levou 401". São causas opostas: uma se
   // conserta no registro do cron, a outra reescrevendo a variável.
   logger.info(
-    { temSecret: Boolean(process.env.CRON_SECRET), temHeader: request.headers.has('authorization') },
+    {
+      metodo: request.method,
+      temSecret: Boolean(process.env.CRON_SECRET),
+      temHeader: request.headers.has('authorization'),
+    },
     'cron-reminders-invocado',
   )
 
