@@ -49,34 +49,61 @@ export async function POST(req: Request): Promise<Response> {
 
   const supabase = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
 
-  // O `externalId` é o id do lembrete (D6). O tenant vem DAQUI, nunca do corpo
-  // da requisição — quem manda o payload não decide em qual clínica escreve
-  // (Princípio III).
+  /**
+   * O `externalId` é o id do LEMBRETE (051, D6) ou o da OCORRÊNCIA de automação
+   * (056) — os dois motores usam o mesmo campo como chave de idempotência, e
+   * ambos são uuid.
+   *
+   * A busca é em cascata, lembrete primeiro, porque não há como distinguir os
+   * dois pelo formato e o lembrete é o caminho mais antigo e mais movimentado.
+   * Antes da 0197 a segunda tentativa não existia e TODA confirmação de
+   * automação morria aqui como `unknown-reminder` — 200, sem erro, sem rastro.
+   *
+   * O tenant vem DAQUI em qualquer um dos casos, nunca do corpo da requisição:
+   * quem manda o payload não decide em qual clínica escreve (Princípio III).
+   */
   const { data: reminder } = await supabase
     .from('appointment_reminders')
     .select('id, tenant_id, channel')
     .eq('id', externalId)
     .maybeSingle()
 
-  if (!reminder) {
+  let origem: { tenantId: string; reminderId?: string; automationOccurrenceId?: string } | null =
+    reminder
+      ? { tenantId: (reminder as { tenant_id: string }).tenant_id, reminderId: (reminder as { id: string }).id }
+      : null
+
+  if (!origem) {
+    const { data: ocorrencia } = await supabase
+      .from('automation_occurrences')
+      .select('id, tenant_id')
+      .eq('id', externalId)
+      .maybeSingle()
+    if (ocorrencia) {
+      const o = ocorrencia as { id: string; tenant_id: string }
+      origem = { tenantId: o.tenant_id, automationOccurrenceId: o.id }
+    }
+  }
+
+  if (!origem) {
     // Confirmação de algo que não é nosso, ou de outro ambiente apontando para
     // cá. 200 de propósito: 4xx faria o serviço re-tentar em loop.
-    return NextResponse.json({ ok: true, ignored: 'unknown-reminder' })
+    return NextResponse.json({ ok: true, ignored: 'unknown-external-id' })
   }
-  const r = reminder as { id: string; tenant_id: string; channel: string }
 
   // Autenticação DEPOIS de resolver o tenant, porque o segredo é por clínica.
-  const esperado = await getDecryptedCallbackSecret(supabase, r.tenant_id).catch(() => null)
+  const esperado = await getDecryptedCallbackSecret(supabase, origem.tenantId).catch(() => null)
   const apresentado = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '')
   if (!esperado || !apresentado || !segredosBatem(apresentado, esperado)) {
-    logger.warn({ tenantId: r.tenant_id }, 'whatsapp-callback-unauthorized')
+    logger.warn({ tenantId: origem.tenantId }, 'whatsapp-callback-unauthorized')
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 })
   }
 
   try {
     await recordDeliveryEvent(supabase, {
-      tenantId: r.tenant_id,
-      reminderId: r.id,
+      tenantId: origem.tenantId,
+      reminderId: origem.reminderId,
+      automationOccurrenceId: origem.automationOccurrenceId,
       providerMessageId: typeof body.messageId === 'string' ? body.messageId : null,
       status: status as WhatsAppDeliveryStatus,
       errorDetail: typeof body.error === 'string' ? body.error : null,
@@ -87,7 +114,7 @@ export async function POST(req: Request): Promise<Response> {
         typeof body.timestamp === 'string' ? body.timestamp : new Date().toISOString(),
     })
   } catch (err) {
-    logger.error({ tenantId: r.tenant_id, err }, 'whatsapp-callback-record-failed')
+    logger.error({ tenantId: origem.tenantId, err }, 'whatsapp-callback-record-failed')
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 })
   }
 

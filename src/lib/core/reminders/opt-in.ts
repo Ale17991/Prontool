@@ -104,3 +104,28 @@ export async function setPatientWhatsAppOptIn(
     throw new Error(`setPatientWhatsAppOptIn failed: ${error.message}`)
   }
 }
+
+/**
+ * Feature 056 — consentimento para mensagens de AUTOMAÇÃO.
+ *
+ * Vive aqui, junto dos outros opt-ins, porque a hierarquia é a mesma: o mestre
+ * (`reminders_opt_in`) cala tudo, e este só é consultado quando o mestre está
+ * ligado. Mas é manifestação DISTINTA — lembrete de consulta é comunicação
+ * esperada de quem marcou hora; automação é conteúdo não solicitado, outra
+ * finalidade em LGPD. Por isso nasce FALSE, ao contrário dos demais.
+ */
+export async function setPatientAutomationsOptIn(
+  supabase: SupabaseClient<Database>,
+  patientId: string,
+  tenantId: string,
+  optIn: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('patients')
+    .update({ automations_opt_in: optIn } as never)
+    .eq('id', patientId)
+    .eq('tenant_id', tenantId)
+  if (error) {
+    throw new Error(`setPatientAutomationsOptIn failed: ${error.message}`)
+  }
+}

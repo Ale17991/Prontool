@@ -191,20 +191,24 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
   // Preenchido junto do opt-in mestre, na mesma query — não vale um round-trip
   // a mais só para um booleano.
   let remindersWhatsAppOptIn = true
+  // Feature 056 — nasce NEGADO; a ausência de linha não vira consentimento.
+  let automationsOptIn = false
   const remindersOptInPromise: Promise<boolean> = (async () => {
     try {
       const res = await typedClient
         .from('patients')
-        .select('reminders_opt_in, reminders_whatsapp_opt_in')
+        .select('reminders_opt_in, reminders_whatsapp_opt_in, automations_opt_in')
         .eq('id', params.id)
         .eq('tenant_id', session.tenantId)
         .maybeSingle()
       const row = res.data as {
         reminders_opt_in: boolean | null
         reminders_whatsapp_opt_in: boolean | null
+        automations_opt_in: boolean | null
       } | null
       // Feature 051 — o consentimento vira par: mestre + canal.
       remindersWhatsAppOptIn = row?.reminders_whatsapp_opt_in !== false
+      automationsOptIn = row?.automations_opt_in === true
       return row?.reminders_opt_in !== false
     } catch {
       return true
@@ -530,6 +534,8 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
           remindersOptIn,
           remindersWhatsAppOptIn,
           whatsappDisponivel: ent.hasModule('whatsapp'),
+          automationsOptIn,
+          automacoesDisponivel: ent.hasModule('automacoes'),
           anamnesePrefill,
           canEditPatient,
           canConfigReminders,

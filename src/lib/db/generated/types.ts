@@ -1165,6 +1165,166 @@ export type Database = {
           },
         ]
       }
+      automation_occurrences: {
+        Row: {
+          automation_id: string
+          created_at: string
+          id: string
+          occurrence_key: string
+          outcome: string
+          patient_id: string
+          provider_message_id: string | null
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          automation_id: string
+          created_at?: string
+          id?: string
+          occurrence_key: string
+          outcome: string
+          patient_id: string
+          provider_message_id?: string | null
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          automation_id?: string
+          created_at?: string
+          id?: string
+          occurrence_key?: string
+          outcome?: string
+          patient_id?: string
+          provider_message_id?: string | null
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_occurrences_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_occurrences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_occurrences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_triggers: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          params: Json
+          source: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          params?: Json
+          source: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          params?: Json
+          source?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_triggers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automations: {
+        Row: {
+          activated_at: string | null
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          message_template_id: string
+          tenant_id: string
+          trigger_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message_template_id: string
+          tenant_id: string
+          trigger_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message_template_id?: string
+          tenant_id?: string
+          trigger_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automations_message_template_id_fkey"
+            columns: ["message_template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automations_trigger_id_fkey"
+            columns: ["trigger_id"]
+            isOneToOne: false
+            referencedRelation: "automation_triggers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -3346,6 +3506,47 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          active: boolean
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monthly_payouts: {
         Row: {
           adjustments_cents: number
@@ -4450,6 +4651,67 @@ export type Database = {
           },
         ]
       }
+      patient_messages: {
+        Row: {
+          body: string
+          channel: string
+          error_detail: string | null
+          id: string
+          occurrence_id: string | null
+          patient_id: string
+          purpose: string
+          sent_at: string
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          body: string
+          channel: string
+          error_detail?: string | null
+          id?: string
+          occurrence_id?: string | null
+          patient_id: string
+          purpose: string
+          sent_at?: string
+          status: string
+          tenant_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          error_detail?: string | null
+          id?: string
+          occurrence_id?: string | null
+          patient_id?: string
+          purpose?: string
+          sent_at?: string
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_messages_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "signal_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_metric_goals: {
         Row: {
           active: boolean
@@ -4694,6 +4956,7 @@ export type Database = {
           address_street_enc: string | null
           alert_note: string | null
           anonymized_at: string | null
+          automations_opt_in: boolean
           birth_date_enc: string | null
           cpf_enc: string | null
           created_at: string
@@ -4709,6 +4972,7 @@ export type Database = {
           id: string
           insurance_card_number_enc: string | null
           mother_name_enc: string | null
+          outreach_opt_in: boolean
           phone_enc: string | null
           photo_path: string | null
           photo_uploaded_at: string | null
@@ -4732,6 +4996,7 @@ export type Database = {
           address_street_enc?: string | null
           alert_note?: string | null
           anonymized_at?: string | null
+          automations_opt_in?: boolean
           birth_date_enc?: string | null
           cpf_enc?: string | null
           created_at?: string
@@ -4747,6 +5012,7 @@ export type Database = {
           id?: string
           insurance_card_number_enc?: string | null
           mother_name_enc?: string | null
+          outreach_opt_in?: boolean
           phone_enc?: string | null
           photo_path?: string | null
           photo_uploaded_at?: string | null
@@ -4770,6 +5036,7 @@ export type Database = {
           address_street_enc?: string | null
           alert_note?: string | null
           anonymized_at?: string | null
+          automations_opt_in?: boolean
           birth_date_enc?: string | null
           cpf_enc?: string | null
           created_at?: string
@@ -4785,6 +5052,7 @@ export type Database = {
           id?: string
           insurance_card_number_enc?: string | null
           mother_name_enc?: string | null
+          outreach_opt_in?: boolean
           phone_enc?: string | null
           photo_path?: string | null
           photo_uploaded_at?: string | null
@@ -5849,6 +6117,131 @@ export type Database = {
           },
         ]
       }
+      signal_occurrences: {
+        Row: {
+          created_at: string
+          cycle_date: string
+          id: string
+          observed: Json
+          outcome: string
+          patient_id: string
+          rule_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_date: string
+          id?: string
+          observed?: Json
+          outcome: string
+          patient_id: string
+          rule_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          cycle_date?: string
+          id?: string
+          observed?: Json
+          outcome?: string
+          patient_id?: string
+          rule_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_occurrences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_occurrences_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "signal_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_occurrences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signal_rules: {
+        Row: {
+          active: boolean
+          audience: string
+          audience_doctor_id: string | null
+          channel: string
+          created_at: string
+          created_by_user_id: string | null
+          family: string
+          id: string
+          message_template: string
+          params: Json
+          silence_days: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          audience?: string
+          audience_doctor_id?: string | null
+          channel?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          family: string
+          id?: string
+          message_template: string
+          params?: Json
+          silence_days: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          audience?: string
+          audience_doctor_id?: string | null
+          channel?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          family?: string
+          id?: string
+          message_template?: string
+          params?: Json
+          silence_days?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_rules_audience_doctor_id_fkey"
+            columns: ["audience_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signal_rules_audience_doctor_id_fkey"
+            columns: ["audience_doctor_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_fixed_pay_lines"
+            referencedColumns: ["doctor_id"]
+          },
+          {
+            foreignKeyName: "signal_rules_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           created_at: string
@@ -6147,6 +6540,8 @@ export type Database = {
           address_number: string | null
           address_street: string | null
           address_uf: string | null
+          automation_max_per_cycle: number
+          automation_max_per_patient_day: number
           calendar_close_time: string
           calendar_open_time: string
           calendar_slot_interval_minutes: number
@@ -6156,8 +6551,11 @@ export type Database = {
           email: string | null
           logo_path: string | null
           logo_uploaded_at: string | null
+          outreach_weekly_cap: number
           patient_portal_enabled: boolean
           phone: string | null
+          printout_patient_field_overrides: Json
+          printout_patient_fields: string[]
           public_booking_cancel_min_hours: number
           public_booking_enabled: boolean
           public_booking_max_days_advance: number
@@ -6190,6 +6588,8 @@ export type Database = {
           address_number?: string | null
           address_street?: string | null
           address_uf?: string | null
+          automation_max_per_cycle?: number
+          automation_max_per_patient_day?: number
           calendar_close_time?: string
           calendar_open_time?: string
           calendar_slot_interval_minutes?: number
@@ -6199,8 +6599,11 @@ export type Database = {
           email?: string | null
           logo_path?: string | null
           logo_uploaded_at?: string | null
+          outreach_weekly_cap?: number
           patient_portal_enabled?: boolean
           phone?: string | null
+          printout_patient_field_overrides?: Json
+          printout_patient_fields?: string[]
           public_booking_cancel_min_hours?: number
           public_booking_enabled?: boolean
           public_booking_max_days_advance?: number
@@ -6233,6 +6636,8 @@ export type Database = {
           address_number?: string | null
           address_street?: string | null
           address_uf?: string | null
+          automation_max_per_cycle?: number
+          automation_max_per_patient_day?: number
           calendar_close_time?: string
           calendar_open_time?: string
           calendar_slot_interval_minutes?: number
@@ -6242,8 +6647,11 @@ export type Database = {
           email?: string | null
           logo_path?: string | null
           logo_uploaded_at?: string | null
+          outreach_weekly_cap?: number
           patient_portal_enabled?: boolean
           phone?: string | null
+          printout_patient_field_overrides?: Json
+          printout_patient_fields?: string[]
           public_booking_cancel_min_hours?: number
           public_booking_enabled?: boolean
           public_booking_max_days_advance?: number
@@ -7789,36 +8197,46 @@ export type Database = {
       }
       whatsapp_delivery_events: {
         Row: {
+          automation_occurrence_id: string | null
           error_detail: string | null
           id: string
           occurred_at: string
           provider_message_id: string | null
           received_at: string
-          reminder_id: string
+          reminder_id: string | null
           status: string
           tenant_id: string
         }
         Insert: {
+          automation_occurrence_id?: string | null
           error_detail?: string | null
           id?: string
           occurred_at: string
           provider_message_id?: string | null
           received_at?: string
-          reminder_id: string
+          reminder_id?: string | null
           status: string
           tenant_id: string
         }
         Update: {
+          automation_occurrence_id?: string | null
           error_detail?: string | null
           id?: string
           occurred_at?: string
           provider_message_id?: string | null
           received_at?: string
-          reminder_id?: string
+          reminder_id?: string | null
           status?: string
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "whatsapp_delivery_events_automation_occurrence_id_fkey"
+            columns: ["automation_occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "automation_occurrences"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "whatsapp_delivery_events_reminder_id_fkey"
             columns: ["reminder_id"]
@@ -8642,6 +9060,17 @@ export type Database = {
           tenant_id: string
         }[]
       }
+      search_tuss_codes: {
+        Args: { p_limit?: number; p_query?: string; p_table?: string }
+        Returns: {
+          code: string
+          description: string
+          manufacturer: string
+          terminology_chapter: string
+          tuss_table: string
+          tuss_table_label: string
+        }[]
+      }
       session_text: { Args: { key: string }; Returns: string }
       session_uuid: { Args: { key: string }; Returns: string }
       set_appointment_material_cost: {
@@ -8677,6 +9106,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      signals_birthdays_today: {
+        Args: { p_key: string; p_tenant_id: string; p_today: string }
+        Returns: {
+          patient_id: string
+        }[]
+      }
       tenant_cash_balance_at: {
         Args: { p_date: string; p_tenant_id: string }
         Returns: number
@@ -8684,6 +9119,10 @@ export type Database = {
       test_truncate_all_mutable: {
         Args: { wipe_catalog?: boolean }
         Returns: undefined
+      }
+      tuss_search_text: {
+        Args: { p_code: string; p_description: string; p_manufacturer: string }
+        Returns: string
       }
     }
     Enums: {

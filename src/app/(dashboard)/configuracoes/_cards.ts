@@ -1,6 +1,7 @@
 import {
   Apple,
   BellRing,
+  Wand2,
   Boxes,
   Building2,
   CalendarClock,
@@ -48,6 +49,7 @@ export type HubCardId =
   | 'agendamento-publico'
   | 'portal-paciente'
   | 'lembretes'
+  | 'automacoes'
   | 'google-agenda'
   | 'integracoes'
   | 'auditoria'
@@ -189,6 +191,19 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     description: 'Avisa o paciente por email ou WhatsApp antes da consulta. Reduz no-show.',
     icon: BellRing,
     show: ({ role }) => can(role, 'reminders.config'),
+  },
+  // Card PRÓPRIO, e não uma seção dentro de Lembretes, porque são coisas
+  // diferentes: lembrete de consulta tem motor e configuração próprios (056
+  // FR-024), e o construtor cobre as outras mensagens. Enquanto os dois
+  // coexistirem, a separação visual é o que impede a clínica de procurar um
+  // dentro do outro (FR-026).
+  {
+    id: 'automacoes',
+    href: '/configuracoes/automacoes',
+    title: 'Automações de mensagem',
+    description: 'Monte o gatilho e a mensagem: aniversário, hábitos, retorno.',
+    icon: Wand2,
+    show: ({ role, ent }) => ent.hasModule('automacoes') && can(role, 'reminders.config'),
   },
   {
     id: 'google-agenda',

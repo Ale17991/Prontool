@@ -55,6 +55,8 @@ interface Props {
   doctorsList: DoctorOption[]
   remindersOptIn: boolean
   remindersWhatsAppOptIn: boolean
+  automationsOptIn: boolean
+  automacoesDisponivel: boolean
   whatsappDisponivel: boolean
   anamnesePrefill: AnamnesePatientPrefill | undefined
   canEditPatient: boolean
@@ -93,6 +95,8 @@ export function CadastroTab({
   doctorsList,
   remindersOptIn,
   remindersWhatsAppOptIn,
+  automationsOptIn,
+  automacoesDisponivel,
   whatsappDisponivel,
   anamnesePrefill,
   canEditPatient,
@@ -145,6 +149,8 @@ export function CadastroTab({
         patientId={patientId}
         initialOptIn={remindersOptIn}
         initialWhatsAppOptIn={remindersWhatsAppOptIn}
+        initialAutomationsOptIn={automationsOptIn}
+        automacoesDisponivel={automacoesDisponivel}
         whatsappDisponivel={whatsappDisponivel}
         canEdit={canConfigReminders}
       />

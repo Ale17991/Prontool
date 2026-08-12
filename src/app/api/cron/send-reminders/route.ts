@@ -12,6 +12,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { logger } from '@/lib/observability/logger'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { processBatch } from '@/lib/core/reminders/process-batch'
+import { evaluateAutomations } from '@/lib/core/automations/evaluate'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -66,13 +67,29 @@ async function executarCiclo(request: NextRequest) {
 
   logger.info({}, 'cron-reminders-start')
 
+  const supabase = createSupabaseServiceClient()
+  const agora = new Date()
+
+  // Os DOIS motores rodam neste ciclo, e a separação em try/catch próprios não
+  // é zelo excessivo: são features distintas, e falha na avaliação de
+  // automações (056) não pode impedir o lembrete de consulta (018/051) de sair,
+  // nem o contrário. O ciclo devolve o que conseguiu fazer.
+  let result
   try {
-    const supabase = createSupabaseServiceClient()
-    const result = await processBatch(supabase, new Date())
+    result = await processBatch(supabase, agora)
     logger.info(result, 'cron-reminders-done')
-    return NextResponse.json(result, { status: 200 })
   } catch (err) {
     logger.error({ errorCode: err instanceof Error ? err.name : 'unknown' }, 'cron-reminders-fatal')
     return NextResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 })
   }
+
+  let automacoes = null
+  try {
+    automacoes = await evaluateAutomations(supabase, agora)
+    logger.info(automacoes, 'cron-automacoes-done')
+  } catch (err) {
+    logger.error({ errorCode: err instanceof Error ? err.name : 'unknown' }, 'cron-automacoes-fatal')
+  }
+
+  return NextResponse.json({ ...result, automacoes }, { status: 200 })
 }

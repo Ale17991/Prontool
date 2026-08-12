@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { BellOff, BellRing } from 'lucide-react'
 import {
+  setPatientAutomationsOptInAction,
   setPatientReminderOptIn,
   setPatientWhatsAppReminderOptIn,
 } from '@/app/(dashboard)/configuracoes/lembretes/actions'
@@ -16,6 +17,9 @@ interface RemindersOptInToggleProps {
   initialWhatsAppOptIn?: boolean
   /** Só mostra o controle de canal se a clínica tiver o canal disponível. */
   whatsappDisponivel?: boolean
+  /** Feature 056 — consentimento de automações, distinto do lembrete. */
+  initialAutomationsOptIn?: boolean
+  automacoesDisponivel?: boolean
 }
 
 export function RemindersOptInToggle({
@@ -24,11 +28,28 @@ export function RemindersOptInToggle({
   canEdit,
   initialWhatsAppOptIn = true,
   whatsappDisponivel = false,
+  initialAutomationsOptIn = false,
+  automacoesDisponivel = false,
 }: RemindersOptInToggleProps) {
   const [pending, startTransition] = useTransition()
   const [optIn, setOptIn] = useState(initialOptIn)
   const [waOptIn, setWaOptIn] = useState(initialWhatsAppOptIn)
+  const [autoOptIn, setAutoOptIn] = useState(initialAutomationsOptIn)
   const [error, setError] = useState<string | null>(null)
+
+  function toggleAutomacoes() {
+    if (!canEdit || pending) return
+    const next = !autoOptIn
+    setError(null)
+    setAutoOptIn(next)
+    startTransition(async () => {
+      const result = await setPatientAutomationsOptInAction(patientId, next)
+      if (!result.ok) {
+        setAutoOptIn(!next)
+        setError(`Erro ao salvar (${result.error})`)
+      }
+    })
+  }
 
   function toggleWhatsApp() {
     if (!canEdit || pending) return
@@ -118,6 +139,38 @@ export function RemindersOptInToggle({
               className="shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
               {pending ? '...' : waOptIn ? 'Não enviar' : 'Voltar a enviar'}
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      {/*
+        Feature 056 — consentimento de AUTOMAÇÕES. Separado do lembrete de
+        propósito: quem aceitou ser lembrado da consulta não aceitou receber
+        mensagem sobre hábito ou aniversário. Nasce NEGADO, e por isso o texto
+        padrão diz que o paciente não recebe — o contrário presumiria um
+        consentimento que ninguém deu.
+      */}
+      {automacoesDisponivel && optIn && (
+        <div className="mt-3 flex items-start justify-between gap-3 border-t border-border pt-3">
+          <div>
+            <div className="text-sm font-medium text-slate-900">
+              {autoOptIn ? 'Aceita mensagens automáticas' : 'Não recebe mensagens automáticas'}
+            </div>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {autoOptIn
+                ? 'Pode receber aniversário, acompanhamento de hábitos e retorno.'
+                : 'Recebe apenas lembrete de consulta. Consentimento não presumido.'}
+            </p>
+          </div>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={toggleAutomacoes}
+              disabled={pending}
+              className="shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {pending ? '...' : autoOptIn ? 'Não enviar' : 'Autorizar'}
             </button>
           ) : null}
         </div>

@@ -18,7 +18,11 @@ import {
   updateReminderConfig,
   type ReminderConfigUpdate,
 } from '@/lib/core/reminders/config'
-import { setPatientOptIn, setPatientWhatsAppOptIn } from '@/lib/core/reminders/opt-in'
+import {
+  setPatientAutomationsOptIn,
+  setPatientOptIn,
+  setPatientWhatsAppOptIn,
+} from '@/lib/core/reminders/opt-in'
 
 interface ActionOk {
   ok: true
@@ -145,6 +149,39 @@ export async function setPatientWhatsAppReminderOptIn(
 
   try {
     await setPatientWhatsAppOptIn(supabase, patientId, auth.tenantId, optIn)
+    revalidatePath(`/operacao/pacientes/${patientId}`)
+    return { ok: true }
+  } catch (err) {
+    return {
+      ok: false,
+      error: 'INTERNAL_ERROR',
+      message: err instanceof Error ? err.message : 'unknown',
+    }
+  }
+}
+
+/**
+ * Feature 056 — consentimento de automações, separado do lembrete de consulta.
+ */
+export async function setPatientAutomationsOptInAction(
+  patientId: string,
+  optIn: boolean,
+): Promise<ActionOk | ActionErr> {
+  const auth = await authorize()
+  if (!auth.ok) return auth.response
+
+  if (typeof patientId !== 'string' || patientId.length === 0) {
+    return {
+      ok: false,
+      error: 'INVALID_PAYLOAD',
+      details: [{ field: 'patientId', message: 'patientId obrigatório' }],
+    }
+  }
+
+  const supabase = createSupabaseServerClient() as unknown as SupabaseClient<Database>
+
+  try {
+    await setPatientAutomationsOptIn(supabase, patientId, auth.tenantId, optIn)
     revalidatePath(`/operacao/pacientes/${patientId}`)
     return { ok: true }
   } catch (err) {

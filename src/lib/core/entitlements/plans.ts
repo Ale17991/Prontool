@@ -27,6 +27,10 @@ export type ModuleId =
   | 'exames_lab' // exames laboratoriais com faixas (cross-especialidade)
   | 'whatsapp' // canal WhatsApp nos lembretes (051) — rollout por clínica
   | 'habitos' // checklist de hábitos marcado pelo paciente (cross-especialidade)
+  // Construtor de automações (056): a clínica monta gatilho + mensagem. Depende
+  // de `whatsapp` para ter por onde sair, mas é módulo próprio — quem só quer
+  // lembrete de consulta não deve pagar pelo construtor.
+  | 'automacoes'
   // Prescrição digital Memed. NÃO é só "liga a tela": marca a clínica como
   // PRESCRITORA, e isso muda quais dados do paciente são obrigatórios em todo
   // lugar que cadastra paciente (ver core/patients/required-fields.ts).
@@ -75,6 +79,7 @@ export const ALL_MODULES: readonly ModuleId[] = [
   'exames_lab',
   'whatsapp',
   'habitos',
+  'automacoes',
   'memed',
 ]
 
@@ -94,6 +99,7 @@ export const MODULE_LABEL: Record<ModuleId, string> = {
   exames_lab: 'Exames laboratoriais',
   whatsapp: 'WhatsApp (lembretes)',
   habitos: 'Checklist de hábitos',
+  automacoes: 'Automações de mensagem',
   memed: 'Prescrição digital (Memed)',
 }
 
@@ -114,6 +120,7 @@ export const MODULE_HINT: Record<ModuleId, string> = {
   exames_lab: 'Resultados de exames com faixas de referência.',
   whatsapp: 'Lembrete de consulta pelo WhatsApp da clínica.',
   habitos: 'Checklist de hábitos marcado pelo paciente.',
+  automacoes: 'A clínica monta gatilho + mensagem. Precisa do WhatsApp ligado para ter por onde sair.',
   memed: 'Receituário digital assinado, com validade legal.',
 }
 
@@ -137,7 +144,7 @@ export const MODULE_BLOCKS: readonly ModuleBlock[] = [
     id: 'geral',
     label: 'Geral',
     hint: 'Serve a qualquer especialidade.',
-    modules: ['crm', 'portal_paciente', 'whatsapp', 'habitos', 'exames_lab', 'convenio'],
+    modules: ['crm', 'portal_paciente', 'whatsapp', 'automacoes', 'habitos', 'exames_lab', 'convenio'],
   },
   {
     id: 'prescricao',

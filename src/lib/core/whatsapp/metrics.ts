@@ -194,6 +194,12 @@ async function carregarEventos(
       .from('whatsapp_delivery_events')
       .select('reminder_id, status, occurred_at')
       .eq('tenant_id', tenantId)
+      // Desde a 0197 a tabela também guarda confirmação de mensagem de
+      // AUTOMAÇÃO (056), com `reminder_id` nulo. O SC-004 mede leitura de
+      // LEMBRETE DE CONSULTA: misturar as duas produziria um número que não
+      // descreve nem uma coisa nem outra — automação tem expectativa de leitura
+      // completamente diferente da de um aviso de consulta amanhã.
+      .not('reminder_id', 'is', null)
       .gte('occurred_at', desde)
       .lt('occurred_at', ate)
       .order('occurred_at', { ascending: true })

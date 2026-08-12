@@ -56,6 +56,15 @@ function syntheticEmptyRow(tenantId: string): Row {
     calendar_close_time: '22:00:00',
     // Default consistente com a migration 0147 (NOT NULL DEFAULT FALSE).
     surgical_scan_required: false,
+    // Defaults consistentes com a migration 0196 (automações de mensagem).
+    automation_max_per_patient_day: 1,
+    automation_max_per_cycle: 50,
+    // Colunas de outras frentes — a linha sintética precisa listar TODA coluna
+    // da tabela, então acrescentar coluna lá obriga a acrescentar aqui. Os
+    // valores espelham os defaults das respectivas migrations.
+    outreach_weekly_cap: 2,
+    printout_patient_fields: ['nascimento', 'idade'],
+    printout_patient_field_overrides: {},
     created_at: now,
     updated_at: now,
   }

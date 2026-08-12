@@ -17,6 +17,8 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0185_whatsapp_reminders.sql` — tabelas `tenant_whatsapp_config` (credencial cifrada) e `whatsapp_delivery_events` (append-only); expansão do CHECK de `status` em `appointment_reminders`; `patients.reminders_whatsapp_opt_in`; 3 colunas de canal em `tenant_clinic_profile`. (051-whatsapp-evolution)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (já em uso — receituário e relatórios). **Sem novas dependências** — o cálculo é regra de três mais comparação com limite. (052-rotulo-nutricional)
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0187_nutrition_labels.sql` (última é a `0186` da feature 051) — tabelas `nutrition_labels` e `nutrition_label_ingredients`. **Sem alteração** em `foods` (os nutrientes de rótulo já existem no JSONB de micronutrientes desde a 049). **Sem tabela de referências normativas** (research D2). (052-rotulo-nutricional)
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a avaliação é consulta SQL mais aritmética de datas, e o envio já existe. (056-automacoes-mensagem)
+- PostgreSQL via Supabase com RLS por `tenant_id`. **Migration nova**: `0196_message_automations.sql` (última é a `0195`). **Tabelas novas**: `message_templates`, `automation_triggers`, `automations`, `automation_occurrences`. **Coluna nova**: `patients.automations_opt_in`. (056-automacoes-mensagem)
 
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
 - N/A — feature de UI pura, não persiste nada (003-responsive-design)
@@ -124,9 +126,9 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 056-automacoes-mensagem: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a avaliação é consulta SQL mais aritmética de datas, e o envio já existe.
 - 052-rotulo-nutricional: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (já em uso — receituário e relatórios). **Sem novas dependências** — o cálculo é regra de três mais comparação com limite.
 - 051-whatsapp-evolution: Added canal WhatsApp no motor de lembretes da 018. Envio via serviço separado (Supabase + Edge Functions sobre a Evolution API), um número por clínica. **Sem novas dependências** — espaçamento dos envios pelo `@upstash/qstash` já instalado.
-- 050-exames-laboratoriais: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (já em uso), `lucide-react`. **Sem novas dependências** — comparação com faixa é aritmética simples; a banda de referência no gráfico usa `ReferenceArea`, já disponível no recharts instalado.
 
 
 <!-- MANUAL ADDITIONS START -->
@@ -309,6 +311,84 @@ criaria cópia de PII fora do banco e congelaria número que envelhece.
   nenhum. `pregnancyWeeks` (046) só soma depósito ao GET. Emitir exigiria criar
   a avaliação gestacional inteira — feature própria, com migration. Registrado
   em `specs/054-impressos-nutricao/tasks.md` (T035).
+
+## Construtor de automações de mensagem (feature 056)
+
+A clínica monta **gatilho** (quando) + **mensagem** (o quê) e liga os dois numa
+**automação**. Avaliado no mesmo ciclo diário do lembrete, em `try/catch`
+próprio. Migrations `0196_message_automations.sql` e
+`0197_automation_delivery_events.sql`. Módulo `automacoes`.
+
+- **O lembrete de consulta NÃO foi absorvido, e isso é decisão de risco.** Ele
+  passou a funcionar em produção em 11/08/2026 depois de meses parado por um
+  defeito mudo (cron chamava GET, a rota só aceitava POST). Reescrevê-lo em
+  seguida trocaria uma certeza recém-conquistada por uma promessa. O que torna a
+  absorção futura possível sem reescrita é o `AutomationSourceDef`: "lembrete de
+  consulta" vira mais um arquivo em `sources/`, cujo `enumerate` delega para
+  `selectDueAppointments`.
+- **O registro de fontes não conhece fonte nenhuma nominalmente**, nem o motor.
+  `sources/index.ts` é o ÚNICO arquivo que as lista, e só para importá-las. Fonte
+  nova = um arquivo, sem migration: `automation_triggers.source` não tem CHECK
+  enumerando valores de propósito.
+- **"Uma vez só" é propriedade do BANCO**: `UNIQUE (automation_id, patient_id,
+  occurrence_key)`. Cada fonte decide o que é sua ocorrência — data para
+  aniversário, id do atendimento para confirmação, **mês corrente** para as de
+  estado contínuo (`sem_retorno`, `sem_medicao`, `etapa_sem_agendamento`), que
+  senão viram cobrança diária. `boas_vindas` usa chave FIXA: é uma vez na vida, e
+  chave por data faria o paciente antigo receber de novo se alguém trocasse o
+  parâmetro.
+- **A ocorrência é gravada ANTES da tentativa de envio**, como `pendente`. Gravar
+  depois abriria janela para envio duplicado se o processo morresse no meio — e
+  mensagem repetida é o que faz denunciarem o número. Por isso `countSentToday`
+  conta `pendente` junto com `enviado`.
+- **`ON DELETE CASCADE` de `whatsapp_delivery_events` para `automation_occurrences`
+  QUEBRA a feature** — foi tentado e revertido na própria 0197. A tabela de
+  eventos tem trigger append-only `FOR EACH STATEMENT`, que dispara **mesmo com
+  zero linhas afetadas**; o `DELETE` que o CASCADE emite levantava exceção e
+  impedia a exclusão da ocorrência suprimida por teto. Como `releaseSuppressed`
+  não relança, o sintoma era invisível: o teto deixava de ser "fica para amanhã"
+  e virava "perdeu para sempre". É `RESTRICT`, e a verificação vira um SELECT.
+- **Confirmação de entrega de automação chega pela MESMA rota do lembrete**
+  (`/api/webhooks/whatsapp-status`), que resolve o `externalId` em cascata —
+  lembrete primeiro, ocorrência depois. Antes da 0197 toda confirmação de
+  automação morria ali como `unknown-reminder`, com 200 e sem rastro. Quem apura
+  o **SC-004 da 051 precisa filtrar `reminder_id IS NOT NULL`**: taxa de leitura
+  de lembrete e de automação são medidas diferentes.
+- **Nada de contador gravado** (`metrics.ts`): enviados/entregues/lidos são
+  recompostos das ocorrências e dos eventos a cada leitura, e entrega resolve por
+  precedência de rank (`sent < delivered < read < error`), nunca pelo evento mais
+  recente. `read` implica entrega — a Evolution nem sempre emite os dois ACKs.
+- **`patients.automations_opt_in` nasce FALSE**, ao contrário dos opt-ins de
+  lembrete. Automação é conteúdo não solicitado, finalidade distinta em LGPD;
+  ligar a base retroativamente seria fabricar consentimento. O consentimento é
+  hierárquico: `reminders_opt_in` segue mestre e cala tudo.
+- **Os tetos não são polimento.** Sem eles, ativar uma fonte de estado contínuo
+  numa base grande vira rajada no primeiro ciclo. O excedente é gravado como
+  supressão e a linha é APAGADA para o ciclo seguinte reavaliar — é a única
+  exclusão que o append-only permite.
+- **O gate de módulo vale no MOTOR, não só na tela.** `automations.active` é
+  estado persistido: módulo revogado com o gate só na UI continuaria enviando
+  para sempre. Módulo desligado não gera alerta (ausência de contratação não é
+  falha operacional); canal desconectado gera UM alerta agregado por ciclo, nunca
+  um por paciente.
+- **A fonte declara seus próprios campos** (`fields`) e seu próprio aviso
+  (`warning`), e a tela só desenha. Sem isso, a tela mandava `params: {}` fixo e
+  fonte com parâmetro era impossível de criar pela interface. O aviso mora na
+  fonte porque o guarda-corpo pertence a quem conhece a limitação do dado: a
+  fonte de ausência do checklist sabe "não marcou", nunca "não cumpriu"
+  (FR-009), e a próxima fonte de ausência nasce com o aviso junto.
+- **As fontes de cobrança não fornecem procedimento nem profissional**, e isso é
+  guarda-corpo, não esquecimento: art. 42 do CDC proíbe constranger o
+  inadimplente, e o WhatsApp aparece na tela de bloqueio de um aparelho que pode
+  não ser só do paciente. O que a fonte não fornece, a clínica não consegue
+  escrever — a validação de variável recusa ao associar.
+- **Toda consulta de fonte pagina** (`sources/shared.ts`): o PostgREST corta em
+  1.000 linhas sem avisar, e numa clínica com 1.200 pacientes os 200 do fim
+  nunca fariam aniversário. Mesma classe de defeito que a 0194 achou no TUSS.
+- **Elegibilidade é UMA regra** (`eligiblePatients`), não uma por fonte. Com
+  dezesseis fontes, filtro copiado é garantia de a décima sétima esquecer o
+  anonimizado — e mandar mensagem para quem exerceu o direito de sumir. Travado
+  por teste que roda contra TODAS as fontes registradas.
 
 ## Catálogo TUSS — fonte oficial da ANS (migration 0194)
 

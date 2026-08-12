@@ -17,7 +17,13 @@ const SINCE = '2026-08-01T00:00:00.000Z'
 const UNTIL = '2026-08-31T00:00:00.000Z'
 
 interface Evento {
-  reminder_id: string
+  /**
+   * Nulo desde a 0197: a mesma tabela guarda confirmação de mensagem de
+   * AUTOMAÇÃO (056), e ela não pode entrar nesta apuração. O cliente falso
+   * respeita o `.not('reminder_id', 'is', null)` para o teste continuar
+   * provando que o filtro existe.
+   */
+  reminder_id: string | null
   status: string
   occurred_at: string
 }
@@ -30,10 +36,19 @@ interface Evento {
 function fakeClient(eventos: Evento[]): SupabaseClient<Database> {
   return {
     from() {
-      const estado: { desde?: string; ate?: string; ids?: string[] } = {}
+      const estado: {
+        desde?: string
+        ate?: string
+        ids?: string[]
+        exigeReminder?: boolean
+      } = {}
       const chain: Record<string, unknown> = {
         select: () => chain,
         eq: () => chain,
+        not: (coluna: string, operador: string) => {
+          if (coluna === 'reminder_id' && operador === 'is') estado.exigeReminder = true
+          return chain
+        },
         gte: (_c: string, v: string) => {
           estado.desde = v
           return chain
@@ -49,9 +64,14 @@ function fakeClient(eventos: Evento[]): SupabaseClient<Database> {
         order: () => chain,
         range: (de: number, ate: number) => {
           const filtrado = eventos
+            .filter((e) => (estado.exigeReminder ? e.reminder_id !== null : true))
             .filter((e) => (estado.desde === undefined ? true : e.occurred_at >= estado.desde))
             .filter((e) => (estado.ate === undefined ? true : e.occurred_at < estado.ate))
-            .filter((e) => (estado.ids === undefined ? true : estado.ids.includes(e.reminder_id)))
+            .filter((e) =>
+              estado.ids === undefined
+                ? true
+                : e.reminder_id !== null && estado.ids.includes(e.reminder_id),
+            )
             .sort((a, b) => a.occurred_at.localeCompare(b.occurred_at))
           return Promise.resolve({ data: filtrado.slice(de, ate + 1), error: null })
         },

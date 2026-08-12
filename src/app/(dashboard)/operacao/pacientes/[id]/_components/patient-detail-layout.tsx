@@ -71,6 +71,8 @@ interface Props {
     doctorsList: DoctorOption[]
     remindersOptIn: boolean
     remindersWhatsAppOptIn: boolean
+  automationsOptIn: boolean
+  automacoesDisponivel: boolean
     whatsappDisponivel: boolean
     anamnesePrefill: AnamnesePatientPrefill | undefined
     canEditPatient: boolean
@@ -297,6 +299,8 @@ export function PatientDetailLayout({
                   doctorsList={cadastro.doctorsList}
                   remindersOptIn={cadastro.remindersOptIn}
                   remindersWhatsAppOptIn={cadastro.remindersWhatsAppOptIn}
+                  automationsOptIn={cadastro.automationsOptIn}
+                  automacoesDisponivel={cadastro.automacoesDisponivel}
                   whatsappDisponivel={cadastro.whatsappDisponivel}
                   anamnesePrefill={cadastro.anamnesePrefill}
                   canEditPatient={cadastro.canEditPatient}

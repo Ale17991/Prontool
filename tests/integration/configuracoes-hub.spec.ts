@@ -1,14 +1,14 @@
 /**
  * Feature 014 — US3 — verifica o contrato do hub /configuracoes:
- *  - INV-1: HUB_CARDS tem exatamente 16 entradas.
+ *  - INV-1: HUB_CARDS tem exatamente 18 entradas.
  *  - INV-2: Auditoria é SEMPRE o último card.
- *  - INV-3: admin com todas flags-on vê os 16 cards.
+ *  - INV-3: admin com todas flags-on vê os 18 cards.
  *  - INV-4: roles com permissões mínimas veem pelo menos "Meu Perfil".
  *  - INV-5: cada `card.id` é único.
  *  - Ordem fixa (FR-009): clinica, perfil, usuarios, procedimentos, materiais,
  *    alimentos, convenios, profissionais, modelos-anamnese, modelos-documento,
- *    agendamento-publico, portal-paciente, lembretes, google-agenda,
- *    integracoes, auditoria.
+ *    impressos, agendamento-publico, portal-paciente, lembretes, automacoes,
+ *    google-agenda, integracoes, auditoria.
  *
  * Não há card de WhatsApp: conectar o número mora dentro de "Lembretes
  * automáticos" (051). Card próprio fazia a clínica configurar o canal numa tela
@@ -46,8 +46,8 @@ function ctx(role: TenantRole, flags = ALL_FLAGS_ON): HubCardCtx {
 }
 
 describe('HUB_CARDS — invariantes estruturais', () => {
-  it('INV-1: HUB_CARDS.length === 16', () => {
-    expect(HUB_CARDS).toHaveLength(16)
+  it('INV-1: HUB_CARDS.length === 18', () => {
+    expect(HUB_CARDS).toHaveLength(18)
   })
 
   it('INV-2: último card é "auditoria"', () => {
@@ -66,9 +66,11 @@ describe('HUB_CARDS — invariantes estruturais', () => {
       'profissionais',
       'modelos-anamnese',
       'modelos-documento',
+      'impressos',
       'agendamento-publico',
       'portal-paciente',
       'lembretes',
+      'automacoes',
       'google-agenda',
       'integracoes',
       'auditoria',
@@ -99,9 +101,9 @@ describe('HUB_CARDS — invariantes estruturais', () => {
 })
 
 describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
-  it('INV-3: admin com todas flags ON vê os 16 cards na ordem fixa', () => {
+  it('INV-3: admin com todas flags ON vê os 18 cards na ordem fixa', () => {
     const visible = getVisibleHubCards(ctx('admin'))
-    expect(visible).toHaveLength(16)
+    expect(visible).toHaveLength(18)
     expect(visible.map((c) => c.id)).toEqual([
       'clinica',
       'perfil',
@@ -113,19 +115,21 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
       'profissionais',
       'modelos-anamnese',
       'modelos-documento',
+      'impressos',
       'agendamento-publico',
       'portal-paciente',
       'lembretes',
+      'automacoes',
       'google-agenda',
       'integracoes',
       'auditoria',
     ])
   })
 
-  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 15)', () => {
+  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 17)', () => {
     const visible = getVisibleHubCards(ctx('admin', { ...ALL_FLAGS_ON, anamnese: false }))
     expect(visible.map((c) => c.id)).not.toContain('modelos-anamnese')
-    expect(visible).toHaveLength(15)
+    expect(visible).toHaveLength(17)
     // Auditoria continua sendo o último visível.
     expect(visible[visible.length - 1]?.id).toBe('auditoria')
   })
