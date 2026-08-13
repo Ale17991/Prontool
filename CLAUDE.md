@@ -19,6 +19,8 @@ Sistema de gestão para clínicas e consultórios. Última atualização: 2026-0
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0187_nutrition_labels.sql` (última é a `0186` da feature 051) — tabelas `nutrition_labels` e `nutrition_label_ingredients`. **Sem alteração** em `foods` (os nutrientes de rótulo já existem no JSONB de micronutrientes desde a 049). **Sem tabela de referências normativas** (research D2). (052-rotulo-nutricional)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a avaliação é consulta SQL mais aritmética de datas, e o envio já existe. (056-automacoes-mensagem)
 - PostgreSQL via Supabase com RLS por `tenant_id`. **Migration nova**: `0196_message_automations.sql` (última é a `0195`). **Tabelas novas**: `message_templates`, `automation_triggers`, `automations`, `automation_occurrences`. **Coluna nova**: `patients.automations_opt_in`. (056-automacoes-mensagem)
+- TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, **middleware**), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a navegação é roteamento do próprio Next, e a renovação de sessão usa `node:crypto`, já em uso pela 030. (057-portal-paciente-home)
+- PostgreSQL via Supabase (local: `supabase start` :54321), RLS por `tenant_id`. **Migration nova**: `0202_portal_home.sql` — 0198–0201 existem no repositório e **ainda não foram aplicadas em produção**. (057-portal-paciente-home)
 
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router), React 18.3, Tailwind CSS 3.4, shadcn/ui (Radix primitives), framer-motion 12, lucide-react (003-responsive-design)
 - N/A — feature de UI pura, não persiste nada (003-responsive-design)
@@ -126,9 +128,9 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+- 057-portal-paciente-home: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, **middleware**), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a navegação é roteamento do próprio Next, e a renovação de sessão usa `node:crypto`, já em uso pela 030.
 - 056-automacoes-mensagem: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a avaliação é consulta SQL mais aritmética de datas, e o envio já existe.
 - 052-rotulo-nutricional: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (já em uso — receituário e relatórios). **Sem novas dependências** — o cálculo é regra de três mais comparação com limite.
-- 051-whatsapp-evolution: Added canal WhatsApp no motor de lembretes da 018. Envio via serviço separado (Supabase + Edge Functions sobre a Evolution API), um número por clínica. **Sem novas dependências** — espaçamento dos envios pelo `@upstash/qstash` já instalado.
 
 
 <!-- MANUAL ADDITIONS START -->
@@ -528,6 +530,56 @@ compartilhado por `seed-tuss.ts` e `check-tuss-collision.ts`.
   existiam no sistema. `tuss_table_label` é coluna gerada: acrescentar um valor
   exige drop + add, que reescreve a tabela — por isso a 0194 tem que rodar
   ANTES do seed, enquanto `tuss_codes` ainda é pequena.
+
+## Home do portal do paciente (feature 057, migration 0202)
+
+O portal deixou de ser uma tela só. A **tela inicial** mostra apenas metas e o
+checklist de hábitos — o que o paciente acompanha e o que ele de fato FAZ ali —
+e cada outra área virou **card que leva à sua própria página**
+(`/painel/evolucao`, `/atendimentos`, `/orientacoes`, `/exames`, `/treino`,
+`/dieta`).
+
+- **`openPortalPage` é a porta única** de toda página do portal (mesmo papel que
+  `printouts/guard.ts` cumpre nos impressos): sessão, entitlements, seções
+  habilitadas, trilha LGPD e o gate. Sem ela, sete arquivos copiariam a checagem
+  e o oitavo nasceria sem.
+- **O gate de seção vale na PÁGINA, não no card.** Esconder o card não é
+  controle de acesso: seção desligada pela clínica (ou fora do plano) redireciona
+  a URL digitada à mão de volta para a home — nunca 404, porque a página existe;
+  o que falta é permissão. Mesma doutrina de motor-e-não-só-tela da 051/056.
+- **A renovação de sessão NÃO pode morar no middleware.** Foi tentado: middleware
+  roda no Edge Runtime e a sessão do portal é assinada com `node:crypto`, então o
+  `next build` quebra com `UnhandledSchemeError`. **`tsc` e `next lint` passam
+  limpos com o código quebrado** — mudança que toca middleware exige `next build`.
+  A renovação ficou em `POST /api/paciente/sessao` (runtime Node), disparada pelo
+  layout do painel. Reimplementar o HMAC em Web Crypto foi recusado: duas verdades
+  sobre a mesma assinatura, e o sintoma de divergência é todo paciente deslogado.
+- **Os 30 minutos viraram janela de INATIVIDADE**, com teto absoluto de 12h desde
+  o login. A renovação empurra `expMs` e **preserva `iatMs`** — reescrevê-lo
+  tornaria o teto inalcançável e a sessão eterna, num portal cuja autenticação é
+  fraca de propósito (CPF + nascimento). Sem JavaScript nada é renovado e a
+  sessão volta a durar 30 min fixos, que é o comportamento anterior e é seguro.
+- **A regra da home vive em `buildPortalHome`**, função pura, e não no
+  componente: regra dentro de JSX não se testa sem renderizar página. É também
+  o que garante que "quem é promovido" e "quem vira card" leiam a MESMA lista —
+  separadas, a área promovida apareceria também como card.
+- **Quando não há metas nem checklist**, a home mostra o recado da clínica
+  (`patient_portal_welcome_text`) e a **primeira área com conteúdo**, aberta. O
+  recado NÃO é mural: quem tem metas não o vê. Saber se existe checklist é
+  decidido no SERVIDOR (`getActiveChecklist`) — o `HabitsCard` descobre pelo
+  cliente, tarde demais para o layout.
+- **A trilha de acesso ganhou `section`** em vez de novos valores de `action`.
+  Enumerar `view_exames`, `view_dieta`… obrigaria a mexer no CHECK a cada área
+  nova e misturaria duas dimensões (o que a pessoa fez × onde estava). Coluna
+  nulável, **sem retroalimentar as linhas antigas**: `section IS NULL` identifica
+  o acesso anterior à 057.
+- **A próxima consulta é uma linha no cabeçalho**, não um bloco, e respeita o
+  liga/desliga da área de atendimentos — senão o cabeçalho contornaria a decisão
+  da clínica. Ausente não vira "você não tem consulta": some.
+- **Evolução e exames montam o bundle completo de propósito** — é ele que aplica
+  a regra da 050 que impede o mesmo analito de aparecer nos dois lugares.
+  Fatiar essa parte reintroduz o defeito que o `fc1698a` consertou. As outras
+  áreas buscam só a sua fatia.
 
 ## Dados do paciente nos impressos (migration 0195)
 

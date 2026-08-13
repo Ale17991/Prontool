@@ -27,10 +27,31 @@ const slugSchema = z
       'Endereço deve ter 3-32 caracteres, começar com letra ou dígito, e conter apenas letras minúsculas, dígitos e hífens.',
   })
 
+/**
+ * Feature 057 — recado exibido na tela inicial do portal quando o paciente não
+ * tem metas nem checklist.
+ *
+ * Vazio e só-espaços viram `null`: "apagou o texto" e "nunca escreveu" são o
+ * mesmo estado, e guardar `''` criaria um terceiro — indistinguível na leitura,
+ * distinguível no banco, e visível meses depois num relatório.
+ *
+ * O teto de 1.000 caracteres é da aplicação de propósito: a tela existe para ser
+ * curta, e isso é regra de produto, não de schema.
+ */
+const welcomeTextSchema = z
+  .string()
+  .max(1000, { message: 'O texto de boas-vindas deve ter no máximo 1.000 caracteres.' })
+  .nullable()
+  .transform((v) => {
+    const trimmed = v?.trim() ?? ''
+    return trimmed.length > 0 ? trimmed : null
+  })
+
 export const PatientPortalConfigUpdateSchema = z
   .object({
     patientPortalEnabled: z.boolean(),
     publicBookingSlug: slugSchema.nullable(),
+    welcomeText: welcomeTextSchema.optional(),
   })
   .refine((v) => !v.patientPortalEnabled || v.publicBookingSlug !== null, {
     message: 'Para habilitar o portal, defina o endereço (slug).',
@@ -43,6 +64,8 @@ export interface PatientPortalConfig {
   patientPortalEnabled: boolean
   /** Endereço público — compartilhado com o agendamento online. */
   publicBookingSlug: string | null
+  /** Recado da tela inicial (057). `null` = a clínica nunca escreveu nada. */
+  welcomeText: string | null
 }
 
 export interface MetricSetting extends PatientMetricType {
@@ -60,17 +83,21 @@ export async function getPatientPortalConfig(
 ): Promise<PatientPortalConfig> {
   const { data, error } = await supabase
     .from('tenant_clinic_profile')
-    .select('patient_portal_enabled, public_booking_slug')
+    .select('patient_portal_enabled, public_booking_slug, patient_portal_welcome_text')
     .eq('tenant_id', tenantId)
     .maybeSingle()
   if (error) throw new Error(`getPatientPortalConfig: ${error.message}`)
-  const row = data as {
+  // Coluna da 0202, ainda fora dos tipos gerados → cast solto (mesmo padrão da
+  // `login.ts` e das tabelas novas do projeto).
+  const row = data as unknown as {
     patient_portal_enabled: boolean | null
     public_booking_slug: string | null
+    patient_portal_welcome_text: string | null
   } | null
   return {
     patientPortalEnabled: row?.patient_portal_enabled ?? false,
     publicBookingSlug: row?.public_booking_slug ?? null,
+    welcomeText: row?.patient_portal_welcome_text ?? null,
   }
 }
 
@@ -125,14 +152,21 @@ export async function updatePatientPortalConfig(
 
   // Upsert: cria a linha do perfil se ainda não existe; atualiza só estas
   // colunas (demais campos de perfil/booking ficam intactos).
-  const { error } = await supabase.from('tenant_clinic_profile').upsert(
-    {
-      tenant_id: tenantId,
-      patient_portal_enabled: input.patientPortalEnabled,
-      public_booking_slug: input.publicBookingSlug,
-    } as never,
-    { onConflict: 'tenant_id' },
-  )
+  // `welcomeText` ausente no payload = "não mexi nesse campo"; presente e nulo =
+  // "apaguei". Sem essa distinção, qualquer tela que salvasse só o liga/desliga
+  // limparia o recado da clínica sem ninguém pedir.
+  const patch: Record<string, unknown> = {
+    tenant_id: tenantId,
+    patient_portal_enabled: input.patientPortalEnabled,
+    public_booking_slug: input.publicBookingSlug,
+  }
+  if (input.welcomeText !== undefined) {
+    patch.patient_portal_welcome_text = input.welcomeText
+  }
+
+  const { error } = await supabase
+    .from('tenant_clinic_profile')
+    .upsert(patch as never, { onConflict: 'tenant_id' })
   if (error) throw new Error(`updatePatientPortalConfig: ${error.message}`)
 }
 

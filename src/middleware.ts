@@ -39,6 +39,20 @@ function isApiRoute(pathname: string): boolean {
 }
 
 /**
+ * Feature 057 — a renovação da sessão do paciente NÃO mora aqui, e a tentativa
+ * está registrada porque o erro é convidativo: middleware é o único lugar do
+ * App Router que reescreve cookie em toda página, então parece o lugar óbvio.
+ *
+ * Mas middleware roda no **Edge Runtime**, e a sessão do portal é assinada com
+ * `node:crypto` (`createHmac`). Importar `session.ts` aqui quebra o BUILD —
+ * `UnhandledSchemeError: Reading from "node:crypto"` —, e nem `tsc` nem
+ * `next lint` pegam isso.
+ *
+ * A renovação ficou em `/api/paciente/sessao` (runtime Node), acionada pelo
+ * layout do painel. Ver `specs/057-portal-paciente-home/research.md` (D1).
+ */
+
+/**
  * Feature 031 — painel Admin-Agência (papel de plataforma, cross-tenant). Passa
  * pelo refresh de sessão (senão o token expira e a página 404a), mas NÃO pelo
  * gate de tenant/onboarding — um Admin-Agência pode não ter clínica nenhuma.

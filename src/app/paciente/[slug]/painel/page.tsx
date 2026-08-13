@@ -1,101 +1,86 @@
 /**
- * Feature 030/032 — /paciente/[slug]/painel — portal do paciente.
+ * Feature 030/032/057 — /paciente/[slug]/painel — home do portal do paciente.
  *
- * Server component SÓ-LEITURA. Exige sessão de paciente válida E da clínica do
- * slug — senão volta ao login. Identidade vem só do cookie HMAC; o bundle
- * filtra tudo por patient_id+tenant_id da sessão. Cada render registra `view`.
+ * Server component SÓ-LEITURA. Sessão, gate de seção e trilha LGPD ficam em
+ * `openPortalPage`; o QUE a tela mostra fica em `buildPortalHome` — regra dentro
+ * de JSX não se testa sem renderizar página.
  *
- * Feature 032: visual em LINHA DO TEMPO; cada seção só entra se a clínica a
- * habilitou (`listEnabledPortalSections`).
+ * A home mostra APENAS o que o paciente acompanha no dia a dia: metas e o
+ * checklist de hábitos, a única coisa que ele de fato FAZ aqui. O resto virou
+ * card que leva à página da área. Quando nem metas nem checklist têm o que
+ * exibir, a tela se preenche com o recado da clínica e a primeira área com
+ * conteúdo, aberta.
+ *
+ * O bundle inteiro é montado aqui de propósito: alimenta a prévia de cada card e
+ * o conteúdo da área promovida. As páginas de seção buscam só a sua fatia.
  */
 
-import { notFound, redirect } from 'next/navigation'
-import { cookies, headers } from 'next/headers'
-import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { resolvePortalClinicBySlug } from '@/lib/core/patient-portal/login'
 import {
-  PATIENT_SESSION_COOKIE_NAME,
-  verifyPatientSessionCookie,
-} from '@/lib/core/patient-portal/session'
+  Activity,
+  Beaker,
+  CalendarDays,
+  ClipboardList,
+  Dumbbell,
+  UtensilsCrossed,
+  type LucideIcon,
+} from 'lucide-react'
 import { buildPatientPortalBundle } from '@/lib/core/patient-portal/read-portal'
-import { listEnabledPortalSections } from '@/lib/core/patient-portal/sections'
-import { getTenantEntitlements } from '@/lib/core/entitlements/read'
-import { hashIpForPatientPortal, logPatientAccess } from '@/lib/core/patient-portal/audit'
-import { Card, CardContent } from '@/components/ui/card'
+import { openPortalPage } from '@/lib/core/patient-portal/page-guard'
+import { todayInClinicTz } from '@/lib/core/patient-portal/format'
+import { buildPortalHome } from '@/lib/core/patient-portal/home-layout'
+import { getActiveChecklist } from '@/lib/core/habits/store'
 import { PortalHeader } from '@/components/patient-portal/portal-header'
-import { PatientTimeline } from '@/components/patient-portal/patient-timeline'
 import { GoalsCard } from '@/components/patient-portal/goals-card'
-import { DashboardSummary } from '@/components/patient-portal/dashboard-summary'
-import { WorkoutCard, DietCard } from '@/components/patient-portal/plan-cards'
-import { LabResultsCard } from '@/components/patient-portal/lab-results-card'
 import { HabitsCard } from '@/components/patient-portal/habits-card'
+import { PromotedArea } from '@/components/patient-portal/promoted-area'
+import { PortalSectionCards, type PortalCard } from '@/components/patient-portal/section-cards'
 import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
 
-/** Dia civil da clínica — o mesmo critério que a rota de marcação usa. */
-function todayInClinicTz(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: process.env.CLINIC_TIMEZONE || 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date())
+/** Ícone e cor são do componente, não da regra — por isso vivem só aqui. */
+const LOOK: Record<string, { icon: LucideIcon; tone: string }> = {
+  atendimentos: { icon: CalendarDays, tone: 'bg-emerald-100 text-emerald-700' },
+  metricas: { icon: Activity, tone: 'bg-violet-100 text-violet-700' },
+  orientacoes: { icon: ClipboardList, tone: 'bg-amber-100 text-amber-700' },
+  exames: { icon: Beaker, tone: 'bg-sky-100 text-sky-700' },
+  treino: { icon: Dumbbell, tone: 'bg-indigo-100 text-indigo-700' },
+  dieta: { icon: UtensilsCrossed, tone: 'bg-lime-100 text-lime-700' },
 }
 
 export default async function PacientePainelPage({ params }: { params: { slug: string } }) {
-  const supabase = createSupabaseServiceClient()
-  const clinic = await resolvePortalClinicBySlug(supabase, params.slug)
-  if (!clinic) notFound()
+  const { supabase, clinic, session, enabled, slug } = await openPortalPage(params.slug)
 
-  const rawCookie = cookies().get(PATIENT_SESSION_COOKIE_NAME)?.value
-  const session = verifyPatientSessionCookie(rawCookie)
-  if (!session || session.tenantId !== clinic.tenantId) {
-    redirect(`/paciente/${params.slug}${rawCookie ? '?sessao=expirada' : ''}`)
-  }
-
-  const ent = await getTenantEntitlements(supabase, session.tenantId)
-  const [bundle, enabledList] = await Promise.all([
+  const [bundle, checklist] = await Promise.all([
     buildPatientPortalBundle(supabase, {
       tenantId: session.tenantId,
       patientId: session.patientId,
     }),
-    listEnabledPortalSections(supabase, session.tenantId, { hasModule: (m) => ent.hasModule(m) }),
+    // A promoção precisa saber se existe checklist ANTES de a tela se desenhar.
+    // O `HabitsCard` descobre isso pelo cliente, tarde demais para o layout — e
+    // a resposta sempre esteve disponível aqui no servidor.
+    enabled.has('habitos')
+      ? getActiveChecklist(supabase, session.tenantId, session.patientId)
+      : Promise.resolve(null),
   ])
-  const enabled = new Set(enabledList)
-  const showMetas = enabled.has('metas')
-  const showMetricas = enabled.has('metricas')
-  const showAtendimentos = enabled.has('atendimentos')
-  const showOrientacoes = enabled.has('orientacoes')
-  const showTreino = enabled.has('treino')
-  const showDieta = enabled.has('dieta')
-  // Feature 050 US3 — só exibe com a seção ligada E resultados classificados
-  // (sem faixa aplicável o bundle devolve null: valor cru isolado não vai ao
-  // paciente).
-  const showHabitos = enabled.has('habitos')
-  const showExames = enabled.has('exames') && (bundle.labResults?.length ?? 0) > 0
 
-  const h = headers()
-  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
-  await logPatientAccess({
-    supabase,
-    tenantId: session.tenantId,
-    patientId: session.patientId,
-    action: 'view',
-    ipHash: hashIpForPatientPortal(ip, session.tenantId),
-    userAgent: h.get('user-agent'),
+  const home = buildPortalHome({
+    enabled,
+    bundle,
+    hasChecklist: checklist !== null,
+    welcomeText: clinic.welcomeText,
   })
 
-  const hasAnyMetric = Object.values(bundle.metrics).some((s) => s.length > 0)
-  const hasMetricData = bundle.weightImc.length > 0 || hasAnyMetric
-  const showDashboard = showMetricas && hasMetricData
-  const showGoals = showMetas && bundle.goals.length > 0
-  const timelineHasContent =
-    (showMetricas && hasMetricData) ||
-    (showAtendimentos && bundle.appointments.length > 0) ||
-    (showOrientacoes && bundle.careNotes.length > 0)
-  const treinoCol = showTreino
-  const dietaCol = showDieta
+  const cards: PortalCard[] = home.cards.map((c) => ({
+    key: c.key,
+    label: c.label,
+    href: `/paciente/${slug}/painel/${c.path}`,
+    hint: c.hint,
+    empty: c.empty,
+    emptyHint: c.emptyHint,
+    icon: LOOK[c.key]?.icon ?? Activity,
+    tone: LOOK[c.key]?.tone ?? 'bg-slate-100 text-slate-600',
+  }))
 
   return (
     <div className="space-y-6">
@@ -104,23 +89,19 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
         logoUrl={clinic.logoUrl}
         title={bundle.patient.firstName ? `Olá, ${bundle.patient.firstName}` : 'Olá'}
         subtitle="Acompanhe sua evolução de saúde."
-        right={<PatientLogoutButton slug={params.slug} />}
+        right={<PatientLogoutButton slug={slug} />}
+        nextAppointment={home.nextAppointment}
       />
 
-      {/* Dashboard (primeira impressão) + metas, largura total */}
-      {showDashboard ? (
-        <DashboardSummary
-          weightImc={bundle.weightImc}
-          metrics={bundle.metrics}
-          metricTypes={bundle.metricTypes}
-        />
+      {home.showWelcome ? (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+            {clinic.welcomeText}
+          </p>
+        </section>
       ) : null}
 
-      {/* Hábitos vêm ANTES da evolução: é a única coisa que o paciente FAZ
-          aqui, e enterrá-la sob os gráficos é enterrar o próprio engajamento. */}
-      {showHabitos ? <HabitsCard today={todayInClinicTz()} /> : null}
-
-      {showGoals ? (
+      {home.showGoals ? (
         <GoalsCard
           goals={bundle.goals}
           weightImc={bundle.weightImc}
@@ -129,64 +110,22 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
         />
       ) : null}
 
-      {/* 3 colunas no desktop: Treino | Linha do tempo | Dieta (timeline 1º no mobile) */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)_minmax(0,1fr)]">
-        {treinoCol ? (
-          <div className="order-2 lg:order-1 lg:col-start-1">
-            {bundle.workout ? (
-              <WorkoutCard plan={bundle.workout} />
-            ) : (
-              <PlanPlaceholder kind="treino" />
-            )}
-          </div>
-        ) : null}
+      {home.showHabitos ? <HabitsCard today={todayInClinicTz()} /> : null}
 
-        <div className="order-1 lg:order-2 lg:col-start-2">
-          {timelineHasContent ? (
-            <PatientTimeline
-              appointments={showAtendimentos ? bundle.appointments : []}
-              weightImc={showMetricas ? bundle.weightImc : []}
-              metrics={showMetricas ? bundle.metrics : {}}
-              metricTypes={showMetricas ? bundle.metricTypes : []}
-              careNotes={showOrientacoes ? bundle.careNotes : []}
-            />
-          ) : (
-            <Card className="rounded-2xl border-slate-200">
-              <CardContent className="p-6 text-center text-sm text-slate-500">
-                Ainda não há informações para exibir. Assim que a equipe da clínica registrar seus
-                dados, eles aparecem aqui.
-              </CardContent>
-            </Card>
-          )}
-        </div>
+      {home.promoted ? <PromotedArea section={home.promoted} bundle={bundle} /> : null}
 
-        {dietaCol || showExames ? (
-          <div className="order-3 space-y-6 lg:col-start-3">
-            {dietaCol ? (
-              bundle.diet ? (
-                <DietCard plan={bundle.diet} />
-              ) : (
-                <PlanPlaceholder kind="dieta" />
-              )
-            ) : null}
-            {showExames ? <LabResultsCard items={bundle.labResults ?? []} /> : null}
-          </div>
-        ) : null}
-      </div>
+      <PortalSectionCards cards={cards} />
+
+      {home.hasAnything ? null : (
+        <p className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+          Ainda não há informações para exibir. Assim que a equipe da clínica registrar seus dados,
+          eles aparecem aqui.
+        </p>
+      )}
 
       <footer className="text-center text-xs text-slate-400">
-        <p>Sessão de 30 minutos. Cada acesso é registrado por segurança (LGPD).</p>
+        <p>Sessão de 30 minutos de inatividade. Cada acesso é registrado por segurança (LGPD).</p>
       </footer>
     </div>
-  )
-}
-
-function PlanPlaceholder({ kind }: { kind: 'treino' | 'dieta' }) {
-  return (
-    <section className="rounded-2xl border border-dashed border-slate-200 bg-white p-5 text-center text-sm text-slate-400">
-      {kind === 'treino'
-        ? 'Seu profissional ainda não cadastrou sua rotina de treino.'
-        : 'Seu nutricionista ainda não cadastrou seu plano alimentar.'}
-    </section>
   )
 }

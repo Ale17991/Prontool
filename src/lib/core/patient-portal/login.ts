@@ -26,6 +26,13 @@ export interface PortalClinic {
   displayName: string
   /** URL assinada do logo da clínica (clinic-logos), ou null. */
   logoUrl: string | null
+  /**
+   * Feature 057 — recado da tela inicial, exibido só quando o paciente não tem
+   * metas nem checklist. `null` = a clínica nunca escreveu nada. Vem junto da
+   * mesma consulta que já resolve a clínica: uma ida a menos ao banco numa
+   * página que roda a cada acesso.
+   */
+  welcomeText: string | null
 }
 
 /**
@@ -40,15 +47,21 @@ export async function resolvePortalClinicBySlug(
 ): Promise<PortalClinic | null> {
   const profile = await supabase
     .from('tenant_clinic_profile')
-    .select('tenant_id, corporate_name, patient_portal_enabled, logo_path')
+    .select(
+      'tenant_id, corporate_name, patient_portal_enabled, logo_path, patient_portal_welcome_text',
+    )
     .eq('public_booking_slug', slug)
     .maybeSingle()
   if (profile.error || !profile.data) return null
-  const row = profile.data as {
+  // `patient_portal_welcome_text` é da 0202 e ainda não está nos tipos gerados
+  // (`pnpm supabase:gen-types` depois de aplicar) → cast solto, como as demais
+  // colunas/tabelas novas do projeto.
+  const row = profile.data as unknown as {
     tenant_id: string
     corporate_name: string | null
     patient_portal_enabled: boolean | null
     logo_path: string | null
+    patient_portal_welcome_text: string | null
   }
   // Liga/desliga do portal (FR/030 + 0114): desabilitado ⇒ não existe pra fora.
   if (!row.patient_portal_enabled) return null
@@ -63,7 +76,12 @@ export async function resolvePortalClinicBySlug(
     displayName = (tenant.data as { name: string } | null)?.name ?? slug
   }
   const logoUrl = await createSignedUrlOrNull(supabase, CLINIC_LOGO_BUCKET, row.logo_path, 3600)
-  return { tenantId: row.tenant_id, displayName, logoUrl }
+  return {
+    tenantId: row.tenant_id,
+    displayName,
+    logoUrl,
+    welcomeText: row.patient_portal_welcome_text,
+  }
 }
 
 export type PatientLoginResult =

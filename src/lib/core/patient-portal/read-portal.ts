@@ -225,7 +225,7 @@ function ageFromBirth(iso: string): number | null {
  * tipo — SEM nenhum campo financeiro. Usa a view `appointments_effective`
  * (exclui estornados) e omite cancelados.
  */
-async function listPortalAppointments(
+export async function listPortalAppointments(
   supabase: SupabaseClient<Database>,
   args: { tenantId: string; patientId: string },
 ): Promise<PortalAppointment[]> {

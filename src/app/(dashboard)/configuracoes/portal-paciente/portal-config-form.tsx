@@ -21,6 +21,7 @@ interface Props {
 export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Props) {
   const [enabled, setEnabled] = useState(initialConfig.patientPortalEnabled)
   const [slug, setSlug] = useState(initialConfig.publicBookingSlug)
+  const [welcomeText, setWelcomeText] = useState(initialConfig.welcomeText ?? '')
   const [metrics, setMetrics] = useState(initialMetrics)
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null)
   const [pending, startTransition] = useTransition()
@@ -85,6 +86,7 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
       const res = await savePortalConfigAction({
         patientPortalEnabled: enabled,
         publicBookingSlug: slug,
+        welcomeText,
       })
       if (res.ok) setFeedback({ kind: 'ok', message: 'Configuração salva.' })
       else setFeedback({ kind: 'error', message: res.error ?? 'Erro ao salvar.' })
@@ -176,6 +178,24 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
                 </a>
               </div>
             ) : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="welcome_text">Recado de boas-vindas (opcional)</Label>
+            <textarea
+              id="welcome_text"
+              value={welcomeText}
+              onChange={(e) => setWelcomeText(e.target.value.slice(0, 1000))}
+              rows={3}
+              maxLength={1000}
+              placeholder="Ex.: Que bom ter você por aqui! Qualquer dúvida, fale com a recepção."
+              className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <p className="text-[11px] text-slate-500">
+              Aparece na tela inicial do portal <strong>somente</strong> quando o paciente ainda não
+              tem metas nem checklist de hábitos — é o que evita que ele veja uma tela vazia. Quem
+              já tem metas não vê este texto. {welcomeText.length}/1000 caracteres.
+            </p>
           </div>
 
           <div className="flex items-center justify-between gap-3">
