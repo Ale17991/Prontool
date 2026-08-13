@@ -367,6 +367,25 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   `last_ran_at` depois de atender só o primeiro da fila jogaria a janela dos
   outros fora para sempre. E a automação **ancorada passa na frente** da diária
   na disputa pela vaga, porque a hora dela passa e não volta.
+- **A clínica escolhe a janela de envio** (migration `0201`): horário e dias da
+  semana permitidos, próprios das automações e **não** os do lembrete. Reusar a
+  janela do lembrete parecia certo — "a que horas a clínica fala com o paciente"
+  é uma pergunta só — e não é: lembrete às 7h serve a quem tem consulta às 8h,
+  parabéns às 7h é intrusão. `automation_weekdays` guarda os dias **permitidos**,
+  nunca os proibidos, para que array vazio CALE em vez de liberar tudo; domingo
+  fica fora de fábrica. O que não sai hoje continua no próximo dia permitido —
+  menos nas fontes com chave do dia, onde a data não volta.
+- **O aniversário tem quatro momentos**, e não só "no dia": antes (convidar),
+  depois (não competir com as dezenas de mensagens do próprio dia) e **no
+  primeiro dia do mês**, que existe porque muita clínica roda promoção válida o
+  mês inteiro — avisar no dia 15 entrega metade do benefício. A chave da
+  ocorrência é o **ano do aniversário celebrado**, não a data do envio: senão
+  trocar o parâmetro no meio do ano faria quem já recebeu receber de novo.
+- **Campo de parâmetro pode ser condicional** (`showWhen`) e ter escolhas fixas
+  da fonte (`options`, distinto de `optionsFrom`, que busca dado da clínica).
+  Parâmetro que não se aplica é pior que ausente: a clínica escolhia "no início
+  do mês" e continuava vendo "quantos dias antes", sem como saber que o motor
+  ignoraria. O campo escondido também não vai no payload.
 - **A prévia mede o DIA INTEIRO, não a janela do ciclo** (`previewMode`), e
   responde por fonte + parâmetros ANTES de o gatilho existir — a pergunta "quantos
   isso pega?" muda a decisão só se for respondida enquanto ela está sendo tomada.

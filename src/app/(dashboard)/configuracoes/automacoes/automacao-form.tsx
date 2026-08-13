@@ -31,6 +31,10 @@ export interface CampoDTO {
   max?: number
   defaultValue?: string | number
   optionsFrom?: 'habit_items' | 'metric_types'
+  /** Escolhas fixas da fonte, quando não vêm do catálogo da clínica. */
+  options?: ReadonlyArray<{ readonly value: string; readonly label: string }>
+  /** Só aparece quando outro campo estiver num destes valores. */
+  showWhen?: { readonly field: string; readonly equals: readonly string[] }
 }
 
 export interface FonteDTO {
@@ -113,7 +117,9 @@ function valorInicial(fonte: FonteDTO, opcoes: OpcoesDTO): Record<string, string
       out[campo.name] = String(valor)
       out[`${campo.name}__unidade`] = unidade
     } else if (campo.defaultValue !== undefined) out[campo.name] = String(campo.defaultValue)
-    else if (campo.kind === 'select' && campo.optionsFrom) {
+    else if (campo.kind === 'select' && campo.options?.length) {
+      out[campo.name] = campo.options[0]?.value ?? ''
+    } else if (campo.kind === 'select' && campo.optionsFrom) {
       out[campo.name] = opcoes[campo.optionsFrom]?.[0]?.value ?? ''
     } else out[campo.name] = ''
   }
@@ -160,6 +166,15 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
     if (!fonte) return null
     const params: Record<string, unknown> = {}
     for (const campo of fonte.fields) {
+      // Campo escondido pela regra da fonte não vai no payload: mandar "7 dias"
+      // junto de "no início do mês" gravaria um parâmetro que o motor ignora e
+      // que reapareceria como valor válido se alguém trocasse a escolha depois.
+      if (
+        campo.showWhen &&
+        !campo.showWhen.equals.includes(valores[campo.showWhen.field] ?? '')
+      ) {
+        continue
+      }
       const bruto = (valores[campo.name] ?? '').trim()
       if (campo.kind === 'number' || campo.kind === 'duration') {
         if (bruto === '') return null
@@ -256,7 +271,13 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
 
       {/* Os parâmetros DA FONTE. Nenhum deles está escrito neste arquivo. */}
       <div className="grid gap-3 md:grid-cols-2">
-        {fonte?.fields.map((campo) => (
+        {(fonte?.fields ?? [])
+          .filter(
+            (campo) =>
+              !campo.showWhen ||
+              campo.showWhen.equals.includes(valores[campo.showWhen.field] ?? ''),
+          )
+          .map((campo) => (
           <div key={campo.name} className="space-y-1">
             <Label htmlFor={`campo-${campo.name}`}>{campo.label}</Label>
 
@@ -297,8 +318,11 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
                   setValores((v) => ({ ...v, [campo.name]: e.target.value }))
                 }}
               >
-                <option value="">Qualquer / escolha…</option>
-                {(opcoes[campo.optionsFrom ?? ''] ?? []).map((o) => (
+                {/* Escolha fixa da fonte é obrigatória e não tem "qualquer":
+                    "no dia OU antes OU depois" são alternativas, não um filtro
+                    que pode ficar vazio. */}
+                {!campo.options?.length && <option value="">Qualquer / escolha…</option>}
+                {(campo.options ?? opcoes[campo.optionsFrom ?? ''] ?? []).map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
@@ -320,13 +344,14 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
 
             {campo.hint && <p className="text-xs text-muted-foreground">{campo.hint}</p>}
             {campo.kind === 'select' &&
+              !campo.options?.length &&
               (opcoes[campo.optionsFrom ?? ''] ?? []).length === 0 && (
                 <p className="text-xs text-amber-700">
                   Nada cadastrado ainda para escolher aqui.
                 </p>
               )}
           </div>
-        ))}
+          ))}
 
         <div className="space-y-1">
           <Label htmlFor="auto-horario">A que horas enviar</Label>

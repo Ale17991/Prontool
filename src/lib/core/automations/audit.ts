@@ -10,7 +10,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
 
-export type AutomationEntity = 'message_templates' | 'automation_triggers' | 'automations'
+export type AutomationEntity =
+  | 'message_templates'
+  | 'automation_triggers'
+  | 'automations'
+  // A janela de envio (0201) mora no perfil da clínica, e não numa automação:
+  // ela vale para todas. Mudar quando o número pode falar com os pacientes é
+  // exatamente o tipo de ato que precisa de ator e horário registrados.
+  | 'tenant_clinic_profile'
 
 export async function auditAutomation(
   supabase: SupabaseClient,

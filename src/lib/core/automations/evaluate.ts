@@ -66,9 +66,11 @@ interface TenantRow {
   corporate_name: string | null
   automation_max_per_patient_day: number
   automation_max_per_cycle: number
-  /** A janela de horário da 018 — reusada aqui, ver `dentroDaJanela`. */
-  reminder_window_start: string | null
-  reminder_window_end: string | null
+  /** Janela própria (0201) — ver o bloco da janela de silêncio no motor. */
+  automation_window_start: string | null
+  automation_window_end: string | null
+  /** Dias PERMITIDOS, convenção do JS: 0 = domingo … 6 = sábado. */
+  automation_weekdays: number[] | null
 }
 
 /** Dia civil da clínica, nunca a data do servidor. */
@@ -79,6 +81,20 @@ function clinicToday(now: Date, timezone: string): string {
     month: '2-digit',
     day: '2-digit',
   }).format(now)
+}
+
+/**
+ * O dia da semana no fuso da clínica, na convenção do JS (0 = domingo).
+ *
+ * `Date.getDay()` responderia pelo fuso do SERVIDOR, que na Vercel é UTC: às
+ * 21h de sábado em São Paulo já é domingo em UTC, e uma clínica que bloqueou
+ * domingo veria o bloqueio começar três horas antes da hora.
+ */
+function clinicWeekday(now: Date, timezone: string): number {
+  const nome = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' }).format(
+    now,
+  )
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(nome)
 }
 
 /** `HH:MM` no relógio da clínica. */
@@ -170,7 +186,7 @@ export async function evaluateAutomations(
     .select(
       `tenant_id, timezone, corporate_name,
        automation_max_per_patient_day, automation_max_per_cycle,
-       reminder_window_start, reminder_window_end`,
+       automation_window_start, automation_window_end, automation_weekdays`,
     )
   if (error) {
     logger.error({}, 'automations-load-tenants-failed')
@@ -268,9 +284,19 @@ async function evaluateTenant(
    * amanhã. É o preço de não mandar parabéns às 3 da manhã, e a prévia avisa
    * quando o volume do dia passa do que cabe na janela.
    */
-  const janelaInicio = (tenant.reminder_window_start ?? '08:00').slice(0, 5)
-  const janelaFim = (tenant.reminder_window_end ?? '20:00').slice(0, 5)
+  const janelaInicio = (tenant.automation_window_start ?? '08:00').slice(0, 5)
+  const janelaFim = (tenant.automation_window_end ?? '20:00').slice(0, 5)
   const agoraLocal = clinicClock(now, tz)
+  const diaDaSemana = clinicWeekday(now, tz)
+  const diasPermitidos = tenant.automation_weekdays ?? [1, 2, 3, 4, 5, 6]
+
+  if (!diasPermitidos.includes(diaDaSemana)) {
+    logger.info(
+      { tenantId, diaDaSemana, diasPermitidos, aguardando: naVez.length },
+      'automations-dia-nao-permitido',
+    )
+    return r
+  }
   if (agoraLocal < janelaInicio || agoraLocal > janelaFim) {
     // UM registro por clínica por ciclo, e não um por automação: fora do
     // horário isso aconteceria 100 vezes por noite em toda clínica que tenha

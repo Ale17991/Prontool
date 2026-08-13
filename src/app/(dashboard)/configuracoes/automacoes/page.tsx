@@ -38,6 +38,25 @@ export default async function AutomacoesPage() {
     getAutomationMetrics(svc, session.tenantId, desde).catch(() => new Map()),
   ])
 
+  const { data: perfil } = await svc
+    .from('tenant_clinic_profile')
+    .select('automation_window_start, automation_window_end, automation_weekdays')
+    .eq('tenant_id', session.tenantId)
+    .maybeSingle()
+  const perf = perfil as {
+    automation_window_start: string | null
+    automation_window_end: string | null
+    automation_weekdays: number[] | null
+  } | null
+  // Os mesmos padrões da 0201. A clínica cujo perfil ainda não tem a coluna
+  // preenchida vê a janela de fábrica, e não um campo vazio que ela precisaria
+  // adivinhar como preencher.
+  const janela = {
+    inicio: (perf?.automation_window_start ?? '08:00').slice(0, 5),
+    fim: (perf?.automation_window_end ?? '20:00').slice(0, 5),
+    dias: perf?.automation_weekdays ?? [1, 2, 3, 4, 5, 6],
+  }
+
   const { data } = await svc
     .from('automations')
     .select(
@@ -144,6 +163,7 @@ export default async function AutomacoesPage() {
         mensagensIniciais={mensagens}
         fontes={catalogo.fontes}
         opcoes={catalogo.opcoes}
+        janela={janela}
       />
     </div>
   )

@@ -42,7 +42,7 @@ export async function previewSource(
   const { data: perfil } = await supabase
     .from('tenant_clinic_profile')
     .select(
-      'timezone, corporate_name, automation_max_per_cycle, reminder_window_start, reminder_window_end',
+      'timezone, corporate_name, automation_max_per_cycle, automation_window_start, automation_window_end',
     )
     .eq('tenant_id', tenantId)
     .maybeSingle()
@@ -50,8 +50,8 @@ export async function previewSource(
     timezone: string | null
     corporate_name: string | null
     automation_max_per_cycle: number
-    reminder_window_start: string | null
-    reminder_window_end: string | null
+    automation_window_start: string | null
+    automation_window_end: string | null
   } | null
 
   const tz = p?.timezone ?? 'America/Sao_Paulo'
@@ -96,8 +96,8 @@ export async function previewSource(
    * seguinte é perder a data — daí o aviso ser sobre isso, e não sobre demora.
    */
   const teto = p?.automation_max_per_cycle ?? 1
-  const inicio = minutosDoRelogio(p?.reminder_window_start ?? '08:00')
-  const fim = minutosDoRelogio(p?.reminder_window_end ?? '20:00')
+  const inicio = minutosDoRelogio(p?.automation_window_start ?? '08:00')
+  const fim = minutosDoRelogio(p?.automation_window_end ?? '20:00')
   const janelaMinutos = Math.max(0, fim - inicio)
   const capacidadeDoDia = Math.floor(janelaMinutos / CICLO_MINUTOS) * teto
 

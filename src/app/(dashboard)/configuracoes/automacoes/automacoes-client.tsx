@@ -25,6 +25,7 @@ import {
   type OpcoesDTO,
   type Previa,
 } from './automacao-form'
+import { JanelaEnvio } from './janela-envio'
 import { MensagensClient, type MensagemDTO } from './mensagens-client'
 import { OcorrenciasPanel } from './ocorrencias-panel'
 
@@ -44,11 +45,18 @@ export interface AutomacaoDTO {
   suprimidos30d: number
 }
 
+export interface JanelaDTO {
+  inicio: string
+  fim: string
+  dias: number[]
+}
+
 interface Props {
   automacoesIniciais: AutomacaoDTO[]
   mensagensIniciais: MensagemDTO[]
   fontes: FonteDTO[]
   opcoes: OpcoesDTO
+  janela: JanelaDTO
 }
 
 export function AutomacoesClient({
@@ -56,6 +64,7 @@ export function AutomacoesClient({
   mensagensIniciais,
   fontes,
   opcoes,
+  janela,
 }: Props) {
   const router = useRouter()
   const [erro, setErro] = useState<string | null>(null)
@@ -100,6 +109,15 @@ export function AutomacoesClient({
           <span>{erro}</span>
         </div>
       )}
+
+      {/* ---------------------------------------------------------------- */}
+      <JanelaEnvio
+        janelaInicio={janela.inicio}
+        janelaFim={janela.fim}
+        dias={janela.dias}
+        ocupado={ocupado}
+        chamar={chamar}
+      />
 
       {/* ---------------------------------------------------------------- */}
       <section className="space-y-3">

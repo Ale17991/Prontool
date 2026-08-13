@@ -172,8 +172,27 @@ export interface SourceParamField {
   readonly min?: number
   readonly max?: number
   readonly defaultValue?: string | number
-  /** Só para `kind: 'select'`. */
+  /** Só para `kind: 'select'` — opções vindas do catálogo da clínica. */
   readonly optionsFrom?: SourceOptionSet
+  /**
+   * Só para `kind: 'select'` — opções FIXAS, definidas pela própria fonte.
+   *
+   * Diferente de `optionsFrom`, que busca dado da clínica (quais hábitos, quais
+   * métricas). Aqui as escolhas são do domínio da fonte e não mudam de clínica
+   * para clínica: "no dia do aniversário / dias antes / no início do mês" é a
+   * gramática daquela fonte, não um cadastro.
+   */
+  readonly options?: ReadonlyArray<{ readonly value: string; readonly label: string }>
+  /**
+   * Só mostra este campo quando outro campo estiver num destes valores.
+   *
+   * Existe porque parâmetro que não se aplica é pior que parâmetro ausente: a
+   * clínica escolhe "no início do mês do aniversário" e continua vendo um campo
+   * "quantos dias antes" que o motor vai ignorar — e não tem como saber que vai.
+   * A regra é declarada pela FONTE, como todo o resto: a tela continua sem
+   * conhecer nenhuma delas.
+   */
+  readonly showWhen?: { readonly field: string; readonly equals: readonly string[] }
 }
 
 /**
