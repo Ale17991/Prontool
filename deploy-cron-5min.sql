@@ -105,7 +105,12 @@ CREATE OR REPLACE FUNCTION public.clinni_run_cycle()
 RETURNS BIGINT
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, extensions, vault
+-- `net` entra no caminho de busca junto de `public` e `extensions` porque o
+-- schema em que o pg_net instala VARIA por projeto: neste ele caiu em `public`,
+-- e a documentação da Supabase mostra `net.http_post`. Chamar sem qualificar e
+-- deixar o search_path resolver funciona nos dois casos; qualificar com o schema
+-- errado produz um cron que falha a cada 5 minutos sem ninguém perceber.
+SET search_path = public, extensions, net, vault
 AS $$
 DECLARE
   v_url    TEXT;
@@ -126,7 +131,7 @@ BEGIN
   -- Vercel e continua até o fim mesmo que a espera aqui termine antes. 30s
   -- deixa a resposta ser registrada em `net._http_response`, que é o que permite
   -- conferir depois se o ciclo respondeu 200.
-  SELECT net.http_post(
+  SELECT http_post(
     url := v_url || '/api/cron/send-reminders',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
@@ -188,9 +193,10 @@ $agendamento$;
 --     ORDER BY start_time DESC LIMIT 10;
 
 -- 3) O que o app respondeu. 200 é o ciclo tendo rodado; 401 é CRON_SECRET
---    errado; timeout costuma ser a URL errada.
+--    errado; timeout costuma ser a URL errada. A tabela segue o mesmo schema da
+--    extensão — neste projeto, `public`; em outros, `net`.
 --    SELECT id, status_code, created, content
---      FROM net._http_response ORDER BY created DESC LIMIT 10;
+--      FROM public._http_response ORDER BY created DESC LIMIT 10;
 
 -- Para desligar o ciclo frequente (o diário da Vercel continua):
 --    SELECT cron.unschedule('clinni-cycle-5min');

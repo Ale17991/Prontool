@@ -74,7 +74,9 @@ export default async function LembretesPage() {
           Lembretes automáticos
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Avisa o paciente antes da consulta, por email ou WhatsApp. Reduz no-show em 10–20%.
+          Avisa o paciente antes da consulta, por email ou WhatsApp. Reduz no-show em 10–20%. Aqui
+          ficam a conexão dos canais e a janela de horário; o texto das mensagens e os outros
+          avisos são montados em Automações.
         </p>
       </div>
 
