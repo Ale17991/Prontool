@@ -411,10 +411,17 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   recompostos das ocorrências e dos eventos a cada leitura, e entrega resolve por
   precedência de rank (`sent < delivered < read < error`), nunca pelo evento mais
   recente. `read` implica entrega — a Evolution nem sempre emite os dois ACKs.
-- **`patients.automations_opt_in` nasce FALSE**, ao contrário dos opt-ins de
-  lembrete. Automação é conteúdo não solicitado, finalidade distinta em LGPD;
-  ligar a base retroativamente seria fabricar consentimento. O consentimento é
-  hierárquico: `reminders_opt_in` segue mestre e cala tudo.
+- **`patients.automations_opt_in` nasce TRUE desde a `0200`** — a clínica
+  desliga a pedido, e não o contrário. A 0196 tinha feito o inverso (automação é
+  conteúdo não solicitado, finalidade distinta do lembrete em LGPD), e a inversão
+  foi **decisão de produto da clínica**, tomada em 2026-08-13 junto com a base
+  sendo ligada retroativamente. O apoio deixou de ser consentimento e passou a
+  ser **legítimo interesse** (art. 7º, IX), o que só se sustenta enquanto a
+  recusa for fácil e respeitada: botão na ficha do paciente, campo relido a cada
+  envio, sem cache entre ciclos. O consentimento segue hierárquico —
+  `reminders_opt_in` é mestre e cala tudo. **A 0200 só é segura junto da 0199**:
+  ligar a base inteira sem a fila de uma mensagem a cada 5 minutos é a receita
+  exata do bloqueio.
 - **Os tetos não são polimento.** Sem eles, ativar uma fonte de estado contínuo
   numa base grande vira rajada no primeiro ciclo. O excedente é gravado como
   supressão e a linha é APAGADA para o ciclo seguinte reavaliar — é a única

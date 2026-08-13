@@ -15,10 +15,17 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSource } from './sources'
 import { janelaDoDia } from './sources/shared'
 
+/** O ciclo do `pg_cron` — o mesmo `CICLO_MINUTOS` do motor. */
+const CICLO_MINUTOS = 5
+
 export interface PreviewResult {
   candidatosHoje: number
   tetoPorCiclo: number
-  /** Ativar vai levar mais de um ciclo para vazar a fila. */
+  /** Quantas mensagens cabem num dia, dado o espaçamento e a janela de horário. */
+  capacidadeDoDia: number
+  /** Minutos até a última mensagem da fila sair. */
+  minutosDeFila: number
+  /** A fila não vaza dentro da janela de horário de um dia. */
   avisoVolume: boolean
 }
 
@@ -34,13 +41,17 @@ export async function previewSource(
 
   const { data: perfil } = await supabase
     .from('tenant_clinic_profile')
-    .select('timezone, corporate_name, automation_max_per_cycle')
+    .select(
+      'timezone, corporate_name, automation_max_per_cycle, reminder_window_start, reminder_window_end',
+    )
     .eq('tenant_id', tenantId)
     .maybeSingle()
   const p = perfil as {
     timezone: string | null
     corporate_name: string | null
     automation_max_per_cycle: number
+    reminder_window_start: string | null
+    reminder_window_end: string | null
   } | null
 
   const tz = p?.timezone ?? 'America/Sao_Paulo'
@@ -73,12 +84,36 @@ export async function previewSource(
     params: params ?? {},
   })
 
-  const teto = p?.automation_max_per_cycle ?? 50
+  /**
+   * O aviso mudou de pergunta quando o teto virou espaçamento.
+   *
+   * Antes o teto era de volume (50 por ciclo diário), e passar dele significava
+   * "vai levar mais de um dia". Agora o teto é 1 por ciclo de 5 minutos, e
+   * comparar com ele acusaria fila demais para DOIS aniversariantes — que levam
+   * cinco minutos e cabem folgados. O que importa é se a fila vaza dentro da
+   * janela de horário da clínica: fora dela o motor para, e o que sobrar espera
+   * o dia seguinte. Para as fontes com chave do dia (aniversário), esperar o dia
+   * seguinte é perder a data — daí o aviso ser sobre isso, e não sobre demora.
+   */
+  const teto = p?.automation_max_per_cycle ?? 1
+  const inicio = minutosDoRelogio(p?.reminder_window_start ?? '08:00')
+  const fim = minutosDoRelogio(p?.reminder_window_end ?? '20:00')
+  const janelaMinutos = Math.max(0, fim - inicio)
+  const capacidadeDoDia = Math.floor(janelaMinutos / CICLO_MINUTOS) * teto
+
   return {
     candidatosHoje: candidatos.length,
     tetoPorCiclo: teto,
-    avisoVolume: candidatos.length > teto,
+    capacidadeDoDia,
+    minutosDeFila: Math.max(0, Math.ceil((candidatos.length - 1) / teto) * CICLO_MINUTOS),
+    avisoVolume: candidatos.length > capacidadeDoDia,
   }
+}
+
+/** `08:00` ou `08:00:00` em minutos desde a meia-noite. */
+function minutosDoRelogio(hhmm: string): number {
+  const [h, m] = hhmm.slice(0, 5).split(':').map(Number)
+  return (h ?? 0) * 60 + (m ?? 0)
 }
 
 export async function previewTrigger(

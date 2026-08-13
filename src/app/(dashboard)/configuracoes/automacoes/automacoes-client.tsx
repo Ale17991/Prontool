@@ -19,7 +19,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle, Clock, Power, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { AutomacaoForm, type FonteDTO, type OpcoesDTO } from './automacao-form'
+import {
+  AutomacaoForm,
+  type FonteDTO,
+  type OpcoesDTO,
+  type Previa,
+} from './automacao-form'
 import { MensagensClient, type MensagemDTO } from './mensagens-client'
 import { OcorrenciasPanel } from './ocorrencias-panel'
 
@@ -181,7 +186,7 @@ export function AutomacoesClient({
               '/api/automacoes/previa',
               { method: 'POST', body: JSON.stringify(input) },
               { semRefresh: true },
-            )) as { candidatosHoje: number; tetoPorCiclo: number; avisoVolume: boolean } | null
+            )) as Previa | null
           }
         />
       </section>

@@ -60,6 +60,17 @@ const CICLO_MINUTOS = 5
  */
 const JANELA_MAX_MINUTOS = 6 * 60
 
+interface TenantRow {
+  tenant_id: string
+  timezone: string | null
+  corporate_name: string | null
+  automation_max_per_patient_day: number
+  automation_max_per_cycle: number
+  /** A janela de horário da 018 — reusada aqui, ver `dentroDaJanela`. */
+  reminder_window_start: string | null
+  reminder_window_end: string | null
+}
+
 /** Dia civil da clínica, nunca a data do servidor. */
 function clinicToday(now: Date, timezone: string): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -157,20 +168,16 @@ export async function evaluateAutomations(
   const { data: tenants, error } = await supabase
     .from('tenant_clinic_profile')
     .select(
-      'tenant_id, timezone, corporate_name, automation_max_per_patient_day, automation_max_per_cycle',
+      `tenant_id, timezone, corporate_name,
+       automation_max_per_patient_day, automation_max_per_cycle,
+       reminder_window_start, reminder_window_end`,
     )
   if (error) {
     logger.error({}, 'automations-load-tenants-failed')
     return total
   }
 
-  for (const t of (tenants ?? []) as Array<{
-    tenant_id: string
-    timezone: string | null
-    corporate_name: string | null
-    automation_max_per_patient_day: number
-    automation_max_per_cycle: number
-  }>) {
+  for (const t of (tenants ?? []) as Array<TenantRow>) {
     try {
       const parcial = await evaluateTenant(supabase, t, now)
       total.avaliadas += parcial.avaliadas
@@ -193,13 +200,7 @@ export async function evaluateAutomations(
 
 async function evaluateTenant(
   supabase: SupabaseClient,
-  tenant: {
-    tenant_id: string
-    timezone: string | null
-    corporate_name: string | null
-    automation_max_per_patient_day: number
-    automation_max_per_cycle: number
-  },
+  tenant: TenantRow,
   now: Date,
 ): Promise<EvaluateResult> {
   const r: EvaluateResult = { avaliadas: 0, enviadas: 0, suprimidas: 0, impedidas: 0, falhas: 0 }
@@ -244,6 +245,42 @@ async function evaluateTenant(
     if (plano.rodar) naVez.push({ auto, plano, ancorada })
   }
   if (naVez.length === 0) return r
+
+  /**
+   * A JANELA DE SILÊNCIO — a segunda metade da proteção contra bloqueio.
+   *
+   * O espaçamento resolve a rajada, mas cria um efeito que não existia quando
+   * tudo saía de uma vez: uma fila longa escorre. A 5 minutos por mensagem, cem
+   * pendentes ocupam mais de oito horas, e a cauda cai na madrugada — que é ao
+   * mesmo tempo falta de educação com o paciente e sinal de robô para quem
+   * observa o padrão de envio.
+   *
+   * A janela reusada é a MESMA que a clínica já configura em Lembretes
+   * (08:00–20:00 de fábrica), e não uma configuração nova, porque a pergunta que
+   * ela responde é a mesma: a que horas esta clínica fala com os pacientes dela.
+   * Duas janelas separadas dariam à clínica a chance de responder diferente para
+   * a mesma pergunta e descobrir a divergência pelo paciente reclamando.
+   *
+   * O que fica de fora da janela NÃO é perdido para as fontes de estado contínuo
+   * (a chave é mensal) nem para as ancoradas (a janela de varredura não avança).
+   * Para as fontes com chave do dia — aniversário é a que importa —, uma fila que
+   * não vaza até as 20:00 perde a cauda: aquelas pessoas não são candidatas
+   * amanhã. É o preço de não mandar parabéns às 3 da manhã, e a prévia avisa
+   * quando o volume do dia passa do que cabe na janela.
+   */
+  const janelaInicio = (tenant.reminder_window_start ?? '08:00').slice(0, 5)
+  const janelaFim = (tenant.reminder_window_end ?? '20:00').slice(0, 5)
+  const agoraLocal = clinicClock(now, tz)
+  if (agoraLocal < janelaInicio || agoraLocal > janelaFim) {
+    // UM registro por clínica por ciclo, e não um por automação: fora do
+    // horário isso aconteceria 100 vezes por noite em toda clínica que tenha
+    // qualquer automação ligada.
+    logger.info(
+      { tenantId, agoraLocal, janelaInicio, janelaFim, aguardando: naVez.length },
+      'automations-fora-da-janela',
+    )
+    return r
+  }
 
   /**
    * A ancorada passa na frente, e isso importa por causa do teto de espaçamento.

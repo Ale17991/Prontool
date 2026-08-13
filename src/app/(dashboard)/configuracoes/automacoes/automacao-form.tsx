@@ -46,6 +46,14 @@ export interface FonteDTO {
 
 export type OpcoesDTO = Record<string, Array<{ value: string; label: string }>>
 
+export interface Previa {
+  candidatosHoje: number
+  tetoPorCiclo: number
+  capacidadeDoDia: number
+  minutosDeFila: number
+  avisoVolume: boolean
+}
+
 export interface MensagemOpcao {
   id: string
   name: string
@@ -63,11 +71,7 @@ interface Props {
     params: Record<string, unknown>
     sendAtLocal: string
   }): Promise<boolean>
-  onPrevia(input: { source: string; params: Record<string, unknown> }): Promise<{
-    candidatosHoje: number
-    tetoPorCiclo: number
-    avisoVolume: boolean
-  } | null>
+  onPrevia(input: { source: string; params: Record<string, unknown> }): Promise<Previa | null>
 }
 
 const MINUTOS_POR_DIA = 1440
@@ -86,6 +90,14 @@ function emMinutos(valor: number, unidade: Unidade): number {
   if (unidade === 'dias') return valor * MINUTOS_POR_DIA
   if (unidade === 'horas') return valor * 60
   return valor
+}
+
+/** "40 minutos", "1h40" — quanto tempo a fila leva para vazar inteira. */
+function minutosEmTexto(minutos: number): string {
+  if (minutos < 60) return `${minutos} minutos`
+  const h = Math.floor(minutos / 60)
+  const m = minutos % 60
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
 }
 
 /** Uma antecedência que não fecha em dias inteiros manda no horário da âncora. */
@@ -117,11 +129,7 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
   const [valores, setValores] = useState<Record<string, string>>(() =>
     fontes[0] ? valorInicial(fontes[0], opcoes) : {},
   )
-  const [previa, setPrevia] = useState<{
-    candidatosHoje: number
-    tetoPorCiclo: number
-    avisoVolume: boolean
-  } | null>(null)
+  const [previa, setPrevia] = useState<Previa | null>(null)
 
   // A lista fica agrupada porque são dezesseis fontes: sem os grupos, achar
   // "parcela a vencer" no meio de "aniversário de cadastro" é leitura linear.
@@ -332,7 +340,7 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
           <p className="text-xs text-muted-foreground">
             {ancorada
               ? 'Não se aplica: em horas ou minutos, a mensagem sai contada a partir do horário de cada paciente.'
-              : 'No relógio da clínica. O envio acontece no ciclo seguinte a esse horário, com precisão de 15 minutos.'}
+              : 'No relógio da clínica, e é a hora em que a fila COMEÇA a sair — as mensagens vão uma a cada 5 minutos, para o número não ser bloqueado por disparo em massa. Vale a janela de horário configurada em Lembretes.'}
           </p>
         </div>
       </div>
@@ -396,11 +404,23 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
       {previa && (
         <p className="text-sm">
           <strong>{previa.candidatosHoje}</strong> paciente(s) satisfazem isso hoje.
+          {/* O tempo de fila é a informação que muda a decisão, e ela não é
+              óbvia a partir do número de pacientes: com uma mensagem a cada 5
+              minutos, 20 candidatos são quase duas horas de envio. Dizer só
+              "20 pacientes" deixaria a clínica esperar que tudo saísse junto. */}
+          {previa.candidatosHoje > 1 && (
+            <>
+              {' '}
+              Vão sair espaçados, uma a cada 5 minutos — cerca de{' '}
+              <strong>{minutosEmTexto(previa.minutosDeFila)}</strong> até a última.
+            </>
+          )}
           {previa.avisoVolume && (
             <span className="text-amber-700">
               {' '}
-              Acima do teto de {previa.tetoPorCiclo} por ciclo — o envio vai levar mais de um dia
-              para vazar a fila.
+              Cabem {previa.capacidadeDoDia} por dia dentro da janela de horário da clínica, e isso
+              passa disso. Quem sobrar é reavaliado no dia seguinte — e, no caso de aniversário,
+              quem ficar de fora perde a data.
             </span>
           )}
         </p>

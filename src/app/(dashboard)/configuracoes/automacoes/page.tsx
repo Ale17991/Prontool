@@ -104,14 +104,16 @@ export default async function AutomacoesPage() {
         </div>
       )}
 
-      {/* O consentimento de automação nasce DESLIGADO por paciente (é conteúdo
-          não solicitado, finalidade distinta em LGPD do lembrete de consulta).
-          Dizer isso aqui evita a conclusão errada de que a automação quebrou
-          quando, na verdade, ninguém consentiu ainda. */}
+      {/* Desde a 0200 a automação nasce LIGADA no paciente, apoiada em legítimo
+          interesse. Isso muda a obrigação da clínica: ela não precisa mais
+          colher autorização, mas precisa desligar quando pedirem — e é o que
+          sustenta o legítimo interesse. Dizer isso aqui é o que transforma a
+          regra em algo que a recepção sabe cumprir. */}
       <div className="rounded-md border bg-muted/40 p-3 text-sm">
-        Mensagem de automação exige consentimento <strong>próprio</strong> do paciente, separado do
-        lembrete de consulta — e ele começa desligado para todo mundo. A chave fica na ficha de cada
-        paciente, junto dos outros consentimentos.
+        As mensagens de automação saem para todos os pacientes ativos com telefone. Quando alguém
+        pedir para parar, desligue na <strong>ficha do paciente</strong> — a recusa vale a partir do
+        envio seguinte e não afeta o lembrete de consulta. Quem já recusou <em>todas</em> as
+        mensagens continua fora, sem exceção.
       </div>
 
       {/* O lembrete de consulta deixou de ter card próprio no hub e passou a

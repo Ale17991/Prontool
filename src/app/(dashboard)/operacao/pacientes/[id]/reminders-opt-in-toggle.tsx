@@ -28,7 +28,7 @@ export function RemindersOptInToggle({
   canEdit,
   initialWhatsAppOptIn = true,
   whatsappDisponivel = false,
-  initialAutomationsOptIn = false,
+  initialAutomationsOptIn = true,
   automacoesDisponivel = false,
 }: RemindersOptInToggleProps) {
   const [pending, startTransition] = useTransition()
@@ -145,11 +145,17 @@ export function RemindersOptInToggle({
       )}
 
       {/*
-        Feature 056 — consentimento de AUTOMAÇÕES. Separado do lembrete de
-        propósito: quem aceitou ser lembrado da consulta não aceitou receber
-        mensagem sobre hábito ou aniversário. Nasce NEGADO, e por isso o texto
-        padrão diz que o paciente não recebe — o contrário presumiria um
-        consentimento que ninguém deu.
+        Feature 056 — recusa de AUTOMAÇÕES, separada da do lembrete de propósito:
+        quem quer ser lembrado da consulta não necessariamente quer mensagem de
+        aniversário ou de hábito, e são coisas que a pessoa recusa em momentos
+        diferentes.
+
+        Desde a 0200 nasce LIGADO: o apoio é legítimo interesse, e a clínica
+        desliga a pedido. Isso muda o que este controle É — deixou de ser uma
+        autorização a colher e virou uma recusa a registrar —, e o texto
+        acompanha: "Não enviar mais" é o que a recepcionista procura quando o
+        paciente pede para parar, e é o único caminho que sustenta o legítimo
+        interesse.
       */}
       {automacoesDisponivel && optIn && (
         <div className="mt-3 flex items-start justify-between gap-3 border-t border-border pt-3">
@@ -160,7 +166,7 @@ export function RemindersOptInToggle({
             <p className="mt-0.5 text-xs text-slate-500">
               {autoOptIn
                 ? 'Pode receber aniversário, acompanhamento de hábitos e retorno.'
-                : 'Recebe apenas lembrete de consulta. Consentimento não presumido.'}
+                : 'O paciente pediu para não receber. Continua recebendo lembrete de consulta.'}
             </p>
           </div>
           {canEdit ? (
@@ -170,7 +176,7 @@ export function RemindersOptInToggle({
               disabled={pending}
               className="shrink-0 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {pending ? '...' : autoOptIn ? 'Não enviar' : 'Autorizar'}
+              {pending ? '...' : autoOptIn ? 'Não enviar mais' : 'Voltar a enviar'}
             </button>
           ) : null}
         </div>
