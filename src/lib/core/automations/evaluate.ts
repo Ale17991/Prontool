@@ -35,15 +35,19 @@ const SPACING_MS = 1000
 
 /**
  * O intervalo entre dois ciclos, em minutos — o mesmo do `pg_cron` que chama a
- * rota (`deploy-cron-15min.sql`) e o mesmo `WINDOW_MINUTES` do motor de
- * lembretes, que já era feito para esta cadência.
+ * rota (`deploy-cron-5min.sql`).
+ *
+ * Cinco minutos, e não quinze, porque o ciclo é também o ESPAÇAMENTO dos envios:
+ * o teto por ciclo é de uma mensagem, então a cadência do cron é a distância
+ * entre duas mensagens da mesma clínica. Também cabe folgado dentro dos 15
+ * minutos que o motor de lembretes (018) espera na sua janela de seleção.
  *
  * Só é usado como CHUTE para a primeira varredura de uma automação ancorada,
  * quando ainda não há `last_ran_at`. Nas seguintes, a janela é o intervalo real
  * entre varreduras — o que mantém a feature correta mesmo que a periodicidade do
  * cron mude sem ninguém atualizar esta constante.
  */
-const CICLO_MINUTOS = 15
+const CICLO_MINUTOS = 5
 
 /**
  * Teto da janela de uma automação ancorada, em minutos.
@@ -93,10 +97,10 @@ interface Agendamento {
  * intervalo desde a última varredura.
  *
  * **Diária** ("3 dias depois do atendimento") roda UMA vez por dia, no horário
- * que a clínica escolheu. Sem este corte, o ciclo de 15 em 15 minutos faria a
- * mesma varredura 96 vezes por dia — o banco recusaria as ocorrências repetidas
+ * que a clínica escolheu. Sem este corte, o ciclo de 5 em 5 minutos faria a
+ * mesma varredura 288 vezes por dia — o banco recusaria as ocorrências repetidas
  * pelo UNIQUE, então ninguém receberia mensagem duplicada, mas a clínica pagaria
- * 96 vezes a consulta mais cara da feature para descobrir isso.
+ * 288 vezes a consulta mais cara da feature para descobrir isso.
  */
 export function agendar(
   auto: { params: Record<string, unknown>; sendAtLocal: string; lastFiredOn: string | null; lastRanAt: string | null },
@@ -219,12 +223,16 @@ async function evaluateTenant(
    * O que roda AGORA — resolvido antes de qualquer coisa cara.
    *
    * A ordem importa: as verificações de conexão do WhatsApp e de credencial
-   * ficavam antes desta filtragem, e com o ciclo de 15 em 15 minutos isso
-   * passaria a alertar "WhatsApp não conectado" 96 vezes por dia numa clínica
+   * ficavam antes desta filtragem, e com o ciclo de 5 em 5 minutos isso
+   * passaria a alertar "WhatsApp não conectado" 288 vezes por dia numa clínica
    * que não tem automação nenhuma para mandar hoje. Alerta que aparece sem haver
    * o que enviar ensina a clínica a ignorar alerta.
    */
-  const naVez: Array<{ auto: (typeof automacoes)[number]; plano: Agendamento }> = []
+  const naVez: Array<{
+    auto: (typeof automacoes)[number]
+    plano: Agendamento
+    ancorada: boolean
+  }> = []
   for (const auto of automacoes) {
     const fonte = getSource(auto.source)
     if (!fonte) {
@@ -233,9 +241,21 @@ async function evaluateTenant(
     }
     const ancorada = Boolean(fonte.isAnchored?.(auto.params))
     const plano = agendar(auto, ancorada, now, tz, today)
-    if (plano.rodar) naVez.push({ auto, plano })
+    if (plano.rodar) naVez.push({ auto, plano, ancorada })
   }
   if (naVez.length === 0) return r
+
+  /**
+   * A ancorada passa na frente, e isso importa por causa do teto de espaçamento.
+   *
+   * Com uma mensagem por ciclo, quem chega primeiro leva a vaga. Uma automação
+   * de aniversário com fila de vinte pessoas ocuparia a vaga de todos os ciclos
+   * da manhã e empurraria para trás o "sua consulta é daqui a duas horas" — e
+   * essa não pode esperar, porque a hora dela passa e não volta, enquanto o
+   * parabéns atrasa e continua valendo. Entre as de mesma natureza, a ordem
+   * segue a de criação, que é estável.
+   */
+  naVez.sort((a, b) => Number(b.ancorada) - Number(a.ancorada))
 
   /**
    * Sem canal conectado: UMA ocorrência agregada por ciclo (FR-021), nunca uma
@@ -315,7 +335,34 @@ async function evaluateTenant(
 
     let suprimidasAqui = 0
 
-    for (const cand of candidatos) {
+    for (let i = 0; i < candidatos.length; i++) {
+      const cand = candidatos[i] as (typeof candidatos)[number]
+
+      /**
+       * O TETO POR CICLO É O ESPAÇAMENTO, e é o que protege o número da clínica.
+       *
+       * Vinte aniversariantes num dia não podem sair em vinte mensagens
+       * seguidas: rajada de número não-oficial é o caminho mais curto para o
+       * bloqueio. Com o ciclo a cada 5 minutos e o teto de fábrica em 1, sai uma
+       * mensagem por clínica a cada 5 minutos, e os vinte levam pouco menos de
+       * duas horas — que é o preço de não ser bloqueado.
+       *
+       * O corte acontece ANTES de reservar a ocorrência, e isso mudou: antes o
+       * excedente era reservado, marcado como suprimido e apagado em seguida,
+       * três escritas por paciente por ciclo para não deixar rastro nenhum (a
+       * linha suprimida é DELETADA, então nunca apareceu no histórico de 30
+       * dias). Com o ciclo 12 vezes mais frequente, isso viraria dezenas de
+       * milhares de escritas por dia numa clínica grande, para produzir nada. O
+       * que ficou de fora continua contado no resultado do ciclo, que é onde
+       * essa informação sempre viveu.
+       */
+      if (enviadasNoCiclo >= tenant.automation_max_per_cycle) {
+        const restantes = candidatos.length - i
+        r.suprimidas += restantes
+        suprimidasAqui += restantes
+        break
+      }
+
       r.avaliadas++
 
       // Reserva ANTES de qualquer trabalho. Se a linha já existe, este ciclo é
@@ -327,22 +374,6 @@ async function evaluateTenant(
         occurrenceKey: cand.occurrenceKey,
       })
       if (!occId) continue
-
-      // Teto por clínica: o excedente fica para os ciclos seguintes.
-      //
-      // O teto é por CICLO, e o ciclo passou a acontecer 96 vezes por dia. Na
-      // prática o número diário não explodiu: a automação diária roda uma vez só
-      // (o `agendar` acima a segura no resto do dia), e a ancorada enumera a
-      // janela de 15 minutos, que numa agenda real são poucos pacientes. Quem
-      // continua limitando o que UM paciente recebe por dia é o teto por
-      // paciente, logo abaixo — esse não depende da frequência do ciclo.
-      if (enviadasNoCiclo >= tenant.automation_max_per_cycle) {
-        await settleOccurrence(supabase, occId, 'suprimido_teto_clinica')
-        await releaseSuppressed(supabase, occId)
-        r.suprimidas++
-        suprimidasAqui++
-        continue
-      }
 
       // Teto por paciente/dia.
       const jaHoje = await countSentToday(supabase, tenantId, cand.patientId, inicioDoDia, occId)
@@ -376,20 +407,20 @@ async function evaluateTenant(
     }
 
     /**
-     * Só depois de a varredura terminar. Marcar antes faria uma exceção no meio
-     * do caminho fechar o dia da automação com metade dos pacientes atendidos —
-     * e o resto só seria visto no dia seguinte, sem nada indicando o buraco.
+     * Só depois de a varredura terminar, e SÓ se ela terminou inteira.
      *
-     * E quem SUPRIMIU alguém por teto não fecha o dia: a promessa da supressão é
-     * "fica para o ciclo seguinte", e fechar o dia transformaria isso em "fica
-     * para amanhã". Com o ciclo de 15 em 15 minutos, a fila de uma clínica
-     * grande vaza em horas em vez de dias — que é justamente o que o aviso de
-     * volume da prévia adverte poder demorar.
+     * Quem parou no teto não registra nada: nem o dia (senão a promessa "fica
+     * para o ciclo seguinte" viraria "fica para amanhã"), nem o instante da
+     * varredura. O instante é o que mais importa e é o menos óbvio: a automação
+     * ANCORADA enumera pela janela `(última varredura, agora]`, então avançar a
+     * marca depois de atender só o primeiro da fila jogaria fora, para sempre,
+     * os que ficaram — a janela deles passaria sem nunca ter sido olhada. Sem
+     * avançar, a janela seguinte ainda os cobre, e quem já recebeu é barrado
+     * pelo UNIQUE na hora de reservar.
      */
-    await markAutomationRan(supabase, auto.id, {
-      ranAt: now,
-      firedOn: suprimidasAqui > 0 ? null : plano.firedOn,
-    })
+    if (suprimidasAqui === 0) {
+      await markAutomationRan(supabase, auto.id, { ranAt: now, firedOn: plano.firedOn })
+    }
   }
 
   return r

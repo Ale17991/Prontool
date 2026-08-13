@@ -319,8 +319,8 @@ horas) num ato só. Avaliado no mesmo ciclo do lembrete, em `try/catch` próprio
 Migrations `0196_message_automations.sql`, `0197_automation_delivery_events.sql`
 e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
 
-- **O ciclo passou a rodar de 15 em 15 minutos, pelo `pg_cron` do próprio
-  Supabase** (`deploy-cron-15min.sql`), e não pelo cron da Vercel — que no plano
+- **O ciclo passou a rodar de 5 em 5 minutos, pelo `pg_cron` do próprio
+  Supabase** (`deploy-cron-5min.sql`), e não pelo cron da Vercel — que no plano
   Hobby não aceita nada mais frequente que diário e, se aceitar, trava TODOS os
   deploys. O `pg_net` chama `/api/cron/send-reminders` com o mesmo `CRON_SECRET`,
   lido do Vault na hora. **O cron diário da Vercel fica no lugar de propósito**:
@@ -352,11 +352,22 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   viraria `NaN` na janela e a automação ficaria ligada e muda.
 - **`last_fired_on` e `last_ran_at` não são idempotência** — essa segue sendo o
   `UNIQUE (automation_id, patient_id, occurrence_key)`. São o corte que impede a
-  automação diária de varrer 96 vezes e a janela que a ancorada usa para não
+  automação diária de varrer 288 vezes e a janela que a ancorada usa para não
   perder as âncoras de um deploy longo. A janela ancorada tem teto de 6h: sem
   ele, um ciclo parado por um dia despejaria "sua consulta é daqui a 2 horas"
   sobre consulta de anteontem.
-- **A prévia mede o DIA INTEIRO, não a janela de 15 minutos** (`previewMode`), e
+- **O teto por ciclo virou o ESPAÇAMENTO, e é ele que protege o número**
+  (migration `0199`, valor de fábrica **1**). O ciclo a cada 5 minutos multiplicado
+  por uma mensagem por ciclo é "uma a cada 5 minutos": vinte aniversariantes saem
+  em quase duas horas, em vez de vinte segundos. O corte acontece ANTES de
+  reservar a ocorrência — o excedente não é gravado como supressão (aquela linha
+  era DELETADA em seguida e nunca apareceu no histórico de 30 dias; a 288 ciclos
+  por dia, eram dezenas de milhares de escritas para produzir nada). **Quem parou
+  no teto não registra a varredura**, nem o dia nem o instante: avançar
+  `last_ran_at` depois de atender só o primeiro da fila jogaria a janela dos
+  outros fora para sempre. E a automação **ancorada passa na frente** da diária
+  na disputa pela vaga, porque a hora dela passa e não volta.
+- **A prévia mede o DIA INTEIRO, não a janela do ciclo** (`previewMode`), e
   responde por fonte + parâmetros ANTES de o gatilho existir — a pergunta "quantos
   isso pega?" muda a decisão só se for respondida enquanto ela está sendo tomada.
 
@@ -408,6 +419,12 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   numa base grande vira rajada no primeiro ciclo. O excedente é gravado como
   supressão e a linha é APAGADA para o ciclo seguinte reavaliar — é a única
   exclusão que o append-only permite.
+- **O lembrete de consulta virou área SECUNDÁRIA dentro de Automações**, e o
+  card próprio dele no hub só aparece para quem NÃO tem o módulo `automacoes`.
+  A condição não é firula: a tela de lembretes é o **único** lugar onde se
+  conecta o número de WhatsApp, e a maior parte das clínicas não contratou
+  automações — esconder o card sem a condição deixaria essas clínicas sem canal e
+  sem lembrete. O motor continua separado (FR-024); o que mudou foi o caminho.
 - **O gate de módulo vale no MOTOR, não só na tela.** `automations.active` é
   estado persistido: módulo revogado com o gate só na UI continuaria enviando
   para sempre. Módulo desligado não gera alerta (ausência de contratação não é

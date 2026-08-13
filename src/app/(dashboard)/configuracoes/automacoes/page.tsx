@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { Wand2 } from 'lucide-react'
+import { BellRing, Wand2 } from 'lucide-react'
 import { getSession } from '@/lib/auth/get-session'
 import { can } from '@/lib/auth/rbac'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
@@ -114,16 +114,28 @@ export default async function AutomacoesPage() {
         paciente, junto dos outros consentimentos.
       </div>
 
-      {/* Lembrete de consulta mora em outra tela, e dizer isso aqui é o FR-026:
-          enquanto os dois motores coexistirem, quem procurar o lembrete aqui
-          precisa ser mandado para o lugar certo em vez de concluir que sumiu. */}
-      <p className="text-sm text-muted-foreground">
-        Procurando o lembrete de consulta? Ele fica em{' '}
-        <a className="underline" href="/configuracoes/lembretes">
-          Configurações → Lembretes
-        </a>
-        , com configuração própria.
-      </p>
+      {/* O lembrete de consulta deixou de ter card próprio no hub e passou a
+          entrar por AQUI. O motor continua separado (FR-024) — o que mudou foi
+          só o caminho: são duas formas de mandar mensagem, e dois cards lado a
+          lado obrigavam a clínica a adivinhar em qual delas estava o que
+          procura. O destaque visual é deliberadamente menor que o do bloco de
+          automações: é área secundária, não segunda tela principal.
+
+          Esta tela também é o único lugar onde se conecta o número de WhatsApp,
+          e é por isso que o texto diz isso em vez de só "lembretes". */}
+      <a
+        href="/configuracoes/lembretes"
+        className="flex items-start gap-3 rounded-md border p-3 text-sm transition-colors hover:bg-muted/50"
+      >
+        <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+        <span>
+          <strong className="font-medium">Lembretes de consulta</strong>
+          <span className="block text-muted-foreground">
+            Aviso automático antes do horário marcado, por WhatsApp ou e-mail — com regra própria,
+            separada das automações. É também onde se conecta o número de WhatsApp da clínica.
+          </span>
+        </span>
+      </a>
 
       <AutomacoesClient
         automacoesIniciais={automacoes}

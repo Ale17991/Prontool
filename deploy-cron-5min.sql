@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Ciclo de 15 em 15 minutos pelo próprio Supabase (features 018 / 051 / 056)
+-- Ciclo de 5 em 5 minutos pelo próprio Supabase (features 018 / 051 / 056)
 --
 -- COLE ESTE ARQUIVO INTEIRO NO SQL EDITOR DO SUPABASE DE PRODUÇÃO,
 -- depois de preencher as DUAS variáveis do bloco CONFIGURAÇÃO abaixo.
@@ -21,6 +21,15 @@
 -- O `pg_cron` roda dentro do Postgres do Supabase e não conhece esse limite. O
 -- `pg_net` dispara a chamada HTTP para a rota do ciclo, com o mesmo
 -- `CRON_SECRET` que a Vercel já manda. Nada muda na aplicação.
+--
+-- SÃO 5 MINUTOS, E NÃO 15, POR CAUSA DAS AUTOMAÇÕES
+--
+-- Para o lembrete de consulta, 15 minutos bastariam — é o tamanho da janela de
+-- `select-due.ts`. Quem pede 5 é a feature 056: o teto de envio por ciclo é de
+-- UMA mensagem por clínica, então a cadência do cron é literalmente a distância
+-- entre duas mensagens. É assim que vinte aniversariantes saem espalhados por
+-- quase duas horas em vez de em vinte segundos, que é o padrão que faz um número
+-- não-oficial ser bloqueado.
 --
 -- O cron diário da Vercel (`vercel.json`) FICA NO LUGAR de propósito: são dois
 -- despertadores independentes para o mesmo endpoint. Se o pg_cron for desligado
@@ -134,7 +143,7 @@ $$;
 REVOKE ALL ON FUNCTION public.clinni_run_cycle() FROM PUBLIC, anon, authenticated;
 
 COMMENT ON FUNCTION public.clinni_run_cycle() IS
-  'Dispara o ciclo de lembretes (018/051) e automações (056) via pg_net. Agendada pelo pg_cron a cada 15 minutos — ver deploy-cron-15min.sql. O cron diário da Vercel continua existindo como rede de segurança.';
+  'Dispara o ciclo de lembretes (018/051) e automações (056) via pg_net. Agendada pelo pg_cron a cada 5 minutos — ver deploy-cron-5min.sql. O cron diário da Vercel continua existindo como rede de segurança.';
 
 -- ===========================================================================
 -- O AGENDAMENTO
@@ -144,13 +153,21 @@ DO $agendamento$
 BEGIN
   -- `cron.unschedule` levanta exceção quando o job não existe, então a remoção
   -- é condicional. Sem isto, rodar este arquivo pela primeira vez falharia.
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'clinni-cycle-5min') THEN
+    PERFORM cron.unschedule('clinni-cycle-5min');
+  END IF;
+
+  -- O nome antigo, de quando o ciclo era de 15 minutos. Se ele chegou a ser
+  -- agendado, precisa sair: dois agendamentos para o mesmo endpoint não
+  -- duplicariam mensagem (o ciclo é idempotente), mas estragariam o
+  -- ESPAÇAMENTO, que é justamente o que protege o número da clínica.
   IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'clinni-cycle-15min') THEN
     PERFORM cron.unschedule('clinni-cycle-15min');
   END IF;
 
   PERFORM cron.schedule(
-    'clinni-cycle-15min',
-    '*/15 * * * *',
+    'clinni-cycle-5min',
+    '*/5 * * * *',
     $cmd$SELECT public.clinni_run_cycle();$cmd$
   );
 END
@@ -161,13 +178,13 @@ $agendamento$;
 -- ===========================================================================
 
 -- 1) O agendamento existe e está ativo?
---    SELECT jobid, jobname, schedule, active FROM cron.job WHERE jobname = 'clinni-cycle-15min';
+--    SELECT jobid, jobname, schedule, active FROM cron.job WHERE jobname = 'clinni-cycle-5min';
 
 -- 2) As últimas execuções do cron (status 'succeeded' significa que a CHAMADA
 --    saiu — não que o app respondeu 200; para isso, a consulta 3).
 --    SELECT status, start_time, return_message
 --      FROM cron.job_run_details
---     WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'clinni-cycle-15min')
+--     WHERE jobid = (SELECT jobid FROM cron.job WHERE jobname = 'clinni-cycle-5min')
 --     ORDER BY start_time DESC LIMIT 10;
 
 -- 3) O que o app respondeu. 200 é o ciclo tendo rodado; 401 é CRON_SECRET
@@ -176,4 +193,4 @@ $agendamento$;
 --      FROM net._http_response ORDER BY created DESC LIMIT 10;
 
 -- Para desligar o ciclo frequente (o diário da Vercel continua):
---    SELECT cron.unschedule('clinni-cycle-15min');
+--    SELECT cron.unschedule('clinni-cycle-5min');

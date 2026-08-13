@@ -101,9 +101,15 @@ describe('HUB_CARDS — invariantes estruturais', () => {
 })
 
 describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
-  it('INV-3: admin com todas flags ON vê os 18 cards na ordem fixa', () => {
+  /**
+   * Com automações contratadas são 17, e não 18: o lembrete de consulta deixou
+   * de ter card próprio e passou a entrar pela tela de Automações, como área
+   * secundária. Dois cards lado a lado obrigavam a clínica a adivinhar em qual
+   * deles estava o que procura.
+   */
+  it('INV-3: admin com todas flags ON vê os 17 cards na ordem fixa', () => {
     const visible = getVisibleHubCards(ctx('admin'))
-    expect(visible).toHaveLength(18)
+    expect(visible).toHaveLength(17)
     expect(visible.map((c) => c.id)).toEqual([
       'clinica',
       'perfil',
@@ -118,7 +124,6 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
       'impressos',
       'agendamento-publico',
       'portal-paciente',
-      'lembretes',
       'automacoes',
       'google-agenda',
       'integracoes',
@@ -126,10 +131,32 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
     ])
   })
 
-  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 17)', () => {
+  /**
+   * E o inverso, que é o que impede a mudança acima de virar regressão: sem o
+   * módulo de automações, o card de lembretes VOLTA. Ele é o único caminho para
+   * conectar o número de WhatsApp da clínica, e a maior parte das clínicas não
+   * contratou automações — escondê-lo dos dois lados deixaria essas clínicas sem
+   * lembrete e sem canal.
+   */
+  it('sem o módulo de automações, o card de lembretes reaparece', () => {
+    const semAutomacoes = buildEntitlements(
+      'legacy',
+      ALL_MODULES.filter((m) => m !== 'automacoes'),
+    )
+    const visible = getVisibleHubCards({
+      role: 'admin',
+      flags: ALL_FLAGS_ON,
+      ent: semAutomacoes,
+    })
+    const ids = visible.map((c) => c.id)
+    expect(ids).toContain('lembretes')
+    expect(ids).not.toContain('automacoes')
+  })
+
+  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 16)', () => {
     const visible = getVisibleHubCards(ctx('admin', { ...ALL_FLAGS_ON, anamnese: false }))
     expect(visible.map((c) => c.id)).not.toContain('modelos-anamnese')
-    expect(visible).toHaveLength(17)
+    expect(visible).toHaveLength(16)
     // Auditoria continua sendo o último visível.
     expect(visible[visible.length - 1]?.id).toBe('auditoria')
   })

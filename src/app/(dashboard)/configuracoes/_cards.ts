@@ -184,19 +184,27 @@ export const HUB_CARDS: readonly HubCardDef[] = [
   // faziam a clínica configurar o canal num lugar e descobrir no outro que
   // faltava conectar. O RBAC mais restrito de `whatsapp.config` continua
   // valendo lá dentro, na seção.
+  // O card só aparece para quem NÃO tem o módulo de automações. Quem tem entra
+  // pela tela de Automações, onde o lembrete virou uma área secundária: são duas
+  // formas de a clínica mandar mensagem, e dois cards lado a lado obrigavam a
+  // adivinhar em qual delas estava o que se procura.
+  //
+  // A condição não é firula de arrumação. Esta tela é o ÚNICO lugar onde se
+  // conecta o número de WhatsApp da clínica (ver o comentário acima), e a maior
+  // parte das clínicas não contratou automações — escondê-la sem a condição
+  // deixaria essas clínicas sem como vincular o número nem configurar lembrete.
   {
     id: 'lembretes',
     href: '/configuracoes/lembretes',
     title: 'Lembretes automáticos',
     description: 'Avisa o paciente por email ou WhatsApp antes da consulta. Reduz no-show.',
     icon: BellRing,
-    show: ({ role }) => can(role, 'reminders.config'),
+    show: ({ role, ent }) => can(role, 'reminders.config') && !ent.hasModule('automacoes'),
   },
-  // Card PRÓPRIO, e não uma seção dentro de Lembretes, porque são coisas
-  // diferentes: lembrete de consulta tem motor e configuração próprios (056
-  // FR-024), e o construtor cobre as outras mensagens. Enquanto os dois
-  // coexistirem, a separação visual é o que impede a clínica de procurar um
-  // dentro do outro (FR-026).
+  // Card PRÓPRIO, e não uma seção dentro de Lembretes: o lembrete de consulta
+  // tem motor e configuração próprios (056 FR-024), e o construtor cobre as
+  // outras mensagens. A hierarquia é a inversa da que se pensou no começo — é o
+  // lembrete que virou área dentro das automações, e não o contrário.
   {
     id: 'automacoes',
     href: '/configuracoes/automacoes',
