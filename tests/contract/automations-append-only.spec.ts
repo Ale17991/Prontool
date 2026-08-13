@@ -35,6 +35,7 @@ async function seedAutomacao(tenantId: string): Promise<string> {
     .from('automations' as never)
     .insert({
       tenant_id: tenantId,
+      name: `Auto ${(trg as { id: string }).id.slice(0, 8)}`,
       trigger_id: (trg as { id: string }).id,
       message_template_id: (msg as { id: string }).id,
     } as never)

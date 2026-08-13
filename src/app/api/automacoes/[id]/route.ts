@@ -10,13 +10,26 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { toHttpResponse } from '@/lib/observability/http'
 import { hasAutomationsModule, moduleDisabled } from '@/lib/core/automations/gate'
-import { deleteAutomation, setAutomationActive } from '@/lib/core/automations/store'
+import {
+  deleteAutomation,
+  setAutomationActive,
+  updateAutomation,
+} from '@/lib/core/automations/store'
 import { auditAutomation } from '@/lib/core/automations/audit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const patchSchema = z.object({ active: z.boolean() })
+const patchSchema = z
+  .object({
+    active: z.boolean().optional(),
+    name: z.string().trim().min(1).max(80).optional(),
+    sendAtLocal: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'horário deve ser HH:MM')
+      .optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'nada a alterar' })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/automacoes/${params.id}`
@@ -33,15 +46,38 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!parsed.success) return NextResponse.json({ error: 'PAYLOAD_INVALIDO' }, { status: 400 })
 
     const supabase = createSupabaseServiceClient()
-    await setAutomationActive(supabase, session.tenantId, params.id, parsed.data.active)
+
+    if (parsed.data.name !== undefined || parsed.data.sendAtLocal !== undefined) {
+      try {
+        await updateAutomation(supabase, session.tenantId, params.id, {
+          name: parsed.data.name,
+          sendAtLocal: parsed.data.sendAtLocal,
+        })
+      } catch (e) {
+        if (e instanceof Error && e.message === 'NOME_DUPLICADO') {
+          return NextResponse.json({ error: 'NOME_DUPLICADO' }, { status: 409 })
+        }
+        throw e
+      }
+    }
+
+    if (parsed.data.active !== undefined) {
+      await setAutomationActive(supabase, session.tenantId, params.id, parsed.data.active)
+    }
 
     await auditAutomation(supabase, {
       tenantId: session.tenantId,
       entity: 'automations',
       entityId: params.id,
-      field: 'active',
-      newValue: String(parsed.data.active),
-      reason: parsed.data.active ? 'Automação ativada' : 'Automação desativada',
+      field: Object.keys(parsed.data).join(','),
+      newValue:
+        parsed.data.active !== undefined ? String(parsed.data.active) : (parsed.data.name ?? parsed.data.sendAtLocal),
+      reason:
+        parsed.data.active === undefined
+          ? 'Automação editada'
+          : parsed.data.active
+            ? 'Automação ativada'
+            : 'Automação desativada',
     })
 
     return NextResponse.json({ ok: true }, { status: 200 })

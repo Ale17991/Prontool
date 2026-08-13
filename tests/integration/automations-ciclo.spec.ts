@@ -102,6 +102,7 @@ async function seedAutomacao(tenantId: string, corpo = 'Feliz aniversário, {{pa
     .from('automations' as never)
     .insert({
       tenant_id: tenantId,
+      name: `Auto ${(trg as unknown as { id: string }).id.slice(0, 8)}`,
       trigger_id: (trg as unknown as { id: string }).id,
       message_template_id: (msg as unknown as { id: string }).id,
       active: true,
@@ -150,6 +151,18 @@ describe('Feature 056 — ciclo de automações', () => {
     await seedAutomacao(tenantId)
 
     await evaluateAutomations(sb, AGORA)
+
+    // O `last_fired_on` é apagado de propósito antes da segunda volta. Ele
+    // sozinho já impediria a repetição, e o teste passaria sem provar nada — o
+    // que se quer verificar aqui é o degrau de baixo: a ocorrência repetida é
+    // recusada pelo UNIQUE do banco, e não por disciplina do motor. Sem isto, o
+    // dia em que alguém mexer no agendamento levaria junto, em silêncio, a
+    // garantia de "uma vez só".
+    await sb
+      .from('automations' as never)
+      .update({ last_fired_on: null, last_ran_at: null } as never)
+      .eq('tenant_id', tenantId)
+
     const segunda = await evaluateAutomations(sb, AGORA)
 
     expect(segunda.enviadas).toBe(0)

@@ -59,6 +59,32 @@ export interface EnumerateContext {
   tenantId: string
   /** Dia civil da clínica em `YYYY-MM-DD`, nunca a data do servidor. */
   today: string
+  /** Instante deste ciclo. É o fim da janela das fontes ancoradas. */
+  now: Date
+  /**
+   * Início da janela deste ciclo — o instante da varredura anterior.
+   *
+   * Só as fontes ANCORADAS num horário o usam ("2 horas antes da consulta"): a
+   * pergunta delas não é "que dia é hoje" e sim "que âncoras venceram desde a
+   * última vez que olhei". As fontes de dia civil ignoram, e continuam contando
+   * em dias da clínica.
+   *
+   * O motor sempre preenche; quem chama `enumerate` de fora do ciclo (a prévia,
+   * um teste) recebe uma janela sintética de 15 minutos, que é o intervalo do
+   * ciclo. Prévia com janela maior mentiria para cima.
+   */
+  windowFrom: Date
+  /**
+   * Esta enumeração é a PRÉVIA da tela, medindo o dia inteiro.
+   *
+   * A prévia usa a mesma consulta e as mesmas regras de elegibilidade — o que
+   * muda é só o tamanho da janela, e por consequência uma filtragem: a fonte
+   * ancorada descarta o atendimento que já começou, porque avisar sobre ele seria
+   * mandar a pessoa se preparar para o que já aconteceu. Na prévia, que varre um
+   * dia inteiro de uma vez, esse descarte apagaria justamente os atendimentos da
+   * manhã e a clínica veria um número menor que o real.
+   */
+  previewMode?: boolean
   /**
    * Fuso da clínica. Vem junto com `today` porque as duas coisas respondem
    * perguntas diferentes: `today` diz QUE DIA é para esta clínica, o fuso diz
@@ -129,8 +155,20 @@ export interface SourceParamField {
   /** Chave dentro de `params`, igual à do `paramsSchema`. */
   readonly name: string
   readonly label: string
-  readonly kind: 'number' | 'text' | 'select'
+  /**
+   * `duration` é número MAIS unidade (minutos, horas, dias), e o valor que chega
+   * em `params` é sempre em MINUTOS.
+   *
+   * A unidade não é guardada: 120 volta para a tela como "2 horas" porque a
+   * própria tela escolhe a maior unidade que divide exato. Guardar o par
+   * (valor, unidade) criaria dois jeitos de escrever a mesma antecedência —
+   * `{2, horas}` e `{120, minutos}` — e o motor teria que normalizar assim
+   * mesmo, com o risco de dois gatilhos idênticos parecerem diferentes e não
+   * serem reaproveitados.
+   */
+  readonly kind: 'number' | 'text' | 'select' | 'duration'
   readonly hint?: string
+  /** Em `duration`, `min`/`max`/`defaultValue` são em MINUTOS. */
   readonly min?: number
   readonly max?: number
   readonly defaultValue?: string | number
@@ -176,6 +214,21 @@ export interface AutomationSourceDef {
    * torta no celular do paciente três dias depois.
    */
   readonly variables: readonly string[]
+  /**
+   * Estes parâmetros ancoram o envio num HORÁRIO, e não num dia?
+   *
+   * É a fonte quem responde porque é ela quem sabe se tem âncora: "2 horas antes
+   * da consulta" tem (o horário marcado), "6 meses sem atendimento" não tem
+   * horário nenhum ao qual se agarrar. A mesma fonte responde diferente conforme
+   * o parâmetro — `pre_consulta` com 2 dias é diária, com 2 horas é ancorada.
+   *
+   * A resposta decide DUAS coisas no motor: se a automação roda em todo ciclo
+   * (ancorada) ou uma vez por dia no horário escolhido (diária), e se o
+   * `send_at_local` da automação vale. Ancorada ignora o horário escolhido —
+   * "2 horas antes da consulta, às 14:30" é uma contradição, e a tela desabilita
+   * o campo em vez de deixar a clínica escrever uma regra que não pode valer.
+   */
+  isAnchored?(params: Record<string, unknown>): boolean
   enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]>
 }
 
@@ -191,6 +244,13 @@ export interface AutomationRow {
   source: string
   params: Record<string, unknown>
   body: string
+  name: string
+  /** `HH:MM` no relógio da clínica. Ignorado quando a fonte é ancorada. */
+  sendAtLocal: string
+  /** Dia civil da clínica na última vez que esta automação disparou. */
+  lastFiredOn: string | null
+  /** Instante da última varredura — janela das fontes ancoradas. */
+  lastRanAt: string | null
   triggerName: string
   messageName: string
 }

@@ -55,6 +55,7 @@ async function novoGatilho(tenantId: string, name: string): Promise<string> {
 async function novaAutomacao(tenantId: string, triggerId: string, messageId: string) {
   const { error } = await sb.from('automations' as never).insert({
     tenant_id: tenantId,
+    name: `Auto ${triggerId.slice(0, 8)}`,
     trigger_id: triggerId,
     message_template_id: messageId,
     active: true,

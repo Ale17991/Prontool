@@ -19,7 +19,7 @@ import { sendText } from '@/lib/core/whatsapp/service-client'
 import { isSendablePhone, normalizePhone } from '@/lib/core/whatsapp/phone'
 import { getSource } from './sources'
 import { janelaDoDia } from './sources/shared'
-import { listActiveAutomations } from './store'
+import { listActiveAutomations, markAutomationRan } from './store'
 import {
   claimOccurrence,
   countSentToday,
@@ -33,6 +33,29 @@ const DEFAULT_TZ = 'America/Sao_Paulo'
 /** Mesmo espaçamento do motor de lembretes — o número é o mesmo. */
 const SPACING_MS = 1000
 
+/**
+ * O intervalo entre dois ciclos, em minutos — o mesmo do `pg_cron` que chama a
+ * rota (`deploy-cron-15min.sql`) e o mesmo `WINDOW_MINUTES` do motor de
+ * lembretes, que já era feito para esta cadência.
+ *
+ * Só é usado como CHUTE para a primeira varredura de uma automação ancorada,
+ * quando ainda não há `last_ran_at`. Nas seguintes, a janela é o intervalo real
+ * entre varreduras — o que mantém a feature correta mesmo que a periodicidade do
+ * cron mude sem ninguém atualizar esta constante.
+ */
+const CICLO_MINUTOS = 15
+
+/**
+ * Teto da janela de uma automação ancorada, em minutos.
+ *
+ * Sem ele, um ciclo que ficou dias parado voltaria perguntando "que âncoras
+ * venceram nos últimos três dias" e despejaria de uma vez mensagens cujo momento
+ * já passou — "sua consulta é daqui a 2 horas" sobre uma consulta de anteontem.
+ * Seis horas é o bastante para atravessar um deploy ruim e curto o bastante para
+ * a mensagem ainda fazer sentido; o que passar disso é perdido de propósito.
+ */
+const JANELA_MAX_MINUTOS = 6 * 60
+
 /** Dia civil da clínica, nunca a data do servidor. */
 function clinicToday(now: Date, timezone: string): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -41,6 +64,67 @@ function clinicToday(now: Date, timezone: string): string {
     month: '2-digit',
     day: '2-digit',
   }).format(now)
+}
+
+/** `HH:MM` no relógio da clínica. */
+function clinicClock(now: Date, timezone: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(now)
+}
+
+interface Agendamento {
+  rodar: boolean
+  windowFrom: Date
+  /** Dia a gravar em `last_fired_on` — `null` nas ancoradas, que rodam sempre. */
+  firedOn: string | null
+}
+
+/**
+ * Esta automação roda NESTE ciclo?
+ *
+ * Duas naturezas, e a fonte é quem diz qual é a sua (`isAnchored`):
+ *
+ * **Ancorada** ("2 horas antes da consulta") roda em todo ciclo, porque a hora
+ * de avisar cada paciente é diferente e depende do horário dele. A janela é o
+ * intervalo desde a última varredura.
+ *
+ * **Diária** ("3 dias depois do atendimento") roda UMA vez por dia, no horário
+ * que a clínica escolheu. Sem este corte, o ciclo de 15 em 15 minutos faria a
+ * mesma varredura 96 vezes por dia — o banco recusaria as ocorrências repetidas
+ * pelo UNIQUE, então ninguém receberia mensagem duplicada, mas a clínica pagaria
+ * 96 vezes a consulta mais cara da feature para descobrir isso.
+ */
+export function agendar(
+  auto: { params: Record<string, unknown>; sendAtLocal: string; lastFiredOn: string | null; lastRanAt: string | null },
+  ancorada: boolean,
+  now: Date,
+  timezone: string,
+  today: string,
+): Agendamento {
+  const parado = { rodar: false, windowFrom: now, firedOn: null }
+
+  if (ancorada) {
+    const anterior = auto.lastRanAt ? Date.parse(auto.lastRanAt) : NaN
+    const piso = now.getTime() - JANELA_MAX_MINUTOS * 60_000
+    const inicio = Number.isFinite(anterior)
+      ? Math.max(anterior, piso)
+      : now.getTime() - CICLO_MINUTOS * 60_000
+    // Janela vazia ou invertida: aconteceu de o mesmo ciclo rodar duas vezes, ou
+    // o relógio andar para trás. Não há o que varrer.
+    if (inicio >= now.getTime()) return parado
+    return { rodar: true, windowFrom: new Date(inicio), firedOn: null }
+  }
+
+  if (auto.lastFiredOn === today) return parado
+  // A comparação é textual porque as duas pontas são `HH:MM` com zero à
+  // esquerda — "09:30" < "14:00" é verdade como string, e converter para número
+  // só acrescentaria uma chance de erro.
+  if (clinicClock(now, timezone) < auto.sendAtLocal) return parado
+  return { rodar: true, windowFrom: new Date(janelaDoDia(today, timezone).de), firedOn: today }
 }
 
 /**
@@ -128,6 +212,31 @@ async function evaluateTenant(
   const automacoes = await listActiveAutomations(supabase, tenantId)
   if (automacoes.length === 0) return r
 
+  const tz = tenant.timezone ?? DEFAULT_TZ
+  const today = clinicToday(now, tz)
+
+  /**
+   * O que roda AGORA — resolvido antes de qualquer coisa cara.
+   *
+   * A ordem importa: as verificações de conexão do WhatsApp e de credencial
+   * ficavam antes desta filtragem, e com o ciclo de 15 em 15 minutos isso
+   * passaria a alertar "WhatsApp não conectado" 96 vezes por dia numa clínica
+   * que não tem automação nenhuma para mandar hoje. Alerta que aparece sem haver
+   * o que enviar ensina a clínica a ignorar alerta.
+   */
+  const naVez: Array<{ auto: (typeof automacoes)[number]; plano: Agendamento }> = []
+  for (const auto of automacoes) {
+    const fonte = getSource(auto.source)
+    if (!fonte) {
+      logger.warn({ tenantId, source: auto.source }, 'automations-unknown-source')
+      continue
+    }
+    const ancorada = Boolean(fonte.isAnchored?.(auto.params))
+    const plano = agendar(auto, ancorada, now, tz, today)
+    if (plano.rodar) naVez.push({ auto, plano })
+  }
+  if (naVez.length === 0) return r
+
   /**
    * Sem canal conectado: UMA ocorrência agregada por ciclo (FR-021), nunca uma
    * por paciente.
@@ -164,8 +273,6 @@ async function evaluateTenant(
   const apiKey = await getDecryptedApiKey(supabase as never, tenantId).catch(() => null)
   if (!apiKey) return r
 
-  const tz = tenant.timezone ?? DEFAULT_TZ
-  const today = clinicToday(now, tz)
   const inicioDoDia = startOfClinicDayIso(today, tz)
   const clinicName = tenant.corporate_name ?? 'Clínica'
 
@@ -175,12 +282,10 @@ async function evaluateTenant(
   // cache que atravessasse ciclos guardaria consentimento já revogado.
   const cache = new Map<string, unknown>()
 
-  for (const auto of automacoes) {
+  for (const { auto, plano } of naVez) {
+    // A fonte já foi resolvida ao montar `naVez` — quem chegou aqui existe.
     const fonte = getSource(auto.source)
-    if (!fonte) {
-      logger.warn({ tenantId, source: auto.source }, 'automations-unknown-source')
-      continue
-    }
+    if (!fonte) continue
 
     let candidatos
     try {
@@ -188,6 +293,8 @@ async function evaluateTenant(
         supabase,
         tenantId,
         today,
+        now,
+        windowFrom: plano.windowFrom,
         timezone: tz,
         clinicName,
         params: auto.params,
@@ -206,6 +313,8 @@ async function evaluateTenant(
     // execuções, senão quem fica de fora é sorteado a cada ciclo.
     candidatos.sort((a, b) => a.patientId.localeCompare(b.patientId))
 
+    let suprimidasAqui = 0
+
     for (const cand of candidatos) {
       r.avaliadas++
 
@@ -220,10 +329,18 @@ async function evaluateTenant(
       if (!occId) continue
 
       // Teto por clínica: o excedente fica para os ciclos seguintes.
+      //
+      // O teto é por CICLO, e o ciclo passou a acontecer 96 vezes por dia. Na
+      // prática o número diário não explodiu: a automação diária roda uma vez só
+      // (o `agendar` acima a segura no resto do dia), e a ancorada enumera a
+      // janela de 15 minutos, que numa agenda real são poucos pacientes. Quem
+      // continua limitando o que UM paciente recebe por dia é o teto por
+      // paciente, logo abaixo — esse não depende da frequência do ciclo.
       if (enviadasNoCiclo >= tenant.automation_max_per_cycle) {
         await settleOccurrence(supabase, occId, 'suprimido_teto_clinica')
         await releaseSuppressed(supabase, occId)
         r.suprimidas++
+        suprimidasAqui++
         continue
       }
 
@@ -233,6 +350,7 @@ async function evaluateTenant(
         await settleOccurrence(supabase, occId, 'suprimido_teto_paciente')
         await releaseSuppressed(supabase, occId)
         r.suprimidas++
+        suprimidasAqui++
         continue
       }
 
@@ -256,6 +374,22 @@ async function evaluateTenant(
         r.impedidas++
       }
     }
+
+    /**
+     * Só depois de a varredura terminar. Marcar antes faria uma exceção no meio
+     * do caminho fechar o dia da automação com metade dos pacientes atendidos —
+     * e o resto só seria visto no dia seguinte, sem nada indicando o buraco.
+     *
+     * E quem SUPRIMIU alguém por teto não fecha o dia: a promessa da supressão é
+     * "fica para o ciclo seguinte", e fechar o dia transformaria isso em "fica
+     * para amanhã". Com o ciclo de 15 em 15 minutos, a fila de uma clínica
+     * grande vaza em horas em vez de dias — que é justamente o que o aviso de
+     * volume da prévia adverte poder demorar.
+     */
+    await markAutomationRan(supabase, auto.id, {
+      ranAt: now,
+      firedOn: suprimidasAqui > 0 ? null : plano.firedOn,
+    })
   }
 
   return r

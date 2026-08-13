@@ -9,7 +9,18 @@
 
 import { z } from 'zod'
 import { registerSource } from './registry'
-import { addDias, dataCivilBr, janelaDoDia, pageAll } from './shared'
+import {
+  addDias,
+  antecedenciaSchema,
+  dataCivilBr,
+  ehAncorada,
+  lerAntecedencia,
+  emDias,
+  janelaAncorada,
+  janelaDoDia,
+  pageAll,
+  MINUTOS_POR_DIA,
+} from './shared'
 import type { EnumerateContext, SourceCandidate } from '../types'
 
 type Resposta = { data: unknown; error: { message: string } | null }
@@ -22,8 +33,8 @@ type Resposta = { data: unknown; error: { message: string } | null }
  * carregar a base inteira de aptos para intersectar com elas seria pagar caro
  * pelo lado errado.
  */
-async function cadastradosEm(ctx: EnumerateContext, dia: string) {
-  const { de, ate } = janelaDoDia(dia, ctx.timezone)
+async function cadastradosEntre(ctx: EnumerateContext, janela: { de: string; ate: string }) {
+  const { de, ate } = janela
   return pageAll<{ id: string; created_at: string }>(
     (from, to) =>
       ctx.supabase
@@ -38,7 +49,7 @@ async function cadastradosEm(ctx: EnumerateContext, dia: string) {
         .lt('created_at', ate)
         .order('id')
         .range(from, to) as unknown as PromiseLike<Resposta>,
-    'cadastradosEm',
+    'cadastradosEntre',
   )
 }
 
@@ -50,31 +61,38 @@ registerSource({
   id: 'boas_vindas',
   label: 'Boas-vindas ao paciente novo',
   group: 'relacionamento',
-  hint: 'Dispara N dias depois do cadastro. Uma vez por paciente, para sempre.',
-  paramsSchema: z.object({ dias: z.number().int().min(0).max(30) }).strict(),
+  hint: 'Dispara um tempo depois do cadastro. Uma vez por paciente, para sempre.',
+  paramsSchema: antecedenciaSchema(0, 30 * MINUTOS_POR_DIA),
   fields: [
     {
-      name: 'dias',
-      label: 'Quantos dias depois do cadastro',
-      kind: 'number',
+      name: 'antecedenciaMin',
+      label: 'Quanto tempo depois do cadastro',
+      kind: 'duration',
       min: 0,
-      max: 30,
-      defaultValue: 1,
-      hint: '0 envia no ciclo do próprio dia do cadastro.',
+      max: 30 * MINUTOS_POR_DIA,
+      defaultValue: 1 * MINUTOS_POR_DIA,
+      hint: 'Em horas, a boas-vindas chega enquanto a pessoa ainda lembra de ter se cadastrado.',
     },
   ],
   variables: [],
 
+  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
+
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
-    const { dias } = ctx.params as { dias: number }
-    const linhas = await cadastradosEm(ctx, addDias(ctx.today, -dias))
+    const antecedenciaMin = lerAntecedencia(ctx.params)
+    const linhas = await cadastradosEntre(
+      ctx,
+      ehAncorada(antecedenciaMin)
+        ? janelaAncorada(ctx, antecedenciaMin, 'depois')
+        : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone),
+    )
 
     return linhas.map((p) => ({
       patientId: p.id,
       /**
        * Chave FIXA, e é o único lugar da feature onde isso é certo: boas-vindas
        * acontece uma vez na vida do cadastro. Usar a data faria a mensagem
-       * repetir se a clínica trocasse o parâmetro `dias` depois — o mesmo
+       * repetir se a clínica trocasse o intervalo depois — o mesmo
        * paciente cairia numa janela nova e receberia boas-vindas de novo, meses
        * depois de já ser paciente antigo.
        */

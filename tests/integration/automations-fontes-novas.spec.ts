@@ -94,6 +94,13 @@ function ctx(
     today,
     timezone: 'America/Sao_Paulo',
     clinicName: 'Clínica',
+    // A janela do ciclo: as fontes de dia civil ignoram, as ancoradas usam.
+    // O ciclo acontece ao MEIO-DIA UTC do dia civil do teste, e não em
+    // `new Date()`: as fontes ancoradas comparam a âncora com este instante
+    // (consulta que já começou não recebe aviso de preparo), e um relógio de
+    // parede faria o mesmo teste passar de manhã e falhar à tarde.
+    now: new Date(`${today}T12:00:00.000Z`),
+    windowFrom: new Date(Date.parse(`${today}T12:00:00.000Z`) - 15 * 60_000),
     params,
   }
 }
@@ -150,11 +157,52 @@ describe('fonte: pre_consulta', () => {
 
     const r = await fonte.enumerate(ctx(tenantId, { dias: 2 }))
     expect(r.map((c) => c.occurrenceKey)).toEqual([alvo])
-    expect(r[0]?.variables.dias).toBe('2')
+    // A variável passou a descrever a antecedência por extenso, porque ela
+    // deixou de ser sempre em dias: "2 dias" e "2 horas" precisam sair certas na
+    // mesma mensagem.
+    expect(r[0]?.variables.antecedencia).toBe('2 dias')
     // O contexto do atendimento entra nas variáveis — sem ele a mensagem não
     // conseguiria dizer que horas é a consulta.
     expect(r[0]?.variables.hora).toBeTruthy()
     expect(r[0]?.variables.profissional).toBeTruthy()
+  })
+
+  /**
+   * A mesma fonte, lida de outro jeito: em HORAS ela deixa de perguntar "que
+   * consultas acontecem no dia X" e passa a perguntar "de quem a hora de avisar
+   * caiu nesta janela de ciclo". É o que permite "avise 2 horas antes" sem
+   * mandar a mensagem às 09:00 do dia anterior.
+   */
+  it('em horas, pega só a consulta cuja hora de avisar caiu nesta janela', async () => {
+    const tenantId = await clinica('pre-horas')
+    const cat = await seedCatalogo(tenantId)
+    const pac = await seedPaciente(tenantId)
+
+    // O ciclo é às 12:00 UTC, com janela desde 11:45. Avisando 2 horas antes,
+    // a janela alcança as consultas marcadas entre 13:45 e 14:00.
+    const alvo = await seedAtendimento(tenantId, pac, '2026-08-11T13:50:00.000Z', cat)
+    // Esta é do mesmo dia e seria pega pela leitura em dias — mas a hora de
+    // avisar dela ainda não chegou.
+    await seedAtendimento(tenantId, pac, '2026-08-11T16:00:00.000Z', cat)
+
+    const r = await fonte.enumerate(ctx(tenantId, { antecedenciaMin: 120 }))
+    expect(r.map((c) => c.occurrenceKey)).toEqual([alvo])
+    expect(r[0]?.variables.antecedencia).toBe('2 horas')
+  })
+
+  /**
+   * O gatilho gravado antes de a antecedência virar minutos tem `{ dias: 2 }`, e
+   * o motor entrega os parâmetros crus. Sem a leitura tolerante, a automação
+   * ficaria ligada e muda.
+   */
+  it('entende o parâmetro antigo em dias', async () => {
+    const tenantId = await clinica('pre-legado')
+    const cat = await seedCatalogo(tenantId)
+    const pac = await seedPaciente(tenantId)
+    const alvo = await seedAtendimento(tenantId, pac, '2026-08-13T12:00:00.000Z', cat)
+
+    const r = await fonte.enumerate(ctx(tenantId, { dias: 2 }))
+    expect(r.map((c) => c.occurrenceKey)).toEqual([alvo])
   })
 
   it('consulta CANCELADA não recebe orientação de preparo', async () => {

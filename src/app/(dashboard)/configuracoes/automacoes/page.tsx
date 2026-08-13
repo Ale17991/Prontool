@@ -8,8 +8,9 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import type { Database } from '@/lib/db/types'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { isWhatsAppConnected } from '@/lib/core/whatsapp/config'
-import { listMessageTemplates, listTriggers } from '@/lib/core/automations/store'
+import { listMessageTemplates } from '@/lib/core/automations/store'
 import { buildSourceCatalog } from '@/lib/core/automations/catalog'
+import { getSource } from '@/lib/core/automations/sources'
 import { getAutomationMetrics, metricsVazio } from '@/lib/core/automations/metrics'
 import { AutomacoesClient } from './automacoes-client'
 
@@ -27,9 +28,8 @@ export default async function AutomacoesPage() {
   const svc = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
 
   const desde = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
-  const [mensagens, gatilhos, conectado, catalogo, metricas] = await Promise.all([
+  const [mensagens, conectado, catalogo, metricas] = await Promise.all([
     listMessageTemplates(svc, session.tenantId).catch(() => []),
-    listTriggers(svc, session.tenantId).catch(() => []),
     isWhatsAppConnected(svc, session.tenantId).catch(() => false),
     buildSourceCatalog(svc, session.tenantId, (m) => ent.hasModule(m as never)).catch(() => ({
       fontes: [],
@@ -41,7 +41,9 @@ export default async function AutomacoesPage() {
   const { data } = await svc
     .from('automations')
     .select(
-      `id, active, automation_triggers!inner(id, name, source), message_templates!inner(id, name)`,
+      `id, active, name, send_at_local,
+       automation_triggers!inner(id, name, source, params),
+       message_templates!inner(id, name)`,
     )
     .eq('tenant_id', session.tenantId)
     .order('created_at', { ascending: true })
@@ -50,32 +52,37 @@ export default async function AutomacoesPage() {
     const row = r as unknown as {
       id: string
       active: boolean
-      automation_triggers: { id: string; name: string; source: string }
+      name: string | null
+      send_at_local: string | null
+      automation_triggers: {
+        id: string
+        name: string
+        source: string
+        params: Record<string, unknown> | null
+      }
       message_templates: { id: string; name: string }
     }
     const m = metricas.get(row.id) ?? metricsVazio()
+    // O rótulo da fonte sai do REGISTRO, e não do catálogo desta página: o
+    // catálogo esconde as fontes de módulo não contratado, e uma automação
+    // criada antes de o módulo ser revogado precisa continuar identificável na
+    // lista — senão a clínica vê uma linha que não sabe o que faz e não pode
+    // desligar com confiança.
+    const fonte = getSource(row.automation_triggers.source)
     return {
       id: row.id,
       active: row.active,
-      gatilhoNome: row.automation_triggers.name,
+      nome: row.name ?? row.automation_triggers.name,
+      fonteLabel: fonte?.label ?? row.automation_triggers.source,
       mensagemNome: row.message_templates.name,
+      horario: (row.send_at_local ?? '09:00').slice(0, 5),
+      ancorada: Boolean(fonte?.isAnchored?.(row.automation_triggers.params ?? {})),
       enviados30d: m.enviados,
       entregues30d: m.entregues,
       lidos30d: m.lidos,
       suprimidos30d: m.suprimidos,
     }
   })
-
-  // O rótulo da fonte vem do catálogo, não de um mapa nesta página: gatilho
-  // criado com uma fonte que depois deixou de estar disponível (módulo
-  // revogado) precisa continuar identificável na lista.
-  const rotuloDaFonte = new Map(catalogo.fontes.map((f) => [f.id, f.label]))
-  const gatilhosComRotulo = gatilhos.map((g) => ({
-    id: g.id,
-    name: g.name,
-    source: g.source,
-    fonteLabel: rotuloDaFonte.get(g.source) ?? g.source,
-  }))
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -84,8 +91,8 @@ export default async function AutomacoesPage() {
         <div>
           <h1 className="text-2xl font-semibold">Automações de mensagem</h1>
           <p className="text-sm text-muted-foreground">
-            Escolha <strong>quando</strong> (o gatilho) e <strong>o que</strong> (a mensagem). As
-            duas coisas são separadas: a mesma mensagem serve vários gatilhos.
+            Escreva a <strong>mensagem</strong> e monte a automação: <strong>quando</strong> ela
+            dispara e <strong>a que horas</strong> sai. A mesma mensagem serve várias automações.
           </p>
         </div>
       </header>
@@ -121,7 +128,6 @@ export default async function AutomacoesPage() {
       <AutomacoesClient
         automacoesIniciais={automacoes}
         mensagensIniciais={mensagens}
-        gatilhosIniciais={gatilhosComRotulo}
         fontes={catalogo.fontes}
         opcoes={catalogo.opcoes}
       />

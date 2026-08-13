@@ -89,7 +89,14 @@ async function marcar(
 }
 
 function ctx(tenantId: string, today: string, params: Record<string, unknown>) {
-  return { supabase: sb, tenantId, today, timezone: 'America/Sao_Paulo', clinicName: 'Clínica', params }
+  return { supabase: sb, tenantId, today, timezone: 'America/Sao_Paulo', clinicName: 'Clínica',
+    // A janela do ciclo: as fontes de dia civil ignoram, as ancoradas usam.
+    // O ciclo acontece ao MEIO-DIA UTC do dia civil do teste, e não em
+    // `new Date()`: as fontes ancoradas comparam a âncora com este instante
+    // (consulta que já começou não recebe aviso de preparo), e um relógio de
+    // parede faria o mesmo teste passar de manhã e falhar à tarde.
+    now: new Date(`${today}T12:00:00.000Z`),
+    windowFrom: new Date(Date.parse(`${today}T12:00:00.000Z`) - 15 * 60_000), params }
 }
 
 const ITENS = [

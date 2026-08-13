@@ -126,6 +126,7 @@ describe('Feature 056 — isolamento entre tenants', () => {
     // aceitariam: ambos os ids existem. Quem recusa é o trigger da 0196.
     const { error } = await sb.from('automations' as never).insert({
       tenant_id: A.tenantId,
+      name: `Auto ${gatA.slice(0, 8)}`,
       trigger_id: gatA,
       message_template_id: msgB,
     } as never)

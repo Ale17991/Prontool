@@ -3,31 +3,36 @@
 /**
  * Feature 056 — a tela de automações.
  *
- * Orquestra três coisas que a clínica pensa separadamente e que o modelo trata
- * separadamente: a MENSAGEM (o que), o GATILHO (quando) e a AUTOMAÇÃO (o
- * vínculo entre os dois, que liga e desliga).
+ * Duas coisas, e não três: a MENSAGEM (o que o paciente recebe) e a AUTOMAÇÃO
+ * (o nome, o quando e o a que horas). O gatilho continua existindo no banco,
+ * porque é a unidade de enumeração do motor e duas automações com o mesmo
+ * "quando" devem compartilhar a mesma varredura — mas deixou de ser um objeto
+ * que a clínica cria, nomeia e administra. Ele nasce junto com a automação e é
+ * reaproveitado quando já existe um idêntico.
  *
- * A ordem na tela é a ordem de montagem — mensagem, gatilho, ligar —, e a
- * automação nasce DESLIGADA. Ativar exige passar pela prévia, porque ligar um
- * gatilho de estado contínuo numa base grande é o erro que mais custa caro
- * nesta feature: todo mundo que já está na condição entra de uma vez.
+ * A automação nasce DESLIGADA. Ativar exige passar pela prévia, porque ligar um
+ * gatilho de estado contínuo numa base grande é o erro que mais custa caro nesta
+ * feature: todo mundo que já está na condição entra de uma vez.
  */
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Eye, Plus, Power, Trash2 } from 'lucide-react'
+import { AlertTriangle, Clock, Power, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { GatilhoForm, type FonteDTO, type OpcoesDTO } from './gatilho-form'
+import { AutomacaoForm, type FonteDTO, type OpcoesDTO } from './automacao-form'
 import { MensagensClient, type MensagemDTO } from './mensagens-client'
 import { OcorrenciasPanel } from './ocorrencias-panel'
 
-export type { FonteDTO } from './gatilho-form'
+export type { FonteDTO } from './automacao-form'
 
 export interface AutomacaoDTO {
   id: string
   active: boolean
-  gatilhoNome: string
+  nome: string
+  fonteLabel: string
   mensagemNome: string
+  horario: string
+  ancorada: boolean
   enviados30d: number
   entregues30d: number
   lidos30d: number
@@ -37,7 +42,6 @@ export interface AutomacaoDTO {
 interface Props {
   automacoesIniciais: AutomacaoDTO[]
   mensagensIniciais: MensagemDTO[]
-  gatilhosIniciais: Array<{ id: string; name: string; source: string; fonteLabel: string }>
   fontes: FonteDTO[]
   opcoes: OpcoesDTO
 }
@@ -45,7 +49,6 @@ interface Props {
 export function AutomacoesClient({
   automacoesIniciais,
   mensagensIniciais,
-  gatilhosIniciais,
   fontes,
   opcoes,
 }: Props) {
@@ -53,15 +56,13 @@ export function AutomacoesClient({
   const [erro, setErro] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
 
-  const [assocGatilho, setAssocGatilho] = useState('')
-  const [assocMensagem, setAssocMensagem] = useState('')
-  const [previa, setPrevia] = useState<{
-    candidatosHoje: number
-    tetoPorCiclo: number
-    avisoVolume: boolean
-  } | null>(null)
-
-  async function chamar(url: string, init: RequestInit): Promise<unknown | null> {
+  async function chamar(
+    url: string,
+    init: RequestInit,
+    // A prévia não muda nada no servidor: recarregar a página depois dela seria
+    // pagar uma volta inteira de dados para redesenhar o mesmo estado.
+    opts: { semRefresh?: boolean } = {},
+  ): Promise<unknown | null> {
     setErro(null)
     setOcupado(true)
     try {
@@ -69,10 +70,17 @@ export function AutomacoesClient({
       const body = res.status === 204 ? {} : await res.json().catch(() => ({}))
       if (!res.ok) {
         const b = body as { error?: string; detail?: string }
-        setErro(b.detail ?? b.error ?? 'Não foi possível concluir.')
+        setErro(
+          b.detail ??
+            (b.error === 'NOME_DUPLICADO'
+              ? 'Já existe uma automação com esse nome.'
+              : b.error === 'JA_EXISTE'
+                ? 'Já existe uma automação com esse mesmo quando e essa mesma mensagem.'
+                : (b.error ?? 'Não foi possível concluir.')),
+        )
         return null
       }
-      router.refresh()
+      if (!opts.semRefresh) router.refresh()
       return body
     } finally {
       setOcupado(false)
@@ -93,15 +101,21 @@ export function AutomacoesClient({
         <h2 className="text-lg font-medium">Automações</h2>
         {automacoesIniciais.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhuma ainda. Crie uma mensagem e um gatilho abaixo, depois ligue os dois.
+            Nenhuma ainda. Crie uma mensagem e monte a primeira automação abaixo.
           </p>
         ) : (
           <ul className="divide-y rounded-md border">
             {automacoesIniciais.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">
-                    {a.gatilhoNome} → {a.mensagemNome}
+                  <p className="truncate text-sm font-medium">{a.nome}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {a.fonteLabel} → {a.mensagemNome}
+                    {' · '}
+                    <Clock className="mr-0.5 inline h-3 w-3" aria-hidden />
+                    {/* Automação ancorada não tem hora do dia: o instante é o de
+                        cada paciente, e mostrar "09:00" ali seria mentira. */}
+                    {a.ancorada ? 'no horário de cada paciente' : a.horario}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {a.active ? 'Ativa' : 'Desligada'}
@@ -146,141 +160,30 @@ export function AutomacoesClient({
 
       {/* ---------------------------------------------------------------- */}
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Ligar um gatilho a uma mensagem</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="assoc-gatilho">
-              Gatilho
-            </label>
-            <select
-              id="assoc-gatilho"
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-              value={assocGatilho}
-              onChange={(e) => {
-                setAssocGatilho(e.target.value)
-                setPrevia(null)
-              }}
-            >
-              <option value="">Escolha…</option>
-              {gatilhosIniciais.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.fonteLabel})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="assoc-mensagem">
-              Mensagem
-            </label>
-            <select
-              id="assoc-mensagem"
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-              value={assocMensagem}
-              onChange={(e) => setAssocMensagem(e.target.value)}
-            >
-              <option value="">Escolha…</option>
-              {mensagensIniciais.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!assocGatilho || ocupado}
-            onClick={async () => {
-              const r = (await chamar(`/api/automacoes/gatilhos/${assocGatilho}/previa`, {
-                method: 'GET',
-              })) as { candidatosHoje: number; tetoPorCiclo: number; avisoVolume: boolean } | null
-              if (r) setPrevia(r)
-            }}
-          >
-            <Eye className="mr-1 h-4 w-4" aria-hidden />
-            Ver quantos pacientes isso atinge hoje
-          </Button>
-          <Button
-            size="sm"
-            disabled={!assocGatilho || !assocMensagem || ocupado}
-            onClick={() =>
-              chamar('/api/automacoes', {
-                method: 'POST',
-                body: JSON.stringify({
-                  triggerId: assocGatilho,
-                  messageTemplateId: assocMensagem,
-                }),
-              })
-            }
-          >
-            <Plus className="mr-1 h-4 w-4" aria-hidden />
-            Criar automação (desligada)
-          </Button>
-        </div>
-
-        {previa && (
-          <p className="text-sm">
-            <strong>{previa.candidatosHoje}</strong> paciente(s) satisfazem esse gatilho hoje.
-            {previa.avisoVolume && (
-              <span className="text-amber-700">
-                {' '}
-                Acima do teto de {previa.tetoPorCiclo} por ciclo — o envio vai levar mais de um dia
-                para vazar a fila.
-              </span>
-            )}
-          </p>
-        )}
-      </section>
-
-      {/* ---------------------------------------------------------------- */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Gatilhos</h2>
+        <h2 className="text-lg font-medium">Nova automação</h2>
         <p className="text-sm text-muted-foreground">
-          O <strong>quando</strong>. Cada fonte tem seus próprios parâmetros.
+          Escolha a mensagem e o momento. Ela nasce desligada — ligar é um ato à parte, depois de
+          ver quantos pacientes isso alcança.
         </p>
 
-        <GatilhoForm
+        <AutomacaoForm
           fontes={fontes}
           opcoes={opcoes}
+          mensagens={mensagensIniciais}
           ocupado={ocupado}
-          onCriar={async (input) => {
-            const ok = await chamar('/api/automacoes/gatilhos', {
-              method: 'POST',
-              body: JSON.stringify(input),
-            })
-            return Boolean(ok)
-          }}
+          onCriar={async (input) =>
+            Boolean(
+              await chamar('/api/automacoes', { method: 'POST', body: JSON.stringify(input) }),
+            )
+          }
+          onPrevia={async (input) =>
+            (await chamar(
+              '/api/automacoes/previa',
+              { method: 'POST', body: JSON.stringify(input) },
+              { semRefresh: true },
+            )) as { candidatosHoje: number; tetoPorCiclo: number; avisoVolume: boolean } | null
+          }
         />
-
-        {gatilhosIniciais.length > 0 && (
-          <ul className="divide-y rounded-md border text-sm">
-            {gatilhosIniciais.map((g) => (
-              <li key={g.id} className="flex items-center justify-between gap-3 p-3">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{g.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{g.fonteLabel}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={ocupado}
-                  onClick={() => chamar(`/api/automacoes/gatilhos/${g.id}`, { method: 'DELETE' })}
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden />
-                  <span className="sr-only">Excluir gatilho</span>
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="text-xs text-muted-foreground">
-          Excluir um gatilho leva junto as automações que o usam. A mensagem, não — ela é insumo
-          compartilhado e a exclusão é recusada enquanto estiver em uso.
-        </p>
       </section>
 
       {/* ---------------------------------------------------------------- */}

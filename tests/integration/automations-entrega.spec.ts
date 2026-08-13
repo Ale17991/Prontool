@@ -89,6 +89,7 @@ describe('Feature 056 — confirmação de entrega de automação', () => {
       .from('automations' as never)
       .insert({
         tenant_id: tenantId,
+        name: `Auto ${(gat as unknown as { id: string }).id.slice(0, 8)}`,
         trigger_id: (gat as unknown as { id: string }).id,
         message_template_id: (msg as unknown as { id: string }).id,
         active: true,

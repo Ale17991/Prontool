@@ -27,14 +27,21 @@ import { z } from 'zod'
 import { registerSource } from './registry'
 import {
   addDias,
+  antecedenciaSchema,
   dataBr,
   dataHoraBr,
+  duracaoTexto,
+  ehAncorada,
+  lerAntecedencia,
   eligiblePatients,
+  emDias,
   horaBr,
+  janelaAncorada,
   janelaDoDia,
   mesesAtras,
   pageAll,
   primeiroNome,
+  MINUTOS_POR_DIA,
 } from './shared'
 import type { EnumerateContext, SourceCandidate } from '../types'
 
@@ -122,9 +129,9 @@ registerSource({
 
 registerSource({
   id: 'pre_consulta',
-  label: 'N dias antes da consulta',
+  label: 'Antes da consulta',
   group: 'agenda',
-  hint: 'Dispara para quem tem consulta daqui a N dias. Serve para orientação de preparo — jejum, documentos, exames a levar.',
+  hint: 'Dispara antes da consulta, no intervalo que você escolher — dias, horas ou minutos. Serve para orientação de preparo: jejum, documentos, exames a levar.',
   /**
    * O aviso existe por causa do FR-026: o lembrete de consulta tem motor e tela
    * PRÓPRIOS (Configurações → Lembretes), e esta fonte olha para a mesma
@@ -134,26 +141,44 @@ registerSource({
    */
   warning:
     'O lembrete de consulta é outra coisa e fica em Configurações → Lembretes, com motor próprio. Use este gatilho para ORIENTAÇÃO (preparo, jejum, o que levar) e confira o intervalo configurado lá, para o paciente não receber duas mensagens sobre a mesma consulta.',
-  paramsSchema: z.object({ dias: z.number().int().min(1).max(60) }).strict(),
+  // 15 minutos é o piso porque é o intervalo do ciclo: prometer "5 minutos
+  // antes" seria prometer uma precisão que o motor não tem.
+  paramsSchema: antecedenciaSchema(15, 60 * MINUTOS_POR_DIA),
   fields: [
     {
-      name: 'dias',
-      label: 'Quantos dias antes',
-      kind: 'number',
-      min: 1,
-      max: 60,
-      defaultValue: 2,
-      hint: 'Contado em dias civis da clínica, não em horas.',
+      name: 'antecedenciaMin',
+      label: 'Com quanta antecedência',
+      kind: 'duration',
+      min: 15,
+      max: 60 * MINUTOS_POR_DIA,
+      defaultValue: 2 * MINUTOS_POR_DIA,
+      hint: 'Em dias, sai no horário escolhido abaixo. Em horas ou minutos, sai contado a partir do horário da consulta — e aí o horário abaixo não se aplica.',
     },
   ],
-  variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento', 'dias'],
+  variables: [
+    'data_consulta',
+    'data',
+    'hora',
+    'profissional',
+    'procedimento',
+    'antecedencia',
+  ],
+
+  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
 
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
-    const { dias } = ctx.params as { dias: number }
+    const antecedenciaMin = lerAntecedencia(ctx.params)
     const aptos = await eligiblePatients(ctx)
     if (aptos.size === 0) return []
 
-    const { de, ate } = janelaDoDia(addDias(ctx.today, dias), ctx.timezone)
+    // Duas leituras da mesma antecedência, e a diferença é visível ao paciente.
+    // Em dias, o recorte é o DIA CIVIL inteiro da consulta e o envio sai no
+    // horário que a clínica escolheu. Em horas ou minutos, o recorte é a janela
+    // deste ciclo deslocada — a mensagem sai a tantas horas da consulta,
+    // qualquer que seja a hora do dia.
+    const { de, ate } = ehAncorada(antecedenciaMin)
+      ? janelaAncorada(ctx, antecedenciaMin, 'antes')
+      : janelaDoDia(addDias(ctx.today, emDias(antecedenciaMin)), ctx.timezone)
 
     // A view traz o status efetivo: consulta cancelada ou estornada não recebe
     // orientação de preparo — seria mandar a pessoa jejuar para nada.
@@ -184,7 +209,14 @@ registerSource({
           a.patient_id &&
           a.appointment_at &&
           aptos.has(a.patient_id) &&
-          ['agendado', 'confirmado', 'ativo'].includes(a.effective_status ?? ''),
+          ['agendado', 'confirmado', 'ativo'].includes(a.effective_status ?? '') &&
+          // Consulta que JÁ COMEÇOU não recebe aviso de preparo. Na operação
+          // normal a janela nunca alcança o passado, mas ela é ancorada na
+          // varredura anterior: depois de um deploy longo ou de o ciclo ficar
+          // parado, o intervalo cresce e passa a incluir consulta que já
+          // aconteceu. Avisar para jejuar depois do exame é pior que silêncio.
+          // Na prévia o filtro não vale — ver `previewMode` em types.ts.
+          (ctx.previewMode || Date.parse(a.appointment_at as string) > ctx.now.getTime()),
       )
       .map((a) => ({
         patientId: a.patient_id as string,
@@ -194,7 +226,7 @@ registerSource({
             { ...a, appointment_at: a.appointment_at as string },
             ctx,
           ),
-          dias: String(dias),
+          antecedencia: duracaoTexto(antecedenciaMin),
         },
       }))
   },
@@ -206,30 +238,42 @@ registerSource({
 
 registerSource({
   id: 'pos_atendimento',
-  label: 'N dias depois do atendimento',
+  label: 'Depois do atendimento',
   group: 'agenda',
-  hint: 'Dispara N dias depois de um atendimento REALIZADO. Serve para saber como a pessoa está, pedir avaliação ou reforçar orientação.',
-  paramsSchema: z.object({ dias: z.number().int().min(1).max(180) }).strict(),
+  hint: 'Dispara depois de um atendimento REALIZADO, no intervalo que você escolher. Serve para saber como a pessoa está, pedir avaliação ou reforçar orientação.',
+  paramsSchema: antecedenciaSchema(15, 180 * MINUTOS_POR_DIA),
   fields: [
     {
-      name: 'dias',
-      label: 'Quantos dias depois',
-      kind: 'number',
-      min: 1,
-      max: 180,
-      defaultValue: 1,
+      name: 'antecedenciaMin',
+      label: 'Quanto tempo depois',
+      kind: 'duration',
+      min: 15,
+      max: 180 * MINUTOS_POR_DIA,
+      defaultValue: 1 * MINUTOS_POR_DIA,
+      hint: 'Em horas, dá para pedir avaliação no fim do mesmo dia do atendimento.',
     },
   ],
-  variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento', 'dias'],
+  variables: [
+    'data_consulta',
+    'data',
+    'hora',
+    'profissional',
+    'procedimento',
+    'antecedencia',
+  ],
+
+  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
 
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
-    const { dias } = ctx.params as { dias: number }
+    const antecedenciaMin = lerAntecedencia(ctx.params)
     const aptos = await eligiblePatients(ctx)
     if (aptos.size === 0) return []
 
     // O corte é pela CONCLUSÃO, não pelo horário marcado: um atendimento
-    // remarcado e realizado depois deve contar do dia em que aconteceu.
-    const { de, ate } = janelaDoDia(addDias(ctx.today, -dias), ctx.timezone)
+    // remarcado e realizado depois deve contar de quando aconteceu.
+    const { de, ate } = ehAncorada(antecedenciaMin)
+      ? janelaAncorada(ctx, antecedenciaMin, 'depois')
+      : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone)
 
     const linhas = await pageAll<
       ContextoAtendimento & {
@@ -273,7 +317,7 @@ registerSource({
             { ...a, appointment_at: a.appointment_at as string },
             ctx,
           ),
-          dias: String(dias),
+          antecedencia: duracaoTexto(antecedenciaMin),
         },
       }))
   },
@@ -287,7 +331,7 @@ registerSource({
   id: 'falta_consulta',
   label: 'Paciente não compareceu',
   group: 'agenda',
-  hint: 'Dispara N dias depois de um atendimento marcado pela recepção como "desmarcou" na régua de fluxo.',
+  hint: 'Dispara depois de um atendimento marcado pela recepção como "desmarcou" na régua de fluxo, no intervalo que você escolher.',
   /**
    * A falta é registrada por uma PESSOA na recepção, no fluxo operacional
    * (0153). Isso a torna melhor evidência que uma inferência de ausência — mas
@@ -296,26 +340,30 @@ registerSource({
    */
   warning:
     'A régua da recepção registra que o paciente NÃO CHEGOU — não o motivo. Escreva a mensagem oferecendo remarcar, nunca cobrando a ausência: quem faltou por emergência recebe a mesma mensagem de quem simplesmente não veio.',
-  paramsSchema: z.object({ dias: z.number().int().min(0).max(30) }).strict(),
+  paramsSchema: antecedenciaSchema(0, 30 * MINUTOS_POR_DIA),
   fields: [
     {
-      name: 'dias',
-      label: 'Quantos dias depois da falta',
-      kind: 'number',
+      name: 'antecedenciaMin',
+      label: 'Quanto tempo depois do horário perdido',
+      kind: 'duration',
       min: 0,
-      max: 30,
-      defaultValue: 1,
-      hint: '0 envia no mesmo dia, no ciclo seguinte à marcação.',
+      max: 30 * MINUTOS_POR_DIA,
+      defaultValue: 1 * MINUTOS_POR_DIA,
+      hint: 'Em horas, alcança a pessoa ainda no dia — quando remarcar para a mesma semana ainda é possível.',
     },
   ],
   variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento'],
 
+  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
+
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
-    const { dias } = ctx.params as { dias: number }
+    const antecedenciaMin = lerAntecedencia(ctx.params)
     const aptos = await eligiblePatients(ctx)
     if (aptos.size === 0) return []
 
-    const { de, ate } = janelaDoDia(addDias(ctx.today, -dias), ctx.timezone)
+    const { de, ate } = ehAncorada(antecedenciaMin)
+      ? janelaAncorada(ctx, antecedenciaMin, 'depois')
+      : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone)
 
     const linhas = await pageAll<{
       appointment_id: string

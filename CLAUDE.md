@@ -314,14 +314,56 @@ criaria cópia de PII fora do banco e congelaria número que envelhece.
 
 ## Construtor de automações de mensagem (feature 056)
 
-A clínica monta **gatilho** (quando) + **mensagem** (o quê) e liga os dois numa
-**automação**. Avaliado no mesmo ciclo diário do lembrete, em `try/catch`
-próprio. Migrations `0196_message_automations.sql` e
-`0197_automation_delivery_events.sql`. Módulo `automacoes`.
+A clínica escreve a **mensagem** e monta a **automação** (nome + quando + a que
+horas) num ato só. Avaliado no mesmo ciclo do lembrete, em `try/catch` próprio.
+Migrations `0196_message_automations.sql`, `0197_automation_delivery_events.sql`
+e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
+
+- **O ciclo passou a rodar de 15 em 15 minutos, pelo `pg_cron` do próprio
+  Supabase** (`deploy-cron-15min.sql`), e não pelo cron da Vercel — que no plano
+  Hobby não aceita nada mais frequente que diário e, se aceitar, trava TODOS os
+  deploys. O `pg_net` chama `/api/cron/send-reminders` com o mesmo `CRON_SECRET`,
+  lido do Vault na hora. **O cron diário da Vercel fica no lugar de propósito**:
+  dois despertadores independentes para um endpoint idempotente, então perder o
+  pg_cron degrada para uma vez por dia em vez de nunca. Isso também **conserta a
+  018**, que sempre teve `WINDOW_MINUTES = 15` e no cron diário só acertava o
+  lembrete cuja consulta caísse naqueles 15 minutos.
+- **O gatilho deixou de ser objeto da clínica.** Ele continua sendo a linha que o
+  motor enumera — e por isso duas automações com o mesmo "quando" compartilham
+  uma só (`findOrCreateTrigger` compara fonte + params JÁ VALIDADOS, nunca o que
+  veio da tela) —, mas nasce por baixo, com nome derivado (`describe.ts`). O nome
+  que a clínica dá é o da AUTOMAÇÃO: é ela que se procura, renomeia e desliga.
+- **A antecedência é em MINUTOS, e a unidade não é guardada.** 120 volta para a
+  tela como "2 horas" porque a tela escolhe a maior unidade que divide exato.
+  Guardar o par (valor, unidade) criaria dois jeitos de escrever a mesma coisa —
+  `{2, horas}` e `{120, minutos}` — e dois gatilhos idênticos que o motor
+  varreria em dobro por não se reconhecerem.
+- **Dias e horas são leituras DIFERENTES da mesma antecedência**, e a diferença é
+  visível ao paciente. Múltiplo exato de um dia = dia civil, e sai no
+  `send_at_local` da automação. Qualquer outra coisa = **ancorada**: sai contada
+  do horário daquele paciente, e o horário do dia não se aplica (a tela desabilita
+  o campo em vez de deixar escrever regra que não pode valer). Só ganham unidade
+  as fontes com âncora `TIMESTAMPTZ` real — `pre_consulta`, `pos_atendimento`,
+  `falta_consulta`, `boas_vindas`. Vencimento de parcela é `DATE`: não tem hora
+  para ancorar, e oferecer "2 horas antes" ali seria promessa vazia.
+- **`lerAntecedencia` lê as duas grafias porque o motor entrega `params` CRU**,
+  direto da coluna, sem passar pelo `paramsSchema`. Consertar só o schema
+  consertaria a escrita e esqueceria a leitura: gatilho gravado com `{dias: 2}`
+  viraria `NaN` na janela e a automação ficaria ligada e muda.
+- **`last_fired_on` e `last_ran_at` não são idempotência** — essa segue sendo o
+  `UNIQUE (automation_id, patient_id, occurrence_key)`. São o corte que impede a
+  automação diária de varrer 96 vezes e a janela que a ancorada usa para não
+  perder as âncoras de um deploy longo. A janela ancorada tem teto de 6h: sem
+  ele, um ciclo parado por um dia despejaria "sua consulta é daqui a 2 horas"
+  sobre consulta de anteontem.
+- **A prévia mede o DIA INTEIRO, não a janela de 15 minutos** (`previewMode`), e
+  responde por fonte + parâmetros ANTES de o gatilho existir — a pergunta "quantos
+  isso pega?" muda a decisão só se for respondida enquanto ela está sendo tomada.
 
 - **O lembrete de consulta NÃO foi absorvido, e isso é decisão de risco.** Ele
-  passou a funcionar em produção em 11/08/2026 depois de meses parado por um
-  defeito mudo (cron chamava GET, a rota só aceitava POST). Reescrevê-lo em
+  passou a funcionar em produção em 11/08/2026 depois de meses parado por dois
+  defeitos mudos: o cron chamava GET e a rota só aceitava POST, e o ciclo era
+  diário quando o motor pede 15 minutos. Reescrevê-lo em
   seguida trocaria uma certeza recém-conquistada por uma promessa. O que torna a
   absorção futura possível sem reescrita é o `AutomationSourceDef`: "lembrete de
   consulta" vira mais um arquivo em `sources/`, cujo `enumerate` delega para
