@@ -61,8 +61,10 @@ describe('registro de fontes', () => {
     const f = getSource('aniversario')
     expect(f).not.toBeNull()
     expect(f?.label).toBeTruthy()
-    // Aniversário só precisa das universais — não declara nenhuma própria.
-    expect(f?.variables).toEqual([])
+    // Além das universais, declara a data do aniversário: ela existe para a
+    // mensagem que avisa ANTES ou no início do mês, onde "seu aniversário é
+    // dia 12" é a informação que faz o texto fazer sentido fora da data.
+    expect(f?.variables).toEqual(['data_aniversario'])
   })
 
   it('toda fonte registrada tem rótulo, dica e schema de parâmetros', () => {

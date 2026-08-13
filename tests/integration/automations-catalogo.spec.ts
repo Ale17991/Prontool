@@ -55,7 +55,11 @@ async function novoGatilho(tenantId: string, name: string): Promise<string> {
 async function novaAutomacao(tenantId: string, triggerId: string, messageId: string) {
   const { error } = await sb.from('automations' as never).insert({
     tenant_id: tenantId,
-    name: `Auto ${triggerId.slice(0, 8)}`,
+    // O nome inclui a MENSAGEM, e não só o gatilho: este arquivo monta duas
+    // automações sobre o mesmo gatilho com mensagens diferentes, que é
+    // exatamente o cenário que ele existe para testar. Com o nome derivado só do
+    // gatilho, a segunda esbarraria no UNIQUE de nome por clínica (0198).
+    name: `Auto ${triggerId.slice(0, 8)}-${messageId.slice(0, 8)}`,
     trigger_id: triggerId,
     message_template_id: messageId,
     active: true,
