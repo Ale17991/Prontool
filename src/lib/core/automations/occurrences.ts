@@ -44,11 +44,84 @@ export async function claimOccurrence(
     .maybeSingle()
 
   if (error) {
-    // 23505 = já existe. Não é falha: é o ciclo rodando de novo no mesmo dia.
-    if ((error as { code?: string }).code === '23505') return null
+    // 23505 = já existe. Quase sempre é o ciclo rodando de novo no mesmo dia —
+    // mas pode ser uma tentativa de envio que FALHOU e ainda merece outra.
+    if ((error as { code?: string }).code === '23505') {
+      return reclaimFailed(supabase, input)
+    }
     throw new Error(`claimOccurrence falhou: ${error.message}`)
   }
   return data?.id ?? null
+}
+
+/**
+ * Quantas tentativas de envio uma ocorrência recebe antes de desistir.
+ *
+ * Três, e o número tem uma conta por trás: com o ciclo a cada 5 minutos e o teto
+ * de UMA mensagem por clínica por ciclo, três tentativas cobrem cerca de quinze
+ * minutos de indisponibilidade do serviço de envio — que é a ordem de grandeza
+ * de um reinício ou de um deploy do outro lado. Mais que isso deixa de ser falha
+ * passageira e vira serviço quebrado, e insistir passaria a custar a vaga do
+ * ciclo, calando as outras automações da clínica em vez de ajudar.
+ */
+const MAX_TENTATIVAS = 3
+
+/**
+ * Reabre uma ocorrência que falhou, para o ciclo tentar de novo.
+ *
+ * Só `falhou` é reaberto. `impedido_*` não melhora tentando de novo daqui a
+ * cinco minutos — sem consentimento, sem telefone e sem variável são estados do
+ * mundo, não indisponibilidade —, e reabrir seria insistir com quem disse não.
+ * `enviado` e `suprimido_*` também não: um já aconteceu, o outro tem caminho
+ * próprio (a linha é apagada e reavaliada).
+ *
+ * A condição no UPDATE repete o que o SELECT acabou de ler, de propósito: entre
+ * as duas consultas cabe outro ciclo, e sem o filtro os dois reabririam a mesma
+ * linha e o paciente receberia duas vezes. Quem perde a corrida atualiza zero
+ * linhas e desiste.
+ */
+async function reclaimFailed(
+  supabase: SupabaseClient,
+  input: ClaimInput,
+): Promise<string | null> {
+  const { data: atual } = await supabase
+    .from('automation_occurrences')
+    .select('id, outcome, attempts')
+    .eq('tenant_id', input.tenantId)
+    .eq('automation_id', input.automationId)
+    .eq('patient_id', input.patientId)
+    .eq('occurrence_key', input.occurrenceKey)
+    .maybeSingle()
+
+  const linha = atual as { id: string; outcome: string; attempts: number | null } | null
+  if (!linha || linha.outcome !== 'falhou') return null
+
+  const tentativas = linha.attempts ?? 1
+  if (tentativas >= MAX_TENTATIVAS) return null
+
+  const { data: reaberta, error } = await supabase
+    .from('automation_occurrences')
+    .update({ outcome: 'pendente', attempts: tentativas + 1, reason: null })
+    .eq('id', linha.id)
+    .eq('outcome', 'falhou')
+    .eq('attempts', tentativas)
+    .select('id')
+    .maybeSingle()
+
+  if (error) {
+    logger.warn(
+      { occurrenceId: linha.id, err: error.message },
+      'automation-reclaim-failed-error',
+    )
+    return null
+  }
+  if (!reaberta) return null
+
+  logger.info(
+    { occurrenceId: linha.id, tentativa: tentativas + 1 },
+    'automation-retentando-envio',
+  )
+  return linha.id
 }
 
 export async function settleOccurrence(
