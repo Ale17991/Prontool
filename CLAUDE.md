@@ -191,6 +191,13 @@ por clínica, conectado por QR em autoatendimento.
   por ciclo, escoam 24 por janela. Baixar demais faz lembrete ser PERDIDO, não
   adiado: passadas as três chances, a janela anda. E-mail segue sem teto —
   não queima remetente do jeito que a rajada queima um número.
+- **Telefone de cadastro vai para o envio por `toSendableNumber`, NUNCA por
+  `normalizePhone`.** O segundo só age em número que já começa com `55` e devolve
+  o resto intacto — então `(27) 99273-4155` virava `27992734155`, o serviço
+  montava `27992734155@s.whatsapp.net`, a Evolution ACEITAVA e devolvia id, e a
+  mensagem sumia. Sem erro, sem confirmação de entrega, sem nada. Os dois motores
+  (051 e 056) tinham o mesmo defeito; só o disparo manual de teste acertava.
+  Descoberto em 14/08/2026 porque duas mensagens "enviadas" nunca chegaram.
 - **Idempotência ponta a ponta**: o `externalId` mandado ao serviço é o **id do
   lembrete**, e o serviço tem `UNIQUE (tenant_id, external_id)`. Retentativa não
   duplica mensagem.

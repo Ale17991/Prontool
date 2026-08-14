@@ -16,7 +16,7 @@ import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
 import { getDecryptedApiKey, isWhatsAppConnected } from '@/lib/core/whatsapp/config'
 import { sendText } from '@/lib/core/whatsapp/service-client'
-import { isSendablePhone, normalizePhone } from '@/lib/core/whatsapp/phone'
+import { isSendablePhone, toSendableNumber } from '@/lib/core/whatsapp/phone'
 import { getSource } from './sources'
 import { janelaDoDia } from './sources/shared'
 import { listActiveAutomations, markAutomationRan } from './store'
@@ -588,7 +588,7 @@ async function enviarUm(args: {
     phone: string | null
   } | null
 
-  if (!paciente?.phone || !isSendablePhone(paciente.phone)) {
+  if (!paciente?.phone || !isSendablePhone(toSendableNumber(paciente.phone))) {
     await settleOccurrence(supabase, occurrenceId, 'impedido_sem_telefone')
     return 'impedido'
   }
@@ -608,7 +608,7 @@ async function enviarUm(args: {
 
   const res = await sendText({
     apiKey: args.apiKey,
-    to: normalizePhone(paciente.phone),
+    to: toSendableNumber(paciente.phone),
     message: text,
     // O id da ocorrência é a chave de idempotência ponta a ponta: o serviço
     // deduplica por (tenant, externalId), então retentativa não duplica.

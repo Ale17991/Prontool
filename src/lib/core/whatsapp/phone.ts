@@ -83,6 +83,28 @@ export function fromTypedInput(raw: string): string {
   return normalizePhone(digits)
 }
 
+/**
+ * O número de um CADASTRO, pronto para virar destino de envio.
+ *
+ * É o mesmo que `fromTypedInput`, com outro nome, e a duplicação é deliberada:
+ * o nome daquela função descreve a origem do dado ("alguém digitou"), e por isso
+ * ninguém a procurava na hora de mandar mensagem a partir de um telefone já
+ * gravado. Os dois motores chamavam `normalizePhone` direto — que só age em
+ * número que JÁ começa com 55 e devolve o resto intacto.
+ *
+ * O estrago era invisível: `(27) 99273-4155` virava `27992734155`, o serviço
+ * montava o JID `27992734155@s.whatsapp.net`, a Evolution ACEITAVA e devolvia um
+ * id de mensagem, e nada chegava. Sem erro, sem confirmação de entrega, sem
+ * nada — descoberto em 14/08/2026, depois de duas mensagens "enviadas" que o
+ * destinatário nunca recebeu.
+ *
+ * Chame ESTA função em todo ponto de envio. `normalizePhone` continua existindo
+ * para o que já vem completo, do serviço.
+ */
+export function toSendableNumber(stored: string): string {
+  return fromTypedInput(stored)
+}
+
 /** Monta o JID de contato individual. */
 export function toWhatsAppJid(phone: string): string {
   return `${normalizePhone(phone)}@s.whatsapp.net`

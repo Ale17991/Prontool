@@ -11,7 +11,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/observability/logger'
-import { isSendablePhone, normalizePhone } from '@/lib/core/whatsapp/phone'
+import { isSendablePhone, toSendableNumber } from '@/lib/core/whatsapp/phone'
 import { sendText } from '@/lib/core/whatsapp/service-client'
 import { renderReminderWhatsApp } from './render-whatsapp'
 import type {
@@ -146,10 +146,10 @@ export async function sendOneWhatsAppReminder(
   // Telefone existe mas é inválido (8 dígitos truncado, lixo digitado). Vira
   // `skipped_no_phone` e não `failed`: não há nada a re-tentar, e a recepção
   // precisa entender que o cadastro é que está errado.
-  if (!patient?.phone || !isSendablePhone(patient.phone)) {
+  if (!patient?.phone || !isSendablePhone(toSendableNumber(patient.phone))) {
     return { record: await finalize('skipped_no_phone'), abortBatch: false }
   }
-  const to = normalizePhone(patient.phone)
+  const to = toSendableNumber(patient.phone)
 
   // 4. Renderiza e envia.
   const message = renderReminderWhatsApp({

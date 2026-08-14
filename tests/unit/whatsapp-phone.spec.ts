@@ -10,6 +10,7 @@ import {
   getOnlyNumbers,
   normalizePhone,
   isSendablePhone,
+  toSendableNumber,
   toWhatsAppJid,
   fromTypedInput,
 } from '@/lib/core/whatsapp/phone'
@@ -132,5 +133,40 @@ describe('Feature 051 — toWhatsAppJid', () => {
 
   it('sem o prefixo 55 o número passa intacto — a regra do 9 é brasileira', () => {
     expect(toWhatsAppJid('(11) 8888-7777')).toBe('1188887777@s.whatsapp.net')
+  })
+})
+
+/**
+ * O defeito de 14/08/2026, travado por teste.
+ *
+ * Duas mensagens saíram como "enviadas", com id devolvido pela Evolution, e o
+ * destinatário nunca recebeu nada. O telefone do cadastro era `(27) 99273-4155`
+ * — sem o código do país — e os motores chamavam `normalizePhone`, que só age em
+ * número que JÁ começa com 55. O destino virava `27992734155@s.whatsapp.net`,
+ * que não existe: a Evolution aceita, responde com id, e a mensagem some.
+ */
+describe('telefone de cadastro pronto para envio', () => {
+  it('acrescenta o 55 no celular escrito como se escreve no Brasil', () => {
+    expect(toSendableNumber('(27) 99273-4155')).toBe('5527992734155')
+  })
+
+  it('não mexe no que já vem completo', () => {
+    expect(toSendableNumber('5527992734155')).toBe('5527992734155')
+  })
+
+  it('acrescenta o 9 que falta e o 55, juntos', () => {
+    expect(toSendableNumber('(27) 9273-4155')).toBe('5527992734155')
+  })
+
+  it('o resultado é enviável — era isto que passava batido', () => {
+    expect(isSendablePhone(toSendableNumber('(27) 99273-4155'))).toBe(true)
+    // O valor CRU também é aceito pelo guard, e é justamente por isso que o
+    // guard sozinho não protegia: 11 dígitos passam por "E.164 plausível".
+    expect(isSendablePhone('27992734155')).toBe(true)
+    expect(normalizePhone('27992734155')).toBe('27992734155')
+  })
+
+  it('quem declarou o país com + não recebe 55 na frente', () => {
+    expect(toSendableNumber('+1 202 555 0143')).toBe('12025550143')
   })
 })
