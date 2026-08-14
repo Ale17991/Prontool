@@ -82,7 +82,11 @@ async function seedPaciente(
   return id
 }
 
-async function seedAutomacao(tenantId: string, corpo = 'Feliz aniversário, {{paciente}}!') {
+async function seedAutomacao(
+  tenantId: string,
+  corpo = 'Feliz aniversário, {{paciente}}!',
+  params: Record<string, unknown> = {},
+) {
   const { data: msg } = await sb
     .from('message_templates' as never)
     .insert({ tenant_id: tenantId, name: `M-${randomUUID().slice(0, 6)}`, body: corpo } as never)
@@ -94,7 +98,7 @@ async function seedAutomacao(tenantId: string, corpo = 'Feliz aniversário, {{pa
       tenant_id: tenantId,
       name: `G-${randomUUID().slice(0, 6)}`,
       source: 'aniversario',
-      params: {},
+      params,
     } as never)
     .select('id')
     .single()
@@ -143,6 +147,134 @@ describe('Feature 056 — ciclo de automações', () => {
     const occ = await ocorrencias(tenantId)
     expect(occ).toHaveLength(1)
     expect(occ[0]?.outcome).toBe('enviado')
+  })
+
+  /**
+   * A JANELA DE SILÊNCIO (0201), que é o guarda-corpo mais fácil de quebrar sem
+   * ninguém notar: se ela recusar quando não devia, a clínica vê automações
+   * ligadas e nenhuma mensagem, sem erro em lugar nenhum.
+   */
+  it('fora da janela de horário, nada sai', async () => {
+    const tenantId = await seedClinica('auto-janela-fora')
+    await seedPaciente(tenantId)
+    await seedAutomacao(tenantId)
+    // AGORA é 09:00 em São Paulo; a janela começa às 14:00.
+    await sb
+      .from('tenant_clinic_profile' as never)
+      .update({ automation_window_start: '14:00', automation_window_end: '20:00' } as never)
+      .eq('tenant_id', tenantId)
+
+    const r = await evaluateAutomations(sb, AGORA)
+
+    expect(r.enviadas).toBe(0)
+    expect(whatsappSendSpy.calls).toHaveLength(0)
+    // E nada é gravado: a ocorrência não pode ser consumida por um ciclo que
+    // nem chegou a avaliar, senão o paciente perderia a mensagem do dia.
+    expect(await ocorrencias(tenantId)).toHaveLength(0)
+  })
+
+  it('dentro da janela, sai', async () => {
+    const tenantId = await seedClinica('auto-janela-dentro')
+    await seedPaciente(tenantId)
+    await seedAutomacao(tenantId)
+    await sb
+      .from('tenant_clinic_profile' as never)
+      .update({ automation_window_start: '08:00', automation_window_end: '20:00' } as never)
+      .eq('tenant_id', tenantId)
+
+    const r = await evaluateAutomations(sb, AGORA)
+    expect(r.enviadas).toBe(1)
+  })
+
+  /**
+   * O dia da semana é lido no fuso da CLÍNICA. `Date.getDay()` responderia pelo
+   * fuso do servidor, que na Vercel é UTC — às 21h de sábado em São Paulo já é
+   * domingo lá, e o bloqueio começaria três horas antes da hora.
+   */
+  it('em dia não permitido, nada sai', async () => {
+    const tenantId = await seedClinica('auto-dia-bloqueado')
+    await seedPaciente(tenantId)
+    await seedAutomacao(tenantId)
+    // 2026-08-11 é uma terça-feira (2). Permitindo só segunda e quarta.
+    await sb
+      .from('tenant_clinic_profile' as never)
+      .update({ automation_weekdays: [1, 3] } as never)
+      .eq('tenant_id', tenantId)
+
+    const r = await evaluateAutomations(sb, AGORA)
+
+    expect(r.enviadas).toBe(0)
+    expect(whatsappSendSpy.calls).toHaveLength(0)
+    expect(await ocorrencias(tenantId)).toHaveLength(0)
+  })
+
+  it('sem nenhum dia permitido, a clínica fica em silêncio', async () => {
+    const tenantId = await seedClinica('auto-dia-vazio')
+    await seedPaciente(tenantId)
+    await seedAutomacao(tenantId)
+    await sb
+      .from('tenant_clinic_profile' as never)
+      .update({ automation_weekdays: [] } as never)
+      .eq('tenant_id', tenantId)
+
+    // Array vazio CALA, e não libera — é o lado seguro para uma feature que
+    // manda mensagem sozinha.
+    const r = await evaluateAutomations(sb, AGORA)
+    expect(r.enviadas).toBe(0)
+  })
+
+  /**
+   * OS QUATRO MOMENTOS DO ANIVERSÁRIO.
+   *
+   * Parabéns no dia é o uso óbvio; os outros três existem por pedido real da
+   * clínica. Antes serve para convidar, depois evita competir com as dezenas de
+   * mensagens do próprio dia, e o início do mês existe porque muita clínica roda
+   * promoção que vale o mês inteiro — avisar no dia 15 entrega metade.
+   *
+   * O que estes casos travam é o SENTIDO do deslocamento: somar quando devia
+   * subtrair manda a mensagem uma semana depois de passar, todos os anos, e o
+   * erro só aparece no ano seguinte.
+   */
+  it('N dias ANTES: pega quem faz aniversário daqui a N dias', async () => {
+    const tenantId = await seedClinica('auto-aniv-antes')
+    // AGORA é 11/08. Com 15 dias antes, o alvo é 26/08.
+    await seedPaciente(tenantId, { nascimento: '1990-08-26' })
+    await seedAutomacao(tenantId, 'Oi {{paciente}}', { quando: 'antes', dias: 15 })
+
+    const r = await evaluateAutomations(sb, AGORA)
+    expect(r.enviadas).toBe(1)
+  })
+
+  it('N dias ANTES não pega quem faz aniversário HOJE', async () => {
+    const tenantId = await seedClinica('auto-aniv-antes-nao')
+    await seedPaciente(tenantId, { nascimento: '1990-08-11' })
+    await seedAutomacao(tenantId, 'Oi {{paciente}}', { quando: 'antes', dias: 15 })
+
+    const r = await evaluateAutomations(sb, AGORA)
+    expect(r.enviadas).toBe(0)
+  })
+
+  it('N dias DEPOIS: pega quem fez aniversário há N dias', async () => {
+    const tenantId = await seedClinica('auto-aniv-depois')
+    // AGORA é 11/08. Com 3 dias depois, o alvo é 08/08.
+    await seedPaciente(tenantId, { nascimento: '1990-08-08' })
+    await seedAutomacao(tenantId, 'Oi {{paciente}}', { quando: 'depois', dias: 3 })
+
+    const r = await evaluateAutomations(sb, AGORA)
+    expect(r.enviadas).toBe(1)
+  })
+
+  it('INÍCIO DO MÊS: pega todo aniversariante do mês, e só no dia 1º', async () => {
+    const tenantId = await seedClinica('auto-aniv-mes')
+    await seedPaciente(tenantId, { nascimento: '1990-08-26' })
+    await seedAutomacao(tenantId, 'Oi {{paciente}}', { quando: 'inicio_do_mes' })
+
+    // No dia 11 não dispara, mesmo o paciente sendo aniversariante do mês.
+    expect((await evaluateAutomations(sb, AGORA)).enviadas).toBe(0)
+
+    // No dia 1º, dispara.
+    const primeiro = new Date('2026-08-01T12:00:00.000Z')
+    expect((await evaluateAutomations(sb, primeiro)).enviadas).toBe(1)
   })
 
   it('SC-003: rodar o ciclo duas vezes no mesmo dia não repete a mensagem', async () => {

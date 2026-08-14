@@ -19,14 +19,14 @@ const sb = serviceClient()
 async function seedAutomacao(tenantId: string): Promise<string> {
   const { data: msg, error: e1 } = await sb
     .from('message_templates' as never)
-    .insert({ tenant_id: tenantId, name: 'M1', body: 'Oi {{paciente}}' } as never)
+    .insert({ tenant_id: tenantId, name: `M-${randomUUID().slice(0, 6)}`, body: 'Oi {{paciente}}' } as never)
     .select('id')
     .single()
   if (e1) throw new Error(`msg: ${e1.message}`)
 
   const { data: trg, error: e2 } = await sb
     .from('automation_triggers' as never)
-    .insert({ tenant_id: tenantId, name: 'G1', source: 'aniversario', params: {} } as never)
+    .insert({ tenant_id: tenantId, name: `G-${randomUUID().slice(0, 6)}`, source: 'aniversario', params: {} } as never)
     .select('id')
     .single()
   if (e2) throw new Error(`trigger: ${e2.message}`)
@@ -214,6 +214,29 @@ describe('Feature 056 — retentativa de falha (0203)', () => {
       .update({ outcome: 'pendente', attempts: 2 } as never)
       .eq('id', id)
     expect(error).not.toBeNull()
+  })
+
+  /**
+   * A 0205: excluir a AUTOMAÇÃO é recusado quando ela já produziu ocorrência.
+   *
+   * A 0196 dizia CASCADE e nunca funcionou — o DELETE cascateado esbarrava neste
+   * mesmo trigger e derrubava a exclusão inteira, com uma mensagem que falava de
+   * outra tabela. Ninguém percebeu porque, até 14/08/2026, nenhuma automação em
+   * produção havia enviado nada.
+   */
+  it('automação que já produziu ocorrência não pode ser excluída', async () => {
+    await novaOcorrencia(tenantId, automationId, patientId, 'enviado')
+    const { error } = await sb.from('automations' as never).delete().eq('id', automationId)
+    expect(error).not.toBeNull()
+    // 23503 é a FK da 0205 recusando — e NÃO o 42501 do trigger, que era o
+    // sintoma antigo e apontava para o lugar errado.
+    expect((error as { code?: string })?.code).toBe('23503')
+  })
+
+  it('automação que nunca enviou continua excluível', async () => {
+    const limpa = await seedAutomacao(tenantId)
+    const { error } = await sb.from('automations' as never).delete().eq('id', limpa)
+    expect(error).toBeNull()
   })
 
   it('linha que falhou continua sem poder ser apagada', async () => {
