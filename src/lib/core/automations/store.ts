@@ -410,7 +410,13 @@ export async function deleteAutomation(
     .delete()
     .eq('id', id)
     .eq('tenant_id', tenantId)
-  if (error) throw new Error(`deleteAutomation falhou: ${error.message}`)
+  if (error) {
+    // 23503 = a FK da 0204 recusou: existe ocorrência, e ocorrência é prova de
+    // que uma mensagem foi enviada a um paciente. O erro cru fala de constraint
+    // e de outra tabela; quem está na tela precisa ouvir o que fazer no lugar.
+    if ((error as { code?: string }).code === '23503') throw new Error('JA_ENVIOU')
+    throw new Error(`deleteAutomation falhou: ${error.message}`)
+  }
 }
 
 /**

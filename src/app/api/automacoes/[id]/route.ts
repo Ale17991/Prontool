@@ -110,7 +110,21 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     if (!(await hasAutomationsModule(session.tenantId))) return moduleDisabled()
 
     const supabase = createSupabaseServiceClient()
-    await deleteAutomation(supabase, session.tenantId, params.id)
+    try {
+      await deleteAutomation(supabase, session.tenantId, params.id)
+    } catch (e) {
+      if (e instanceof Error && e.message === 'JA_ENVIOU') {
+        return NextResponse.json(
+          {
+            error: 'JA_ENVIOU',
+            detail:
+              'Esta automação já enviou mensagens, e o registro de quem recebeu o quê não pode ser apagado. Desligue-a para parar os envios — ela deixa de disparar imediatamente.',
+          },
+          { status: 409 },
+        )
+      }
+      throw e
+    }
 
     await auditAutomation(supabase, {
       tenantId: session.tenantId,

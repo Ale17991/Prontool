@@ -198,6 +198,18 @@ por clínica, conectado por QR em autoatendimento.
   mensagem sumia. Sem erro, sem confirmação de entrega, sem nada. Os dois motores
   (051 e 056) tinham o mesmo defeito; só o disparo manual de teste acertava.
   Descoberto em 14/08/2026 porque duas mensagens "enviadas" nunca chegaram.
+- **O telefone é gravado CANÔNICO no cadastro** (`fromTypedInput` nos três
+  caminhos de escrita: manual, GHL e edição). Corrigir só no envio deixaria o
+  dado errado no banco, e cada canal novo teria que lembrar de normalizar de
+  novo. O `+` some: a forma canônica é só dígitos com o código do país, e guardar
+  duas grafias da mesma coisa foi a origem do defeito.
+- **Automação que já enviou NÃO pode ser excluída** (migration `0205`, FK
+  RESTRICT). A 0196 dizia CASCADE e nunca funcionou: o DELETE cascateado
+  esbarrava no trigger append-only e derrubava a exclusão inteira, com uma
+  mensagem falando de outra tabela. Ninguém percebeu porque, até 14/08/2026,
+  nenhuma automação havia enviado. A ocorrência é prova de que uma mensagem foi
+  a um paciente, e prova não some porque alguém arrumou a lista — a tela oferece
+  DESLIGAR, que é o que a clínica quer quando clica em excluir.
 - **Idempotência ponta a ponta**: o `externalId` mandado ao serviço é o **id do
   lembrete**, e o serviço tem `UNIQUE (tenant_id, external_id)`. Retentativa não
   duplica mensagem.

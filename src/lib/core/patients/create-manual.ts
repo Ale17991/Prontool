@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
+import { fromTypedInput } from '@/lib/core/whatsapp/phone'
 import type { DispatchResult } from '@/lib/integrations/types'
 import { publishDomainEvent } from '@/lib/core/events/publish'
 
@@ -98,7 +99,12 @@ export async function createPatientManually(
   ] = await Promise.all([
     encrypt(supabase, input.fullName, key),
     input.cpf ? encrypt(supabase, input.cpf, key) : Promise.resolve(null),
-    input.phone ? encrypt(supabase, input.phone, key) : Promise.resolve(null),
+    // O telefone é gravado JÁ CANÔNICO — com o código do país. Guardar do jeito
+    // que a pessoa digitou (`(27) 99273-4155`) foi o que fez 110 dos 112
+    // pacientes de produção terem um número que o WhatsApp não alcança: o envio
+    // montava um JID sem o 55, a Evolution aceitava e a mensagem sumia sem erro.
+    // Normalizar aqui conserta na origem, e vale para qualquer canal futuro.
+    input.phone ? encrypt(supabase, fromTypedInput(input.phone), key) : Promise.resolve(null),
     input.email ? encrypt(supabase, input.email, key) : Promise.resolve(null),
     input.birthDate ? encrypt(supabase, input.birthDate, key) : Promise.resolve(null),
     optEnc(addr.cep),

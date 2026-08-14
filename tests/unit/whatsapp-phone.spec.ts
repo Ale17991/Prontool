@@ -170,3 +170,31 @@ describe('telefone de cadastro pronto para envio', () => {
     expect(toSendableNumber('+1 202 555 0143')).toBe('12025550143')
   })
 })
+
+/**
+ * O telefone é gravado canônico no CADASTRO, e não só normalizado no envio.
+ *
+ * Corrigir apenas na saída deixaria o dado errado no banco — e cada canal novo
+ * (e cada exportação, e cada integração) teria que lembrar de normalizar de
+ * novo. Estes casos travam o contrato que os três caminhos de escrita usam.
+ */
+describe('telefone canônico na gravação', () => {
+  it('o que a recepção digita vira número completo', () => {
+    expect(fromTypedInput('(27) 99273-4155')).toBe('5527992734155')
+    expect(fromTypedInput('27 99273 4155')).toBe('5527992734155')
+    expect(fromTypedInput('27992734155')).toBe('5527992734155')
+  })
+
+  it('fixo de 10 dígitos também ganha o país', () => {
+    expect(fromTypedInput('(27) 3227-4155')).toBe('552732274155')
+  })
+
+  it('quem já veio completo não é mexido', () => {
+    expect(fromTypedInput('5527992734155')).toBe('5527992734155')
+  })
+
+  it('gravar duas vezes não acumula prefixo', () => {
+    const uma = fromTypedInput('(27) 99273-4155')
+    expect(fromTypedInput(uma)).toBe(uma)
+  })
+})

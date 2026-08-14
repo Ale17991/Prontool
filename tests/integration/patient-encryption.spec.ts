@@ -98,7 +98,11 @@ describe('T150 — patients PII columns are encrypted bytea', () => {
         [
           ['full_name_enc', plain.fullName],
           ['cpf_enc', plain.cpf],
-          ['phone_enc', plain.phone],
+          // O telefone é gravado CANÔNICO: só dígitos, com o código do país.
+          // O `+` some porque a forma canônica é a que o envio usa, e guardar
+          // duas grafias da mesma coisa foi o que fez 110 dos 112 pacientes de
+          // produção terem um número que o WhatsApp não alcançava.
+          ['phone_enc', '5511987654321'],
           ['email_enc', plain.email],
           ['birth_date_enc', plain.birthDate],
         ] as const

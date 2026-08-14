@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
+import { fromTypedInput } from '@/lib/core/whatsapp/phone'
 import { dispatchAlert } from '@/lib/core/alerts/dispatcher'
 import { logger } from '@/lib/observability/logger'
 
@@ -43,7 +44,9 @@ export async function upsertPatientFromGhl(
   const [name, cpf, phone, email, birthDate] = await Promise.all([
     encrypt(supabase, input.fullName, key),
     encrypt(supabase, input.cpf, key),
-    input.phone ? encrypt(supabase, input.phone, key) : Promise.resolve(null),
+    // Canônico com o código do país — mesma razão de `create-manual`: o número
+    // que chega do GHL vem como o contato escreveu lá.
+    input.phone ? encrypt(supabase, fromTypedInput(input.phone), key) : Promise.resolve(null),
     input.email ? encrypt(supabase, input.email, key) : Promise.resolve(null),
     input.birthDate ? encrypt(supabase, input.birthDate, key) : Promise.resolve(null),
   ])

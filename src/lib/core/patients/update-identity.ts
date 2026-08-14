@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { fromTypedInput } from '@/lib/core/whatsapp/phone'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
 import type { PatientSex } from './get'
@@ -25,6 +26,11 @@ export interface UpdatePatientIdentityInput {
 }
 
 // Mapeia cada campo de entrada à coluna cifrada correspondente.
+/** Os campos cujo conteúdo é telefone e precisa do código do país. */
+function ehTelefone(field: string): boolean {
+  return field === 'phone' || field === 'emergencyContactPhone'
+}
+
 const ENC_COLUMNS: ReadonlyArray<[keyof UpdatePatientIdentityInput['fields'], string]> = [
   ['phone', 'phone_enc'],
   ['email', 'email_enc'],
@@ -66,7 +72,11 @@ export async function updatePatientIdentity(
     if (value === null || value.trim() === '') {
       update[column] = null
     } else {
-      update[column] = await encrypt(supabase, value.trim(), key)
+      // Telefone entra canônico, com o código do país. Sem isto, corrigir o
+      // cadastro pela tela devolveria o número ao formato que o WhatsApp não
+      // alcança — e o defeito voltaria pela porta da edição.
+      const limpo = ehTelefone(field) ? fromTypedInput(value) : value.trim()
+      update[column] = await encrypt(supabase, limpo, key)
     }
   }
 
