@@ -221,10 +221,25 @@ export async function getDietPlan(
 // Feature 047 US4 — entrega da PRESCRIÇÃO no portal do paciente.
 // =========================================================================
 
+/**
+ * Nutrientes congelados na prescrição. `null` em qualquer nível significa
+ * "não foi calculado" — nunca zero. O plano legado (032) é texto livre e não
+ * tem nutriente nenhum; mostrar 0 g de proteína ali seria afirmar uma coisa
+ * falsa sobre a comida do paciente.
+ */
+export interface PortalNutrients {
+  energyKcal: number
+  proteinG: number
+  carbG: number
+  fatG: number
+  fiberG: number
+}
+
 export interface PortalDietItem {
   name: string
   quantity: string | null
-  energyKcal: number | null
+  /** Nutrientes do item, como congelados na prescrição. */
+  nutrients: PortalNutrients | null
   /** Grupo (lista de substituição): alimentos que o paciente pode trocar. */
   options: { name: string; grams: number }[] | null
 }
@@ -232,17 +247,42 @@ export interface PortalDietMeal {
   name: string
   timeLabel: string | null
   items: PortalDietItem[]
-  energyKcal: number | null
+  totals: PortalNutrients | null
 }
 export interface PortalDietPlan {
   title: string
   prescribedAt: string | null
   meals: PortalDietMeal[]
-  totalKcal: number | null
+  totals: PortalNutrients | null
+  /** Meta da avaliação nutricional vigente quando o plano foi prescrito. */
+  target: { kcal: number; macros: { protG: number; carbG: number; fatG: number } | null } | null
   /** Atribuição das fontes (FR-020) quando o plano usa a base pronta. */
   attribution: boolean
 }
 
+/**
+ * Lê os nutrientes do snapshot sem inventar o que falta. Um item prescrito
+ * antes de o motor gravar fibra, por exemplo, volta com `null` na fibra em vez
+ * de um zero que pareceria medição.
+ */
+function readNutrients(n: SnapNutrients | null | undefined): PortalNutrients | null {
+  if (!n || typeof n.energyKcal !== 'number') return null
+  return {
+    energyKcal: n.energyKcal,
+    proteinG: n.proteinG ?? 0,
+    carbG: n.carbG ?? 0,
+    fatG: n.fatG ?? 0,
+    fiberG: n.fiberG ?? 0,
+  }
+}
+
+interface SnapNutrients {
+  energyKcal?: number
+  proteinG?: number
+  carbG?: number
+  fatG?: number
+  fiberG?: number
+}
 interface SnapItem {
   name: string
   grams: number | null
@@ -250,17 +290,21 @@ interface SnapItem {
   measureQty?: number | null
   isGroup?: boolean
   options?: { name: string; grams: number }[] | null
-  nutrients?: { energyKcal?: number } | null
+  nutrients?: SnapNutrients | null
 }
 interface SnapMeal {
   name: string
   timeLabel?: string | null
-  totals?: { energyKcal?: number } | null
+  totals?: SnapNutrients | null
   items: SnapItem[]
 }
 interface Snapshot {
   title?: string
-  totals?: { energyKcal?: number } | null
+  totals?: SnapNutrients | null
+  target?: {
+    kcal?: number | null
+    macros?: { protG?: number; carbG?: number; fatG?: number } | null
+  } | null
   meals?: SnapMeal[]
 }
 
@@ -292,7 +336,7 @@ export async function getPortalDietPlan(
     const meals: PortalDietMeal[] = (snap.meals ?? []).map((m) => ({
       name: m.name,
       timeLabel: m.timeLabel ?? null,
-      energyKcal: m.totals?.energyKcal ?? null,
+      totals: readNutrients(m.totals),
       items: (m.items ?? []).map((i) => ({
         name: i.name,
         quantity:
@@ -301,15 +345,30 @@ export async function getPortalDietPlan(
             : i.grams
               ? `${i.grams} g`
               : null,
-        energyKcal: i.nutrients?.energyKcal ?? null,
+        nutrients: readNutrients(i.nutrients),
         options: i.isGroup && i.options && i.options.length > 0 ? i.options : null,
       })),
     }))
+    const tgt = snap.target
     return {
       title: snap.title ?? 'Plano alimentar',
       prescribedAt: row.prescribed_at,
       meals,
-      totalKcal: snap.totals?.energyKcal ?? null,
+      totals: readNutrients(snap.totals),
+      // Meta sem kcal não é meta: sem ela, não há com o que comparar o plano.
+      target:
+        tgt && typeof tgt.kcal === 'number'
+          ? {
+              kcal: tgt.kcal,
+              macros: tgt.macros
+                ? {
+                    protG: tgt.macros.protG ?? 0,
+                    carbG: tgt.macros.carbG ?? 0,
+                    fatG: tgt.macros.fatG ?? 0,
+                  }
+                : null,
+            }
+          : null,
       attribution: true,
     }
   }
@@ -329,16 +388,25 @@ export async function getPortalDietPlan(
     if ((structured.count ?? 0) > 0) return null
   }
 
+  // Plano legado (032): texto livre, sem alimento da base e portanto sem
+  // nutriente nenhum. Tudo volta `null` — o paciente vê o cardápio sem números,
+  // que é a verdade, em vez de zeros que pareceriam cálculo.
   return {
     title: active.title,
     prescribedAt: null,
     meals: active.meals.map((m) => ({
       name: m.name,
       timeLabel: m.timeLabel,
-      energyKcal: null,
-      items: m.items.map((it) => ({ name: it.food, quantity: it.quantity, energyKcal: null, options: null })),
+      totals: null,
+      items: m.items.map((it) => ({
+        name: it.food,
+        quantity: it.quantity,
+        nutrients: null,
+        options: null,
+      })),
     })),
-    totalKcal: null,
+    totals: null,
+    target: null,
     attribution: false,
   }
 }

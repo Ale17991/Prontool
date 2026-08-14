@@ -5,15 +5,21 @@ import { ChevronRight, type LucideIcon } from 'lucide-react'
  * Cards de área da home do portal.
  *
  * A home passou a mostrar só o que o paciente ACOMPANHA no dia a dia (metas e
- * hábitos); todo o resto — evolução, atendimentos, orientações, exames, treino,
- * dieta — virou um card que leva à página própria da área. Antes tudo isso vinha
- * empilhado numa rolagem só, que no celular enterrava justamente o que a pessoa
- * abre o portal para fazer.
+ * hábitos); todo o resto virou um card que leva à página própria da área.
  *
- * Área ligada pela clínica mas ainda SEM conteúdo aparece apagada e não leva a
- * lugar nenhum: some seria esconder da pessoa que a clínica ofereceu aquilo, e
- * clicar para chegar numa página vazia é um beco. O card diz o que falta e de
- * quem depende.
+ * DOIS FORMATOS, UM COMPONENTE. No celular o card é uma LINHA (ícone à
+ * esquerda, texto, seta à direita): largura cheia com altura baixa é o formato
+ * natural de lista tocável. No desktop a mesma peça em três colunas viraria uma
+ * tira de ~370x72, larga e rasa, que é o que fazia a grade parecer
+ * desproporcional. A partir de `sm` ele vira LADRILHO vertical, com o ícone em
+ * cima, e as alturas se igualam por `auto-rows-fr`.
+ *
+ * A seta some no ladrilho de propósito: num card inteiro clicável ela não
+ * informa nada e só desequilibra o canto. O afeto de hover faz esse trabalho.
+ *
+ * Área ligada mas ainda SEM conteúdo aparece apagada e não leva a lugar nenhum:
+ * some seria esconder da pessoa que a clínica ofereceu aquilo, e clicar para
+ * chegar numa página vazia é um beco. O card diz o que falta e de quem depende.
  */
 
 export interface PortalCard {
@@ -37,7 +43,7 @@ export function PortalSectionCards({ cards }: { cards: PortalCard[] }) {
   return (
     <section>
       <h2 className="mb-3 text-sm font-bold text-slate-700">Seu acompanhamento</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <SectionCard key={card.key} card={card} />
         ))}
@@ -46,48 +52,53 @@ export function PortalSectionCards({ cards }: { cards: PortalCard[] }) {
   )
 }
 
+/** Linha no celular, ladrilho no desktop. */
+const SHAPE =
+  'flex h-full items-center gap-3 rounded-2xl p-4 ' +
+  'sm:flex-col sm:items-start sm:justify-start sm:gap-3 sm:p-5'
+
 function SectionCard({ card }: { card: PortalCard }) {
   const Icon = card.icon
 
   const body = (
     <>
       <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${
           card.empty ? 'bg-slate-100 text-slate-400' : card.tone
         }`}
       >
         <Icon className="h-5 w-5" />
       </span>
-      <span className="min-w-0 flex-1">
+      <span className="min-w-0 flex-1 sm:w-full sm:flex-none">
         <span
-          className={`block truncate text-sm font-bold ${
+          className={`block truncate text-sm font-bold sm:text-[15px] ${
             card.empty ? 'text-slate-400' : 'text-slate-800'
           }`}
         >
           {card.label}
         </span>
-        <span className="mt-0.5 block truncate text-xs text-slate-400">
+        {/* No celular a prévia não pode quebrar a altura da linha; no ladrilho
+            ela tem espaço para duas linhas. */}
+        <span className="mt-0.5 block truncate text-xs leading-snug text-slate-400 sm:whitespace-normal sm:line-clamp-2">
           {card.empty ? card.emptyHint : card.hint}
         </span>
       </span>
       {card.empty ? null : (
-        <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500" />
+        <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500 sm:hidden" />
       )}
     </>
   )
 
   if (card.empty) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/60 p-4">
-        {body}
-      </div>
+      <div className={`${SHAPE} border border-dashed border-slate-200 bg-white/60`}>{body}</div>
     )
   }
 
   return (
     <Link
       href={card.href}
-      className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50/60"
+      className={`group ${SHAPE} border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
     >
       {body}
     </Link>

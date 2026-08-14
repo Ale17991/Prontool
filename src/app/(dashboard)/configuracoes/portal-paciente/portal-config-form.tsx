@@ -155,7 +155,7 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
               />
             </div>
             <p className="text-[11px] text-slate-500">
-              É o mesmo endereço usado no agendamento online — define a identidade pública da
+              É o mesmo endereço usado no agendamento online. Define a identidade pública da
               clínica.
             </p>
             {slugError ? <p className="text-xs text-destructive">{slugError}</p> : null}
@@ -193,7 +193,7 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
             />
             <p className="text-[11px] text-slate-500">
               Aparece na tela inicial do portal <strong>somente</strong> quando o paciente ainda não
-              tem metas nem checklist de hábitos — é o que evita que ele veja uma tela vazia. Quem
+              tem metas nem checklist de hábitos. É o que evita que ele veja uma tela vazia. Quem
               já tem metas não vê este texto. {welcomeText.length}/1000 caracteres.
             </p>
           </div>
@@ -324,7 +324,7 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
                 {newMetricError ? (
                   <span className="text-destructive">{newMetricError}</span>
                 ) : (
-                  'A faixa plausível barra valores impossíveis (typos) — não é faixa de normalidade.'
+                  'A faixa plausível barra valores impossíveis (typos). Não é faixa de normalidade.'
                 )}
               </p>
               <Button size="sm" onClick={addMetric} disabled={pending || !canAddMetric}>

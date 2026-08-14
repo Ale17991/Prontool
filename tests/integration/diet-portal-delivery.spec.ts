@@ -50,7 +50,7 @@ describe('Feature 047 US4 — entrega no portal', () => {
     const portal = await getPortalDietPlan(sb, tenantId, patientId)
     expect(portal).not.toBeNull()
     expect(portal!.prescribedAt).toBeTruthy()
-    expect(portal!.totalKcal).toBeCloseTo(res.totalKcal, 6)
+    expect(portal!.totals?.energyKcal).toBeCloseTo(res.totalKcal, 6)
     expect(portal!.meals).toHaveLength(1)
     expect(portal!.meals[0]!.name).toBe('Almoço')
     expect(portal!.meals[0]!.items[0]!.name.toLowerCase()).toContain('arroz')

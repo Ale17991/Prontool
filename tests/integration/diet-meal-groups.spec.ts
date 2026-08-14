@@ -84,7 +84,7 @@ describe('Feature 047 — grupo (lista OU) na refeição', () => {
     expect(portal).not.toBeNull()
     const pItem = portal!.meals[0]!.items[0]!
     expect(pItem.name).toBe('Carboidratos ~80 kcal')
-    expect(pItem.energyKcal).toBe(80)
+    expect(pItem.nutrients?.energyKcal).toBe(80)
     expect(pItem.options).not.toBeNull()
     expect(pItem.options!.length).toBe(2)
   })

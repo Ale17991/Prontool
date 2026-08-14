@@ -13,7 +13,7 @@ interface Props {
 const SENS_LABEL: Record<ResolvedSection['sensitivity'], { text: string; cls: string } | null> = {
   baixa: null,
   media: { text: 'Sensível', cls: 'bg-amber-50 text-amber-700' },
-  alta: { text: 'Sensível — liberar com cautela', cls: 'bg-rose-50 text-rose-700' },
+  alta: { text: 'Sensível: liberar com cautela', cls: 'bg-rose-50 text-rose-700' },
 }
 
 export function PortalSectionsForm({ initialSections }: Props) {
@@ -45,7 +45,7 @@ export function PortalSectionsForm({ initialSections }: Props) {
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-slate-500">
-          Escolha o que o paciente vê no portal. Seções sensíveis vêm desligadas por padrão — ligue
+          Escolha o que o paciente vê no portal. Seções sensíveis vêm desligadas por padrão. Ligue
           só o que for adequado divulgar. Algumas seções dependem de um módulo do seu plano.
         </p>
         <ul className="divide-y divide-slate-100">
