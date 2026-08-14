@@ -37,7 +37,7 @@ export const dynamic = 'force-dynamic'
 const METRIC_LABEL_OVERRIDE: Record<string, string> = { glicemia_jejum: 'Glicemia em jejum' }
 
 export default async function PortalEvolucaoPage({ params }: { params: { slug: string } }) {
-  const { supabase, clinic, session, slug } = await openPortalPage(params.slug, {
+  const { supabase, clinic, session, slug, theme } = await openPortalPage(params.slug, {
     section: 'metricas',
   })
 
@@ -81,7 +81,9 @@ export default async function PortalEvolucaoPage({ params }: { params: { slug: s
             metricTypes={bundle.metricTypes}
           />
 
-          {hasWeightImc ? <WeightImcChart points={bundle.weightImc} /> : null}
+          {hasWeightImc ? (
+            <WeightImcChart points={bundle.weightImc} palette={theme?.chart} />
+          ) : null}
 
           {charts.length > 0 ? (
             <div className="grid gap-6 lg:grid-cols-2">
@@ -91,6 +93,7 @@ export default async function PortalEvolucaoPage({ params }: { params: { slug: s
                   label={c.label}
                   unit={c.unit}
                   points={c.points}
+                  palette={theme?.chart}
                 />
               ))}
             </div>

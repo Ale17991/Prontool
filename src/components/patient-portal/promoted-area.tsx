@@ -1,8 +1,10 @@
 import type { PortalSectionKey } from '@/lib/core/patient-portal/sections'
 import type { PatientPortalBundle } from '@/lib/core/patient-portal/read-portal'
+import type { PortalChartColors } from '@/lib/core/patient-portal/theme'
 import { DashboardSummary } from './dashboard-summary'
 import { PatientTimeline } from './patient-timeline'
 import { LabResultsCard } from './lab-results-card'
+import { BodyCompositionCard } from './body-composition-card'
 import { WorkoutCard, DietCard } from './plan-cards'
 
 /**
@@ -22,9 +24,12 @@ import { WorkoutCard, DietCard } from './plan-cards'
 export function PromotedArea({
   section,
   bundle,
+  palette,
 }: {
   section: PortalSectionKey
   bundle: PatientPortalBundle
+  /** Cores da clínica já resolvidas em hex, para o que é desenhado em SVG. */
+  palette?: PortalChartColors | null
 }) {
   switch (section) {
     case 'atendimentos':
@@ -64,6 +69,10 @@ export function PromotedArea({
           careNotes={bundle.careNotes}
         />
       )
+    case 'composicao':
+      return bundle.bodyComposition?.latest ? (
+        <BodyCompositionCard view={bundle.bodyComposition} palette={palette} />
+      ) : null
     case 'exames':
       return <LabResultsCard items={bundle.labResults ?? []} />
     case 'treino':

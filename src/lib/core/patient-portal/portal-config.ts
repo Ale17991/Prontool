@@ -16,6 +16,11 @@ import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { listMetricTypes, type PatientMetricType } from './metric-types'
+import {
+  isValidHexColor,
+  PORTAL_PALETTE_ERROR_MESSAGE,
+  validatePortalPalette,
+} from './theme'
 
 // Mesma regex/limites do slug do agendamento público (CHECK constraint).
 const slugSchema = z
@@ -47,15 +52,53 @@ const welcomeTextSchema = z
     return trimmed.length > 0 ? trimmed : null
   })
 
+/**
+ * Feature 058 — cor da marca no portal.
+ *
+ * Só o FORMATO é validado por campo. Se o par de cores serve (a marca aparece
+ * sobre o fundo, o texto derivado é legível) é pergunta sobre os DOIS juntos, e
+ * quem responde é `validatePortalPalette` — a mesma função que o motor de tema
+ * usa para decidir se aplica ou cai no padrão. Duplicar a regra aqui abriria a
+ * chance de a tela aceitar o que o portal recusa.
+ *
+ * Vazio vira `null` pelo mesmo motivo do recado de boas-vindas: "apagou a cor" e
+ * "nunca escolheu" são o mesmo estado, e `''` seria um terceiro.
+ */
+const hexColorSchema = z
+  .string()
+  .nullable()
+  .transform((v) => {
+    const trimmed = v?.trim() ?? ''
+    return trimmed.length > 0 ? trimmed.toLowerCase() : null
+  })
+  .refine((v) => v === null || isValidHexColor(v), {
+    message: 'Use uma cor no formato #RRGGBB.',
+  })
+
 export const PatientPortalConfigUpdateSchema = z
   .object({
     patientPortalEnabled: z.boolean(),
     publicBookingSlug: slugSchema.nullable(),
     welcomeText: welcomeTextSchema.optional(),
+    brandColor: hexColorSchema.optional(),
+    surfaceColor: hexColorSchema.optional(),
   })
   .refine((v) => !v.patientPortalEnabled || v.publicBookingSlug !== null, {
     message: 'Para habilitar o portal, defina o endereço (slug).',
-    path: ['patientPortalEnabled'],
+    path: ['publicBookingSlug'],
+  })
+  .superRefine((v, ctx) => {
+    // Personalizar é opt-in; o par vazio é o estado normal da maioria das
+    // clínicas e não é erro. Com as duas escolhidas, vale a regra do motor.
+    if (!v.brandColor || !v.surfaceColor) return
+    const problem = validatePortalPalette({ brand: v.brandColor, surface: v.surfaceColor })
+    if (problem) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['brandColor'],
+        message: PORTAL_PALETTE_ERROR_MESSAGE[problem],
+      })
+    }
   })
 
 export type PatientPortalConfigUpdate = z.infer<typeof PatientPortalConfigUpdateSchema>
@@ -66,6 +109,10 @@ export interface PatientPortalConfig {
   publicBookingSlug: string | null
   /** Recado da tela inicial (057). `null` = a clínica nunca escreveu nada. */
   welcomeText: string | null
+  /** Cor de destaque da marca no portal (058). `null` = paleta padrão. */
+  brandColor: string | null
+  /** Cor de fundo do portal (058). `null` = paleta padrão. */
+  surfaceColor: string | null
 }
 
 export interface MetricSetting extends PatientMetricType {
@@ -83,21 +130,27 @@ export async function getPatientPortalConfig(
 ): Promise<PatientPortalConfig> {
   const { data, error } = await supabase
     .from('tenant_clinic_profile')
-    .select('patient_portal_enabled, public_booking_slug, patient_portal_welcome_text')
+    .select(
+      'patient_portal_enabled, public_booking_slug, patient_portal_welcome_text, portal_brand_color, portal_surface_color',
+    )
     .eq('tenant_id', tenantId)
     .maybeSingle()
   if (error) throw new Error(`getPatientPortalConfig: ${error.message}`)
-  // Coluna da 0202, ainda fora dos tipos gerados → cast solto (mesmo padrão da
-  // `login.ts` e das tabelas novas do projeto).
+  // Colunas da 0202/0204, ainda fora dos tipos gerados → cast solto (mesmo
+  // padrão da `login.ts` e das tabelas novas do projeto).
   const row = data as unknown as {
     patient_portal_enabled: boolean | null
     public_booking_slug: string | null
     patient_portal_welcome_text: string | null
+    portal_brand_color: string | null
+    portal_surface_color: string | null
   } | null
   return {
     patientPortalEnabled: row?.patient_portal_enabled ?? false,
     publicBookingSlug: row?.public_booking_slug ?? null,
     welcomeText: row?.patient_portal_welcome_text ?? null,
+    brandColor: row?.portal_brand_color ?? null,
+    surfaceColor: row?.portal_surface_color ?? null,
   }
 }
 
@@ -163,6 +216,8 @@ export async function updatePatientPortalConfig(
   if (input.welcomeText !== undefined) {
     patch.patient_portal_welcome_text = input.welcomeText
   }
+  if (input.brandColor !== undefined) patch.portal_brand_color = input.brandColor
+  if (input.surfaceColor !== undefined) patch.portal_surface_color = input.surfaceColor
 
   const { error } = await supabase
     .from('tenant_clinic_profile')

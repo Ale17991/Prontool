@@ -15,6 +15,10 @@ import {
   type LabResultItem,
 } from '@/lib/core/labs/classify'
 import { listLabRangesForPatient } from '@/lib/core/labs/reference-ranges'
+import {
+  getPortalBodyComposition,
+  type PortalCompositionView,
+} from './body-composition'
 
 /**
  * Feature 030 — bundle de leitura do portal do paciente (FR-006..FR-010).
@@ -61,6 +65,15 @@ export interface PatientPortalBundle {
    * null quando o módulo está off ou falta sexo/idade para aplicar a faixa.
    */
   labResults: LabResultItem[] | null
+  /**
+   * Composição corporal apurada nas avaliações nutricionais (seção
+   * `composicao`, 058), ou `null` sem o módulo `nutri_avaliacao`.
+   *
+   * Entra no bundle — e não só na página da área — porque a home precisa da
+   * prévia do card e porque é esta série que a área promovida renderiza quando
+   * o paciente não tem metas nem checklist. São poucas linhas por paciente.
+   */
+  bodyComposition: PortalCompositionView | null
 }
 
 export async function buildPatientPortalBundle(
@@ -129,6 +142,14 @@ export async function buildPatientPortalBundle(
     }
   }
 
+  // Feature 058 — composição corporal. O gate de módulo vale AQUI e não só no
+  // card: a seção é estado persistido, e uma clínica que teve o módulo revogado
+  // continuaria servindo o dado se a checagem morasse só na tela. Mesma doutrina
+  // de motor-e-não-só-tela da 051/056.
+  const bodyComposition = ent.hasModule('nutri_avaliacao')
+    ? await getPortalBodyComposition(supabase, args)
+    : null
+
   // Módulo Endócrino off ⇒ esconde as métricas metabólicas (peso/IMC seguem,
   // pois vêm de vital_signs e não são endócrino-específicos).
   const showEndocrino = ent.hasModule('endocrino')
@@ -169,6 +190,7 @@ export async function buildPatientPortalBundle(
     workout,
     diet,
     labResults,
+    bodyComposition,
   }
 }
 

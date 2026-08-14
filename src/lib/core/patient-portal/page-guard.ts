@@ -12,6 +12,8 @@ import {
 } from './session'
 import { listEnabledPortalSections, type PortalSectionKey } from './sections'
 import { hashIpForPatientPortal, logPatientAccess } from './audit'
+import { getPortalThemeBySlug } from './theme-for-slug'
+import type { PortalTheme } from './theme'
 
 /**
  * Porta única de toda página do portal do paciente — mesmo papel que
@@ -36,6 +38,16 @@ export interface PortalPageContext {
   /** Seções visíveis a ESTE paciente (plano da clínica × override × default). */
   enabled: Set<PortalSectionKey>
   slug: string
+  /**
+   * Feature 058 — a paleta da clínica, ou `null` para a paleta padrão.
+   *
+   * As páginas só precisam dela para o que é desenhado em SVG (gráficos), já
+   * que o resto do tema chega por variável CSS aplicada no layout. Vem numa
+   * leitura PRÓPRIA, separada da que resolve a clínica, para que problema com
+   * uma coluna de aparência nunca possa virar "clínica não existe" — ver a nota
+   * em `resolvePortalClinicBySlug`.
+   */
+  theme: PortalTheme | null
 }
 
 export interface OpenPortalPageOptions {
@@ -62,7 +74,10 @@ export async function openPortalPage(
     redirect(`/paciente/${slug}${rawCookie ? '?sessao=expirada' : ''}`)
   }
 
-  const ent = await getTenantEntitlements(supabase, session.tenantId)
+  const [ent, theme] = await Promise.all([
+    getTenantEntitlements(supabase, session.tenantId),
+    getPortalThemeBySlug(supabase, slug),
+  ])
   const enabledList = await listEnabledPortalSections(supabase, session.tenantId, {
     hasModule: (m) => ent.hasModule(m),
   })
@@ -89,7 +104,7 @@ export async function openPortalPage(
     redirect(`/paciente/${slug}/painel`)
   }
 
-  return { supabase, clinic, session, enabled, slug }
+  return { supabase, clinic, session, enabled, slug, theme }
 }
 
 // Datas do portal moram em `format.ts` — importar `next/navigation` (que este

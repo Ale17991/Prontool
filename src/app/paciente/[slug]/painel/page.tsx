@@ -21,6 +21,7 @@ import {
   CalendarDays,
   ClipboardList,
   Dumbbell,
+  PieChart,
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react'
@@ -38,18 +39,29 @@ import { PatientLogoutButton } from './logout-button'
 
 export const dynamic = 'force-dynamic'
 
-/** Ícone e cor são do componente, não da regra — por isso vivem só aqui. */
-const LOOK: Record<string, { icon: LucideIcon; tone: string }> = {
-  atendimentos: { icon: CalendarDays, tone: 'bg-emerald-100 text-emerald-700' },
-  metricas: { icon: Activity, tone: 'bg-violet-100 text-violet-700' },
-  orientacoes: { icon: ClipboardList, tone: 'bg-amber-100 text-amber-700' },
-  exames: { icon: Beaker, tone: 'bg-sky-100 text-sky-700' },
-  treino: { icon: Dumbbell, tone: 'bg-indigo-100 text-indigo-700' },
-  dieta: { icon: UtensilsCrossed, tone: 'bg-lime-100 text-lime-700' },
+/**
+ * Ícone de cada área. É do componente, não da regra — por isso vive só aqui.
+ *
+ * Feature 058: cada área tinha um pastel próprio (esmeralda, violeta, âmbar…),
+ * escrito na mão. Isso caiu por dois motivos que apontam para o mesmo lugar.
+ * Cor fixa em classe é invisível para qualquer tema, então a clínica que
+ * escolhesse a própria paleta veria seis pastéis alheios no meio dela. E o
+ * FR-002 diz onde a cor da marca deve aparecer: ações, ÍCONES DE SEÇÃO e
+ * indicadores. O que distingue uma área da outra passa a ser o desenho do
+ * ícone, que é o que a pessoa de fato lê num quadrado de 40px.
+ */
+const AREA_ICON: Record<string, LucideIcon> = {
+  atendimentos: CalendarDays,
+  metricas: Activity,
+  composicao: PieChart,
+  orientacoes: ClipboardList,
+  exames: Beaker,
+  treino: Dumbbell,
+  dieta: UtensilsCrossed,
 }
 
 export default async function PacientePainelPage({ params }: { params: { slug: string } }) {
-  const { supabase, clinic, session, enabled, slug } = await openPortalPage(params.slug)
+  const { supabase, clinic, session, enabled, slug, theme } = await openPortalPage(params.slug)
 
   const [bundle, checklist] = await Promise.all([
     buildPatientPortalBundle(supabase, {
@@ -78,8 +90,7 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
     hint: c.hint,
     empty: c.empty,
     emptyHint: c.emptyHint,
-    icon: LOOK[c.key]?.icon ?? Activity,
-    tone: LOOK[c.key]?.tone ?? 'bg-slate-100 text-slate-600',
+    icon: AREA_ICON[c.key] ?? Activity,
   }))
 
   return (
@@ -94,8 +105,8 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
       />
 
       {home.showWelcome ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
             {clinic.welcomeText}
           </p>
         </section>
@@ -112,18 +123,20 @@ export default async function PacientePainelPage({ params }: { params: { slug: s
 
       {home.showHabitos ? <HabitsCard today={todayInClinicTz()} /> : null}
 
-      {home.promoted ? <PromotedArea section={home.promoted} bundle={bundle} /> : null}
+      {home.promoted ? (
+        <PromotedArea section={home.promoted} bundle={bundle} palette={theme?.chart} />
+      ) : null}
 
       <PortalSectionCards cards={cards} />
 
       {home.hasAnything ? null : (
-        <p className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+        <p className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
           Ainda não há informações para exibir. Assim que a equipe da clínica registrar seus dados,
           eles aparecem aqui.
         </p>
       )}
 
-      <footer className="text-center text-xs text-slate-400">
+      <footer className="text-center text-xs text-muted-foreground">
         <p>Sessão de 30 minutos de inatividade. Cada acesso é registrado por segurança (LGPD).</p>
       </footer>
     </div>

@@ -17,6 +17,7 @@ export type PortalSectionKey =
   | 'metas'
   | 'atendimentos'
   | 'metricas'
+  | 'composicao'
   | 'orientacoes'
   | 'prescricoes'
   | 'documentos'
@@ -36,6 +37,7 @@ export type PortalSectionModule =
   | 'telemedicina'
   | 'exames_lab'
   | 'habitos'
+  | 'nutri_avaliacao'
 
 export interface PortalSectionDef {
   key: PortalSectionKey
@@ -78,6 +80,25 @@ export const PORTAL_SECTIONS: readonly PortalSectionDef[] = [
     sensitivity: 'baixa',
     implemented: true,
     order: 20,
+  },
+  {
+    key: 'composicao',
+    label: 'Composição corporal',
+    description:
+      'Do que o peso é feito — gordura e massa magra — apurado na avaliação nutricional, com a evolução entre elas.',
+    // Nasce desligada, como todo dado clínico: a clínica opta por expor. Vem
+    // logo depois de "Minha evolução" porque é irmã dela — as duas respondem
+    // "como eu venho mudando", uma pelo peso e outra pela composição dele.
+    defaultEnabled: false,
+    sensitivity: 'media',
+    // O módulo é o `nutri_avaliacao`, que já existe: composição corporal é
+    // literalmente o RESULTADO da avaliação nutricional. Quem contratou a
+    // avaliação já paga pelo que produz esses números — um módulo próprio
+    // permitiria a combinação sem sentido de vender a área a quem não apura
+    // nada, e a área nasceria vazia para sempre.
+    requiredModule: 'nutri_avaliacao',
+    implemented: true,
+    order: 25,
   },
   {
     key: 'orientacoes',

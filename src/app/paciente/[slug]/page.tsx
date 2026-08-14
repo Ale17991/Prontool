@@ -45,14 +45,17 @@ export default async function PacienteLoginPage({
       />
 
       {searchParams.sessao === 'expirada' ? (
-        <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-center text-xs font-semibold text-amber-800">
+        // Aviso é SIGNIFICADO, não marca: fica na semântica do produto (par
+        // fechado de fundo e texto), e por isso continua legível e continua
+        // querendo dizer "atenção" no portal de qualquer clínica.
+        <p className="rounded-md border border-warning/40 bg-[hsl(var(--warning)/0.15)] px-3 py-2 text-center text-xs font-semibold text-warning-foreground">
           Sua sessão expirou. Entre novamente para continuar.
         </p>
       ) : null}
 
       <PatientLoginForm slug={params.slug} />
 
-      <footer className="text-center text-xs text-slate-400">
+      <footer className="text-center text-xs text-muted-foreground">
         <p>Em caso de dúvida sobre seus dados de acesso, entre em contato com a clínica.</p>
       </footer>
     </div>

@@ -8,6 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { MetricSetting, PatientPortalConfig } from '@/lib/core/patient-portal/portal-config'
+import {
+  buildPortalTheme,
+  isValidHexColor,
+  PORTAL_PALETTE_ERROR_MESSAGE,
+  validatePortalPalette,
+} from '@/lib/core/patient-portal/theme'
 import { createMetricAction, savePortalConfigAction, setMetricEnabledAction } from './actions'
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{2,31}$/
@@ -22,6 +28,8 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
   const [enabled, setEnabled] = useState(initialConfig.patientPortalEnabled)
   const [slug, setSlug] = useState(initialConfig.publicBookingSlug)
   const [welcomeText, setWelcomeText] = useState(initialConfig.welcomeText ?? '')
+  const [brandColor, setBrandColor] = useState(initialConfig.brandColor)
+  const [surfaceColor, setSurfaceColor] = useState(initialConfig.surfaceColor)
   const [metrics, setMetrics] = useState(initialMetrics)
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; message: string } | null>(null)
   const [pending, startTransition] = useTransition()
@@ -78,6 +86,15 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
       : 'Use 3-32 caracteres: letras minúsculas, dígitos e hífens. Comece com letra/dígito.'
   }, [slug, enabled])
 
+  // O mesmo validador do motor de tema — não uma cópia da regra. Se a tela
+  // aceitasse o que o portal recusa, a clínica salvaria uma paleta e abriria o
+  // portal na paleta padrão sem entender por quê.
+  const paletteError = useMemo(() => {
+    if (!brandColor || !surfaceColor) return null
+    const problem = validatePortalPalette({ brand: brandColor, surface: surfaceColor })
+    return problem ? PORTAL_PALETTE_ERROR_MESSAGE[problem] : null
+  }, [brandColor, surfaceColor])
+
   const publicUrl = slug ? `${baseUrl}/paciente/${slug}` : null
 
   function saveConfig() {
@@ -87,6 +104,8 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
         patientPortalEnabled: enabled,
         publicBookingSlug: slug,
         welcomeText,
+        brandColor,
+        surfaceColor,
       })
       if (res.ok) setFeedback({ kind: 'ok', message: 'Configuração salva.' })
       else setFeedback({ kind: 'error', message: res.error ?? 'Erro ao salvar.' })
@@ -198,6 +217,16 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
             </p>
           </div>
 
+          <BrandColorFields
+            brandColor={brandColor}
+            surfaceColor={surfaceColor}
+            error={paletteError}
+            onChange={(next) => {
+              setBrandColor(next.brandColor)
+              setSurfaceColor(next.surfaceColor)
+            }}
+          />
+
           <div className="flex items-center justify-between gap-3">
             <div>
               {feedback ? (
@@ -211,7 +240,7 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
                 </p>
               ) : null}
             </div>
-            <Button onClick={saveConfig} disabled={pending || !!slugError}>
+            <Button onClick={saveConfig} disabled={pending || !!slugError || !!paletteError}>
               {pending ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : null}
               Salvar configurações
             </Button>
@@ -339,6 +368,187 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
           </div>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+/**
+ * Feature 058 — a marca da clínica no portal do paciente.
+ *
+ * DUAS cores, e só duas: o destaque e o fundo. Tudo o mais — texto, cartão,
+ * borda, e a cor que vai SOBRE o destaque — é derivado pelo motor de tema. Não
+ * existe campo para escolher cor de texto, e isso é o que torna impossível
+ * salvar um portal ilegível: contraste de leitura é invariante, não preferência.
+ *
+ * A PRÉVIA É O PRÓPRIO MOTOR. Ela não recria a aparência do portal com valores
+ * parecidos — chama `buildPortalTheme` e aplica as variáveis num wrapper, que é
+ * exatamente o que o layout do portal faz. Uma prévia que reimplementa a
+ * derivação é uma segunda verdade sobre a mesma cor, e o dia em que as duas
+ * divergirem a clínica escolhe uma coisa e o paciente vê outra.
+ *
+ * "Voltar ao padrão" apaga as DUAS de uma vez, porque personalização parcial não
+ * existe: uma cor sozinha cai no padrão de qualquer jeito, e deixar uma gravada
+ * daria a impressão de que ela está valendo.
+ */
+function BrandColorFields({
+  brandColor,
+  surfaceColor,
+  error,
+  onChange,
+}: {
+  brandColor: string | null
+  surfaceColor: string | null
+  error: string | null
+  onChange: (next: { brandColor: string | null; surfaceColor: string | null }) => void
+}) {
+  // Valores de trabalho para os seletores. O `<input type="color">` não sabe
+  // representar "nenhuma cor", então quando a clínica ainda não escolheu ele
+  // mostra a cor do produto — sem que isso signifique que ela está gravada.
+  const brand = brandColor ?? '#003883'
+  const surface = surfaceColor ?? '#f7f8fa'
+  const customized = brandColor !== null || surfaceColor !== null
+
+  const theme =
+    isValidHexColor(brand) && isValidHexColor(surface)
+      ? buildPortalTheme({ brand, surface })
+      : null
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-3">
+      <div>
+        <p className="text-sm font-semibold text-foreground">Cores do portal</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">
+          Valem <strong>somente</strong> na área do paciente — as telas da equipe seguem na paleta
+          do sistema. O texto e as bordas são calculados a partir das suas cores, para a leitura
+          continuar confortável em qualquer combinação.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ColorField
+          id="portal-brand-color"
+          label="Cor de destaque"
+          hint="Botões, ícones das áreas e gráficos."
+          value={brand}
+          onChange={(v) => onChange({ brandColor: v, surfaceColor })}
+        />
+        <ColorField
+          id="portal-surface-color"
+          label="Cor de fundo"
+          hint="O fundo das telas. Pode ser clara ou escura."
+          value={surface}
+          onChange={(v) => onChange({ brandColor, surfaceColor: v })}
+        />
+      </div>
+
+      {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+
+      {theme && !error ? (
+        <div>
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Prévia
+          </p>
+          <div
+            className="rounded-xl border p-4"
+            style={{
+              ...(theme.vars as Record<string, string>),
+              background: 'hsl(var(--background))',
+              borderColor: 'hsl(var(--border))',
+            }}
+          >
+            <div
+              className="rounded-lg border p-3"
+              style={{ background: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
+            >
+              <p className="text-sm font-bold" style={{ color: 'hsl(var(--foreground))' }}>
+                Olá, Maria
+              </p>
+              <p className="mt-0.5 text-xs" style={{ color: 'hsl(var(--muted-foreground))' }}>
+                Acompanhe sua evolução de saúde.
+              </p>
+              <div className="mt-2.5 flex items-center gap-2">
+                <span
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg"
+                  style={{
+                    background: 'hsl(var(--accent))',
+                    color: 'hsl(var(--accent-foreground))',
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </span>
+                <span
+                  className="rounded-md px-2.5 py-1 text-xs font-semibold"
+                  style={{
+                    background: 'hsl(var(--primary))',
+                    color: 'hsl(var(--primary-foreground))',
+                  }}
+                >
+                  Ver minhas metas
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {customized ? (
+        <button
+          type="button"
+          onClick={() => onChange({ brandColor: null, surfaceColor: null })}
+          className="text-[11px] font-semibold text-link underline-offset-2 hover:underline"
+        >
+          Voltar às cores padrão
+        </button>
+      ) : (
+        <p className="text-[11px] text-muted-foreground">
+          Esta clínica ainda usa as cores padrão. Escolha as duas cores acima para personalizar.
+        </p>
+      )}
+    </div>
+  )
+}
+
+function ColorField({
+  id,
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  id: string
+  label: string
+  hint: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id} className="text-[11px]">
+        {label}
+      </Label>
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value.toLowerCase())}
+          className="h-9 w-12 shrink-0 cursor-pointer rounded-md border border-border bg-card p-1"
+        />
+        {/* O campo de texto existe porque marca tem código: quem recebeu
+            "#EE4B00" do designer precisa digitar, não caçar no seletor. */}
+        <Input
+          value={value}
+          onChange={(e) => {
+            const v = e.target.value.trim().toLowerCase()
+            if (isValidHexColor(v)) onChange(v)
+          }}
+          maxLength={7}
+          spellCheck={false}
+          className="font-mono text-xs uppercase"
+          aria-label={`${label} em hexadecimal`}
+        />
+      </div>
+      <p className="text-[11px] text-muted-foreground">{hint}</p>
     </div>
   )
 }
