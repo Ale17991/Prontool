@@ -18,7 +18,16 @@ import { googleCalendarConfigSchema } from '@/lib/integrations/google-calendar/o
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const SETTINGS_PATH = '/configuracoes/google-agenda'
+/**
+ * A conexão vive no cadastro do profissional, então é para lá que se volta. Se
+ * o usuário não estiver vinculado a nenhum profissional, cai na lista — a tela
+ * de conta que existia antes foi removida.
+ */
+const LIST_PATH = '/configuracoes/profissionais'
+
+function doctorPath(doctorId: string | null): string {
+  return doctorId ? `${LIST_PATH}/${doctorId}` : LIST_PATH
+}
 
 function redirect(to: string, clearCookie = true): Response {
   const headers: Record<string, string> = { Location: to, 'Cache-Control': 'no-store' }
@@ -31,17 +40,31 @@ function redirect(to: string, clearCookie = true): Response {
 
 export async function GET(req: Request): Promise<Response> {
   const route = '/api/oauth/google-calendar/callback'
+  let doctorId: string | null = null
   try {
     const url = new URL(req.url)
     const error = url.searchParams.get('error')
-    if (error) return redirect(`${SETTINGS_PATH}?error=${encodeURIComponent(error)}`)
+    if (error) return redirect(`${LIST_PATH}?error=${encodeURIComponent(error)}`)
 
     const code = url.searchParams.get('code')
     const nonce = url.searchParams.get('state')
     const cookieValue = cookies().get(STATE_COOKIE_NAME)?.value ?? null
 
     const state = verifyStateCookie({ cookieValue, nonceFromQuery: nonce })
-    if (!code) return redirect(`${SETTINGS_PATH}?error=missing_code`)
+    const supabase = createSupabaseServiceClient()
+
+    // Descobre o cadastro para onde voltar ANTES de trocar o código: se a troca
+    // falhar, o profissional volta para a própria tela e vê o erro no lugar
+    // onde clicou, em vez de ser jogado numa lista sem contexto.
+    const { data: doctorRow } = await supabase
+      .from('doctors')
+      .select('id')
+      .eq('tenant_id', state.tenantId)
+      .eq('user_id', state.userId)
+      .maybeSingle()
+    doctorId = (doctorRow as { id: string } | null)?.id ?? null
+
+    if (!code) return redirect(`${doctorPath(doctorId)}?error=missing_code`)
 
     const credentials = await exchangeCode(code)
     const email = await fetchAccountEmail(credentials.access_token)
@@ -50,7 +73,6 @@ export async function GET(req: Request): Promise<Response> {
       account_email: email ?? undefined,
     })
 
-    const supabase = createSupabaseServiceClient()
     await writeGoogleConnection(supabase, {
       userId: state.userId,
       tenantId: state.tenantId,
@@ -58,12 +80,12 @@ export async function GET(req: Request): Promise<Response> {
       config,
     })
 
-    return redirect(`${SETTINGS_PATH}?connected=1`)
+    return redirect(`${doctorPath(doctorId)}?connected=1`)
   } catch (err) {
     logger.error(
       { err: err instanceof Error ? err.message : String(err) },
       'google-calendar-callback-failed',
     )
-    return redirect(`${SETTINGS_PATH}?error=connect_failed`)
+    return redirect(`${doctorPath(doctorId)}?error=connect_failed`)
   }
 }
