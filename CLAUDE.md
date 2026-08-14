@@ -182,9 +182,15 @@ por clínica, conectado por QR em autoatendimento.
   (0094) só permite `queued → terminal`. "Status atual" é regra de **leitura**,
   resolvida por precedência de rank (`sent < delivered < read < error`) — nunca
   pelo evento mais recente, porque confirmações chegam fora de ordem.
-- **Espaçamento via QStash com delay crescente, por clínica** (`process-batch`).
-  Não é cron mais frequente: acima de diário trava TODOS os deploys no Hobby.
-  Sem `QSTASH_TOKEN` o ciclo cai num envio inline de lote pequeno (dev).
+- **Espaçamento via QStash com delay crescente, por clínica** (`process-batch`),
+  MAIS um teto de 8 lembretes de WhatsApp por clínica por ciclo. O espaçamento
+  de 4s já existia, mas o teto do lote era global (200) e não por clínica: nada
+  impedia uma clínica sozinha de despachar duzentas seguidas. O 8 sai de uma
+  conta — a janela de seleção é de 15 minutos e o ciclo é de 5, então o
+  atendimento que não couber continua elegível nos DOIS ciclos seguintes; com 8
+  por ciclo, escoam 24 por janela. Baixar demais faz lembrete ser PERDIDO, não
+  adiado: passadas as três chances, a janela anda. E-mail segue sem teto —
+  não queima remetente do jeito que a rajada queima um número.
 - **Idempotência ponta a ponta**: o `externalId` mandado ao serviço é o **id do
   lembrete**, e o serviço tem `UNIQUE (tenant_id, external_id)`. Retentativa não
   duplica mensagem.
