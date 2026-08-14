@@ -7,6 +7,14 @@
 
 export const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events'
 
+/**
+ * Acesso total à agenda. NÃO é pedido por nós — pedimos o mínimo (`.events`) —
+ * mas pode vir concedido de uma autorização anterior, já que o fluxo manda
+ * `include_granted_scopes=true`. Existe aqui só para a validação do escopo
+ * concedido não RECUSAR quem nos deu mais permissão do que pedimos.
+ */
+export const GOOGLE_CALENDAR_FULL_SCOPE = 'https://www.googleapis.com/auth/calendar'
+
 class GoogleOAuthConfigMissingError extends Error {
   readonly code = 'GOOGLE_OAUTH_CONFIG_MISSING'
   constructor(missing: string[]) {

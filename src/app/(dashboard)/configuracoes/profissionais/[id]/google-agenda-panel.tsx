@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button'
  * cairiam na agenda pessoal do admin, sem erro nenhum. Por isso o admin vê e
  * desconecta, mas nunca conecta por outro.
  */
+export type GoogleNotice = 'connected' | 'scope_missing' | 'denied' | 'failed' | null
+
 export function GoogleAgendaPanel({
   doctorId,
   linkedUserId,
@@ -27,6 +29,7 @@ export function GoogleAgendaPanel({
   needsReconnect,
   email,
   canManage,
+  notice,
 }: {
   doctorId: string
   /** `doctors.user_id` — sem ele o sync nem chega a tentar. */
@@ -40,6 +43,8 @@ export function GoogleAgendaPanel({
   email: string | null
   /** Admin: pode desconectar a agenda de outro (saída da clínica, revogação). */
   canManage: boolean
+  /** Resultado da última volta do Google (vem por query string). */
+  notice: GoogleNotice
 }) {
   const router = useRouter()
   const [pending, start] = useTransition()
@@ -99,6 +104,30 @@ export function GoogleAgendaPanel({
 
   return (
     <div className="space-y-3">
+      {/* Nada é mostrado no caso de sucesso: o próprio estado do card já diz
+          "Agenda conectada", e repetir viraria ruído. */}
+      {notice === 'scope_missing' ? (
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            <strong>Faltou a permissão de agenda.</strong> O Google mostra uma caixa de seleção por
+            permissão, e a da agenda vem desmarcada — sem ela conseguimos ler seu e-mail, mas não
+            criar eventos. Conecte de novo e <strong>marque a caixa da agenda</strong>. Nada foi
+            salvo: melhor não conectado do que conectado e sem funcionar.
+          </p>
+        </div>
+      ) : notice === 'denied' ? (
+        <div className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+          <p>Você recusou o acesso na tela do Google. Nada foi alterado.</p>
+        </div>
+      ) : notice === 'failed' ? (
+        <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>Não foi possível concluir a conexão com o Google. Tente novamente.</p>
+        </div>
+      ) : null}
+
       {connected ? (
         <>
           <div className="flex items-center gap-2 text-sm text-success-strong">
