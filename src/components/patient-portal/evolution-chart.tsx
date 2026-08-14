@@ -58,7 +58,30 @@ function bmiClassification(bmi: number | null): { label: string; className: stri
   return { label: 'Obeso', className: 'bg-[hsl(var(--alert)/0.15)] text-[hsl(var(--alert))]' }
 }
 
-const TICK = { fontSize: 10, fill: '#64748b' } as const
+/**
+ * Feature 058 — as cores dos gráficos passaram a poder vir da clínica.
+ *
+ * Chegam em HEX e não como `var(--token)` porque o recharts escreve
+ * `stroke`/`fill` como ATRIBUTO de apresentação do SVG, e ali a resolução de
+ * variável CSS não é confiável entre navegadores. Quem usa estes gráficos fora
+ * do portal (as telas da equipe) não passa nada e continua exatamente como
+ * antes — a paleta da clínica alcança só o portal (FR-008).
+ *
+ * `positive` fica de fora da paleta da clínica de propósito: a linha de peso é
+ * uma segunda série que precisa se distinguir da primeira, não um lugar de
+ * marca.
+ */
+export interface ChartPalette {
+  axis: string
+  grid: string
+  accent: string
+}
+
+const DEFAULT_CHART: ChartPalette = { axis: '#58697E', grid: '#e2e8f0', accent: '#003883' }
+
+function tickOf(p: ChartPalette) {
+  return { fontSize: 10, fill: p.axis } as const
+}
 
 /**
  * Feature 050 US2 — domínio do eixo Y que engloba os pontos E a faixa de
@@ -72,7 +95,9 @@ export function yDomainWithRange(
   refMin?: number | null,
   refMax?: number | null,
 ): [number, number] | ['auto', 'auto'] {
-  const bounds = [refMin, refMax].filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  const bounds = [refMin, refMax].filter(
+    (v): v is number => typeof v === 'number' && Number.isFinite(v),
+  )
   if (bounds.length === 0) return ['auto', 'auto']
   const finite = values.filter((v) => Number.isFinite(v))
   const all = [...finite, ...bounds]
@@ -96,13 +121,17 @@ export function MetricEvolutionChart({
   points,
   refMin,
   refMax,
+  palette,
 }: {
   label: string
   unit: string
   points: SeriesPoint[]
   refMin?: number | null
   refMax?: number | null
+  palette?: ChartPalette | null
 }) {
+  const c = palette ?? DEFAULT_CHART
+  const TICK = tickOf(c)
   if (points.length === 0) return null
   const last = points[points.length - 1]!
   const data = points.map((p) => ({ date: formatDateLabel(p.date), valor: p.value }))
@@ -120,9 +149,9 @@ export function MetricEvolutionChart({
     <Card>
       <CardHeader className="flex flex-row items-baseline justify-between gap-2 pb-2">
         <CardTitle className="text-sm">{label}</CardTitle>
-        <p className="text-lg font-black tabular-nums text-slate-900">
+        <p className="text-lg font-black tabular-nums text-foreground">
           {formatValue(last.value)}{' '}
-          <span className="text-[10px] font-normal text-slate-500">{unit}</span>
+          <span className="text-[10px] font-normal text-muted-foreground">{unit}</span>
         </p>
       </CardHeader>
       <CardContent>
@@ -130,7 +159,7 @@ export function MetricEvolutionChart({
           <div className="h-44">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
                 <XAxis dataKey="date" tick={TICK} />
                 <YAxis tick={TICK} width={40} domain={domain} />
                 {hasBand ? (
@@ -150,7 +179,7 @@ export function MetricEvolutionChart({
                   type="monotone"
                   dataKey="valor"
                   name={`${label} (${unit})`}
-                  stroke="#003883"
+                  stroke={c.accent}
                   strokeWidth={2}
                   dot={{ r: 2.5 }}
                 />
@@ -158,14 +187,15 @@ export function MetricEvolutionChart({
             </ResponsiveContainer>
           </div>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Registrado em {formatDateLabel(last.date)}. A linha de evolução aparece a partir da
             segunda medição.
           </p>
         )}
         {hasBand ? (
-          <p className="mt-1 text-[10px] text-slate-500">
-            Faixa de referência: {refMin !== null && refMin !== undefined ? formatValue(refMin) : '—'}
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Faixa de referência:{' '}
+            {refMin !== null && refMin !== undefined ? formatValue(refMin) : '—'}
             {' a '}
             {refMax !== null && refMax !== undefined ? formatValue(refMax) : '—'} {unit}
           </p>
@@ -176,7 +206,15 @@ export function MetricEvolutionChart({
 }
 
 /** Evolução de peso/IMC (reuso de vital_signs) com classificação de faixa do IMC. */
-export function WeightImcChart({ points }: { points: WeightImcPointUI[] }) {
+export function WeightImcChart({
+  points,
+  palette,
+}: {
+  points: WeightImcPointUI[]
+  palette?: ChartPalette | null
+}) {
+  const c = palette ?? DEFAULT_CHART
+  const TICK = tickOf(c)
   if (points.length === 0) return null
   const last = points[points.length - 1]!
   const cls = bmiClassification(last.bmi)
@@ -192,15 +230,15 @@ export function WeightImcChart({ points }: { points: WeightImcPointUI[] }) {
         <CardTitle className="text-sm">Peso e IMC</CardTitle>
         <div className="flex items-baseline gap-3">
           {last.weightKg !== null ? (
-            <p className="text-lg font-black tabular-nums text-slate-900">
+            <p className="text-lg font-black tabular-nums text-foreground">
               {last.weightKg.toFixed(1)}{' '}
-              <span className="text-[10px] font-normal text-slate-500">kg</span>
+              <span className="text-[10px] font-normal text-muted-foreground">kg</span>
             </p>
           ) : null}
           {last.bmi !== null ? (
-            <p className="text-lg font-black tabular-nums text-slate-900">
+            <p className="text-lg font-black tabular-nums text-foreground">
               {last.bmi.toFixed(1)}{' '}
-              <span className="text-[10px] font-normal text-slate-500">IMC</span>
+              <span className="text-[10px] font-normal text-muted-foreground">IMC</span>
             </p>
           ) : null}
           {cls ? (
@@ -215,7 +253,7 @@ export function WeightImcChart({ points }: { points: WeightImcPointUI[] }) {
           <div className="h-52">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
                 <XAxis dataKey="date" tick={TICK} />
                 <YAxis yAxisId="kg" orientation="left" tick={TICK} width={36} />
                 <YAxis yAxisId="imc" orientation="right" tick={TICK} width={36} />
@@ -236,7 +274,7 @@ export function WeightImcChart({ points }: { points: WeightImcPointUI[] }) {
                   type="monotone"
                   dataKey="imc"
                   name="IMC"
-                  stroke="#003883"
+                  stroke={c.accent}
                   strokeWidth={2}
                   dot={{ r: 2.5 }}
                   connectNulls
@@ -245,7 +283,7 @@ export function WeightImcChart({ points }: { points: WeightImcPointUI[] }) {
             </ResponsiveContainer>
           </div>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Um registro até agora. A linha de evolução aparece a partir da segunda medição.
           </p>
         )}

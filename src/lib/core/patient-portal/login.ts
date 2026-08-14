@@ -40,6 +40,20 @@ export interface PortalClinic {
  * pública da clínica (compartilhado com o agendamento), mas o portal tem o
  * seu próprio liga/desliga: `patient_portal_enabled` (config 0114). Clínica
  * com o portal desabilitado NÃO resolve — login fica bloqueado.
+ *
+ * ESTA CONSULTA NÃO LÊ NADA DE APARÊNCIA, e isso é decisão de contenção de
+ * falha, não organização. A 058 chegou a pedir as cores do portal aqui, junto
+ * do resto — uma consulta a menos, parecia óbvio. O efeito é que qualquer
+ * problema com uma coluna cosmética derruba a resolução inteira: como um erro
+ * de SELECT devolve `null` e `null` significa "clínica não existe", uma coluna
+ * ausente vira **404 no portal de todas as clínicas**. Foi exatamente o que
+ * aconteceu no banco local antes da migração — sete testes de contrato de login
+ * caíram de uma vez, e em produção teria sido o portal fora do ar até alguém
+ * rodar o SQL.
+ *
+ * A paleta é lida à parte, por `getPortalThemeBySlug`, que degrada para a
+ * paleta padrão quando qualquer coisa dá errado. O portão do login não pode
+ * depender de tinta.
  */
 export async function resolvePortalClinicBySlug(
   supabase: SupabaseClient<Database>,

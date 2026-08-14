@@ -1,6 +1,6 @@
 import type { PatientPortalBundle } from './read-portal'
 import type { PortalSectionKey } from './sections'
-import { brDayInClinicTz, brDayTimeInClinicTz } from './format'
+import { brDateOnly, brDayInClinicTz, brDayTimeInClinicTz } from './format'
 
 /**
  * Feature 057 — o que a tela inicial do portal mostra.
@@ -20,6 +20,7 @@ import { brDayInClinicTz, brDayTimeInClinicTz } from './format'
 const AREAS: ReadonlyArray<{ key: PortalSectionKey; label: string; path: string }> = [
   { key: 'atendimentos', label: 'Meus atendimentos', path: 'atendimentos' },
   { key: 'metricas', label: 'Minha evolução', path: 'evolucao' },
+  { key: 'composicao', label: 'Composição corporal', path: 'composicao' },
   { key: 'orientacoes', label: 'Orientações', path: 'orientacoes' },
   { key: 'exames', label: 'Resultados de exames', path: 'exames' },
   { key: 'treino', label: 'Rotina de treino', path: 'treino' },
@@ -97,6 +98,21 @@ export function buildPortalHome(input: PortalHomeInput): PortalHomeLayout {
           emptyHint: 'Suas medições aparecem aqui após a consulta.',
         })
         break
+      case 'composicao': {
+        // A prévia diz a data da última avaliação, não o percentual: o card é
+        // resumo de navegação, e um número de composição corporal solto, sem o
+        // método que o gerou, é justamente a leitura que o FR-012 impede.
+        const latest = bundle.bodyComposition?.latest ?? null
+        candidates.push({
+          ...card,
+          // `assessed_at` é coluna DATE: `brDateOnly`, nunca o formatador de
+          // fuso — este mostraria a véspera.
+          hint: latest ? `Avaliação de ${brDateOnly(latest.assessedAt)}` : '',
+          empty: latest === null,
+          emptyHint: 'Aparece após a avaliação nutricional na consulta.',
+        })
+        break
+      }
       case 'orientacoes':
         candidates.push({
           ...card,

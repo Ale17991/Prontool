@@ -34,7 +34,7 @@ export function LabResultsCard({ items }: { items: LabResultItem[] }) {
           <Beaker className="h-4 w-4 text-primary" />
           Meus exames
         </CardTitle>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-foreground">
           {alterados === 0
             ? 'Seus resultados mais recentes.'
             : `${alterados} resultado${alterados > 1 ? 's' : ''} fora da faixa de referência. Converse com a equipe na próxima consulta.`}
@@ -46,14 +46,15 @@ export function LabResultsCard({ items }: { items: LabResultItem[] }) {
           return (
             <div
               key={it.analyteKey}
-              className="flex items-center gap-2 border-b border-slate-100 pb-1.5 last:border-0 last:pb-0"
+              className="flex items-center gap-2 border-b border-border pb-1.5 last:border-0 last:pb-0"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-slate-800">{it.label}</p>
-                <p className="text-[10px] text-slate-400">{formatDate(it.measuredAt)}</p>
+                <p className="truncate text-sm text-foreground">{it.label}</p>
+                <p className="text-[10px] text-muted-foreground">{formatDate(it.measuredAt)}</p>
               </div>
-              <p className="tabular-nums text-sm font-bold text-slate-900">
-                {fmt(it.value)} <span className="text-[10px] font-normal text-slate-500">{it.unit}</span>
+              <p className="tabular-nums text-sm font-bold text-foreground">
+                {fmt(it.value)}{' '}
+                <span className="text-[10px] font-normal text-muted-foreground">{it.unit}</span>
               </p>
               {it.class === 'sem_referencia' ? null : (
                 <span

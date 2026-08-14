@@ -99,7 +99,7 @@ export function PatientLoginForm({ slug }: { slug: string }) {
             />
           </div>
 
-          <label className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/60 p-3 text-xs text-slate-600">
+          <label className="flex items-start gap-2 rounded-md border border-border bg-muted/60 p-3 text-xs text-muted-foreground">
             <input
               type="checkbox"
               className="mt-0.5 h-4 w-4 accent-primary"

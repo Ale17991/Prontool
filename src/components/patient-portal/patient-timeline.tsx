@@ -16,21 +16,36 @@ const METRIC_LABEL_OVERRIDE: Record<string, string> = { glicemia_jejum: 'Glicemi
 
 type Kind = 'atendimento' | 'medicoes' | 'orientacao'
 
-const KIND_META: Record<Kind, { label: string; dot: string; chipOn: string }> = {
+/**
+ * Feature 058 — os três tipos deixaram de ter cada um o seu pastel (esmeralda,
+ * violeta, âmbar, escritos na mão) e passaram a ser INTENSIDADES da cor da
+ * clínica.
+ *
+ * Cor fixa em classe é invisível para qualquer tema: numa clínica de paleta
+ * própria, os três apareceriam como cores de outra marca — e o bloco de
+ * orientação, que era `bg-amber-50`, viraria um retângulo claro cravado num
+ * portal escuro. A distinção entre os tipos continua existindo, e é feita por
+ * onde ela de fato se lê: o ícone e o título de cada nó, mais o degrau de
+ * intensidade no ponto da linha do tempo.
+ */
+const KIND_META: Record<Kind, { label: string; dot: string; chipOn: string; icon: string }> = {
   atendimento: {
     label: 'Atendimentos',
-    dot: 'bg-emerald-500',
-    chipOn: 'bg-emerald-600 text-white border-emerald-600',
+    dot: 'bg-primary',
+    chipOn: 'border-primary bg-primary text-primary-foreground',
+    icon: 'bg-accent text-accent-foreground',
   },
   medicoes: {
     label: 'Medições',
-    dot: 'bg-violet-500',
-    chipOn: 'bg-violet-600 text-white border-violet-600',
+    dot: 'bg-primary/60',
+    chipOn: 'border-primary bg-primary text-primary-foreground',
+    icon: 'bg-accent text-accent-foreground',
   },
   orientacao: {
     label: 'Orientações',
-    dot: 'bg-amber-500',
-    chipOn: 'bg-amber-600 text-white border-amber-600',
+    dot: 'bg-primary/30',
+    chipOn: 'border-primary bg-primary text-primary-foreground',
+    icon: 'bg-accent text-accent-foreground',
   },
 }
 
@@ -197,7 +212,7 @@ export function PatientTimeline({
                   on ? meta.chipOn : 'border-border bg-card text-muted-foreground'
                 }`}
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${on ? 'bg-white' : meta.dot}`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${on ? 'bg-current' : meta.dot}`} />
                 {meta.label}
               </button>
             )
@@ -234,7 +249,9 @@ export function PatientTimeline({
               {n.kind === 'medicoes' ? (
                 <div className="mt-1.5 rounded-2xl border border-border bg-card p-4 shadow-sm">
                   <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700">
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg ${KIND_META.medicoes.icon}`}
+                    >
                       <Activity className="h-3.5 w-3.5" />
                     </span>
                     Medições
@@ -263,7 +280,9 @@ export function PatientTimeline({
               ) : n.kind === 'atendimento' ? (
                 <div className="mt-1.5 rounded-2xl border border-border bg-card p-4 shadow-sm">
                   <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg ${KIND_META.atendimento.icon}`}
+                    >
                       <CalendarDays className="h-3.5 w-3.5" />
                     </span>
                     Atendimento
@@ -275,9 +294,15 @@ export function PatientTimeline({
                   ) : null}
                 </div>
               ) : (
-                <div className="mt-1.5 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 shadow-sm">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-amber-800">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                // A orientação da equipe continua sendo o nó que se destaca —
+                // é a única coisa aqui que alguém ESCREVEU para este paciente.
+                // O destaque passou a ser a cor da clínica em fundo suave, em
+                // vez do âmbar fixo que só existia em tema claro.
+                <div className="mt-1.5 rounded-2xl border border-primary/25 bg-accent/60 p-4 shadow-sm">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-accent-foreground">
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg ${KIND_META.orientacao.icon}`}
+                    >
                       <ClipboardList className="h-3.5 w-3.5" />
                     </span>
                     Orientação da equipe

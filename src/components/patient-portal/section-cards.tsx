@@ -20,6 +20,10 @@ import { ChevronRight, type LucideIcon } from 'lucide-react'
  * Área ligada mas ainda SEM conteúdo aparece apagada e não leva a lugar nenhum:
  * some seria esconder da pessoa que a clínica ofereceu aquilo, e clicar para
  * chegar numa página vazia é um beco. O card diz o que falta e de quem depende.
+ *
+ * Feature 058: o card não escolhe mais a própria cor. Ele fala só a língua dos
+ * tokens, e por isso a paleta que a clínica escolher alcança a grade inteira
+ * sem que ninguém edite este arquivo de novo.
  */
 
 export interface PortalCard {
@@ -33,8 +37,6 @@ export interface PortalCard {
   /** O que dizer quando está vazio (quem precisa cadastrar). */
   emptyHint: string
   icon: LucideIcon
-  /** Cor do quadradinho do ícone — mesmas famílias já usadas no portal. */
-  tone: string
 }
 
 export function PortalSectionCards({ cards }: { cards: PortalCard[] }) {
@@ -62,9 +64,12 @@ function SectionCard({ card }: { card: PortalCard }) {
 
   const body = (
     <>
+      {/* 058 — o quadradinho do ícone é o principal lugar em que a cor da
+          clínica aparece na tela inicial (FR-002). Antes cada área tinha um
+          pastel escrito na mão, que nenhum tema alcançava. */}
       <span
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${
-          card.empty ? 'bg-muted text-muted-foreground' : card.tone
+          card.empty ? 'bg-muted text-muted-foreground' : 'bg-accent text-accent-foreground'
         }`}
       >
         <Icon className="h-5 w-5" />
@@ -90,9 +95,7 @@ function SectionCard({ card }: { card: PortalCard }) {
   )
 
   if (card.empty) {
-    return (
-      <div className={`${SHAPE} border border-dashed border-border bg-card/60`}>{body}</div>
-    )
+    return <div className={`${SHAPE} border border-dashed border-border bg-card/60`}>{body}</div>
   }
 
   return (

@@ -35,6 +35,22 @@ export function brDayInClinicTz(iso: string): string {
 }
 
 /**
+ * `13/08/2026` a partir de uma coluna `DATE` (`YYYY-MM-DD`).
+ *
+ * Coluna `DATE` não tem fuso, e por isso NÃO pode passar por `brDayInClinicTz`:
+ * ali `new Date('2026-08-14')` é meia-noite em UTC, que no fuso da clínica ainda
+ * é dia 13 — toda avaliação apareceria com a data da véspera. A distinção é a
+ * mesma que a 054 firmou entre `brDate` e `brDateTz`: o erro tem sentidos
+ * opostos e só se enxerga sabendo de que coluna o valor veio.
+ *
+ * Grafia inesperada devolve travessão em vez de uma data inventada.
+ */
+export function brDateOnly(ymd: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd)
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '—'
+}
+
+/**
  * `14/08 às 15h` ou `14/08 às 15h30`. Sem o ano: a linha é sobre o que vem a
  * seguir, não sobre arquivo.
  */
