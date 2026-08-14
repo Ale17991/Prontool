@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import {
   ArrowLeft,
+  CalendarClock,
   CheckCircle2,
   Circle,
   FileText,
@@ -22,7 +23,10 @@ import { getMemedConfigPublic } from '@/lib/core/integrations/memed/get-config-p
 import { listTeamMembers } from '@/lib/core/team/list'
 import { formatBps, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import type { Database } from '@/lib/db/types'
+import { isGoogleOAuthConfigured } from '@/lib/integrations/google-calendar/oauth/env'
+import { readGoogleConnection } from '@/lib/integrations/google-calendar/oauth/token-store'
 import { EditDoctorName } from './edit-doctor-name'
+import { GoogleAgendaPanel } from './google-agenda-panel'
 import { LinkUserPanel, type LinkUserOption } from './link-user-panel'
 import { EditPrescriberFields } from './edit-prescriber-fields'
 import { SpecialtyEditor } from './specialty-editor'
@@ -156,6 +160,23 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
     }))
   }
 
+  // Agenda Google DESTE profissional. A conexão é do usuário vinculado a ele —
+  // por isso a leitura passa por `doctor.user_id`, e não pela sessão de quem
+  // está olhando. Service client porque a policy de `user_integrations` só deixa
+  // o próprio dono ler a sua linha, e o admin precisa ver o status alheio.
+  const googleConfigured = isGoogleOAuthConfigured()
+  const isSelfDoctor = Boolean(doctor.user_id) && doctor.user_id === session.userId
+  let googleConnected = false
+  let googleNeedsReconnect = false
+  let googleEmail: string | null = null
+  if (googleConfigured && doctor.user_id && (canWrite || isSelfDoctor)) {
+    const svc = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
+    const conn = await readGoogleConnection(svc, doctor.user_id, session.tenantId).catch(() => null)
+    googleConnected = Boolean(conn && conn.row.enabled && conn.row.status === 'connected')
+    googleNeedsReconnect = Boolean(conn && conn.row.status === 'token_expired')
+    googleEmail = conn?.config.account_email ?? null
+  }
+
   // Estado da prescrição digital (Memed) — conexão da clínica + status do prescritor.
   const memed = await getMemedConfigPublic(
     supabase as unknown as SupabaseClient<Database>,
@@ -266,6 +287,33 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
               doctorId={doctor.id}
               currentUserId={doctor.user_id}
               options={userOptions}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Logo abaixo do vínculo de propósito: a agenda depende dele, e ler as
+          duas coisas juntas é o que explica por que uma agenda não sincroniza.
+          Visível também para o profissional sem permissão de escrita — é a
+          única pessoa que PODE conectar a própria conta. */}
+      {canWrite || isSelfDoctor ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CalendarClock className="h-4 w-4 text-primary" />
+              Agenda Google
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GoogleAgendaPanel
+              doctorId={doctor.id}
+              linkedUserId={doctor.user_id}
+              isSelf={isSelfDoctor}
+              configured={googleConfigured}
+              connected={googleConnected}
+              needsReconnect={googleNeedsReconnect}
+              email={googleEmail}
+              canManage={canWrite}
             />
           </CardContent>
         </Card>

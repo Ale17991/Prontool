@@ -1,18 +1,23 @@
 /**
  * Feature 014 — US3 — verifica o contrato do hub /configuracoes:
- *  - INV-1: HUB_CARDS tem exatamente 18 entradas.
+ *  - INV-1: HUB_CARDS tem exatamente 17 entradas.
  *  - INV-2: Auditoria é SEMPRE o último card.
- *  - INV-3: admin com todas flags-on vê os 18 cards.
+ *  - INV-3: admin com todas flags-on vê os 17 cards.
  *  - INV-4: roles com permissões mínimas veem pelo menos "Meu Perfil".
  *  - INV-5: cada `card.id` é único.
  *  - Ordem fixa (FR-009): clinica, perfil, usuarios, procedimentos, materiais,
  *    alimentos, convenios, profissionais, modelos-anamnese, modelos-documento,
  *    impressos, agendamento-publico, portal-paciente, lembretes, automacoes,
- *    google-agenda, integracoes, auditoria.
+ *    integracoes, auditoria.
  *
  * Não há card de WhatsApp: conectar o número mora dentro de "Lembretes
  * automáticos" (051). Card próprio fazia a clínica configurar o canal numa tela
  * e descobrir na outra que faltava conectar.
+ *
+ * Não há card de Google Agenda pelo mesmo motivo, de outro ângulo: a agenda é
+ * de CADA profissional, não da clínica. A conexão mora no cadastro do
+ * profissional, ao lado do vínculo com usuário de que ela depende. Numa tela de
+ * conta, ninguém enxergava de quem era a agenda conectada.
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -46,8 +51,8 @@ function ctx(role: TenantRole, flags = ALL_FLAGS_ON): HubCardCtx {
 }
 
 describe('HUB_CARDS — invariantes estruturais', () => {
-  it('INV-1: HUB_CARDS.length === 18', () => {
-    expect(HUB_CARDS).toHaveLength(18)
+  it('INV-1: HUB_CARDS.length === 17', () => {
+    expect(HUB_CARDS).toHaveLength(17)
   })
 
   it('INV-2: último card é "auditoria"', () => {
@@ -71,7 +76,6 @@ describe('HUB_CARDS — invariantes estruturais', () => {
       'portal-paciente',
       'lembretes',
       'automacoes',
-      'google-agenda',
       'integracoes',
       'auditoria',
     ])
@@ -102,14 +106,14 @@ describe('HUB_CARDS — invariantes estruturais', () => {
 
 describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
   /**
-   * Com automações contratadas são 17, e não 18: o lembrete de consulta deixou
+   * Com automações contratadas são 16, e não 17: o lembrete de consulta deixou
    * de ter card próprio e passou a entrar pela tela de Automações, como área
    * secundária. Dois cards lado a lado obrigavam a clínica a adivinhar em qual
    * deles estava o que procura.
    */
-  it('INV-3: admin com todas flags ON vê os 17 cards na ordem fixa', () => {
+  it('INV-3: admin com todas flags ON vê os 16 cards na ordem fixa', () => {
     const visible = getVisibleHubCards(ctx('admin'))
-    expect(visible).toHaveLength(17)
+    expect(visible).toHaveLength(16)
     expect(visible.map((c) => c.id)).toEqual([
       'clinica',
       'perfil',
@@ -125,7 +129,6 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
       'agendamento-publico',
       'portal-paciente',
       'automacoes',
-      'google-agenda',
       'integracoes',
       'auditoria',
     ])
@@ -153,10 +156,10 @@ describe('getVisibleHubCards — matriz role × flags (FR-010)', () => {
     expect(ids).not.toContain('automacoes')
   })
 
-  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 16)', () => {
+  it('admin com anamnese OFF perde Modelos de Anamnese (mantém os outros 15)', () => {
     const visible = getVisibleHubCards(ctx('admin', { ...ALL_FLAGS_ON, anamnese: false }))
     expect(visible.map((c) => c.id)).not.toContain('modelos-anamnese')
-    expect(visible).toHaveLength(16)
+    expect(visible).toHaveLength(15)
     // Auditoria continua sendo o último visível.
     expect(visible[visible.length - 1]?.id).toBe('auditoria')
   })

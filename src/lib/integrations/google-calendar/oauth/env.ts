@@ -38,12 +38,21 @@ export function readGoogleOAuthEnv(): GoogleOAuthEnv {
   }
 }
 
-/** `true` se as vars do Google estão configuradas (para esconder a UI quando não). */
+/**
+ * `true` se as vars do Google estão configuradas (para esconder a UI quando não).
+ *
+ * Inclui `SUPABASE_JWT_SECRET` porque o `/authorize` assina o cookie de state
+ * com ela antes de redirecionar: sem a chave, a rota lança e o usuário leva um
+ * 500 genérico numa tela que estava lhe oferecendo um botão. São QUATRO as
+ * variáveis necessárias, e a checagem tem que cobrir as quatro para a tela
+ * poder dizer "não configurado" em vez de quebrar.
+ */
 export function isGoogleOAuthConfigured(): boolean {
   return Boolean(
     process.env.GOOGLE_CLIENT_ID &&
     process.env.GOOGLE_CLIENT_SECRET &&
-    process.env.GOOGLE_REDIRECT_URI,
+    process.env.GOOGLE_REDIRECT_URI &&
+    process.env.SUPABASE_JWT_SECRET,
   )
 }
 

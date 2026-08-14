@@ -4,7 +4,6 @@ import {
   Wand2,
   Boxes,
   Building2,
-  CalendarClock,
   CalendarPlus,
   ClipboardCheck,
   DollarSign,
@@ -50,7 +49,6 @@ export type HubCardId =
   | 'portal-paciente'
   | 'lembretes'
   | 'automacoes'
-  | 'google-agenda'
   | 'integracoes'
   | 'auditoria'
 
@@ -213,14 +211,10 @@ export const HUB_CARDS: readonly HubCardDef[] = [
     icon: Wand2,
     show: ({ role, ent }) => ent.hasModule('automacoes') && can(role, 'reminders.config'),
   },
-  {
-    id: 'google-agenda',
-    href: '/configuracoes/google-agenda',
-    title: 'Google Agenda',
-    description: 'Conecte sua conta Google: seus atendimentos entram na agenda pessoal.',
-    icon: CalendarClock,
-    show: () => true,
-  },
+  // Sem card de Google Agenda: a conexão mora no CADASTRO DO PROFISSIONAL
+  // (/configuracoes/profissionais/[id]), e não numa tela de conta. Cada médico
+  // tem a sua própria agenda, e é lá que se vê de quem é a que está conectada —
+  // ao lado do vínculo com usuário, que é pré-requisito do sync.
   {
     id: 'integracoes',
     href: '/configuracoes/integracoes',
