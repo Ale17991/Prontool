@@ -2,7 +2,11 @@ import { cookies } from 'next/headers'
 import { toHttpResponse } from '@/lib/observability/http'
 import { logger } from '@/lib/observability/logger'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { exchangeCode, fetchAccountEmail } from '@/lib/integrations/google-calendar/oauth/client'
+import {
+  exchangeCode,
+  fetchAccountEmail,
+  GoogleScopeMissingError,
+} from '@/lib/integrations/google-calendar/oauth/client'
 import {
   verifyStateCookie,
   STATE_COOKIE_NAME,
@@ -82,6 +86,14 @@ export async function GET(req: Request): Promise<Response> {
 
     return redirect(`${doctorPath(doctorId)}?connected=1`)
   } catch (err) {
+    // A permissão de agenda recusada NÃO é uma falha do sistema — é uma escolha
+    // (quase sempre involuntária) de quem consentiu. Sai com código próprio para
+    // a tela poder dizer o que marcar, em vez de "algo deu errado". A conexão
+    // não chega a ser gravada: melhor não conectado do que conectado e inútil.
+    if (err instanceof GoogleScopeMissingError) {
+      logger.warn({ granted: err.granted }, 'google-calendar-scope-missing')
+      return redirect(`${doctorPath(doctorId)}?error=calendar_scope_missing`)
+    }
     logger.error(
       { err: err instanceof Error ? err.message : String(err) },
       'google-calendar-callback-failed',

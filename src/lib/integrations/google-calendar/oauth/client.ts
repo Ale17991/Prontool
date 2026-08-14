@@ -1,4 +1,9 @@
-import { readGoogleOAuthEnv, GOOGLE_CALENDAR_SCOPE } from './env'
+import {
+  readGoogleOAuthEnv,
+  GOOGLE_CALENDAR_SCOPE,
+  GOOGLE_CALENDAR_FULL_SCOPE,
+} from './env'
+import { logger } from '@/lib/observability/logger'
 import { googleOAuthCredentialsSchema, type GoogleOAuthCredentials } from './types'
 
 /**
@@ -19,6 +24,30 @@ export class GoogleTokenError extends Error {
     this.name = 'GoogleTokenError'
     this.permanent = permanent
   }
+}
+
+/**
+ * O Google não concedeu a permissão de agenda. Erro PRÓPRIO (e não um
+ * `GoogleTokenError`) porque o conserto é do usuário, não do sistema: ele
+ * precisa reconectar marcando a caixa — e a tela só consegue dizer isso se
+ * conseguir distinguir este caso de uma falha genérica.
+ */
+export class GoogleScopeMissingError extends Error {
+  readonly code = 'GOOGLE_SCOPE_MISSING'
+  /** O que o Google efetivamente concedeu (para diagnóstico no log). */
+  readonly granted: readonly string[]
+  constructor(granted: readonly string[]) {
+    super(
+      `Permissão de agenda não concedida. Escopos recebidos: ${granted.join(', ') || '(nenhum)'}`,
+    )
+    this.name = 'GoogleScopeMissingError'
+    this.granted = granted
+  }
+}
+
+/** `calendar` (total) implica `calendar.events` — quem concedeu MAIS não é recusado. */
+export function grantsCalendarWrite(granted: readonly string[]): boolean {
+  return granted.includes(GOOGLE_CALENDAR_SCOPE) || granted.includes(GOOGLE_CALENDAR_FULL_SCOPE)
 }
 
 /** URL de consentimento. `state` é o nonce assinado no cookie. */
@@ -66,6 +95,25 @@ export async function exchangeCode(code: string): Promise<GoogleOAuthCredentials
       'Google não retornou refresh_token (reconecte concedendo acesso offline).',
     )
   }
+
+  // O escopo é concedido A ESCOLHA DO USUÁRIO: a tela de permissões granulares
+  // do Google mostra uma caixa por escopo, e a da agenda vem DESMARCADA. Sem
+  // esta checagem gravávamos como "conectada" uma conta que só concedeu o
+  // e-mail — o card dizia que estava tudo certo, e a falha só emergia no
+  // primeiro atendimento, como um 403 dentro de
+  // `appointment_calendar_sync.last_error` que ninguém olha. Aconteceu em
+  // 2026-08-14, com o primeiro profissional conectado.
+  if (typeof json.scope === 'string') {
+    const granted = json.scope.split(/\s+/).filter(Boolean)
+    if (!grantsCalendarWrite(granted)) throw new GoogleScopeMissingError(granted)
+  } else {
+    // Ausência do campo não é prova de recusa: o Google sempre o devolve nesta
+    // troca, e recusar por um campo que sumiu quebraria TODAS as conexões numa
+    // eventual mudança da resposta dele. Registra e segue — o 403 no primeiro
+    // evento continua sendo a rede de baixo.
+    logger.warn({}, 'google-calendar-token-sem-campo-scope')
+  }
+
   return googleOAuthCredentialsSchema.parse({
     access_token: json.access_token,
     refresh_token: json.refresh_token,

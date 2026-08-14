@@ -26,7 +26,7 @@ import type { Database } from '@/lib/db/types'
 import { isGoogleOAuthConfigured } from '@/lib/integrations/google-calendar/oauth/env'
 import { readGoogleConnection } from '@/lib/integrations/google-calendar/oauth/token-store'
 import { EditDoctorName } from './edit-doctor-name'
-import { GoogleAgendaPanel } from './google-agenda-panel'
+import { GoogleAgendaPanel, type GoogleNotice } from './google-agenda-panel'
 import { LinkUserPanel, type LinkUserOption } from './link-user-panel'
 import { EditPrescriberFields } from './edit-prescriber-fields'
 import { SpecialtyEditor } from './specialty-editor'
@@ -94,7 +94,23 @@ const MODE_LABEL: Record<PaymentMode, string> = {
   liberal: 'Liberal',
 }
 
-export default async function DoctorDetailPage({ params }: { params: { id: string } }) {
+/** Retorno do callback OAuth do Google — vira recado no card da agenda. */
+function googleNotice(sp: Record<string, string | string[] | undefined>): GoogleNotice {
+  if (sp.connected) return 'connected'
+  const err = typeof sp.error === 'string' ? sp.error : null
+  if (!err) return null
+  if (err === 'calendar_scope_missing') return 'scope_missing'
+  if (err === 'access_denied') return 'denied'
+  return 'failed'
+}
+
+export default async function DoctorDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams: Record<string, string | string[] | undefined>
+}) {
   const session = await getSession()
   if (!session) redirect('/login')
 
@@ -314,6 +330,7 @@ export default async function DoctorDetailPage({ params }: { params: { id: strin
               needsReconnect={googleNeedsReconnect}
               email={googleEmail}
               canManage={canWrite}
+              notice={googleNotice(searchParams)}
             />
           </CardContent>
         </Card>
