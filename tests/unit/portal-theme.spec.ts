@@ -102,9 +102,9 @@ describe('validação do par', () => {
 })
 
 describe('SC-002 — nenhum par escolhível produz tela ilegível', () => {
-  const pairs = SURFACES.flatMap((surface) =>
-    BRANDS.map((brand) => ({ brand, surface })),
-  ).filter((p) => validatePortalPalette(p) === null)
+  const pairs = SURFACES.flatMap((surface) => BRANDS.map((brand) => ({ brand, surface }))).filter(
+    (p) => validatePortalPalette(p) === null,
+  )
 
   it('a grade de teste é ampla e sobreviveu à validação', () => {
     // Guarda-corpo do próprio teste: se um dia a validação passar a recusar

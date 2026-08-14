@@ -15,10 +15,7 @@ import {
   type LabResultItem,
 } from '@/lib/core/labs/classify'
 import { listLabRangesForPatient } from '@/lib/core/labs/reference-ranges'
-import {
-  getPortalBodyComposition,
-  type PortalCompositionView,
-} from './body-composition'
+import { getPortalBodyComposition, type PortalCompositionView } from './body-composition'
 
 /**
  * Feature 030 — bundle de leitura do portal do paciente (FR-006..FR-010).

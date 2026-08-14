@@ -125,9 +125,7 @@ export function BodyCompositionCard({
                   para herdar a tipografia e os tokens do resto do portal. */}
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-black tabular-nums leading-none text-foreground">
-                  {latest.fatPct === null
-                    ? '—'
-                    : `${latest.fatPct.toFixed(1).replace('.', ',')}%`}
+                  {latest.fatPct === null ? '—' : `${latest.fatPct.toFixed(1).replace('.', ',')}%`}
                 </span>
                 <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   de gordura
@@ -141,7 +139,9 @@ export function BodyCompositionCard({
               tone={canDraw ? c.accent : null}
               label="Massa gorda"
               value={dash(latest.fatMassKg, 1, 'kg')}
-              hint={latest.fatPct === null ? null : `${latest.fatPct.toFixed(1).replace('.', ',')}%`}
+              hint={
+                latest.fatPct === null ? null : `${latest.fatPct.toFixed(1).replace('.', ',')}%`
+              }
             />
             <Row
               tone={canDraw ? c.neutral : null}

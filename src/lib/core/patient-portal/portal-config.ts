@@ -16,11 +16,7 @@ import { z } from 'zod'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { listMetricTypes, type PatientMetricType } from './metric-types'
-import {
-  isValidHexColor,
-  PORTAL_PALETTE_ERROR_MESSAGE,
-  validatePortalPalette,
-} from './theme'
+import { isValidHexColor, PORTAL_PALETTE_ERROR_MESSAGE, validatePortalPalette } from './theme'
 
 // Mesma regex/limites do slug do agendamento público (CHECK constraint).
 const slugSchema = z

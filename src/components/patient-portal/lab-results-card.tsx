@@ -53,7 +53,8 @@ export function LabResultsCard({ items }: { items: LabResultItem[] }) {
                 <p className="text-[10px] text-muted-foreground">{formatDate(it.measuredAt)}</p>
               </div>
               <p className="tabular-nums text-sm font-bold text-foreground">
-                {fmt(it.value)} <span className="text-[10px] font-normal text-muted-foreground">{it.unit}</span>
+                {fmt(it.value)}{' '}
+                <span className="text-[10px] font-normal text-muted-foreground">{it.unit}</span>
               </p>
               {it.class === 'sem_referencia' ? null : (
                 <span

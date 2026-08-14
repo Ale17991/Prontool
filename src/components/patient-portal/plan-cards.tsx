@@ -24,7 +24,9 @@ export function WorkoutCard({ plan }: { plan: WorkoutPlan }) {
           <div key={i} className="rounded-xl border border-border p-3">
             <p className="text-sm font-semibold text-foreground">
               {s.name}
-              {s.focus ? <span className="font-normal text-muted-foreground"> · {s.focus}</span> : null}
+              {s.focus ? (
+                <span className="font-normal text-muted-foreground"> · {s.focus}</span>
+              ) : null}
             </p>
             <ul className="mt-1.5 space-y-1">
               {s.exercises.map((e, k) => (
@@ -136,10 +138,7 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
               {/* Linha vertical: para na última refeição, senão o dia pareceria
                   continuar depois do jantar. */}
               {i < plan.meals.length - 1 ? (
-                <span
-                  aria-hidden
-                  className="absolute left-[5px] top-3 h-full w-px bg-border"
-                />
+                <span aria-hidden className="absolute left-[5px] top-3 h-full w-px bg-border" />
               ) : null}
               <span
                 aria-hidden
@@ -148,7 +147,9 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
 
               <div className="flex flex-wrap items-baseline gap-x-2">
                 {m.timeLabel ? (
-                  <span className="text-xs font-black tabular-nums text-primary">{m.timeLabel}</span>
+                  <span className="text-xs font-black tabular-nums text-primary">
+                    {m.timeLabel}
+                  </span>
                 ) : null}
                 <h3 className="text-sm font-bold text-foreground">{m.name}</h3>
                 {m.totals ? (
@@ -181,7 +182,10 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
                       ) : null}
                     </div>
                     {it.nutrients ? (
-                      <Macros n={it.nutrients} className="mt-0.5 block text-[11px] text-muted-foreground" />
+                      <Macros
+                        n={it.nutrients}
+                        className="mt-0.5 block text-[11px] text-muted-foreground"
+                      />
                     ) : null}
 
                     {/* Substitutos do grupo: é a razão de o grupo existir, então

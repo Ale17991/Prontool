@@ -184,7 +184,7 @@ export function hslToHex(hsl: Hsl): string {
  */
 function mixToward(a: Hsl, b: Hsl, amount: number): Hsl {
   const t = clamp(amount, 0, 1)
-  let dh = ((b.h - a.h) % 360 + 540) % 360 - 180
+  let dh = ((((b.h - a.h) % 360) + 540) % 360) - 180
   // Cor sem matiz (cinza puro) não tem direção: herda a do outro lado.
   if (a.s === 0) dh = 0
   return {
@@ -209,8 +209,7 @@ function mixToward(a: Hsl, b: Hsl, amount: number): Hsl {
  * entre 4,52:1 e 4,50:1 é nenhuma.
  */
 function pushUntilContrast(color: Hsl, againstLum: number, target: number): Hsl {
-  const ratioAt = (l: number) =>
-    contrastFromLuminance(luminanceOfHsl({ ...color, l }), againstLum)
+  const ratioAt = (l: number) => contrastFromLuminance(luminanceOfHsl({ ...color, l }), againstLum)
   if (ratioAt(color.l) >= target) return color
 
   let best = color.l

@@ -95,9 +95,7 @@ function SectionCard({ card }: { card: PortalCard }) {
   )
 
   if (card.empty) {
-    return (
-      <div className={`${SHAPE} border border-dashed border-border bg-card/60`}>{body}</div>
-    )
+    return <div className={`${SHAPE} border border-dashed border-border bg-card/60`}>{body}</div>
   }
 
   return (

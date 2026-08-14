@@ -95,7 +95,9 @@ export function yDomainWithRange(
   refMin?: number | null,
   refMax?: number | null,
 ): [number, number] | ['auto', 'auto'] {
-  const bounds = [refMin, refMax].filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  const bounds = [refMin, refMax].filter(
+    (v): v is number => typeof v === 'number' && Number.isFinite(v),
+  )
   if (bounds.length === 0) return ['auto', 'auto']
   const finite = values.filter((v) => Number.isFinite(v))
   const all = [...finite, ...bounds]
@@ -192,7 +194,8 @@ export function MetricEvolutionChart({
         )}
         {hasBand ? (
           <p className="mt-1 text-[10px] text-muted-foreground">
-            Faixa de referência: {refMin !== null && refMin !== undefined ? formatValue(refMin) : '—'}
+            Faixa de referência:{' '}
+            {refMin !== null && refMin !== undefined ? formatValue(refMin) : '—'}
             {' a '}
             {refMax !== null && refMax !== undefined ? formatValue(refMax) : '—'} {unit}
           </p>

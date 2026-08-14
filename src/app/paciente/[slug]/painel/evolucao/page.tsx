@@ -24,10 +24,7 @@ import { buildPatientPortalBundle } from '@/lib/core/patient-portal/read-portal'
 import { openPortalPage } from '@/lib/core/patient-portal/page-guard'
 import { PortalHeader } from '@/components/patient-portal/portal-header'
 import { DashboardSummary } from '@/components/patient-portal/dashboard-summary'
-import {
-  MetricEvolutionChart,
-  WeightImcChart,
-} from '@/components/patient-portal/evolution-chart'
+import { MetricEvolutionChart, WeightImcChart } from '@/components/patient-portal/evolution-chart'
 import { PatientTimeline } from '@/components/patient-portal/patient-timeline'
 import { PortalEmpty } from '@/components/patient-portal/portal-empty'
 

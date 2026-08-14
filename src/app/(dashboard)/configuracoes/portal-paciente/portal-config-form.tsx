@@ -212,8 +212,8 @@ export function PortalConfigForm({ initialConfig, initialMetrics, baseUrl }: Pro
             />
             <p className="text-[11px] text-slate-500">
               Aparece na tela inicial do portal <strong>somente</strong> quando o paciente ainda não
-              tem metas nem checklist de hábitos. É o que evita que ele veja uma tela vazia. Quem
-              já tem metas não vê este texto. {welcomeText.length}/1000 caracteres.
+              tem metas nem checklist de hábitos. É o que evita que ele veja uma tela vazia. Quem já
+              tem metas não vê este texto. {welcomeText.length}/1000 caracteres.
             </p>
           </div>
 
@@ -409,9 +409,7 @@ function BrandColorFields({
   const customized = brandColor !== null || surfaceColor !== null
 
   const theme =
-    isValidHexColor(brand) && isValidHexColor(surface)
-      ? buildPortalTheme({ brand, surface })
-      : null
+    isValidHexColor(brand) && isValidHexColor(surface) ? buildPortalTheme({ brand, surface }) : null
 
   return (
     <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-3">
