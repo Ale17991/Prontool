@@ -1,4 +1,5 @@
 import { Dumbbell, UtensilsCrossed } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { WorkoutPlan } from '@/lib/core/patient-portal/workout'
 import type { PortalDietPlan, PortalNutrients } from '@/lib/core/patient-portal/diet'
 
@@ -9,27 +10,27 @@ import type { PortalDietPlan, PortalNutrients } from '@/lib/core/patient-portal/
 
 export function WorkoutCard({ plan }: { plan: WorkoutPlan }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="flex items-center gap-2.5 text-sm font-bold text-slate-700">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
-          <Dumbbell className="h-4 w-4" />
-        </span>
-        Rotina de treino
-      </h2>
-      <p className="mt-1 text-xs text-slate-400">{plan.title}</p>
-      {plan.notes ? <p className="mt-1 text-xs text-slate-500">{plan.notes}</p> : null}
-      <div className="mt-3 space-y-3">
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Dumbbell className="h-4 w-4 text-primary" />
+          Rotina de treino
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">{plan.title}</p>
+        {plan.notes ? <p className="text-xs text-muted-foreground">{plan.notes}</p> : null}
+      </CardHeader>
+      <CardContent className="space-y-3">
         {plan.sessions.map((s, i) => (
-          <div key={i} className="rounded-xl border border-slate-100 p-3">
-            <p className="text-sm font-semibold text-slate-800">
+          <div key={i} className="rounded-xl border border-border p-3">
+            <p className="text-sm font-semibold text-foreground">
               {s.name}
-              {s.focus ? <span className="font-normal text-slate-400"> · {s.focus}</span> : null}
+              {s.focus ? <span className="font-normal text-muted-foreground"> · {s.focus}</span> : null}
             </p>
             <ul className="mt-1.5 space-y-1">
               {s.exercises.map((e, k) => (
                 <li key={k} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-slate-600">{e.name}</span>
-                  <span className="shrink-0 font-medium tabular-nums text-slate-500">
+                  <span className="text-muted-foreground">{e.name}</span>
+                  <span className="shrink-0 font-medium tabular-nums text-muted-foreground">
                     {[
                       e.sets && e.reps
                         ? `${e.sets} × ${e.reps}`
@@ -44,8 +45,8 @@ export function WorkoutCard({ plan }: { plan: WorkoutPlan }) {
             </ul>
           </div>
         ))}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -77,23 +78,24 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
   const target = plan.target
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="flex items-center gap-2.5 text-sm font-bold text-slate-700">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-lime-100 text-lime-700">
-          <UtensilsCrossed className="h-4 w-4" />
-        </span>
-        Plano alimentar
-      </h2>
-      <p className="mt-1 text-xs text-slate-400">{plan.title}</p>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <UtensilsCrossed className="h-4 w-4 text-primary" />
+          Plano alimentar
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">{plan.title}</p>
+      </CardHeader>
+      <CardContent>
 
       {/* Total do dia + meta. Sem meta cadastrada, mostra só o total: comparar
           com um alvo que não existe seria inventar referência. */}
       {t ? (
-        <div className="mt-3 rounded-xl border border-lime-100 bg-lime-50/40 p-3">
+        <div className="mt-3 rounded-xl border border-border bg-accent/40 p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <span className="text-sm font-bold text-slate-800">{kcal(t.energyKcal)} por dia</span>
+            <span className="text-sm font-bold text-foreground">{kcal(t.energyKcal)} por dia</span>
             {target ? (
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-muted-foreground">
                 meta: {kcal(target.kcal)}
                 {target.macros ? (
                   <>
@@ -105,64 +107,64 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
               </span>
             ) : null}
           </div>
-          <Macros n={t} className="mt-0.5 block text-xs font-medium text-slate-600" />
+          <Macros n={t} className="mt-0.5 block text-xs font-medium text-muted-foreground" />
         </div>
       ) : null}
 
       <div className="mt-3 space-y-3">
         {plan.meals.map((m, i) => (
-          <div key={i} className="rounded-xl border border-slate-100 p-3">
-            <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm font-semibold text-slate-800">
+          <div key={i} className="rounded-xl border border-border p-3">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm font-semibold text-foreground">
               <span>
                 {m.name}
                 {m.timeLabel ? (
-                  <span className="ml-1.5 text-xs font-normal text-slate-400">{m.timeLabel}</span>
+                  <span className="ml-1.5 text-xs font-normal text-muted-foreground">{m.timeLabel}</span>
                 ) : null}
               </span>
               {m.totals ? (
-                <span className="text-xs font-normal tabular-nums text-slate-500">
+                <span className="text-xs font-normal tabular-nums text-muted-foreground">
                   {kcal(m.totals.energyKcal)}
                 </span>
               ) : null}
             </p>
             {m.totals ? (
-              <Macros n={m.totals} className="mt-0.5 block text-[11px] text-slate-400" />
+              <Macros n={m.totals} className="mt-0.5 block text-[11px] text-muted-foreground" />
             ) : null}
 
             <ul className="mt-2 space-y-2">
               {m.items.map((it, k) => (
-                <li key={k} className="border-b border-slate-50 pb-2 text-sm last:border-0 last:pb-0">
+                <li key={k} className="border-b border-border/60 pb-2 text-sm last:border-0 last:pb-0">
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                    <span className="text-slate-700">
+                    <span className="text-foreground">
                       {it.name}
-                      {it.quantity ? <span className="text-slate-400">, {it.quantity}</span> : null}
+                      {it.quantity ? <span className="text-muted-foreground">, {it.quantity}</span> : null}
                     </span>
                     {it.nutrients ? (
-                      <span className="shrink-0 text-xs tabular-nums text-slate-500">
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
                         {kcal(it.nutrients.energyKcal)}
                       </span>
                     ) : null}
                   </div>
                   {it.nutrients ? (
-                    <Macros n={it.nutrients} className="mt-0.5 block text-[11px] text-slate-400" />
+                    <Macros n={it.nutrients} className="mt-0.5 block text-[11px] text-muted-foreground" />
                   ) : null}
 
                   {/* Substitutos do grupo: é a razão de o grupo existir, então
                       vêm listados e com a quantidade de cada um — "ou: X · Y"
                       numa linha só escondia justamente o quanto comer. */}
                   {it.options && it.options.length > 0 ? (
-                    <div className="mt-1.5 rounded-lg bg-slate-50 px-2.5 py-1.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="mt-1.5 rounded-lg bg-muted px-2.5 py-1.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                         Pode trocar por
                       </p>
                       <ul className="mt-0.5 space-y-0.5">
                         {it.options.map((o, oi) => (
                           <li
                             key={oi}
-                            className="flex items-baseline justify-between gap-2 text-xs text-slate-600"
+                            className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground"
                           >
                             <span>{o.name}</span>
-                            <span className="shrink-0 tabular-nums text-slate-400">
+                            <span className="shrink-0 tabular-nums text-muted-foreground">
                               {grams(o.grams)}
                             </span>
                           </li>
@@ -177,11 +179,12 @@ export function DietCard({ plan }: { plan: PortalDietPlan }) {
         ))}
       </div>
 
-      {plan.attribution ? (
-        <p className="mt-3 text-[10px] leading-snug text-slate-300">
-          Valores nutricionais: TACO (NEPA/UNICAMP, 2011) e IBGE/POF 2008-2009.
-        </p>
-      ) : null}
-    </section>
+        {plan.attribution ? (
+          <p className="mt-3 text-[10px] leading-snug text-muted-foreground opacity-70">
+            Valores nutricionais: TACO (NEPA/UNICAMP, 2011) e IBGE/POF 2008-2009.
+          </p>
+        ) : null}
+      </CardContent>
+    </Card>
   )
 }

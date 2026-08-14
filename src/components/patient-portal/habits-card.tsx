@@ -96,7 +96,7 @@ export function HabitsCard({ today }: { today: string }) {
   if (loading) {
     return (
       <Card>
-        <CardContent className="flex items-center gap-2 py-6 text-sm text-slate-400">
+        <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Carregando seus hábitos…
         </CardContent>
       </Card>
@@ -111,7 +111,7 @@ export function HabitsCard({ today }: { today: string }) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base">{grid.checklist.title}</CardTitle>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-foreground">
           Marque o que você cumpriu. Pode preencher dias anteriores deste período.
         </p>
       </CardHeader>
@@ -120,7 +120,7 @@ export function HabitsCard({ today }: { today: string }) {
           <table className="w-full min-w-[520px] border-separate border-spacing-0 text-xs">
             <thead>
               <tr>
-                <th className="sticky left-0 z-10 bg-white p-1 text-left font-medium text-slate-400">
+                <th className="sticky left-0 z-10 bg-card p-1 text-left font-medium text-muted-foreground">
                   &nbsp;
                 </th>
                 {grid.period.days.map((d) => {
@@ -129,7 +129,7 @@ export function HabitsCard({ today }: { today: string }) {
                   return (
                     <th
                       key={d}
-                      className={`p-1 text-center font-medium ${isToday ? 'text-primary' : 'text-slate-400'}`}
+                      className={`p-1 text-center font-medium ${isToday ? 'text-primary' : 'text-muted-foreground'}`}
                     >
                       <div className="text-[10px] uppercase">{wd}</div>
                       <div className={isToday ? 'font-bold' : ''}>{day}</div>
@@ -143,16 +143,16 @@ export function HabitsCard({ today }: { today: string }) {
                 const st = statOf(item.id)
                 return (
                   <tr key={item.id}>
-                    <td className="sticky left-0 z-10 max-w-[180px] bg-white py-1 pr-2">
-                      <div className="truncate font-medium text-slate-700" title={item.label}>
+                    <td className="sticky left-0 z-10 max-w-[180px] bg-card py-1 pr-2">
+                      <div className="truncate font-medium text-foreground" title={item.label}>
                         {item.label}
                       </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                         <span>
                           {st?.markedDays ?? 0} de {st?.elapsedDays ?? 0} dias
                         </span>
                         {st && st.currentStreak > 1 ? (
-                          <span className="inline-flex items-center gap-0.5 text-amber-600">
+                          <span className="inline-flex items-center gap-0.5 text-warning-foreground">
                             <Flame className="h-3 w-3" />
                             {st.currentStreak}
                           </span>
@@ -174,10 +174,10 @@ export function HabitsCard({ today }: { today: string }) {
                             aria-pressed={on}
                             className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${
                               on
-                                ? 'border-emerald-500 bg-emerald-500 text-white'
+                                ? 'border-primary bg-primary text-primary-foreground'
                                 : future
-                                  ? 'cursor-not-allowed border-slate-100 bg-slate-50'
-                                  : 'border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50'
+                                  ? 'cursor-not-allowed border-border bg-muted'
+                                  : 'border-border bg-card hover:border-primary/40 hover:bg-accent'
                             }`}
                           >
                             {busy === key ? (
@@ -195,8 +195,8 @@ export function HabitsCard({ today }: { today: string }) {
             </tbody>
           </table>
         </div>
-        {error ? <p className="text-xs text-red-600">{error}</p> : null}
-        <p className="text-[10px] text-slate-400">
+        {error ? <p className="text-xs text-destructive">{error}</p> : null}
+        <p className="text-[10px] text-muted-foreground">
           Período de {grid.period.startDate.split('-').reverse().join('/')} a{' '}
           {grid.period.endDate.split('-').reverse().join('/')}. Ao terminar, a grade recomeça
           sozinha.

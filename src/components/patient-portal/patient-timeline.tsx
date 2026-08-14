@@ -194,7 +194,7 @@ export function PatientTimeline({
                 type="button"
                 onClick={() => toggleKind(k)}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
-                  on ? meta.chipOn : 'border-slate-200 bg-white text-slate-500'
+                  on ? meta.chipOn : 'border-border bg-card text-muted-foreground'
                 }`}
               >
                 <span className={`h-1.5 w-1.5 rounded-full ${on ? 'bg-white' : meta.dot}`} />
@@ -205,7 +205,7 @@ export function PatientTimeline({
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
-          className="ml-auto h-8 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600"
+          className="ml-auto h-8 rounded-full border border-border bg-card px-3 text-xs font-medium text-muted-foreground"
           aria-label="Período"
         >
           {PERIODS.map((p) => (
@@ -217,23 +217,23 @@ export function PatientTimeline({
       </div>
 
       {visible.length === 0 ? (
-        <p className="rounded-2xl border border-slate-100 bg-white p-5 text-center text-sm text-slate-400">
+        <p className="rounded-2xl border border-dashed border-border bg-card p-5 text-center text-sm text-muted-foreground">
           Nada neste filtro. Ajuste o tipo ou o período.
         </p>
       ) : (
-        <ol className="relative space-y-5 border-l-2 border-slate-100 pl-5">
+        <ol className="relative space-y-5 border-l-2 border-border pl-5">
           {visible.map((n, idx) => (
             <li key={`${n.kind}-${n.dateKey}-${idx}`} className="relative">
               <span
-                className={`absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full ring-4 ring-white ${KIND_META[n.kind].dot}`}
+                className={`absolute -left-[26px] top-1.5 h-3.5 w-3.5 rounded-full ring-4 ring-background ${KIND_META[n.kind].dot}`}
               />
-              <time className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              <time className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 {formatDay(n.dateKey)}
               </time>
 
               {n.kind === 'medicoes' ? (
-                <div className="mt-1.5 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <div className="mt-1.5 rounded-2xl border border-border bg-card p-4 shadow-sm">
+                  <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-violet-700">
                       <Activity className="h-3.5 w-3.5" />
                     </span>
@@ -242,16 +242,16 @@ export function PatientTimeline({
                   <ul className="space-y-1.5">
                     {n.items.map((it, k) => (
                       <li key={k} className="flex items-baseline justify-between gap-3 text-sm">
-                        <span className="text-slate-500">{it.label}</span>
-                        <span className="font-semibold tabular-nums text-slate-900">
+                        <span className="text-muted-foreground">{it.label}</span>
+                        <span className="font-semibold tabular-nums text-foreground">
                           {fmtNum(it.value)}
                           {it.unit ? (
-                            <span className="ml-0.5 text-xs font-normal text-slate-400">
+                            <span className="ml-0.5 text-xs font-normal text-muted-foreground">
                               {it.unit}
                             </span>
                           ) : null}
                           {it.delta !== null && Math.abs(it.delta) >= 0.05 ? (
-                            <span className="ml-1.5 text-[11px] font-medium text-slate-400">
+                            <span className="ml-1.5 text-[11px] font-medium text-muted-foreground">
                               {it.delta > 0 ? '▲' : '▼'} {fmtNum(Math.abs(it.delta))}
                             </span>
                           ) : null}
@@ -261,15 +261,15 @@ export function PatientTimeline({
                   </ul>
                 </div>
               ) : n.kind === 'atendimento' ? (
-                <div className="mt-1.5 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <div className="mt-1.5 rounded-2xl border border-border bg-card p-4 shadow-sm">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                       <CalendarDays className="h-3.5 w-3.5" />
                     </span>
                     Atendimento
                   </p>
                   {n.appt.doctorName || n.appt.procedureName ? (
-                    <p className="mt-1 pl-9 text-sm text-slate-500">
+                    <p className="mt-1 pl-9 text-sm text-muted-foreground">
                       {[n.appt.doctorName, n.appt.procedureName].filter(Boolean).join(' · ')}
                     </p>
                   ) : null}
@@ -282,7 +282,7 @@ export function PatientTimeline({
                     </span>
                     Orientação da equipe
                   </p>
-                  <p className="mt-1.5 whitespace-pre-wrap pl-9 text-sm text-slate-700">
+                  <p className="mt-1.5 whitespace-pre-wrap pl-9 text-sm text-foreground">
                     {n.note.body}
                   </p>
                 </div>

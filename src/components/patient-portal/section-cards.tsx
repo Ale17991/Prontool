@@ -42,7 +42,7 @@ export function PortalSectionCards({ cards }: { cards: PortalCard[] }) {
 
   return (
     <section>
-      <h2 className="mb-3 text-sm font-bold text-slate-700">Seu acompanhamento</h2>
+      <h2 className="mb-3 text-sm font-bold text-foreground">Seu acompanhamento</h2>
       <div className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <SectionCard key={card.key} card={card} />
@@ -64,7 +64,7 @@ function SectionCard({ card }: { card: PortalCard }) {
     <>
       <span
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${
-          card.empty ? 'bg-slate-100 text-slate-400' : card.tone
+          card.empty ? 'bg-muted text-muted-foreground' : card.tone
         }`}
       >
         <Icon className="h-5 w-5" />
@@ -72,33 +72,33 @@ function SectionCard({ card }: { card: PortalCard }) {
       <span className="min-w-0 flex-1 sm:w-full sm:flex-none">
         <span
           className={`block truncate text-sm font-bold sm:text-[15px] ${
-            card.empty ? 'text-slate-400' : 'text-slate-800'
+            card.empty ? 'text-muted-foreground' : 'text-foreground'
           }`}
         >
           {card.label}
         </span>
         {/* No celular a prévia não pode quebrar a altura da linha; no ladrilho
             ela tem espaço para duas linhas. */}
-        <span className="mt-0.5 block truncate text-xs leading-snug text-slate-400 sm:whitespace-normal sm:line-clamp-2">
+        <span className="mt-0.5 block truncate text-xs leading-snug text-muted-foreground sm:whitespace-normal sm:line-clamp-2">
           {card.empty ? card.emptyHint : card.hint}
         </span>
       </span>
       {card.empty ? null : (
-        <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500 sm:hidden" />
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-foreground sm:hidden" />
       )}
     </>
   )
 
   if (card.empty) {
     return (
-      <div className={`${SHAPE} border border-dashed border-slate-200 bg-white/60`}>{body}</div>
+      <div className={`${SHAPE} border border-dashed border-border bg-card/60`}>{body}</div>
     )
   }
 
   return (
     <Link
       href={card.href}
-      className={`group ${SHAPE} border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md`}
+      className={`group ${SHAPE} border border-border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md`}
     >
       {body}
     </Link>

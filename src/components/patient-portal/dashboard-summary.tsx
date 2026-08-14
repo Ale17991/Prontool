@@ -1,4 +1,5 @@
 import { LayoutDashboard } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { WeightImcPoint } from '@/lib/core/patient-portal/read-portal'
 import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
 import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
@@ -69,33 +70,33 @@ export function DashboardSummary({ weightImc, metrics, metricTypes }: Props) {
   if (kpis.length === 0) return null
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-bold text-slate-700">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-          <LayoutDashboard className="h-4 w-4" />
-        </span>
-        Resumo
-      </h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <LayoutDashboard className="h-4 w-4 text-primary" />
+          Resumo
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {kpis.map((k, i) => (
-          <div key={i} className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-            <p className="truncate text-[11px] font-medium text-slate-400">{k.label}</p>
-            <p className="mt-0.5 text-xl font-bold tabular-nums text-slate-900">
+          <div key={i} className="rounded-xl border border-border bg-muted/40 p-3">
+            <p className="truncate text-[11px] font-medium text-muted-foreground">{k.label}</p>
+            <p className="mt-0.5 text-xl font-bold tabular-nums text-foreground">
               {fmtNum(k.value)}
               {k.unit ? (
-                <span className="ml-0.5 text-xs font-normal text-slate-400">{k.unit}</span>
+                <span className="ml-0.5 text-xs font-normal text-muted-foreground">{k.unit}</span>
               ) : null}
             </p>
             {k.delta !== null && Math.abs(k.delta) >= 0.05 ? (
-              <p className="text-[11px] font-medium text-slate-400">
+              <p className="text-[11px] font-medium text-muted-foreground">
                 {k.delta > 0 ? '▲' : '▼'} {fmtNum(Math.abs(k.delta))} vs anterior
               </p>
             ) : (
-              <p className="text-[11px] text-slate-300">—</p>
+              <p className="text-[11px] text-muted-foreground opacity-60">—</p>
             )}
           </div>
         ))}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   )
 }

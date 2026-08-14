@@ -9,7 +9,7 @@ import type { ReactNode } from 'react'
  */
 export function PortalEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-400">
+    <p className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
       {children}
     </p>
   )
