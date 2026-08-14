@@ -465,6 +465,17 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
 - **São DUAS janelas de horário, e isso é proposital**: `reminder_window_*` para
   o lembrete e `automation_window_*` para as automações. Cada tela diz que a
   outra existe, porque as duas mensagens não têm a mesma tolerância.
+- **Falha de envio é RETENTÁVEL, com teto de 3 tentativas** (migration `0203`).
+  Descoberto do jeito caro: na primeira tentativa real em produção o serviço de
+  WhatsApp respondeu 502, e `falhou` era desfecho FINAL — a linha não pode ser
+  apagada e a chave fica ocupada, então aquele paciente nunca mais receberia
+  aquela mensagem por uma indisponibilidade passageira. A linha **não** é
+  apagada como a supressão por teto: a supressão não aconteceu no mundo, a falha
+  aconteceu, e sem a linha não há onde contar tentativas — serviço quebrado
+  retentaria para sempre, ocupando a vaga do ciclo e calando as outras
+  automações. O trigger exige que `attempts` CRESÇA na reabertura, que é a única
+  contenção real. **`impedido_*` continua final**: sem consentimento, sem
+  telefone e sem variável são estados do mundo, não indisponibilidade.
 - **O gate de módulo vale no MOTOR, não só na tela.** `automations.active` é
   estado persistido: módulo revogado com o gate só na UI continuaria enviando
   para sempre. Módulo desligado não gera alerta (ausência de contratação não é

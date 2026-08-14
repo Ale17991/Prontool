@@ -146,3 +146,80 @@ describe('Feature 056 — automation_occurrences append-only', () => {
     expect(error).not.toBeNull()
   })
 })
+
+/**
+ * A terceira exceção, da migration 0203, e a mais recente: `falhou` volta a
+ * `pendente` para o ciclo tentar de novo.
+ *
+ * Ela existe por causa de um caso real — na primeira tentativa de envio em
+ * produção o serviço de WhatsApp respondeu 502, a ocorrência ficou `falhou`, e
+ * aí se descobriu que aquilo era definitivo: a linha não pode ser apagada e a
+ * chave fica ocupada, então o paciente nunca mais receberia aquela mensagem por
+ * causa de uma indisponibilidade passageira.
+ */
+describe('Feature 056 — retentativa de falha (0203)', () => {
+  let tenantId: string
+  let automationId: string
+  let patientId: string
+
+  beforeAll(async () => {
+    await resetDatabase()
+    tenantId = (await seedTenant('auto-retry')).tenantId
+    patientId = await seedPatient(tenantId)
+    automationId = await seedAutomacao(tenantId)
+  })
+
+  it('falhou volta a pendente quando as tentativas crescem', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'falhou')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente', attempts: 2 } as never)
+      .eq('id', id)
+    expect(error).toBeNull()
+  })
+
+  /**
+   * O contador é a única contenção que existe: sem exigir o incremento, um bug
+   * no motor reabriria a mesma linha para sempre, ocupando a vaga do ciclo (uma
+   * mensagem a cada 5 minutos) e calando as outras automações da clínica.
+   */
+  it('reabrir SEM incrementar a tentativa é recusado', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'falhou')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente' } as never)
+      .eq('id', id)
+    expect(error).not.toBeNull()
+    expect(error?.message).toMatch(/append-only/i)
+  })
+
+  it('falhou não pode virar enviado direto, sem passar por pendente', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'falhou')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'enviado', attempts: 2 } as never)
+      .eq('id', id)
+    expect(error).not.toBeNull()
+  })
+
+  /**
+   * Impedido continua final. Sem consentimento, sem telefone e sem variável são
+   * estados do mundo, não indisponibilidade — retentar seria insistir com quem
+   * disse não.
+   */
+  it('impedido NÃO é reaberto, mesmo incrementando a tentativa', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_consentimento')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente', attempts: 2 } as never)
+      .eq('id', id)
+    expect(error).not.toBeNull()
+  })
+
+  it('linha que falhou continua sem poder ser apagada', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'falhou')
+    const { error } = await sb.from('automation_occurrences' as never).delete().eq('id', id)
+    expect(error).not.toBeNull()
+    expect(error?.message).toMatch(/append-only/i)
+  })
+})
