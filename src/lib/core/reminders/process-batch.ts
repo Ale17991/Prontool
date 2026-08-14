@@ -43,6 +43,28 @@ const DEFAULT_TZ = 'America/Sao_Paulo'
 const WHATSAPP_SPACING_SECONDS = 4
 
 /**
+ * Quantos lembretes de WhatsApp UMA clínica manda por ciclo (feature 056, mesma
+ * preocupação).
+ *
+ * O espaçamento de 4 segundos já existia, mas o teto do lote era global (200) e
+ * não por clínica: nada impedia uma clínica sozinha de despachar duzentas
+ * mensagens seguidas, que é o padrão de disparo em massa que faz um número
+ * não-oficial ser bloqueado.
+ *
+ * O número sai de uma conta, não de gosto. A janela de seleção é de 15 minutos
+ * (`WINDOW_MINUTES`) e o ciclo passou a acontecer a cada 5, então um atendimento
+ * que não couber neste ciclo continua elegível nos DOIS seguintes — são três
+ * chances. Com o teto em 8, cada clínica escoa até 24 lembretes por janela, que
+ * cobre com folga a agenda real de uma clínica no mesmo horário, e o pior lote
+ * vira 8 mensagens em 32 segundos em vez de 200 em treze minutos.
+ *
+ * Subir este número encurta a fila e aumenta o risco de bloqueio, nessa ordem.
+ * Baixar demais faz lembrete ser PERDIDO: passadas as três chances, a janela
+ * anda e aquele atendimento não é mais selecionado.
+ */
+const WHATSAPP_MAX_POR_CLINICA_POR_CICLO = 8
+
+/**
  * Sem QStash configurado (dev), o envio acontece inline. Aí o lote precisa ser
  * pequeno: o espaçamento roda dentro da própria função e estouraria o timeout.
  */
@@ -222,6 +244,10 @@ export async function processBatch(
           }
         }
 
+        // Conta só o que vai pelo WhatsApp: e-mail não queima remetente do jeito
+        // que uma rajada queima um número, e limitá-lo só atrasaria aviso.
+        let whatsappDaClinica = 0
+
         for (const offsetHours of t.reminder_offsets_hours) {
           if (buffer.length >= MAX_BATCH) break
           for (const channel of channels) {
@@ -246,6 +272,20 @@ export async function processBatch(
                   Boolean(eligible.patientEmail)
                 if (!canFallback) continue
                 effective = 'email'
+              }
+
+              if (effective === 'whatsapp') {
+                if (whatsappDaClinica >= WHATSAPP_MAX_POR_CLINICA_POR_CICLO) {
+                  // Não é descarte: a janela de 15 minutos ainda cobre este
+                  // atendimento nos próximos dois ciclos, e a idempotência de
+                  // `appointment_reminders` impede o reenvio de quem já saiu.
+                  logger.info(
+                    { tenantId: t.tenant_id, teto: WHATSAPP_MAX_POR_CLINICA_POR_CICLO },
+                    'whatsapp-teto-por-ciclo-atingido',
+                  )
+                  continue
+                }
+                whatsappDaClinica++
               }
 
               buffer.push({

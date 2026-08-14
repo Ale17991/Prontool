@@ -360,6 +360,7 @@ async function evaluateTenant(
   const clinicName = tenant.corporate_name ?? 'Clínica'
 
   let enviadasNoCiclo = 0
+  let falhasDeEnvio = 0
 
   // Um cache por CLÍNICA e por CICLO. Vive só o tempo desta função de propósito:
   // cache que atravessasse ciclos guardaria consentimento já revogado.
@@ -464,6 +465,7 @@ async function evaluateTenant(
         await new Promise((res) => setTimeout(res, SPACING_MS))
       } else if (desfecho === 'falhou') {
         r.falhas++
+        falhasDeEnvio++
       } else {
         r.impedidas++
       }
@@ -484,6 +486,43 @@ async function evaluateTenant(
     if (suprimidasAqui === 0) {
       await markAutomationRan(supabase, auto.id, { ranAt: now, firedOn: plano.firedOn })
     }
+  }
+
+  /**
+   * FALHA DE ENVIO PRECISA APARECER PARA A CLÍNICA.
+   *
+   * Isto nasceu de um caso real: em 13/08/2026 o número da clínica caiu na
+   * Evolution, o serviço passou a responder 502 a cada envio, e a tela continuou
+   * dizendo "conectado" — porque `connection_status` é espelho do último evento
+   * recebido, não uma sondagem. As mensagens simplesmente não saíam, e o único
+   * lugar onde isso aparecia era o painel de ocorrências, que ninguém abre sem
+   * já desconfiar de alguma coisa.
+   *
+   * O alerta é AGREGADO por ciclo, como o de canal desconectado: uma clínica com
+   * fila grande produziria um alerta por paciente, e alerta que chega em rajada
+   * é alerta que se aprende a ignorar.
+   *
+   * Deliberadamente NÃO derruba o `connection_status`. Seria a correção óbvia e
+   * seria pior: uma falha passageira do serviço passaria a calar a clínica até
+   * alguém reconectar à mão, trocando "não avisou" por "parou de enviar". O
+   * espelho continua sendo do serviço; daqui sai o aviso.
+   */
+  if (falhasDeEnvio > 0) {
+    logger.warn({ tenantId, falhas: falhasDeEnvio }, 'automations-falhas-de-envio')
+    await dispatchAlert({
+      tenantId,
+      type: 'integration_sync_failed',
+      subjectRef: { provider: 'whatsapp', reason: 'send_failed_automations' },
+      detail: {
+        provider: 'whatsapp',
+        mensagem:
+          falhasDeEnvio === 1
+            ? 'Uma mensagem de automação não pôde ser enviada. Confira a conexão do número em Configurações → Lembretes: o status pode estar desatualizado.'
+            : `${falhasDeEnvio} mensagens de automação não puderam ser enviadas. Confira a conexão do número em Configurações → Lembretes: o status pode estar desatualizado.`,
+      },
+    }).catch(() => {
+      // Best-effort: alerta não pode derrubar o ciclo das outras clínicas.
+    })
   }
 
   return r

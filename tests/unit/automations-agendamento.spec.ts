@@ -92,7 +92,9 @@ describe('automação ancorada num horário', () => {
   it('na primeira vez, assume a janela de um ciclo', () => {
     const p = agendar(auto(), true, AS_14H30, TZ, HOJE)
     expect(p.rodar).toBe(true)
-    expect(AS_14H30.getTime() - p.windowFrom.getTime()).toBe(15 * 60_000)
+    // Um ciclo é de 5 minutos — a mesma cadência do pg_cron, que é também o
+    // espaçamento entre duas mensagens da clínica.
+    expect(AS_14H30.getTime() - p.windowFrom.getTime()).toBe(5 * 60_000)
   })
 
   /**

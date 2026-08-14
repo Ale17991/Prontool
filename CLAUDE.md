@@ -182,9 +182,15 @@ por clínica, conectado por QR em autoatendimento.
   (0094) só permite `queued → terminal`. "Status atual" é regra de **leitura**,
   resolvida por precedência de rank (`sent < delivered < read < error`) — nunca
   pelo evento mais recente, porque confirmações chegam fora de ordem.
-- **Espaçamento via QStash com delay crescente, por clínica** (`process-batch`).
-  Não é cron mais frequente: acima de diário trava TODOS os deploys no Hobby.
-  Sem `QSTASH_TOKEN` o ciclo cai num envio inline de lote pequeno (dev).
+- **Espaçamento via QStash com delay crescente, por clínica** (`process-batch`),
+  MAIS um teto de 8 lembretes de WhatsApp por clínica por ciclo. O espaçamento
+  de 4s já existia, mas o teto do lote era global (200) e não por clínica: nada
+  impedia uma clínica sozinha de despachar duzentas seguidas. O 8 sai de uma
+  conta — a janela de seleção é de 15 minutos e o ciclo é de 5, então o
+  atendimento que não couber continua elegível nos DOIS ciclos seguintes; com 8
+  por ciclo, escoam 24 por janela. Baixar demais faz lembrete ser PERDIDO, não
+  adiado: passadas as três chances, a janela anda. E-mail segue sem teto —
+  não queima remetente do jeito que a rajada queima um número.
 - **Idempotência ponta a ponta**: o `externalId` mandado ao serviço é o **id do
   lembrete**, e o serviço tem `UNIQUE (tenant_id, external_id)`. Retentativa não
   duplica mensagem.
@@ -453,6 +459,36 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   conecta o número de WhatsApp, e a maior parte das clínicas não contratou
   automações — esconder o card sem a condição deixaria essas clínicas sem canal e
   sem lembrete. O motor continua separado (FR-024); o que mudou foi o caminho.
+- **A tela de Lembretes perdeu as opções que a de Automações faz melhor**:
+  antecedências, template de e-mail e texto do WhatsApp saíram. Sobraram o
+  liga-desliga, os canais, a conexão do número e a janela de horário. **Só a
+  INTERFACE saiu** — `reminder_offsets_hours` e os templates continuam no banco e
+  continuam sendo reenviados intactos a cada salvamento, porque é deles que o
+  motor da 018 tira quando e o que mandar; apagá-los junto com os campos teria
+  desligado o lembrete de consulta de todas as clínicas. O liga-desliga fica
+  porque não é opção de notificação: é o interruptor do motor, e sem ele uma
+  clínica com lembrete desligado não teria por onde religar.
+- **São DUAS janelas de horário, e isso é proposital**: `reminder_window_*` para
+  o lembrete e `automation_window_*` para as automações. Cada tela diz que a
+  outra existe, porque as duas mensagens não têm a mesma tolerância.
+- **Falha de envio é RETENTÁVEL, com teto de 3 tentativas** (migration `0203`).
+  Descoberto do jeito caro: na primeira tentativa real em produção o serviço de
+  WhatsApp respondeu 502, e `falhou` era desfecho FINAL — a linha não pode ser
+  apagada e a chave fica ocupada, então aquele paciente nunca mais receberia
+  aquela mensagem por uma indisponibilidade passageira. A linha **não** é
+  apagada como a supressão por teto: a supressão não aconteceu no mundo, a falha
+  aconteceu, e sem a linha não há onde contar tentativas — serviço quebrado
+  retentaria para sempre, ocupando a vaga do ciclo e calando as outras
+  automações. O trigger exige que `attempts` CRESÇA na reabertura, que é a única
+  contenção real. **`impedido_*` continua final**: sem consentimento, sem
+  telefone e sem variável são estados do mundo, não indisponibilidade.
+- **Falha de envio gera ALERTA agregado por ciclo**, e deliberadamente NÃO
+  derruba o `connection_status`. O caso real: o número caiu na Evolution, o
+  serviço passou a responder 502, e a tela seguiu dizendo "conectado" — porque a
+  coluna é espelho do último evento, não sondagem. Derrubar o espelho na falha
+  seria a correção óbvia e seria pior: uma indisponibilidade passageira passaria
+  a calar a clínica até alguém reconectar à mão, trocando "não avisou" por
+  "parou de enviar". O espelho continua sendo do serviço; daqui sai o aviso.
 - **O gate de módulo vale no MOTOR, não só na tela.** `automations.active` é
   estado persistido: módulo revogado com o gate só na UI continuaria enviando
   para sempre. Módulo desligado não gera alerta (ausência de contratação não é
