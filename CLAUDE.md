@@ -476,6 +476,13 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   automações. O trigger exige que `attempts` CRESÇA na reabertura, que é a única
   contenção real. **`impedido_*` continua final**: sem consentimento, sem
   telefone e sem variável são estados do mundo, não indisponibilidade.
+- **Falha de envio gera ALERTA agregado por ciclo**, e deliberadamente NÃO
+  derruba o `connection_status`. O caso real: o número caiu na Evolution, o
+  serviço passou a responder 502, e a tela seguiu dizendo "conectado" — porque a
+  coluna é espelho do último evento, não sondagem. Derrubar o espelho na falha
+  seria a correção óbvia e seria pior: uma indisponibilidade passageira passaria
+  a calar a clínica até alguém reconectar à mão, trocando "não avisou" por
+  "parou de enviar". O espelho continua sendo do serviço; daqui sai o aviso.
 - **O gate de módulo vale no MOTOR, não só na tela.** `automations.active` é
   estado persistido: módulo revogado com o gate só na UI continuaria enviando
   para sempre. Módulo desligado não gera alerta (ausência de contratação não é
