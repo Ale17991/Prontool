@@ -118,6 +118,106 @@ export async function sendBookingEmail(
 }
 
 // =========================================================================
+// Redefinição de senha (self-service) — o único e-mail transacional que sai
+// do endereço de "não responda". Os demais (alertas, agendamento, suporte)
+// são conversas em que responder faz sentido; este é o oposto: quem recebe
+// não deve responder, e o endereço diz isso antes de o texto explicar.
+// =========================================================================
+
+export interface SendPasswordResetEmailInput {
+  to: string
+  /** Link de recuperação do Supabase (`generateLink`), já com o redirectTo. */
+  actionLink: string
+}
+
+/**
+ * Remetente próprio, separado do `RESEND_FROM` dos alertas: o padrão de
+ * fábrica dos outros envios aponta para o domínio de desenvolvimento, e um
+ * e-mail de recuperação de senha saindo de `dev.` é exatamente o que treina o
+ * usuário a ignorar aviso de segurança — ou o provedor a marcar como phishing.
+ */
+function passwordResetFrom(): string {
+  return process.env.RESEND_FROM_NOREPLY ?? 'nao-responda@clinnipro.com.br'
+}
+
+export async function sendPasswordResetEmail(
+  input: SendPasswordResetEmailInput,
+): Promise<{ id: string | null }> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    logger.warn({}, 'resend-not-configured-skipping-password-reset-email')
+    return { id: null }
+  }
+
+  try {
+    const res = await getResend(key).emails.send({
+      from: passwordResetFrom(),
+      to: [input.to],
+      subject: 'Redefinição de senha — Clinni',
+      html: renderPasswordResetHtml(input.actionLink),
+      text: renderPasswordResetText(input.actionLink),
+    })
+    return { id: res.data?.id ?? null }
+  } catch (err) {
+    // Sem e-mail em log: quem recebeu o link é justamente o dado que este
+    // fluxo não deve deixar espalhado. O chamador loga o hash.
+    logger.error({ err }, 'resend-send-password-reset-failed')
+    return { id: null }
+  }
+}
+
+function renderPasswordResetHtml(actionLink: string): string {
+  const href = escapeHtml(actionLink)
+  return `<!doctype html>
+<html lang="pt-BR">
+  <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; color: #0f172a;">
+    <h2 style="margin: 0 0 16px; font-size: 20px;">Redefinição de senha</h2>
+    <p style="font-size: 14px; line-height: 1.6;">
+      Recebemos um pedido para redefinir a senha da sua conta na Clinni.
+      Clique no botão abaixo para escolher uma nova senha.
+    </p>
+    <p style="margin: 24px 0;">
+      <a href="${href}" style="background: #003883; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 14px;">Criar nova senha</a>
+    </p>
+    <p style="font-size: 13px; line-height: 1.6; color: #475569;">
+      O link vale por tempo limitado e só pode ser usado uma vez.
+      <strong>Se você não pediu isso, ignore este e-mail</strong> — sua senha
+      atual continua valendo e nada muda.
+    </p>
+    <p style="font-size: 12px; color: #64748b; line-height: 1.6;">
+      Se o botão não funcionar, copie e cole este endereço no navegador:<br />
+      <span style="word-break: break-all;">${href}</span>
+    </p>
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+    <p style="color: #94a3b8; font-size: 11px;">
+      Esta mensagem foi enviada por um endereço que não recebe respostas.
+    </p>
+  </body>
+</html>`
+}
+
+/**
+ * Versão em texto puro junto do HTML. Não é capricho: e-mail transacional só
+ * com HTML pontua pior em filtro de spam, e o de recuperação de senha é
+ * justamente o que não pode cair na caixa de lixo.
+ */
+function renderPasswordResetText(actionLink: string): string {
+  return [
+    'Redefinição de senha',
+    '',
+    'Recebemos um pedido para redefinir a senha da sua conta na Clinni.',
+    'Abra o endereço abaixo para escolher uma nova senha:',
+    '',
+    actionLink,
+    '',
+    'O link vale por tempo limitado e só pode ser usado uma vez.',
+    'Se você não pediu isso, ignore este e-mail — sua senha atual continua valendo.',
+    '',
+    'Esta mensagem foi enviada por um endereço que não recebe respostas.',
+  ].join('\n')
+}
+
+// =========================================================================
 // Tickets de suporte (bug/sugestao/suporte) — enviados pelos usuarios via
 // botao na sidebar. Destino: operations@homio.com.br (ou SUPPORT_TICKETS_TO
 // em env). Carrega contexto pra triagem (origem, role, page_url, user-agent).

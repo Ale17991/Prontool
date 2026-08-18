@@ -41,6 +41,7 @@ const AUTH_EXEMPT_PREFIXES = [
   'sso/ghl',            // GHL Marketplace context_token JWT (feature 008)
   'auth/signup',        // signup público (feature 010 US2 — FR-009)
   'auth/logout',        // logout de staff (público — qualquer um se desloga)
+  'auth/esqueci-senha', // pedido público de redefinição (0206 — rate-limit por caixa e por IP)
   'onboarding',         // pós-signup, sem tenant claim ainda (feature 010 US2 — FR-014)
   'public/',            // booking público (feature 017 — slug + IP-hash + Turnstile)
   'cron/',              // Vercel Cron (feature 018 — Bearer ${CRON_SECRET})
