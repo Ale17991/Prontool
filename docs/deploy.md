@@ -88,6 +88,13 @@ Supabase primeiro desbloqueia os env vars que todo mundo precisa.
 4. Criar API key com escopo de envio e guardar em `RESEND_API_KEY`.
 5. Sender: `alertas@clinnipro.io` (ou subdomínio `no-reply@alerts.clinnipro.io`
    se preferir separação) — preencher em `RESEND_FROM`.
+6. **Redefinição de senha** sai de outro remetente, `RESEND_FROM_NOREPLY`
+   (padrão `nao-responda@clinnipro.com.br`). Se o domínio usado nele for
+   diferente do da seção acima, ele precisa de verificação PRÓPRIA no Resend —
+   domínio verificado não cobre os outros. Enquanto não estiver verificado, o
+   pedido de nova senha responde normalmente na tela (a resposta é genérica por
+   design) e o e-mail simplesmente não chega; o sintoma no log é
+   `resend-send-password-reset-failed`.
 
 Teste fumaça (antes do deploy):
 
@@ -97,6 +104,52 @@ curl -X POST https://api.resend.com/emails \
   -H "Content-Type: application/json" \
   -d '{"from":"alertas@clinnipro.io","to":["voce@clinnipro.io"],"subject":"ping","text":"ok"}'
 ```
+
+### 2.1 SMTP custom no Supabase (👤 operador)
+
+O app manda alguns e-mails por conta própria (alerta, agendamento, suporte, e o
+link de redefinição de senha da 0206). Outros quem manda é o **Supabase Auth** —
+convite de usuário, confirmação de e-mail, troca de e-mail. Esses últimos saem
+do remetente do PROJETO, não do nosso código: nenhuma variável do repo os
+alcança. Enquanto o SMTP custom não é configurado, eles chegam do endereço
+padrão do Supabase, que não tem nada a ver com a clínica.
+
+Dashboard → **Authentication → SMTP Settings** (`/auth/smtp`):
+
+| Campo        | Valor                                                |
+| ------------ | ---------------------------------------------------- |
+| Host         | `smtp.resend.com`                                    |
+| Port         | `465` (SSL implícito) ou `587` (STARTTLS)            |
+| Username     | `resend` — literalmente essa palavra, não é o e-mail |
+| Password     | a `RESEND_API_KEY` (a MESMA chave da seção 2)        |
+| Sender email | `nao-responda@clinnipro.com.br`                      |
+| Sender name  | `Clinni`                                             |
+
+Três armadilhas, em ordem de quanto machucam:
+
+1. **Ao ligar o SMTP custom, o Supabase impõe 30 e-mails/hora.** O padrão dele
+   sem SMTP custom é 2/hora, então ligar melhora — mas 30/hora estoura numa
+   clínica que cadastra a equipe toda numa tarde, e o sintoma é convite que
+   simplesmente não chega, sem erro na tela de quem convidou. Subir em
+   Authentication → **Rate Limits** (`/auth/rate-limits`), logo depois de salvar
+   o SMTP. Não deixe para depois: o teto já está valendo.
+2. **O domínio do "Sender email" precisa estar verificado no Resend.** Domínio
+   verificado não cobre os outros — `clinnipro.com.br` e `clinnipro.io` são
+   verificações separadas. Sem isso o Resend recusa e NENHUM e-mail de auth sai.
+3. **Isto não substitui a `RESEND_FROM_NOREPLY`.** São dois canais distintos: o
+   SMTP resolve o que o Supabase manda (convite, confirmação); a env resolve o
+   que o nosso código manda (redefinição de senha). Configurar um e esquecer o
+   outro deixa metade dos e-mails saindo do endereço errado.
+
+Efeito colateral bem-vindo: com o SMTP ligado, o reset iniciado pelo admin
+(`sendTeamMemberPasswordReset` e `adminSendResetEmailAction`, que usam
+`resetPasswordForEmail` — quem envia é o Supabase) passa a sair do mesmo
+`nao-responda@` que o fluxo self-service. Antes disso, os dois caminhos de
+redefinição chegam ao usuário de remetentes diferentes.
+
+Teste fumaça: convide um usuário de verdade em `/configuracoes/usuarios` e
+confirme o remetente no e-mail que chegar. A tela não distingue "enviado" de
+"aceito pelo SMTP" — só o e-mail na caixa comprova.
 
 ## 3. QStash (Upstash) (👤 operador)
 
@@ -135,6 +188,7 @@ curl -X POST https://api.resend.com/emails \
    | `QSTASH_NEXT_SIGNING_KEY`       | da seção 3                            |
    | `RESEND_API_KEY`                | da seção 2                            |
    | `RESEND_FROM`                   | `alertas@clinnipro.io`                |
+   | `RESEND_FROM_NOREPLY`           | `nao-responda@clinnipro.com.br`       |
    | `PLATFORM_OPERATOR_TOKEN`       | `openssl rand -hex 32` (novo em prod) |
    | `LOG_LEVEL`                     | `info`                                |
    | `NEXT_PUBLIC_FEATURE_*`         | `true` para telas que vão ao ar       |
