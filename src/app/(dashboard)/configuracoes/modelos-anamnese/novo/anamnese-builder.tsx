@@ -23,6 +23,7 @@ import {
   Trash2,
   Type,
 } from 'lucide-react'
+import { BackLink } from '@/components/ui/back-link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -156,7 +157,9 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
     const usados = new Set(base.fields.filter((f) => f.is_default).map((f) => f.id))
     return Object.fromEntries(DEFAULT_FIELDS.map((d) => [d.id, usados.has(d.id)]))
   })
-  const [fields, setFields] = useState<Field[]>(base ? base.fields.filter((f) => !f.is_default) : [])
+  const [fields, setFields] = useState<Field[]>(
+    base ? base.fields.filter((f) => !f.is_default) : [],
+  )
   const [activeTab, setActiveTab] = useState<'build' | 'preview'>('build')
 
   function addField(type: FieldType) {
@@ -247,6 +250,13 @@ export function AnamneseBuilder({ base }: { base?: BuilderBase | null }) {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-end md:justify-between">
         <div>
+          {/* Em <div> próprio: o vizinho aqui é o Badge, que também é inline —
+              soltos, link e selo dividiriam a mesma linha. */}
+          <div className="mb-2">
+            <BackLink href="/configuracoes/modelos-anamnese">
+              Voltar para modelos de anamnese
+            </BackLink>
+          </div>
           <Badge variant="outline" className="bg-slate-50 text-slate-500">
             Anamnese · rascunho
           </Badge>

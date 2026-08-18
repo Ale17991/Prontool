@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { PeriodShortcuts } from '@/components/ui/period-shortcuts'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ReportsSubNav } from '../reports-sub-nav'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,9 @@ export default async function PorProfissionalPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/analise/relatorios" className="mb-2">
+          Voltar para relatórios
+        </BackLink>
         <h1 className="text-2xl font-black tracking-tight text-slate-900">
           Relatório por profissional
         </h1>

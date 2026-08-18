@@ -6,6 +6,7 @@ import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { listFoodGroups } from '@/lib/core/nutrition/foods/equivalence'
 import { FoodsCatalogClient } from './foods-catalog-client'
 import { EquivalenceListsClient } from './equivalence-lists-client'
+import { BackLink } from '@/components/ui/back-link'
 
 /**
  * Feature 047 US1 — base de alimentos (gated por `dieta`).
@@ -29,6 +30,9 @@ export default async function AlimentosConfigPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <Apple className="h-6 w-6 text-primary" /> Alimentos
         </h1>

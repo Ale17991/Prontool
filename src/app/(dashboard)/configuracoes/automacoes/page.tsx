@@ -12,6 +12,7 @@ import { listMessageTemplates } from '@/lib/core/automations/store'
 import { buildSourceCatalog } from '@/lib/core/automations/catalog'
 import { getSource } from '@/lib/core/automations/sources'
 import { getAutomationMetrics, metricsVazio } from '@/lib/core/automations/metrics'
+import { BackLink } from '@/components/ui/back-link'
 import { AutomacoesClient } from './automacoes-client'
 
 export const dynamic = 'force-dynamic'
@@ -105,6 +106,10 @@ export default async function AutomacoesPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
+      {/* Fora do <header>, e não acima do <h1> como nas demais telas: aqui o
+          ícone é irmão do título num flex, e o retorno colado ao h1 empurraria
+          o título para baixo deixando o ícone alinhado ao link. */}
+      <BackLink href="/configuracoes">Voltar às configurações</BackLink>
       <header className="flex items-start gap-3">
         <Wand2 className="mt-1 h-6 w-6 text-primary" aria-hidden />
         <div>

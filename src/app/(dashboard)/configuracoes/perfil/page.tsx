@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getUserProfile } from '@/lib/core/user-profile/read'
 import { UserProfileForm } from './user-profile-form'
 import { ChangePasswordForm } from './change-password-form'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,9 @@ export default async function PerfilPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <UserCircle className="h-6 w-6 text-primary" />
           Meu perfil

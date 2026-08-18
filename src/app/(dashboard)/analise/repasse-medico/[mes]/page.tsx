@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import { PayoutsView } from './payouts-view'
 import { RepasseSubNav } from '../repasse-sub-nav'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +71,9 @@ export default async function RepasseMesPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
+          <BackLink href="/analise/repasse-medico" className="mb-2">
+            Voltar para repasse médico
+          </BackLink>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">
             Repasse Médico — {params.mes}
           </h1>

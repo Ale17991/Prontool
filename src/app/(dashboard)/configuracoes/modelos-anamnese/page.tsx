@@ -17,6 +17,7 @@ import {
 import { formatDate } from '@/lib/utils'
 import { TemplateActiveToggle } from './template-active-toggle'
 import { ReadyMadeTemplates } from './ready-made-templates'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,6 +77,9 @@ export default async function AnamneseTemplatesPage({ searchParams }: PageProps)
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
+          <BackLink href="/configuracoes" className="mb-2">
+            Voltar às configurações
+          </BackLink>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Modelos de anamnese</h1>
           <p className="mt-1 text-sm text-slate-500">
             Formulários clínicos versionados. Editar um modelo cria uma nova versão; anamneses já

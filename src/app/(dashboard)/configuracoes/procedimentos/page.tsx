@@ -17,6 +17,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { NewProcedureForm } from './new-procedure-form'
 import { ProcedureRowActions } from './procedure-row-actions'
 import { TussTableBadge, type TussTable } from './tuss-table-badge'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,6 +70,9 @@ export default async function ProcedimentosPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="text-2xl font-black tracking-tight text-slate-900">Procedimentos</h1>
         <p className="mt-1 text-sm text-slate-500">
           {rows.length} procedimento{rows.length === 1 ? '' : 's'} cadastrado

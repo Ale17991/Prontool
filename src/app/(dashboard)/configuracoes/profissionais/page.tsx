@@ -20,6 +20,7 @@ import { getEnabledIntegrations } from '@/lib/core/integrations/config'
 import type { Database } from '@/lib/db/types'
 import { NewDoctorForm } from './new-doctor-form'
 import { ToggleActiveDoctor } from './toggle-active-doctor'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,6 +105,9 @@ export default async function ProfissionaisPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="text-2xl font-black tracking-tight text-slate-900">Profissionais</h1>
         <p className="mt-1 text-sm text-slate-500">
           {doctors.length} profissiona{doctors.length === 1 ? 'l' : 'is'} · {activeCount} ativo

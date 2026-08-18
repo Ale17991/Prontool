@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { ReportsSubNav } from '../reports-sub-nav'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,6 +54,9 @@ export default async function MedicoPlanoPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/analise/relatorios" className="mb-2">
+          Voltar para relatórios
+        </BackLink>
         <h1 className="text-2xl font-black tracking-tight text-slate-900">Médico × convênio</h1>
         <p className="mt-1 text-sm text-slate-500">
           Faturamento de cada profissional por convênio —{' '}

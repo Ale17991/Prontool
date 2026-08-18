@@ -28,6 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,6 +66,9 @@ export default async function RelatorioMensalPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
+          <BackLink href="/analise/relatorios" className="mb-2">
+            Voltar para relatórios
+          </BackLink>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Relatório mensal</h1>
           <p className="mt-1 text-sm text-slate-500">
             Receita por plano, produção por profissional e comissão líquida para o período. Os

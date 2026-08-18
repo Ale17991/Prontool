@@ -20,7 +20,11 @@ export function LoadingSpinner({
       role="status"
       aria-live="polite"
       className={cn(
-        'flex min-h-[50vh] w-full flex-col items-center justify-center gap-3 text-slate-500',
+        // Token, não `slate-500`: o mesmo spinner atende o portal do paciente,
+        // onde a paleta é da clínica (058). Cor fixa em classe é invisível para
+        // qualquer tema, e a espera reapresentaria o cinza do produto dentro do
+        // portal temado.
+        'flex min-h-[50vh] w-full flex-col items-center justify-center gap-3 text-muted-foreground',
         className,
       )}
     >
