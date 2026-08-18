@@ -228,6 +228,11 @@ export async function middleware(req: NextRequest) {
     // precisa ser pública senão o middleware redireciona pro /login antes do
     // browser client processar o token.
     pathname.startsWith('/redefinir-senha') ||
+    // Pedido do link (self-service): quem chega aqui está sem conseguir entrar,
+    // então mandar para /login é mandar de volta ao problema. A rota de API
+    // acompanha — o teto de abuso dela é rate-limit, não sessão.
+    pathname.startsWith('/esqueci-senha') ||
+    pathname.startsWith('/api/auth/esqueci-senha') ||
     // Backlog 1/3 — auto-cadastro do paciente: página + API públicas (token).
     pathname.startsWith('/completar-cadastro') ||
     pathname.startsWith('/api/public/') ||

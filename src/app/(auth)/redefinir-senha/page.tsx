@@ -91,9 +91,15 @@ export default function RedefinirSenhaPage() {
         ) : !hasSession ? (
           <div className="space-y-3">
             <p className="rounded-md border border-warning/30 bg-[hsl(var(--warning)/0.1)] p-3 text-sm text-[hsl(var(--warning-foreground))]">
-              Link inválido ou expirado. Solicite um novo link de recuperação ao administrador da
-              clínica.
+              Link inválido ou expirado. Peça um novo — o link só pode ser usado uma vez, e pedir
+              outro invalida o anterior.
             </p>
+            {/* Antes esta tela mandava falar com o administrador, porque era a
+                única saída existente. Com o self-service, o beco sem saída
+                virou um botão. */}
+            <Button className="w-full" onClick={() => router.push('/esqueci-senha')}>
+              Pedir novo link
+            </Button>
             <Button variant="outline" className="w-full" onClick={() => router.push('/login')}>
               Voltar ao login
             </Button>

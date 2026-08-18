@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Stethoscope } from 'lucide-react'
 import { createSupabaseBrowserClient } from '@/lib/db/supabase-browser'
@@ -61,7 +62,17 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
+            <div className="flex items-baseline justify-between gap-2">
+              <Label htmlFor="password">Senha</Label>
+              {/* Junto do campo, e não só no rodapé: é aqui que a pessoa
+                  descobre que não lembra a senha. */}
+              <Link
+                href="/esqueci-senha"
+                className="text-[11px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
@@ -82,7 +93,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-center text-[11px] text-steel">
-          Esqueceu sua senha? Fale com o administrador da clínica.
+          Problemas para entrar? Fale com o administrador da clínica.
         </p>
       </div>
     </main>

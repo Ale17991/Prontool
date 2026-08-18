@@ -40,6 +40,21 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+# NÃO acrescentar [auth.email.smtp] aqui.
+#
+# O SMTP custom (Resend, `nao-responda@clinnipro.com.br`) é configuração do
+# projeto HOSPEDADO — Dashboard → Authentication → SMTP Settings, documentado em
+# docs/deploy.md §2.1. Este arquivo governa só o stack local, onde os e-mails de
+# auth são capturados pelo Inbucket acima (http://localhost:54324) e ficam
+# visíveis sem sair da máquina.
+#
+# Espelhar o SMTP real aqui parece consistência e é o oposto: a suíte de testes
+# cria usuários e dispara convite, e o interceptador de saída em
+# tests/helpers/setup.ts pega HTTP (Resend, QStash) — não pega SMTP, que sai do
+# container do Supabase, fora do processo do Node. Cada `pnpm test` viraria uma
+# rajada de e-mail real para endereços de teste, queimando a reputação do
+# domínio que a produção depende.
+
 [auth.hook.custom_access_token]
 enabled = true
 uri = "pg-functions://postgres/public/auth_hook_custom_claims"
