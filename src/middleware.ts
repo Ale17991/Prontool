@@ -240,6 +240,12 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/paciente/') ||
     pathname === '/paciente' ||
     pathname.startsWith('/api/paciente/') ||
+    // Política de privacidade: pública por obrigação, não por conveniência. A
+    // revisão do OAuth do Google abre esta URL SEM sessão — se o middleware a
+    // mandasse para /login, a verificação seria reprovada por política
+    // inacessível, e o sintoma ("não conseguimos acessar sua política") não
+    // apontaria para o middleware.
+    pathname === '/politica-de-privacidade' ||
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next()
