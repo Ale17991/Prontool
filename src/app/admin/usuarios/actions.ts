@@ -12,6 +12,7 @@ import { inviteTeamMember } from '@/lib/core/team/invite'
 import { updateClinicProfile } from '@/lib/core/clinic-profile/update'
 import { headers } from 'next/headers'
 import { originFromHeaders } from '@/lib/core/app-url'
+import { issueResetLink } from '@/lib/core/auth/password-reset'
 import type { Database } from '@/lib/db/types'
 
 export interface AdminUserActionResult {
@@ -124,9 +125,15 @@ export async function adminSendResetEmailAction(
   const { data: u } = await sb.auth.admin.getUserById(targetUserId)
   const email = u?.user?.email
   if (!email) return { ok: false, error: 'Usuário sem e-mail.' }
-  const redirectTo = `${originFromHeaders(headers())}/redefinir-senha`
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo })
-  if (error) return { ok: false, error: error.message }
+  // Mesmo envio do pedido público (`issueResetLink`): remetente da clínica e
+  // link direto para a nossa página. Antes era `resetPasswordForEmail`, em que
+  // quem envia é o Supabase — outro remetente, e um redirect que depende da
+  // allowlist de Redirect URLs estar certa.
+  const res = await issueResetLink(sb, {
+    email,
+    baseUrl: originFromHeaders(headers()),
+  })
+  if (!res.sent) return { ok: false, error: res.detail ?? 'Falha ao enviar o e-mail.' }
   return { ok: true }
 }
 

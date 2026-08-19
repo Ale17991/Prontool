@@ -142,11 +142,11 @@ function passwordResetFrom(): string {
 
 export async function sendPasswordResetEmail(
   input: SendPasswordResetEmailInput,
-): Promise<{ id: string | null }> {
+): Promise<{ id: string | null; detail?: string }> {
   const key = process.env.RESEND_API_KEY
   if (!key) {
     logger.warn({}, 'resend-not-configured-skipping-password-reset-email')
-    return { id: null }
+    return { id: null, detail: 'RESEND_API_KEY ausente no runtime' }
   }
 
   try {
@@ -168,7 +168,10 @@ export async function sendPasswordResetEmail(
         { name: res.error.name, message: res.error.message, from },
         'resend-recusou-password-reset',
       )
-      return { id: null }
+      return {
+        id: null,
+        detail: `resend recusou (${res.error.name}): ${res.error.message} [from=${from}]`,
+      }
     }
     return { id: res.data?.id ?? null }
   } catch (err) {
@@ -176,7 +179,10 @@ export async function sendPasswordResetEmail(
     // Sem e-mail em log: quem recebeu o link é justamente o dado que este
     // fluxo não deve deixar espalhado. O chamador loga o hash.
     logger.error({ err }, 'resend-send-password-reset-failed')
-    return { id: null }
+    return {
+      id: null,
+      detail: `excecao de rede: ${err instanceof Error ? err.message : String(err)}`,
+    }
   }
 }
 

@@ -1,12 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError, ValidationError } from '@/lib/observability/errors'
+import { issueResetLink } from '@/lib/core/auth/password-reset'
 
 /**
  * Admin dispara o e-mail de redefinição de senha para um membro da equipe.
- * Usa `resetPasswordForEmail` (o Supabase ENVIA o e-mail, igual ao convite),
- * com `redirectTo` -> `/redefinir-senha` (a rota deriva do host real). Requer a
- * URL na allowlist de Redirect URLs do Supabase (ver project-auth-url-config).
+ *
+ * Passou a usar `issueResetLink` — o MESMO envio do pedido público. Antes era
+ * `resetPasswordForEmail`, em que quem envia é o Supabase: o membro da equipe
+ * recebia de um remetente diferente do que recebe quando pede sozinho, e o link
+ * atravessava o redirect que depende da allowlist de Redirect URLs. Quando ela
+ * não bate, o Supabase cai no Site URL e o destino quebra (19/08/2026).
  */
 export async function sendTeamMemberPasswordReset(
   supabaseService: SupabaseClient<Database>,
@@ -29,11 +33,10 @@ export async function sendTeamMemberPasswordReset(
   const email = userRes.user?.email
   if (!email) throw new ValidationError('Usuário sem e-mail cadastrado.')
 
-  const redirectTo = `${args.baseUrl.replace(/\/+$/, '')}/redefinir-senha`
-  const { error: resetErr } = await supabaseService.auth.resetPasswordForEmail(email, {
-    redirectTo,
-  })
-  if (resetErr) throw new Error(`resetPasswordForEmail failed: ${resetErr.message}`)
+  const res = await issueResetLink(supabaseService, { email, baseUrl: args.baseUrl })
+  if (!res.sent) {
+    throw new Error(`envio da redefinicao falhou (${res.reason}): ${res.detail ?? 'sem detalhe'}`)
+  }
 
   await supabaseService.from('audit_log').insert({
     tenant_id: args.tenantId,

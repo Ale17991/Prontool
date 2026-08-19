@@ -9,9 +9,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 /**
- * Destino do link de recuperação de senha. O Supabase volta do endpoint de
- * verify com a sessão de recovery (no hash da URL); o browser client detecta
- * automaticamente (detectSessionInUrl) e aqui o usuário define a nova senha.
+ * Destino do link de recuperação de senha. Aceita DUAS formas de chegada:
+ *
+ *  1. `?token_hash=...&type=recovery` — o link aponta direto para cá e a troca
+ *     por sessão acontece aqui, via `verifyOtp`. É a forma que o nosso envio
+ *     usa desde 19/08/2026.
+ *  2. Sessão no hash da URL (`#access_token=...`) — quando o link passou pelo
+ *     endpoint de verify do Supabase, que redireciona para cá. O browser client
+ *     capta sozinho (`detectSessionInUrl`).
+ *
+ * A forma 1 existe porque a 2 depende de configuração de painel: o destino
+ * precisa estar na allowlist de Redirect URLs, e quando não está o Supabase
+ * DESCARTA o destino em silêncio e cai no Site URL do projeto. Com um Site URL
+ * gravado sem `https://`, o resultado é uma URL relativa dentro do domínio do
+ * Supabase — 404 na cara de quem esqueceu a senha. A forma 2 continua suportada
+ * porque links antigos, já na caixa de entrada de alguém, chegam assim.
  */
 export default function RedefinirSenhaPage() {
   const router = useRouter()
@@ -35,10 +47,39 @@ export default function RedefinirSenhaPage() {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) setHasSession(true)
     })
-    void supabase.auth.getSession().then(({ data }) => {
+
+    // Lido de `window.location` e não de `useSearchParams`: aquele hook obriga
+    // a página inteira a virar dinâmica ou a ganhar um limite de Suspense, e
+    // aqui já estamos dentro de um efeito no cliente.
+    const params = new URLSearchParams(window.location.search)
+    const tokenHash = params.get('token_hash')
+    const type = params.get('type')
+
+    async function boot() {
+      if (tokenHash && type === 'recovery') {
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'recovery',
+        })
+        if (otpError) {
+          // Mesma mensagem do link ausente: para quem está do lado de fora,
+          // "expirou" e "inválido" pedem a mesma ação — pedir outro.
+          setReady(true)
+          return
+        }
+        setHasSession(true)
+        // Tira o token da barra de endereços: ele some do histórico e de um
+        // eventual print de tela. Já foi consumido, mas continua sendo credencial.
+        window.history.replaceState({}, '', window.location.pathname)
+        setReady(true)
+        return
+      }
+      const { data } = await supabase.auth.getSession()
       if (data.session) setHasSession(true)
       setReady(true)
-    })
+    }
+    void boot()
+
     return () => sub.subscription.unsubscribe()
   }, [])
 
