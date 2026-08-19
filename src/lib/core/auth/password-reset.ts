@@ -57,7 +57,7 @@ export type RequestPasswordResetOutcome =
   | { status: 'unknown_email' }
   | { status: 'rate_limited'; scope: 'email' | 'ip'; retryAfterSec: number }
   /** Link gerado, mas o envio falhou (Resend fora, domínio não verificado). */
-  | { status: 'send_failed' }
+  | { status: 'send_failed'; detail?: string }
 
 /**
  * Normaliza antes de hashear: `  Ana@Clinica.COM ` e `ana@clinica.com` são a
@@ -126,43 +126,21 @@ export async function requestPasswordReset(
   // feita de tentativas que dão em nada — inteiramente fora do limite.
   await recordAttempt(input.supabaseService, emailHash, ipHash)
 
-  const redirectTo = `${input.baseUrl.replace(/\/+$/, '')}/redefinir-senha`
+  const res = await issueResetLink(input.supabaseService, {
+    email,
+    baseUrl: input.baseUrl,
+  })
 
-  // `generateLink` erra quando o e-mail não existe. Isso NÃO pode mudar a
-  // resposta da rota — ver o comentário no handler.
-  const { data, error } = await (
-    input.supabaseService as unknown as {
-      auth: {
-        admin: {
-          generateLink(args: {
-            type: 'recovery'
-            email: string
-            options?: { redirectTo?: string }
-          }): Promise<{
-            data: { properties?: { action_link?: string } | null } | null
-            error: { message: string } | null
-          }>
-        }
-      }
-    }
-  ).auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
-
-  const actionLink = data?.properties?.action_link
-  if (error || !actionLink) {
+  if (!res.sent && res.reason === 'no_link') {
     // Não distinguimos "conta inexistente" de outros erros do generateLink no
     // que sai para fora; no log, sim, porque quem opera precisa saber se é
-    // ninguém-com-esse-e-mail ou se o Supabase está recusando.
-    logger.info(
-      { email_hash: emailHash, reason: error?.message ?? 'no-action-link' },
-      'password-reset-link-not-generated',
-    )
+    // ninguem-com-esse-e-mail ou se o Supabase está recusando.
+    logger.info({ email_hash: emailHash, reason: res.detail }, 'password-reset-link-not-generated')
     return { status: 'unknown_email' }
   }
-
-  const { id } = await sendPasswordResetEmail({ to: email, actionLink })
-  if (!id) {
-    logger.error({ email_hash: emailHash }, 'password-reset-email-not-sent')
-    return { status: 'send_failed' }
+  if (!res.sent) {
+    logger.error({ email_hash: emailHash, detail: res.detail }, 'password-reset-email-not-sent')
+    return { status: 'send_failed', detail: res.detail }
   }
 
   logger.info({ email_hash: emailHash }, 'password-reset-email-sent')
@@ -195,4 +173,77 @@ async function recordAttempt(
     .delete()
     .eq('email_hash', emailHash)
     .lt('created_at', expired)
+}
+
+/**
+ * Gera o link de recuperação e o entrega pelo NOSSO envio.
+ *
+ * Extraída porque três caminhos precisam exatamente disto e divergiam: o pedido
+ * público (esta página), o botão do admin em `/configuracoes/usuarios` e o do
+ * `/admin`. Os dois últimos usavam `resetPasswordForEmail`, em que quem envia é
+ * o Supabase — então saíam de outro remetente e atravessavam o redirect que
+ * depende de configuração de painel. Com uma função só, corrigir o caminho
+ * conserta os três, e o usuário recebe a mesma mensagem venha de onde vier.
+ *
+ * NÃO faz rate-limit nem esconde a existência da conta: quem chama pelo admin
+ * já está autenticado e já sabe que a conta existe. Essas duas proteções são do
+ * caminho público e ficam em `requestPasswordReset`.
+ */
+export async function issueResetLink(
+  supabaseService: SupabaseClient<Database>,
+  args: { email: string; baseUrl: string },
+): Promise<{ sent: boolean; reason?: 'no_link' | 'send_failed'; detail?: string }> {
+  const email = normalizeEmail(args.email)
+  const base = args.baseUrl.replace(/\/+$/, '')
+
+  const { data, error } = await (
+    supabaseService as unknown as {
+      auth: {
+        admin: {
+          generateLink(args: {
+            type: 'recovery'
+            email: string
+            options?: { redirectTo?: string }
+          }): Promise<{
+            data: {
+              properties?: { action_link?: string; hashed_token?: string } | null
+            } | null
+            error: { message: string } | null
+          }>
+        }
+      }
+    }
+  ).auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: { redirectTo: `${base}/redefinir-senha` },
+  })
+
+  // O link vai DIRETO para a nossa página, levando o token; não para o endpoint
+  // de verify do Supabase, que depois redirecionaria de volta.
+  //
+  // Aquele salto extra depende de duas configurações de painel: o `redirectTo`
+  // estar na allowlist de Redirect URLs e o Site URL estar correto. Quando a
+  // allowlist não bate, o Supabase DESCARTA o destino em silêncio e cai no Site
+  // URL — e um Site URL gravado sem `https://` produz uma URL relativa dentro do
+  // domínio do próprio Supabase (`supabase.co/app.clinnipro.com.br`), que é 404
+  // na cara de quem esqueceu a senha. Aconteceu em 19/08/2026, e é o mesmo
+  // defeito que derrubou o agendamento público em julho.
+  //
+  // Apontando para nós, não há redirect para configuração nenhuma estragar: a
+  // página troca o `token_hash` por sessão via `verifyOtp`. O `redirectTo` segue
+  // sendo enviado acima porque o `action_link` é o plano B — se um dia o
+  // `hashed_token` deixar de vir, o fluxo antigo ainda funciona.
+  const hashedToken = data?.properties?.hashed_token
+  const link = hashedToken
+    ? `${base}/redefinir-senha?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`
+    : data?.properties?.action_link
+
+  if (error || !link) {
+    return { sent: false, reason: 'no_link', detail: error?.message ?? 'sem action_link' }
+  }
+
+  const { id, detail } = await sendPasswordResetEmail({ to: email, actionLink: link })
+  if (!id) return { sent: false, reason: 'send_failed', detail }
+  return { sent: true }
 }
