@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
-import { sendPasswordResetEmail } from '@/lib/integrations/email/resend-client'
+import { sendInviteEmail, sendPasswordResetEmail } from '@/lib/integrations/email/resend-client'
 
 /**
  * "Esqueci minha senha" — o caminho público, sem sessão e sem admin.
@@ -191,9 +191,21 @@ async function recordAttempt(
  */
 export async function issueResetLink(
   supabaseService: SupabaseClient<Database>,
-  args: { email: string; baseUrl: string },
+  args: {
+    email: string
+    baseUrl: string
+    /**
+     * `invite` é o primeiro acesso de quem foi cadastrado pela clínica; ambos
+     * terminam na mesma tela, que muda o texto conforme o tipo. O caminho é o
+     * mesmo porque o mecanismo é o mesmo — trocar um `token_hash` por sessão e
+     * definir senha —, e duplicar a página duplicaria a chance de uma delas
+     * ficar para trás.
+     */
+    tipo?: 'recovery' | 'invite'
+  },
 ): Promise<{ sent: boolean; reason?: 'no_link' | 'send_failed'; detail?: string }> {
   const email = normalizeEmail(args.email)
+  const tipo = args.tipo ?? 'recovery'
   const base = args.baseUrl.replace(/\/+$/, '')
 
   const { data, error } = await (
@@ -201,7 +213,7 @@ export async function issueResetLink(
       auth: {
         admin: {
           generateLink(args: {
-            type: 'recovery'
+            type: 'recovery' | 'invite'
             email: string
             options?: { redirectTo?: string }
           }): Promise<{
@@ -214,7 +226,7 @@ export async function issueResetLink(
       }
     }
   ).auth.admin.generateLink({
-    type: 'recovery',
+    type: tipo,
     email,
     options: { redirectTo: `${base}/redefinir-senha` },
   })
@@ -236,14 +248,15 @@ export async function issueResetLink(
   // `hashed_token` deixar de vir, o fluxo antigo ainda funciona.
   const hashedToken = data?.properties?.hashed_token
   const link = hashedToken
-    ? `${base}/redefinir-senha?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`
+    ? `${base}/redefinir-senha?token_hash=${encodeURIComponent(hashedToken)}&type=${tipo}`
     : data?.properties?.action_link
 
   if (error || !link) {
     return { sent: false, reason: 'no_link', detail: error?.message ?? 'sem action_link' }
   }
 
-  const { id, detail } = await sendPasswordResetEmail({ to: email, actionLink: link })
+  const enviar = tipo === 'invite' ? sendInviteEmail : sendPasswordResetEmail
+  const { id, detail } = await enviar({ to: email, actionLink: link })
   if (!id) return { sent: false, reason: 'send_failed', detail }
   return { sent: true }
 }
