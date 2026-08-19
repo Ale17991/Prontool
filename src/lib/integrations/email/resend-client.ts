@@ -237,6 +237,97 @@ function renderPasswordResetText(actionLink: string): string {
   ].join('\n')
 }
 
+/**
+ * Convite de novo membro da equipe.
+ *
+ * Sai pelo mesmo remetente e pelo mesmo caminho da redefinição de senha, e não
+ * mais pelo `inviteUserByEmail` do Supabase. Dois motivos, os dois descobertos
+ * em produção: o remetente era o padrão do Supabase (não o da clínica), e o
+ * `redirectTo` apontava para `/welcome` — uma rota que NÃO EXISTE neste app e
+ * que o middleware nem libera. Ou seja, o convidado recebia de um endereço
+ * estranho um link que terminava em 404.
+ */
+export async function sendInviteEmail(
+  input: SendPasswordResetEmailInput,
+): Promise<{ id: string | null; detail?: string }> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) {
+    logger.warn({}, 'resend-not-configured-skipping-invite-email')
+    return { id: null, detail: 'RESEND_API_KEY ausente no runtime' }
+  }
+
+  try {
+    const from = passwordResetFrom()
+    const res = await getResend(key).emails.send({
+      from,
+      to: [input.to],
+      subject: 'Seu acesso à Clinni',
+      html: renderInviteHtml(input.actionLink),
+      text: renderInviteText(input.actionLink),
+    })
+    if (res.error) {
+      logger.error(
+        { name: res.error.name, message: res.error.message, from },
+        'resend-recusou-convite',
+      )
+      return { id: null, detail: `resend recusou (${res.error.name}): ${res.error.message}` }
+    }
+    return { id: res.data?.id ?? null }
+  } catch (err) {
+    logger.error({ err }, 'resend-send-invite-failed')
+    return {
+      id: null,
+      detail: `excecao de rede: ${err instanceof Error ? err.message : String(err)}`,
+    }
+  }
+}
+
+function renderInviteHtml(actionLink: string): string {
+  const href = escapeHtml(actionLink)
+  return `<!doctype html>
+<html lang="pt-BR">
+  <body style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; color: #0f172a;">
+    <h2 style="margin: 0 0 16px; font-size: 20px;">Seu acesso à Clinni</h2>
+    <p style="font-size: 14px; line-height: 1.6;">
+      Uma clínica criou um acesso para você no sistema Clinni. Para entrar pela
+      primeira vez, escolha uma senha.
+    </p>
+    <p style="margin: 24px 0;">
+      <a href="${href}" style="background: #003883; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 14px;">Definir minha senha</a>
+    </p>
+    <p style="font-size: 13px; line-height: 1.6; color: #475569;">
+      O link vale por tempo limitado e só pode ser usado uma vez.
+      <strong>Se você não esperava este convite, ignore este e-mail</strong> —
+      sem definir a senha, o acesso não é ativado.
+    </p>
+    <p style="font-size: 12px; color: #64748b; line-height: 1.6;">
+      Se o botão não funcionar, copie e cole este endereço no navegador:<br />
+      <span style="word-break: break-all;">${href}</span>
+    </p>
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+    <p style="color: #94a3b8; font-size: 11px;">
+      Esta mensagem foi enviada por um endereço que não recebe respostas.
+    </p>
+  </body>
+</html>`
+}
+
+function renderInviteText(actionLink: string): string {
+  return [
+    'Seu acesso à Clinni',
+    '',
+    'Uma clínica criou um acesso para você no sistema Clinni.',
+    'Para entrar pela primeira vez, escolha uma senha:',
+    '',
+    actionLink,
+    '',
+    'O link vale por tempo limitado e só pode ser usado uma vez.',
+    'Se você não esperava este convite, ignore este e-mail.',
+    '',
+    'Esta mensagem foi enviada por um endereço que não recebe respostas.',
+  ].join('\n')
+}
+
 // =========================================================================
 // Tickets de suporte (bug/sugestao/suporte) — enviados pelos usuarios via
 // botao na sidebar. Destino: operations@homio.com.br (ou SUPPORT_TICKETS_TO

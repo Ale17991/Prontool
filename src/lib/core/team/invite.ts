@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { Database, TenantRole } from '@/lib/db/types'
 import { ConflictError, ValidationError } from '@/lib/observability/errors'
 import { resolvePublicBaseUrl } from '@/lib/core/app-url'
+import { issueResetLink } from '@/lib/core/auth/password-reset'
 import { TENANT_ROLES_ORDERED } from './types'
 
 const inviteSchema = z.object({
@@ -30,7 +31,7 @@ interface InvitedMember {
  *      (já existe), reaproveita id existente via auth.admin.listUsers.
  *   3. INSERT em user_tenants (status='active'). Se já existia disabled,
  *      atualiza para active.
- *   4. inviteUserByEmail para enviar o link de definição de senha.
+ *   4. envia o link de definição de senha pelo nosso Resend (issueResetLink).
  *   5. Audit_log.
  */
 export async function inviteTeamMember(
@@ -105,13 +106,25 @@ export async function inviteTeamMember(
   }
 
   // 3. Envia o e-mail de convite (link de definição de senha).
-  const redirectTo = `${resolvePublicBaseUrl()}/welcome`
-  const { error: inviteError } = await supabaseService.auth.admin.inviteUserByEmail(email, {
-    redirectTo,
+  //
+  // Pelo NOSSO envio, não pelo `inviteUserByEmail`. Aquele caminho tinha dois
+  // defeitos que só apareceram em produção: quem enviava era o Supabase, do
+  // remetente do projeto e não do da clínica; e o destino era `/welcome`, uma
+  // rota que NÃO EXISTE neste app e que o middleware nem libera — o convidado
+  // recebia de um endereço estranho um link que terminava em 404.
+  const res = await issueResetLink(supabaseService, {
+    email,
+    baseUrl: resolvePublicBaseUrl(),
+    tipo: 'invite',
   })
-  if (inviteError) {
-    // Não rollback do vínculo — admin pode reenviar via endpoint específico.
-    console.error('inviteTeamMember inviteUserByEmail failed', { email, error: inviteError })
+  if (!res.sent) {
+    // Não faz rollback do vínculo: o admin reenvia pelo endpoint específico, e
+    // desfazer o acesso por causa de e-mail que não saiu seria pior.
+    console.error('inviteTeamMember envio falhou', {
+      email,
+      reason: res.reason,
+      detail: res.detail,
+    })
   }
 
   // 4. Audit
@@ -167,13 +180,16 @@ export async function resendInvite(
     throw new ConflictError('NOT_PENDING', 'Usuário sem e-mail registrado')
   }
 
-  const redirectTo = `${resolvePublicBaseUrl()}/welcome`
-  const { error: inviteError } = await supabaseService.auth.admin.inviteUserByEmail(
-    target.user.email,
-    { redirectTo },
-  )
-  if (inviteError) {
-    throw new Error(`resendInvite failed: ${inviteError.message}`)
+  const res = await issueResetLink(supabaseService, {
+    email: target.user.email,
+    baseUrl: resolvePublicBaseUrl(),
+    tipo: 'invite',
+  })
+  if (!res.sent) {
+    // Aqui JOGA, ao contrário do primeiro convite: reenviar é um ato explícito
+    // do admin, que precisa saber se não saiu — senão ele fica esperando por
+    // um e-mail que nunca foi.
+    throw new Error(`resendInvite falhou (${res.reason}): ${res.detail ?? 'sem detalhe'}`)
   }
 
   await supabaseService.from('audit_log').insert({

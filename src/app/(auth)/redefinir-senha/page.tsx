@@ -34,6 +34,13 @@ export default function RedefinirSenhaPage() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [loading, setLoading] = useState(false)
+  /**
+   * `invite` = primeiro acesso de quem foi cadastrado pela clínica. Mesma
+   * mecânica (trocar `token_hash` por sessão e definir senha), texto diferente:
+   * "Redefinir senha" para quem nunca teve uma é confuso, e faz parecer que
+   * existia uma conta antes.
+   */
+  const [convite, setConvite] = useState(false)
 
   useEffect(() => {
     let supabase: ReturnType<typeof createSupabaseBrowserClient>
@@ -56,10 +63,11 @@ export default function RedefinirSenhaPage() {
     const type = params.get('type')
 
     async function boot() {
-      if (tokenHash && type === 'recovery') {
+      if (tokenHash && (type === 'recovery' || type === 'invite')) {
+        if (type === 'invite') setConvite(true)
         const { error: otpError } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
-          type: 'recovery',
+          type,
         })
         if (otpError) {
           // Mesma mensagem do link ausente: para quem está do lado de fora,
@@ -118,14 +126,20 @@ export default function RedefinirSenhaPage() {
             <Stethoscope className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-slate-900">Redefinir senha</h1>
-            <p className="text-xs text-slate-500">Defina uma nova senha de acesso</p>
+            <h1 className="text-lg font-black tracking-tight text-slate-900">
+              {convite ? 'Bem-vindo à Clinni' : 'Redefinir senha'}
+            </h1>
+            <p className="text-xs text-slate-500">
+              {convite ? 'Defina sua senha de acesso' : 'Defina uma nova senha de acesso'}
+            </p>
           </div>
         </div>
 
         {done ? (
           <p className="rounded-md border border-success/30 bg-success-bg p-3 text-sm font-medium text-success-text">
-            Senha redefinida com sucesso. Redirecionando para o login…
+            {convite
+              ? 'Senha criada com sucesso. Redirecionando para o login…'
+              : 'Senha redefinida com sucesso. Redirecionando para o login…'}
           </p>
         ) : !ready ? (
           <p className="text-sm text-slate-500">Carregando…</p>
@@ -176,7 +190,7 @@ export default function RedefinirSenhaPage() {
               </p>
             ) : null}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Salvando…' : 'Redefinir senha'}
+              {loading ? 'Salvando…' : convite ? 'Criar senha e entrar' : 'Redefinir senha'}
             </Button>
           </form>
         )}
