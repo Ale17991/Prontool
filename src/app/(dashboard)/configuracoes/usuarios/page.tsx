@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTeamMembers } from '@/lib/core/team/list'
 import { UsersList } from './users-list'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +22,9 @@ export default async function UsuariosPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <Users className="h-6 w-6 text-primary" />
           Equipe

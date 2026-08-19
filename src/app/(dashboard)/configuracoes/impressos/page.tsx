@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPrintoutConfig } from '@/lib/core/printouts/config'
 import { PRINTOUT_DOCUMENTS, PRINTOUT_PATIENT_FIELDS } from '@/lib/core/printouts/fields'
 import { PrintoutFieldsManager } from './printout-fields-manager'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,9 @@ export default async function ImpressosPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <Printer className="h-6 w-6 text-primary" />
           Impressos

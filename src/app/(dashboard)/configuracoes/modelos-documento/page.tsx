@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { listTemplates } from '@/lib/core/document-templates/crud'
 import { TemplatesManager, type TemplateDTO } from './templates-manager'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,9 @@ export default async function ModelosDocumentoPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <FileText className="h-6 w-6 text-primary" />
           Modelos de documento

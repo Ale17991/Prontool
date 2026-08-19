@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/get-session'
 import { createSupabaseServerClient } from '@/lib/db/supabase-server'
 import { listMaterials } from '@/lib/core/materials-catalog'
 import { MateriaisTable, type MaterialListItem } from './materiais-table'
+import { BackLink } from '@/components/ui/back-link'
 
 /**
  * Feature 045 US4 — gestão do catálogo de insumos (admin/financeiro).
@@ -37,13 +38,16 @@ export default async function MateriaisConfigPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <Boxes className="h-6 w-6 text-teal-600" />
           Materiais / Insumos
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Catálogo de insumos e seus custos. O custo entra no atendimento como referência e pode
-          ser ajustado por lançamento — mudanças aqui não alteram atendimentos já registrados.
+          Catálogo de insumos e seus custos. O custo entra no atendimento como referência e pode ser
+          ajustado por lançamento — mudanças aqui não alteram atendimentos já registrados.
         </p>
       </div>
 

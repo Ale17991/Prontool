@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table'
 import { formatDateTime } from '@/lib/utils'
 import { entityToLabel } from '@/lib/utils/audit-labels'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,6 +105,9 @@ export default async function AuditoriaPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
+          <BackLink href="/configuracoes" className="mb-2">
+            Voltar às configurações
+          </BackLink>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Auditoria</h1>
           <p className="mt-1 text-sm text-slate-500">
             Trilha append-only de mudanças financeiras e acessos. Os campos exportados preservam o

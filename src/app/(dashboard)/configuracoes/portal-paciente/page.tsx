@@ -11,6 +11,7 @@ import { resolvePortalSections } from '@/lib/core/patient-portal/sections'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { PortalConfigForm } from './portal-config-form'
 import { PortalSectionsForm } from './portal-sections-form'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,9 @@ export default async function PortalPacientePage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <HeartPulse className="h-6 w-6 text-primary" />
           Portal do paciente

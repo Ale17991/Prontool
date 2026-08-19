@@ -8,6 +8,7 @@ import type { Database } from '@/lib/db/types'
 import { getPublicBookingConfig } from '@/lib/core/public-booking/config'
 import { resolvePublicBaseUrl } from '@/lib/core/app-url'
 import { PublicBookingForm } from './public-booking-form'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,6 +64,9 @@ export default async function AgendamentoPublicoPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <CalendarPlus className="h-6 w-6 text-primary" />
           Agendamento online

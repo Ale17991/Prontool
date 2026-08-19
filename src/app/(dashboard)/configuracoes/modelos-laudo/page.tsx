@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { listExamReportTemplates } from '@/lib/core/exam-report-templates/crud'
 import { LaudoTemplatesManager, type LaudoTemplateDTO } from './laudo-templates-manager'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +30,9 @@ export default async function ModelosLaudoPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <FileBarChart className="h-6 w-6 text-primary" />
           Modelos de laudo
