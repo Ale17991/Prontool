@@ -150,15 +150,29 @@ export async function sendPasswordResetEmail(
   }
 
   try {
+    const from = passwordResetFrom()
     const res = await getResend(key).emails.send({
-      from: passwordResetFrom(),
+      from,
       to: [input.to],
       subject: 'Redefinição de senha — Clinni',
       html: renderPasswordResetHtml(input.actionLink),
       text: renderPasswordResetText(input.actionLink),
     })
+    // O SDK do Resend NÃO lança em erro de API — devolve `{ data, error }`. Sem
+    // olhar `res.error` aqui, uma recusa (domínio não verificado, chave sem
+    // permissão de envio, remetente inválido) sumia sem deixar rastro: o
+    // chamador só via `id: null` e registrava "nao enviado", sem o porquê. Foi
+    // exatamente esse silêncio que travou o diagnóstico em 19/08.
+    if (res.error) {
+      logger.error(
+        { name: res.error.name, message: res.error.message, from },
+        'resend-recusou-password-reset',
+      )
+      return { id: null }
+    }
     return { id: res.data?.id ?? null }
   } catch (err) {
+    // Só falha de REDE cai aqui (DNS, timeout). Erro de API vem acima.
     // Sem e-mail em log: quem recebeu o link é justamente o dado que este
     // fluxo não deve deixar espalhado. O chamador loga o hash.
     logger.error({ err }, 'resend-send-password-reset-failed')
