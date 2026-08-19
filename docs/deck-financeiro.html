@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinnipro — Plano Financeiro</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --teal:#0ea5a4; --teal-d:#0f766e; --soft:#f0fdfa; --amber:#b45309; --amber-bg:#fffbeb;
+    --red:#dc2626; --green:#16a34a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+  .deck{height:100vh;width:100vw;position:relative}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;padding:4.5vh 5.5vw;background:var(--card);animation:fade .35s ease;overflow:auto}
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .cover{background:linear-gradient(135deg,#0f766e 0%,#0f172a 100%);color:#fff;justify-content:center}
+  .cover h1{font-size:4.4rem;font-weight:800;letter-spacing:-2px;line-height:1.02}
+  .cover .tag{font-size:1.45rem;margin-top:1.2rem;color:#a7f3d0;font-weight:500;max-width:760px}
+  .cover .meta{margin-top:2.4rem;font-size:1.02rem;color:#cbd5e1}
+  .cover .badge{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);padding:.4rem 1rem;border-radius:999px;font-size:.92rem;color:#fff;margin-bottom:1.8rem;font-weight:600}
+  .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--soft);padding-bottom:.7rem;margin-bottom:1.4rem}
+  .kicker{color:var(--teal-d);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:1.5px}
+  .pageno{color:#cbd5e1;font-size:.85rem;font-weight:600}
+  h2{font-size:2.3rem;font-weight:800;letter-spacing:-1px;line-height:1.05;margin:.1rem 0 .2rem}
+  h2 .em{color:var(--teal-d)}
+  .sub{font-size:1.15rem;color:var(--muted);margin-bottom:1rem;max-width:75ch;line-height:1.45}
+  ul{list-style:none;display:flex;flex-direction:column;gap:.6rem;max-width:92ch}
+  li{font-size:1.12rem;line-height:1.4;padding-left:1.5rem;position:relative}
+  li::before{content:"";position:absolute;left:0;top:.5em;width:.6rem;height:.6rem;border-radius:3px;background:var(--teal)}
+  li b{color:var(--teal-d)}
+  table{border-collapse:collapse;width:100%;font-size:1.05rem;margin-top:.2rem}
+  th,td{text-align:left;padding:.55rem .85rem;border-bottom:1px solid var(--line)}
+  th{background:var(--soft);color:var(--teal-d);font-weight:700;font-size:.88rem;text-transform:uppercase;letter-spacing:.4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:#f8fafc}
+  .hi{color:var(--teal-d);font-weight:800}.neg{color:var(--red);font-weight:700}.pos{color:var(--green);font-weight:800}
+  tr.total td{border-top:2px solid var(--teal-d);font-weight:700}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin:.3rem 0 1rem}
+  .kpi{background:var(--soft);border:1px solid #ccfbf1;border-radius:14px;padding:1rem 1.1rem}
+  .kpi .b{font-size:2rem;font-weight:800;color:var(--teal-d);line-height:1}
+  .kpi .l{font-size:.9rem;color:var(--muted);margin-top:.3rem;line-height:1.3}
+  .chart{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+  .chart svg{display:block}
+  .split{display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;flex:1;min-height:0;align-items:center}
+  .split.even{grid-template-columns:1fr 1fr}
+  .legend{display:flex;flex-direction:column;gap:.7rem}
+  .legend .row{display:flex;align-items:center;gap:.7rem;font-size:1.05rem}
+  .legend .sw{width:1rem;height:1rem;border-radius:4px;flex:none}
+  .legend .pct{font-weight:800;color:var(--ink);min-width:2.6rem}
+  .legend .lab{color:var(--muted)}
+  .note{background:var(--amber-bg);border:1px solid #fde68a;color:var(--amber);padding:.8rem 1.1rem;border-radius:12px;font-size:.98rem;margin-top:.9rem;line-height:1.4;max-width:100ch}
+  .good{background:var(--soft);border:1px solid #ccfbf1;color:var(--teal-d);padding:.8rem 1.1rem;border-radius:12px;font-size:1rem;margin-top:.9rem;line-height:1.4;max-width:100ch}
+  .takeaway{margin-top:.9rem;font-size:1.1rem;font-weight:600;color:var(--ink);border-left:4px solid var(--teal);padding:.3rem 0 .3rem 1rem;line-height:1.4;max-width:95ch}
+  .takeaway b{color:var(--teal-d)}
+  .fineprint{font-size:.85rem;color:var(--muted);margin-top:.7rem}
+  .flag{display:inline-block;background:#fef3c7;color:#92400e;font-size:.7em;font-weight:700;padding:.05em .45em;border-radius:5px;vertical-align:middle;margin-left:.2em}
+  .bar{position:fixed;left:0;bottom:0;height:5px;background:var(--teal);z-index:50;transition:width .3s}
+  .counter{position:fixed;right:18px;bottom:14px;font-size:.85rem;color:#e2e8f0;z-index:50;background:rgba(15,23,42,.65);padding:.25rem .7rem;border-radius:999px;backdrop-filter:blur(6px)}
+  .hint{position:fixed;left:18px;bottom:12px;font-size:.78rem;color:#94a3b8;z-index:50}
+  .navzone{position:fixed;top:0;height:100vh;width:10vw;z-index:40;cursor:pointer}
+  .navzone.l{left:0}.navzone.r{right:0}
+  @media print{body{overflow:visible}.slide{display:flex!important;position:relative;height:100vh;page-break-after:always;inset:auto}.bar,.counter,.hint,.navzone{display:none}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide cover active">
+    <div><span class="badge">Plano Financeiro · Rodada Seed · 2026</span></div>
+    <h1>Clinnipro<br>Plano Financeiro</h1>
+    <p class="tag">Modelo de receita, projeção 2027–2031, unit economics, fluxo de caixa e necessidade de capital.</p>
+    <p class="meta">Álefe Lima Martins · CEO &amp; Co-fundador · (27) 99273-4155 · clinnipro.com.br</p>
+  </section>
+
+  <!-- 2 SUMÁRIO -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Sumário executivo</span><span class="pageno">Clinnipro · Plano Financeiro</span></div>
+    <h2>Os números em <span class="em">uma tela</span></h2>
+    <div class="kpis">
+      <div class="kpi"><div class="b">R$ 10,8 mi</div><div class="l">ARR projetado em 2031</div></div>
+      <div class="kpi"><div class="b">~3x a.a.</div><div class="l">crescimento de ARR (anos iniciais)</div></div>
+      <div class="kpi"><div class="b">80%</div><div class="l">margem bruta</div></div>
+      <div class="kpi"><div class="b">2031</div><div class="l">breakeven operacional</div></div>
+      <div class="kpi"><div class="b">~4,5 m</div><div class="l">payback do CAC</div></div>
+      <div class="kpi"><div class="b">6x–9x</div><div class="l">LTV / CAC</div></div>
+      <div class="kpi"><div class="b">R$ 2,5 mi</div><div class="l">captação seed (~18 m de runway)</div></div>
+      <div class="kpi"><div class="b">~R$ 3,7 mi</div><div class="l">burn acumulado até o breakeven</div></div>
+    </div>
+    <div class="chart" id="c-spark" style="flex:none;height:26vh"></div>
+    <p class="fineprint">Ponto de partida: ~40 clínicas ao fim de 2026 (ramp do 2º sem.). Ano 1 = 2027. Premissas conservadoras ancoradas em benchmarks de SaaS SMB; valores 🔧 ajustáveis com dados reais.</p>
+  </section>
+
+  <!-- 3 PREMISSAS -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Premissas do modelo</span><span class="pageno">03</span></div>
+    <h2>As alavancas que <span class="em">movem tudo</span></h2>
+    <table>
+      <thead><tr><th>Premissa</th><th class="num">2027 (entrada)</th><th class="num">2031 (saída)</th><th>Base / referência</th></tr></thead>
+      <tbody>
+        <tr><td>Clínicas ativas (fim do ano)</td><td class="num">120</td><td class="num">2.300</td><td>de 40 (base 2026)</td></tr>
+        <tr><td>Novas clínicas / mês (pico do ano)</td><td class="num">~12</td><td class="num">~95</td><td>escala com S&amp;M</td></tr>
+        <tr><td>Churn mensal (logo)</td><td class="num">2,5%</td><td class="num">1,8%</td><td>SMB SaaS 3–5% → abaixo por lock-in</td></tr>
+        <tr><td>ARPA (R$/mês)</td><td class="num">330</td><td class="num">390</td><td>upsell de planos + módulos</td></tr>
+        <tr><td>Margem bruta</td><td class="num">80%</td><td class="num">80%</td><td>infra + suporte + taxas</td></tr>
+        <tr><td>CAC</td><td class="num">R$ 1.200</td><td class="num">R$ 1.200</td><td>inbound + inside sales</td></tr>
+      </tbody>
+    </table>
+    <div class="note">🔧 Toda a projeção sai destas 6 linhas. A planilha dinâmica recalcula ARR, P&amp;L e caixa ao alterar qualquer premissa — é a base dos cenários (Slide 13) e da sensibilidade (Slide 14).</div>
+  </section>
+
+  <!-- 4 MODELO DE RECEITA -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Modelo de receita</span><span class="pageno">04</span></div>
+    <h2>Recorrência por <span class="em">clínica</span> + módulos</h2>
+    <div class="split even">
+      <table>
+        <thead><tr><th>Plano</th><th class="num">R$/mês 🔧</th><th>Composição</th></tr></thead>
+        <tbody>
+          <tr><td>Essencial</td><td class="num">149</td><td>núcleo</td></tr>
+          <tr><td>Pro</td><td class="num">299</td><td>+ financeiro/repasse</td></tr>
+          <tr><td>Clínica</td><td class="num">599</td><td>+ multiunidade/BI</td></tr>
+          <tr><td>Add-on/módulo</td><td class="num">+79</td><td>TISS, Odonto…</td></tr>
+          <tr class="total"><td><b>ARPA médio</b></td><td class="num hi">~330</td><td>mix + attach</td></tr>
+        </tbody>
+      </table>
+      <div class="chart" id="c-arpa"></div>
+    </div>
+    <div class="good"><b>Expansion sem novo CAC:</b> o cliente entra no Essencial e cresce via planos e módulos. É o que eleva o ARPA de R$ 330 → R$ 390 e sustenta NRR &gt; 100% num segmento de churn naturalmente alto.</div>
+  </section>
+
+  <!-- 5 CRESCIMENTO DA BASE -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Crescimento da base de clientes</span><span class="pageno">05</span></div>
+    <h2>De <span class="em">40 a 2.300</span> clínicas</h2>
+    <div class="chart" id="c-clinics"></div>
+    <p class="takeaway">2026 entrega a base de <b>40 clínicas</b>; a partir daí o motor de aquisição (financiado pela seed) leva a ~3x ao ano, desacelerando conforme a base cresce. <span class="flag">🔧</span></p>
+  </section>
+
+  <!-- 6 MRR / ARR -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Receita recorrente</span><span class="pageno">06</span></div>
+    <h2>ARR cresce <span class="em">~3x ao ano</span></h2>
+    <div class="chart" id="c-arr"></div>
+    <p class="takeaway">Cada barra é o ARR de saída do ano; o número menor é o <b>MRR</b>. A saída de 2031 (~R$ 10,8 mi) equivale a apenas <b>2% do SAM</b> — espaço enorme à frente.</p>
+  </section>
+
+  <!-- 7 P&L -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Demonstração de resultado</span><span class="pageno">07</span></div>
+    <h2>P&amp;L 2027–2031 <span class="em">(R$ mil)</span></h2>
+    <table>
+      <thead><tr><th>Linha</th><th class="num">2027</th><th class="num">2028</th><th class="num">2029</th><th class="num">2030</th><th class="num">2031</th></tr></thead>
+      <tbody>
+        <tr><td>Receita reconhecida</td><td class="num">300</td><td class="num">950</td><td class="num">2.330</td><td class="num">4.700</td><td class="num">8.560</td></tr>
+        <tr><td>(–) COGS (20%)</td><td class="num">(60)</td><td class="num">(190)</td><td class="num">(466)</td><td class="num">(940)</td><td class="num">(1.712)</td></tr>
+        <tr class="total"><td><b>Margem bruta</b></td><td class="num">240</td><td class="num">760</td><td class="num">1.864</td><td class="num">3.760</td><td class="num">6.848</td></tr>
+        <tr><td>(–) Pessoas</td><td class="num">(600)</td><td class="num">(1.200)</td><td class="num">(2.000)</td><td class="num">(3.000)</td><td class="num">(4.000)</td></tr>
+        <tr><td>(–) Marketing &amp; Vendas</td><td class="num">(180)</td><td class="num">(420)</td><td class="num">(750)</td><td class="num">(1.100)</td><td class="num">(1.500)</td></tr>
+        <tr><td>(–) G&amp;A / ferramentas</td><td class="num">(100)</td><td class="num">(200)</td><td class="num">(320)</td><td class="num">(450)</td><td class="num">(600)</td></tr>
+        <tr class="total"><td><b>EBITDA</b></td><td class="num neg">(640)</td><td class="num neg">(1.060)</td><td class="num neg">(1.206)</td><td class="num neg">(790)</td><td class="num pos">+748</td></tr>
+        <tr><td>Margem EBITDA</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num pos">+9%</td></tr>
+      </tbody>
+    </table>
+    <p class="fineprint">Receita reconhecida = média ponderada do ano (não o ARR de saída). Disciplina de custo atrelada à receita. 🔧</p>
+  </section>
+
+  <!-- 8 BREAKEVEN -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Caminho para o breakeven</span><span class="pageno">08</span></div>
+    <h2>EBITDA cruza o zero em <span class="em">2031</span></h2>
+    <div class="chart" id="c-ebitda"></div>
+    <p class="takeaway">O prejuízo opera num "vale" controlado (pico de queima em 2029, no auge do investimento em crescimento) e <b>vira positivo em 2031</b>. Burn acumulado no caminho ≈ <b>R$ 3,7 mi</b>.</p>
+  </section>
+
+  <!-- 9 ESTRUTURA DE CUSTOS -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Estrutura de custos</span><span class="pageno">09</span></div>
+    <h2>Para onde vai <span class="em">cada real</span></h2>
+    <div class="split">
+      <div class="chart" id="c-cost"></div>
+      <div>
+        <div class="legend" id="leg-cost"></div>
+        <div class="note" style="margin-top:1.2rem">Pessoas é ~65% do custo — típico de SaaS. A contratação atrelada à receita é o que mantém o caminho ao breakeven. 🔧</div>
+      </div>
+    </div>
+    <p class="fineprint">Composição do custo total de 2031 (R$ 7,8 mi). COGS = infra (Vercel/Supabase), e-mail (Resend), taxas, suporte N1.</p>
+  </section>
+
+  <!-- 10 UNIT ECONOMICS -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Unit economics</span><span class="pageno">10</span></div>
+    <h2>Cada cliente <span class="em">se paga em ~4,5 meses</span></h2>
+    <div class="split even">
+      <div class="chart" id="c-ltv"></div>
+      <div>
+        <div class="kpis" style="grid-template-columns:1fr 1fr;margin-top:0">
+          <div class="kpi"><div class="b">~4,5 m</div><div class="l">payback do CAC (alvo SMB &lt; 12 m)</div></div>
+          <div class="kpi"><div class="b">6x–9x</div><div class="l">LTV / CAC (alvo 3x+, eficiente 5x+)</div></div>
+          <div class="kpi"><div class="b">R$ 1.200</div><div class="l">CAC 🔧</div></div>
+          <div class="kpi"><div class="b">&gt;100%</div><div class="l">NRR (expansion por módulos)</div></div>
+        </div>
+        <div class="good">No <b>cenário pessimista</b> (churn 3%/mês, CAC R$ 1.800): LTV/CAC ainda ~6x e payback &lt; 6 meses. A economia unitária fecha mesmo sob estresse.</div>
+      </div>
+    </div>
+    <p class="fineprint">LTV = ARPA × margem bruta ÷ churn mensal. Benchmarks SaaS SMB 2025: Vena, Optifai, re:cap.</p>
+  </section>
+
+  <!-- 11 FLUXO DE CAIXA -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Fluxo de caixa &amp; runway</span><span class="pageno">11</span></div>
+    <h2>Da captação ao <span class="em">breakeven</span></h2>
+    <div class="chart" id="c-cash"></div>
+    <p class="takeaway"><b>Seed (R$ 2,5 mi)</b> dá ~24 meses — o caixa atinge o menor ponto em 2028. A <b>Series A (~R$ 8 mi)</b> entra em 2029 e financia até o EBITDA virar positivo. *2026 = aporte seed + ramp a 40 clínicas. 🔧</p>
+  </section>
+
+  <!-- 12 USO DOS RECURSOS -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Necessidade de capital</span><span class="pageno">12</span></div>
+    <h2>Uso da <span class="em">seed</span> · R$ 2,5 mi <span class="flag">🔧</span></h2>
+    <div class="split">
+      <div class="chart" id="c-funds"></div>
+      <div class="legend" id="leg-funds"></div>
+    </div>
+    <div class="good">Entrega da seed: de <b>~40</b> para <b>~350 clínicas</b> (≈ R$ 1,45 mi ARR) até o fim de 2028, unit economics consolidados e métricas prontas para a Series A.</div>
+  </section>
+
+  <!-- 13 CENÁRIOS -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Cenários</span><span class="pageno">13</span></div>
+    <h2>Base, otimista e <span class="em">pessimista</span></h2>
+    <div class="split even">
+      <table>
+        <thead><tr><th>Variável (2031)</th><th class="num">Pess.</th><th class="num">Base</th><th class="num">Otim.</th></tr></thead>
+        <tbody>
+          <tr><td>Churn mensal</td><td class="num">3,5%</td><td class="num">1,8%</td><td class="num">1,3%</td></tr>
+          <tr><td>Adds/mês (pico)</td><td class="num">~45</td><td class="num">~95</td><td class="num">~130</td></tr>
+          <tr><td>Clínicas ativas</td><td class="num">~1.300</td><td class="num">2.300</td><td class="num">~3.300</td></tr>
+          <tr><td>ARPA (R$/mês)</td><td class="num">355</td><td class="num">390</td><td class="num">415</td></tr>
+          <tr class="total"><td><b>ARR (R$ mi)</b></td><td class="num neg">~5,5</td><td class="num hi">~10,8</td><td class="num pos">~16,4</td></tr>
+          <tr><td>Breakeven</td><td class="num">2032</td><td class="num">2031</td><td class="num">2030</td></tr>
+        </tbody>
+      </table>
+      <div class="chart" id="c-scen"></div>
+    </div>
+    <p class="takeaway">Mesmo no <b>pessimista</b> o negócio chega a R$ 5,5 mi de ARR — a tese não depende do cenário ideal. <span class="flag">🔧</span></p>
+  </section>
+
+  <!-- 14 SENSIBILIDADE -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Análise de sensibilidade</span><span class="pageno">14</span></div>
+    <h2>ARR 2031 por <span class="em">clínicas × ARPA</span> (R$ mi)</h2>
+    <div id="heat"></div>
+    <div class="note">As duas alavancas dominantes são <b>número de clínicas</b> (adds × churn) e <b>ARPA</b> (mix + módulos). O caso-base (destacado) fica no meio da matriz — propositadamente conservador.</div>
+  </section>
+
+  <!-- 15 INDICADORES -->
+  <section class="slide">
+    <div class="head"><span class="kicker">Indicadores de saúde SaaS</span><span class="pageno">15</span></div>
+    <h2>Eficiência <span class="em">de capital</span></h2>
+    <table>
+      <thead><tr><th>Indicador</th><th class="num">Clinnipro</th><th>Referência saudável</th><th>Leitura</th></tr></thead>
+      <tbody>
+        <tr><td>Regra dos 40 (2031)</td><td class="num hi">~80</td><td>&gt; 40 é bom</td><td>crescimento + margem acima do dobro do piso</td></tr>
+        <tr><td>Burn multiple (2029)</td><td class="num hi">~0,7</td><td>&lt; 1,0 é ótimo</td><td>&lt; R$ 1 queimado por R$ 1 de novo ARR</td></tr>
+        <tr><td>Payback do CAC</td><td class="num hi">~4,5 m</td><td>&lt; 12 m (SMB)</td><td>cada real de S&amp;M volta em ~1 trimestre</td></tr>
+        <tr><td>NRR</td><td class="num hi">&gt; 100%</td><td>&gt; 100% c/ expansion</td><td>base cresce mesmo sem novos clientes</td></tr>
+        <tr><td>LTV / CAC</td><td class="num hi">6x–9x</td><td>3x mín · 5x+ eficiente</td><td>folga mesmo no cenário de estresse</td></tr>
+        <tr><td>Margem bruta</td><td class="num hi">80%</td><td>70–80%</td><td>topo da faixa de SaaS</td></tr>
+      </tbody>
+    </table>
+    <div class="good">O modelo combina <b>crescimento alto + queima eficiente</b>: cada real de S&amp;M se paga em ~4,5 meses e a expansion por módulos eleva o LTV sem novo CAC.</div>
+  </section>
+
+  <!-- 16 FECHAMENTO -->
+  <section class="slide cover" style="justify-content:center">
+    <h1 style="font-size:3.2rem">Um modelo que fecha<br>em qualquer cenário</h1>
+    <ul style="margin-top:1.8rem;color:#e2e8f0">
+      <li style="color:#e2e8f0">ARR de <b style="color:#fff">~R$ 10,8 mi</b> em 2031 · breakeven no mesmo ano.</li>
+      <li style="color:#e2e8f0">Payback ~4,5 m · LTV/CAC 6–9x · margem 80%.</li>
+      <li style="color:#e2e8f0">Mesmo no pessimista: <b style="color:#fff">R$ 5,5 mi de ARR</b>.</li>
+      <li style="color:#e2e8f0"><b style="color:#fff">R$ 2,5 mi de seed</b> + Series A em 2029 → caminho claro ao lucro.</li>
+    </ul>
+    <p class="meta" style="margin-top:2.2rem">Álefe Lima Martins · CEO &amp; Co-fundador · (27) 99273-4155 · clinnipro.com.br</p>
+  </section>
+
+</div>
+
+<div class="bar" id="bar"></div>
+<div class="counter" id="counter">1 / 16</div>
+<div class="hint">← → ou espaço · F = tela cheia</div>
+<div class="navzone l" id="prevZone"></div>
+<div class="navzone r" id="nextZone"></div>
+
+<script>
+/* ---------- formatação ---------- */
+const T='#0ea5a4', TD='#0f766e', INK='#0f172a', MUT='#64748b', RED='#dc2626', GRN='#16a34a', GRID='#eef2f6';
+function brInt(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+function moneyK(n){const a=Math.abs(n);if(a>=1000)return 'R$ '+(n/1000).toFixed(1).replace('.',',')+' mi';return 'R$ '+brInt(n)+'k'}
+function svg(w,h,inner){return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;max-height:100%">${inner}</svg>`}
+
+/* ---------- gráfico de barras (ARR, ARPA, clínicas) ---------- */
+function barChart(el,data,opts){
+  opts=opts||{}; const W=1000,H=440,L=opts.L||90,R=40,Tm=50,B=58, pw=W-L-R, ph=H-Tm-B, base=Tm+ph;
+  const max=opts.max||Math.max(...data.map(d=>d.value))*1.15;
+  const fmt=opts.fmt||(v=>brInt(v)); const color=opts.color||T;
+  let g='',bars='',lab='';
+  for(let i=0;i<=4;i++){const y=base-ph*i/4;g+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="${GRID}"/>`+`<text x="${L-12}" y="${y+4}" text-anchor="end" font-size="13" fill="#94a3b8">${fmt(max*i/4)}</text>`}
+  const slot=pw/data.length, bw=Math.min(slot*0.5,120);
+  data.forEach((d,i)=>{const x=L+slot*i+(slot-bw)/2, h=ph*d.value/max, y=base-h;
+    bars+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="7" fill="${d.color||color}"/>`;
+    if(d.top)lab+=`<text x="${x+bw/2}" y="${y-22}" text-anchor="middle" font-size="17" font-weight="800" fill="${TD}">${d.top}</text>`;
+    if(d.sub)lab+=`<text x="${x+bw/2}" y="${y-6}" text-anchor="middle" font-size="12.5" fill="#94a3b8">${d.sub}</text>`;
+    lab+=`<text x="${x+bw/2}" y="${base+24}" text-anchor="middle" font-size="14.5" font-weight="600" fill="#475569">${d.label}</text>`;
+  });
+  el.innerHTML=svg(W,H,g+bars+lab);
+}
+
+/* ---------- EBITDA divergente ---------- */
+function divergeChart(el,data){
+  const W=1000,H=440,L=90,R=40,Tm=40,B=40, pw=W-L-R, ph=H-Tm-B;
+  const top=900, bot=-1400, span=top-bot;
+  const y=v=>Tm+ph*(top-v)/span, zy=y(0);
+  let g='',bars='',lab='';
+  for(const gv of [500,0,-500,-1000]){const yy=y(gv);g+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="${gv===0?'#cbd5e1':GRID}" stroke-dasharray="${gv===0?'0':'4 4'}"/>`+`<text x="${L-12}" y="${yy+4}" text-anchor="end" font-size="13" fill="#94a3b8">${gv}</text>`}
+  const slot=pw/data.length, bw=Math.min(slot*0.5,120);
+  data.forEach((d,i)=>{const x=L+slot*i+(slot-bw)/2, yy=y(d.value), pos=d.value>=0;
+    const top_=pos?yy:zy, h=Math.abs(yy-zy);
+    bars+=`<rect x="${x}" y="${top_}" width="${bw}" height="${h}" rx="6" fill="${pos?GRN:RED}" opacity="${pos?1:.85}"/>`;
+    lab+=`<text x="${x+bw/2}" y="${pos?yy-12:yy+24}" text-anchor="middle" font-size="16" font-weight="800" fill="${pos?GRN:RED}">${pos?'+':''}${brInt(d.value)}</text>`;
+    lab+=`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle" font-size="14.5" font-weight="600" fill="#475569">${d.label}</text>`;
+  });
+  el.innerHTML=svg(W,H,g+bars+lab);
+}
+
+/* ---------- linha/área de caixa ---------- */
+function cashChart(el,data){
+  const W=1000,H=440,L=95,R=55,Tm=50,B=58, pw=W-L-R, ph=H-Tm-B, base=Tm+ph;
+  const max=8500; const x=i=>L+pw*i/(data.length-1), y=v=>base-ph*v/max;
+  let g='';
+  for(let i=0;i<=4;i++){const yy=base-ph*i/4;g+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="${GRID}"/>`+`<text x="${L-12}" y="${yy+4}" text-anchor="end" font-size="13" fill="#94a3b8">${moneyK(max*i/4)}</text>`}
+  let pts=data.map((d,i)=>`${x(i)},${y(d.value)}`).join(' ');
+  const area=`M ${x(0)},${base} L ${pts.split(' ').join(' L ')} L ${x(data.length-1)},${base} Z`;
+  let mk='',lab='',ann='';
+  data.forEach((d,i)=>{const xx=x(i),yy=y(d.value);
+    mk+=`<circle cx="${xx}" cy="${yy}" r="6" fill="#fff" stroke="${TD}" stroke-width="3"/>`;
+    lab+=`<text x="${xx}" y="${yy-16}" text-anchor="middle" font-size="14.5" font-weight="800" fill="${TD}">${moneyK(d.value)}</text>`;
+    lab+=`<text x="${xx}" y="${base+24}" text-anchor="middle" font-size="14.5" font-weight="600" fill="#475569">${d.label}</text>`;
+  });
+  /* injeções */
+  [{i:0,t:'Seed +2,5 mi'},{i:3,t:'Series A +8 mi'}].forEach(a=>{const xx=x(a.i);
+    ann+=`<line x1="${xx}" y1="${Tm}" x2="${xx}" y2="${base}" stroke="#14b8a6" stroke-dasharray="5 5" opacity=".5"/>`+
+    `<text x="${xx}" y="${Tm-8}" text-anchor="middle" font-size="13.5" font-weight="700" fill="${TD}">${a.t}</text>`;});
+  /* vale */
+  const vi=2,xx=x(vi);ann+=`<text x="${xx}" y="${y(data[vi].value)+34}" text-anchor="middle" font-size="12.5" fill="${RED}" font-weight="700">menor caixa</text>`;
+  el.innerHTML=svg(W,H,g+`<path d="${area}" fill="${T}" opacity=".12"/>`+`<polyline points="${pts}" fill="none" stroke="${TD}" stroke-width="3.5"/>`+ann+mk+lab);
+}
+
+/* ---------- LTV x CAC ---------- */
+function ltvChart(el){
+  const W=1000,H=440,L=60,R=60,Tm=70,B=70, pw=W-L-R;
+  const max=10000, bx=v=>L+pw*v/max;
+  const rows=[{lab:'CAC',val:1200,col:'#94a3b8'},{lab:'LTV',val:9500,col:T}];
+  let bars='',lab='';
+  rows.forEach((r,i)=>{const y=Tm+i*150, h=84;
+    bars+=`<rect x="${L}" y="${y}" width="${bx(r.val)-L}" height="${h}" rx="10" fill="${r.col}"/>`;
+    lab+=`<text x="${L+14}" y="${y+34}" font-size="20" font-weight="800" fill="#fff">${r.lab}</text>`;
+    lab+=`<text x="${bx(r.val)+14}" y="${y+52}" font-size="22" font-weight="800" fill="${INK}">${moneyK(r.val)}</text>`;
+  });
+  lab+=`<text x="${L}" y="${Tm+330}" font-size="22" font-weight="800" fill="${TD}">LTV / CAC ≈ 8x</text>`;
+  lab+=`<text x="${L}" y="${Tm+364}" font-size="15" fill="${MUT}">no caso-base · ~6x no cenário pessimista</text>`;
+  el.innerHTML=svg(W,H,bars+lab);
+}
+
+/* ---------- donut (custos / uso de recursos) ---------- */
+function polar(cx,cy,r,deg){const a=(deg-90)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)]}
+function ring(cx,cy,r,ri,s,e){const[x1,y1]=polar(cx,cy,r,s),[x2,y2]=polar(cx,cy,r,e),[x3,y3]=polar(cx,cy,ri,e),[x4,y4]=polar(cx,cy,ri,s),la=(e-s)>180?1:0;return `M ${x1} ${y1} A ${r} ${r} 0 ${la} 1 ${x2} ${y2} L ${x3} ${y3} A ${ri} ${ri} 0 ${la} 0 ${x4} ${y4} Z`}
+function donut(el,segs,center){
+  const W=460,H=440,cx=230,cy=220,r=170,ri=104; let a=0,paths='';
+  segs.forEach(s=>{const e=a+s.pct*3.6;paths+=`<path d="${ring(cx,cy,r,ri,a,e)}" fill="${s.color}"/>`;a=e});
+  paths+=`<text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="34" font-weight="800" fill="${INK}">${center.top}</text>`;
+  paths+=`<text x="${cx}" y="${cy+24}" text-anchor="middle" font-size="15" fill="${MUT}">${center.sub}</text>`;
+  el.innerHTML=svg(W,H,paths);
+}
+function legend(el,segs,withVal){el.innerHTML=segs.map(s=>`<div class="row"><span class="sw" style="background:${s.color}"></span><span class="pct">${s.pct}%</span><span class="lab">${s.lab}${withVal?' · '+s.val:''}</span></div>`).join('')}
+
+/* ---------- cenários (barras comparativas) ---------- */
+function scenChart(el){
+  barChart(el,[
+    {label:'Pessimista',value:5.5,top:'R$ 5,5 mi',color:'#f59e0b'},
+    {label:'Base',value:10.8,top:'R$ 10,8 mi',color:T},
+    {label:'Otimista',value:16.4,top:'R$ 16,4 mi',color:TD},
+  ],{max:18,fmt:v=>'R$ '+v.toFixed(0)+' mi',L:70});
+}
+
+/* ---------- heatmap de sensibilidade ---------- */
+function heatmap(el){
+  const arpas=[300,360,390,420], clinics=[1400,1800,2300,2800,3300];
+  const val=(c,a)=>c*a*12/1e6; // R$ mi
+  let min=val(1400,300),max=val(3300,420);
+  function shade(v){const t=(v-min)/(max-min);const r=Math.round(240-200*t),g=Math.round(253-100*t),b=Math.round(250-180*t);return `rgb(${r},${g},${b})`}
+  let h='<table style="font-size:1.05rem"><thead><tr><th>Clínicas ↓ / ARPA →</th>'+arpas.map(a=>`<th class="num">R$ ${a}</th>`).join('')+'</tr></thead><tbody>';
+  clinics.forEach(c=>{h+=`<tr><td><b>${brInt(c)}</b></td>`+arpas.map(a=>{const v=val(c,a),base=(c===2300&&a===390);return `<td class="num" style="background:${shade(v)};font-weight:${base?'800':'600'};${base?'outline:3px solid '+TD+';outline-offset:-3px':''}">${v.toFixed(1)}</td>`}).join('')+'</tr>'});
+  h+='</tbody></table>';el.innerHTML=h;
+}
+
+/* ---------- dados & render ---------- */
+function renderCharts(){
+  barChart(document.getElementById('c-spark'),
+    [{label:'2027',value:475,top:'0,5'},{label:'2028',value:1450,top:'1,5'},{label:'2029',value:3240,top:'3,2'},{label:'2030',value:6300,top:'6,3'},{label:'2031',value:10764,top:'10,8'}],
+    {max:12000,fmt:v=>moneyK(v),L:70,color:T});
+  barChart(document.getElementById('c-arpa'),
+    [{label:'2027',value:330,top:'330'},{label:'2029',value:360,top:'360'},{label:'2031',value:390,top:'390'}],
+    {max:460,fmt:v=>'R$ '+brInt(v),L:70,color:TD});
+  barChart(document.getElementById('c-clinics'),
+    [{label:'2026',value:40,top:'40',color:'#94a3b8'},{label:'2027',value:120,top:'120'},{label:'2028',value:350,top:'350'},{label:'2029',value:750,top:'750'},{label:'2030',value:1400,top:'1.400'},{label:'2031',value:2300,top:'2.300'}],
+    {max:2600,fmt:v=>brInt(v),L:75,color:T});
+  barChart(document.getElementById('c-arr'),
+    [{label:'2027',value:475,top:moneyK(475),sub:'MRR 40k'},{label:'2028',value:1450,top:moneyK(1450),sub:'MRR 121k'},{label:'2029',value:3240,top:moneyK(3240),sub:'MRR 270k'},{label:'2030',value:6300,top:moneyK(6300),sub:'MRR 525k'},{label:'2031',value:10764,top:moneyK(10764),sub:'MRR 897k'}],
+    {max:12500,fmt:v=>moneyK(v),L:70,color:T});
+  divergeChart(document.getElementById('c-ebitda'),
+    [{label:'2027',value:-640},{label:'2028',value:-1060},{label:'2029',value:-1206},{label:'2030',value:-790},{label:'2031',value:748}]);
+  cashChart(document.getElementById('c-cash'),
+    [{label:'2026*',value:2500},{label:'2027',value:1860},{label:'2028',value:800},{label:'2029',value:7594},{label:'2030',value:6804},{label:'2031',value:7552}]);
+  ltvChart(document.getElementById('c-ltv'));
+  const cost=[{lab:'Pessoas',pct:51,val:'R$ 4,0 mi',color:'#0f766e'},{lab:'COGS',pct:22,val:'R$ 1,7 mi',color:'#0ea5a4'},{lab:'Marketing & Vendas',pct:19,val:'R$ 1,5 mi',color:'#5eead4'},{lab:'G&A',pct:8,val:'R$ 0,6 mi',color:'#99f6e4'}];
+  donut(document.getElementById('c-cost'),cost,{top:'R$ 7,8 mi',sub:'custo total · 2031'});
+  legend(document.getElementById('leg-cost'),cost,true);
+  const funds=[{lab:'Vendas & Marketing',pct:45,val:'R$ 1,13 mi',color:'#0f766e'},{lab:'Produto & Engenharia',pct:30,val:'R$ 0,75 mi',color:'#0ea5a4'},{lab:'Sucesso do cliente',pct:15,val:'R$ 0,38 mi',color:'#5eead4'},{lab:'G&A / reserva',pct:10,val:'R$ 0,25 mi',color:'#99f6e4'}];
+  donut(document.getElementById('c-funds'),funds,{top:'R$ 2,5 mi',sub:'seed'});
+  legend(document.getElementById('leg-funds'),funds,true);
+  scenChart(document.getElementById('c-scen'));
+  heatmap(document.getElementById('heat'));
+}
+
+/* ---------- navegação ---------- */
+const slides=[...document.querySelectorAll('.slide')];
+let i=0; const counter=document.getElementById('counter'), bar=document.getElementById('bar');
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,k)=>s.classList.toggle('active',k===i));counter.textContent=(i+1)+' / '+slides.length;bar.style.width=((i+1)/slides.length*100)+'%';slides[i].scrollTop=0}
+function next(){show(i+1)} function prev(){show(i-1)}
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();next()}
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev()}
+  else if(e.key==='Home'){show(0)} else if(e.key==='End'){show(slides.length-1)}
+  else if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement){document.documentElement.requestFullscreen?.()}else{document.exitFullscreen?.()}}
+});
+document.getElementById('nextZone').onclick=next;
+document.getElementById('prevZone').onclick=prev;
+let x0=null;
+addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50){dx<0?next():prev()}x0=null},{passive:true});
+renderCharts(); show(0);
+</script>
+</body>
+</html>
