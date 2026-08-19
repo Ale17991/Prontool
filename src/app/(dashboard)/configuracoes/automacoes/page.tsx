@@ -95,6 +95,10 @@ export default async function AutomacoesPage() {
       nome: row.name ?? row.automation_triggers.name,
       fonteLabel: fonte?.label ?? row.automation_triggers.source,
       mensagemNome: row.message_templates.name,
+      // Necessários para EDITAR: o formulário reabre com o que está gravado.
+      mensagemId: row.message_templates.id,
+      source: row.automation_triggers.source,
+      params: row.automation_triggers.params ?? {},
       horario: (row.send_at_local ?? '09:00').slice(0, 5),
       ancorada: Boolean(fonte?.isAnchored?.(row.automation_triggers.params ?? {})),
       enviados30d: m.enviados,

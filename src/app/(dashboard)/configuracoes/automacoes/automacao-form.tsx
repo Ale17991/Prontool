@@ -63,11 +63,30 @@ export interface MensagemOpcao {
   name: string
 }
 
+/**
+ * Estado de partida quando o formulário abre para EDITAR. Ausente = criar.
+ *
+ * Os `params` chegam como vieram do banco (minutos, por exemplo) e a tela os
+ * decompõe na maior unidade que divide exato — 120 volta como "2 horas", que é
+ * como a clínica escreveu. Ver `decompor`.
+ */
+export interface ValorInicial {
+  nome: string
+  mensagemId: string
+  horario: string
+  source: string
+  params: Record<string, unknown>
+}
+
 interface Props {
   fontes: FonteDTO[]
   opcoes: OpcoesDTO
   mensagens: MensagemOpcao[]
   ocupado: boolean
+  /** Presente = edição de uma automação existente. */
+  inicial?: ValorInicial
+  /** Chamado ao cancelar a edição (só aparece quando `inicial` existe). */
+  onCancelar?(): void
   onCriar(input: {
     name: string
     messageTemplateId: string
@@ -126,15 +145,39 @@ function valorInicial(fonte: FonteDTO, opcoes: OpcoesDTO): Record<string, string
   return out
 }
 
-export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onPrevia }: Props) {
-  const [nome, setNome] = useState('')
-  const [mensagemId, setMensagemId] = useState('')
-  const [horario, setHorario] = useState('09:00')
-  const [fonteId, setFonteId] = useState(fontes[0]?.id ?? '')
+export function AutomacaoForm({
+  fontes,
+  opcoes,
+  mensagens,
+  ocupado,
+  inicial,
+  onCancelar,
+  onCriar,
+  onPrevia,
+}: Props) {
+  const editando = inicial !== undefined
+  const [nome, setNome] = useState(inicial?.nome ?? '')
+  const [mensagemId, setMensagemId] = useState(inicial?.mensagemId ?? '')
+  const [horario, setHorario] = useState(inicial?.horario ?? '09:00')
+  const [fonteId, setFonteId] = useState(inicial?.source ?? fontes[0]?.id ?? '')
   const fonte = useMemo(() => fontes.find((f) => f.id === fonteId) ?? null, [fontes, fonteId])
-  const [valores, setValores] = useState<Record<string, string>>(() =>
-    fontes[0] ? valorInicial(fontes[0], opcoes) : {},
-  )
+  const [valores, setValores] = useState<Record<string, string>>(() => {
+    const fonteInicial = fontes.find((f) => f.id === (inicial?.source ?? fontes[0]?.id))
+    if (!fonteInicial) return {}
+    const base = valorInicial(fonteInicial, opcoes)
+    if (!inicial) return base
+    // Sobrepõe o que a automação tem gravado, mantendo o padrão da fonte para
+    // qualquer campo que ela não preencheu.
+    for (const [k, v] of Object.entries(inicial.params)) {
+      const campo = fonteInicial.fields.find((c) => c.name === k)
+      if (campo?.kind === 'duration') {
+        const { valor, unidade } = decompor(Number(v))
+        base[k] = String(valor)
+        base[`${k}__unidade`] = unidade
+      } else base[k] = String(v)
+    }
+    return base
+  })
   const [previa, setPrevia] = useState<Previa | null>(null)
 
   // A lista fica agrupada porque são dezesseis fontes: sem os grupos, achar
@@ -169,10 +212,7 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
       // Campo escondido pela regra da fonte não vai no payload: mandar "7 dias"
       // junto de "no início do mês" gravaria um parâmetro que o motor ignora e
       // que reapareceria como valor válido se alguém trocasse a escolha depois.
-      if (
-        campo.showWhen &&
-        !campo.showWhen.equals.includes(valores[campo.showWhen.field] ?? '')
-      ) {
+      if (campo.showWhen && !campo.showWhen.equals.includes(valores[campo.showWhen.field] ?? '')) {
         continue
       }
       const bruto = (valores[campo.name] ?? '').trim()
@@ -278,79 +318,79 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
               campo.showWhen.equals.includes(valores[campo.showWhen.field] ?? ''),
           )
           .map((campo) => (
-          <div key={campo.name} className="space-y-1">
-            <Label htmlFor={`campo-${campo.name}`}>{campo.label}</Label>
+            <div key={campo.name} className="space-y-1">
+              <Label htmlFor={`campo-${campo.name}`}>{campo.label}</Label>
 
-            {campo.kind === 'duration' ? (
-              <div className="flex gap-2">
+              {campo.kind === 'duration' ? (
+                <div className="flex gap-2">
+                  <Input
+                    id={`campo-${campo.name}`}
+                    type="number"
+                    min={0}
+                    className="w-24"
+                    value={valores[campo.name] ?? ''}
+                    onChange={(e) => {
+                      setPrevia(null)
+                      setValores((v) => ({ ...v, [campo.name]: e.target.value }))
+                    }}
+                  />
+                  <select
+                    aria-label={`Unidade de ${campo.label}`}
+                    className="h-9 flex-1 rounded-md border bg-background px-3 text-sm"
+                    value={valores[`${campo.name}__unidade`] ?? 'dias'}
+                    onChange={(e) => {
+                      setPrevia(null)
+                      setValores((v) => ({ ...v, [`${campo.name}__unidade`]: e.target.value }))
+                    }}
+                  >
+                    <option value="minutos">minutos</option>
+                    <option value="horas">horas</option>
+                    <option value="dias">dias</option>
+                  </select>
+                </div>
+              ) : campo.kind === 'select' ? (
+                <select
+                  id={`campo-${campo.name}`}
+                  className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+                  value={valores[campo.name] ?? ''}
+                  onChange={(e) => {
+                    setPrevia(null)
+                    setValores((v) => ({ ...v, [campo.name]: e.target.value }))
+                  }}
+                >
+                  {/* Escolha fixa da fonte é obrigatória e não tem "qualquer":
+                    "no dia OU antes OU depois" são alternativas, não um filtro
+                    que pode ficar vazio. */}
+                  {!campo.options?.length && <option value="">Qualquer / escolha…</option>}
+                  {(campo.options ?? opcoes[campo.optionsFrom ?? ''] ?? []).map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
                 <Input
                   id={`campo-${campo.name}`}
-                  type="number"
-                  min={0}
-                  className="w-24"
+                  type={campo.kind === 'number' ? 'number' : 'text'}
+                  min={campo.min}
+                  max={campo.max}
                   value={valores[campo.name] ?? ''}
                   onChange={(e) => {
                     setPrevia(null)
                     setValores((v) => ({ ...v, [campo.name]: e.target.value }))
                   }}
                 />
-                <select
-                  aria-label={`Unidade de ${campo.label}`}
-                  className="h-9 flex-1 rounded-md border bg-background px-3 text-sm"
-                  value={valores[`${campo.name}__unidade`] ?? 'dias'}
-                  onChange={(e) => {
-                    setPrevia(null)
-                    setValores((v) => ({ ...v, [`${campo.name}__unidade`]: e.target.value }))
-                  }}
-                >
-                  <option value="minutos">minutos</option>
-                  <option value="horas">horas</option>
-                  <option value="dias">dias</option>
-                </select>
-              </div>
-            ) : campo.kind === 'select' ? (
-              <select
-                id={`campo-${campo.name}`}
-                className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-                value={valores[campo.name] ?? ''}
-                onChange={(e) => {
-                  setPrevia(null)
-                  setValores((v) => ({ ...v, [campo.name]: e.target.value }))
-                }}
-              >
-                {/* Escolha fixa da fonte é obrigatória e não tem "qualquer":
-                    "no dia OU antes OU depois" são alternativas, não um filtro
-                    que pode ficar vazio. */}
-                {!campo.options?.length && <option value="">Qualquer / escolha…</option>}
-                {(campo.options ?? opcoes[campo.optionsFrom ?? ''] ?? []).map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <Input
-                id={`campo-${campo.name}`}
-                type={campo.kind === 'number' ? 'number' : 'text'}
-                min={campo.min}
-                max={campo.max}
-                value={valores[campo.name] ?? ''}
-                onChange={(e) => {
-                  setPrevia(null)
-                  setValores((v) => ({ ...v, [campo.name]: e.target.value }))
-                }}
-              />
-            )}
-
-            {campo.hint && <p className="text-xs text-muted-foreground">{campo.hint}</p>}
-            {campo.kind === 'select' &&
-              !campo.options?.length &&
-              (opcoes[campo.optionsFrom ?? ''] ?? []).length === 0 && (
-                <p className="text-xs text-amber-700">
-                  Nada cadastrado ainda para escolher aqui.
-                </p>
               )}
-          </div>
+
+              {campo.hint && <p className="text-xs text-muted-foreground">{campo.hint}</p>}
+              {campo.kind === 'select' &&
+                !campo.options?.length &&
+                (opcoes[campo.optionsFrom ?? ''] ?? []).length === 0 && (
+                  <p className="text-xs text-amber-700">
+                    Nada cadastrado ainda para escolher aqui.
+                  </p>
+                )}
+            </div>
           ))}
 
         <div className="space-y-1">
@@ -415,15 +455,25 @@ export function AutomacaoForm({ fontes, opcoes, mensagens, ocupado, onCriar, onP
               params,
               sendAtLocal: horario,
             })
-            if (ok) {
+            // Na edição o formulário some ao salvar, então limpar não faz
+            // sentido — e limpar o nome faria o campo piscar vazio antes disso.
+            if (ok && !editando) {
               setNome('')
               setPrevia(null)
             }
           }}
         >
           <Plus className="mr-1 h-4 w-4" aria-hidden />
-          Criar automação (desligada)
+          {/* A automação editada NÃO é religada por salvar: se estava desligada,
+              continua desligada. Ligar é decisão à parte, e é a mais
+              consequente da feature. */}
+          {editando ? 'Salvar alterações' : 'Criar automação (desligada)'}
         </Button>
+        {editando && onCancelar ? (
+          <Button variant="ghost" size="sm" disabled={ocupado} onClick={onCancelar}>
+            Cancelar
+          </Button>
+        ) : null}
       </div>
 
       {previa && (
