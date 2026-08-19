@@ -339,11 +339,24 @@ export async function updateAutomation(
   supabase: SupabaseClient,
   tenantId: string,
   id: string,
-  patch: { name?: string; sendAtLocal?: string },
+  patch: {
+    name?: string
+    sendAtLocal?: string
+    messageTemplateId?: string
+    /**
+     * REAPONTA a automação para outro gatilho — nunca edita o gatilho no lugar.
+     * Gatilhos são compartilhados por automações com o mesmo "quando"
+     * (`findOrCreateTrigger`), então alterar a linha para atender uma delas
+     * mudaria a hora das outras sem ninguém pedir.
+     */
+    triggerId?: string
+  },
 ): Promise<void> {
   const payload: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (patch.name !== undefined) payload.name = patch.name.trim()
   if (patch.sendAtLocal !== undefined) payload.send_at_local = patch.sendAtLocal
+  if (patch.messageTemplateId !== undefined) payload.message_template_id = patch.messageTemplateId
+  if (patch.triggerId !== undefined) payload.trigger_id = patch.triggerId
 
   const { error } = await supabase
     .from('automations')

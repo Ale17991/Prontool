@@ -17,14 +17,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Clock, Power, Trash2 } from 'lucide-react'
+import { AlertTriangle, Clock, Pencil, Power, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  AutomacaoForm,
-  type FonteDTO,
-  type OpcoesDTO,
-  type Previa,
-} from './automacao-form'
+import { AutomacaoForm, type FonteDTO, type OpcoesDTO, type Previa } from './automacao-form'
 import { JanelaEnvio } from './janela-envio'
 import { MensagensClient, type MensagemDTO } from './mensagens-client'
 import { OcorrenciasPanel } from './ocorrencias-panel'
@@ -37,6 +32,10 @@ export interface AutomacaoDTO {
   nome: string
   fonteLabel: string
   mensagemNome: string
+  /** Os três abaixo existem para reabrir o formulário em modo de edição. */
+  mensagemId: string
+  source: string
+  params: Record<string, unknown>
   horario: string
   ancorada: boolean
   enviados30d: number
@@ -69,6 +68,14 @@ export function AutomacoesClient({
   const router = useRouter()
   const [erro, setErro] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  /**
+   * Id da automação em edição. Antes disto, mudar qualquer coisa exigia excluir
+   * e recriar — e excluir leva junto as ocorrências (CASCADE na 0196), ou seja,
+   * a memória de quem já recebeu. Quem só queria corrigir a hora acabava
+   * mandando tudo de novo para todo mundo.
+   */
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const emEdicao = automacoesIniciais.find((a) => a.id === editandoId) ?? null
 
   async function chamar(
     url: string,
@@ -146,7 +153,8 @@ export function AutomacoesClient({
                         gravados: corrigir a regra reapura o histórico. */}
                     {' · '}
                     {a.enviados30d} enviada(s) em 30 dias
-                    {a.enviados30d > 0 && ` · ${a.entregues30d} entregue(s) · ${a.lidos30d} lida(s)`}
+                    {a.enviados30d > 0 &&
+                      ` · ${a.entregues30d} entregue(s) · ${a.lidos30d} lida(s)`}
                     {a.suprimidos30d > 0 && ` · ${a.suprimidos30d} segurada(s) pelo limite`}
                   </p>
                 </div>
@@ -169,6 +177,15 @@ export function AutomacoesClient({
                     variant="ghost"
                     size="sm"
                     disabled={ocupado}
+                    onClick={() => setEditandoId(editandoId === a.id ? null : a.id)}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    <span className="sr-only">Editar automação</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={ocupado}
                     onClick={() => chamar(`/api/automacoes/${a.id}`, { method: 'DELETE' })}
                   >
                     <Trash2 className="h-4 w-4" aria-hidden />
@@ -183,22 +200,50 @@ export function AutomacoesClient({
 
       {/* ---------------------------------------------------------------- */}
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Nova automação</h2>
+        <h2 className="text-lg font-medium">
+          {emEdicao ? `Editando "${emEdicao.nome}"` : 'Nova automação'}
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Escolha a mensagem e o momento. Ela nasce desligada — ligar é um ato à parte, depois de
-          ver quantos pacientes isso alcança.
+          {emEdicao
+            ? 'Alterar o "quando" reaponta esta automação para outro gatilho — as demais que usavam o anterior continuam como estavam. Quem já recebeu não recebe de novo.'
+            : 'Escolha a mensagem e o momento. Ela nasce desligada — ligar é um ato à parte, depois de ver quantos pacientes isso alcança.'}
         </p>
 
         <AutomacaoForm
+          /* Remonta ao trocar de alvo: o formulário lê o estado inicial uma vez,
+             e sem a chave a segunda edição abriria com os dados da primeira. */
+          key={emEdicao?.id ?? 'nova'}
           fontes={fontes}
           opcoes={opcoes}
           mensagens={mensagensIniciais}
           ocupado={ocupado}
-          onCriar={async (input) =>
-            Boolean(
+          inicial={
+            emEdicao
+              ? {
+                  nome: emEdicao.nome,
+                  mensagemId: emEdicao.mensagemId,
+                  horario: emEdicao.horario,
+                  source: emEdicao.source,
+                  params: emEdicao.params,
+                }
+              : undefined
+          }
+          onCancelar={() => setEditandoId(null)}
+          onCriar={async (input) => {
+            if (emEdicao) {
+              const ok = Boolean(
+                await chamar(`/api/automacoes/${emEdicao.id}`, {
+                  method: 'PATCH',
+                  body: JSON.stringify(input),
+                }),
+              )
+              if (ok) setEditandoId(null)
+              return ok
+            }
+            return Boolean(
               await chamar('/api/automacoes', { method: 'POST', body: JSON.stringify(input) }),
             )
-          }
+          }}
           onPrevia={async (input) =>
             (await chamar(
               '/api/automacoes/previa',

@@ -15,6 +15,7 @@ import { listRemindersHistory } from '@/lib/core/reminders/history'
 import { ConfigForm } from './config-form'
 import { HistoryTable } from './history-table'
 import { ConnectionPanel } from './whatsapp-panel'
+import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,14 +70,17 @@ export default async function LembretesPage() {
   return (
     <div className="space-y-6">
       <div>
+        <BackLink href="/configuracoes" className="mb-2">
+          Voltar às configurações
+        </BackLink>
         <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-900">
           <BellRing className="h-6 w-6 text-primary" />
           Lembretes automáticos
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           Avisa o paciente antes da consulta, por email ou WhatsApp. Reduz no-show em 10–20%. Aqui
-          ficam a conexão dos canais e a janela de horário; o texto das mensagens e os outros
-          avisos são montados em Automações.
+          ficam a conexão dos canais e a janela de horário; o texto das mensagens e os outros avisos
+          são montados em Automações.
         </p>
       </div>
 

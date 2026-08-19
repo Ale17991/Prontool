@@ -11,6 +11,11 @@ import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { toHttpResponse } from '@/lib/observability/http'
 import { hasAutomationsModule, moduleDisabled } from '@/lib/core/automations/gate'
+import {
+  resolveTrigger,
+  sendAtLocalFor,
+  validarMensagemParaFonte,
+} from '@/lib/core/automations/compose'
 import { createAutomation, findOrCreateTrigger, listTriggers } from '@/lib/core/automations/store'
 import { auditAutomation } from '@/lib/core/automations/audit'
 import { describeTrigger } from '@/lib/core/automations/describe'
@@ -138,94 +143,45 @@ export async function POST(req: Request): Promise<Response> {
 
     const supabase = createSupabaseServiceClient()
 
-    // Caminho 1 — gatilho já existente (compatibilidade e testes de contrato).
-    // Caminho 2 — a fonte e os parâmetros vieram no mesmo pedido, e o gatilho é
-    // criado (ou reaproveitado) por baixo.
-    let triggerId: string
-    let source: string
-    let paramsValidados: Record<string, unknown>
-
-    if (parsed.data.triggerId) {
-      const gatilho = (await listTriggers(supabase, session.tenantId)).find(
-        (g) => g.id === parsed.data.triggerId,
-      )
-      if (!gatilho) return NextResponse.json({ error: 'GATILHO_NAO_ENCONTRADO' }, { status: 404 })
-      triggerId = gatilho.id
-      source = gatilho.source
-      paramsValidados = gatilho.params ?? {}
-    } else {
-      source = parsed.data.source as string
-      const f = getSource(source)
-      if (!f) return NextResponse.json({ error: 'FONTE_DESCONHECIDA' }, { status: 400 })
-
-      // O módulo da fonte é conferido no SERVIDOR, não só escondendo a opção da
-      // lista: a rota é chamável direto, e a fonte de vertical lê tabela de
-      // vertical. Esconder na tela é conveniência; recusar aqui é o controle.
-      if (f.requiresModule) {
-        const ent = await getTenantEntitlements(supabase, session.tenantId)
-        if (!ent.hasModule(f.requiresModule as never)) {
-          return NextResponse.json({ error: 'FONTE_INDISPONIVEL' }, { status: 403 })
-        }
-      }
-
-      const v = f.paramsSchema.safeParse(parsed.data.params ?? {})
-      if (!v.success) {
-        return NextResponse.json(
-          { error: 'PARAMETROS_INVALIDOS', detail: v.error.issues[0]?.message ?? 'inválido' },
-          { status: 400 },
-        )
-      }
-      paramsValidados = v.data as Record<string, unknown>
-
-      triggerId = await findOrCreateTrigger(supabase, {
-        tenantId: session.tenantId,
-        nomeDerivado: describeTrigger(f, paramsValidados),
-        source,
-        params: paramsValidados,
-        actorUserId: session.userId,
-      })
-    }
-
-    const fonte = getSource(source)
-    if (!fonte) return NextResponse.json({ error: 'FONTE_DESCONHECIDA' }, { status: 400 })
-
-    const { data: msg } = await supabase
-      .from('message_templates')
-      .select('body, name')
-      .eq('tenant_id', session.tenantId)
-      .eq('id', parsed.data.messageTemplateId)
-      .maybeSingle()
-    if (!msg) return NextResponse.json({ error: 'MENSAGEM_NAO_ENCONTRADA' }, { status: 404 })
-
-    // A validação que importa: esta mensagem pede alguma variável que ESTA
-    // fonte não sabe preencher? O erro aparece aqui, para quem está montando —
-    // não vira mensagem torta no celular do paciente três dias depois.
-    const faltando = variablesNotProvidedBy((msg as { body: string }).body, [
-      ...UNIVERSAL_VARIABLES,
-      ...fonte.variables,
-    ])
-    if (faltando.length > 0) {
+    // Resolve o gatilho: a partir de um id existente (compatibilidade e testes
+    // de contrato) ou de fonte+parâmetros no mesmo pedido. As regras vivem em
+    // `compose.ts` porque a EDIÇÃO precisa exatamente das mesmas.
+    const r = await resolveTrigger(supabase, {
+      tenantId: session.tenantId,
+      actorUserId: session.userId,
+      triggerId: parsed.data.triggerId,
+      source: parsed.data.source,
+      params: parsed.data.params,
+    })
+    if ('erro' in r) {
       return NextResponse.json(
-        {
-          error: 'VARIAVEL_NAO_FORNECIDA',
-          detail: `A mensagem usa ${faltando
-            .map((v) => `{{${v}}}`)
-            .join(', ')}, que o gatilho "${fonte.label}" não fornece`,
-        },
-        { status: 400 },
+        { error: r.erro.code, detail: 'detail' in r.erro ? r.erro.detail : undefined },
+        { status: r.erro.status },
+      )
+    }
+    const { triggerId, source, params: paramsValidados, nomeDerivado, ancorada } = r.ok
+
+    const v = await validarMensagemParaFonte(supabase, {
+      tenantId: session.tenantId,
+      messageTemplateId: parsed.data.messageTemplateId,
+      source,
+    })
+    if ('erro' in v) {
+      return NextResponse.json(
+        { error: v.erro.code, detail: 'detail' in v.erro ? v.erro.detail : undefined },
+        { status: v.erro.status },
       )
     }
 
     // O nome é da clínica quando ela deu um; senão, o do gatilho derivado. A
     // coluna é NOT NULL, e "Automação 1" seria pior que a descrição da fonte.
-    const nome = parsed.data.name ?? describeTrigger(fonte, paramsValidados)
+    const nome = parsed.data.name ?? nomeDerivado
 
     // Horário de disparo não vale para fonte ancorada — "2 horas antes da
     // consulta, às 14:30" é contradição. Grava o padrão em vez de aceitar um
     // valor que o motor ignoraria: guardar o que não vale faria a tela mostrar
     // um horário que nunca acontece.
-    const ancorada = Boolean(fonte.isAnchored?.(paramsValidados))
-    const sendAtLocal = ancorada ? '09:00' : parsed.data.sendAtLocal
+    const sendAtLocal = sendAtLocalFor(ancorada, parsed.data.sendAtLocal)
 
     let id: string
     try {
@@ -249,7 +205,7 @@ export async function POST(req: Request): Promise<Response> {
       entity: 'automations',
       entityId: id,
       field: 'created',
-      newValue: `${nome} (${source} → ${(msg as { name: string }).name})`,
+      newValue: `${nome} (${source} → ${v.nomeMensagem})`,
       reason: 'Automação criada',
     })
 
