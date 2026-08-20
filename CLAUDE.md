@@ -664,6 +664,87 @@ e cada outra área virou **card que leva à sua própria página**
   Fatiar essa parte reintroduz o defeito que o `fc1698a` consertou. As outras
   áreas buscam só a sua fatia.
 
+## Marca da clínica no portal e composição corporal (feature 058, migration 0204)
+
+Duas frentes num spec só. O que as une é o portal ter deixado de ser tela
+genérica: ele é a cara da clínica para quem é atendido por ela, e é onde o
+resultado do trabalho da nutricionista chega ao paciente. A 057 preparou o
+terreno sem que esse fosse o objetivo — ao trocar cor escrita na mão por token,
+tornou possível uma clínica ter a própria paleta sem reescrever tela nenhuma.
+
+- **A clínica escolhe DUAS cores — destaque e fundo — e mais nada.** Texto,
+  cartão, borda, apoio e a cor que vai SOBRE o destaque são derivados em
+  `patient-portal/theme.ts` e **não têm coluna** na 0204. É essa assimetria que
+  faz o SC-002 valer por construção: não existe par que produza texto ilegível,
+  porque o texto não é uma das cores que se escolhe. Guardar a cor do texto
+  abriria a porta para branco sobre amarelo — contraste é invariante de leitura,
+  não preferência de quem configura.
+- **UMA regra serve aos dois sentidos.** O cartão é sempre um degrau mais claro
+  que o fundo; a tinta é a que vencer contra o cartão. Não são dois temas
+  mantidos em paralelo.
+- **"Tema escuro" NÃO é um limiar de luminância** — é qual TINTA o fundo
+  carrega, medindo as duas. Com o limiar de 0,4 que estava lá primeiro, um fundo
+  de luminância 0,23 caía como escuro, o texto virava claro, e esse texto tinha
+  3,5:1 contra o fundo enquanto o escuro — descartado pela constante — tinha
+  4,6:1. O tema escolhia a pior das duas tintas por causa de um número redondo.
+- **Toda medição de contraste passa pela cor QUANTIZADA**, exatamente como ela
+  sai no CSS. A derivação afina no fio do mínimo, e uma diferença na terceira
+  casa do matiz muda um canal RGB em uma unidade — o bastante para uma cor
+  medida em 4,50:1 chegar ao navegador valendo 4,45:1. Medir um valor e emitir
+  outro é garantir o que não se entrega.
+- **O que cede é sempre o derivado, nunca o escolhido nem a leitura.** O fundo
+  da clínica é preservado byte a byte; quem se afasta do meio da escala para
+  carregar texto é o CARTÃO. A marca cede luminosidade para caber um rótulo
+  dentro dela — e o ajuste só anda para LONGE do cartão, senão a cor sumiria
+  dentro dele para que o texto de dentro ficasse legível.
+- **Fundo de tom médio é RECUSADO** (`surface_cannot_carry_text`), e é a única
+  recusa além da marca indistinguível do fundo. Existe uma faixa estreita no
+  meio da escala — magenta vivo, vinho, cinza médio — onde nenhuma tinta lê bem.
+  Recusar é mais honesto que aceitar e clarear por baixo do pano: a clínica
+  escolheria um tom e veria outro.
+- **O tema sai como `<style>` sobre `:root`** no `[slug]/layout.tsx`, não como
+  `style` inline num wrapper: variável presa a um `<div>` não alcança o `<body>`,
+  e o fundo do produto reapareceria na sobra de rolagem — a clínica veria a
+  própria cor emoldurada pela nossa. Estilo sem camada vence `@layer base`, então
+  não precisa de `!important`. Nada do que a clínica digitou chega cru ao CSS.
+- **Fica no layout de `[slug]` para alcançar a tela de LOGIN**, que é onde o
+  paciente reconhece a clínica antes de entrar — e para a próxima área nascer
+  temada sem ninguém lembrar, como `openPortalPage` faz com sessão e permissão.
+- **Gráfico recebe HEX, não `var(--token)`**: o recharts escreve `stroke`/`fill`
+  como atributo de apresentação do SVG, e ali variável CSS não resolve de forma
+  confiável. `clinic.theme.chart` desce como prop; quem usa os mesmos gráficos
+  nas telas da equipe não passa nada e segue igual (FR-008).
+- **Semântica não vira marca**: sucesso, atenção, alerta e informação ficam nos
+  pares fechados do produto. Resultado alterado é vermelho na clínica de marca
+  verde.
+- **Os pastéis por área morreram** (`bg-emerald-100`, `bg-violet-100`…): cor
+  fixa em classe é invisível para qualquer tema, e o FR-002 põe a marca
+  justamente nos ícones de seção. O que distingue uma área da outra passa a ser
+  o desenho do ícone — que é o que se lê num quadrado de 40px.
+- **Composição corporal entrou no módulo `nutri_avaliacao`, que já existia**, em
+  vez de virar módulo próprio: ela é literalmente o RESULTADO da avaliação
+  nutricional. Módulo separado permitiria a combinação sem sentido de vender a
+  área a quem não apura nada, e a área nasceria vazia para sempre. Zero mudança
+  no `/admin` — ele já lista o catálogo.
+- **A área não recalcula, não classifica e não esconde troca de método.** Os
+  números saem do snapshot imutável da 046 (recalcular hoje mudaria o passado —
+  a revisão de fórmulas de agosto tornou isso concreto). Não há faixa de
+  referência nem "acima do ideal": nada disso está cadastrado, e pintar banda
+  diria que alguém afirmou normalidade. E o método anda junto de CADA leitura,
+  não como rótulo do conjunto — sem isso, trocar de aparelho pareceria emagrecer.
+- **`brDateOnly` para `assessed_at`, nunca `brDayInClinicTz`.** É coluna `DATE`,
+  que não tem fuso: `new Date('2026-08-14')` é meia-noite em UTC e no fuso da
+  clínica ainda é dia 13. Toda avaliação apareceria com a data da véspera —
+  mesma distinção que a 054 firmou entre `brDate` e `brDateTz`, com o erro
+  apontando para o lado oposto.
+- **O gate de módulo vale no BUNDLE**, não só no card: `tenant_portal_sections` é
+  estado persistido, e clínica com o módulo revogado seguiria servindo o dado.
+- **O plano alimentar do portal virou o DIA do paciente** (trilho de horário com
+  um ponto por refeição, e os macros como barra de proporção). Antes eram caixas
+  iguais empilhadas, com nome, macros e comida no mesmo peso e quase tudo em
+  cinza de apoio: nada saltava, nem a hora de comer nem o que comer — que são as
+  duas perguntas que trazem o paciente ali.
+
 ## Dados do paciente nos impressos (migration 0195)
 
 A clínica escolhe o que aparece do paciente em cada documento. Padrão da casa
