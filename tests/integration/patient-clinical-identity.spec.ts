@@ -48,6 +48,12 @@ interface PatientDetailBody {
 const IDENTITY = {
   full_name: 'ZZZPacienteIdentidadeXYZ',
   cpf: '11122233344',
+  // A politica de campos obrigatorios da clinica (nome + telefone, `patientFieldPolicy`)
+  // passou a recusar com 422 o cadastro sem telefone. Sem este campo os tres primeiros
+  // casos deste arquivo morrem no POST, antes de exercitar cifra, decifra e PATCH — e o
+  // terceiro ainda vira 500 (`patientId` undefined na URL do PATCH), que parecia bug de
+  // producao e nao era.
+  phone: '(31) 98765-4321',
   sex: 'feminino',
   social_name: 'Nome Social Unico QWE',
   mother_name: 'Mae Unica ASD',
