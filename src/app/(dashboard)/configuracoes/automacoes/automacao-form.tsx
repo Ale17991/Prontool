@@ -100,9 +100,16 @@ interface Props {
 const MINUTOS_POR_DIA = 1440
 type Unidade = 'minutos' | 'horas' | 'dias'
 
-/** A maior unidade que divide exato — 120 volta como "2 horas", não "120 minutos". */
-function decompor(minutos: number): { valor: number; unidade: Unidade } {
-  if (minutos !== 0 && minutos % MINUTOS_POR_DIA === 0) {
+/**
+ * A maior unidade que divide exato — 120 volta como "2 horas", não "120 minutos".
+ *
+ * `ancorar` desempata o caso em que a maior unidade MENTE: 1440 minutos fecham
+ * um dia, mas quem escreveu "24 horas" pediu um envio diferente de quem escreveu
+ * "1 dia". Reabrir o formulário mostrando "1 dia" faria a clínica salvar de volta
+ * a leitura que ela não escolheu.
+ */
+function decompor(minutos: number, ancorar?: boolean): { valor: number; unidade: Unidade } {
+  if (ancorar !== true && minutos !== 0 && minutos % MINUTOS_POR_DIA === 0) {
     return { valor: minutos / MINUTOS_POR_DIA, unidade: 'dias' }
   }
   if (minutos !== 0 && minutos % 60 === 0) return { valor: minutos / 60, unidade: 'horas' }
@@ -123,8 +130,13 @@ function minutosEmTexto(minutos: number): string {
   return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}`
 }
 
-/** Uma antecedência que não fecha em dias inteiros manda no horário da âncora. */
-function ehAncorada(minutos: number): boolean {
+/**
+ * Uma antecedência que não fecha em dias inteiros manda no horário da âncora —
+ * e, no empate de 1440, quem manda é a unidade que a clínica escolheu. Espelha
+ * `ancorada()` do servidor.
+ */
+function ehAncorada(minutos: number, ancorar?: boolean): boolean {
+  if (typeof ancorar === 'boolean') return ancorar
   return minutos % MINUTOS_POR_DIA !== 0
 }
 
@@ -169,9 +181,15 @@ export function AutomacaoForm({
     // Sobrepõe o que a automação tem gravado, mantendo o padrão da fonte para
     // qualquer campo que ela não preencheu.
     for (const [k, v] of Object.entries(inicial.params)) {
+      // `ancorar` não é campo da tela: é a intenção de unidade, e reaparece pela
+      // unidade escolhida no seletor ao lado do número.
+      if (k === 'ancorar') continue
       const campo = fonteInicial.fields.find((c) => c.name === k)
       if (campo?.kind === 'duration') {
-        const { valor, unidade } = decompor(Number(v))
+        const { valor, unidade } = decompor(
+          Number(v),
+          inicial.params.ancorar as boolean | undefined,
+        )
         base[k] = String(valor)
         base[`${k}__unidade`] = unidade
       } else base[k] = String(v)
@@ -220,10 +238,16 @@ export function AutomacaoForm({
         if (bruto === '') return null
         const n = Number(bruto)
         if (!Number.isFinite(n)) return null
-        params[campo.name] =
-          campo.kind === 'duration'
-            ? emMinutos(n, (valores[`${campo.name}__unidade`] as Unidade) ?? 'dias')
-            : n
+        if (campo.kind === 'duration') {
+          const unidade = (valores[`${campo.name}__unidade`] as Unidade) ?? 'dias'
+          params[campo.name] = emMinutos(n, unidade)
+          // A UNIDADE é a intenção, e ela some na conversão para minutos: 24
+          // horas e 1 dia chegam ao servidor como o mesmo 1440. Quem escreveu
+          // horas quer a mensagem contada do horário do paciente; quem escreveu
+          // dias quer o lote no horário da clínica. O servidor descarta esta
+          // chave quando ela apenas repete o que a aritmética já diria.
+          params.ancorar = unidade !== 'dias'
+        } else params[campo.name] = n
       } else {
         // Opcional e vazio simplesmente não entra — é o caso de "qualquer
         // métrica" em `meta_atingida`, onde ausente e "todas" são a mesma coisa.
@@ -246,7 +270,9 @@ export function AutomacaoForm({
   const ancorada = useMemo(() => {
     if (!fonte || !params) return false
     return fonte.fields.some(
-      (c) => c.kind === 'duration' && ehAncorada(Number(params[c.name] ?? 0)),
+      (c) =>
+        c.kind === 'duration' &&
+        ehAncorada(Number(params[c.name] ?? 0), params.ancorar as boolean | undefined),
     )
   }, [fonte, params])
 
