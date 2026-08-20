@@ -38,7 +38,10 @@ function moduleDisabled(): Response {
   )
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/alimentos/${params.id}`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -52,7 +55,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const parsed = patchSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }
@@ -76,7 +81,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/alimentos/${params.id}`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {

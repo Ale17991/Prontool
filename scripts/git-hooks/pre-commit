@@ -1,9 +1,32 @@
 #!/usr/bin/env sh
-# Clinni pre-commit hook — bloqueia commit se lint falhar.
+# Clinni pre-commit hook — bloqueia commit se lint ou formatacao falharem.
 # Instalado automaticamente via `pnpm install` (script `prepare` em package.json).
 #
 # Para pular em emergencias (NAO recomendado): git commit --no-verify
 set -e
+
+# Prettier SO nos arquivos que vao no commit. O job `lint` da CI roda
+# `pnpm format:check` no repositorio INTEIRO, entao um unico arquivo fora do
+# padrao deixa o master vermelho e ainda pula o job `build`, que depende dele.
+# Sem esta checagem a formatacao volta a divergir sozinha: o reformat de
+# 2026-07 (1022 arquivos) nao se sustentou e em 08/2026 ja eram 243 arquivos
+# fora do padrao. Aqui e CHECK, nunca --write: reescrever arquivo com hunk
+# parcialmente staged levaria para o commit alteracao que ninguem escolheu.
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|md|json|yaml|yml)$' || true)
+if [ -n "$STAGED" ]; then
+  # `-n 100` nao e enfeite: no Windows a linha de comando estoura em ~32 KB e o
+  # xargs sozinho nao fatiou ("Linha de comando muito longa") num commit de 244
+  # arquivos. Commit normal segue sendo UMA invocacao do prettier.
+  echo "[pre-commit] prettier --check nos arquivos staged..."
+  if ! printf '%s\n' "$STAGED" | tr '\n' '\0' | xargs -0 -n 100 pnpm exec prettier --check --ignore-unknown; then
+    echo ""
+    echo "[pre-commit] Formatacao fora do padrao. Rode:"
+    echo "    pnpm format   (repositorio inteiro)"
+    echo "  ou, so nos arquivos acima:"
+    echo "    pnpm exec prettier --write <arquivo>"
+    exit 1
+  fi
+fi
 
 echo "[pre-commit] pnpm lint..."
 pnpm lint

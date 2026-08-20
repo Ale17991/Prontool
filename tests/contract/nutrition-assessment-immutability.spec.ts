@@ -55,7 +55,10 @@ describe('Feature 046 — nutrition_assessments append-only', () => {
 
   it('DELETE via authenticated é REJEITADO', async () => {
     const rls = rlsClient(adminJwt)
-    const { error } = await rls.from('nutrition_assessments' as never).delete().eq('id', rowId)
+    const { error } = await rls
+      .from('nutrition_assessments' as never)
+      .delete()
+      .eq('id', rowId)
     if (error) expect(error.message).toMatch(/permission|denied|append-only|forbidden|DELETE/i)
     const sb = serviceClient()
     const { data } = await sb

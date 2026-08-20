@@ -105,6 +105,8 @@ describe('paciente anonimizado', () => {
     const res = await getPdf(patientId, jwt)
     // Emitir aqui desfaria na impressora o apagamento que a LGPD exigiu.
     expect(res.status).toBe(409)
-    expect(((await res.json()) as { error: { code: string } }).error.code).toBe('PATIENT_ANONYMIZED')
+    expect(((await res.json()) as { error: { code: string } }).error.code).toBe(
+      'PATIENT_ANONYMIZED',
+    )
   })
 })

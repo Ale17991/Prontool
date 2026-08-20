@@ -11,7 +11,13 @@ import { prescribeDietPlan } from '@/lib/core/nutrition/diet/prescribe'
 import { getPortalDietPlan } from '@/lib/core/patient-portal/diet'
 
 async function arroz(sb: ReturnType<typeof serviceClient>) {
-  const { data } = await sb.from('foods').select('id').is('tenant_id', null).ilike('name', '%arroz%').limit(1).single()
+  const { data } = await sb
+    .from('foods')
+    .select('id')
+    .is('tenant_id', null)
+    .ilike('name', '%arroz%')
+    .limit(1)
+    .single()
   return (data as { id: string }).id
 }
 

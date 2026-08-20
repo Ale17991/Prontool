@@ -79,11 +79,14 @@ describe('Feature 045 — tenant isolation (tenant_materials + set_cost)', () =>
       amountCents: 20000,
       commissionBps: 3000,
     })
-    const { data: att, error: attErr } = await sb.rpc('attach_materials_to_appointment' as never, {
-      p_appointment_id: appointmentId,
-      p_materials: [{ material_name: 'Gaze', quantity: 1, unit_cost_cents: 0 }],
-      p_actor: adminA.userId,
-    } as never)
+    const { data: att, error: attErr } = await sb.rpc(
+      'attach_materials_to_appointment' as never,
+      {
+        p_appointment_id: appointmentId,
+        p_materials: [{ material_name: 'Gaze', quantity: 1, unit_cost_cents: 0 }],
+        p_actor: adminA.userId,
+      } as never,
+    )
     if (attErr) throw new Error(`attach: ${attErr.message}`)
     materialRowA = (att as unknown as { materials: Array<{ id: string }> }).materials[0]!.id
   })
@@ -115,13 +118,16 @@ describe('Feature 045 — tenant isolation (tenant_materials + set_cost)', () =>
 
   it('set_appointment_material_cost do tenant B sobre linha do A → MATERIAL_ROW_NOT_FOUND', async () => {
     const rls = rlsClient(bJwt)
-    const { error } = await rls.rpc('set_appointment_material_cost' as never, {
-      p_material_row_id: materialRowA,
-      p_unit_cost_cents: 9999,
-      p_material_id: null,
-      p_reason: 'tentativa cross-tenant',
-      p_actor: '00000000-0000-0000-0000-000000000000',
-    } as never)
+    const { error } = await rls.rpc(
+      'set_appointment_material_cost' as never,
+      {
+        p_material_row_id: materialRowA,
+        p_unit_cost_cents: 9999,
+        p_material_id: null,
+        p_reason: 'tentativa cross-tenant',
+        p_actor: '00000000-0000-0000-0000-000000000000',
+      } as never,
+    )
     expect(error?.message).toMatch(/MATERIAL_ROW_NOT_FOUND/)
     // Confirma que o custo NÃO mudou.
     const sb = serviceClient()

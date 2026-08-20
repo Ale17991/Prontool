@@ -63,11 +63,29 @@ const CLINICA: ClinicProfile = {
 }
 
 // Nome comprido de propósito: é onde o cabeçalho e o rodapé estouram.
-const ADULTA: PatientIdentity = { name: 'Mariana Alves de Souza Rodrigues', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] }
+const ADULTA: PatientIdentity = {
+  name: 'Mariana Alves de Souza Rodrigues',
+  lines: [
+    { key: 'nascimento', label: 'Nascimento', value: '10/05/1990' },
+    { key: 'idade', label: 'Idade', value: '36 anos' },
+  ],
+}
 
-const CRIANCA: PatientIdentity = { name: 'Pedro Henrique Lima', lines: [{ key: 'nascimento', label: 'Nascimento', value: '14/02/2023' }, { key: 'idade', label: 'Idade', value: '3 anos' }] }
+const CRIANCA: PatientIdentity = {
+  name: 'Pedro Henrique Lima',
+  lines: [
+    { key: 'nascimento', label: 'Nascimento', value: '14/02/2023' },
+    { key: 'idade', label: 'Idade', value: '3 anos' },
+  ],
+}
 
-const nut = (energyKcal: number, proteinG: number, carbG: number, fatG: number, fiberG: number) => ({
+const nut = (
+  energyKcal: number,
+  proteinG: number,
+  carbG: number,
+  fatG: number,
+  fiberG: number,
+) => ({
   energyKcal,
   proteinG,
   carbG,
@@ -83,7 +101,12 @@ const PLANO: DietPlanView = {
   id: 'plan-1',
   title: 'Plano alimentar — agosto/2026',
   status: 'prescrito',
-  target: { kcal: 1800, macros: { protG: 108, carbG: 202, fatG: 60 }, assessmentId: 'a3', assessedAt: '2026-08-01' },
+  target: {
+    kcal: 1800,
+    macros: { protG: 108, carbG: 202, fatG: 60 },
+    assessmentId: 'a3',
+    assessedAt: '2026-08-01',
+  },
   delta: null,
   meals: [
     {
@@ -378,27 +401,83 @@ const RECORDATORIO: RecallView = {
       name: 'Café da manhã',
       totals: nut(310, 12, 44, 9, 3),
       items: [
-        { foodId: 'f1', name: 'Pão francês', grams: 50, measureLabel: 'unidade', measureQty: 1, nutrients: nut(150, 4.8, 29, 1.6, 1.2) },
-        { foodId: 'f7', name: 'Café com leite integral', grams: 200, measureLabel: 'xícara grande', measureQty: 1, nutrients: nut(120, 6.4, 9.6, 6.6, 0) },
-        { foodId: 'f8', name: 'Manteiga', grams: 8, measureLabel: 'ponta de faca', measureQty: 1, nutrients: nut(40, 0.1, 0, 4.5, 0) },
+        {
+          foodId: 'f1',
+          name: 'Pão francês',
+          grams: 50,
+          measureLabel: 'unidade',
+          measureQty: 1,
+          nutrients: nut(150, 4.8, 29, 1.6, 1.2),
+        },
+        {
+          foodId: 'f7',
+          name: 'Café com leite integral',
+          grams: 200,
+          measureLabel: 'xícara grande',
+          measureQty: 1,
+          nutrients: nut(120, 6.4, 9.6, 6.6, 0),
+        },
+        {
+          foodId: 'f8',
+          name: 'Manteiga',
+          grams: 8,
+          measureLabel: 'ponta de faca',
+          measureQty: 1,
+          nutrients: nut(40, 0.1, 0, 4.5, 0),
+        },
       ],
     },
     {
       name: 'Almoço',
       totals: nut(780, 38, 88, 28, 9),
       items: [
-        { foodId: 'f2', name: 'Arroz branco cozido', grams: 200, measureLabel: 'escumadeira', measureQty: 2, nutrients: nut(256, 5, 56.2, 0.4, 1.6) },
-        { foodId: 'f3', name: 'Feijão preto cozido', grams: 100, measureLabel: 'concha', measureQty: 1, nutrients: nut(77, 4.5, 14, 0.5, 8.4) },
-        { foodId: 'f12', name: 'Bife acebolado', grams: 130, measureLabel: 'bife médio', measureQty: 1, nutrients: nut(287, 26, 2, 19, 0.4) },
+        {
+          foodId: 'f2',
+          name: 'Arroz branco cozido',
+          grams: 200,
+          measureLabel: 'escumadeira',
+          measureQty: 2,
+          nutrients: nut(256, 5, 56.2, 0.4, 1.6),
+        },
+        {
+          foodId: 'f3',
+          name: 'Feijão preto cozido',
+          grams: 100,
+          measureLabel: 'concha',
+          measureQty: 1,
+          nutrients: nut(77, 4.5, 14, 0.5, 8.4),
+        },
+        {
+          foodId: 'f12',
+          name: 'Bife acebolado',
+          grams: 130,
+          measureLabel: 'bife médio',
+          measureQty: 1,
+          nutrients: nut(287, 26, 2, 19, 0.4),
+        },
         // Item sem quantidade: deve sair com travessão, e NÃO entrar como zero.
-        { foodId: 'f13', name: 'Salada de folhas com azeite', grams: null, measureLabel: null, measureQty: null, nutrients: null },
+        {
+          foodId: 'f13',
+          name: 'Salada de folhas com azeite',
+          grams: null,
+          measureLabel: null,
+          measureQty: null,
+          nutrients: null,
+        },
       ],
     },
     {
       name: 'Jantar',
       totals: nut(430, 24, 46, 16, 5),
       items: [
-        { foodId: 'f6', name: 'Sopa de mandioquinha com frango', grams: 350, measureLabel: 'prato fundo', measureQty: 1, nutrients: nut(430, 24, 46, 16, 5) },
+        {
+          foodId: 'f6',
+          name: 'Sopa de mandioquinha com frango',
+          grams: 350,
+          measureLabel: 'prato fundo',
+          measureQty: 1,
+          nutrients: nut(430, 24, 46, 16, 5),
+        },
       ],
     },
   ],
@@ -409,12 +488,60 @@ const ADEQUACAO: AdequacyResult = {
   deficits: 3,
   excesses: 1,
   items: [
-    { nutrientKey: 'fibra', label: 'Fibra', unit: 'g', total: 17, dri: 25, pct: 68, class: 'abaixo' },
-    { nutrientKey: 'calcio', label: 'Cálcio', unit: 'mg', total: 620, dri: 1000, pct: 62, class: 'abaixo' },
-    { nutrientKey: 'ferro', label: 'Ferro', unit: 'mg', total: 14.2, dri: 18, pct: 79, class: 'abaixo' },
-    { nutrientKey: 'vitamina_c', label: 'Vitamina C', unit: 'mg', total: 88, dri: 75, pct: 117, class: 'adequado' },
-    { nutrientKey: 'sodio', label: 'Sódio', unit: 'mg', total: 3100, dri: 2300, pct: 135, class: 'acima' },
-    { nutrientKey: 'zinco', label: 'Zinco', unit: 'mg', total: 9.1, dri: 8, pct: 114, class: 'adequado' },
+    {
+      nutrientKey: 'fibra',
+      label: 'Fibra',
+      unit: 'g',
+      total: 17,
+      dri: 25,
+      pct: 68,
+      class: 'abaixo',
+    },
+    {
+      nutrientKey: 'calcio',
+      label: 'Cálcio',
+      unit: 'mg',
+      total: 620,
+      dri: 1000,
+      pct: 62,
+      class: 'abaixo',
+    },
+    {
+      nutrientKey: 'ferro',
+      label: 'Ferro',
+      unit: 'mg',
+      total: 14.2,
+      dri: 18,
+      pct: 79,
+      class: 'abaixo',
+    },
+    {
+      nutrientKey: 'vitamina_c',
+      label: 'Vitamina C',
+      unit: 'mg',
+      total: 88,
+      dri: 75,
+      pct: 117,
+      class: 'adequado',
+    },
+    {
+      nutrientKey: 'sodio',
+      label: 'Sódio',
+      unit: 'mg',
+      total: 3100,
+      dri: 2300,
+      pct: 135,
+      class: 'acima',
+    },
+    {
+      nutrientKey: 'zinco',
+      label: 'Zinco',
+      unit: 'mg',
+      total: 9.1,
+      dri: 8,
+      pct: 114,
+      class: 'adequado',
+    },
   ],
 }
 
@@ -474,10 +601,38 @@ const CURVAS: GrowthCurve[] = [
     unit: 'kg',
     bands: bands(20, 44, (m) => 9.6 + m * 0.19),
     points: [
-      { measuredAt: '2025-02-14', ageMonths: 24, value: 13.4, percentile: 62, classification: 'adequado', label: 'Peso adequado para a idade' },
-      { measuredAt: '2025-08-14', ageMonths: 30, value: 14.6, percentile: 58, classification: 'adequado', label: 'Peso adequado para a idade' },
-      { measuredAt: '2026-02-14', ageMonths: 36, value: 15.9, percentile: 55, classification: 'adequado', label: 'Peso adequado para a idade' },
-      { measuredAt: '2026-08-01', ageMonths: 41.6, value: 17.1, percentile: 54, classification: 'adequado', label: 'Peso adequado para a idade' },
+      {
+        measuredAt: '2025-02-14',
+        ageMonths: 24,
+        value: 13.4,
+        percentile: 62,
+        classification: 'adequado',
+        label: 'Peso adequado para a idade',
+      },
+      {
+        measuredAt: '2025-08-14',
+        ageMonths: 30,
+        value: 14.6,
+        percentile: 58,
+        classification: 'adequado',
+        label: 'Peso adequado para a idade',
+      },
+      {
+        measuredAt: '2026-02-14',
+        ageMonths: 36,
+        value: 15.9,
+        percentile: 55,
+        classification: 'adequado',
+        label: 'Peso adequado para a idade',
+      },
+      {
+        measuredAt: '2026-08-01',
+        ageMonths: 41.6,
+        value: 17.1,
+        percentile: 54,
+        classification: 'adequado',
+        label: 'Peso adequado para a idade',
+      },
     ],
     latest: null,
   },
@@ -487,10 +642,38 @@ const CURVAS: GrowthCurve[] = [
     unit: 'cm',
     bands: bands(20, 44, (m) => 80 + m * 0.72),
     points: [
-      { measuredAt: '2025-02-14', ageMonths: 24, value: 87.4, percentile: 45, classification: 'adequado', label: 'Estatura adequada para a idade' },
-      { measuredAt: '2025-08-14', ageMonths: 30, value: 92.1, percentile: 48, classification: 'adequado', label: 'Estatura adequada para a idade' },
-      { measuredAt: '2026-02-14', ageMonths: 36, value: 96.8, percentile: 51, classification: 'adequado', label: 'Estatura adequada para a idade' },
-      { measuredAt: '2026-08-01', ageMonths: 41.6, value: 100.9, percentile: 52, classification: 'adequado', label: 'Estatura adequada para a idade' },
+      {
+        measuredAt: '2025-02-14',
+        ageMonths: 24,
+        value: 87.4,
+        percentile: 45,
+        classification: 'adequado',
+        label: 'Estatura adequada para a idade',
+      },
+      {
+        measuredAt: '2025-08-14',
+        ageMonths: 30,
+        value: 92.1,
+        percentile: 48,
+        classification: 'adequado',
+        label: 'Estatura adequada para a idade',
+      },
+      {
+        measuredAt: '2026-02-14',
+        ageMonths: 36,
+        value: 96.8,
+        percentile: 51,
+        classification: 'adequado',
+        label: 'Estatura adequada para a idade',
+      },
+      {
+        measuredAt: '2026-08-01',
+        ageMonths: 41.6,
+        value: 100.9,
+        percentile: 52,
+        classification: 'adequado',
+        label: 'Estatura adequada para a idade',
+      },
     ],
     latest: null,
   },
@@ -500,10 +683,38 @@ const CURVAS: GrowthCurve[] = [
     unit: 'kg/m²',
     bands: bands(20, 44, (m) => 16.4 - m * 0.02),
     points: [
-      { measuredAt: '2025-02-14', ageMonths: 24, value: 17.5, percentile: 82, classification: 'adequado', label: 'Eutrofia' },
-      { measuredAt: '2025-08-14', ageMonths: 30, value: 17.2, percentile: 80, classification: 'adequado', label: 'Eutrofia' },
-      { measuredAt: '2026-02-14', ageMonths: 36, value: 17.0, percentile: 79, classification: 'adequado', label: 'Eutrofia' },
-      { measuredAt: '2026-08-01', ageMonths: 41.6, value: 16.8, percentile: 78, classification: 'adequado', label: 'Eutrofia' },
+      {
+        measuredAt: '2025-02-14',
+        ageMonths: 24,
+        value: 17.5,
+        percentile: 82,
+        classification: 'adequado',
+        label: 'Eutrofia',
+      },
+      {
+        measuredAt: '2025-08-14',
+        ageMonths: 30,
+        value: 17.2,
+        percentile: 80,
+        classification: 'adequado',
+        label: 'Eutrofia',
+      },
+      {
+        measuredAt: '2026-02-14',
+        ageMonths: 36,
+        value: 17.0,
+        percentile: 79,
+        classification: 'adequado',
+        label: 'Eutrofia',
+      },
+      {
+        measuredAt: '2026-08-01',
+        ageMonths: 41.6,
+        value: 16.8,
+        percentile: 78,
+        classification: 'adequado',
+        label: 'Eutrofia',
+      },
     ],
     latest: null,
   },
@@ -524,7 +735,10 @@ async function main(): Promise<void> {
       '1b-plano-alimentar-rascunho.pdf',
       renderPlanPdf({ ...comum, identity: ADULTA, plan: { ...PLANO, status: 'rascunho' } }),
     ],
-    ['2-evolucao-avaliacao.pdf', renderAssessmentPdf({ ...comum, identity: ADULTA, assessments: AVALIACOES })],
+    [
+      '2-evolucao-avaliacao.pdf',
+      renderAssessmentPdf({ ...comum, identity: ADULTA, assessments: AVALIACOES }),
+    ],
     ['3-orientacoes.pdf', renderCareNotesPdf({ ...comum, identity: ADULTA, notes: ORIENTACOES })],
     [
       '4-anamnese.pdf',
@@ -538,8 +752,14 @@ async function main(): Promise<void> {
         createdAt: '2026-02-10T14:20:00Z',
       }),
     ],
-    ['5-recordatorio.pdf', renderRecallPdf({ ...comum, identity: ADULTA, recall: RECORDATORIO, adequacy: ADEQUACAO })],
-    ['6-exames.pdf', renderLabsPdf({ ...comum, identity: ADULTA, items: PAINEL.items, blockedBySex: 0 })],
+    [
+      '5-recordatorio.pdf',
+      renderRecallPdf({ ...comum, identity: ADULTA, recall: RECORDATORIO, adequacy: ADEQUACAO }),
+    ],
+    [
+      '6-exames.pdf',
+      renderLabsPdf({ ...comum, identity: ADULTA, items: PAINEL.items, blockedBySex: 0 }),
+    ],
     ['7-crescimento.pdf', renderGrowthPdf({ ...comum, identity: CRIANCA, curves: CURVAS })],
   ]
 

@@ -21,21 +21,20 @@ Lista os rótulos da clínica.
 Cria um rótulo.
 
 **Body**:
+
 ```jsonc
 {
   "productName": "Bolo de cenoura com cobertura",
   "clientName": "Confeitaria da Ana",
-  "basis": "solido",                    // solido | liquido
-  "totalYield": 1200,                   // rendimento informado, NUNCA deduzido
+  "basis": "solido", // solido | liquido
+  "totalYield": 1200, // rendimento informado, NUNCA deduzido
   "portionSize": 60,
   "householdMeasure": "1 fatia",
   "portionsPerPackage": 20,
-  "ingredients": [
-    { "foodId": "…", "grams": 300, "position": 0 }
-  ],
+  "ingredients": [{ "foodId": "…", "grams": 300, "position": 0 }],
   "ingredientsText": "Farinha de trigo, cenoura, ovos, açúcar…",
   "allergensText": "ALÉRGICOS: CONTÉM TRIGO, OVOS E LEITE.",
-  "storageText": "Conservar em local seco e arejado."
+  "storageText": "Conservar em local seco e arejado.",
 }
 ```
 
@@ -52,36 +51,70 @@ Validação Zod: `totalYield > 0`; `portionSize > 0`; **`portionSize <= totalYie
 Rótulo completo + tabela recalculada.
 
 **200**:
+
 ```jsonc
 {
-  "label": { "id": "…", "productName": "…", "basis": "solido", "totalYield": 1200,
-             "portionSize": 60, "householdMeasure": "1 fatia", "portionsPerPackage": 20,
-             "ingredientsText": "…", "allergensText": "…", "storageText": "…",
-             "normativeVersion": "IN 75/2020 + RDC 429/2020",
-             "ingredients": [{ "foodId": "…", "name": "Farinha de trigo", "grams": 300 }],
-             "manualValues": { "acucar_adicao_g": 18.5 } },
+  "label": {
+    "id": "…",
+    "productName": "…",
+    "basis": "solido",
+    "totalYield": 1200,
+    "portionSize": 60,
+    "householdMeasure": "1 fatia",
+    "portionsPerPackage": 20,
+    "ingredientsText": "…",
+    "allergensText": "…",
+    "storageText": "…",
+    "normativeVersion": "IN 75/2020 + RDC 429/2020",
+    "ingredients": [{ "foodId": "…", "name": "Farinha de trigo", "grams": 300 }],
+    "manualValues": { "acucar_adicao_g": 18.5 },
+  },
   "result": {
     "rows": [
-      { "key": "energia", "label": "Valor energético", "unit": "kcal",
-        "per100": 342, "perPortion": 205, "dvPercent": 10,
-        "state": "calculado", "missingFrom": [] },
-      { "key": "acucar_adicao_g", "label": "Açúcares adicionados", "unit": "g",
-        "per100": 22, "perPortion": 13, "dvPercent": 26,
-        "state": "sobrescrito", "missingFrom": [] },
-      { "key": "ag_trans_g", "label": "Gorduras trans", "unit": "g",
-        "per100": null, "perPortion": null, "dvPercent": null,
-        "state": "incompleto", "missingFrom": ["Margarina", "Cobertura pronta"] }
+      {
+        "key": "energia",
+        "label": "Valor energético",
+        "unit": "kcal",
+        "per100": 342,
+        "perPortion": 205,
+        "dvPercent": 10,
+        "state": "calculado",
+        "missingFrom": [],
+      },
+      {
+        "key": "acucar_adicao_g",
+        "label": "Açúcares adicionados",
+        "unit": "g",
+        "per100": 22,
+        "perPortion": 13,
+        "dvPercent": 26,
+        "state": "sobrescrito",
+        "missingFrom": [],
+      },
+      {
+        "key": "ag_trans_g",
+        "label": "Gorduras trans",
+        "unit": "g",
+        "per100": null,
+        "perPortion": null,
+        "dvPercent": null,
+        "state": "incompleto",
+        "missingFrom": ["Margarina", "Cobertura pronta"],
+      },
     ],
-    "frontOfPack": { "acucar_adicionado": "aplica",
-                     "gordura_saturada": "nao_aplica",
-                     "sodio": "inconclusivo" },
+    "frontOfPack": {
+      "acucar_adicionado": "aplica",
+      "gordura_saturada": "nao_aplica",
+      "sodio": "inconclusivo",
+    },
     "incomplete": true,
-    "normativeVersion": "IN 75/2020 + RDC 429/2020"
-  }
+    "normativeVersion": "IN 75/2020 + RDC 429/2020",
+  },
 }
 ```
 
 **Regras que o contrato garante**:
+
 - Nutriente incompleto vem com `per100`/`perPortion`/`dvPercent` = **`null`**, nunca `0` (FR-010, SC-004).
 - Açúcares totais vêm sempre com `dvPercent: null` — a norma não estabelece VDR para eles (FR-009).
 - `frontOfPack` é `inconclusivo` quando o nutriente relevante está incompleto — **nunca** `nao_aplica` (FR-015).
@@ -96,6 +129,7 @@ Rótulo completo + tabela recalculada.
 Edita o rótulo — inclusive as sobrescritas manuais.
 
 **Body** (todos opcionais): os mesmos campos do POST, mais:
+
 ```jsonc
 { "manualValues": { "acucar_adicao_g": 18.5, "ag_trans_g": null } }
 ```

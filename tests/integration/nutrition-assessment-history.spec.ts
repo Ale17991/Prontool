@@ -11,8 +11,20 @@ import { listMeasurements } from '@/lib/core/patient-portal/measurements'
 
 const METRICS = [
   { metric_type: 'peso', label: 'Peso', unit: 'kg', min_plausible: 2, max_plausible: 400 },
-  { metric_type: 'taxa_metabolica_basal', label: 'TMB', unit: 'kcal', min_plausible: 500, max_plausible: 5000 },
-  { metric_type: 'gasto_energetico_total', label: 'GET', unit: 'kcal', min_plausible: 500, max_plausible: 8000 },
+  {
+    metric_type: 'taxa_metabolica_basal',
+    label: 'TMB',
+    unit: 'kcal',
+    min_plausible: 500,
+    max_plausible: 5000,
+  },
+  {
+    metric_type: 'gasto_energetico_total',
+    label: 'GET',
+    unit: 'kcal',
+    min_plausible: 500,
+    max_plausible: 8000,
+  },
 ]
 
 describe('Feature 046 US3 — histórico e evolução', () => {

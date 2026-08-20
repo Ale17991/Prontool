@@ -36,7 +36,13 @@ export async function listMessageTemplates(
   if (error) throw new Error(`listMessageTemplates falhou: ${error.message}`)
 
   return (data ?? []).map((r) => {
-    const row = r as { id: string; name: string; body: string; active: boolean; automations?: unknown[] }
+    const row = r as {
+      id: string
+      name: string
+      body: string
+      active: boolean
+      automations?: unknown[]
+    }
     return {
       id: row.id,
       name: row.name,
@@ -456,48 +462,55 @@ export async function listActiveAutomations(
 
   if (error) throw new Error(`listActiveAutomations falhou: ${error.message}`)
 
-  return (data ?? [])
-    .map((r) => {
-      // `as unknown as` porque o tipo gerado modela o join embutido como array
-      // (é como o PostgREST descreve a relação), enquanto `!inner` devolve
-      // objeto. O shape em runtime é o de baixo.
-      const row = r as unknown as {
-        id: string
-        tenant_id: string
-        trigger_id: string
-        message_template_id: string
-        active: boolean
-        name: string | null
-        send_at_local: string | null
-        last_fired_on: string | null
-        last_ran_at: string | null
-        automation_triggers: { name: string; source: string; params: Record<string, unknown>; active: boolean }
-        message_templates: { name: string; body: string; active: boolean }
-      }
-      return {
-        id: row.id,
-        tenantId: row.tenant_id,
-        triggerId: row.trigger_id,
-        messageTemplateId: row.message_template_id,
-        active: row.active,
-        source: row.automation_triggers.source,
-        params: row.automation_triggers.params ?? {},
-        body: row.message_templates.body,
-        name: row.name ?? row.automation_triggers.name,
-        // `TIME` volta do PostgREST como `09:00:00`; o motor compara com o
-        // relógio local em `HH:MM`, e comparar comprimentos diferentes de string
-        // faria "14:30" nunca alcançar "14:30:00".
-        sendAtLocal: (row.send_at_local ?? '09:00').slice(0, 5),
-        lastFiredOn: row.last_fired_on,
-        lastRanAt: row.last_ran_at,
-        triggerName: row.automation_triggers.name,
-        messageName: row.message_templates.name,
-        _triggerActive: row.automation_triggers.active,
-        _messageActive: row.message_templates.active,
-      }
-    })
-    // Desativar o gatilho ou a mensagem cala a automação, sem precisar
-    // desativá-la também — senão a clínica desliga um e continua enviando.
-    .filter((r) => r._triggerActive && r._messageActive)
-    .map(({ _triggerActive: _t, _messageActive: _m, ...rest }) => rest)
+  return (
+    (data ?? [])
+      .map((r) => {
+        // `as unknown as` porque o tipo gerado modela o join embutido como array
+        // (é como o PostgREST descreve a relação), enquanto `!inner` devolve
+        // objeto. O shape em runtime é o de baixo.
+        const row = r as unknown as {
+          id: string
+          tenant_id: string
+          trigger_id: string
+          message_template_id: string
+          active: boolean
+          name: string | null
+          send_at_local: string | null
+          last_fired_on: string | null
+          last_ran_at: string | null
+          automation_triggers: {
+            name: string
+            source: string
+            params: Record<string, unknown>
+            active: boolean
+          }
+          message_templates: { name: string; body: string; active: boolean }
+        }
+        return {
+          id: row.id,
+          tenantId: row.tenant_id,
+          triggerId: row.trigger_id,
+          messageTemplateId: row.message_template_id,
+          active: row.active,
+          source: row.automation_triggers.source,
+          params: row.automation_triggers.params ?? {},
+          body: row.message_templates.body,
+          name: row.name ?? row.automation_triggers.name,
+          // `TIME` volta do PostgREST como `09:00:00`; o motor compara com o
+          // relógio local em `HH:MM`, e comparar comprimentos diferentes de string
+          // faria "14:30" nunca alcançar "14:30:00".
+          sendAtLocal: (row.send_at_local ?? '09:00').slice(0, 5),
+          lastFiredOn: row.last_fired_on,
+          lastRanAt: row.last_ran_at,
+          triggerName: row.automation_triggers.name,
+          messageName: row.message_templates.name,
+          _triggerActive: row.automation_triggers.active,
+          _messageActive: row.message_templates.active,
+        }
+      })
+      // Desativar o gatilho ou a mensagem cala a automação, sem precisar
+      // desativá-la também — senão a clínica desliga um e continua enviando.
+      .filter((r) => r._triggerActive && r._messageActive)
+      .map(({ _triggerActive: _t, _messageActive: _m, ...rest }) => rest)
+  )
 }

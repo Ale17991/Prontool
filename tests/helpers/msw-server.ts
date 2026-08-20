@@ -1,12 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
-import {
-  resendSpy,
-  qstashSpy,
-  resendArchive,
-  ghlOauthTokenSpy,
-  whatsappSendSpy,
-} from './msw-spies'
+import { resendSpy, qstashSpy, resendArchive, ghlOauthTokenSpy, whatsappSendSpy } from './msw-spies'
 
 /**
  * MSW server used across integration tests. Intercepts outbound calls to
@@ -34,7 +28,10 @@ export const mswServer = setupServer(
   // onUnhandledRequest:'bypass' deixaria passar — por isso o override do env é
   // a trava primária, e este handler é a rede de segurança.
   http.post('https://whatsapp-service.test/functions/v1/send-message', async ({ request }) => {
-    const body = (await request.clone().json().catch(() => ({}))) as {
+    const body = (await request
+      .clone()
+      .json()
+      .catch(() => ({}))) as {
       externalId?: string
       to?: string
     }

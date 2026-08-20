@@ -21,6 +21,7 @@ Resultados laboratoriais do paciente, já classificados contra a faixa do seu se
 | `analyte` | filtra a série de um analito (usado pela evolução, US2) |
 
 **200 — com sexo e idade resolvidos**:
+
 ```jsonc
 {
   "patient": { "ageYears": 42, "sex": "F", "state": "padrao" },
@@ -36,14 +37,17 @@ Resultados laboratoriais do paciente, já classificados contra a faixa do seu se
   "series": { "lab_ferritina": [ { "measuredAt": "2026-05-02", "value": 12 }, … ] }
 }
 ```
+
 - `items` = **último resultado de cada analito** (FR-001 cenário 5), ordenado com os alterados primeiro.
 - `series` = histórico completo por analito, para o gráfico (US2).
 - `class: "sem_referencia"` quando não há faixa aplicável (FR-007) — `refMin`/`refMax` vêm `null`.
 
 **200 — sem sexo e/ou idade** (FR-006, edge case; **não** é erro):
+
 ```jsonc
 { "patient": null, "panel": null, "series": { … }, "need": { "age": true, "sex": false } }
 ```
+
 A tela mostra os valores e pede o dado que falta para classificar. Comportamento copiado de `/api/pacientes/[id]/adequacao`.
 
 **404** `MODULE_DISABLED` (módulo off) · `PATIENT_NOT_FOUND`.
@@ -58,16 +62,18 @@ Lança um laudo — N resultados com a mesma data, atomicamente.
 **Auth**: `admin` | `profissional_saude`. **Gate**: `exames_lab`.
 
 **Body**:
+
 ```jsonc
 {
   "measuredAt": "2026-07-20",
   "notes": "Laboratório X",
   "results": [
     { "analyteKey": "lab_ferritina", "value": 18 },
-    { "analyteKey": "hba1c", "value": 6.4 }
-  ]
+    { "analyteKey": "hba1c", "value": 6.4 },
+  ],
 }
 ```
+
 Validação Zod: `measuredAt` data ISO não-futura; `results` 1..60 itens, `value` numérico finito, `analyteKey` presente no catálogo.
 
 **201**: `{ "recorded": 2, "panel": { … } }` — devolve o painel já reclassificado.

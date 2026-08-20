@@ -17,7 +17,13 @@ async function pickFood(sb: ReturnType<typeof serviceClient>, like: string) {
     .ilike('name', `%${like}%`)
     .limit(1)
     .single()
-  return data as { id: string; name: string; reference_grams: number; energy_kcal: number; protein_g: number }
+  return data as {
+    id: string
+    name: string
+    reference_grams: number
+    energy_kcal: number
+    protein_g: number
+  }
 }
 
 describe('Feature 047 US2 — montar e prescrever plano alimentar', () => {
@@ -43,9 +49,7 @@ describe('Feature 047 US2 — montar e prescrever plano alimentar', () => {
       patientId,
       actorUserId,
       title: 'Plano teste',
-      meals: [
-        { name: 'Almoço', position: 0, items: [{ foodId: arroz.id, grams }] },
-      ],
+      meals: [{ name: 'Almoço', position: 0, items: [{ foodId: arroz.id, grams }] }],
     })
 
     const view = await getDietPlanForPatient(sb, tenantId, patientId)

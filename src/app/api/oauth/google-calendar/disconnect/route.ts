@@ -45,7 +45,9 @@ export async function POST(req: Request): Promise<Response> {
       // existência de profissional de outra clínica.
       if (!linked) throw new NotFoundError('Profissional', doctorId)
       if (linked !== session.userId && !can(session.role, 'doctor.write')) {
-        throw new ForbiddenError('Só um administrador pode desconectar a agenda de outro profissional.')
+        throw new ForbiddenError(
+          'Só um administrador pode desconectar a agenda de outro profissional.',
+        )
       }
       targetUserId = linked
     }

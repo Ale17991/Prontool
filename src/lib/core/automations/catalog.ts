@@ -99,10 +99,7 @@ interface ItemJson {
  * para um grupo de pacientes — e o gatilho casa por `itemId`, que é o que a
  * grade guarda.
  */
-async function habitItems(
-  supabase: SupabaseClient,
-  tenantId: string,
-): Promise<SourceOption[]> {
+async function habitItems(supabase: SupabaseClient, tenantId: string): Promise<SourceOption[]> {
   const vistos = new Map<string, string>()
 
   for (const tabela of ['habit_checklist_templates', 'patient_habit_checklists'] as const) {
@@ -134,10 +131,7 @@ async function habitItems(
 }
 
 /** As métricas de acompanhamento: catálogo global mais as da clínica. */
-async function metricTypes(
-  supabase: SupabaseClient,
-  tenantId: string,
-): Promise<SourceOption[]> {
+async function metricTypes(supabase: SupabaseClient, tenantId: string): Promise<SourceOption[]> {
   const { data, error } = await supabase
     .from('patient_metric_types')
     .select('metric_type, label, unit')

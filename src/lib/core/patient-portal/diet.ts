@@ -377,7 +377,11 @@ export async function getPortalDietPlan(
   const active = await getActiveDietPlan(supabase, tenantId, patientId)
   if (!active) return null
   // Itens estruturados (com food_id) DESTE plano → é rascunho 047 não entregue.
-  const mealIdsRes = await sb.from('diet_meals').select('id').eq('plan_id', active.id).eq('tenant_id', tenantId)
+  const mealIdsRes = await sb
+    .from('diet_meals')
+    .select('id')
+    .eq('plan_id', active.id)
+    .eq('tenant_id', tenantId)
   const mealIds = ((mealIdsRes.data ?? []) as Array<{ id: string }>).map((m) => m.id)
   if (mealIds.length > 0) {
     const structured = await sb

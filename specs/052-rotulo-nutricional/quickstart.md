@@ -21,13 +21,13 @@ Login: `admin@clinica-demo.test` / `demo1234`. A clínica demo é `legacy` (fail
 2. Produto: `Bolo de cenoura`. Cliente: `Confeitaria da Ana`. Base: **sólido**.
 3. Ingredientes (busca na base de alimentos):
 
-| Ingrediente | Quantidade |
-|---|---|
-| Farinha de trigo | 300 g |
-| Cenoura | 250 g |
-| Ovo | 150 g |
-| Açúcar | 200 g |
-| Óleo de soja | 100 g |
+| Ingrediente      | Quantidade |
+| ---------------- | ---------- |
+| Farinha de trigo | 300 g      |
+| Cenoura          | 250 g      |
+| Ovo              | 150 g      |
+| Açúcar           | 200 g      |
+| Óleo de soja     | 100 g      |
 
 4. **Rendimento total: 900 g** (menos que os 1.000 g de ingredientes — é a perda por cocção). **Porção: 60 g**, medida caseira `1 fatia`, 15 porções por embalagem.
 5. **Esperado**: tabela com os 10 nutrientes obrigatórios em três colunas — por 100 g, por porção e %VD.

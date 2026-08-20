@@ -217,111 +217,111 @@ export function PatientTypeahead({
 
   return (
     <>
-    <Popover open={open} onOpenChange={(v) => !disabled && setOpen(v)}>
-      <PopoverTrigger asChild>
-        <Button
-          id={id}
-          type="button"
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          disabled={disabled}
-          className="w-full justify-between font-normal"
+      <Popover open={open} onOpenChange={(v) => !disabled && setOpen(v)}>
+        <PopoverTrigger asChild>
+          <Button
+            id={id}
+            type="button"
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            disabled={disabled}
+            className="w-full justify-between font-normal"
+          >
+            <span className={cn('truncate', !selected && 'text-slate-500')}>{triggerLabel}</span>
+            <span className="ml-2 flex shrink-0 items-center gap-1">
+              {selected ? (
+                <button
+                  type="button"
+                  onClick={clear}
+                  aria-label="Limpar seleção"
+                  className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
+              <ChevronsUpDown className="h-4 w-4 opacity-50" />
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-[min(640px,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0"
         >
-          <span className={cn('truncate', !selected && 'text-slate-500')}>{triggerLabel}</span>
-          <span className="ml-2 flex shrink-0 items-center gap-1">
-            {selected ? (
-              <button
-                type="button"
-                onClick={clear}
-                aria-label="Limpar seleção"
-                className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            ) : null}
-            <ChevronsUpDown className="h-4 w-4 opacity-50" />
-          </span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-[min(640px,calc(100vw-2rem))] min-w-[var(--radix-popover-trigger-width)] p-0"
-      >
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="Digite nome ou CPF…"
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList>
-            {loading ? (
-              <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Buscando…
-              </div>
-            ) : error ? (
-              <p className="py-6 text-center text-xs text-destructive">{error}</p>
-            ) : items.length === 0 ? (
-              <CommandEmpty className="py-6 text-center text-xs text-slate-500">
-                {search.trim() ? 'Nenhum paciente encontrado.' : 'Nenhum paciente nesta clínica.'}
-              </CommandEmpty>
-            ) : (
-              <CommandGroup heading="Pacientes">
-                {items.map((p) => (
-                  <CommandItem
-                    key={p.id}
-                    value={p.id}
-                    onSelect={() => pick(p)}
-                    className="cursor-pointer items-start py-2 text-xs"
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 mt-0.5 h-4 w-4 shrink-0 text-primary',
-                        selected?.id === p.id ? 'opacity-100' : 'opacity-0',
-                      )}
-                    />
-                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="truncate font-semibold text-slate-900">{p.fullName}</span>
-                      {p.tags.length > 0 ? (
-                        <span className="flex flex-wrap items-center gap-1">
-                          {p.tags.map((t) => (
-                            <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
-                          ))}
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Digite nome ou CPF…"
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandList>
+              {loading ? (
+                <div className="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Buscando…
+                </div>
+              ) : error ? (
+                <p className="py-6 text-center text-xs text-destructive">{error}</p>
+              ) : items.length === 0 ? (
+                <CommandEmpty className="py-6 text-center text-xs text-slate-500">
+                  {search.trim() ? 'Nenhum paciente encontrado.' : 'Nenhum paciente nesta clínica.'}
+                </CommandEmpty>
+              ) : (
+                <CommandGroup heading="Pacientes">
+                  {items.map((p) => (
+                    <CommandItem
+                      key={p.id}
+                      value={p.id}
+                      onSelect={() => pick(p)}
+                      className="cursor-pointer items-start py-2 text-xs"
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 mt-0.5 h-4 w-4 shrink-0 text-primary',
+                          selected?.id === p.id ? 'opacity-100' : 'opacity-0',
+                        )}
+                      />
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate font-semibold text-slate-900">{p.fullName}</span>
+                        {p.tags.length > 0 ? (
+                          <span className="flex flex-wrap items-center gap-1">
+                            {p.tags.map((t) => (
+                              <TagBadge key={t.id} name={t.name} color={t.color} size="sm" />
+                            ))}
+                          </span>
+                        ) : null}
+                        <span className="flex items-center gap-2 text-[11px] text-slate-500">
+                          <span className="font-mono">{maskCpf(p.cpf)}</span>
+                          <span aria-hidden>·</span>
+                          <span className="truncate">{p.planName ?? 'Particular'}</span>
                         </span>
-                      ) : null}
-                      <span className="flex items-center gap-2 text-[11px] text-slate-500">
-                        <span className="font-mono">{maskCpf(p.cpf)}</span>
-                        <span aria-hidden>·</span>
-                        <span className="truncate">{p.planName ?? 'Particular'}</span>
-                      </span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-          {allowCreate ? (
-            <div className="border-t border-slate-100 p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false)
-                  setCreateOpen(true)
-                }}
-                className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-xs font-medium text-primary hover:bg-primary/5"
-              >
-                <UserPlus className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">
-                  Cadastrar novo paciente{search.trim() ? `: “${search.trim()}”` : ''}
-                </span>
-              </button>
-            </div>
-          ) : null}
-        </Command>
-      </PopoverContent>
-    </Popover>
-    {allowCreate ? (
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+            {allowCreate ? (
+              <div className="border-t border-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false)
+                    setCreateOpen(true)
+                  }}
+                  className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-xs font-medium text-primary hover:bg-primary/5"
+                >
+                  <UserPlus className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">
+                    Cadastrar novo paciente{search.trim() ? `: “${search.trim()}”` : ''}
+                  </span>
+                </button>
+              </div>
+            ) : null}
+          </Command>
+        </PopoverContent>
+      </Popover>
+      {allowCreate ? (
         <QuickCreatePatient
           open={createOpen}
           onOpenChange={setCreateOpen}
@@ -418,7 +418,12 @@ function QuickCreatePatient({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="qp_birth">Data de nascimento</Label>
-              <Input id="qp_birth" type="date" value={birth} onChange={(e) => setBirth(e.target.value)} />
+              <Input
+                id="qp_birth"
+                type="date"
+                value={birth}
+                onChange={(e) => setBirth(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="qp_sex">Sexo</Label>
@@ -448,12 +453,21 @@ function QuickCreatePatient({
           {err ? <p className="text-xs font-semibold text-destructive">{err}</p> : null}
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            disabled={saving}
+          >
             Cancelar
           </Button>
           <Button type="button" onClick={submit} disabled={saving} className="gap-1.5">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Cadastrar
-            e selecionar
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UserPlus className="h-4 w-4" />
+            )}{' '}
+            Cadastrar e selecionar
           </Button>
         </DialogFooter>
       </DialogContent>

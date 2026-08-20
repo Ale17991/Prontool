@@ -21,7 +21,8 @@ function txt(v: unknown): string {
   if (v === null || v === undefined) return ''
   if (typeof v === 'object') {
     const o = v as Record<string, unknown>
-    if (Array.isArray(o.richText)) return (o.richText as { text: string }[]).map((r) => r.text).join('')
+    if (Array.isArray(o.richText))
+      return (o.richText as { text: string }[]).map((r) => r.text).join('')
     if ('text' in o) return String(o.text)
     if ('result' in o) return txt(o.result)
     return ''
@@ -104,19 +105,21 @@ async function parse(): Promise<FoodRow[]> {
 async function main() {
   const rows = await parse()
   const comMicros = rows.filter((r) => r.micronutrients).length
-  console.log(`BD ALIMENTOS: ${rows.length} alimentos parseados, ${comMicros} com ao menos 1 micro.`)
+  console.log(
+    `BD ALIMENTOS: ${rows.length} alimentos parseados, ${comMicros} com ao menos 1 micro.`,
+  )
   if (DRY) {
     console.log('exemplo:', JSON.stringify(rows[0], null, 0).slice(0, 400))
     return console.log('\n[DRY] nada gravado.')
   }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return console.error('env faltando'), process.exit(1)
+  if (!url || !key) return (console.error('env faltando'), process.exit(1))
   const sb = createClient(url, key, { auth: { persistSession: false } })
 
   // Idempotência: remove os globais desta origem e reinsere.
   const del = await sb.from('foods').delete().is('tenant_id', null).eq('source', SOURCE)
-  if (del.error) return console.error('delete falhou:', del.error.message), process.exit(1)
+  if (del.error) return (console.error('delete falhou:', del.error.message), process.exit(1))
 
   let inserted = 0
   const CHUNK = 500

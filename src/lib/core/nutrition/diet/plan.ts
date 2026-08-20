@@ -106,7 +106,9 @@ async function loadFoodRefs(
   if (foodIds.length === 0) return map
   const { data, error } = await supabase
     .from('foods')
-    .select('id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients')
+    .select(
+      'id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients',
+    )
     .in('id', foodIds)
   if (error) throw new Error(`loadFoodRefs: ${error.message}`)
   for (const f of (data ?? []) as unknown as Array<{
@@ -172,7 +174,12 @@ async function resolveGrams(
   item: PlanItemInputDTO,
 ): Promise<number | null> {
   if (typeof item.grams === 'number' && item.grams > 0) return item.grams
-  if (item.foodId && item.measureLabel && typeof item.measureQty === 'number' && item.measureQty > 0) {
+  if (
+    item.foodId &&
+    item.measureLabel &&
+    typeof item.measureQty === 'number' &&
+    item.measureQty > 0
+  ) {
     const { data } = await supabase
       .from('food_household_measures')
       .select('grams')
@@ -251,7 +258,9 @@ export async function saveDietPlanDraft(
   }
 
   // Reinsere refeições e itens.
-  const foodIds = args.meals.flatMap((m) => m.items.map((i) => i.foodId).filter(Boolean)) as string[]
+  const foodIds = args.meals.flatMap((m) =>
+    m.items.map((i) => i.foodId).filter(Boolean),
+  ) as string[]
   const refs = await loadFoodRefs(supabase, foodIds)
 
   for (const meal of args.meals) {
@@ -274,7 +283,9 @@ export async function saveDietPlanDraft(
     for (let i = 0; i < meal.items.length; i++) {
       const it = meal.items[i]!
       const grams = await resolveGrams(supabase, it)
-      const foodName = it.foodId ? (refs.get(it.foodId)?.name ?? 'Alimento') : (it.notes?.trim() || 'Item')
+      const foodName = it.foodId
+        ? (refs.get(it.foodId)?.name ?? 'Alimento')
+        : it.notes?.trim() || 'Item'
       rows.push({
         tenant_id: args.tenantId,
         meal_id: mealId,
@@ -417,7 +428,9 @@ export async function getDietPlanForPatient(
         fiberG: Number(row.snap_fiber_g ?? 0),
       }
     } else if (row.food_id && row.grams !== null && refs.has(row.food_id)) {
-      nutrients = roundNutrients(itemNutrients({ grams: Number(row.grams), food: refs.get(row.food_id)! }))
+      nutrients = roundNutrients(
+        itemNutrients({ grams: Number(row.grams), food: refs.get(row.food_id)! }),
+      )
     } else if (isGroup) {
       // Energia contada = meta da lista (reference_kcal), estável mesmo quando a
       // nutri remove/adiciona opções (o grupo é 1 porção ~ meta). Sem lista base
@@ -436,14 +449,22 @@ export async function getDietPlanForPatient(
     return {
       id: row.id,
       foodId: row.food_id,
-      name: isGroup ? (list?.name ?? row.food) : row.food_id ? (refs.get(row.food_id)?.name ?? row.food) : row.food,
+      name: isGroup
+        ? (list?.name ?? row.food)
+        : row.food_id
+          ? (refs.get(row.food_id)?.name ?? row.food)
+          : row.food,
       grams: row.grams === null ? null : Number(row.grams),
       measureLabel: row.measure_label,
       measureQty: row.measure_qty === null ? null : Number(row.measure_qty),
       equivalenceListId: row.equivalence_list_id,
       isGroup,
       groupOptions: isGroup
-        ? opts.map((o) => ({ foodId: o.foodId, name: refs.get(o.foodId)?.name ?? 'Alimento', grams: o.grams }))
+        ? opts.map((o) => ({
+            foodId: o.foodId,
+            name: refs.get(o.foodId)?.name ?? 'Alimento',
+            grams: o.grams,
+          }))
         : null,
       groupReferenceKcal: isGroup ? (list?.referenceKcal ?? null) : null,
       nutrients,

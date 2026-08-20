@@ -1,5 +1,5 @@
 ---
-description: "Task list for 051 — Lembretes de consulta por WhatsApp"
+description: 'Task list for 051 — Lembretes de consulta por WhatsApp'
 ---
 
 # Tasks: Lembretes de consulta por WhatsApp
@@ -39,8 +39,8 @@ sozinha.
 
 **Purpose**: preparar o terreno; nada funcional ainda.
 
-- [X] T001 Acrescentar `WHATSAPP_SERVICE_URL` e `WHATSAPP_SERVICE_MASTER_KEY` em `.env.example` com comentário explicando que a master key é segredo de plataforma, não credencial de tenant
-- [X] T002 [P] Criar a cápsula `src/lib/core/whatsapp/` com `types.ts` (tipos de conexão, status de entrega e resultado de envio) e `index.ts` como barrel
+- [x] T001 Acrescentar `WHATSAPP_SERVICE_URL` e `WHATSAPP_SERVICE_MASTER_KEY` em `.env.example` com comentário explicando que a master key é segredo de plataforma, não credencial de tenant
+- [x] T002 [P] Criar a cápsula `src/lib/core/whatsapp/` com `types.ts` (tipos de conexão, status de entrega e resultado de envio) e `index.ts` como barrel
 
 ---
 
@@ -55,23 +55,23 @@ envio da clínica.
 
 ### Endurecimento do serviço (repo separado)
 
-- [X] T003 [P] [braço] Criar `supabase/migrations/0002_hardening.sql` habilitando RLS nas 4 tabelas (`tenants`, `instances`, `outbound_messages`, `webhook_events`) com `REVOKE ALL` de `anon` e `authenticated` — hoje `tenants.api_key` está legível por qualquer um que use a anon key
-- [X] T004 [P] [braço] Acrescentar `UNIQUE (tenant_id, external_id)` em `outbound_messages` na mesma migration e fazer `supabase/functions/send-message/index.ts` responder `200` com a mensagem existente em caso de conflito, em vez de enviar de novo
-- [X] T005 [braço] Autenticar `supabase/functions/status-webhook/index.ts` por token secreto no path da URL registrada na Evolution, validado com comparação em tempo constante; gerar e persistir o token em `instances.webhook_token` e passá-lo em `setWebhook` (`_shared/evolution.ts`)
-- [X] T005a [braço] Capturar o **motivo** da queda de conexão em `supabase/functions/status-webhook/index.ts` — hoje `status_reason` grava só `connection.update: ${state}`; persistir o código de motivo do payload da Evolution e expô-lo em `get-instances`, para o Clinni distinguir "bloqueado" de "apenas desconectado" (FR-012a)
-- [X] T006 [braço] Corrigir o lookup do ACK em `supabase/functions/status-webhook/index.ts:71`: filtrar por instância junto de `evolution_message_id` (o índice unique é `(instance_id, evolution_message_id)`; hoje o `.maybeSingle()` erra e descarta o ACK em silêncio quando há colisão de `keyId`)
-- [X] T007 [braço] Criar `supabase/functions/provision-tenant/index.ts` conforme `contracts/whatsapp-service.md` §1 — autenticado por `x-master-key`, idempotente por `slug`, sem rotacionar a chave em rechamada
-- [X] T008 [braço] Aplicar a migration e deployar as funções alteradas (`send-message`, `status-webhook`, `provision-tenant`) com `--no-verify-jwt`, confirmando que `verify_jwt` continuou `false` em `supabase/config.toml`
+- [x] T003 [P] [braço] Criar `supabase/migrations/0002_hardening.sql` habilitando RLS nas 4 tabelas (`tenants`, `instances`, `outbound_messages`, `webhook_events`) com `REVOKE ALL` de `anon` e `authenticated` — hoje `tenants.api_key` está legível por qualquer um que use a anon key
+- [x] T004 [P] [braço] Acrescentar `UNIQUE (tenant_id, external_id)` em `outbound_messages` na mesma migration e fazer `supabase/functions/send-message/index.ts` responder `200` com a mensagem existente em caso de conflito, em vez de enviar de novo
+- [x] T005 [braço] Autenticar `supabase/functions/status-webhook/index.ts` por token secreto no path da URL registrada na Evolution, validado com comparação em tempo constante; gerar e persistir o token em `instances.webhook_token` e passá-lo em `setWebhook` (`_shared/evolution.ts`)
+- [x] T005a [braço] Capturar o **motivo** da queda de conexão em `supabase/functions/status-webhook/index.ts` — hoje `status_reason` grava só `connection.update: ${state}`; persistir o código de motivo do payload da Evolution e expô-lo em `get-instances`, para o Clinni distinguir "bloqueado" de "apenas desconectado" (FR-012a)
+- [x] T006 [braço] Corrigir o lookup do ACK em `supabase/functions/status-webhook/index.ts:71`: filtrar por instância junto de `evolution_message_id` (o índice unique é `(instance_id, evolution_message_id)`; hoje o `.maybeSingle()` erra e descarta o ACK em silêncio quando há colisão de `keyId`)
+- [x] T007 [braço] Criar `supabase/functions/provision-tenant/index.ts` conforme `contracts/whatsapp-service.md` §1 — autenticado por `x-master-key`, idempotente por `slug`, sem rotacionar a chave em rechamada
+- [x] T008 [braço] Aplicar a migration e deployar as funções alteradas (`send-message`, `status-webhook`, `provision-tenant`) com `--no-verify-jwt`, confirmando que `verify_jwt` continuou `false` em `supabase/config.toml`
 
 ### Esquema e cápsula (Clinni)
 
-- [X] T009 Criar `supabase/migrations/0185_whatsapp_reminders.sql` conforme `data-model.md`: tabelas `tenant_whatsapp_config` e `whatsapp_delivery_events` (ambas com `tenant_id` + RLS + trigger de auditoria), expansão do CHECK de `status` em `appointment_reminders` com os 3 novos valores, ajuste do trigger `enforce_reminders_status_transition` para aceitá-los como destino de `queued →`, `patients.reminders_whatsapp_opt_in`, e as 3 colunas novas em `tenant_clinic_profile`
-- [X] T010 🔒 Aplicar a migration local (`pnpm supabase:reset`) e regerar os tipos (`pnpm supabase:gen-types`) em `src/lib/db/generated/types.ts`
-- [X] T011 [P] Portar a normalização de telefone BR para `src/lib/core/whatsapp/phone.ts` a partir de `_shared/phone.ts` do braço, preservando a regra de nunca remover o 9 de número de 13 dígitos
-- [X] T012 [P] Criar teste unitário em `tests/unit/whatsapp-phone.spec.ts` cobrindo: celular 11 dígitos com DDD, fixo de 8 dígitos (não ganha o 9), celular de 8 dígitos sem o 9 (ganha), número de 13 dígitos com 9 seguido de 0-5 (não perde o 9), entrada com máscara e entrada vazia
-- [X] T013 [P] Criar `src/lib/core/whatsapp/service-client.ts` — cliente HTTP do braço (provision, create/connect/delete instance, get instances, send message) com `AbortSignal.timeout`, mapeando os códigos de erro da tabela em `contracts/whatsapp-service.md` §3
-- [X] T014 Criar `src/lib/core/whatsapp/config.ts` — leitura/escrita de `tenant_whatsapp_config` com `api_key_enc` cifrada via `enc_text_with_key`, seguindo o padrão de `tenant_memed_config`; a leitura usada pela UI **nunca** projeta `api_key_enc`
-- [X] T015 Estender `src/lib/core/reminders/types.ts`: acrescentar `skipped_no_phone`, `skipped_no_connection` e `skipped_opt_out_channel` a `ReminderStatus` e a `TERMINAL_STATUSES`
+- [x] T009 Criar `supabase/migrations/0185_whatsapp_reminders.sql` conforme `data-model.md`: tabelas `tenant_whatsapp_config` e `whatsapp_delivery_events` (ambas com `tenant_id` + RLS + trigger de auditoria), expansão do CHECK de `status` em `appointment_reminders` com os 3 novos valores, ajuste do trigger `enforce_reminders_status_transition` para aceitá-los como destino de `queued →`, `patients.reminders_whatsapp_opt_in`, e as 3 colunas novas em `tenant_clinic_profile`
+- [x] T010 🔒 Aplicar a migration local (`pnpm supabase:reset`) e regerar os tipos (`pnpm supabase:gen-types`) em `src/lib/db/generated/types.ts`
+- [x] T011 [P] Portar a normalização de telefone BR para `src/lib/core/whatsapp/phone.ts` a partir de `_shared/phone.ts` do braço, preservando a regra de nunca remover o 9 de número de 13 dígitos
+- [x] T012 [P] Criar teste unitário em `tests/unit/whatsapp-phone.spec.ts` cobrindo: celular 11 dígitos com DDD, fixo de 8 dígitos (não ganha o 9), celular de 8 dígitos sem o 9 (ganha), número de 13 dígitos com 9 seguido de 0-5 (não perde o 9), entrada com máscara e entrada vazia
+- [x] T013 [P] Criar `src/lib/core/whatsapp/service-client.ts` — cliente HTTP do braço (provision, create/connect/delete instance, get instances, send message) com `AbortSignal.timeout`, mapeando os códigos de erro da tabela em `contracts/whatsapp-service.md` §3
+- [x] T014 Criar `src/lib/core/whatsapp/config.ts` — leitura/escrita de `tenant_whatsapp_config` com `api_key_enc` cifrada via `enc_text_with_key`, seguindo o padrão de `tenant_memed_config`; a leitura usada pela UI **nunca** projeta `api_key_enc`
+- [x] T015 Estender `src/lib/core/reminders/types.ts`: acrescentar `skipped_no_phone`, `skipped_no_connection` e `skipped_opt_out_channel` a `ReminderStatus` e a `TERMINAL_STATUSES`
 
 **Checkpoint**: esquema no lugar, serviço endurecido, cápsula pronta. As user stories podem começar.
 
@@ -86,16 +86,16 @@ aparecendo, desconectar e ver voltar para "Desconectado".
 
 ### Tests for User Story 1
 
-- [X] T016 [P] [US1] Teste de contrato em `tests/contract/whatsapp-connection-rbac.spec.ts`: cada server action de conexão/desconexão testada contra cada papel — só `admin` passa; `financeiro`, `recepcionista` e `profissional_saude` recebem negação
-- [X] T017 [P] [US1] Teste de isolamento em `tests/integration/whatsapp-tenant-isolation.spec.ts`: tenant A não lê, não conecta e não desconecta a instância do tenant B; a `api_key` de A nunca aparece em resposta de rota
+- [x] T016 [P] [US1] Teste de contrato em `tests/contract/whatsapp-connection-rbac.spec.ts`: cada server action de conexão/desconexão testada contra cada papel — só `admin` passa; `financeiro`, `recepcionista` e `profissional_saude` recebem negação
+- [x] T017 [P] [US1] Teste de isolamento em `tests/integration/whatsapp-tenant-isolation.spec.ts`: tenant A não lê, não conecta e não desconecta a instância do tenant B; a `api_key` de A nunca aparece em resposta de rota
 
 ### Implementation for User Story 1
 
-- [X] T018 [US1] Criar as server actions em `src/app/(dashboard)/configuracoes/whatsapp/actions.ts` (conectar, obter QR, atualizar estado, desconectar), todas sob `requireRole('admin')`, provisionando o tenant no braço na primeira conexão e gravando a `api_key` cifrada
-- [X] T019 [US1] Criar a tela `src/app/(dashboard)/configuracoes/whatsapp/page.tsx` + componente cliente de QR e estado, com os três estados visuais (desconectado / conectando / conectado com número) e polling do estado enquanto estiver conectando
-- [X] T020 [P] [US1] Acrescentar a entrada "WhatsApp" no hub de configurações em `src/app/(dashboard)/configuracoes/page.tsx`
-- [X] T020a [US1] Exibir aviso em destaque na tela de conexão quando o motivo da queda indicar **bloqueio** do número pelo WhatsApp, sem desligar o canal automaticamente (FR-012a) — depende de T005a
-- [X] T021 [US1] Registrar auditoria (`log_audit_event`) na conexão e na desconexão, conforme Princípio II
+- [x] T018 [US1] Criar as server actions em `src/app/(dashboard)/configuracoes/whatsapp/actions.ts` (conectar, obter QR, atualizar estado, desconectar), todas sob `requireRole('admin')`, provisionando o tenant no braço na primeira conexão e gravando a `api_key` cifrada
+- [x] T019 [US1] Criar a tela `src/app/(dashboard)/configuracoes/whatsapp/page.tsx` + componente cliente de QR e estado, com os três estados visuais (desconectado / conectando / conectado com número) e polling do estado enquanto estiver conectando
+- [x] T020 [P] [US1] Acrescentar a entrada "WhatsApp" no hub de configurações em `src/app/(dashboard)/configuracoes/page.tsx`
+- [x] T020a [US1] Exibir aviso em destaque na tela de conexão quando o motivo da queda indicar **bloqueio** do número pelo WhatsApp, sem desligar o canal automaticamente (FR-012a) — depende de T005a
+- [x] T021 [US1] Registrar auditoria (`log_audit_event`) na conexão e na desconexão, conforme Princípio II
 
 **Checkpoint**: a clínica conecta o número sozinha. Nada é enviado ainda.
 
@@ -110,21 +110,21 @@ confirmar a chegada no celular; rodar o ciclo de novo e confirmar que **não** c
 
 ### Tests for User Story 2
 
-- [X] T022 [P] [US2] Teste de idempotência em `tests/integration/whatsapp-reminder-idempotency.spec.ts`: dois ciclos consecutivos sobre o mesmo agendamento/offset/canal geram um único envio (SC-003)
-- [X] T023 [P] [US2] Teste de imutabilidade em `tests/contract/reminder-append-only.spec.ts`: um lembrete em estado terminal recusa `UPDATE` de status, e os 3 status novos são aceitos como destino de `queued →`
-- [X] T024 [P] [US2] Teste unitário em `tests/unit/render-whatsapp.spec.ts`: os 5 placeholders são substituídos, a saída não contém tag HTML, o texto traz a orientação de cancelamento, avisa que respostas não são lidas, e cai corretamente nos 3 níveis de fallback de contato (link público → telefone → orientação genérica)
+- [x] T022 [P] [US2] Teste de idempotência em `tests/integration/whatsapp-reminder-idempotency.spec.ts`: dois ciclos consecutivos sobre o mesmo agendamento/offset/canal geram um único envio (SC-003)
+- [x] T023 [P] [US2] Teste de imutabilidade em `tests/contract/reminder-append-only.spec.ts`: um lembrete em estado terminal recusa `UPDATE` de status, e os 3 status novos são aceitos como destino de `queued →`
+- [x] T024 [P] [US2] Teste unitário em `tests/unit/render-whatsapp.spec.ts`: os 5 placeholders são substituídos, a saída não contém tag HTML, o texto traz a orientação de cancelamento, avisa que respostas não são lidas, e cai corretamente nos 3 níveis de fallback de contato (link público → telefone → orientação genérica)
 
 ### Implementation for User Story 2
 
-- [X] T025 [P] [US2] Criar `src/lib/core/reminders/render-whatsapp.ts` — template texto puro com os mesmos placeholders do e-mail (`paciente`, `medico`, `procedimento`, `horario`, `clinica`), respeitando `reminder_template_whatsapp` quando preenchido, avisando em tom de parceria que respostas não são lidas e oferecendo o contato pela hierarquia de fallback de 3 níveis já usada em `render-email.ts` (FR-007a)
-- [X] T026 [US2] Parametrizar `src/lib/core/reminders/select-due.ts` por canal: substituir o `.eq('channel','email')` fixo da linha 88, passar a selecionar `phone_enc` junto de `email_enc`, e expor "tem telefone?" sem trazer o claro para o buffer de seleção
-- [X] T027 [US2] Criar `src/lib/core/reminders/send-one-whatsapp.ts` — revalidação JIT (opt-in, médico ativo, telefone presente), decrypt via `get_patient_for_tenant`, normalização do telefone, chamada ao braço com `externalId` = id do lembrete, e finalização do status
-- [X] T028 [US2] Refatorar `src/lib/core/reminders/send-one.ts` para despachar por canal em vez de gravar `channel:'email'` fixo na linha 67, preservando o comportamento atual do e-mail sem alteração observável
-- [X] T029 [US2] Criar o worker `src/app/api/workers/send-whatsapp-reminder/route.ts` — executa um envio individual, autenticado por assinatura QStash no padrão de `/api/workers/process-ghl-event`
-- [X] T030 [US2] Estender `src/lib/core/reminders/process-batch.ts`: iterar os canais habilitados do tenant, verificar a conexão **antes** do lote e registrar uma única ocorrência `skipped_no_connection` quando ausente (FR-012), e enfileirar cada envio de WhatsApp no QStash com `delay = índice × 4s` em vez do `Promise.allSettled` em rajada da linha 164
-- [X] T031 [US2] Implementar o fallback de execução inline (lote reduzido, espaçamento menor) para quando `isQstashConfigured()` for falso, para o fluxo continuar testável em dev
-- [X] T031a [US2] Habilitar o **reenvio manual** de um lembrete no canal WhatsApp, reusando o caminho `is_manual = TRUE` já existente para e-mail (FR-027) — inclui o botão na tela de histórico de lembretes e a garantia de que o reenvio não é bloqueado pela regra de idempotência
-- [X] T032 [P] [US2] Teste de integração em `tests/integration/whatsapp-batch-guards.spec.ts`: número desconectado gera **uma** ocorrência agregada e não uma falha por paciente; paciente sem telefone vira `skipped_no_phone`; agendamento estornado não gera envio
+- [x] T025 [P] [US2] Criar `src/lib/core/reminders/render-whatsapp.ts` — template texto puro com os mesmos placeholders do e-mail (`paciente`, `medico`, `procedimento`, `horario`, `clinica`), respeitando `reminder_template_whatsapp` quando preenchido, avisando em tom de parceria que respostas não são lidas e oferecendo o contato pela hierarquia de fallback de 3 níveis já usada em `render-email.ts` (FR-007a)
+- [x] T026 [US2] Parametrizar `src/lib/core/reminders/select-due.ts` por canal: substituir o `.eq('channel','email')` fixo da linha 88, passar a selecionar `phone_enc` junto de `email_enc`, e expor "tem telefone?" sem trazer o claro para o buffer de seleção
+- [x] T027 [US2] Criar `src/lib/core/reminders/send-one-whatsapp.ts` — revalidação JIT (opt-in, médico ativo, telefone presente), decrypt via `get_patient_for_tenant`, normalização do telefone, chamada ao braço com `externalId` = id do lembrete, e finalização do status
+- [x] T028 [US2] Refatorar `src/lib/core/reminders/send-one.ts` para despachar por canal em vez de gravar `channel:'email'` fixo na linha 67, preservando o comportamento atual do e-mail sem alteração observável
+- [x] T029 [US2] Criar o worker `src/app/api/workers/send-whatsapp-reminder/route.ts` — executa um envio individual, autenticado por assinatura QStash no padrão de `/api/workers/process-ghl-event`
+- [x] T030 [US2] Estender `src/lib/core/reminders/process-batch.ts`: iterar os canais habilitados do tenant, verificar a conexão **antes** do lote e registrar uma única ocorrência `skipped_no_connection` quando ausente (FR-012), e enfileirar cada envio de WhatsApp no QStash com `delay = índice × 4s` em vez do `Promise.allSettled` em rajada da linha 164
+- [x] T031 [US2] Implementar o fallback de execução inline (lote reduzido, espaçamento menor) para quando `isQstashConfigured()` for falso, para o fluxo continuar testável em dev
+- [x] T031a [US2] Habilitar o **reenvio manual** de um lembrete no canal WhatsApp, reusando o caminho `is_manual = TRUE` já existente para e-mail (FR-027) — inclui o botão na tela de histórico de lembretes e a garantia de que o reenvio não é bloqueado pela regra de idempotência
+- [x] T032 [P] [US2] Teste de integração em `tests/integration/whatsapp-batch-guards.spec.ts`: número desconectado gera **uma** ocorrência agregada e não uma falha por paciente; paciente sem telefone vira `skipped_no_phone`; agendamento estornado não gera envio
 
 **Checkpoint**: o lembrete chega no WhatsApp. US1 + US2 = produto utilizável.
 
@@ -139,14 +139,14 @@ canais a mensagem sai.
 
 ### Tests for User Story 3
 
-- [X] T033 [P] [US3] Teste de integração em `tests/integration/reminder-channels.spec.ts`: modo "somente WhatsApp" não manda e-mail; modo "ambos" gera dois registros independentes para o mesmo agendamento/offset; modo "WhatsApp com fallback" manda e-mail quando falta telefone
+- [x] T033 [P] [US3] Teste de integração em `tests/integration/reminder-channels.spec.ts`: modo "somente WhatsApp" não manda e-mail; modo "ambos" gera dois registros independentes para o mesmo agendamento/offset; modo "WhatsApp com fallback" manda e-mail quando falta telefone
 
 ### Implementation for User Story 3
 
-- [X] T034 [US3] Estender `src/lib/core/reminders/config.ts` — ler e gravar `reminder_channels`, `reminder_whatsapp_fallback_email` e `reminder_template_whatsapp`, com validação Zod (array não-vazio, subconjunto de `email`/`whatsapp`)
-- [X] T035 [US3] Acrescentar a escolha de canal e o editor do template de WhatsApp em `src/app/(dashboard)/configuracoes/lembretes/config-form.tsx`
-- [X] T036 [US3] Impedir a ativação do canal WhatsApp sem número conectado (FR-005), com mensagem que diga o que falta e link para a tela de conexão
-- [X] T037 [US3] Implementar o fallback para e-mail em `process-batch.ts` quando o canal é WhatsApp, o paciente não tem telefone e `reminder_whatsapp_fallback_email` está ligado
+- [x] T034 [US3] Estender `src/lib/core/reminders/config.ts` — ler e gravar `reminder_channels`, `reminder_whatsapp_fallback_email` e `reminder_template_whatsapp`, com validação Zod (array não-vazio, subconjunto de `email`/`whatsapp`)
+- [x] T035 [US3] Acrescentar a escolha de canal e o editor do template de WhatsApp em `src/app/(dashboard)/configuracoes/lembretes/config-form.tsx`
+- [x] T036 [US3] Impedir a ativação do canal WhatsApp sem número conectado (FR-005), com mensagem que diga o que falta e link para a tela de conexão
+- [x] T037 [US3] Implementar o fallback para e-mail em `process-batch.ts` quando o canal é WhatsApp, o paciente não tem telefone e `reminder_whatsapp_fallback_email` está ligado
 
 **Checkpoint**: a clínica controla por onde o lembrete sai.
 
@@ -161,15 +161,15 @@ histórico progredir.
 
 ### Tests for User Story 4
 
-- [X] T038 [P] [US4] Teste de contrato em `tests/contract/whatsapp-status-callback.spec.ts`: sem Bearer → `401` e nada gravado; Bearer errado → `401`; `externalId` desconhecido → `200` sem efeito; `tenant_id` derivado do lembrete e não do corpo
-- [X] T039 [P] [US4] Teste unitário em `tests/unit/delivery-precedence.spec.ts`: um `delivered` que chega depois de um `read` fica registrado mas não rebaixa o status exibido (FR-019)
+- [x] T038 [P] [US4] Teste de contrato em `tests/contract/whatsapp-status-callback.spec.ts`: sem Bearer → `401` e nada gravado; Bearer errado → `401`; `externalId` desconhecido → `200` sem efeito; `tenant_id` derivado do lembrete e não do corpo
+- [x] T039 [P] [US4] Teste unitário em `tests/unit/delivery-precedence.spec.ts`: um `delivered` que chega depois de um `read` fica registrado mas não rebaixa o status exibido (FR-019)
 
 ### Implementation for User Story 4
 
-- [X] T040 [US4] Criar `src/lib/core/whatsapp/delivery.ts` — gravação de `whatsapp_delivery_events` e resolução do status corrente por precedência de rank (`sent=1 < delivered=2 < read=3 < error=9`)
-- [X] T041 [US4] Criar a rota `src/app/api/webhooks/whatsapp-status/route.ts` conforme `contracts/status-callback.md`, com validação de Bearer por `timingSafeEqual` e descarte do telefone recebido no payload (nunca persistido nem logado)
-- [X] T042 [US4] Acrescentar a coluna de status de entrega em `src/app/(dashboard)/configuracoes/lembretes/history-table.tsx`, lendo pela precedência de rank
-- [X] T043 [P] [US4] Mapear os motivos de falha para linguagem de recepção (FR-021) — sem código de erro nem jargão técnico na tela
+- [x] T040 [US4] Criar `src/lib/core/whatsapp/delivery.ts` — gravação de `whatsapp_delivery_events` e resolução do status corrente por precedência de rank (`sent=1 < delivered=2 < read=3 < error=9`)
+- [x] T041 [US4] Criar a rota `src/app/api/webhooks/whatsapp-status/route.ts` conforme `contracts/status-callback.md`, com validação de Bearer por `timingSafeEqual` e descarte do telefone recebido no payload (nunca persistido nem logado)
+- [x] T042 [US4] Acrescentar a coluna de status de entrega em `src/app/(dashboard)/configuracoes/lembretes/history-table.tsx`, lendo pela precedência de rank
+- [x] T043 [P] [US4] Mapear os motivos de falha para linguagem de recepção (FR-021) — sem código de erro nem jargão técnico na tela
 
 **Checkpoint**: a clínica confia no canal porque enxerga o que aconteceu.
 
@@ -184,13 +184,13 @@ confirmar que só o e-mail saiu.
 
 ### Tests for User Story 5
 
-- [X] T044 [P] [US5] Teste de integração em `tests/integration/reminder-optout-per-channel.spec.ts`: recusa de WhatsApp bloqueia só o WhatsApp; recusa mestra (`reminders_opt_in = FALSE`) bloqueia todos os canais
+- [x] T044 [P] [US5] Teste de integração em `tests/integration/reminder-optout-per-channel.spec.ts`: recusa de WhatsApp bloqueia só o WhatsApp; recusa mestra (`reminders_opt_in = FALSE`) bloqueia todos os canais
 
 ### Implementation for User Story 5
 
-- [X] T045 [US5] Estender `src/lib/core/reminders/opt-in.ts` com leitura e escrita de `reminders_whatsapp_opt_in`, mantendo `reminders_opt_in` como mestre
-- [X] T046 [US5] Acrescentar o controle de recusa por canal no cadastro do paciente em `src/app/(dashboard)/operacao/pacientes/[id]/_components/cadastro-tab.tsx`
-- [X] T047 [US5] Aplicar a recusa na revalidação JIT de `send-one-whatsapp.ts`, finalizando como `skipped_opt_out_channel`
+- [x] T045 [US5] Estender `src/lib/core/reminders/opt-in.ts` com leitura e escrita de `reminders_whatsapp_opt_in`, mantendo `reminders_opt_in` como mestre
+- [x] T046 [US5] Acrescentar o controle de recusa por canal no cadastro do paciente em `src/app/(dashboard)/operacao/pacientes/[id]/_components/cadastro-tab.tsx`
+- [x] T047 [US5] Aplicar a recusa na revalidação JIT de `send-one-whatsapp.ts`, finalizando como `skipped_opt_out_channel`
 
 **Checkpoint**: todas as user stories funcionam de forma independente.
 
@@ -198,14 +198,14 @@ confirmar que só o e-mail saiu.
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [X] T048 [P] Acrescentar a seção da feature 051 no `CLAUDE.md` (padrão das features anteriores): por que WhatsApp não está no registry de adapters, por que a entrega vai em tabela separada, e o risco de bloqueio aceito
-- [X] T049 [P] Documentar no `HANDOFF.md` do braço as mudanças de contrato (token do webhook, `provision-tenant`, idempotência por `external_id`)
-- [X] T050 Rodar `pnpm typecheck` e `pnpm lint:auth` e corrigir o que aparecer
-- [X] T051 🔒 Rodar `pnpm test` e re-semear com `pnpm seed:demo`
+- [x] T048 [P] Acrescentar a seção da feature 051 no `CLAUDE.md` (padrão das features anteriores): por que WhatsApp não está no registry de adapters, por que a entrega vai em tabela separada, e o risco de bloqueio aceito
+- [x] T049 [P] Documentar no `HANDOFF.md` do braço as mudanças de contrato (token do webhook, `provision-tenant`, idempotência por `external_id`)
+- [x] T050 Rodar `pnpm typecheck` e `pnpm lint:auth` e corrigir o que aparecer
+- [x] T051 🔒 Rodar `pnpm test` e re-semear com `pnpm seed:demo`
 - [ ] T052 Percorrer o `quickstart.md` de ponta a ponta com um número real, incluindo os 5 cenários da tabela da seção 7
-- [X] T053 Confirmar que o SC-004 (≥ 70% dos lembretes entregues lidos em 24h) é apurável com os dados de `whatsapp_delivery_events` — a consulta que apura isso deve existir antes de a feature ser considerada validada
+- [x] T053 Confirmar que o SC-004 (≥ 70% dos lembretes entregues lidos em 24h) é apurável com os dados de `whatsapp_delivery_events` — a consulta que apura isso deve existir antes de a feature ser considerada validada
   - Feito em `src/lib/core/whatsapp/metrics.ts` (`getWhatsAppReadRate`), exposto na tela de lembretes (últimos 30 dias). Métrica derivada, nunca persistida. 13 casos em `tests/unit/whatsapp-read-rate.spec.ts`.
-- [X] T054 Gate do módulo `whatsapp` no MOTOR, não só na UI — `reminder_channels` é estado persistido e a revogação no /admin não tinha efeito retroativo (`process-batch.ts`)
+- [x] T054 Gate do módulo `whatsapp` no MOTOR, não só na UI — `reminder_channels` é estado persistido e a revogação no /admin não tinha efeito retroativo (`process-batch.ts`)
 
 ---
 

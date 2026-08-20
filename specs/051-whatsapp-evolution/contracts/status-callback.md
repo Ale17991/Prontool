@@ -26,7 +26,7 @@ Header `Authorization: Bearer <callback_secret>`, comparado com `crypto.timingSa
   "evolutionMessageId": "<key.id>",
   "to": "5511999999999",
   "status": "delivered",
-  "timestamp": "2026-07-28T12:34:56.000Z"
+  "timestamp": "2026-07-28T12:34:56.000Z",
 }
 ```
 
@@ -55,10 +55,10 @@ payload porque o braço o envia, e é descartado.
 
 ## Respostas
 
-| Status | Quando |
-|---|---|
-| `200` | processado, ou ignorado por não ser nosso |
-| `401` | Bearer ausente ou inválido |
-| `400` | corpo não é JSON válido |
+| Status | Quando                                    |
+| ------ | ----------------------------------------- |
+| `200`  | processado, ou ignorado por não ser nosso |
+| `401`  | Bearer ausente ou inválido                |
+| `400`  | corpo não é JSON válido                   |
 
 Nunca retornar `5xx` para uma confirmação malformada — o braço re-tentaria em loop.

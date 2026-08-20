@@ -23,7 +23,7 @@ Abordagem técnica: **motor de cálculo TS puro** (`src/lib/core/nutrition/`) re
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade/Imutabilidade** — ✅ `nutrition_assessments` é **append-only** (trigger anti-UPDATE/DELETE); correção = nova avaliação (FR-014, FR-017). Não há dado financeiro nesta feature.
 - **II. Auditabilidade** — ✅ criação de avaliação auditada via `log_audit_event` (ator, timestamp, tenant, entidade) — FR-020.

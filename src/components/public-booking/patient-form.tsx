@@ -169,8 +169,8 @@ export function PatientForm({
         <h2 className="mb-1 text-base font-semibold text-slate-900">Seus dados</h2>
         {memedPrescriber ? (
           <p className="mb-3 rounded-md bg-amber-50 px-3 py-2 text-xs leading-snug text-amber-800">
-            Esta clínica emite receita digital — por isso pedimos CPF, e-mail e data de
-            nascimento. São os dados que o receituário exige.
+            Esta clínica emite receita digital — por isso pedimos CPF, e-mail e data de nascimento.
+            São os dados que o receituário exige.
           </p>
         ) : (
           <p className="mb-3 text-xs text-slate-500">

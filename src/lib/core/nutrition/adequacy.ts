@@ -51,7 +51,8 @@ export function computeAdequacy(totals: Nutrients, dris: Map<string, DriValue>):
   const items: AdequacyItem[] = []
   for (const [nutrientKey, dri] of dris) {
     const microKey = DRIKEY_TO_MICRO.get(nutrientKey)
-    const label = nutrientKey === 'fibra' ? 'Fibra' : (micronutrientDef(microKey ?? '')?.label ?? nutrientKey)
+    const label =
+      nutrientKey === 'fibra' ? 'Fibra' : (micronutrientDef(microKey ?? '')?.label ?? nutrientKey)
     const total = Math.round(consumed(nutrientKey, totals) * 100) / 100
     const pct = dri.value > 0 ? Math.round((total / dri.value) * 1000) / 10 : null
     items.push({

@@ -14,14 +14,14 @@ Pré: stack local (`supabase start` :54321), `pnpm supabase:reset` (aplica até 
 
 ## Mapa de verificação (Success Criteria)
 
-| Critério | Como validar |
-|---|---|
-| SC-001 (registrar em <30s) | Passo 2 a partir de insumo cadastrado |
-| SC-002 (linha no resultado + lucro) | Passo 5 (comparar lucro antes/depois) |
-| SC-003 (estornado excluído) | Passo 6 |
-| SC-004 (snapshot imutável) | Editar custo do insumo no catálogo → uso do passo 2 permanece R$ 36,00 |
-| SC-005 (por profissional/convênio + export) | Passo 7 |
-| SC-006 (repasse/receita inalterados) | Passo 5: `grossRevenue`/`commissions`/`monthly_payouts` sem variação |
+| Critério                                    | Como validar                                                           |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| SC-001 (registrar em <30s)                  | Passo 2 a partir de insumo cadastrado                                  |
+| SC-002 (linha no resultado + lucro)         | Passo 5 (comparar lucro antes/depois)                                  |
+| SC-003 (estornado excluído)                 | Passo 6                                                                |
+| SC-004 (snapshot imutável)                  | Editar custo do insumo no catálogo → uso do passo 2 permanece R$ 36,00 |
+| SC-005 (por profissional/convênio + export) | Passo 7                                                                |
+| SC-006 (repasse/receita inalterados)        | Passo 5: `grossRevenue`/`commissions`/`monthly_payouts` sem variação   |
 
 ## Testes automatizados (vitest)
 

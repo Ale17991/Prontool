@@ -401,7 +401,10 @@ function computeMacros(targetKcal: number, input: EnergyInput): MacroResult | nu
   } else {
     const sumPct = (m.protPct ?? 0) + (m.carbPct ?? 0) + (m.lipPct ?? 0)
     if (Math.round(sumPct) !== 100) {
-      throw new NutritionInputError('MACROS_SUM_INVALID', 'Os percentuais de macros devem somar 100%.')
+      throw new NutritionInputError(
+        'MACROS_SUM_INVALID',
+        'Os percentuais de macros devem somar 100%.',
+      )
     }
     protG = (targetKcal * (m.protPct ?? 0)) / 100 / 4
     carbG = (targetKcal * (m.carbPct ?? 0)) / 100 / 4
@@ -420,7 +423,10 @@ function computeMacros(targetKcal: number, input: EnergyInput): MacroResult | nu
 /** Cálculo energético completo. */
 export function computeEnergy(input: EnergyInput): EnergyResult {
   if (TMB_FEMALE_ONLY.has(input.equation) && input.sex !== 'F') {
-    throw new NutritionInputError('EQUATION_FEMALE_ONLY', 'Equação disponível apenas para mulheres.')
+    throw new NutritionInputError(
+      'EQUATION_FEMALE_ONLY',
+      'Equação disponível apenas para mulheres.',
+    )
   }
   const tmb = computeTmb(input)
   const get = computeGet(input, tmb)

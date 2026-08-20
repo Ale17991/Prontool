@@ -16,7 +16,7 @@ Ocultar o campo na interface não é o controle — é consequência dele
 interface PatientPortalConfig {
   patientPortalEnabled: boolean
   publicBookingSlug: string | null
-  welcomeText: string | null   // NOVO
+  welcomeText: string | null // NOVO
 }
 ```
 
@@ -26,8 +26,8 @@ interface PatientPortalConfig {
 
 Campo novo:
 
-| Campo | Tipo | Regra |
-| --- | --- | --- |
+| Campo         | Tipo             | Regra                                                                   |
+| ------------- | ---------------- | ----------------------------------------------------------------------- |
 | `welcomeText` | `string \| null` | Máximo **1.000** caracteres. Vazio ou só espaços ⇒ gravado como `NULL`. |
 
 **Normalização obrigatória**: `''` e `'   '` viram `NULL` antes de gravar.

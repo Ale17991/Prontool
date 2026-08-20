@@ -133,8 +133,8 @@ export function ConfigForm({ initial, whatsappConnected, whatsappModuleEnabled }
           <div>
             <div className="font-semibold text-slate-900">Habilitar lembretes automáticos</div>
             <p className="mt-0.5 text-xs text-slate-500">
-              Quando habilitado, o paciente é avisado antes de cada consulta pelos canais
-              marcados abaixo. Para escrever o texto da mensagem ou mudar a antecedência, use{' '}
+              Quando habilitado, o paciente é avisado antes de cada consulta pelos canais marcados
+              abaixo. Para escrever o texto da mensagem ou mudar a antecedência, use{' '}
               <a className="underline" href="/configuracoes/automacoes">
                 Automações
               </a>
@@ -222,9 +222,9 @@ export function ConfigForm({ initial, whatsappConnected, whatsappModuleEnabled }
       <section className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-slate-900">Janela de envio</h2>
         <p className="mt-1 text-xs text-slate-500">
-          Lembretes só são enviados dentro desta janela, no relógio da clínica. Vale para o
-          lembrete de consulta — as automações têm janela própria, na tela delas, porque as duas
-          mensagens não têm a mesma tolerância de horário.
+          Lembretes só são enviados dentro desta janela, no relógio da clínica. Vale para o lembrete
+          de consulta — as automações têm janela própria, na tela delas, porque as duas mensagens
+          não têm a mesma tolerância de horário.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div>

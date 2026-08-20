@@ -1,12 +1,25 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Layers, Loader2, Plus, Printer, Save, Search, Stamp, Trash2, UtensilsCrossed } from 'lucide-react'
+import {
+  Layers,
+  Loader2,
+  Plus,
+  Printer,
+  Save,
+  Search,
+  Stamp,
+  Trash2,
+  UtensilsCrossed,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PatientTypeahead, type PatientTypeaheadValue } from '@/components/patients/patient-typeahead'
+import {
+  PatientTypeahead,
+  type PatientTypeaheadValue,
+} from '@/components/patients/patient-typeahead'
 import {
   itemNutrients,
   addNutrients,
@@ -67,14 +80,21 @@ interface GroupDTO {
 interface PlanMeta {
   id: string | null
   status: 'rascunho' | 'prescrito'
-  target: { kcal: number; macros: { protG: number; carbG: number; fatG: number } | null; assessmentId: string | null } | null
+  target: {
+    kcal: number
+    macros: { protG: number; carbG: number; fatG: number } | null
+    assessmentId: string | null
+  } | null
 }
 
 let seq = 0
 const nextKey = () => `k${++seq}`
 
 function toNutrients(it: EditItem): Nutrients {
-  if (it.kind === 'group') return roundNutrients(it.groupNutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 })
+  if (it.kind === 'group')
+    return roundNutrients(
+      it.groupNutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
+    )
   return roundNutrients(
     itemNutrients({
       grams: it.grams,
@@ -153,7 +173,13 @@ export function PlanBuilderClient() {
                     equivalenceListId: i.equivalenceListId,
                     groupOptions: i.groupOptions ?? [],
                     groupReferenceKcal: i.groupReferenceKcal ?? null,
-                    groupNutrients: i.nutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
+                    groupNutrients: i.nutrients ?? {
+                      energyKcal: 0,
+                      proteinG: 0,
+                      carbG: 0,
+                      fatG: 0,
+                      fiberG: 0,
+                    },
                   }
                 }
                 // Alimento único: nutrientes vêm já escalados; reconstruímos a
@@ -196,12 +222,13 @@ export function PlanBuilderClient() {
     }
   }, [patient, load])
 
-  const dayTotal = useMemo(
-    () => sum(meals.flatMap((m) => m.items.map(toNutrients))),
-    [meals],
-  )
+  const dayTotal = useMemo(() => sum(meals.flatMap((m) => m.items.map(toNutrients))), [meals])
   const delta = useMemo(
-    () => targetDelta(dayTotal, meta.target ? { kcal: meta.target.kcal, macros: meta.target.macros } : null),
+    () =>
+      targetDelta(
+        dayTotal,
+        meta.target ? { kcal: meta.target.kcal, macros: meta.target.macros } : null,
+      ),
     [dayTotal, meta.target],
   )
 
@@ -241,7 +268,10 @@ export function PlanBuilderClient() {
   }
 
   function addMeal() {
-    setMeals((v) => [...v, { key: nextKey(), name: 'Refeição', timeLabel: '', targetPct: null, items: [] }])
+    setMeals((v) => [
+      ...v,
+      { key: nextKey(), name: 'Refeição', timeLabel: '', targetPct: null, items: [] },
+    ])
   }
   function removeMeal(key: string) {
     setMeals((v) => v.filter((m) => m.key !== key))
@@ -314,7 +344,10 @@ export function PlanBuilderClient() {
               ...m,
               items: m.items.map((it) =>
                 it.key === itemKey
-                  ? { ...it, groupOptions: (it.groupOptions ?? []).filter((o) => o.foodId !== foodId) }
+                  ? {
+                      ...it,
+                      groupOptions: (it.groupOptions ?? []).filter((o) => o.foodId !== foodId),
+                    }
                   : it,
               ),
             }
@@ -338,7 +371,10 @@ export function PlanBuilderClient() {
                   target > 0 && food.energyKcal > 0
                     ? Math.round((target * food.referenceGrams) / food.energyKcal)
                     : (food.measures.find((mm) => mm.isDefault)?.grams ?? food.referenceGrams)
-                return { ...it, groupOptions: [...opts, { foodId: food.id, name: food.name, grams }] }
+                return {
+                  ...it,
+                  groupOptions: [...opts, { foodId: food.id, name: food.name, grams }],
+                }
               }),
             }
           : m,
@@ -356,7 +392,9 @@ export function PlanBuilderClient() {
   }
   function removeItem(mealKey: string, itemKey: string) {
     setMeals((v) =>
-      v.map((m) => (m.key === mealKey ? { ...m, items: m.items.filter((i) => i.key !== itemKey) } : m)),
+      v.map((m) =>
+        m.key === mealKey ? { ...m, items: m.items.filter((i) => i.key !== itemKey) } : m,
+      ),
     )
   }
 
@@ -378,7 +416,10 @@ export function PlanBuilderClient() {
               ? {
                   equivalence_list_id: i.equivalenceListId,
                   notes: i.name,
-                  group_options: (i.groupOptions ?? []).map((o) => ({ food_id: o.foodId, grams: o.grams })),
+                  group_options: (i.groupOptions ?? []).map((o) => ({
+                    food_id: o.foodId,
+                    grams: o.grams,
+                  })),
                 }
               : { food_id: i.foodId, grams: i.grams },
           ),
@@ -465,8 +506,8 @@ export function PlanBuilderClient() {
           <>
             {meta.status === 'prescrito' ? (
               <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                Este plano foi <strong>enviado ao paciente</strong> (visível no portal). Edite e salve para
-                criar uma nova versão e depois enviar de novo.
+                Este plano foi <strong>enviado ao paciente</strong> (visível no portal). Edite e
+                salve para criar uma nova versão e depois enviar de novo.
               </p>
             ) : (
               <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
@@ -479,8 +520,12 @@ export function PlanBuilderClient() {
                 key={meal.key}
                 meal={meal}
                 groups={groups}
-                onName={(name) => setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, name } : m)))}
-                onTime={(t) => setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, timeLabel: t } : m)))}
+                onName={(name) =>
+                  setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, name } : m)))
+                }
+                onTime={(t) =>
+                  setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, timeLabel: t } : m)))
+                }
                 onAddItem={(f) => addItem(meal.key, f)}
                 onAddGroup={(g) => addGroup(meal.key, g)}
                 onGrams={(ik, g) => setItemGrams(meal.key, ik, g)}
@@ -519,15 +564,24 @@ export function PlanBuilderClient() {
             {msg ? <p className="text-xs text-slate-500">{msg}</p> : null}
             <div className="flex gap-2">
               <Button variant="outline" onClick={save} disabled={saving} className="flex-1 gap-1.5">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}{' '}
+                Salvar
               </Button>
               <Button
                 onClick={prescribe}
                 disabled={prescribing || meals.every((m) => m.items.length === 0)}
                 className="flex-1 gap-1.5"
               >
-                {prescribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Stamp className="h-4 w-4" />} Enviar ao
-                paciente
+                {prescribing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Stamp className="h-4 w-4" />
+                )}{' '}
+                Enviar ao paciente
               </Button>
             </div>
             {/*
@@ -536,7 +590,11 @@ export function PlanBuilderClient() {
               caso o PDF vem com tarja de não definitivo.
             */}
             <Button variant="outline" size="sm" className="w-full gap-1.5" asChild>
-              <a href={`/api/pacientes/${patient.id}/plano-alimentar/pdf`} target="_blank" rel="noreferrer">
+              <a
+                href={`/api/pacientes/${patient.id}/plano-alimentar/pdf`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Printer className="h-3.5 w-3.5" /> Imprimir plano
               </a>
             </Button>
@@ -621,14 +679,19 @@ function MealCard({
           const n = toNutrients(it)
           if (it.kind === 'group') {
             return (
-              <div key={it.key} className="rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-sm">
+              <div
+                key={it.key}
+                className="rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-sm"
+              >
                 <div className="flex items-center gap-2">
                   <Layers className="h-3.5 w-3.5 shrink-0 text-primary" />
                   <span className="flex-1 truncate font-medium">{it.name}</span>
                   <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                     grupo
                   </span>
-                  <span className="w-16 text-right text-xs tabular-nums text-slate-500">{n.energyKcal} kcal</span>
+                  <span className="w-16 text-right text-xs tabular-nums text-slate-500">
+                    {n.energyKcal} kcal
+                  </span>
                   <button
                     type="button"
                     onClick={() => onRemoveItem(it.key)}
@@ -656,11 +719,16 @@ function MealCard({
                     </li>
                   ))}
                   {(it.groupOptions ?? []).length === 0 ? (
-                    <li className="text-[11px] text-amber-600">Sem opções. Adicione ao menos uma.</li>
+                    <li className="text-[11px] text-amber-600">
+                      Sem opções. Adicione ao menos uma.
+                    </li>
                   ) : null}
                 </ul>
                 <div className="mt-1 pl-5">
-                  <FoodSearch placeholder="Adicionar opção…" onPick={(f) => onAddGroupOption(it.key, f)} />
+                  <FoodSearch
+                    placeholder="Adicionar opção…"
+                    onPick={(f) => onAddGroupOption(it.key, f)}
+                  />
                 </div>
               </div>
             )
@@ -675,7 +743,9 @@ function MealCard({
                 onChange={(e) => onGrams(it.key, Number(e.target.value.replace(',', '.')) || 0)}
               />
               <span className="text-xs text-slate-400">g</span>
-              <span className="w-16 text-right text-xs tabular-nums text-slate-500">{n.energyKcal} kcal</span>
+              <span className="w-16 text-right text-xs tabular-nums text-slate-500">
+                {n.energyKcal} kcal
+              </span>
               <button
                 type="button"
                 onClick={() => onRemoveItem(it.key)}
@@ -730,7 +800,9 @@ function GroupPicker({ groups, onPick }: { groups: GroupDTO[]; onPick: (g: Group
               >
                 <span className="truncate">
                   {g.name}
-                  {g.isCustom ? null : <span className="ml-1 text-[10px] text-slate-400">(base)</span>}
+                  {g.isCustom ? null : (
+                    <span className="ml-1 text-[10px] text-slate-400">(base)</span>
+                  )}
                 </span>
                 <span className="ml-2 shrink-0 text-[10px] text-slate-400">
                   {Math.round(g.nutrients.energyKcal)} kcal
@@ -744,7 +816,13 @@ function GroupPicker({ groups, onPick }: { groups: GroupDTO[]; onPick: (g: Group
   )
 }
 
-function FoodSearch({ onPick, placeholder }: { onPick: (f: FoodDTO) => void; placeholder?: string }) {
+function FoodSearch({
+  onPick,
+  placeholder,
+}: {
+  onPick: (f: FoodDTO) => void
+  placeholder?: string
+}) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<FoodDTO[]>([])
   const [open, setOpen] = useState(false)
@@ -822,7 +900,8 @@ function TotalsPanel({
         <Row label="Carboidrato" value={`${dayTotal.carbG} g`} />
         <Row label="Lipídio" value={`${dayTotal.fatG} g`} />
         <Row label="Fibra" value={`${dayTotal.fiberG} g`} />
-        {dayTotal.micros && MICRONUTRIENTS_PRIMARY.some((k) => dayTotal.micros![k] !== undefined) ? (
+        {dayTotal.micros &&
+        MICRONUTRIENTS_PRIMARY.some((k) => dayTotal.micros![k] !== undefined) ? (
           <div className="mt-2 border-t border-slate-100 pt-2">
             <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Micronutrientes
@@ -927,15 +1006,25 @@ function AdequacyPanel({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm">Adequação (DRI)</CardTitle>
-        <Button size="sm" variant="outline" onClick={onAnalyze} disabled={loading} className="h-7 gap-1.5 text-xs">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onAnalyze}
+          disabled={loading}
+          className="h-7 gap-1.5 text-xs"
+        >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null} Analisar
         </Button>
       </CardHeader>
       <CardContent className="space-y-1 text-xs">
         {!data ? (
-          <p className="text-slate-400">Clique em “Analisar” para comparar o plano com a recomendação do paciente.</p>
+          <p className="text-slate-400">
+            Clique em “Analisar” para comparar o plano com a recomendação do paciente.
+          </p>
         ) : data.need && (data.need.age || data.need.sex) ? (
-          <p className="text-amber-600">Informe idade (data de nascimento) e sexo no cadastro do paciente.</p>
+          <p className="text-amber-600">
+            Informe idade (data de nascimento) e sexo no cadastro do paciente.
+          </p>
         ) : !data.adequacy ? (
           <p className="text-slate-400">Salve um plano com itens para analisar.</p>
         ) : (
@@ -1015,11 +1104,7 @@ function MealTargetRow({ target, actual }: { target: MealTarget; actual: Nutrien
   // num jogo de encaixe, e a precisão do dado de alimento não sustenta isso.
   const tol = Math.max(target.kcal * 0.05, 20)
   const cor =
-    Math.abs(diffKcal) <= tol
-      ? 'text-emerald-600'
-      : diffKcal > 0
-        ? 'text-amber-600'
-        : 'text-link'
+    Math.abs(diffKcal) <= tol ? 'text-emerald-600' : diffKcal > 0 ? 'text-amber-600' : 'text-link'
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-slate-50 px-2 py-1.5 text-[11px]">

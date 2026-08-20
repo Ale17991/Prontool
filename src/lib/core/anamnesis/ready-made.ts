@@ -170,11 +170,7 @@ const ANAMNESE_ALIMENTAR: ReadyMadeTemplate = {
     longo('intolerancia_alergia', 'Intolerância ou alergia alimentar'),
     longo('preferencia_alimentar', 'Preferência alimentar'),
     longo('aversao_alimentar', 'Aversão alimentar'),
-    escolha('belisca', 'Tem o costume de beliscar entre as refeições?', [
-      'Sim',
-      'Às vezes',
-      'Não',
-    ]),
+    escolha('belisca', 'Tem o costume de beliscar entre as refeições?', ['Sim', 'Às vezes', 'Não']),
     t('horario_mais_fome', 'Em que horário do dia sente mais fome?'),
     escolha('paladar', 'Paladar mais voltado a', [
       'Doces',

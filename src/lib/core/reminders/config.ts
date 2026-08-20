@@ -40,7 +40,11 @@ export const ReminderConfigUpdateSchema = z
     // Não-vazio quando presente: desligar tudo é o que o toggle `enabled` faz;
     // um array vazio seria um segundo jeito de dizer a mesma coisa, e os dois
     // poderiam divergir.
-    channels: z.array(z.enum(['email', 'whatsapp'])).min(1).max(2).optional(),
+    channels: z
+      .array(z.enum(['email', 'whatsapp']))
+      .min(1)
+      .max(2)
+      .optional(),
     whatsappFallbackEmail: z.boolean().optional(),
     templateWhatsApp: z.string().max(4000).nullable().optional(),
   })

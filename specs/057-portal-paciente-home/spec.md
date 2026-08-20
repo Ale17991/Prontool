@@ -5,12 +5,12 @@
 **Status**: Draft
 **Input**: User description: "o portal do paciente tenha na tela inicial apenas as metas e o checklist, as demais áreas vão virar cards clicáveis que vão me direcionar para a página final da área que desejo ver"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - A tela inicial mostra só o que eu acompanho todo dia (Priority: P1)
 
 O paciente entra no portal e vê, imediatamente, as suas metas e o checklist de
-hábitos — a única coisa que ele de fato *faz* ali. Tudo o mais que a clínica
+hábitos — a única coisa que ele de fato _faz_ ali. Tudo o mais que a clínica
 liberou aparece logo abaixo como uma grade de cards nomeados, não como conteúdo
 aberto.
 
@@ -88,7 +88,7 @@ existe, está visivelmente apagado, explica a ausência e não navega.
 - **Exame que também é métrica de acompanhamento**: um mesmo resultado não pode aparecer ao mesmo tempo na área de evolução e na de exames.
 - **Área liberada pelo plano da clínica mas ainda não construída no produto**: não gera card.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -125,7 +125,7 @@ existe, está visivelmente apagado, explica a ausência e não navega.
 - **Página de área**: destino do card, com o conteúdo completo daquela seção e o caminho de volta.
 - **Trilha de acesso**: registro de que o paciente abriu o portal, usado para prestação de contas de LGPD.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

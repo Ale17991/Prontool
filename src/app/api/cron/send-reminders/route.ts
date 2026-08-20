@@ -88,7 +88,10 @@ async function executarCiclo(request: NextRequest) {
     automacoes = await evaluateAutomations(supabase, agora)
     logger.info(automacoes, 'cron-automacoes-done')
   } catch (err) {
-    logger.error({ errorCode: err instanceof Error ? err.name : 'unknown' }, 'cron-automacoes-fatal')
+    logger.error(
+      { errorCode: err instanceof Error ? err.name : 'unknown' },
+      'cron-automacoes-fatal',
+    )
   }
 
   return NextResponse.json({ ...result, automacoes }, { status: 200 })

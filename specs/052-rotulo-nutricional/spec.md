@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: Geração da tabela de informação nutricional de um produto alimentício conforme a legislação brasileira de rotulagem, a partir de um preparo com ingredientes e quantidades. Inclui a determinação automática da rotulagem nutricional frontal ("lupa"). Gated pelo módulo `nutri_rotulo`, que já existe no catálogo de módulos mas ainda não tem tela. Origem: aba "Rótulos Nutricionais" de `nutri-doc/AF..xlsm`.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Gerar a tabela nutricional de um produto (Priority: P1)
 
@@ -85,7 +85,7 @@ A nutricionista salva o rótulo por cliente/produto para reabrir e ajustar depoi
 - **Ingrediente próprio da clínica**: alimentos cadastrados pela própria clínica valem como ingrediente, com os mesmos avisos de dado faltante.
 - **Isolamento multi-tenant**: rótulos de uma clínica não aparecem em outra.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -128,7 +128,7 @@ A nutricionista salva o rótulo por cliente/produto para reabrir e ajustar depoi
 - **FR-020**: Rótulos MUST ser isolados por clínica.
 - **FR-021**: O sistema MUST registrar a versão da referência normativa usada no cálculo, para que um rótulo antigo continue explicável quando a norma mudar.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Rótulo**: um produto de um cliente da clínica — nome do produto, nome do cliente, tipo (sólido/líquido), rendimento total, tamanho da porção, medida caseira, porções por embalagem, texto de ingredientes, alérgenos, conservação. Por clínica.
 - **Ingrediente do rótulo**: um alimento da base e a quantidade usada no preparo. Pertence a um rótulo.
@@ -137,7 +137,7 @@ A nutricionista salva o rótulo por cliente/produto para reabrir e ajustar depoi
 - **Limite de rotulagem frontal**: por nutriente e por tipo de produto (sólido/líquido), fixado na norma.
 - **Resultado do rótulo**: leitura derivada — a tabela em três colunas e as marcas frontais aplicáveis, recalculável a partir do preparo e das referências.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

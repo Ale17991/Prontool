@@ -66,7 +66,8 @@ function txt(v: unknown): string {
   if (v === null || v === undefined) return ''
   if (typeof v === 'object') {
     const o = v as Record<string, unknown>
-    if (Array.isArray(o.richText)) return (o.richText as { text: string }[]).map((r) => r.text).join('')
+    if (Array.isArray(o.richText))
+      return (o.richText as { text: string }[]).map((r) => r.text).join('')
     if ('text' in o) return String(o.text)
     if ('result' in o) return txt(o.result)
     return ''
@@ -144,19 +145,23 @@ async function parse(): Promise<DriRow[]> {
 async function main() {
   const rows = await parse()
   const nutrients = new Set(rows.map((r) => r.nutrient_key))
-  console.log(`DRIs: ${rows.length} linhas, ${nutrients.size} nutrientes (${[...nutrients].join(', ')})`)
+  console.log(
+    `DRIs: ${rows.length} linhas, ${nutrients.size} nutrientes (${[...nutrients].join(', ')})`,
+  )
   if (DRY) return console.log('\n[DRY] nada gravado.')
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return console.error('env faltando'), process.exit(1)
+  if (!url || !key) return (console.error('env faltando'), process.exit(1))
   const sb = createClient(url, key, { auth: { persistSession: false } })
   const del = await sb.from('dietary_reference_intakes').delete().not('id', 'is', null)
-  if (del.error) return console.error('delete falhou:', del.error.message), process.exit(1)
+  if (del.error) return (console.error('delete falhou:', del.error.message), process.exit(1))
   const CHUNK = 500
   let n = 0
   for (let i = 0; i < rows.length; i += CHUNK) {
-    const { error } = await sb.from('dietary_reference_intakes').insert(rows.slice(i, i + CHUNK) as never)
-    if (error) return console.error('insert falhou:', error.message), process.exit(1)
+    const { error } = await sb
+      .from('dietary_reference_intakes')
+      .insert(rows.slice(i, i + CHUNK) as never)
+    if (error) return (console.error('insert falhou:', error.message), process.exit(1))
     n += Math.min(CHUNK, rows.length - i)
   }
   console.log(`OK: ${n} DRIs semeadas.`)

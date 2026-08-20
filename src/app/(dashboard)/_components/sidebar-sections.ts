@@ -101,7 +101,8 @@ export const SECTIONS: readonly NavSection[] = [
         label: 'Recordatório',
         icon: ScrollText,
         show: ({ role, ent }) =>
-          ent.hasModule('nutri_recordatorio') && (role === 'admin' || role === 'profissional_saude'),
+          ent.hasModule('nutri_recordatorio') &&
+          (role === 'admin' || role === 'profissional_saude'),
       },
       {
         href: '/operacao/rotulo-nutricional',

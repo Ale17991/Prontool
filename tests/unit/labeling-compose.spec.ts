@@ -148,7 +148,13 @@ describe('composição — dado desconhecido (SC-004)', () => {
 
   it('alimento sem NENHUM micro deixa os quatro nutrientes de micro indefinidos', () => {
     const r = composeLabel({ ...base, ingredients: [ing('A', 1000, food({ micros: null }))] })
-    for (const k of ['acucares_totais', 'acucares_adicionados', 'gorduras_saturadas', 'gorduras_trans', 'sodio']) {
+    for (const k of [
+      'acucares_totais',
+      'acucares_adicionados',
+      'gorduras_saturadas',
+      'gorduras_trans',
+      'sodio',
+    ]) {
       expect(row(r, k).state, k).toBe('incompleto')
       expect(row(r, k).per100, k).toBeNull()
     }
@@ -235,7 +241,9 @@ describe('composição — sobrescrita manual (US2)', () => {
   })
 
   it('sobrescrever resolve o incompleto do rótulo', () => {
-    const sem = food({ micros: { acucar_total_g: 1, ag_saturados_g: 1, ag_trans_g: 0, sodio_mg: 1 } })
+    const sem = food({
+      micros: { acucar_total_g: 1, ag_saturados_g: 1, ag_trans_g: 0, sodio_mg: 1 },
+    })
     const semOverride = composeLabel({ ...base, ingredients: [ing('A', 1000, sem)] })
     expect(semOverride.incomplete).toBe(true)
 

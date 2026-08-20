@@ -37,23 +37,23 @@ compartilhado.
 
 ### Levantamento do que já existe (feito ANTES de planejar)
 
-| Item | Situação |
-|---|---|
-| `@react-pdf/renderer` + `ClinicHeader` | Em uso em 13 PDFs. Reusar. |
-| `anamnesis/export-pdf.tsx` | **Existe e é código morto**: nenhuma rota o importa. Aproveitar em vez de reescrever. |
-| Prontuário, receituário, orçamento, etiqueta, oftalmo, rótulo | PDFs prontos; servem de molde. |
-| Solicitação de exames | **Já existe** (migration 0149, CRUD, PDF e seção na ficha). Fora de escopo — o levantamento inicial errou ao listar como lacuna. |
-| Motores de cálculo | Puros e isomórficos (`diet/totals`, `nutrition/energy`, `body-composition`, `classify`, `growth/classify`, `adequacy`). Reusar sem recalcular. |
+| Item                                                          | Situação                                                                                                                                       |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@react-pdf/renderer` + `ClinicHeader`                        | Em uso em 13 PDFs. Reusar.                                                                                                                     |
+| `anamnesis/export-pdf.tsx`                                    | **Existe e é código morto**: nenhuma rota o importa. Aproveitar em vez de reescrever.                                                          |
+| Prontuário, receituário, orçamento, etiqueta, oftalmo, rótulo | PDFs prontos; servem de molde.                                                                                                                 |
+| Solicitação de exames                                         | **Já existe** (migration 0149, CRUD, PDF e seção na ficha). Fora de escopo — o levantamento inicial errou ao listar como lacuna.               |
+| Motores de cálculo                                            | Puros e isomórficos (`diet/totals`, `nutrition/energy`, `body-composition`, `classify`, `growth/classify`, `adequacy`). Reusar sem recalcular. |
 
 ## Constitution Check
 
-| Princípio | Aplicação nesta feature |
-|---|---|
-| **I. Integridade financeira** | Não se aplica: não há valor financeiro envolvido. |
-| **II. Auditabilidade** | A emissão registra no log de auditoria existente (`log_audit_event`), como já fazem prontuário e solicitação de exames. Sem tabela nova. |
+| Princípio                        | Aplicação nesta feature                                                                                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade financeira**    | Não se aplica: não há valor financeiro envolvido.                                                                                                              |
+| **II. Auditabilidade**           | A emissão registra no log de auditoria existente (`log_audit_event`), como já fazem prontuário e solicitação de exames. Sem tabela nova.                       |
 | **III. Isolamento multi-tenant** | Toda rota filtra por `tenant_id` da sessão; nenhum identificador de clínica vem do cliente. Teste de contrato prova que paciente de outra clínica devolve 404. |
-| **IV. TUSS/ANS** | Não se aplica. |
-| **V. RBAC** | `requireRole(['admin','profissional_saude'])` em todas as rotas, coberto por `lint:auth`. Recepcionista não emite documento clínico. |
+| **IV. TUSS/ANS**                 | Não se aplica.                                                                                                                                                 |
+| **V. RBAC**                      | `requireRole(['admin','profissional_saude'])` em todas as rotas, coberto por `lint:auth`. Recepcionista não emite documento clínico.                           |
 
 **LGPD**: paciente anonimizado não gera impresso identificado (FR-013). Os PDFs
 **não são persistidos** em storage — são renderizados e devolvidos na resposta,

@@ -68,8 +68,8 @@ export function MensagensClient({ mensagens, ocupado, chamar }: Props) {
             placeholder="Feliz aniversário, {{paciente}}! A equipe da {{clinica}} deseja um ótimo dia."
           />
           <p className="text-xs text-muted-foreground">
-            Use <code>{'{{paciente}}'}</code> e <code>{'{{clinica}}'}</code> em qualquer mensagem. As
-            demais variáveis dependem do gatilho — a lista de cada um aparece no formulário de
+            Use <code>{'{{paciente}}'}</code> e <code>{'{{clinica}}'}</code> em qualquer mensagem.
+            As demais variáveis dependem do gatilho — a lista de cada um aparece no formulário de
             gatilho, e avisamos na hora de ligar os dois se a mensagem pedir algo que ele não sabe
             preencher.
           </p>

@@ -36,7 +36,7 @@
 Dois ajustes feitos antes de fechar o checklist:
 
 1. **"Evolution API" e "QR Code" aparecem na spec.** Avaliado e mantido. "Evolution API" só
-   aparece em *Assumptions* e *Dependencies* — que é onde a decisão de fornecedor pertence, e
+   aparece em _Assumptions_ e _Dependencies_ — que é onde a decisão de fornecedor pertence, e
    registrá-la importa porque ela carrega o risco de bloqueio de número. "QR Code" é vocabulário
    do usuário final (é literalmente o que a clínica vê na tela), não detalhe de implementação.
    Nenhum dos dois aparece em requisito funcional ou critério de sucesso.
@@ -62,7 +62,7 @@ observações:
 ### Decisões tomadas por default (não bloqueiam o plano, mas o produto pode querer virar)
 
 Três pontos não vieram especificados e foram resolvidos com o default mais conservador. Estão
-documentados em *Assumptions*, e cada um é reversível sem reescrever a spec:
+documentados em _Assumptions_, e cada um é reversível sem reescrever a spec:
 
 - **Escolha de canal** → configurável pela clínica (e-mail / WhatsApp / ambos), em vez de
   WhatsApp substituir o e-mail. Default mais seguro: não tira nada de quem já usa e-mail.

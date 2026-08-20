@@ -111,7 +111,10 @@ export async function POST(req: Request): Promise<Response> {
         )
       }
       if (err instanceof ValidationError) {
-        return NextResponse.json({ error: { code: err.code, message: err.message } }, { status: 400 })
+        return NextResponse.json(
+          { error: { code: err.code, message: err.message } },
+          { status: 400 },
+        )
       }
       throw err
     }

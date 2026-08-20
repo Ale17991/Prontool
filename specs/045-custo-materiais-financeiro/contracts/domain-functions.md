@@ -31,7 +31,9 @@
 - `drilldowns` ganha `materials: '/relatorios/materiais?from=…&to=…'`.
 
 ## `reports/by-professional.ts` / `by-plan.ts` / `monthly.ts` / `financial-report.ts` (ESTENDER)
+
 - Cada linha de resumo ganha `materialsCostCents` (via `materialsCostByDoctor`/`ByPlan`) e, onde fizer sentido, `netAfterMaterialsCents`.
 
 ## Exports (`export-*.ts` / `export-*.tsx`) (ESTENDER)
+
 - Adicionar coluna "Gasto com materiais" nos Excel e PDF de resultado, por profissional, por convênio e mensal.

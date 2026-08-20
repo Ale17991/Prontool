@@ -60,7 +60,13 @@ describe('Feature 047 — grupo (lista OU) na refeição', () => {
       patientId,
       actorUserId,
       title: 'Plano com grupo',
-      meals: [{ name: 'Almoço', position: 0, items: [{ equivalenceListId: listId, notes: 'Carboidratos ~80 kcal' }] }],
+      meals: [
+        {
+          name: 'Almoço',
+          position: 0,
+          items: [{ equivalenceListId: listId, notes: 'Carboidratos ~80 kcal' }],
+        },
+      ],
     })
 
     const view = await getDietPlanForPatient(sb, tenantId, patientId)

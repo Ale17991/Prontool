@@ -77,13 +77,7 @@ function ageLabel(months: number): string {
   return m === 0 ? `${y}a` : `${y}a${m}m`
 }
 
-export function GrowthSection({
-  patientId,
-  canWrite,
-}: {
-  patientId: string
-  canWrite: boolean
-}) {
+export function GrowthSection({ patientId, canWrite }: { patientId: string; canWrite: boolean }) {
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
@@ -209,7 +203,8 @@ export function GrowthSection({
               : report.missing.birthDate
                 ? 'a data de nascimento'
                 : 'o sexo'}{' '}
-            no cadastro. A referência da OMS é por idade e sexo, e sem isso não há com o que comparar.
+            no cadastro. A referência da OMS é por idade e sexo, e sem isso não há com o que
+            comparar.
           </p>
         ) : null}
 
@@ -233,7 +228,9 @@ export function GrowthSection({
               <div className="mb-1 flex items-baseline gap-2">
                 <span className="text-xs font-semibold text-slate-700">{c.label}</span>
                 {c.latest ? (
-                  <span className={`text-xs font-medium ${CLASS_COLOR[c.latest.classification] ?? ''}`}>
+                  <span
+                    className={`text-xs font-medium ${CLASS_COLOR[c.latest.classification] ?? ''}`}
+                  >
                     {c.latest.label} · percentil {Math.round(c.latest.percentile)}
                   </span>
                 ) : null}

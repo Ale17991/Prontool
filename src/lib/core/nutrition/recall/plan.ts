@@ -72,7 +72,9 @@ async function loadFoodRefs(
   if (foodIds.length === 0) return map
   const { data, error } = await sb
     .from('foods')
-    .select('id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients')
+    .select(
+      'id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients',
+    )
     .in('id', foodIds)
   if (error) throw new Error(`recall loadFoodRefs: ${error.message}`)
   for (const f of (data ?? []) as unknown as Array<{
@@ -246,13 +248,18 @@ export async function getRecall(
     measure_label: string | null
     measure_qty: number | null
   }>
-  const refs = await loadFoodRefs(sb, items.map((i) => i.food_id))
+  const refs = await loadFoodRefs(
+    sb,
+    items.map((i) => i.food_id),
+  )
 
   const byMeal = new Map<string, RecallItemView[]>()
   for (const it of items) {
     const ref = refs.get(it.food_id)
     const nutrients =
-      ref && it.grams !== null ? roundNutrients(itemNutrients({ grams: Number(it.grams), food: ref })) : null
+      ref && it.grams !== null
+        ? roundNutrients(itemNutrients({ grams: Number(it.grams), food: ref }))
+        : null
     const arr = byMeal.get(it.meal_name) ?? []
     arr.push({
       foodId: it.food_id,

@@ -13,6 +13,7 @@ Busca no catálogo (global + alimentos próprios da clínica).
 **Query**: `q` (texto, min 2), `group` (slug, opcional), `limit` (default 20, máx 50), `scope` (`all` \| `custom`, default `all`)
 
 **200**
+
 ```json
 {
   "foods": [
@@ -43,6 +44,7 @@ Busca no catálogo (global + alimentos próprios da clínica).
 Cadastra alimento próprio da clínica (FR-005).
 
 **Body**
+
 ```json
 {
   "name": "Whey isolado — Marca X",
@@ -82,6 +84,7 @@ Edita/desativa alimento **próprio**. `DELETE` é **desativação lógica** (`ac
 Grupos alimentares + listas de substituição visíveis à clínica.
 
 **200**
+
 ```json
 {
   "groups": [{ "slug": "carboidratos", "label": "Carboidratos", "displayOrder": 1 }],
@@ -105,6 +108,7 @@ Grupos alimentares + listas de substituição visíveis à clínica.
 Plano vigente do paciente + meta + histórico de prescrições.
 
 **200**
+
 ```json
 {
   "plan": {
@@ -134,7 +138,14 @@ Plano vigente do paciente + meta + histórico de prescrições.
     ],
     "totals": { "energyKcal": 130, "proteinG": 5, "carbG": 24, "fatG": 1.5, "fiberG": 3 }
   },
-  "target": { "kcal": 2200, "protG": 165, "carbG": 220, "fatG": 73, "assessmentId": "uuid", "assessedAt": "2026-07-20" },
+  "target": {
+    "kcal": 2200,
+    "protG": 165,
+    "carbG": 220,
+    "fatG": 73,
+    "assessmentId": "uuid",
+    "assessedAt": "2026-07-20"
+  },
   "delta": { "kcal": -2070, "protG": -160, "carbG": -196, "fatG": -71.5 },
   "prescriptions": [{ "id": "uuid", "prescribedAt": "2026-07-21T13:00:00Z", "totalKcal": 2180 }]
 }
@@ -150,6 +161,7 @@ Plano vigente do paciente + meta + histórico de prescrições.
 Cria/edita o **rascunho** (refeições e itens). Aceita o cardápio inteiro num único payload — a tela edita várias refeições e salva de uma vez.
 
 **Body**
+
 ```json
 {
   "title": "Plano de manutenção",
@@ -190,6 +202,7 @@ Congela e registra a prescrição (FR-013, FR-017). **Operação atômica.**
 **Body**: `{ "plan_id": "uuid" }`
 
 **201**
+
 ```json
 {
   "prescriptionId": "uuid",

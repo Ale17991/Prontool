@@ -87,7 +87,13 @@ export async function listTemplates(
 
 export async function saveTemplate(
   sb: SupabaseClient<Database>,
-  args: { tenantId: string; id?: string | null; title: string; items: HabitItem[]; active?: boolean },
+  args: {
+    tenantId: string
+    id?: string | null
+    title: string
+    items: HabitItem[]
+    active?: boolean
+  },
 ): Promise<{ id: string }> {
   const c = loose(sb)
   const payload = {
@@ -309,10 +315,7 @@ export async function toggleMark(
 
   const period = currentPeriod(checklist.startDate, checklist.periodKind, args.today)
   if (!isWithin(period, args.markDate)) {
-    throw new HabitMarkError(
-      'DATE_OUT_OF_PERIOD',
-      'Só é possível marcar dias do período atual.',
-    )
+    throw new HabitMarkError('DATE_OUT_OF_PERIOD', 'Só é possível marcar dias do período atual.')
   }
 
   const c = loose(sb)
@@ -360,7 +363,10 @@ export async function getHistory(
   const checklist = await getActiveChecklist(sb, args.tenantId, args.patientId)
   if (!checklist) return []
 
-  const currentIdx = Math.max(0, periodIndexFor(checklist.startDate, checklist.periodKind, args.today))
+  const currentIdx = Math.max(
+    0,
+    periodIndexFor(checklist.startDate, checklist.periodKind, args.today),
+  )
   const count = Math.min(args.count ?? 6, 24)
   const out: PeriodSummary[] = []
 

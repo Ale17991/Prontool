@@ -79,7 +79,13 @@ describe('impresso do plano alimentar', () => {
 
     const buf = await renderPlanPdf({
       clinicProfile: null,
-      identity: { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] },
+      identity: {
+        name: 'Paciente Teste',
+        lines: [
+          { key: 'nascimento', label: 'Nascimento', value: '10/05/1990' },
+          { key: 'idade', label: 'Idade', value: '36 anos' },
+        ],
+      },
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-03',
       plan: plan!,

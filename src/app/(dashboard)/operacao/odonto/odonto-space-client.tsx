@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PatientTypeahead, type PatientTypeaheadValue } from '@/components/patients/patient-typeahead'
+import {
+  PatientTypeahead,
+  type PatientTypeaheadValue,
+} from '@/components/patients/patient-typeahead'
 import { OdontoSpace } from '@/app/(dashboard)/operacao/pacientes/[id]/_components/odontogram/odonto-space'
 
 /**
@@ -37,7 +40,9 @@ export function OdontoSpaceClient({
           canWriteTreatment={canWriteTreatment}
         />
       ) : (
-        <p className="text-sm text-slate-400">Selecione um paciente para ver o odontograma, plano e periograma.</p>
+        <p className="text-sm text-slate-400">
+          Selecione um paciente para ver o odontograma, plano e periograma.
+        </p>
       )}
     </div>
   )

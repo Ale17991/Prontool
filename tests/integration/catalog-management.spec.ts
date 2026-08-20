@@ -66,7 +66,9 @@ describe('Feature 045 US4 — gestão do catálogo', () => {
       appointmentId,
       tenantId,
       actorUserId,
-      materials: [{ materialId: resinaId, materialName: 'Resina', quantity: 2, unitCostCents: 1000 }],
+      materials: [
+        { materialId: resinaId, materialName: 'Resina', quantity: 2, unitCostCents: 1000 },
+      ],
     })
   })
 

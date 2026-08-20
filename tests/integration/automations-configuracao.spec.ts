@@ -19,7 +19,12 @@ async function seedClinica(slug: string) {
   const { tenantId } = await seedTenant(slug)
   await sb
     .from('tenant_entitlements' as never)
-    .insert({ tenant_id: tenantId, plan: 'pro', status: 'active', modules: ['automacoes'] } as never)
+    .insert({
+      tenant_id: tenantId,
+      plan: 'pro',
+      status: 'active',
+      modules: ['automacoes'],
+    } as never)
     .throwOnError()
   await sb
     .from('tenant_clinic_profile' as never)
@@ -196,7 +201,9 @@ describe('Feature 056 — capacidade do dia na prévia', () => {
   it('fonte desconhecida é recusada em vez de devolver zero', async () => {
     // Zero seria pior que o erro: a clínica leria "não atinge ninguém" sobre
     // uma fonte que nem existe, e concluiria que o gatilho está calibrado.
-    await expect(previewSource(sb, tenantId, 'nao_existe', {})).rejects.toThrow('FONTE_DESCONHECIDA')
+    await expect(previewSource(sb, tenantId, 'nao_existe', {})).rejects.toThrow(
+      'FONTE_DESCONHECIDA',
+    )
   })
 })
 

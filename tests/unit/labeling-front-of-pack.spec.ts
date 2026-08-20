@@ -58,7 +58,9 @@ describe('lupa — açúcares adicionados', () => {
   })
 
   it('abaixo do limite não aplica', () => {
-    expect(build(food({ ...cheio, acucar: 14 })).frontOfPack.acucares_adicionados).toBe('nao_aplica')
+    expect(build(food({ ...cheio, acucar: 14 })).frontOfPack.acucares_adicionados).toBe(
+      'nao_aplica',
+    )
   })
 })
 

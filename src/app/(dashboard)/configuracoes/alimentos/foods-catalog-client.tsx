@@ -119,8 +119,7 @@ export function FoodsCatalogClient({ groups }: { groups: GroupOption[] }) {
                   <td className="px-3 py-2">
                     <span className="font-medium text-slate-800">{f.name}</span>
                     <span className="ml-1 text-[10px] text-slate-400">
-                      /{f.referenceGrams} g
-                      {f.groupLabel ? ` · ${f.groupLabel}` : ''}
+                      /{f.referenceGrams} g{f.groupLabel ? ` · ${f.groupLabel}` : ''}
                     </span>
                     {f.micronutrients ? (
                       <div className="mt-0.5 text-[10px] text-slate-400">
@@ -156,7 +155,13 @@ export function FoodsCatalogClient({ groups }: { groups: GroupOption[] }) {
 }
 
 function SourceBadge({ source, isCustom }: { source: string; isCustom: boolean }) {
-  const label = isCustom ? 'Clínica' : source === 'taco' ? 'TACO' : source === 'ibge_pof' ? 'IBGE/POF' : source
+  const label = isCustom
+    ? 'Clínica'
+    : source === 'taco'
+      ? 'TACO'
+      : source === 'ibge_pof'
+        ? 'IBGE/POF'
+        : source
   const cls = isCustom
     ? 'bg-primary/10 text-primary'
     : source === 'taco'
@@ -165,13 +170,7 @@ function SourceBadge({ source, isCustom }: { source: string; isCustom: boolean }
   return <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${cls}`}>{label}</span>
 }
 
-function NewFoodForm({
-  groups,
-  onCreated,
-}: {
-  groups: GroupOption[]
-  onCreated: () => void
-}) {
+function NewFoodForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: () => void }) {
   const [name, setName] = useState('')
   const [groupSlug, setGroupSlug] = useState('')
   const [refGrams, setRefGrams] = useState('100')
@@ -203,7 +202,8 @@ function NewFoodForm({
     const rg = num(refGrams)
     if (!name.trim()) return setError('Informe o nome do alimento.')
     if (rg === undefined || rg <= 0) return setError('Informe a porção de referência.')
-    if (p === undefined || c === undefined || f === undefined) return setError('Informe os macros (P/C/G).')
+    if (p === undefined || c === undefined || f === undefined)
+      return setError('Informe os macros (P/C/G).')
 
     setPending(true)
     try {
@@ -269,25 +269,47 @@ function NewFoodForm({
           </div>
           <div>
             <Label htmlFor="f_ref">Porção ref. (g)</Label>
-            <Input id="f_ref" inputMode="decimal" value={refGrams} onChange={(e) => setRefGrams(e.target.value)} />
+            <Input
+              id="f_ref"
+              inputMode="decimal"
+              value={refGrams}
+              onChange={(e) => setRefGrams(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="f_prot">Proteína (g)</Label>
-            <Input id="f_prot" inputMode="decimal" value={prot} onChange={(e) => setProt(e.target.value)} />
+            <Input
+              id="f_prot"
+              inputMode="decimal"
+              value={prot}
+              onChange={(e) => setProt(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="f_carb">Carboidrato (g)</Label>
-            <Input id="f_carb" inputMode="decimal" value={carb} onChange={(e) => setCarb(e.target.value)} />
+            <Input
+              id="f_carb"
+              inputMode="decimal"
+              value={carb}
+              onChange={(e) => setCarb(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="f_fat">Lipídio (g)</Label>
-            <Input id="f_fat" inputMode="decimal" value={fat} onChange={(e) => setFat(e.target.value)} />
+            <Input
+              id="f_fat"
+              inputMode="decimal"
+              value={fat}
+              onChange={(e) => setFat(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="f_energy">
               Energia (kcal){' '}
               {derivedEnergy !== null ? (
-                <span className="text-[10px] text-slate-400">≈ {Math.round(derivedEnergy * 100) / 100}</span>
+                <span className="text-[10px] text-slate-400">
+                  ≈ {Math.round(derivedEnergy * 100) / 100}
+                </span>
               ) : null}
             </Label>
             <Input
@@ -300,15 +322,30 @@ function NewFoodForm({
           </div>
           <div>
             <Label htmlFor="f_fiber">Fibra (g)</Label>
-            <Input id="f_fiber" inputMode="decimal" value={fiber} onChange={(e) => setFiber(e.target.value)} />
+            <Input
+              id="f_fiber"
+              inputMode="decimal"
+              value={fiber}
+              onChange={(e) => setFiber(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="f_ml">Medida caseira</Label>
-            <Input id="f_ml" placeholder="ex.: scoop" value={measureLabel} onChange={(e) => setMeasureLabel(e.target.value)} />
+            <Input
+              id="f_ml"
+              placeholder="ex.: scoop"
+              value={measureLabel}
+              onChange={(e) => setMeasureLabel(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="f_mg">Medida (g)</Label>
-            <Input id="f_mg" inputMode="decimal" value={measureGrams} onChange={(e) => setMeasureGrams(e.target.value)} />
+            <Input
+              id="f_mg"
+              inputMode="decimal"
+              value={measureGrams}
+              onChange={(e) => setMeasureGrams(e.target.value)}
+            />
           </div>
 
           {error ? (
@@ -318,7 +355,11 @@ function NewFoodForm({
           ) : null}
           <div className="col-span-2 md:col-span-4 flex justify-end">
             <Button type="submit" size="sm" disabled={pending} className="gap-2">
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {pending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
               Cadastrar
             </Button>
           </div>

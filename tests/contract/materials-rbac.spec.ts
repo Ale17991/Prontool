@@ -82,11 +82,14 @@ describe('Feature 045 — RBAC de custo de materiais', () => {
       amountCents: 20000,
       commissionBps: 3000,
     })
-    const { data: att, error: attErr } = await sb.rpc('attach_materials_to_appointment' as never, {
-      p_appointment_id: appointmentId,
-      p_materials: [{ material_name: 'Gaze', quantity: 1, unit_cost_cents: 0 }],
-      p_actor: users.admin.userId,
-    } as never)
+    const { data: att, error: attErr } = await sb.rpc(
+      'attach_materials_to_appointment' as never,
+      {
+        p_appointment_id: appointmentId,
+        p_materials: [{ material_name: 'Gaze', quantity: 1, unit_cost_cents: 0 }],
+        p_actor: users.admin.userId,
+      } as never,
+    )
     if (attErr) throw new Error(`attach: ${attErr.message}`)
     materialRowId = (att as unknown as { materials: Array<{ id: string }> }).materials[0]!.id
   })
@@ -143,9 +146,8 @@ describe('Feature 045 — RBAC de custo de materiais', () => {
   for (const role of roles) {
     const expected = role === 'admin' || role === 'financeiro' ? 200 : 403
     it(`PATCH .../materiais/{rowId}/custo → ${expected} para ${role}`, async () => {
-      const { PATCH } = await import(
-        '@/app/api/atendimentos/[id]/materiais/[materialRowId]/custo/route'
-      )
+      const { PATCH } =
+        await import('@/app/api/atendimentos/[id]/materiais/[materialRowId]/custo/route')
       const res = await PATCH(
         new Request(
           `http://localhost/api/atendimentos/${appointmentId}/materiais/${materialRowId}/custo`,

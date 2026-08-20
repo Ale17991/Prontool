@@ -192,9 +192,9 @@ export async function processBatch(
 
         // Feature 051 — canais habilitados. Default {email} preserva o
         // comportamento de quem já usava a 018 e nunca abriu a tela nova.
-        const channels = ((t.reminder_channels?.length
-          ? t.reminder_channels
-          : ['email']) as ReminderChannel[]).filter((c) => c === 'email' || c === 'whatsapp')
+        const channels = (
+          (t.reminder_channels?.length ? t.reminder_channels : ['email']) as ReminderChannel[]
+        ).filter((c) => c === 'email' || c === 'whatsapp')
 
         // FR-012 — a conexão é verificada UMA vez, antes do lote. Sem isso, uma
         // clínica com o número fora do ar geraria uma falha por paciente em vez

@@ -54,21 +54,21 @@ Esperado na resposta: `automacoes.enviadas: 1`.
 
 ## 6. Casos que valem testar à mão
 
-| Cenário | Como forçar | Esperado |
-|---|---|---|
-| Sem consentimento | desligue `automations_opt_in` | `impedido_sem_consentimento`, nada enviado |
-| Consentimento mestre negado | desligue `reminders_opt_in` | impedido, mesmo com `automations_opt_in` ligado |
-| Sem telefone | limpe o telefone | `impedido_sem_telefone` |
-| Variável sem dado | mensagem com `{{profissional}}` num gatilho que não fornece | recusado **ao associar**, não no envio |
-| Teto por paciente | duas automações ativas atingindo o mesmo paciente no mesmo dia | uma sai, a outra fica `suprimido_teto_paciente` |
-| Teto por clínica | baixe `automation_max_per_cycle` para 2 e satisfaça 5 pacientes | 2 saem, 3 suprimidos, e os 3 saem no ciclo seguinte |
-| Ciclo repetido | rode o `curl` duas vezes | segunda não envia nada |
-| Módulo revogado | desligue `automacoes` no `/admin` com automação ativa | motor ignora a clínica, **sem** gerar alerta |
-| Paciente anonimizado | anonimize um paciente candidato | sai da avaliação |
-| Exclusão de mensagem em uso | tente excluir | `409` nomeando os gatilhos |
-| Gatilho de ausência | abra o formulário | a tela diz "não marcou", nunca "não cumpriu" (FR-009) |
-| Entrega e leitura | POST em `/api/webhooks/whatsapp-status` com `externalId` = **id da ocorrência** e o Bearer da clínica | evento gravado com `automation_occurrence_id`, e a lista passa a mostrar "entregue"/"lida" |
-| Fronteira com o SC-004 | apure a taxa de leitura de LEMBRETE na mesma clínica | os eventos de automação **não** entram — as duas medidas dividem tabela desde a 0197 |
+| Cenário                     | Como forçar                                                                                           | Esperado                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Sem consentimento           | desligue `automations_opt_in`                                                                         | `impedido_sem_consentimento`, nada enviado                                                 |
+| Consentimento mestre negado | desligue `reminders_opt_in`                                                                           | impedido, mesmo com `automations_opt_in` ligado                                            |
+| Sem telefone                | limpe o telefone                                                                                      | `impedido_sem_telefone`                                                                    |
+| Variável sem dado           | mensagem com `{{profissional}}` num gatilho que não fornece                                           | recusado **ao associar**, não no envio                                                     |
+| Teto por paciente           | duas automações ativas atingindo o mesmo paciente no mesmo dia                                        | uma sai, a outra fica `suprimido_teto_paciente`                                            |
+| Teto por clínica            | baixe `automation_max_per_cycle` para 2 e satisfaça 5 pacientes                                       | 2 saem, 3 suprimidos, e os 3 saem no ciclo seguinte                                        |
+| Ciclo repetido              | rode o `curl` duas vezes                                                                              | segunda não envia nada                                                                     |
+| Módulo revogado             | desligue `automacoes` no `/admin` com automação ativa                                                 | motor ignora a clínica, **sem** gerar alerta                                               |
+| Paciente anonimizado        | anonimize um paciente candidato                                                                       | sai da avaliação                                                                           |
+| Exclusão de mensagem em uso | tente excluir                                                                                         | `409` nomeando os gatilhos                                                                 |
+| Gatilho de ausência         | abra o formulário                                                                                     | a tela diz "não marcou", nunca "não cumpriu" (FR-009)                                      |
+| Entrega e leitura           | POST em `/api/webhooks/whatsapp-status` com `externalId` = **id da ocorrência** e o Bearer da clínica | evento gravado com `automation_occurrence_id`, e a lista passa a mostrar "entregue"/"lida" |
+| Fronteira com o SC-004      | apure a taxa de leitura de LEMBRETE na mesma clínica                                                  | os eventos de automação **não** entram — as duas medidas dividem tabela desde a 0197       |
 
 ## 6b. As dezesseis fontes
 
@@ -76,27 +76,27 @@ Cada uma tem um cenário mínimo. As de **estado contínuo** (marcadas ✱) entr
 com todo mundo que já está na condição no dia em que a automação é ligada — veja
 a prévia antes de ativar.
 
-| Fonte | Cenário mínimo para disparar |
-|---|---|
-| `aniversario` | paciente com `birth_date` = hoje (mês e dia) |
-| `aniversario_cadastro` | paciente cadastrado em 11/08 de um ano anterior |
-| `boas_vindas` | paciente cadastrado há N dias |
-| `confirmacao_agendamento` | atendimento **criado** ontem |
-| `pre_consulta` | atendimento marcado para daqui a N dias, não cancelado |
-| `pos_atendimento` | atendimento com `appointment_completions` de N dias atrás |
-| `falta_consulta` | `appointment_flow.status = 'desmarcou'` num atendimento de N dias atrás |
-| `agendamento_cancelado` | `appointment_cancellations` de ontem |
-| `sem_retorno` ✱ | paciente sem nenhum atendimento nos últimos N meses |
-| `checklist_marcado` | N marcações do item no período corrente |
-| `checklist_sem_marcacao` | N dias seguidos sem marcação, dentro do período |
-| `meta_atingida` | meta ativa + **última** medição alcançando o alvo |
-| `sem_medicao` ✱ | paciente com medição antiga e nenhuma nos últimos N dias |
-| `plano_alimentar_revisao` | `diet_plans` ativo criado há exatamente N dias (módulo `dieta`) |
-| `parcela_a_vencer` | `payment_installments` em aberto vencendo em N dias |
-| `parcela_vencida` | idem, vencida há N dias |
-| `orcamento_sem_resposta` | `treatment_budgets` apresentado há N dias, sem aceite nem recusa |
-| `etapa_sem_agendamento` ✱ | etapa pendente sem `scheduled_date` parada há mais de N dias |
-| `exame_sem_retorno` | `exam_requests` com `issued_at` de N dias atrás |
+| Fonte                     | Cenário mínimo para disparar                                            |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `aniversario`             | paciente com `birth_date` = hoje (mês e dia)                            |
+| `aniversario_cadastro`    | paciente cadastrado em 11/08 de um ano anterior                         |
+| `boas_vindas`             | paciente cadastrado há N dias                                           |
+| `confirmacao_agendamento` | atendimento **criado** ontem                                            |
+| `pre_consulta`            | atendimento marcado para daqui a N dias, não cancelado                  |
+| `pos_atendimento`         | atendimento com `appointment_completions` de N dias atrás               |
+| `falta_consulta`          | `appointment_flow.status = 'desmarcou'` num atendimento de N dias atrás |
+| `agendamento_cancelado`   | `appointment_cancellations` de ontem                                    |
+| `sem_retorno` ✱           | paciente sem nenhum atendimento nos últimos N meses                     |
+| `checklist_marcado`       | N marcações do item no período corrente                                 |
+| `checklist_sem_marcacao`  | N dias seguidos sem marcação, dentro do período                         |
+| `meta_atingida`           | meta ativa + **última** medição alcançando o alvo                       |
+| `sem_medicao` ✱           | paciente com medição antiga e nenhuma nos últimos N dias                |
+| `plano_alimentar_revisao` | `diet_plans` ativo criado há exatamente N dias (módulo `dieta`)         |
+| `parcela_a_vencer`        | `payment_installments` em aberto vencendo em N dias                     |
+| `parcela_vencida`         | idem, vencida há N dias                                                 |
+| `orcamento_sem_resposta`  | `treatment_budgets` apresentado há N dias, sem aceite nem recusa        |
+| `etapa_sem_agendamento` ✱ | etapa pendente sem `scheduled_date` parada há mais de N dias            |
+| `exame_sem_retorno`       | `exam_requests` com `issued_at` de N dias atrás                         |
 
 Duas conferências de linguagem valem fazer na tela, porque são obrigação da
 fonte e não do componente: `falta_consulta`, `checklist_sem_marcacao`,

@@ -242,7 +242,9 @@ async function main() {
   const CHUNK = 500
   let n = 0
   for (let i = 0; i < rows.length; i += CHUNK) {
-    const { error } = await sb.from('lab_reference_ranges').insert(rows.slice(i, i + CHUNK) as never)
+    const { error } = await sb
+      .from('lab_reference_ranges')
+      .insert(rows.slice(i, i + CHUNK) as never)
     if (error) {
       console.error('insert falhou:', error.message)
       process.exit(1)

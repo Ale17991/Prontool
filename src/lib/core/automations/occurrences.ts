@@ -80,10 +80,7 @@ const MAX_TENTATIVAS = 3
  * linha e o paciente receberia duas vezes. Quem perde a corrida atualiza zero
  * linhas e desiste.
  */
-async function reclaimFailed(
-  supabase: SupabaseClient,
-  input: ClaimInput,
-): Promise<string | null> {
+async function reclaimFailed(supabase: SupabaseClient, input: ClaimInput): Promise<string | null> {
   const { data: atual } = await supabase
     .from('automation_occurrences')
     .select('id, outcome, attempts')
@@ -109,18 +106,12 @@ async function reclaimFailed(
     .maybeSingle()
 
   if (error) {
-    logger.warn(
-      { occurrenceId: linha.id, err: error.message },
-      'automation-reclaim-failed-error',
-    )
+    logger.warn({ occurrenceId: linha.id, err: error.message }, 'automation-reclaim-failed-error')
     return null
   }
   if (!reaberta) return null
 
-  logger.info(
-    { occurrenceId: linha.id, tentativa: tentativas + 1 },
-    'automation-retentando-envio',
-  )
+  logger.info({ occurrenceId: linha.id, tentativa: tentativas + 1 }, 'automation-retentando-envio')
   return linha.id
 }
 

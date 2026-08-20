@@ -1,5 +1,5 @@
 ---
-description: "Task list — Custo de materiais e métrica Gasto com materiais"
+description: 'Task list — Custo de materiais e métrica Gasto com materiais'
 ---
 
 # Tasks: Custo de materiais e métrica "Gasto com materiais" no financeiro
@@ -21,7 +21,7 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 ## Phase 1: Setup (Shared Infrastructure)
 
 - [ ] T001 [P] Criar diretórios de módulo: `src/lib/core/materials-catalog/` e stub `src/lib/core/reports/materials-cost.ts`
-- [X] T002 Criar esqueleto da migration `supabase/migrations/0172_material_costs.sql` (cabeçalho com decisões D1–D6)
+- [x] T002 Criar esqueleto da migration `supabase/migrations/0172_material_costs.sql` (cabeçalho com decisões D1–D6)
 
 ---
 
@@ -29,17 +29,17 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 **⚠️ CRITICAL**: nenhuma história começa antes desta fase.
 
-- [X] T003 Migration 0172: criar tabela `public.tenant_materials` (colunas, CHECK, índices, UNIQUE parcial ativo, RLS por `jwt_tenant_id()`) em `supabase/migrations/0172_material_costs.sql`
-- [X] T004 Migration 0172: `ALTER TABLE appointment_materials` adicionar `unit_cost_cents` (NOT NULL DEFAULT 0, CHECK ≥ 0) e `material_id` (FK `tenant_materials`, nullable) + trigger de consistência de tenant do `material_id`
-- [X] T005 Migration 0172: trigger de validação TUSS opcional em `tenant_materials.tuss_code` (tabela 19 vigente, reusando lógica de `check_material_tuss_table`)
-- [X] T006 Migration 0172: relaxar `enforce_appointment_materials_mutation` para permitir UPDATE **apenas** de `{unit_cost_cents, material_id}`; DELETE segue proibido
-- [X] T007 Migration 0172: triggers de auditoria via `log_audit_event` (`tenant_materials` created/updated/deactivated; `appointment_materials` cost_updated)
-- [X] T008 Migration 0172: atualizar RPCs `attach_materials_to_appointment` e `create_appointment_with_materials` para aceitar `unit_cost_cents` + `material_id` e `tuss_code` opcional
-- [X] T009 Migration 0172: RPC nova `set_appointment_material_cost(...)` (SECURITY DEFINER, column-guard, auditada, `reason` obrigatório)
-- [X] T010 Rodar `pnpm supabase:reset && pnpm supabase:gen-types` e conferir tipos em `src/lib/db/types`
-- [X] T011 [P] Contract test: `appointment_materials` rejeita DELETE e UPDATE de colunas ≠ `{unit_cost_cents, material_id}` em `tests/contract/appointment-materials-immutability.spec.ts`
-- [X] T012 [P] Contract test: isolamento de tenant em `tenant_materials` e `set_appointment_material_cost` em `tests/contract/materials-tenant-isolation.spec.ts`
-- [X] T013 [P] Contract test: RBAC — apenas `admin`/`financeiro` criam/editam custo em `tests/contract/materials-rbac.spec.ts`
+- [x] T003 Migration 0172: criar tabela `public.tenant_materials` (colunas, CHECK, índices, UNIQUE parcial ativo, RLS por `jwt_tenant_id()`) em `supabase/migrations/0172_material_costs.sql`
+- [x] T004 Migration 0172: `ALTER TABLE appointment_materials` adicionar `unit_cost_cents` (NOT NULL DEFAULT 0, CHECK ≥ 0) e `material_id` (FK `tenant_materials`, nullable) + trigger de consistência de tenant do `material_id`
+- [x] T005 Migration 0172: trigger de validação TUSS opcional em `tenant_materials.tuss_code` (tabela 19 vigente, reusando lógica de `check_material_tuss_table`)
+- [x] T006 Migration 0172: relaxar `enforce_appointment_materials_mutation` para permitir UPDATE **apenas** de `{unit_cost_cents, material_id}`; DELETE segue proibido
+- [x] T007 Migration 0172: triggers de auditoria via `log_audit_event` (`tenant_materials` created/updated/deactivated; `appointment_materials` cost_updated)
+- [x] T008 Migration 0172: atualizar RPCs `attach_materials_to_appointment` e `create_appointment_with_materials` para aceitar `unit_cost_cents` + `material_id` e `tuss_code` opcional
+- [x] T009 Migration 0172: RPC nova `set_appointment_material_cost(...)` (SECURITY DEFINER, column-guard, auditada, `reason` obrigatório)
+- [x] T010 Rodar `pnpm supabase:reset && pnpm supabase:gen-types` e conferir tipos em `src/lib/db/types`
+- [x] T011 [P] Contract test: `appointment_materials` rejeita DELETE e UPDATE de colunas ≠ `{unit_cost_cents, material_id}` em `tests/contract/appointment-materials-immutability.spec.ts`
+- [x] T012 [P] Contract test: isolamento de tenant em `tenant_materials` e `set_appointment_material_cost` em `tests/contract/materials-tenant-isolation.spec.ts`
+- [x] T013 [P] Contract test: RBAC — apenas `admin`/`financeiro` criam/editam custo em `tests/contract/materials-rbac.spec.ts`
 
 **Checkpoint**: schema, RPCs e guardas prontos — histórias podem começar.
 
@@ -53,20 +53,20 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 1
 
-- [X] T014 [P] [US1] Integration test: anexar material com custo (default do catálogo + override) e listar com `totalCostCents`/`costPending` em `tests/integration/attach-material-cost.spec.ts`
-- [X] T015 [P] [US1] Integration test: completar custo pendente via `set-cost` (auditado) e imutabilidade do snapshot ao editar o catálogo em `tests/integration/material-cost-complete.spec.ts`
+- [x] T014 [P] [US1] Integration test: anexar material com custo (default do catálogo + override) e listar com `totalCostCents`/`costPending` em `tests/integration/attach-material-cost.spec.ts`
+- [x] T015 [P] [US1] Integration test: completar custo pendente via `set-cost` (auditado) e imutabilidade do snapshot ao editar o catálogo em `tests/integration/material-cost-complete.spec.ts`
 
 ### Implementation for User Story 1
 
-- [X] T016 [P] [US1] Módulo catálogo: `createMaterial`/`updateMaterial`/`listMaterials` + tipos em `src/lib/core/materials-catalog/{create,update,list,index}.ts`
-- [X] T017 [US1] Estender `attachMaterialsToAppointment`: `MaterialInput` ganha `unitCostCents?`/`materialId?`; repassar à RPC em `src/lib/core/appointments/materials/attach.ts`
-- [X] T018 [US1] Custo no fluxo de criação: migration 0173 estende `create_appointment_with_procedures_and_materials` (RPC real do cadastro manual) + `create-manual.ts` e rotas `manual`/`etapas` carregam `material_id`/`material_name`/`unit_cost_cents`
-- [X] T019 [US1] Estender `listAppointmentMaterials`: `unitCostCents`, `totalCostCents`, `costPending` em `src/lib/core/appointments/materials/list.ts`
-- [X] T020 [US1] `setAppointmentMaterialCost` (chama RPC nova) em `src/lib/core/appointments/materials/set-cost.ts`
-- [X] T021 [P] [US1] Rotas do catálogo: `GET`/`POST` `/api/materiais` + `PATCH /api/materiais/[id]` (Zod + `requireRole('admin'|'financeiro')`) em `src/app/api/materiais/**`
-- [X] T022 [US1] Estender rota de anexar material p/ custo + `PATCH /api/atendimentos/[id]/materiais/[materialRowId]/custo` (requireRole admin/financeiro) em `src/app/api/atendimentos/[id]/materiais/**`
-- [X] T023 [P] [US1] UI do seletor de material no atendimento: catálogo + insumo livre + TUSS, campo de custo (default do catálogo, override) + indicador de pendência em `src/components/atendimentos/materiais-editor.tsx`; exibição de custo/total/pendência em `atendimentos/[id]` + detail-body
-- [X] T024 [US1] Quick-add de insumo reutilizável no seletor (cria no catálogo sem sair do atendimento; gate `canManageCatalog`)
+- [x] T016 [P] [US1] Módulo catálogo: `createMaterial`/`updateMaterial`/`listMaterials` + tipos em `src/lib/core/materials-catalog/{create,update,list,index}.ts`
+- [x] T017 [US1] Estender `attachMaterialsToAppointment`: `MaterialInput` ganha `unitCostCents?`/`materialId?`; repassar à RPC em `src/lib/core/appointments/materials/attach.ts`
+- [x] T018 [US1] Custo no fluxo de criação: migration 0173 estende `create_appointment_with_procedures_and_materials` (RPC real do cadastro manual) + `create-manual.ts` e rotas `manual`/`etapas` carregam `material_id`/`material_name`/`unit_cost_cents`
+- [x] T019 [US1] Estender `listAppointmentMaterials`: `unitCostCents`, `totalCostCents`, `costPending` em `src/lib/core/appointments/materials/list.ts`
+- [x] T020 [US1] `setAppointmentMaterialCost` (chama RPC nova) em `src/lib/core/appointments/materials/set-cost.ts`
+- [x] T021 [P] [US1] Rotas do catálogo: `GET`/`POST` `/api/materiais` + `PATCH /api/materiais/[id]` (Zod + `requireRole('admin'|'financeiro')`) em `src/app/api/materiais/**`
+- [x] T022 [US1] Estender rota de anexar material p/ custo + `PATCH /api/atendimentos/[id]/materiais/[materialRowId]/custo` (requireRole admin/financeiro) em `src/app/api/atendimentos/[id]/materiais/**`
+- [x] T023 [P] [US1] UI do seletor de material no atendimento: catálogo + insumo livre + TUSS, campo de custo (default do catálogo, override) + indicador de pendência em `src/components/atendimentos/materiais-editor.tsx`; exibição de custo/total/pendência em `atendimentos/[id]` + detail-body
+- [x] T024 [US1] Quick-add de insumo reutilizável no seletor (cria no catálogo sem sair do atendimento; gate `canManageCatalog`)
 
 **Checkpoint**: US1 funcional — a clínica já registra e vê o custo por atendimento.
 
@@ -80,14 +80,14 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 2
 
-- [X] T025 [P] [US2] Integration test: `sumMaterialsCost` exclui estornado + fronteira de mês (fuso do tenant); `operating-result` inclui a linha e reduz `netProfit`; `grossRevenue`/`commissions` inalterados em `tests/integration/operating-result-materials.spec.ts`
+- [x] T025 [P] [US2] Integration test: `sumMaterialsCost` exclui estornado + fronteira de mês (fuso do tenant); `operating-result` inclui a linha e reduz `netProfit`; `grossRevenue`/`commissions` inalterados em `tests/integration/operating-result-materials.spec.ts`
 
 ### Implementation for User Story 2
 
-- [X] T026 [US2] Agregador `sumMaterialsCost` + `materialsCostDetail` (+ `materialsCostByDoctor`/`materialsCostByPlan` p/ US3) em `src/lib/core/reports/materials-cost.ts`
-- [X] T027 [US2] Estender `operating-result.ts`: `materialsCostCents` em `OperatingResultLines`, subtrair em `netProfitCents`, drilldown `materials`
-- [X] T028 [P] [US2] Drilldown: página `/analise/relatorios/materiais?from=&to=` (RSC, requireRole admin/financeiro) usando `materialsCostDetail`
-- [X] T029 [US2] UI: linha "Gasto com materiais" + link de detalhe no dashboard `analise/relatorios` (via `financial-report.ts` totals — deduz `operatingProfitCents`)
+- [x] T026 [US2] Agregador `sumMaterialsCost` + `materialsCostDetail` (+ `materialsCostByDoctor`/`materialsCostByPlan` p/ US3) em `src/lib/core/reports/materials-cost.ts`
+- [x] T027 [US2] Estender `operating-result.ts`: `materialsCostCents` em `OperatingResultLines`, subtrair em `netProfitCents`, drilldown `materials`
+- [x] T028 [P] [US2] Drilldown: página `/analise/relatorios/materiais?from=&to=` (RSC, requireRole admin/financeiro) usando `materialsCostDetail`
+- [x] T029 [US2] UI: linha "Gasto com materiais" + link de detalhe no dashboard `analise/relatorios` (via `financial-report.ts` totals — deduz `operatingProfitCents`)
 
 **Checkpoint**: US2 funcional — lucro do mês reflete o custo de material.
 
@@ -101,17 +101,17 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 3
 
-- [X] T030 [P] [US3] Integration test: `materialsCostByDoctor`/`materialsCostByPlan` atribuem por `doctor_id`/`plan_id` e excluem estornado em `tests/integration/reports-materials-breakdown.spec.ts`
+- [x] T030 [P] [US3] Integration test: `materialsCostByDoctor`/`materialsCostByPlan` atribuem por `doctor_id`/`plan_id` e excluem estornado em `tests/integration/reports-materials-breakdown.spec.ts`
 
 ### Implementation for User Story 3
 
-- [X] T031 [US3] `materialsCostByDoctor` + `materialsCostByPlan` em `src/lib/core/reports/materials-cost.ts` (+ export `MATERIALS_PARTICULAR_KEY`)
-- [X] T032 [US3] Estender `by-professional.ts` (coluna + `netAfterMaterialsCents`) em `src/lib/core/reports/by-professional.ts` (summary + detail)
-- [X] T033 [US3] Estender `by-plan.ts` em `src/lib/core/reports/by-plan.ts` (summary + detail)
-- [X] T034 [US3] Estender `monthly.ts` e `financial-report.ts` em `src/lib/core/reports/{monthly,financial-report}.ts` (+ wire monthly)
-- [X] T035 [P] [US3] Exports Excel: coluna em `src/lib/core/reports/{export-by-professional-excel,export-by-plan-excel,export-financial-excel}.ts`
-- [X] T036 [P] [US3] Exports PDF: coluna em `src/lib/core/reports/{export-by-professional-pdf,export-by-plan-pdf,export-financial-pdf}.tsx`
-- [X] T037 [US3] UI: coluna "Gasto com materiais" nas telas por profissional/convênio/mensal
+- [x] T031 [US3] `materialsCostByDoctor` + `materialsCostByPlan` em `src/lib/core/reports/materials-cost.ts` (+ export `MATERIALS_PARTICULAR_KEY`)
+- [x] T032 [US3] Estender `by-professional.ts` (coluna + `netAfterMaterialsCents`) em `src/lib/core/reports/by-professional.ts` (summary + detail)
+- [x] T033 [US3] Estender `by-plan.ts` em `src/lib/core/reports/by-plan.ts` (summary + detail)
+- [x] T034 [US3] Estender `monthly.ts` e `financial-report.ts` em `src/lib/core/reports/{monthly,financial-report}.ts` (+ wire monthly)
+- [x] T035 [P] [US3] Exports Excel: coluna em `src/lib/core/reports/{export-by-professional-excel,export-by-plan-excel,export-financial-excel}.ts`
+- [x] T036 [P] [US3] Exports PDF: coluna em `src/lib/core/reports/{export-by-professional-pdf,export-by-plan-pdf,export-financial-pdf}.tsx`
+- [x] T037 [US3] UI: coluna "Gasto com materiais" nas telas por profissional/convênio/mensal
 
 **Checkpoint**: US3 funcional — margem real visível e exportável.
 
@@ -125,12 +125,12 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ### Tests for User Story 4
 
-- [X] T038 [P] [US4] Integration test: desativação remove do seletor e mantém histórico; edição de custo não afeta usos passados em `tests/integration/catalog-management.spec.ts`
+- [x] T038 [P] [US4] Integration test: desativação remove do seletor e mantém histórico; edição de custo não afeta usos passados em `tests/integration/catalog-management.spec.ts`
 
 ### Implementation for User Story 4
 
-- [X] T039 [US4] Tela `/configuracoes/materiais`: listar (incl. inativos), criar, editar custo/nome, desativar/reativar em `page.tsx` + `materiais-table.tsx`
-- [X] T040 [US4] Entrada no hub de configurações ("Materiais / Insumos") em `_cards.ts` (gate admin/financeiro)
+- [x] T039 [US4] Tela `/configuracoes/materiais`: listar (incl. inativos), criar, editar custo/nome, desativar/reativar em `page.tsx` + `materiais-table.tsx`
+- [x] T040 [US4] Entrada no hub de configurações ("Materiais / Insumos") em `_cards.ts` (gate admin/financeiro)
 
 **Checkpoint**: US4 funcional — catálogo mantido ao longo do tempo.
 
@@ -138,9 +138,9 @@ description: "Task list — Custo de materiais e métrica Gasto com materiais"
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [X] T041 [P] Unit tests: `costPending`/`totalCostCents` e fronteira de mês em `tests/unit/materials-cost.spec.ts`
-- [X] T042 Rodar `pnpm lint:auth`, `pnpm typecheck` e o roteiro de `quickstart.md` (lint:auth + typecheck + eslint limpos; testes automatizados do quickstart verdes)
-- [X] T043 [P] Revisar textos/tooltips ("Gasto com materiais", pendência de custo) para consistência de UI (uniforme em dashboard/drilldown/6 exports + "custo pendente" no editor e detalhes)
+- [x] T041 [P] Unit tests: `costPending`/`totalCostCents` e fronteira de mês em `tests/unit/materials-cost.spec.ts`
+- [x] T042 Rodar `pnpm lint:auth`, `pnpm typecheck` e o roteiro de `quickstart.md` (lint:auth + typecheck + eslint limpos; testes automatizados do quickstart verdes)
+- [x] T043 [P] Revisar textos/tooltips ("Gasto com materiais", pendência de custo) para consistência de UI (uniforme em dashboard/drilldown/6 exports + "custo pendente" no editor e detalhes)
 
 ---
 
@@ -186,8 +186,8 @@ Task: "Contract test RBAC em tests/contract/materials-rbac.test.ts"
 ### MVP First (US1)
 
 1. F1 Setup → 2. F2 Foundational (migration + RPCs + testes de guarda) → 3. F3 US1.
-4. **PARAR e VALIDAR**: registrar custo por atendimento, snapshot imutável.
-5. Demonstrar (já entrega valor: histórico de custo por atendimento).
+2. **PARAR e VALIDAR**: registrar custo por atendimento, snapshot imutável.
+3. Demonstrar (já entrega valor: histórico de custo por atendimento).
 
 ### Incremental
 

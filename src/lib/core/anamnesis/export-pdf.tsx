@@ -2,10 +2,7 @@
 import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
-import {
-  PrintFooter,
-  brDateTz,
-} from '@/lib/core/nutrition/printouts/shared'
+import { PrintFooter, brDateTz } from '@/lib/core/nutrition/printouts/shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 

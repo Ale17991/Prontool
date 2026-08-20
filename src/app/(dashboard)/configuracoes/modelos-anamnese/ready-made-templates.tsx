@@ -93,7 +93,12 @@ export function ReadyMadeTemplates({ installedTitles }: { installedTitles: strin
                   justamente o caso de quem quer uma variação do que já usa.
                 */}
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={{ pathname: '/configuracoes/modelos-anamnese/novo', query: { modelo: m.slug } }}>
+                  <Link
+                    href={{
+                      pathname: '/configuracoes/modelos-anamnese/novo',
+                      query: { modelo: m.slug },
+                    }}
+                  >
                     <Copy className="mr-1 h-3.5 w-3.5" />
                     Clonar
                   </Link>

@@ -16,7 +16,10 @@ async function postRecall(patientId: string, jwt: string): Promise<Response> {
     new Request(`http://localhost/api/pacientes/${patientId}/recordatorio`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${jwt}` },
-      body: JSON.stringify({ recall_date: '2026-07-27', meals: [{ name: 'Café', position: 0, items: [] }] }),
+      body: JSON.stringify({
+        recall_date: '2026-07-27',
+        meals: [{ name: 'Café', position: 0, items: [] }],
+      }),
     }),
     { params: { id: patientId } },
   )

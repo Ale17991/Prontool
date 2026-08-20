@@ -72,9 +72,13 @@ export async function createMaterial(
 
   if (error) {
     if (error.code === '23505') {
-      throw new ConflictError('MATERIAL_DUPLICATE', `Já existe um insumo ativo com o nome "${name}".`, {
-        name,
-      })
+      throw new ConflictError(
+        'MATERIAL_DUPLICATE',
+        `Já existe um insumo ativo com o nome "${name}".`,
+        {
+          name,
+        },
+      )
     }
     if (/MATERIAL_TUSS_INVALID/.test(error.message)) {
       throw new ValidationError('Código TUSS inválido ou fora da tabela de materiais (19).')

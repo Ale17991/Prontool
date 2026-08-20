@@ -22,7 +22,10 @@ const patchSchema = z.object({
   active: z.boolean().optional(),
 })
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/automacoes/mensagens/${params.id}`
   try {
     const session = await requireRole(['admin'], {
@@ -60,7 +63,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/automacoes/mensagens/${params.id}`
   try {
     const session = await requireRole(['admin'], {

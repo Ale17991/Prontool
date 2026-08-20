@@ -70,7 +70,10 @@ export async function POST(req: Request): Promise<Response> {
 
   let origem: { tenantId: string; reminderId?: string; automationOccurrenceId?: string } | null =
     reminder
-      ? { tenantId: (reminder as { tenant_id: string }).tenant_id, reminderId: (reminder as { id: string }).id }
+      ? {
+          tenantId: (reminder as { tenant_id: string }).tenant_id,
+          reminderId: (reminder as { id: string }).id,
+        }
       : null
 
   if (!origem) {
@@ -110,8 +113,7 @@ export async function POST(req: Request): Promise<Response> {
       // `timestamp` é quando o evento ocorreu segundo o serviço; a coluna
       // `received_at` guarda quando chegou aqui. Divergência grande entre as
       // duas denuncia atraso na ponte.
-      occurredAt:
-        typeof body.timestamp === 'string' ? body.timestamp : new Date().toISOString(),
+      occurredAt: typeof body.timestamp === 'string' ? body.timestamp : new Date().toISOString(),
     })
   } catch (err) {
     logger.error({ tenantId: origem.tenantId, err }, 'whatsapp-callback-record-failed')

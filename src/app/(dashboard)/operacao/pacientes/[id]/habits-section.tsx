@@ -27,7 +27,13 @@ interface ItemStat {
   currentStreak: number
 }
 interface Grid {
-  checklist: { id: string; title: string; periodKind: string; startDate: string; items: HabitItem[] }
+  checklist: {
+    id: string
+    title: string
+    periodKind: string
+    startDate: string
+    items: HabitItem[]
+  }
   period: { startDate: string; endDate: string; days: string[] }
   stats: ItemStat[]
 }

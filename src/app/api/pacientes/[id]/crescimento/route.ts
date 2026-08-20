@@ -56,7 +56,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     const enabled = await isGrowthTrackingEnabled(supabase, session.tenantId, params.id)
     if (!enabled) {
       return NextResponse.json(
-        { enabled: false, curves: [], ageMonthsNow: null, missing: { birthDate: false, sex: false }, outOfRange: false },
+        {
+          enabled: false,
+          curves: [],
+          ageMonthsNow: null,
+          missing: { birthDate: false, sex: false },
+          outOfRange: false,
+        },
         { status: 200 },
       )
     }
@@ -85,7 +91,9 @@ async function isGrowthTrackingEnabled(
     .eq('tenant_id', tenantId)
     .eq('id', patientId)
     .maybeSingle()
-  return Boolean((res.data as { growth_tracking_enabled?: boolean } | null)?.growth_tracking_enabled)
+  return Boolean(
+    (res.data as { growth_tracking_enabled?: boolean } | null)?.growth_tracking_enabled,
+  )
 }
 
 const toggleSchema = z.object({ enabled: z.boolean() })

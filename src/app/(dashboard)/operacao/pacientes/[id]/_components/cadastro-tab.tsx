@@ -216,9 +216,7 @@ export function CadastroTab({
       ) : null}
 
       {/* Exames laboratoriais (050) — cross-especialidade, módulo `exames_lab`. */}
-      {hasExamesLab ? (
-        <LabResultsSection patientId={patientId} canWrite={canWriteVitals} />
-      ) : null}
+      {hasExamesLab ? <LabResultsSection patientId={patientId} canWrite={canWriteVitals} /> : null}
 
       {/* Curvas de crescimento — some sozinha em adulto e sem aferição. */}
       {hasNutriAvaliacao ? <GrowthSection patientId={patientId} canWrite={canWriteVitals} /> : null}

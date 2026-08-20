@@ -9,15 +9,30 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser, seedPatient } from '@/tests/helpers/seed-factories'
-import {
-  recordMeasurementsBatch,
-  listMeasurements,
-} from '@/lib/core/patient-portal/measurements'
+import { recordMeasurementsBatch, listMeasurements } from '@/lib/core/patient-portal/measurements'
 
 const BIA_METRICS = [
-  { metric_type: 'percentual_gordura', label: 'Gordura corporal', unit: '%', min_plausible: 3, max_plausible: 70 },
-  { metric_type: 'massa_magra_kg', label: 'Massa magra', unit: 'kg', min_plausible: 5, max_plausible: 150 },
-  { metric_type: 'gordura_visceral', label: 'Gordura visceral (nível)', unit: 'nível', min_plausible: 1, max_plausible: 60 },
+  {
+    metric_type: 'percentual_gordura',
+    label: 'Gordura corporal',
+    unit: '%',
+    min_plausible: 3,
+    max_plausible: 70,
+  },
+  {
+    metric_type: 'massa_magra_kg',
+    label: 'Massa magra',
+    unit: 'kg',
+    min_plausible: 5,
+    max_plausible: 150,
+  },
+  {
+    metric_type: 'gordura_visceral',
+    label: 'Gordura visceral (nível)',
+    unit: 'nível',
+    min_plausible: 1,
+    max_plausible: 60,
+  },
 ]
 
 describe('Bioimpedância — recordMeasurementsBatch', () => {

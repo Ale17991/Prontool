@@ -71,8 +71,8 @@ interface Props {
     doctorsList: DoctorOption[]
     remindersOptIn: boolean
     remindersWhatsAppOptIn: boolean
-  automationsOptIn: boolean
-  automacoesDisponivel: boolean
+    automationsOptIn: boolean
+    automacoesDisponivel: boolean
     whatsappDisponivel: boolean
     anamnesePrefill: AnamnesePatientPrefill | undefined
     canEditPatient: boolean

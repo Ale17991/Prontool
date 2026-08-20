@@ -137,9 +137,15 @@ export function CareNotesEditor({ patientId, canWrite }: { patientId: string; ca
                   key={m.slug}
                   type="button"
                   title={m.hint}
-                  onClick={() => setBody((cur) => (cur.trim() ? `${cur}
+                  onClick={() =>
+                    setBody((cur) =>
+                      cur.trim()
+                        ? `${cur}
 
-${m.body}` : m.body))}
+${m.body}`
+                        : m.body,
+                    )
+                  }
                   className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:border-primary hover:text-primary"
                 >
                   {m.title}

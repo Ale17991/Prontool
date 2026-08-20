@@ -59,8 +59,22 @@ describe('checklist de hábitos', () => {
 
   it('marca, e marcar de novo não duplica', async () => {
     const sb = serviceClient()
-    await toggleMark(sb, { tenantId, patientId, itemId: 'agua', markDate: TODAY, marked: true, today: TODAY })
-    await toggleMark(sb, { tenantId, patientId, itemId: 'agua', markDate: TODAY, marked: true, today: TODAY })
+    await toggleMark(sb, {
+      tenantId,
+      patientId,
+      itemId: 'agua',
+      markDate: TODAY,
+      marked: true,
+      today: TODAY,
+    })
+    await toggleMark(sb, {
+      tenantId,
+      patientId,
+      itemId: 'agua',
+      markDate: TODAY,
+      marked: true,
+      today: TODAY,
+    })
     const grid = await getGrid(sb, { tenantId, patientId, today: TODAY })
     // Toque duplo no celular não pode virar dois dias marcados.
     expect(grid!.marks.filter((m) => m.itemId === 'agua' && m.markDate === TODAY)).toHaveLength(1)
@@ -70,7 +84,12 @@ describe('checklist de hábitos', () => {
   it('aceita dia retroativo DENTRO do período', async () => {
     const sb = serviceClient()
     await toggleMark(sb, {
-      tenantId, patientId, itemId: 'agua', markDate: '2026-08-04', marked: true, today: TODAY,
+      tenantId,
+      patientId,
+      itemId: 'agua',
+      markDate: '2026-08-04',
+      marked: true,
+      today: TODAY,
     })
     const grid = await getGrid(sb, { tenantId, patientId, today: TODAY })
     expect(grid!.stats.find((s) => s.itemId === 'agua')!.markedDays).toBe(2)
@@ -81,7 +100,12 @@ describe('checklist de hábitos', () => {
     // Reescrever período fechado corromperia o histórico que a clínica lê.
     await expect(
       toggleMark(sb, {
-        tenantId, patientId, itemId: 'agua', markDate: '2026-07-20', marked: true, today: TODAY,
+        tenantId,
+        patientId,
+        itemId: 'agua',
+        markDate: '2026-07-20',
+        marked: true,
+        today: TODAY,
       }),
     ).rejects.toBeInstanceOf(HabitMarkError)
   })
@@ -90,19 +114,38 @@ describe('checklist de hábitos', () => {
     const sb = serviceClient()
     await expect(
       toggleMark(sb, {
-        tenantId, patientId, itemId: 'inventado', markDate: TODAY, marked: true, today: TODAY,
+        tenantId,
+        patientId,
+        itemId: 'inventado',
+        markDate: TODAY,
+        marked: true,
+        today: TODAY,
       }),
     ).rejects.toBeInstanceOf(HabitMarkError)
   })
 
   it('desmarcar apaga — o branco volta a ser ambíguo, não vira "não fiz"', async () => {
     const sb = serviceClient()
-    await toggleMark(sb, { tenantId, patientId, itemId: 'agua', markDate: TODAY, marked: false, today: TODAY })
+    await toggleMark(sb, {
+      tenantId,
+      patientId,
+      itemId: 'agua',
+      markDate: TODAY,
+      marked: false,
+      today: TODAY,
+    })
     const grid = await getGrid(sb, { tenantId, patientId, today: TODAY })
     expect(grid!.marks.some((m) => m.itemId === 'agua' && m.markDate === TODAY)).toBe(false)
     // Desmarcar de novo é idempotente, não erro.
     await expect(
-      toggleMark(sb, { tenantId, patientId, itemId: 'agua', markDate: TODAY, marked: false, today: TODAY }),
+      toggleMark(sb, {
+        tenantId,
+        patientId,
+        itemId: 'agua',
+        markDate: TODAY,
+        marked: false,
+        today: TODAY,
+      }),
     ).resolves.toEqual({ marked: false })
   })
 
@@ -111,7 +154,12 @@ describe('checklist de hábitos', () => {
     expect(await getGrid(sb, { tenantId, patientId: otherPatientId, today: TODAY })).toBeNull()
     await expect(
       toggleMark(sb, {
-        tenantId, patientId: otherPatientId, itemId: 'agua', markDate: TODAY, marked: true, today: TODAY,
+        tenantId,
+        patientId: otherPatientId,
+        itemId: 'agua',
+        markDate: TODAY,
+        marked: true,
+        today: TODAY,
       }),
     ).rejects.toBeInstanceOf(HabitMarkError)
   })
@@ -127,7 +175,14 @@ describe('checklist de hábitos', () => {
 
   it('ajustar a grade do paciente não some com o histórico de marcações', async () => {
     const sb = serviceClient()
-    await toggleMark(sb, { tenantId, patientId, itemId: 'treino', markDate: TODAY, marked: true, today: TODAY })
+    await toggleMark(sb, {
+      tenantId,
+      patientId,
+      itemId: 'treino',
+      markDate: TODAY,
+      marked: true,
+      today: TODAY,
+    })
     const before = await getGrid(sb, { tenantId, patientId, today: TODAY })
     const checklistId = before!.checklist.id
 

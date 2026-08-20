@@ -132,7 +132,9 @@ export async function createCustomFood(
   return { id, energyKcal: nutrients.energyKcal }
 }
 
-export interface UpdateCustomFoodInput extends Partial<Omit<CreateCustomFoodInput, 'tenantId' | 'actorUserId'>> {
+export interface UpdateCustomFoodInput extends Partial<
+  Omit<CreateCustomFoodInput, 'tenantId' | 'actorUserId'>
+> {
   tenantId: string
   foodId: string
 }
@@ -183,7 +185,8 @@ export async function updateCustomFood(
     updated_at: new Date().toISOString(),
   }
   if (input.name !== undefined) patch.name = input.name.trim()
-  if (input.groupSlug !== undefined) patch.group_id = await resolveGroupId(supabase, input.groupSlug)
+  if (input.groupSlug !== undefined)
+    patch.group_id = await resolveGroupId(supabase, input.groupSlug)
 
   const { error } = await supabase
     .from('foods')

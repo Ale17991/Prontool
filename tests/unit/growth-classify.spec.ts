@@ -117,7 +117,9 @@ describe('classifyGrowth ponta a ponta', () => {
   })
 
   it('idade fora da tabela devolve null em vez de chutar', () => {
-    expect(classifyGrowth({ indicator: 'imc_idade', rows: ROWS, ageMonths: 200, value: 15 })).toBeNull()
+    expect(
+      classifyGrowth({ indicator: 'imc_idade', rows: ROWS, ageMonths: 200, value: 15 }),
+    ).toBeNull()
   })
 })
 

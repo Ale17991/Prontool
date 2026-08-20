@@ -34,7 +34,7 @@ não escreve cookie. Sobram Route Handler e Server Action — ambos em Node, amb
 precisando de um disparo do cliente. A rota reusa a MESMA função de assinatura
 das páginas, o que era a propriedade importante: uma segunda implementação de
 HMAC (em Web Crypto, para caber no Edge) poderia divergir da primeira, e o
-sintoma de divergência é *todo paciente deslogado*.
+sintoma de divergência é _todo paciente deslogado_.
 
 O gatilho mora em `src/app/paciente/[slug]/painel/layout.tsx`, e não em cada
 página: cobre as áreas que existem, as que ainda vão nascer, e fica de fora da
@@ -58,15 +58,15 @@ tela de login, onde não há sessão para renovar.
 
 **Alternativas consideradas**:
 
-- *Middleware* — quebra o build (acima).
-- *Reimplementar a assinatura em Web Crypto para caber no Edge*: uma segunda
+- _Middleware_ — quebra o build (acima).
+- _Reimplementar a assinatura em Web Crypto para caber no Edge_: uma segunda
   verdade sobre o mesmo HMAC, sem suíte de teste rodando para provar que as duas
   concordam. Risco desproporcional ao ganho.
-- *Cookie rolante sem reassinar* (payload com teto absoluto, e a inatividade
+- _Cookie rolante sem reassinar_ (payload com teto absoluto, e a inatividade
   imposta pelo `Max-Age` do cookie): elimina a criptografia do caminho, mas move
   a expiração por inatividade para o navegador — um cookie copiado valeria 12h
   em vez de 30 minutos. Enfraquece justamente o que o FR-023 quis proteger.
-- *Sessão em banco com `last_seen_at`*: joga fora a propriedade que a 030 buscou
+- _Sessão em banco com `last_seen_at`_: joga fora a propriedade que a 030 buscou
   (zero hit de banco por request) para resolver algo que o cookie já resolve.
 
 ---
@@ -94,9 +94,9 @@ presentes mesmo que o paciente ainda não tenha marcado nada — a grade em bran
 
 **Alternativas consideradas**:
 
-- *Deixar o cliente decidir e promover depois da hidratação*: a tela saltaria na
+- _Deixar o cliente decidir e promover depois da hidratação_: a tela saltaria na
   frente do paciente, e a promoção viraria mudança de layout pós-carga.
-- *Chamar `getGrid` no servidor e passar pronto ao card*: mudaria o contrato do
+- _Chamar `getGrid` no servidor e passar pronto ao card_: mudaria o contrato do
   `HabitsCard` (hoje autônomo) e duplicaria a busca quando ele revalida após uma
   marcação. Fora de escopo.
 
@@ -123,9 +123,9 @@ estamos cortando.
 
 **Alternativas consideradas**:
 
-- *Reusar alguma coluna de texto existente do perfil da clínica*: nenhuma tem
+- _Reusar alguma coluna de texto existente do perfil da clínica_: nenhuma tem
   essa finalidade, e sobrecarregar campo alheio esconde a intenção.
-- *Texto por seção ou por paciente*: ninguém pediu, e multiplicaria a superfície
+- _Texto por seção ou por paciente_: ninguém pediu, e multiplicaria a superfície
   de conteúdo livre exibido a paciente.
 
 ---
@@ -149,8 +149,8 @@ tem: seção nova não deve exigir migration.
 
 **Alternativas consideradas**:
 
-- *Novos valores de `action`*: acima.
-- *Registrar só a home e deixar as seções sem trilha*: perderia justamente a
+- _Novos valores de `action`_: acima.
+- _Registrar só a home e deixar as seções sem trilha_: perderia justamente a
   informação que a Pergunta 4 decidiu capturar.
 
 ---

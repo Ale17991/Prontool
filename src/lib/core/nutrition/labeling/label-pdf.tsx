@@ -97,9 +97,9 @@ export async function renderNutritionLabelPdf(input: LabelPdfInput): Promise<Buf
   const per = basisLabel(label.basis)
   const portionUnit = label.basis === 'liquido' ? 'mL' : 'g'
   const pending = result.rows.filter((r) => r.state === 'incompleto')
-  const applied = (Object.entries(result.frontOfPack) as Array<[FrontOfPackNutrient, string]>).filter(
-    ([, verdict]) => verdict === 'aplica',
-  )
+  const applied = (
+    Object.entries(result.frontOfPack) as Array<[FrontOfPackNutrient, string]>
+  ).filter(([, verdict]) => verdict === 'aplica')
   const inconclusive = (
     Object.entries(result.frontOfPack) as Array<[FrontOfPackNutrient, string]>
   ).filter(([, verdict]) => verdict === 'inconclusivo')
@@ -159,7 +159,9 @@ export async function renderNutritionLabelPdf(input: LabelPdfInput): Promise<Buf
                 {r.per100 === null ? '—' : `${formatDeclared(r.per100)}${unitSuffix(r.unit)}`}
               </Text>
               <Text style={styles.cNum}>
-                {r.perPortion === null ? '—' : `${formatDeclared(r.perPortion)}${unitSuffix(r.unit)}`}
+                {r.perPortion === null
+                  ? '—'
+                  : `${formatDeclared(r.perPortion)}${unitSuffix(r.unit)}`}
               </Text>
               <Text style={styles.cNum}>
                 {r.dvPercent === null ? '—' : `${formatDeclared(r.dvPercent)}%`}
@@ -186,7 +188,9 @@ export async function renderNutritionLabelPdf(input: LabelPdfInput): Promise<Buf
             <Text style={styles.sectionTitle}>Rotulagem frontal — pendente</Text>
             <Text style={styles.body}>
               Não foi possível concluir sobre{' '}
-              {inconclusive.map(([key]) => FRONT_OF_PACK_LABEL[key].replace('ALTO EM ', '').toLowerCase()).join(', ')}{' '}
+              {inconclusive
+                .map(([key]) => FRONT_OF_PACK_LABEL[key].replace('ALTO EM ', '').toLowerCase())
+                .join(', ')}{' '}
               por falta de dado. Isto não significa que a marca frontal seja dispensada.
             </Text>
           </View>

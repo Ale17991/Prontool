@@ -161,7 +161,10 @@ function bodyDensity(input: CompositionInput): number {
         : 1.114 - 0.031 * log10(tri) - 0.041 * log10(sub)
     }
     default:
-      throw new NutritionInputError('PROTOCOL_NOT_DENSITY', `Protocolo ${input.protocol} não usa densidade`)
+      throw new NutritionInputError(
+        'PROTOCOL_NOT_DENSITY',
+        `Protocolo ${input.protocol} não usa densidade`,
+      )
   }
 }
 
@@ -189,7 +192,10 @@ function fatPercent(input: CompositionInput): { fatPct: number; density: number 
     case 'weltman': {
       const cw = input.circumferences?.abdomen
       if (typeof cw !== 'number' || !Number.isFinite(cw) || cw <= 0) {
-        throw new NutritionInputError('MISSING_CIRCUMFERENCE', 'Informe a circunferência abdominal (Weltman).')
+        throw new NutritionInputError(
+          'MISSING_CIRCUMFERENCE',
+          'Informe a circunferência abdominal (Weltman).',
+        )
       }
       // UMA medida abdominal, como no documento de base. O sistema chegou a
       // pedir duas e usar a média (o protocolo original prevê isso), mas a

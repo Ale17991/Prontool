@@ -18,7 +18,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
-import type { WhatsAppConnection, WhatsAppConnectionStatus, WhatsAppDisconnectReason } from './types'
+import type {
+  WhatsAppConnection,
+  WhatsAppConnectionStatus,
+  WhatsAppDisconnectReason,
+} from './types'
 
 /** Colunas seguras — `api_key_enc` NUNCA entra aqui. */
 const SAFE_COLUMNS =
@@ -223,9 +227,6 @@ export async function deleteWhatsAppConnection(
   supabase: SupabaseClient<Database>,
   tenantId: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from('tenant_whatsapp_config')
-    .delete()
-    .eq('tenant_id', tenantId)
+  const { error } = await supabase.from('tenant_whatsapp_config').delete().eq('tenant_id', tenantId)
   if (error) throw new Error(`deleteWhatsAppConnection failed: ${error.message}`)
 }

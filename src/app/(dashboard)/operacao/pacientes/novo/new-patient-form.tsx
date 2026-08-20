@@ -257,8 +257,8 @@ export function NewPatientForm({
         </p>
         {memedPrescriber ? (
           <p className="md:col-span-2 rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800">
-            Esta clínica prescreve pela Memed: CPF, e-mail e data de nascimento são obrigatórios
-            no cadastro, senão a receita falha na hora da consulta.
+            Esta clínica prescreve pela Memed: CPF, e-mail e data de nascimento são obrigatórios no
+            cadastro, senão a receita falha na hora da consulta.
           </p>
         ) : null}
 

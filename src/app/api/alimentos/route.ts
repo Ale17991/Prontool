@@ -95,7 +95,9 @@ export async function POST(req: Request): Promise<Response> {
     const parsed = createSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }
@@ -113,7 +115,11 @@ export async function POST(req: Request): Promise<Response> {
       fatG: b.fat_g,
       fiberG: b.fiber_g ?? null,
       micronutrients: b.micronutrients ?? null,
-      measures: b.measures?.map((m) => ({ label: m.label, grams: m.grams, isDefault: m.is_default })),
+      measures: b.measures?.map((m) => ({
+        label: m.label,
+        grams: m.grams,
+        isDefault: m.is_default,
+      })),
     })
     return NextResponse.json(result, { status: 201 })
   } catch (err) {

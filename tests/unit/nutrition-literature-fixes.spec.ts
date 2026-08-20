@@ -138,13 +138,17 @@ describe('Durnin-Womersley — coeficiente agrupado, como no documento de base',
     const dc = 1.1765 - 0.0744 * Math.log10(42)
     expect(mk(14).bodyDensity).toBeCloseTo(dc, 4)
     expect(
-      compositionAdvisories({ protocol: 'durnin_womersley', sex: 'M', ageYears: 14 }).map((a) => a.code),
+      compositionAdvisories({ protocol: 'durnin_womersley', sex: 'M', ageYears: 14 }).map(
+        (a) => a.code,
+      ),
     ).toContain('DURNIN_BELOW_RANGE')
   })
 
   it('dentro da faixa NÃO avisa', () => {
     expect(
-      compositionAdvisories({ protocol: 'durnin_womersley', sex: 'M', ageYears: 30 }).map((a) => a.code),
+      compositionAdvisories({ protocol: 'durnin_womersley', sex: 'M', ageYears: 30 }).map(
+        (a) => a.code,
+      ),
     ).not.toContain('DURNIN_BELOW_RANGE')
   })
 })
@@ -219,15 +223,15 @@ describe('Avisos de domínio de validação (não bloqueiam o cálculo)', () => 
   })
 
   it('Henry-Rees fora de 3–60 anos avisa', () => {
-    expect(
-      energyAdvisories({ equation: 'henry_rees', ageYears: 75 }).map((x) => x.code),
-    ).toContain('HENRY_REES_OUT_OF_RANGE')
+    expect(energyAdvisories({ equation: 'henry_rees', ageYears: 75 }).map((x) => x.code)).toContain(
+      'HENRY_REES_OUT_OF_RANGE',
+    )
   })
 
   it('FAO 2004 e Schofield avisam que são equivalentes em adulto', () => {
-    expect(
-      energyAdvisories({ equation: 'schofield', ageYears: 30 }).map((x) => x.code),
-    ).toContain('FAO2004_SCHOFIELD_SAME')
+    expect(energyAdvisories({ equation: 'schofield', ageYears: 30 }).map((x) => x.code)).toContain(
+      'FAO2004_SCHOFIELD_SAME',
+    )
   })
 
   it('Tinsley avisa sobre a população de origem', () => {

@@ -137,7 +137,13 @@ describe('referências da rotulagem — origem do dado na base', () => {
   it('os quatro nutrientes específicos de rótulo vêm do JSONB de micros', () => {
     const deMicro = LABEL_NUTRIENTS.filter((n) => n.source.kind === 'micro').map((n) => n.key)
     expect(deMicro.sort()).toEqual(
-      ['acucares_adicionados', 'acucares_totais', 'gorduras_saturadas', 'gorduras_trans', 'sodio'].sort(),
+      [
+        'acucares_adicionados',
+        'acucares_totais',
+        'gorduras_saturadas',
+        'gorduras_trans',
+        'sodio',
+      ].sort(),
     )
   })
 

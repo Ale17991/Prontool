@@ -25,7 +25,13 @@ async function seedFood(external: string): Promise<string> {
       carb_g: 75,
       fat_g: 1,
       fiber_g: 2,
-      micronutrients: { acucar_total_g: 1, acucar_adicao_g: 0, ag_saturados_g: 0.2, ag_trans_g: 0, sodio_mg: 2 },
+      micronutrients: {
+        acucar_total_g: 1,
+        acucar_adicao_g: 0,
+        ag_saturados_g: 0.2,
+        ag_trans_g: 0,
+        sodio_mg: 2,
+      },
       active: true,
     } as never)
     .select('id')

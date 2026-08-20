@@ -77,7 +77,13 @@ describe('anamnese impressa (T021)', () => {
 })
 
 describe('orientações impressas (T021)', () => {
-  const identity: PatientIdentity = { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] }
+  const identity: PatientIdentity = {
+    name: 'Paciente Teste',
+    lines: [
+      { key: 'nascimento', label: 'Nascimento', value: '10/05/1990' },
+      { key: 'idade', label: 'Idade', value: '36 anos' },
+    ],
+  }
 
   it('gera um PDF com o texto íntegro, inclusive o que atravessa página', async () => {
     const longo = 'Guia FODMAP. '.repeat(250) // ~3.200 caracteres, mais de uma página

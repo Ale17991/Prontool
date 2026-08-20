@@ -4,7 +4,11 @@ import { DomainError, NotFoundError } from '@/lib/observability/errors'
 import { recordMeasurementsBatch } from '@/lib/core/patient-portal/measurements'
 import type { Sex } from '../age-sex'
 import type { CircumferenceSite, DobraProtocol, SkinfoldSite, TmbEquation } from '../protocols'
-import { computeComposition, NutritionInputError, type CompositionResult } from '../body-composition'
+import {
+  computeComposition,
+  NutritionInputError,
+  type CompositionResult,
+} from '../body-composition'
 import { computeEnergy, type EnergyResult } from '../energy'
 
 /**
@@ -76,9 +80,13 @@ export async function createNutritionAssessment(
   const hasComposition = !!input.dobraProtocol
   const hasEnergy = !!input.tmbEquation
   if (!hasComposition && !hasEnergy) {
-    throw new DomainError('ASSESSMENT_EMPTY', 'Informe ao menos composição corporal ou gasto energético.', {
-      status: 422,
-    })
+    throw new DomainError(
+      'ASSESSMENT_EMPTY',
+      'Informe ao menos composição corporal ou gasto energético.',
+      {
+        status: 422,
+      },
+    )
   }
 
   // Paciente precisa pertencer ao tenant da sessão.
@@ -175,7 +183,9 @@ export async function createNutritionAssessment(
 
   // 4) Lança os derivados no motor de medições (best-effort — a avaliação é a
   //    fonte da verdade; as métricas são o espelho para os gráficos/portal).
-  const entries: { metricType: string; value: number }[] = [{ metricType: 'peso', value: input.weightKg }]
+  const entries: { metricType: string; value: number }[] = [
+    { metricType: 'peso', value: input.weightKg },
+  ]
   if (composition) {
     entries.push({ metricType: 'percentual_gordura', value: composition.fatPct })
     entries.push({ metricType: 'massa_gorda_kg', value: composition.fatMassKg })

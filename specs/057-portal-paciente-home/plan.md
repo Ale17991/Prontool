@@ -31,15 +31,15 @@ layout do painel; e uma migration
 
 ## Constitution Check
 
-*GATE: avaliado antes da Fase 0 e reavaliado após a Fase 1. Resultado: **PASS** nas duas passagens.*
+_GATE: avaliado antes da Fase 0 e reavaliado após a Fase 1. Resultado: **PASS** nas duas passagens._
 
-| Princípio | Aplicabilidade | Como esta feature se comporta |
-| --- | --- | --- |
-| **I. Integridade Financeira Imutável** | Não aplicável | O portal não exibe nem grava valor financeiro. FR-011 mantém a proibição explícita. Nada é reescrito. |
-| **II. Auditabilidade Total** | Aplicável por analogia | A trilha de acesso do paciente (LGPD) segue append-only: a coluna `section` nasce nula e **as linhas antigas não são retroalimentadas** (FR-007a). A feature aumenta a informação da trilha (passa a dizer qual área), nunca a reduz. |
-| **III. Isolamento Multi-Tenant** | **Aplicável — núcleo** | `tenantId`/`patientId` saem exclusivamente do cookie HMAC verificado; o `slug` da URL identifica a clínica e é conferido contra o tenant da sessão. Toda consulta filtra por ambos. Cookie da clínica A não abre o portal da clínica B (contrato de rotas, invariante 4). |
-| **IV. Conformidade TUSS/ANS** | Não aplicável | Nenhum código de procedimento é lido ou exibido. |
-| **V. RBAC** | Aplicável | O portal tem sessão própria de paciente, não papéis de staff. O gate de seção é **server-side** (FR-006): o card escondido na home não é o controle — o controle é o redirecionamento em `openPortalPage`, exatamente o que o princípio exige ao rejeitar "ocultar botão" como mecanismo. A edição do texto de boas-vindas continua sob `patient_portal.config` (admin), avaliada no servidor. |
+| Princípio                              | Aplicabilidade         | Como esta feature se comporta                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável** | Não aplicável          | O portal não exibe nem grava valor financeiro. FR-011 mantém a proibição explícita. Nada é reescrito.                                                                                                                                                                                                                                                                                          |
+| **II. Auditabilidade Total**           | Aplicável por analogia | A trilha de acesso do paciente (LGPD) segue append-only: a coluna `section` nasce nula e **as linhas antigas não são retroalimentadas** (FR-007a). A feature aumenta a informação da trilha (passa a dizer qual área), nunca a reduz.                                                                                                                                                          |
+| **III. Isolamento Multi-Tenant**       | **Aplicável — núcleo** | `tenantId`/`patientId` saem exclusivamente do cookie HMAC verificado; o `slug` da URL identifica a clínica e é conferido contra o tenant da sessão. Toda consulta filtra por ambos. Cookie da clínica A não abre o portal da clínica B (contrato de rotas, invariante 4).                                                                                                                      |
+| **IV. Conformidade TUSS/ANS**          | Não aplicável          | Nenhum código de procedimento é lido ou exibido.                                                                                                                                                                                                                                                                                                                                               |
+| **V. RBAC**                            | Aplicável              | O portal tem sessão própria de paciente, não papéis de staff. O gate de seção é **server-side** (FR-006): o card escondido na home não é o controle — o controle é o redirecionamento em `openPortalPage`, exatamente o que o princípio exige ao rejeitar "ocultar botão" como mecanismo. A edição do texto de boas-vindas continua sob `patient_portal.config` (admin), avaliada no servidor. |
 
 **Restrições de domínio**:
 
@@ -50,7 +50,7 @@ layout do painel; e uma migration
   continua vindo por RPC que decifra, e só o primeiro nome chega à tela.
 - **Observabilidade**: cada acesso vira evento na trilha, agora com a área.
 
-**Violações a justificar**: nenhuma. A seção *Complexity Tracking* fica vazia.
+**Violações a justificar**: nenhuma. A seção _Complexity Tracking_ fica vazia.
 
 ## Project Structure
 

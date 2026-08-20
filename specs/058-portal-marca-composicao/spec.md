@@ -16,7 +16,7 @@ A feature 057 preparou o terreno sem que esse fosse o objetivo: ao trocar toda
 cor escrita na mão por tokens de tema, ela tornou possível uma clínica ter a
 própria paleta sem reescrever tela nenhuma.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - A clínica se reconhece no portal (Priority: P1)
 
@@ -89,7 +89,7 @@ não aparece no portal nem pelo endereço direto.
 - **Paciente com uma única avaliação**: mostra o valor atual sem afirmar tendência. Um ponto não é evolução.
 - **Módulo revogado depois de ligado**: a área some do portal, sem apagar dado nenhum.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -127,7 +127,7 @@ não aparece no portal nem pelo endereço direto.
 - **Composição corporal**: resultado já apurado pela avaliação nutricional (percentual de gordura, massa gorda, massa magra) mais o método usado e a data.
 - **Módulo de nutrição**: o que a plataforma libera por clínica e a clínica expõe ao paciente.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

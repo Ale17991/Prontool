@@ -15,7 +15,10 @@ export const runtime = 'nodejs'
 
 const schema = z.object({ plan_id: z.string().uuid() })
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/pacientes/${params.id}/plano-alimentar/prescrever`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -27,12 +30,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const supabase = createSupabaseServiceClient()
     const ent = await getTenantEntitlements(supabase, session.tenantId)
     if (!ent.hasModule('dieta')) {
-      return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+      return NextResponse.json(
+        { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+        { status: 404 },
+      )
     }
     const parsed = schema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }

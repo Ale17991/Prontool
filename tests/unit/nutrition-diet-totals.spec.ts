@@ -39,7 +39,14 @@ describe('itemNutrients — regra de três sobre a porção de referência', () 
   })
 
   it('porção de referência diferente de 100 g', () => {
-    const whey: FoodRef = { referenceGrams: 30, energyKcal: 120, proteinG: 24, carbG: 3, fatG: 1.5, fiberG: 0 }
+    const whey: FoodRef = {
+      referenceGrams: 30,
+      energyKcal: 120,
+      proteinG: 24,
+      carbG: 3,
+      fatG: 1.5,
+      fiberG: 0,
+    }
     const n = itemNutrients({ grams: 60, food: whey })
     expect(n.energyKcal).toBeCloseTo(240, 6)
     expect(n.proteinG).toBeCloseTo(48, 6)
@@ -52,7 +59,12 @@ describe('itemNutrients — regra de três sobre a porção de referência', () 
 })
 
 describe('mealTotals / dayTotals — soma bate exatamente (SC-002)', () => {
-  const meal1 = { items: [{ grams: 150, food: arrozIntegral }, { grams: 120, food: frango }] }
+  const meal1 = {
+    items: [
+      { grams: 150, food: arrozIntegral },
+      { grams: 120, food: frango },
+    ],
+  }
   const meal2 = { items: [{ grams: 100, food: arrozIntegral }] }
 
   it('total da refeição = soma dos itens', () => {
@@ -80,8 +92,22 @@ describe('mealTotals / dayTotals — soma bate exatamente (SC-002)', () => {
 describe('groupNutrients — grupo (lista OU) conta como 1 porção por reference_kcal', () => {
   // Dois itens porcionados p/ ~80 kcal cada: arroz integral 65g (~80.6 kcal),
   // batata 100g (fictícia 80 kcal).
-  const arroz: FoodRef = { referenceGrams: 100, energyKcal: 124, proteinG: 2.6, carbG: 25.8, fatG: 1, fiberG: 2.7 }
-  const batata: FoodRef = { referenceGrams: 100, energyKcal: 80, proteinG: 2, carbG: 18, fatG: 0, fiberG: 1.5 }
+  const arroz: FoodRef = {
+    referenceGrams: 100,
+    energyKcal: 124,
+    proteinG: 2.6,
+    carbG: 25.8,
+    fatG: 1,
+    fiberG: 2.7,
+  }
+  const batata: FoodRef = {
+    referenceGrams: 100,
+    energyKcal: 80,
+    proteinG: 2,
+    carbG: 18,
+    fatG: 0,
+    fiberG: 1.5,
+  }
 
   it('energia = reference_kcal quando definida; macros proporcionais', () => {
     const n = groupNutrients({
@@ -157,7 +183,14 @@ describe('micronutrientes na soma (049 US1)', () => {
   })
 
   it('alimento sem micros não adiciona chaves', () => {
-    const semMicro: FoodRef = { referenceGrams: 100, energyKcal: 100, proteinG: 0, carbG: 25, fatG: 0, fiberG: 0 }
+    const semMicro: FoodRef = {
+      referenceGrams: 100,
+      energyKcal: 100,
+      proteinG: 0,
+      carbG: 25,
+      fatG: 0,
+      fiberG: 0,
+    }
     const n = itemNutrients({ grams: 50, food: semMicro })
     expect(n.micros).toBeUndefined()
   })
@@ -189,7 +222,13 @@ describe('targetDelta — comparação com a meta (FR-011)', () => {
 
 describe('roundNutrients — arredonda só na fronteira', () => {
   it('2 casas', () => {
-    const r = roundNutrients({ energyKcal: 186.00001, proteinG: 3.899, carbG: 38.7, fatG: 1.5, fiberG: 4.05 })
+    const r = roundNutrients({
+      energyKcal: 186.00001,
+      proteinG: 3.899,
+      carbG: 38.7,
+      fatG: 1.5,
+      fiberG: 4.05,
+    })
     expect(r.energyKcal).toBe(186)
     expect(r.proteinG).toBe(3.9)
   })

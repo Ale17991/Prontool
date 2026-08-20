@@ -43,13 +43,16 @@ export async function setAppointmentMaterialCost(
   if (preErr) throw new Error(`setAppointmentMaterialCost precheck failed: ${preErr.message}`)
   if (!row) throw new NotFoundError('appointment_materials', input.materialRowId)
 
-  const { error } = await supabase.rpc('set_appointment_material_cost' as never, {
-    p_material_row_id: input.materialRowId,
-    p_unit_cost_cents: input.unitCostCents,
-    p_material_id: input.materialId ?? null,
-    p_reason: input.reason.trim(),
-    p_actor: input.actorUserId,
-  } as never)
+  const { error } = await supabase.rpc(
+    'set_appointment_material_cost' as never,
+    {
+      p_material_row_id: input.materialRowId,
+      p_unit_cost_cents: input.unitCostCents,
+      p_material_id: input.materialId ?? null,
+      p_reason: input.reason.trim(),
+      p_actor: input.actorUserId,
+    } as never,
+  )
 
   if (error) {
     const msg = error.message ?? ''

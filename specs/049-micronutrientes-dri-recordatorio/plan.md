@@ -21,7 +21,7 @@ Completar a vertical de nutrição com paridade às planilhas base: (1) micronut
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável**: N/A direto (feature não cria registros financeiros). A prescrição imutável do plano (047) já existe e não é tocada. Recordatório é registro clínico editável (não financeiro) — sem violação.
 - **II. Auditabilidade Total**: escrita de alimento próprio (com micros), recordatório e qualquer edição usam `log_audit_event` no padrão existente. DRIs são catálogo global read-only pela clínica.

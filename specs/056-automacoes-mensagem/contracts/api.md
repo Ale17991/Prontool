@@ -46,7 +46,11 @@ Campos opcionais: `name`, `body`, `active`. Mesmas validações.
 ### `POST /api/automacoes/gatilhos`
 
 ```json
-{ "name": "Álcool 3x na semana", "source": "checklist_marcado", "params": { "itemId": "alcool", "vezes": 3 } }
+{
+  "name": "Álcool 3x na semana",
+  "source": "checklist_marcado",
+  "params": { "itemId": "alcool", "vezes": 3 }
+}
 ```
 
 - `201` → `{ "id": "..." }`
@@ -62,7 +66,12 @@ Campos opcionais: `name`, `body`, `active`. Mesmas validações.
 `200` →
 
 ```json
-{ "candidatosHoje": 137, "tetoPorCiclo": 50, "avisoVolume": true, "exemplos": ["Maria S.", "João P."] }
+{
+  "candidatosHoje": 137,
+  "tetoPorCiclo": 50,
+  "avisoVolume": true,
+  "exemplos": ["Maria S.", "João P."]
+}
 ```
 
 FR-014. Roda a **mesma** enumeração do motor, sem gravar (research D6). `avisoVolume` fica `true` quando os candidatos excedem o teto por ciclo — é o sinal de que ativar vai levar vários dias para vazar a fila.
@@ -103,7 +112,10 @@ Não há rota nova. A avaliação acontece dentro de `/api/cron/send-reminders` 
 
 ```json
 {
-  "processed": 12, "sent": 10, "failed": 0, "skipped": 2,
+  "processed": 12,
+  "sent": 10,
+  "failed": 0,
+  "skipped": 2,
   "automacoes": { "avaliadas": 4, "enviadas": 7, "suprimidas": 3, "impedidas": 12 }
 }
 ```

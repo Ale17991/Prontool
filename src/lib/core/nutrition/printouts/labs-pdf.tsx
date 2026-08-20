@@ -4,12 +4,7 @@ import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { LabClass, LabResultItem } from '@/lib/core/labs/classify'
 import { LAB_GROUPS } from '@/lib/core/labs/catalog'
-import {
-  PrintFooter,
-  brDate,
-  dash,
-  printStyles as s,
-} from './shared'
+import { PrintFooter, brDate, dash, printStyles as s } from './shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
@@ -51,7 +46,9 @@ export function rangeLabel(refMin: number | null, refMax: number | null): string
 }
 
 /** Agrupa por painel, na ordem do catálogo. Painel vazio não vira seção. */
-export function groupByPanel(items: LabResultItem[]): Array<{ group: string; items: LabResultItem[] }> {
+export function groupByPanel(
+  items: LabResultItem[],
+): Array<{ group: string; items: LabResultItem[] }> {
   const known = LAB_GROUPS.filter((g) => items.some((i) => i.group === g))
   const extras = [...new Set(items.map((i) => i.group))].filter((g) => !LAB_GROUPS.includes(g))
   return [...known, ...extras].map((group) => ({
@@ -67,7 +64,9 @@ function Row({ item }: { item: LabResultItem }) {
   return (
     <View style={s.row} wrap={false}>
       <Text style={{ flex: COLS.exame }}>{item.label}</Text>
-      <Text style={[{ flex: COLS.valor }, s.right, alterado ? s.bold : {}]}>{dash(item.value)}</Text>
+      <Text style={[{ flex: COLS.valor }, s.right, alterado ? s.bold : {}]}>
+        {dash(item.value)}
+      </Text>
       <Text style={[{ flex: COLS.unidade }, s.right]}>{item.unit}</Text>
       <Text style={[{ flex: COLS.faixa }, s.right]}>{rangeLabel(item.refMin, item.refMax)}</Text>
       <Text style={[{ flex: COLS.sit }, s.right, alterado ? s.bold : {}]}>

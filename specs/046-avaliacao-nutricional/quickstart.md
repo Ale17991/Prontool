@@ -14,15 +14,15 @@ Pré: stack local (`supabase start` :54321), migrations aplicadas (até `0175`),
 
 ## Mapa de verificação (Success Criteria)
 
-| Critério | Como validar |
-|---|---|
-| SC-001 (≤5 min) | Passos 2–4 num paciente já cadastrado |
-| SC-002 (números batendo) | Comparar resultados com `nutri-doc/formulas-referencia.md` / cálculo manual |
-| SC-003 (derivados na evolução) | Passo 4 (medições/gráficos sem passo manual) |
-| SC-004 (isolamento de módulo) | Passo 7 |
-| SC-005 (imutável+auditado) | Passo 5 + conferir `audit_log` |
-| SC-006 (isolamento de clínica) | Tentar ler avaliação de outro tenant → vazio |
-| SC-007 (cobertura de métodos) | Todos os 16 métodos de energia e 10 de composição selecionáveis |
+| Critério                       | Como validar                                                                |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| SC-001 (≤5 min)                | Passos 2–4 num paciente já cadastrado                                       |
+| SC-002 (números batendo)       | Comparar resultados com `nutri-doc/formulas-referencia.md` / cálculo manual |
+| SC-003 (derivados na evolução) | Passo 4 (medições/gráficos sem passo manual)                                |
+| SC-004 (isolamento de módulo)  | Passo 7                                                                     |
+| SC-005 (imutável+auditado)     | Passo 5 + conferir `audit_log`                                              |
+| SC-006 (isolamento de clínica) | Tentar ler avaliação de outro tenant → vazio                                |
+| SC-007 (cobertura de métodos)  | Todos os 16 métodos de energia e 10 de composição selecionáveis             |
 
 ## Testes automatizados (vitest)
 

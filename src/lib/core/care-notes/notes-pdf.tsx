@@ -3,11 +3,7 @@ import { Document, Page, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { CareNote } from '@/lib/core/patient-portal/care-notes'
-import {
-  PrintFooter,
-  brDateTz,
-  printStyles as s,
-} from '@/lib/core/nutrition/printouts/shared'
+import { PrintFooter, brDateTz, printStyles as s } from '@/lib/core/nutrition/printouts/shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 

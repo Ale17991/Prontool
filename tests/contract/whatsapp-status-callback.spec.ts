@@ -194,10 +194,7 @@ describe('Feature 051 — POST /api/webhooks/whatsapp-status', () => {
   it('o telefone do paciente NÃO é persistido (LGPD)', async () => {
     const { POST } = await import('@/app/api/webhooks/whatsapp-status/route')
     await POST(
-      requisicao(
-        { externalId: lembreteA, status: 'delivered', to: '5511999998888' },
-        SEGREDO,
-      ),
+      requisicao({ externalId: lembreteA, status: 'delivered', to: '5511999998888' }, SEGREDO),
     )
     const { data } = await sb
       .from('whatsapp_delivery_events')

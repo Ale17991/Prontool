@@ -11,7 +11,7 @@ Dá ao profissional de nutrição uma **tela de avaliação** onde, a partir de 
 
 Disponível apenas para clínicas com o módulo **`nutri_avaliacao`** ativado no painel de administração.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Avaliar composição corporal por dobras cutâneas (Priority: P1)
 
@@ -86,16 +86,18 @@ O profissional define metas (peso-alvo, percentual de gordura-alvo) e a meta ene
 - **Módulo desativado**: se a clínica não tem `nutri_avaliacao`, a tela e o item de menu não aparecem, e o acesso direto por URL é negado.
 - **Isolamento entre clínicas**: uma avaliação nunca pode ser lida ou associada a paciente de outra clínica.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 **Acesso e escopo**
+
 - **FR-001**: O sistema MUST expor a Avaliação Nutricional como uma **tela própria no menu**, visível apenas quando a clínica tem o módulo `nutri_avaliacao` ativado.
 - **FR-002**: O sistema MUST permitir criar/salvar avaliações apenas para os papéis **administrador** e **profissional de saúde**; demais papéis não criam avaliações.
 - **FR-003**: O sistema MUST restringir toda avaliação ao paciente e à clínica corrente (isolamento por clínica).
 
 **Composição corporal (US1)**
+
 - **FR-004**: O sistema MUST oferecer **todos os protocolos de composição corporal das planilhas de referência**: **Durnin-Womersley (1974)**, **Guedes (1985)**, **Jackson-Pollock-Ward 3 dobras (1980)**, **Jackson-Pollock-Ward 7 dobras (1980)**, **Petroski (1995)**, **Faulkner (1987)**, **Weltman (1988)**, **McArdle (1992, 9–16 anos)**, **Slaughter (1988, 7–18 anos)** e **bioimpedância** (entrada direta de percentual de gordura).
 - **FR-005**: Para cada protocolo, o sistema MUST indicar **quais dobras** são exigidas e validar que foram informadas antes de calcular.
 - **FR-006**: O sistema MUST calcular **densidade corporal → percentual de gordura** (fórmula de Siri ou Brozek), **massa gorda** e **massa magra** a partir das dobras e do peso.
@@ -103,6 +105,7 @@ O profissional define metas (peso-alvo, percentual de gordura-alvo) e a meta ene
 - **FR-008**: O sistema MUST diferenciar os coeficientes por **sexo** e respeitar a **faixa etária** de validade de cada protocolo.
 
 **Necessidades energéticas (US2)**
+
 - **FR-009**: O sistema MUST oferecer **todas as equações de gasto energético das planilhas de referência**: **Harris-Benedict (1919)**, **Harris-Benedict (1984)**, **Mifflin-St Jeor (1990)**, **FAO/OMS-WHO (1985)**, **FAO/WHO (2004)**, **Schofield (1985)**, **Henry-Rees (1991)**, **Cunningham (1980)**, **Tinsley por peso (2018)**, **Tinsley por massa magra (2018)**, **Katch-McArdle (1996)**, **EER/IOM (2005)**, **EER (2023)**, **EER Gestante (2023)** e **EER Lactante (0–6 e 7–12 meses) (2023)**.
 - **FR-010**: O sistema MUST calcular a **taxa metabólica basal** conforme a equação escolhida (usando massa magra quando a equação exigir).
 - **FR-011**: O sistema MUST aplicar um **fator de atividade física** e, quando informado, um **fator de injúria/estresse** e o **adicional de gestação/lactação** para obter o **gasto energético total**.
@@ -110,27 +113,30 @@ O profissional define metas (peso-alvo, percentual de gordura-alvo) e a meta ene
 - **FR-013**: O sistema MUST calcular a **distribuição de macronutrientes** (gramas de proteína, carboidrato e lipídio) a partir do valor energético da meta e da distribuição informada (por percentual e/ou por grama por quilo), validando que os percentuais somam 100%.
 
 **Registro e histórico (US1/US2/US3)**
+
 - **FR-014**: O sistema MUST persistir cada avaliação como um **registro imutável** contendo as entradas (medidas, protocolo/equação, fatores) e os resultados calculados (retrato da consulta).
 - **FR-015**: Ao salvar, o sistema MUST **lançar os indicadores derivados** (percentual de gordura, massa magra, massa gorda, IMC, taxa metabólica basal, gasto energético total) no **histórico de medições longitudinais** do paciente.
 - **FR-016**: O sistema MUST exibir o **histórico de avaliações** do paciente (mais recente primeiro) e a **evolução** dos indicadores ao longo do tempo.
 - **FR-017**: O sistema MUST tratar correção como **nova avaliação**, preservando as anteriores.
 
 **Metas (US4)**
+
 - **FR-018**: O sistema MUST permitir definir **metas** do paciente (peso-alvo, percentual de gordura-alvo) reaproveitando o mecanismo de metas de métrica existente, e exibi-las junto da evolução.
 
 **Qualidade e conformidade**
+
 - **FR-019**: O sistema MUST **barrar valores implausíveis** (fora de faixa fisiológica) nas entradas antes de calcular/salvar.
 - **FR-020**: O sistema MUST **auditar** a criação de cada avaliação (quem, quando, para qual paciente).
 - **FR-021**: O sistema MUST orientar o profissional quando faltarem **dados obrigatórios do paciente** (sexo, data de nascimento) ou quando o **protocolo/equação não for indicado para a idade**.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Avaliação Nutricional**: o retrato imutável de uma consulta de avaliação. Pertence a um paciente e a uma clínica; guarda data, sexo/idade considerados, peso e altura, dobras cutâneas e circunferências informadas, protocolo de composição escolhido, equação de taxa metabólica basal escolhida, fatores (atividade, injúria, gestação, objetivo, distribuição de macros) e todos os resultados calculados (densidade, percentual de gordura, massa gorda/magra, IMC e classificação, relação cintura-quadril e classificação, taxa metabólica basal, gasto energético total, valor energético da meta e macros). Autor e data de criação registrados.
 - **Indicador de medição (existente)**: os resultados-chave da avaliação (percentual de gordura, massa magra/gorda, IMC, taxa metabólica basal, gasto energético total) são registrados como medições longitudinais do paciente, reaproveitando o catálogo de métricas, os gráficos de evolução e o portal do paciente.
 - **Meta de métrica (existente)**: peso-alvo e percentual de gordura-alvo do paciente.
 - **Módulo `nutri_avaliacao` (existente)**: o entitlement que habilita a feature por clínica, administrável no painel `/admin`.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

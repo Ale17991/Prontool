@@ -6,10 +6,7 @@
  * cru no papel entregue ao paciente. É isso que os testes travam.
  */
 import { describe, expect, it } from 'vitest'
-import {
-  READY_MADE_DOCUMENTS,
-  readyMadeDocument,
-} from '@/lib/core/document-templates/ready-made'
+import { READY_MADE_DOCUMENTS, readyMadeDocument } from '@/lib/core/document-templates/ready-made'
 import {
   AVAILABLE_PLACEHOLDERS,
   substitutePlaceholders,
