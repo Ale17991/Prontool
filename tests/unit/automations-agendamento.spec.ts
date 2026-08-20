@@ -11,6 +11,7 @@
 import { describe, expect, it } from 'vitest'
 import { agendar } from '@/lib/core/automations/evaluate'
 import {
+  ancorada,
   duracaoTexto,
   ehAncorada,
   emDias,
@@ -144,6 +145,46 @@ describe('antecedência em minutos', () => {
   })
 
   /**
+   * 1440 minutos são "1 dia" E "24 horas", e as duas leituras produzem envios
+   * diferentes: o lote das 09:00 para todo mundo, ou a contagem a partir do
+   * horário de cada paciente. A aritmética sozinha sempre respondeu "dia", e por
+   * isso uma automação criada como "24 horas antes" entregava entre 23h50 e
+   * 25h30 conforme a hora da consulta (medido em produção, 20/08/2026).
+   */
+  it('a intenção gravada desempata 1440 minutos; a aritmética responde o resto', () => {
+    expect(ancorada({ antecedenciaMin: MINUTOS_POR_DIA, ancorar: true })).toBe(true)
+    expect(ancorada({ antecedenciaMin: MINUTOS_POR_DIA })).toBe(false)
+    expect(ancorada({ antecedenciaMin: 2 * MINUTOS_POR_DIA, ancorar: false })).toBe(false)
+    expect(ancorada({ antecedenciaMin: 240 })).toBe(true)
+    expect(ancorada({})).toBe(false)
+  })
+
+  it('ancorada nunca se diz em dias — é o texto que vai na mensagem', () => {
+    expect(duracaoTexto(MINUTOS_POR_DIA, true)).toBe('24 horas')
+    expect(duracaoTexto(2 * MINUTOS_POR_DIA, true)).toBe('48 horas')
+    expect(duracaoTexto(MINUTOS_POR_DIA, false)).toBe('1 dia')
+  })
+
+  /**
+   * O gatilho é reaproveitado por IGUALDADE de parâmetros. Guardar `ancorar`
+   * quando ele só repete a aritmética partiria em dois um gatilho que é um só —
+   * o antigo, sem a chave, nunca casaria com o novo.
+   */
+  it('guarda a intenção só quando ela contradiz a aritmética', () => {
+    const schema = antecedenciaSchema(0, 60 * MINUTOS_POR_DIA)
+    expect(schema.parse({ antecedenciaMin: MINUTOS_POR_DIA, ancorar: true })).toEqual({
+      antecedenciaMin: MINUTOS_POR_DIA,
+      ancorar: true,
+    })
+    expect(schema.parse({ antecedenciaMin: 2 * MINUTOS_POR_DIA, ancorar: false })).toEqual({
+      antecedenciaMin: 2 * MINUTOS_POR_DIA,
+    })
+    expect(schema.parse({ antecedenciaMin: 240, ancorar: true })).toEqual({
+      antecedenciaMin: 240,
+    })
+  })
+
+  /**
    * O gatilho gravado antes desta mudança tem `{ dias: 2 }`. Sem a conversão, o
    * `.strict()` recusaria a linha e a automação pararia de mandar sem nada na
    * tela explicando — a clínica veria uma automação ligada e muda.
@@ -182,5 +223,50 @@ describe('antecedência em minutos', () => {
     const { de, ate } = janelaAncorada(ctx, 120, 'depois')
     expect(de).toBe('2026-08-13T15:00:00.000Z')
     expect(ate).toBe('2026-08-13T15:15:00.000Z')
+  })
+
+  /**
+   * O atraso de uma mensagem ancorada é o tamanho desta janela, então a borda de
+   * trás é o teto da mentira. Depois da janela de silêncio da noite, a varredura
+   * das 08:00 alcançava seis horas de âncoras vencidas e entregava todas com o
+   * texto original: a consulta das 10:20, cuja hora de avisar era 06:20, saía às
+   * 08:50 dizendo "4 horas". O que passa do teto é descartado.
+   */
+  it('não alcança âncora vencida além do atraso máximo', () => {
+    const now = new Date('2026-08-13T11:00:00.000Z')
+    const ctx = {
+      // Seis horas sem varrer — a noite inteira dentro da janela de silêncio.
+      windowFrom: new Date('2026-08-13T05:00:00.000Z'),
+      now,
+    } as never
+    const { de, ate } = janelaAncorada(ctx, 240, 'antes')
+    // Sem o teto, `de` seria 05:00 + 4h = 09:00, e a consulta das 09:00 (avisada
+    // com 4h de atraso) entraria. Com o teto, a borda é 10:30 + 4h.
+    expect(de).toBe('2026-08-13T14:30:00.000Z')
+    expect(ate).toBe('2026-08-13T15:00:00.000Z')
+  })
+
+  it('o teto não encurta a janela de um ciclo normal', () => {
+    const ctx = {
+      windowFrom: new Date('2026-08-13T17:10:00.000Z'),
+      now: new Date('2026-08-13T17:15:00.000Z'),
+    } as never
+    const { de } = janelaAncorada(ctx, 120, 'antes')
+    expect(de).toBe('2026-08-13T19:10:00.000Z')
+  })
+
+  /**
+   * A prévia mede o dia inteiro para responder "quantos isso pega?". Sob o teto
+   * de atraso ela responderia pela meia hora anterior, e a clínica ligaria às
+   * cegas uma automação que vai falar com a base toda.
+   */
+  it('a prévia não sofre o teto de atraso', () => {
+    const ctx = {
+      windowFrom: new Date('2026-08-13T03:00:00.000Z'),
+      now: new Date('2026-08-14T03:00:00.000Z'),
+      previewMode: true,
+    } as never
+    const { de } = janelaAncorada(ctx, 120, 'antes')
+    expect(de).toBe('2026-08-13T05:00:00.000Z')
   })
 })

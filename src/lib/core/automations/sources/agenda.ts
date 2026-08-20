@@ -31,7 +31,7 @@ import {
   dataBr,
   dataHoraBr,
   duracaoTexto,
-  ehAncorada,
+  ancorada,
   lerAntecedencia,
   eligiblePatients,
   emDias,
@@ -157,7 +157,7 @@ registerSource({
   ],
   variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento', 'antecedencia'],
 
-  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
+  isAnchored: (p) => ancorada(p),
 
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
     const antecedenciaMin = lerAntecedencia(ctx.params)
@@ -169,7 +169,7 @@ registerSource({
     // horário que a clínica escolheu. Em horas ou minutos, o recorte é a janela
     // deste ciclo deslocada — a mensagem sai a tantas horas da consulta,
     // qualquer que seja a hora do dia.
-    const { de, ate } = ehAncorada(antecedenciaMin)
+    const { de, ate } = ancorada(ctx.params)
       ? janelaAncorada(ctx, antecedenciaMin, 'antes')
       : janelaDoDia(addDias(ctx.today, emDias(antecedenciaMin)), ctx.timezone)
 
@@ -216,7 +216,7 @@ registerSource({
         occurrenceKey: a.id as string,
         variables: {
           ...variaveisDoAtendimento({ ...a, appointment_at: a.appointment_at as string }, ctx),
-          antecedencia: duracaoTexto(antecedenciaMin),
+          antecedencia: duracaoTexto(antecedenciaMin, ancorada(ctx.params)),
         },
       }))
   },
@@ -245,7 +245,7 @@ registerSource({
   ],
   variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento', 'antecedencia'],
 
-  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
+  isAnchored: (p) => ancorada(p),
 
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
     const antecedenciaMin = lerAntecedencia(ctx.params)
@@ -254,7 +254,7 @@ registerSource({
 
     // O corte é pela CONCLUSÃO, não pelo horário marcado: um atendimento
     // remarcado e realizado depois deve contar de quando aconteceu.
-    const { de, ate } = ehAncorada(antecedenciaMin)
+    const { de, ate } = ancorada(ctx.params)
       ? janelaAncorada(ctx, antecedenciaMin, 'depois')
       : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone)
 
@@ -297,7 +297,7 @@ registerSource({
         occurrenceKey: a.id as string,
         variables: {
           ...variaveisDoAtendimento({ ...a, appointment_at: a.appointment_at as string }, ctx),
-          antecedencia: duracaoTexto(antecedenciaMin),
+          antecedencia: duracaoTexto(antecedenciaMin, ancorada(ctx.params)),
         },
       }))
   },
@@ -334,14 +334,14 @@ registerSource({
   ],
   variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento'],
 
-  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
+  isAnchored: (p) => ancorada(p),
 
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
     const antecedenciaMin = lerAntecedencia(ctx.params)
     const aptos = await eligiblePatients(ctx)
     if (aptos.size === 0) return []
 
-    const { de, ate } = ehAncorada(antecedenciaMin)
+    const { de, ate } = ancorada(ctx.params)
       ? janelaAncorada(ctx, antecedenciaMin, 'depois')
       : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone)
 

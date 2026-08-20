@@ -26,8 +26,12 @@ export function describeTrigger(
     const valor = params[campo.name]
     if (valor === undefined || valor === null || valor === '') continue
 
+    // A fonte é quem sabe se estes minutos foram escritos como dias ou como
+    // horas — 1440 é as duas coisas. Sem perguntar a ela, quem pediu "24 horas
+    // antes" via o gatilho se apresentar como "Antes da consulta — 1 dia", que é
+    // outro envio.
     if (campo.kind === 'duration' && typeof valor === 'number') {
-      partes.push(duracaoTexto(valor))
+      partes.push(duracaoTexto(valor, Boolean(fonte.isAnchored?.(params))))
       continue
     }
     // Campo de escolha guarda ID (do hábito, da métrica): o rótulo legível

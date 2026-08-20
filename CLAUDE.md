@@ -374,6 +374,33 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   as fontes com âncora `TIMESTAMPTZ` real — `pre_consulta`, `pos_atendimento`,
   `falta_consulta`, `boas_vindas`. Vencimento de parcela é `DATE`: não tem hora
   para ancorar, e oferecer "2 horas antes" ali seria promessa vazia.
+- **O EMPATE de 1440 minutos a aritmética não resolve** — "1 dia" e "24 horas"
+  são o mesmo número e envios diferentes. A regra acima sempre decidiu por dia
+  civil, então quem criava "24 horas antes" recebia o lote das 09:00 e uma
+  distância real de 23h50 a 25h30 conforme a hora da consulta de cada paciente
+  (medido em produção, 20/08/2026). Agora a UNIDADE escolhida na tela viaja como
+  `ancorar` nos params, e `ancorada()` a consulta antes de cair na aritmética. A
+  chave é **descartada na gravação quando só repete o que a aritmética já diria**:
+  o gatilho é reaproveitado por igualdade de parâmetros, e uma chave redundante
+  partiria em dois um gatilho que é um só. Gatilho anterior à mudança não tem a
+  chave e mantém a leitura de dia civil — **o que já existe em produção só passa a
+  valer 24 horas depois de reaberto e salvo**.
+- **`duracaoTexto` de uma ancorada nunca se diz em dias.** É ele que preenche
+  `{{antecedencia}}` na mensagem do paciente e que nomeia o gatilho na tela:
+  escrever "1 dia" numa automação que dispara 24 horas antes descreveria o envio
+  errado ao próprio destinatário.
+- **O atraso de uma mensagem ancorada é o TAMANHO DA JANELA de varredura**, e por
+  isso `janelaAncorada` limita a borda de trás a `ATRASO_MAX_MINUTOS` (30). Sem
+  isso, três proteções somadas produziam mentira: a janela de silêncio guardava a
+  noite, a varredura das 08:00 alcançava seis horas de âncoras vencidas, e o teto
+  de uma mensagem por ciclo escoava a fila devagar — a consulta das 10:20, cuja
+  hora de avisar era 06:20, saía às 08:50 dizendo "4 horas" (produção, 20/08/2026).
+  O que passa do teto é **descartado**, não enfileirado: a mensagem afirma uma
+  distância, e entregá-la fora dela não é atraso, é informação falsa. Trinta
+  minutos porque o escoamento é normal — seis âncoras simultâneas levam meia hora
+  para sair, e um teto menor mataria a cauda de todo lote. **A prévia é isenta**,
+  pelo mesmo motivo que já a isenta do descarte do atendimento começado: ela mede
+  o dia inteiro, e sob o teto responderia pela última meia hora.
 - **`lerAntecedencia` lê as duas grafias porque o motor entrega `params` CRU**,
   direto da coluna, sem passar pelo `paramsSchema`. Consertar só o schema
   consertaria a escrita e esqueceria a leitura: gatilho gravado com `{dias: 2}`

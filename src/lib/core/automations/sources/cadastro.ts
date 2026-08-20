@@ -13,7 +13,7 @@ import {
   addDias,
   antecedenciaSchema,
   dataCivilBr,
-  ehAncorada,
+  ancorada,
   lerAntecedencia,
   emDias,
   janelaAncorada,
@@ -76,13 +76,13 @@ registerSource({
   ],
   variables: [],
 
-  isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
+  isAnchored: (p) => ancorada(p),
 
   async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
     const antecedenciaMin = lerAntecedencia(ctx.params)
     const linhas = await cadastradosEntre(
       ctx,
-      ehAncorada(antecedenciaMin)
+      ancorada(ctx.params)
         ? janelaAncorada(ctx, antecedenciaMin, 'depois')
         : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone),
     )
