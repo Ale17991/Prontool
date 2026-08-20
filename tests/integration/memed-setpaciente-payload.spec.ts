@@ -48,7 +48,7 @@ describe('Feature 027 — setPaciente payload completo', () => {
     expect(payload.nome).toBe('Maria Prescrição Teste')
     expect(payload.cpf).toBe('52998224725')
     expect(payload.email).toBe('maria.memed@example.com')
-    expect(payload.telefone).toBe('(11) 98888-7777')
+    expect(payload.telefone).toBe('11988887777')
     expect(payload.data_nascimento).toBe('15/03/1990') // DD/MM/AAAA exigido pela Memed
     expect(payload.sexo).toBe('F')
     expect(payload.endereco?.cidade).toBe('São Paulo')
