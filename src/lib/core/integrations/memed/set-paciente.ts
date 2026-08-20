@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { getPatient } from '@/lib/core/patients/get'
+import { toBrazilianLocal } from '@/lib/core/whatsapp/phone'
 import { MemedPatientFieldsMissingError } from './errors'
 import { memedSetPacientePayloadSchema, type MemedSetPacientePayload } from './types'
 
@@ -55,7 +56,18 @@ export async function buildSetPaciente(
     cpf,
     sexo: mapSex(patient.sex),
     data_nascimento: `${day}/${month}/${year}`,
-    telefone: patient.phone ?? undefined,
+    /**
+     * Formato local (DDD + assinante), pelo mesmo motivo que o CPF sobe só com
+     * dígitos: quem recebe é uma API brasileira, e ela espera o número como se
+     * escreve aqui.
+     *
+     * Isto era `patient.phone` cru até 20/08/2026, e passou a estar errado sem
+     * ninguém mexer neste arquivo: a `cf69453` fez o cadastro gravar o telefone
+     * canônico do WhatsApp, então a Memed passou a receber `5511988887777` onde
+     * antes chegava `(11) 98888-7777`. O teste do payload apontou, e ficou meses
+     * lido como ruído da suíte.
+     */
+    telefone: patient.phone ? toBrazilianLocal(patient.phone) : undefined,
     email: patient.email ?? undefined,
     endereco: hasAddress
       ? {

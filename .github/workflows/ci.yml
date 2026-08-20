@@ -61,7 +61,14 @@ jobs:
           cache: pnpm
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Versao FIXA, e nao `latest`: o `latest` resolve pela API do GitHub, que
+          # e limitada por cota. Em 20/08/2026 o master ficou vermelho com "Failed
+          # to resolve latest Supabase CLI release: rate limit exceeded" — o binario
+          # nao instalou, `supabase start` morreu com exit 127 e o job caiu em 19
+          # segundos sem rodar teste nenhum. No painel, falha de cota nao se
+          # distingue de falha de codigo. Acompanha a versao do pacote `supabase`
+          # em package.json.
+          version: 2.92.0
       - run: pnpm install --frozen-lockfile
       - run: supabase start
       - name: Exporta chaves reais do stack + sanity-check de grants
@@ -103,7 +110,14 @@ jobs:
           cache: pnpm
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Versao FIXA, e nao `latest`: o `latest` resolve pela API do GitHub, que
+          # e limitada por cota. Em 20/08/2026 o master ficou vermelho com "Failed
+          # to resolve latest Supabase CLI release: rate limit exceeded" — o binario
+          # nao instalou, `supabase start` morreu com exit 127 e o job caiu em 19
+          # segundos sem rodar teste nenhum. No painel, falha de cota nao se
+          # distingue de falha de codigo. Acompanha a versao do pacote `supabase`
+          # em package.json.
+          version: 2.92.0
       - run: pnpm install --frozen-lockfile
       - run: supabase start
       - name: Exporta chaves reais do stack + sanity-check de grants

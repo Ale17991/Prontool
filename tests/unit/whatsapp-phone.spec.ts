@@ -13,6 +13,7 @@ import {
   toSendableNumber,
   toWhatsAppJid,
   fromTypedInput,
+  toBrazilianLocal,
 } from '@/lib/core/whatsapp/phone'
 
 describe('Feature 051 — getOnlyNumbers', () => {
@@ -196,5 +197,31 @@ describe('telefone canônico na gravação', () => {
   it('gravar duas vezes não acumula prefixo', () => {
     const uma = fromTypedInput('(27) 99273-4155')
     expect(fromTypedInput(uma)).toBe(uma)
+  })
+})
+
+/**
+ * O canônico serve ao WhatsApp; sistema brasileiro nenhum pede o 55 num campo
+ * de celular. A Memed recebia `5511988887777` desde que o cadastro passou a
+ * gravar canônico — sem ninguém mexer no código dela.
+ */
+describe('telefone no formato local brasileiro', () => {
+  it('tira o país do celular e do fixo', () => {
+    expect(toBrazilianLocal('5527992734155')).toBe('27992734155')
+    expect(toBrazilianLocal('552732274155')).toBe('2732274155')
+  })
+
+  it('parte do que a recepção digitou, não só do já canônico', () => {
+    expect(toBrazilianLocal('(27) 99273-4155')).toBe('27992734155')
+    expect(toBrazilianLocal('27992734155')).toBe('27992734155')
+  })
+
+  it('número estrangeiro passa intacto — ali o país é parte do endereço', () => {
+    expect(toBrazilianLocal('+14155552671')).toBe('14155552671')
+  })
+
+  it('aplicar duas vezes não come o DDD', () => {
+    const uma = toBrazilianLocal('5527992734155')
+    expect(toBrazilianLocal(uma)).toBe(uma)
   })
 })

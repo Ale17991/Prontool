@@ -109,3 +109,21 @@ export function toSendableNumber(stored: string): string {
 export function toWhatsAppJid(phone: string): string {
   return `${normalizePhone(phone)}@s.whatsapp.net`
 }
+
+/**
+ * O mesmo número, no formato LOCAL brasileiro — DDD + assinante, sem o 55.
+ *
+ * O oposto de `toSendableNumber`, e existe para os destinos que NÃO são o
+ * WhatsApp. Desde que o cadastro passou a gravar o telefone canônico (`cf69453`),
+ * quem lê `patients.phone` recebe `5511988887777`; um sistema brasileiro que
+ * espera `11988887777` num campo de celular pode recusar, truncar ou guardar
+ * um DDD que não existe.
+ *
+ * Número estrangeiro passa intacto: ali o código do país é parte do endereço, e
+ * removê-lo produziria um número que não liga para lugar nenhum.
+ */
+export function toBrazilianLocal(stored: string): string {
+  const p = toSendableNumber(stored)
+  if (p.startsWith('55') && (p.length === 12 || p.length === 13)) return p.slice(2)
+  return p
+}
