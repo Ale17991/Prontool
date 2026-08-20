@@ -20,7 +20,7 @@ Esta feature permite (1) cadastrar insumos/materiais com custo unitário, (2) re
 - Q: O que acontece se um material for lançado sem custo definido? → A: Aceita com custo 0 e sinaliza como pendência de custo — não bloqueia o atendimento.
 - Q: E se um material custeado for adicionado a um atendimento de um mês já fechado? → A: Reflete só nos relatórios/resultado gerencial; não altera o fechamento de repasse daquele mês.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Registrar o custo dos materiais consumidos no atendimento (Priority: P1)
 
@@ -94,7 +94,7 @@ O responsável clínico mantém o catálogo de insumos: cria, edita o custo e de
 - **Fuso horário do mês**: o gasto com materiais respeita as mesmas fronteiras de mês (fuso da clínica) usadas pelo resultado operacional.
 - **Material TUSS de convênio**: continua funcionando; o custo é uma informação adicional e não interfere na geração de guias/lotes TISS.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -134,13 +134,13 @@ O responsável clínico mantém o catálogo de insumos: cria, edita o custo e de
 - **FR-018**: Todo dado de custo (catálogo e uso) DEVE ser isolado por clínica (tenant), respeitando as regras de acesso existentes.
 - **FR-019**: O registro de uso de material DEVE permanecer append-only (o custo é gravado na inserção e não é editável), consistente com o comportamento atual da tabela de materiais do atendimento.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Insumo (catálogo de materiais)**: item que a clínica consome, com nome, custo unitário (centavos), situação (ativo/desativado) e vínculo TUSS opcional. Pertence a uma clínica.
 - **Material usado no atendimento**: registro de que um insumo foi consumido num atendimento, com quantidade e custo unitário congelado no momento do uso (snapshot), do qual deriva o custo total. Estende o registro de materiais já existente.
 - **Linha "Gasto com materiais"**: métrica agregada derivada dos materiais usados no período, apresentada como dedução no resultado e como coluna nos relatórios (por profissional, por convênio, mensal).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

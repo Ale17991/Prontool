@@ -192,8 +192,8 @@ export function NewPatientWithAnamneseForm({ template, healthPlans, memedPrescri
         </p>
         {memedPrescriber ? (
           <p className="rounded-md bg-amber-50 px-3 py-2 text-[11px] leading-snug text-amber-800">
-            Esta clínica prescreve pela Memed: CPF, e-mail e data de nascimento são obrigatórios
-            no cadastro, senão a receita falha na hora da consulta.
+            Esta clínica prescreve pela Memed: CPF, e-mail e data de nascimento são obrigatórios no
+            cadastro, senão a receita falha na hora da consulta.
           </p>
         ) : null}
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

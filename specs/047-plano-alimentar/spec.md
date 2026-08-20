@@ -11,7 +11,7 @@ Dá ao profissional de nutrição um **construtor de plano alimentar**: a partir
 
 É a contraparte da Avaliação: **a Avaliação define a meta; o Plano Alimentar a realiza.** Disponível apenas para clínicas com o módulo **`dieta`** ativado no painel de administração.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Ter uma base de alimentos utilizável (Priority: P1)
 
@@ -86,16 +86,18 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 - **Isolamento entre clínicas**: alimentos próprios e planos de uma clínica nunca são visíveis para outra; a base pronta é global e somente leitura.
 - **Módulo desativado**: sem o módulo `dieta`, a tela e o item de menu não aparecem e o acesso direto é negado.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 **Acesso e escopo**
+
 - **FR-001**: O sistema MUST expor o Plano Alimentar apenas quando a clínica tem o módulo `dieta` ativado.
 - **FR-002**: O sistema MUST permitir criar/editar/prescrever planos e cadastrar alimentos próprios apenas para os papéis **administrador** e **profissional de saúde**.
 - **FR-003**: O sistema MUST isolar por clínica os alimentos próprios e os planos; a base pronta é **global e somente leitura**.
 
 **Base de alimentos (US1)**
+
 - **FR-004**: O sistema MUST oferecer uma **base de alimentos pronta** (padrão TACO/IBGE) consultável por todas as clínicas.
 - **FR-005**: O sistema MUST permitir **cadastro de alimentos próprios** por clínica, com nome, grupo alimentar, porção de referência, medida caseira e nutrientes.
 - **FR-006**: Cada alimento MUST registrar ao menos energia e macronutrientes (proteína, carboidrato, lipídio) e fibra; micronutrientes são **opcionais**.
@@ -103,6 +105,7 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 - **FR-008**: O sistema MUST permitir **medidas caseiras** (equivalência medida→gramas) por alimento.
 
 **Cardápio e cálculo (US2)**
+
 - **FR-009**: O sistema MUST permitir montar um plano organizado em **refeições**, cada uma com **itens** (alimento + quantidade em gramas ou medida caseira).
 - **FR-010**: O sistema MUST **somar automaticamente** energia e macros por refeição e por dia, atualizando ao vivo conforme o cardápio muda.
 - **FR-011**: O sistema MUST **comparar** o total do plano com a **meta** (calorias e macros) do paciente definida na Avaliação Nutricional, quando existir.
@@ -110,21 +113,25 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 - **FR-013**: O sistema MUST permitir **prescrever** o plano, gerando uma **versão registrada** (retrato imutável do que foi prescrito, com os valores nutricionais congelados).
 
 **Grupos e substituições (US3)**
+
 - **FR-014**: O sistema MUST manter um catálogo de **grupos alimentares** e permitir associar alimentos a grupos.
 - **FR-015**: O sistema MUST permitir definir **listas de substituição/equivalentes** por grupo (porção equivalente + alimentos elegíveis) e usá-las como opções "ou" no cardápio.
 
 **Entrega (US4)**
+
 - **FR-016**: O sistema MUST disponibilizar o plano prescrito ao paciente na seção **"Plano alimentar" do portal** e em versão para **impressão/compartilhamento**.
 
 **Proveniência e atribuição das fontes**
-- **FR-020**: O sistema MUST registrar a **fonte** de cada alimento (TACO, IBGE/POF ou cadastro próprio da clínica) e exibi-la ao profissional na tela do catálogo. A atribuição das bases oficiais — **"Fonte: Tabela Brasileira de Composição de Alimentos – TACO, 4ª ed., NEPA/UNICAMP, 2011"** e **"IBGE, POF 2008-2009"** — MUST aparecer na tela do catálogo e em **todo material exportado/impresso** que contenha valores nutricionais dessas bases. *(A citação da TACO é condição da licença de uso da base, não item estético.)*
+
+- **FR-020**: O sistema MUST registrar a **fonte** de cada alimento (TACO, IBGE/POF ou cadastro próprio da clínica) e exibi-la ao profissional na tela do catálogo. A atribuição das bases oficiais — **"Fonte: Tabela Brasileira de Composição de Alimentos – TACO, 4ª ed., NEPA/UNICAMP, 2011"** e **"IBGE, POF 2008-2009"** — MUST aparecer na tela do catálogo e em **todo material exportado/impresso** que contenha valores nutricionais dessas bases. _(A citação da TACO é condição da licença de uso da base, não item estético.)_
 
 **Qualidade e conformidade**
+
 - **FR-017**: O sistema MUST **congelar** os valores nutricionais usados no momento da prescrição, de modo que edições posteriores na base não alterem planos já prescritos.
 - **FR-018**: O sistema MUST **auditar** a prescrição de planos e o cadastro/edição de alimentos próprios.
 - **FR-019**: O sistema MUST **barrar valores implausíveis** nos nutrientes e quantidades (erro de digitação) antes de salvar.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Alimento**: item da base nutricional. Global (base TACO/IBGE, somente leitura) **ou** próprio da clínica. Guarda nome, grupo alimentar, porção de referência (em gramas), medida(s) caseira(s) e valores nutricionais por porção (energia, proteína, carboidrato, lipídio, fibra e micronutrientes opcionais) com a fonte.
 - **Grupo alimentar**: categoria (proteínas, carboidratos, frutas, gorduras, laticínios, leguminosas…) usada para organizar e para as listas de substituição.
@@ -133,7 +140,7 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 - **Meta (existente, feature 046)**: calorias e macros-alvo do paciente, usados para a comparação — vêm da Avaliação Nutricional.
 - **Módulo `dieta` (existente)**: o entitlement que habilita a feature por clínica.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -148,7 +155,7 @@ O plano prescrito é **entregue ao paciente** — visível na seção "Plano ali
 
 ## Assumptions
 
-- **Base pronta = catálogo global**: a base é semeada como catálogo global somente leitura (padrão dos catálogos existentes, ex.: tabela de procedimentos); os alimentos próprios são por clínica (padrão de métricas customizadas já existente no projeto). **Fonte da base pronta (definido na pesquisa, ver `research.md` D1)**: **IBGE/POF 2008-2009** como espinha dorsal (única base pública com **medida caseira** de licença utilizável) + **TACO 4ª ed.** sobreposta nos alimentos onde existe (análise laboratorial brasileira; licença de atribuição). A **TBCA foi descartada** por licença CC BY-NC-ND (proíbe uso comercial e alteração). *Risco aberto*: a licença do IBGE é **não confirmada** (estatística pública, redistribuição sem outorga expressa) — mitigação é confirmar com o IBGE antes de clientes que auditam fornecedor.
+- **Base pronta = catálogo global**: a base é semeada como catálogo global somente leitura (padrão dos catálogos existentes, ex.: tabela de procedimentos); os alimentos próprios são por clínica (padrão de métricas customizadas já existente no projeto). **Fonte da base pronta (definido na pesquisa, ver `research.md` D1)**: **IBGE/POF 2008-2009** como espinha dorsal (única base pública com **medida caseira** de licença utilizável) + **TACO 4ª ed.** sobreposta nos alimentos onde existe (análise laboratorial brasileira; licença de atribuição). A **TBCA foi descartada** por licença CC BY-NC-ND (proíbe uso comercial e alteração). _Risco aberto_: a licença do IBGE é **não confirmada** (estatística pública, redistribuição sem outorga expressa) — mitigação é confirmar com o IBGE antes de clientes que auditam fornecedor.
 - **Ausência de industrializados/marcas**: ambas as bases oficiais são de 2011 e **não contêm produtos industrializados nem marcas comerciais** (ex.: "Whey marca X", "iogurte marca Y"). Por isso o **cadastro de alimentos próprios por clínica (US1) é condição de viabilidade do módulo**, não conveniência — é o que cobre o dia a dia do consultório.
 - **Conexão com a Avaliação (046)**: a meta (calorias/macros) vem da feature 046 quando existir; o plano também funciona **sem** meta (sem a comparação).
 - **Reuso do portal do paciente**: a entrega usa a seção "Plano alimentar" já existente no portal; o armazenamento de plano existente (estrutura básica atual) é estendido, não recriado.

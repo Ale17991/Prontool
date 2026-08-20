@@ -45,7 +45,9 @@ export async function listLabRangesForPatient(
   const sb = supabase as unknown as SupabaseClient
   let q = sb
     .from('lab_reference_ranges')
-    .select('analyte_key, sex, age_min_years, age_max_years, state, ref_min, ref_max, unit, source_label')
+    .select(
+      'analyte_key, sex, age_min_years, age_max_years, state, ref_min, ref_max, unit, source_label',
+    )
     .in('sex', sex ? [sex, 'any'] : ['any'])
     .in('state', state === 'padrao' ? ['padrao'] : [state, 'padrao'])
   // Sem idade, não filtra por faixa etária: o desempate abaixo escolhe a banda
@@ -77,9 +79,7 @@ export async function listLabRangesForPatient(
     const span = Number(r.age_max_years) - Number(r.age_min_years)
     const cur = best.get(r.analyte_key)
     const wins =
-      !cur ||
-      score > cur.score ||
-      (score === cur.score && ageYears === null && span > cur.span)
+      !cur || score > cur.score || (score === cur.score && ageYears === null && span > cur.span)
     if (wins) best.set(r.analyte_key, { row: r, score, span })
   }
 
@@ -100,11 +100,23 @@ export async function listSexDependentAnalytes(
   if (error) throw new Error(`listSexDependentAnalytes: ${error.message}`)
   const rows = (data ?? []) as Array<{ analyte_key: string; sex: string }>
   const withAny = new Set(rows.filter((r) => r.sex === 'any').map((r) => r.analyte_key))
-  return new Set(rows.filter((r) => r.sex !== 'any' && !withAny.has(r.analyte_key)).map((r) => r.analyte_key))
+  return new Set(
+    rows.filter((r) => r.sex !== 'any' && !withAny.has(r.analyte_key)).map((r) => r.analyte_key),
+  )
 }
 
 function toRanges(
-  best: Map<string, { row: { ref_min: number | null; ref_max: number | null; unit: string; source_label: string | null } }>,
+  best: Map<
+    string,
+    {
+      row: {
+        ref_min: number | null
+        ref_max: number | null
+        unit: string
+        source_label: string | null
+      }
+    }
+  >,
 ): Map<string, LabRange> {
   const out = new Map<string, LabRange>()
   for (const [k, { row }] of best) {

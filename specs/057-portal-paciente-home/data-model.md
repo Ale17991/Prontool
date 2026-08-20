@@ -8,9 +8,9 @@ existem no repositório e ainda não foram aplicadas em produção).
 
 ## 1. `tenant_clinic_profile` — coluna nova
 
-| Coluna | Tipo | Nulo | Default | Descrição |
-| --- | --- | --- | --- | --- |
-| `patient_portal_welcome_text` | `TEXT` | sim | `NULL` | Recado de acolhimento exibido na tela inicial do portal **apenas** quando nem metas nem checklist têm o que exibir (FR-017/FR-018). |
+| Coluna                        | Tipo   | Nulo | Default | Descrição                                                                                                                           |
+| ----------------------------- | ------ | ---- | ------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `patient_portal_welcome_text` | `TEXT` | sim  | `NULL`  | Recado de acolhimento exibido na tela inicial do portal **apenas** quando nem metas nem checklist têm o que exibir (FR-017/FR-018). |
 
 **Regras de validação** (camada de aplicação, via Zod):
 
@@ -30,9 +30,9 @@ exatamente "não escreveu nada".
 
 ## 2. `patient_portal_access_log` — coluna nova
 
-| Coluna | Tipo | Nulo | Default | Descrição |
-| --- | --- | --- | --- | --- |
-| `section` | `TEXT` | sim | `NULL` | Qual área do portal foi aberta (FR-007). `NULL` = acesso registrado antes desta feature (FR-007a). |
+| Coluna    | Tipo   | Nulo | Default | Descrição                                                                                          |
+| --------- | ------ | ---- | ------- | -------------------------------------------------------------------------------------------------- |
+| `section` | `TEXT` | sim  | `NULL`  | Qual área do portal foi aberta (FR-007). `NULL` = acesso registrado antes desta feature (FR-007a). |
 
 **Valores esperados**: `home`, `metricas`, `atendimentos`, `orientacoes`,
 `exames`, `treino`, `dieta`. **Sem CHECK enumerando** — área nova não deve
@@ -57,15 +57,15 @@ Existem só em memória, montadas a cada render. Nenhuma é gravada.
 
 ### Card de área
 
-| Campo | Descrição |
-| --- | --- |
-| `key` | Chave da seção no catálogo `PORTAL_SECTIONS`. |
-| `label` | Nome da seção, vindo do catálogo (nunca escrito na tela). |
-| `href` | Endereço da página da área. |
-| `hint` | Prévia curta do conteúdo (FR-004). |
-| `empty` | Sem conteúdo ⇒ card apagado e sem link (FR-008). |
-| `emptyHint` | O que falta e de quem depende. |
-| `icon` / `tone` | Ícone e cor do quadradinho. |
+| Campo           | Descrição                                                 |
+| --------------- | --------------------------------------------------------- |
+| `key`           | Chave da seção no catálogo `PORTAL_SECTIONS`.             |
+| `label`         | Nome da seção, vindo do catálogo (nunca escrito na tela). |
+| `href`          | Endereço da página da área.                               |
+| `hint`          | Prévia curta do conteúdo (FR-004).                        |
+| `empty`         | Sem conteúdo ⇒ card apagado e sem link (FR-008).          |
+| `emptyHint`     | O que falta e de quem depende.                            |
+| `icon` / `tone` | Ícone e cor do quadradinho.                               |
 
 **Invariante**: a área promovida (FR-019) não gera card. Grade e promoção
 consomem a mesma lista de seções habilitadas.
@@ -81,9 +81,9 @@ Formatada no fuso da clínica (FR-016). Ausente ⇒ o cabeçalho não muda de fo
 Sem mudança de schema — é cookie HMAC stateless. O payload já carrega tudo o
 que a decisão precisa:
 
-| Campo | Papel novo nesta feature |
-| --- | --- |
-| `iatMs` | Passa a ser lido para o teto absoluto de 12h (FR-023). |
+| Campo   | Papel novo nesta feature                                                        |
+| ------- | ------------------------------------------------------------------------------- |
+| `iatMs` | Passa a ser lido para o teto absoluto de 12h (FR-023).                          |
 | `expMs` | Passa a ser **empurrado** a cada página aberta: 30 min de inatividade (FR-022). |
 
 **Transição de estado**:

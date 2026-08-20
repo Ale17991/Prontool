@@ -8,6 +8,7 @@
 Registrar resultados de exames laboratoriais por paciente e **classificá-los automaticamente** em baixo/normal/alto contra a faixa de referência do **sexo e idade** daquele paciente, com evolução no tempo e leitura no portal. Cross-especialidade, gated pelo módulo `exames_lab` (já existente no catálogo de entitlements).
 
 **Abordagem**: máximo reuso, mínimo schema novo.
+
 - **Persistência = motor de medições da feature 030** (decisão do usuário). Cada exame é uma linha em `patient_metric_types` com `specialty='laboratorio'`; cada resultado é uma linha append-only em `patient_measurements`. Isso já é o precedente literal: os 7 seeds da 0113 (glicemia de jejum, HbA1c, colesterol total, LDL, HDL, triglicerídeos, circunferência abdominal) **já são exames** morando nesse motor. Herda de graça: gráfico de evolução, metas (`patient_metric_goals`), portal, lançamento em lote atômico (`recordMeasurementsBatch`), exame próprio da clínica (`patient_metric_types.tenant_id`) e liga/desliga por clínica (`tenant_patient_metric_settings`).
 - **Única tabela nova**: `lab_reference_ranges`, catálogo **global** read-only espelhando `dietary_reference_intakes` (0182) — recorte por `sex × faixa etária × state`, com `ref_min`/`ref_max` absolutos no lugar do `value` da DRI.
 - **Motor de classificação** = análogo puro de `computeAdequacy` (049): `classifyLabResults(results, ranges) → baixo|normal|alto|sem_referencia`. Leitura **derivada, não persistida** — recalculável a qualquer momento; muda a faixa, muda a leitura, sem reescrever histórico.
@@ -29,7 +30,7 @@ Registrar resultados de exames laboratoriais por paciente e **classificá-los au
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável**: N/A direto (feature clínica, sem registro financeiro). O espírito de append-only é respeitado: `patient_measurements` já é append-only por trigger (`enforce_append_only_columns('')`), correção = nova linha.
 - **II. Auditabilidade Total**: escrita de resultado audita via `log_audit_event` — já implementado em `recordMeasurement`/`recordMeasurementsBatch` (`p_entity: 'patient_measurements'`). Faixas de referência são catálogo global read-only pela clínica (sem superfície de escrita para auditar).

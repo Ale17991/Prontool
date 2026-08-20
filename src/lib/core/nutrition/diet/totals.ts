@@ -35,7 +35,10 @@ export interface FoodRef {
 }
 
 /** Escala um mapa de micros por um fator (regra de três). Ausente = {}. */
-function scaleMicros(micros: MicronutrientMap | null | undefined, factor: number): MicronutrientMap | undefined {
+function scaleMicros(
+  micros: MicronutrientMap | null | undefined,
+  factor: number,
+): MicronutrientMap | undefined {
   if (!micros) return undefined
   const out: MicronutrientMap = {}
   for (const [k, v] of Object.entries(micros)) {

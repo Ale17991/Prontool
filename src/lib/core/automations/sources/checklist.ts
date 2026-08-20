@@ -128,7 +128,14 @@ registerSource({
       optionsFrom: 'habit_items',
       hint: 'A lista traz os hábitos que existem nos checklists desta clínica.',
     },
-    { name: 'vezes', label: 'Quantas marcações no período', kind: 'number', min: 1, max: 31, defaultValue: 3 },
+    {
+      name: 'vezes',
+      label: 'Quantas marcações no período',
+      kind: 'number',
+      min: 1,
+      max: 31,
+      defaultValue: 3,
+    },
   ],
   variables: ['habito', 'vezes'],
 
@@ -179,7 +186,14 @@ registerSource({
     .strict(),
   fields: [
     { name: 'itemId', label: 'Qual hábito', kind: 'select', optionsFrom: 'habit_items' },
-    { name: 'dias', label: 'Dias seguidos sem marcação', kind: 'number', min: 1, max: 31, defaultValue: 3 },
+    {
+      name: 'dias',
+      label: 'Dias seguidos sem marcação',
+      kind: 'number',
+      min: 1,
+      max: 31,
+      defaultValue: 3,
+    },
   ],
   variables: ['habito', 'dias'],
 

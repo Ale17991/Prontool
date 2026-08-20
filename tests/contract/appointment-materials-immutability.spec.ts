@@ -62,11 +62,14 @@ describe('Feature 045 — appointment_materials append-only (column-guard)', () 
     })
 
     const sb = serviceClient()
-    const { data, error } = await sb.rpc('attach_materials_to_appointment' as never, {
-      p_appointment_id: appointmentId,
-      p_materials: [{ material_name: 'Gaze estéril', quantity: 2, unit_cost_cents: 500 }],
-      p_actor: admin.userId,
-    } as never)
+    const { data, error } = await sb.rpc(
+      'attach_materials_to_appointment' as never,
+      {
+        p_appointment_id: appointmentId,
+        p_materials: [{ material_name: 'Gaze estéril', quantity: 2, unit_cost_cents: 500 }],
+        p_actor: admin.userId,
+      } as never,
+    )
     if (error) throw new Error(`attach: ${error.message}`)
     materialRowId = (data as unknown as { materials: Array<{ id: string }> }).materials[0]!.id
   })

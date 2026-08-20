@@ -5,7 +5,11 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
 import { searchFoods } from '@/lib/core/nutrition/foods/search'
-import { createCustomFood, updateCustomFood, deactivateCustomFood } from '@/lib/core/nutrition/foods/custom'
+import {
+  createCustomFood,
+  updateCustomFood,
+  deactivateCustomFood,
+} from '@/lib/core/nutrition/foods/custom'
 
 describe('Feature 047 US1 — catálogo de alimentos', () => {
   let tenantId: string

@@ -8,16 +8,16 @@ Decisões técnicas antes do design. As decisões de produto tomadas com o usuá
 
 **Rationale**: é o precedente literal, não uma analogia — a migration `0113` já semeou **7 exames laboratoriais** nesse motor (`glicemia_jejum`, `hba1c`, `colesterol_total`, `ldl`, `hdl`, `triglicerides` + `circunferencia_abdominal`). Criar uma tabela `lab_results` faria "glicemia" morar em dois lugares, com duas telas e duas séries temporais para o mesmo analito. O reuso herda pronto:
 
-| O que se herda | Onde já existe |
-|---|---|
+| O que se herda                                                                | Onde já existe                                                             |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | Lançamento em lote atômico (um laudo, uma data, valida tudo antes de inserir) | `recordMeasurementsBatch` em `src/lib/core/patient-portal/measurements.ts` |
-| Append-only garantido por trigger (correção = novo registro) | `enforce_append_only_columns('')` na 0113 |
-| Validação anti-typo por faixa plausível | trigger `validate_patient_measurement` (0113, redefinida na 0123) |
-| Exame próprio da clínica | `patient_metric_types.tenant_id` (0123) + namespacing `c<tenant8>_<slug>` |
-| Ligar/desligar exame por clínica | `tenant_patient_metric_settings` (0114) |
-| Gráfico de evolução | `MetricEvolutionChart` |
-| Metas por analito | `patient_metric_goals` (0120) |
-| Entrega no portal | seção `metricas` do portal, já implementada |
+| Append-only garantido por trigger (correção = novo registro)                  | `enforce_append_only_columns('')` na 0113                                  |
+| Validação anti-typo por faixa plausível                                       | trigger `validate_patient_measurement` (0113, redefinida na 0123)          |
+| Exame próprio da clínica                                                      | `patient_metric_types.tenant_id` (0123) + namespacing `c<tenant8>_<slug>`  |
+| Ligar/desligar exame por clínica                                              | `tenant_patient_metric_settings` (0114)                                    |
+| Gráfico de evolução                                                           | `MetricEvolutionChart`                                                     |
+| Metas por analito                                                             | `patient_metric_goals` (0120)                                              |
+| Entrega no portal                                                             | seção `metricas` do portal, já implementada                                |
 
 **Consequências aceitas**: (a) resultado é **append-only** — corrigir um valor digitado errado significa lançar um novo registro, não editar; (b) os exames aparecem junto das demais métricas na seção "Minha evolução" do portal (além da seção `exames` dedicada da US3); (c) metadados de laudo (laboratório emissor, data de coleta vs. liberação, método, PDF anexo) **não têm campo** — só `notes` (≤2000). Fora do escopo v1; se virar requisito, o precedente é `nutrition_assessments` (0175): tabela própria append-only que lança os derivados no motor via `recordMeasurementsBatch`.
 
@@ -54,12 +54,20 @@ Decisões técnicas antes do design. As decisões de produto tomadas com o usuá
 ```ts
 export type LabClass = 'baixo' | 'normal' | 'alto' | 'sem_referencia'
 export interface LabResultItem {
-  analyteKey: string; label: string; unit: string
-  value: number; measuredAt: string
-  refMin: number | null; refMax: number | null
+  analyteKey: string
+  label: string
+  unit: string
+  value: number
+  measuredAt: string
+  refMin: number | null
+  refMax: number | null
   class: LabClass
 }
-export interface LabPanelResult { items: LabResultItem[]; low: number; high: number }
+export interface LabPanelResult {
+  items: LabResultItem[]
+  low: number
+  high: number
+}
 export function classifyLabResults(
   results: ReadonlyArray<{ analyteKey: string; value: number; unit: string; measuredAt: string }>,
   ranges: Map<string, LabRange>,
@@ -94,25 +102,26 @@ Regra: `refMin != null && value < refMin → 'baixo'`; `refMax != null && value 
 
 O spec (FR-003) aponta as abas `BD EXAMES` (AF) e `BD_Exames` (Evonut) como gabarito. O levantamento **corrige essa premissa**:
 
-| Achado | Consequência |
-|---|---|
-| Não existe aba `BD EXAMES` no AF. As abas reais (ocultas) são `BD EXAMES_1` (catálogo), `BD EXAMES_2` (transacional), `BD EXAMES_3` (pedidos). | Corrigir a referência do spec. |
-| No AF, as colunas `Unidade`, `Ref Min`, `Ref Max`, `Observação` existem no cabeçalho mas estão **100% vazias** (272 linhas). O nutricionista digita a faixa à mão na tela. | **O AF não é gabarito de faixas.** Serve só como fonte de sinônimos de nome e da lista canônica de 37 unidades (`Unid_Exames`). |
-| `Evonut.xlsm` → `BD_Exames` (nome com underscore, `veryHidden`), header na **linha 3**, dados nas linhas 4–322 = **319 linhas**. Colunas: `Cod Exame`, `Desc Exame`, `Grupo Exame`, `Unidade`, `Ref Min H`, `Ref Max H`, `Ref Min M`, `Ref Max M`. | **Fonte de verdade única das faixas.** |
-| Das 319 linhas: **119 têm unidade**, **115 têm alguma faixa**; **204 (64%) não têm faixa nem unidade** — são exames qualitativos (Sorologia, Parasitológico, Exame de Urina descritivo) mais 22 pseudo-exames "(Completo)" do grupo `Exames Completos`, que são atalhos de painel, não analitos. | Ver D10 (escopo). |
-| O recorte é **apenas por sexo**, materializado em 4 colunas (H/M × min/max). **Não há faixa etária, não há estado (gestante)** em nenhuma das duas planilhas. | Ver D11. |
-| Faixas abertas de um lado são comuns: **24 linhas só com máximo** (ex.: Ácido úrico ≤ 4,9), **15 só com mínimo** (ex.: Apo A-I ≥ 130). | Confirma `ref_min`/`ref_max` **nullable independentes** (D4). Nunca usar 0 como sentinela. |
-| **22 linhas divergem entre H e M** (Hemoglobina, Hematócrito, Hemácias, Ferritina, HDL, Cobre, GGT, TGO, TGP, Testosterona, Estradiol, Progesterona, SHBG, Ácido úrico…). Nas outras 93 com faixa, H e M são idênticos. | Justifica o eixo `sex` como recorte real, não decorativo. |
-| Nomes repetem entre grupos com faixa idêntica (`Ácido úrico` em 3 grupos, `Potássio` em 4, `HDL` em 2). A chave da planilha é `(nome, grupo)`. | O importador **deduplica por nome normalizado**; o grupo vira metadado de painel, não parte da identidade do analito. |
-| Unidades estão **sujas**: espaços (`" U/L"`, `"mg/dL "`, `" g/dL"`) e duplicatas por grafia (`mcg/dL` vs `µg/dL`, `mcg/mL` vs `mcg/Ml`, `mUI/L` vs `mcUI/mL`). 33 strings distintas nos dados. | Importador aplica `TRIM` + tabela de normalização contra as 37 unidades canônicas do AF. |
-| O enum de resultado das planilhas é **Baixo / Normal / Elevado**. | Confirma a classificação de 3 estados do motor (D5). |
-| A planilha resolve a faixa pelo sexo no momento do pedido e **snapshota** `Ref (Min)`/`Ref (Max)` na linha do resultado (`BD_PedidoExames`). | Padrão diferente do nosso: **não snapshotamos** — a classificação é derivada (D5), o que reclassifica o histórico quando a faixa é corrigida. Escolha consciente. |
+| Achado                                                                                                                                                                                                                                                                                           | Consequência                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Não existe aba `BD EXAMES` no AF. As abas reais (ocultas) são `BD EXAMES_1` (catálogo), `BD EXAMES_2` (transacional), `BD EXAMES_3` (pedidos).                                                                                                                                                   | Corrigir a referência do spec.                                                                                                                                    |
+| No AF, as colunas `Unidade`, `Ref Min`, `Ref Max`, `Observação` existem no cabeçalho mas estão **100% vazias** (272 linhas). O nutricionista digita a faixa à mão na tela.                                                                                                                       | **O AF não é gabarito de faixas.** Serve só como fonte de sinônimos de nome e da lista canônica de 37 unidades (`Unid_Exames`).                                   |
+| `Evonut.xlsm` → `BD_Exames` (nome com underscore, `veryHidden`), header na **linha 3**, dados nas linhas 4–322 = **319 linhas**. Colunas: `Cod Exame`, `Desc Exame`, `Grupo Exame`, `Unidade`, `Ref Min H`, `Ref Max H`, `Ref Min M`, `Ref Max M`.                                               | **Fonte de verdade única das faixas.**                                                                                                                            |
+| Das 319 linhas: **119 têm unidade**, **115 têm alguma faixa**; **204 (64%) não têm faixa nem unidade** — são exames qualitativos (Sorologia, Parasitológico, Exame de Urina descritivo) mais 22 pseudo-exames "(Completo)" do grupo `Exames Completos`, que são atalhos de painel, não analitos. | Ver D10 (escopo).                                                                                                                                                 |
+| O recorte é **apenas por sexo**, materializado em 4 colunas (H/M × min/max). **Não há faixa etária, não há estado (gestante)** em nenhuma das duas planilhas.                                                                                                                                    | Ver D11.                                                                                                                                                          |
+| Faixas abertas de um lado são comuns: **24 linhas só com máximo** (ex.: Ácido úrico ≤ 4,9), **15 só com mínimo** (ex.: Apo A-I ≥ 130).                                                                                                                                                           | Confirma `ref_min`/`ref_max` **nullable independentes** (D4). Nunca usar 0 como sentinela.                                                                        |
+| **22 linhas divergem entre H e M** (Hemoglobina, Hematócrito, Hemácias, Ferritina, HDL, Cobre, GGT, TGO, TGP, Testosterona, Estradiol, Progesterona, SHBG, Ácido úrico…). Nas outras 93 com faixa, H e M são idênticos.                                                                          | Justifica o eixo `sex` como recorte real, não decorativo.                                                                                                         |
+| Nomes repetem entre grupos com faixa idêntica (`Ácido úrico` em 3 grupos, `Potássio` em 4, `HDL` em 2). A chave da planilha é `(nome, grupo)`.                                                                                                                                                   | O importador **deduplica por nome normalizado**; o grupo vira metadado de painel, não parte da identidade do analito.                                             |
+| Unidades estão **sujas**: espaços (`" U/L"`, `"mg/dL "`, `" g/dL"`) e duplicatas por grafia (`mcg/dL` vs `µg/dL`, `mcg/mL` vs `mcg/Ml`, `mUI/L` vs `mcUI/mL`). 33 strings distintas nos dados.                                                                                                   | Importador aplica `TRIM` + tabela de normalização contra as 37 unidades canônicas do AF.                                                                          |
+| O enum de resultado das planilhas é **Baixo / Normal / Elevado**.                                                                                                                                                                                                                                | Confirma a classificação de 3 estados do motor (D5).                                                                                                              |
+| A planilha resolve a faixa pelo sexo no momento do pedido e **snapshota** `Ref (Min)`/`Ref (Max)` na linha do resultado (`BD_PedidoExames`).                                                                                                                                                     | Padrão diferente do nosso: **não snapshotamos** — a classificação é derivada (D5), o que reclassifica o histórico quando a faixa é corrigida. Escolha consciente. |
 
 ## D10 — Escopo do catálogo: só exames quantitativos
 
 **Decisão**: semear **apenas os exames quantitativos com unidade e ao menos um limite** (~115 linhas da planilha, ~100 analitos distintos após dedupe). Ficam **fora do v1**:
+
 - **Exames qualitativos** (~180 linhas: cor da urina, parasitológico, sorologias reagente/não-reagente). O motor de medições exige `value NUMERIC` — não há valor numérico a registrar nem faixa a comparar. Não é limitação do desenho, é incompatibilidade de natureza do dado.
-- **Os 22 pseudo-exames "(Completo)"** do grupo `Exames Completos` — são templates de pedido (expandem para um grupo inteiro), não analitos. Cabem na feature de *pedido* de exames (`exam_requests`, 0149), que está explicitamente fora do escopo v1 do spec.
+- **Os 22 pseudo-exames "(Completo)"** do grupo `Exames Completos` — são templates de pedido (expandem para um grupo inteiro), não analitos. Cabem na feature de _pedido_ de exames (`exam_requests`, 0149), que está explicitamente fora do escopo v1 do spec.
 
 **Rationale**: cobertura total sobre o que a feature sabe fazer (classificar número contra faixa), em vez de cobertura nominal com dois terços do catálogo inerte. Satisfaz FR-001 com folga — os 19 exames "comuns" listados no spec estão todos entre os quantitativos.
 
@@ -129,6 +138,7 @@ O spec (FR-003) aponta as abas `BD EXAMES` (AF) e `BD_Exames` (Evonut) como gaba
 ## D12 — Forma do seed
 
 **Decisão**: seed em **duas partes**, seguindo os dois precedentes da casa conforme a natureza do dado:
+
 1. **Catálogo de exames** (poucas dezenas de linhas, estáveis) → `INSERT ... ON CONFLICT DO NOTHING` **dentro da migration** + bloco `DO $$` replicando em `catalog_baseline.patient_metric_types` (padrão 0174/0175). Necessário porque `patient_metric_types` **é** truncada e restaurada do baseline no reset dos testes (gotcha 0170).
 2. **Faixas de referência** (volume maior, extraídas de planilha) → script `scripts/build-lab-ranges-seed.ts` no molde de `scripts/build-dris-seed.ts`: `tsx` com `ExcelJS.stream.xlsx.WorkbookReader` (streaming — os `.xlsm` de ~7 MB estouram heap no `readFile`), `createClient` com service_role, `delete + insert` em chunks, idempotente, `DRY=1` para conferir a contagem antes de gravar. `lab_reference_ranges` fica **fora** do `catalog_baseline` (mesma escolha explícita da 0182): o seed é re-executável e os testes inserem as próprias faixas, self-contained.
 

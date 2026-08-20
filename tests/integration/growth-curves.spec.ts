@@ -43,14 +43,16 @@ describe('curvas de crescimento', () => {
     const actor = await seedUser(tenantId, 'profissional_saude')
 
     const sb = serviceClient()
-    const ins = await sb.from('growth_percentiles').upsert(
-      [
-        ...seedRows('peso_idade', 'M'),
-        ...seedRows('estatura_idade', 'M'),
-        ...seedRows('imc_idade', 'M'),
-      ] as never,
-      { onConflict: 'indicator,sex,age_months' },
-    )
+    const ins = await sb
+      .from('growth_percentiles')
+      .upsert(
+        [
+          ...seedRows('peso_idade', 'M'),
+          ...seedRows('estatura_idade', 'M'),
+          ...seedRows('imc_idade', 'M'),
+        ] as never,
+        { onConflict: 'indicator,sex,age_months' },
+      )
     if (ins.error) throw new Error(`seed percentis: ${ins.error.message}`)
 
     // Aferição aos 12 meses exatos.
@@ -99,20 +101,32 @@ describe('curvas de crescimento', () => {
 
   it('sem nascimento ou sexo NÃO chuta — devolve o que falta', async () => {
     const semData = await buildGrowthReport(serviceClient(), {
-      tenantId, patientId, birthDate: null, sex: 'masculino', today: '2025-02-01',
+      tenantId,
+      patientId,
+      birthDate: null,
+      sex: 'masculino',
+      today: '2025-02-01',
     })
     expect(semData.curves).toHaveLength(0)
     expect(semData.missing.birthDate).toBe(true)
 
     const semSexo = await buildGrowthReport(serviceClient(), {
-      tenantId, patientId, birthDate: '2024-01-01', sex: null, today: '2025-02-01',
+      tenantId,
+      patientId,
+      birthDate: '2024-01-01',
+      sex: null,
+      today: '2025-02-01',
     })
     expect(semSexo.missing.sex).toBe(true)
   })
 
   it('intersexo não escolhe curva por conta própria', async () => {
     const r = await buildGrowthReport(serviceClient(), {
-      tenantId, patientId, birthDate: '2024-01-01', sex: 'intersexo', today: '2025-02-01',
+      tenantId,
+      patientId,
+      birthDate: '2024-01-01',
+      sex: 'intersexo',
+      today: '2025-02-01',
     })
     // Escolher uma das duas curvas seria decidir clinicamente no lugar da
     // profissional.
@@ -122,7 +136,11 @@ describe('curvas de crescimento', () => {
 
   it('adulto sai marcado como fora da faixa pediátrica', async () => {
     const r = await buildGrowthReport(serviceClient(), {
-      tenantId, patientId, birthDate: '1990-01-01', sex: 'masculino', today: '2025-02-01',
+      tenantId,
+      patientId,
+      birthDate: '1990-01-01',
+      sex: 'masculino',
+      today: '2025-02-01',
     })
     expect(r.outOfRange).toBe(true)
     expect(r.curves).toHaveLength(0)
@@ -131,7 +149,11 @@ describe('curvas de crescimento', () => {
   it('outra clínica não enxerga as aferições', async () => {
     const outro = (await seedTenant('growth-b')).tenantId
     const r = await buildGrowthReport(serviceClient(), {
-      tenantId: outro, patientId, birthDate: '2024-01-01', sex: 'masculino', today: '2025-02-01',
+      tenantId: outro,
+      patientId,
+      birthDate: '2024-01-01',
+      sex: 'masculino',
+      today: '2025-02-01',
     })
     expect(r.curves.every((c) => c.points.length === 0)).toBe(true)
   })

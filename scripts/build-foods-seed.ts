@@ -34,15 +34,28 @@ function parseCsv(text: string): string[][] {
     const c = text[i]
     if (inQuotes) {
       if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++ } else inQuotes = false
+        if (text[i + 1] === '"') {
+          field += '"'
+          i++
+        } else inQuotes = false
       } else field += c
     } else if (c === '"') inQuotes = true
-    else if (c === ',') { row.push(field); field = '' }
-    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = '' }
-    else if (c === '\r') { /* skip */ }
-    else field += c
+    else if (c === ',') {
+      row.push(field)
+      field = ''
+    } else if (c === '\n') {
+      row.push(field)
+      rows.push(row)
+      row = []
+      field = ''
+    } else if (c === '\r') {
+      /* skip */
+    } else field += c
   }
-  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row) }
+  if (field.length > 0 || row.length > 0) {
+    row.push(field)
+    rows.push(row)
+  }
   return rows.filter((r) => r.some((c) => c.trim() !== ''))
 }
 
@@ -112,7 +125,7 @@ const TACO_GROUP: Record<string, string> = {
   'Bebidas (alcoólicas e não alcoólicas)': 'bebidas',
   'Leguminosas e derivados': 'leguminosas',
   'Nozes e sementes': 'oleaginosas',
-  'Miscelâneas': 'outros',
+  Miscelâneas: 'outros',
   'Outros alimentos industrializados': 'outros',
   'Alimentos preparados': 'outros',
   'Produtos açucarados': 'acucares',
@@ -190,7 +203,8 @@ function pushFood(f: FoodRow) {
     if (!ali || !desc) continue
     const extCode = `${ali}_${prep ?? '0'}`
     const prepDesc = r[iPrepDesc]?.trim()
-    const showPrep = prepDesc && !/NAO SE APLICA/i.test(prepDesc) ? ` (${prepDesc.toLowerCase()})` : ''
+    const showPrep =
+      prepDesc && !/NAO SE APLICA/i.test(prepDesc) ? ` (${prepDesc.toLowerCase()})` : ''
     const p = clamp(n(r[iProt]), 0, 100) ?? 0
     const c = clamp(n(r[iCarb]), 0, 100) ?? 0
     const f = clamp(n(r[iLip]), 0, 100) ?? 0

@@ -125,7 +125,10 @@ export function OcorrenciasPanel() {
                   <td className="p-2">
                     <span>{DESFECHO[o.desfecho] ?? o.desfecho}</span>
                     {o.entrega && (
-                      <span className="text-muted-foreground"> · {ENTREGA[o.entrega] ?? o.entrega}</span>
+                      <span className="text-muted-foreground">
+                        {' '}
+                        · {ENTREGA[o.entrega] ?? o.entrega}
+                      </span>
                     )}
                     {o.motivo && (
                       <span className="block text-xs text-muted-foreground">{o.motivo}</span>

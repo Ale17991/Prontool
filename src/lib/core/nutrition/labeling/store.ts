@@ -165,7 +165,11 @@ async function replaceIngredients(
   ingredients: LabelIngredientInput[],
 ): Promise<void> {
   const c = loose(sb)
-  await c.from('nutrition_label_ingredients').delete().eq('tenant_id', tenantId).eq('label_id', labelId)
+  await c
+    .from('nutrition_label_ingredients')
+    .delete()
+    .eq('tenant_id', tenantId)
+    .eq('label_id', labelId)
   if (ingredients.length === 0) return
   const rows = ingredients.map((ing, i) => ({
     label_id: labelId,
@@ -180,7 +184,14 @@ async function replaceIngredients(
 
 async function audit(
   sb: SupabaseClient<Database>,
-  args: { tenantId: string; labelId: string; field: string; from: string | null; to: string | null; reason: string },
+  args: {
+    tenantId: string
+    labelId: string
+    field: string
+    from: string | null
+    to: string | null
+    reason: string
+  },
 ): Promise<void> {
   await sb.rpc(
     'log_audit_event' as never,
@@ -295,8 +306,13 @@ async function loadIngredientsForLabels(
 
   const foods = await c
     .from('foods')
-    .select('id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients')
-    .in('id', items.map((i) => i.food_id))
+    .select(
+      'id, name, reference_grams, energy_kcal, protein_g, carb_g, fat_g, fiber_g, micronutrients',
+    )
+    .in(
+      'id',
+      items.map((i) => i.food_id),
+    )
   const byId = new Map<string, { name: string; ref: FoodRef }>()
   for (const f of (foods.data ?? []) as Array<{
     id: string

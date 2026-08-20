@@ -12,7 +12,13 @@ import { listAssessmentsForPrintout } from '@/lib/core/nutrition/assessments/for
 import { renderAssessmentPdf, variation } from '@/lib/core/nutrition/printouts/assessment-pdf'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
-const PACIENTE: PatientIdentity = { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] }
+const PACIENTE: PatientIdentity = {
+  name: 'Paciente Teste',
+  lines: [
+    { key: 'nascimento', label: 'Nascimento', value: '10/05/1990' },
+    { key: 'idade', label: 'Idade', value: '36 anos' },
+  ],
+}
 
 async function seedAssessment(args: {
   tenantId: string
@@ -69,7 +75,16 @@ describe('impresso de evolução da avaliação', () => {
       ['2026-08-01', 71, 26, 53, 'bioimpedancia'],
     ]
     for (const [assessedAt, weightKg, fatPct, leanMassKg, protocol] of dados) {
-      await seedAssessment({ tenantId, patientId, userId, assessedAt, weightKg, fatPct, leanMassKg, protocol })
+      await seedAssessment({
+        tenantId,
+        patientId,
+        userId,
+        assessedAt,
+        weightKg,
+        fatPct,
+        leanMassKg,
+        protocol,
+      })
     }
   })
 

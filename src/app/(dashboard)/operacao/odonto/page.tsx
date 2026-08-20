@@ -20,7 +20,9 @@ export default async function OdontoPage() {
   if (!ent.hasModule('odonto')) redirect('/operacao/atendimentos')
 
   const canWriteClinical =
-    session.role === 'admin' || session.role === 'financeiro' || session.role === 'profissional_saude'
+    session.role === 'admin' ||
+    session.role === 'financeiro' ||
+    session.role === 'profissional_saude'
   const canWriteTreatment = canWriteClinical
 
   return (
@@ -31,7 +33,10 @@ export default async function OdontoPage() {
           Odontograma, plano de tratamento e periograma — selecione o paciente.
         </p>
       </div>
-      <OdontoSpaceClient canWriteClinical={canWriteClinical} canWriteTreatment={canWriteTreatment} />
+      <OdontoSpaceClient
+        canWriteClinical={canWriteClinical}
+        canWriteTreatment={canWriteTreatment}
+      />
     </div>
   )
 }

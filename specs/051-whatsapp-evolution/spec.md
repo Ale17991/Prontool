@@ -15,7 +15,7 @@
 - Q: A mensagem avisa que respostas não são lidas, ou só oferece o contato? → A: Avisa explicitamente, em tom de parceria, e oferece o canal certo com a mesma hierarquia de fallback do e-mail — o paciente que responde "preciso remarcar" e nunca é lido perde a consulta achando que avisou (FR-007a).
 - Q: O reenvio manual de lembrete, que já existe no e-mail, vale para WhatsApp no v1? → A: Sim, igual ao e-mail. O FR-027 proíbe mensagem **avulsa** de conteúdo livre, não o reenvio do mesmo lembrete templado — a redação anterior era ambígua e foi corrigida.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Clínica conecta o próprio número de WhatsApp (Priority: P1)
 
@@ -162,7 +162,7 @@ que ele não recebeu WhatsApp e continuou recebendo e-mail.
 - **Clínica que nunca conectou o WhatsApp mas ligou o canal**: deve ser impedida na
   configuração, não descobrir no dia seguinte que ninguém foi avisado.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -210,6 +210,7 @@ que ele não recebeu WhatsApp e continuou recebendo e-mail.
 
 <!-- FR-007a e FR-012a foram acrescentados na sessão de clarificação de 2026-07-28; a
      numeração com sufixo evita renumerar requisitos já referenciados em plan.md e tasks.md. -->
+
 - **FR-013**: O sistema MUST espaçar os envios de um mesmo número ao longo do lote, para
   reduzir o risco de bloqueio do número da clínica.
 - **FR-014**: O sistema MUST continuar processando os demais pacientes quando um envio
@@ -270,7 +271,7 @@ que ele não recebeu WhatsApp e continuou recebendo e-mail.
   granularidade por canal.
 - **Configuração de lembretes da clínica**: já existe; ganha a escolha de canal.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

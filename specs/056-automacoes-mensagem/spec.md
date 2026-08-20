@@ -11,7 +11,7 @@ Hoje a clínica tem **uma** mensagem automática possível — o lembrete de con
 
 Esta feature inverte isso: a clínica passa a **montar** suas próprias automações. Escolhe **quando** (gatilho) e **o que** (mensagem), de forma independente, sem depender de desenvolvimento para cada nova ideia.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Montar a primeira automação e vê-la disparar (Priority: P1)
 
@@ -91,7 +91,7 @@ A clínica cria "confirmação de agendamento" (dispara quando o atendimento é 
 - Paciente **anonimizado** (LGPD): sai de qualquer avaliação de gatilho.
 - **Fuso da clínica**: "hoje" e "semana corrente" seguem o dia civil da clínica, nunca o do servidor.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -150,7 +150,7 @@ A clínica cria "confirmação de agendamento" (dispara quando o atendimento é 
 - **Ocorrência**: o registro de que um gatilho se satisfez para um paciente num momento, com o desfecho (enviado, suprimido, impedido) e o motivo. É o que garante o "uma vez só" e o que alimenta a visibilidade.
 - **Consentimento de automações**: manifestação do paciente, distinta do opt-in de lembrete de consulta.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

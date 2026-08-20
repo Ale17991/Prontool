@@ -85,46 +85,49 @@ Ambas usam **os mesmos coeficientes**; adotamos as colunas `AQ`/`AR` como forma 
 paciente único e legíveis.
 
 ### Mapa de células de entrada (aba `'Gasto Energético'`, usada por AQ/AR)
-| Célula | Significado |
-|--------|-------------|
-| `I11` | **Peso** (kg) |
-| `G11` | **Altura** (cm) |
-| `K11` | **Idade** (anos) |
-| `M11` | **Massa Livre de Gordura / MLG** (kg) |
-| `O17` | Coeficiente de atividade física (**PA**) para as equações EER/IOM infantis |
-| `F48` | Categoria de atividade física (**1..4**) para EER 2005/2023 adulto e gestante/lactante |
+
+| Célula | Significado                                                                            |
+| ------ | -------------------------------------------------------------------------------------- |
+| `I11`  | **Peso** (kg)                                                                          |
+| `G11`  | **Altura** (cm)                                                                        |
+| `K11`  | **Idade** (anos)                                                                       |
+| `M11`  | **Massa Livre de Gordura / MLG** (kg)                                                  |
+| `O17`  | Coeficiente de atividade física (**PA**) para as equações EER/IOM infantis             |
+| `F48`  | Categoria de atividade física (**1..4**) para EER 2005/2023 adulto e gestante/lactante |
 
 ### Mapa de colunas da base `BD_GastoEnerg` (usado por AF..AL)
-| Coluna | Significado |
-|--------|-------------|
-| `DD` | Altura (cm) |
-| `DE` | Peso (kg) |
-| `DF` | Idade (anos) |
-| `DG` | MLG (kg) |
-| `DI` | Sexo (1 = M, 2 = F) — usado em EER 2023 |
-| `DJ` | Coeficiente PA (IOM infantil) |
+
+| Coluna | Significado                             |
+| ------ | --------------------------------------- |
+| `DD`   | Altura (cm)                             |
+| `DE`   | Peso (kg)                               |
+| `DF`   | Idade (anos)                            |
+| `DG`   | MLG (kg)                                |
+| `DI`   | Sexo (1 = M, 2 = F) — usado em EER 2023 |
+| `DJ`   | Coeficiente PA (IOM infantil)           |
 
 ### Mapa de colunas da base `BD_Antropometria` (usado por `Calc_Antropometria`)
-| Coluna | Significado |
-|--------|-------------|
-| `CD` | Altura (cm) |
-| `CE` | Peso (kg) |
-| `CK` | Circunferência do braço (cm) — usada para CMB/AMB |
-| `CV` | Circunferência da cintura (cm) |
-| `CW` | Circunferência abdominal (cm) |
-| `CX` | Circunferência do quadril (cm) |
-| `DG` | Dobra **Bíceps** (mm) |
-| `DH` | Dobra **Tríceps** (mm) |
-| `DI` | Dobra **Peitoral** (mm) |
-| `DJ` | Dobra **Axilar média** (mm) |
-| `DK` | Dobra **Subescapular** (mm) |
-| `DL` | Dobra **Abdominal** (mm) |
-| `DM` | Dobra **Suprailíaca** (mm) |
-| `DO` | Dobra **Coxa** (mm) |
-| `DP` | Dobra **Panturrilha** (mm) |
-| `DW` | % Gordura por **Bioimpedância** (entrada direta do aparelho) |
-| `DQ`,`DS` | Diâmetros ósseos (para peso ósseo) |
-| `EI` | Data de nascimento (para cálculo de idade `YEARFRAC`) |
+
+| Coluna    | Significado                                                  |
+| --------- | ------------------------------------------------------------ |
+| `CD`      | Altura (cm)                                                  |
+| `CE`      | Peso (kg)                                                    |
+| `CK`      | Circunferência do braço (cm) — usada para CMB/AMB            |
+| `CV`      | Circunferência da cintura (cm)                               |
+| `CW`      | Circunferência abdominal (cm)                                |
+| `CX`      | Circunferência do quadril (cm)                               |
+| `DG`      | Dobra **Bíceps** (mm)                                        |
+| `DH`      | Dobra **Tríceps** (mm)                                       |
+| `DI`      | Dobra **Peitoral** (mm)                                      |
+| `DJ`      | Dobra **Axilar média** (mm)                                  |
+| `DK`      | Dobra **Subescapular** (mm)                                  |
+| `DL`      | Dobra **Abdominal** (mm)                                     |
+| `DM`      | Dobra **Suprailíaca** (mm)                                   |
+| `DO`      | Dobra **Coxa** (mm)                                          |
+| `DP`      | Dobra **Panturrilha** (mm)                                   |
+| `DW`      | % Gordura por **Bioimpedância** (entrada direta do aparelho) |
+| `DQ`,`DS` | Diâmetros ósseos (para peso ósseo)                           |
+| `EI`      | Data de nascimento (para cálculo de idade `YEARFRAC`)        |
 
 Notação matemática abaixo: **P** = peso (kg), **A** = altura (cm), **I** = idade (anos), **MLG** = massa livre de gordura (kg),
 **Σ** = soma das dobras cutâneas (mm), **PA** = coeficiente de atividade, **log10** = logaritmo base 10.
@@ -136,19 +139,24 @@ Notação matemática abaixo: **P** = peso (kg), **A** = altura (cm), **I** = id
 Fonte: `Calc_GastoEnerg` (Evonut sheet9), colunas `AQ` (Masculino) e `AR` (Feminino), linhas 5–20 (+ helpers 22–35).
 
 ## A1. Harris-Benedict (1984) — linha 5
+
 - **Masculino** (`AQ5`): `TMB = 13.4·P + 4.8·A − 5.68·I + 88.36`
 - **Feminino** (`AR5`): `TMB = 9.25·P + 3.1·A − 4.33·I + 447.6`
 
 ## A2. Harris-Benedict (1919) — linha 6
+
 - **Masculino** (`AQ6`): `TMB = 66.5 + 13.75·P + 5·A − 6.76·I`
 - **Feminino** (`AR6`): `TMB = 655 + 9.56·P + 1.85·A − 4.68·I`
 
 ## A3. Mifflin-St Jeor (1990) — linha 7
+
 - **Masculino** (`AQ7`): `TMB = 9.99·P + 6.25·A − 4.92·I + 5`
 - **Feminino** (`AR7`): `TMB = 9.99·P + 6.25·A − 4.92·I − 161`
 
 ## A4. FAO/WHO (1985) — linha 8 (por faixa etária)
+
 Estrutura: `IF` aninhado sobre a idade `I`. Coeficiente aplica-se sobre **P** (peso). Retorna `""` fora das faixas.
+
 - **Masculino** (`AQ8`):
   | Faixa (anos) | TMB |
   |---|---|
@@ -169,6 +177,7 @@ Estrutura: `IF` aninhado sobre a idade `I`. Coeficiente aplica-se sobre **P** (p
   | ≥60 | `10.5·P + 596` |
 
 ## A5. FAO/WHO (2004) — linha 9 (por faixa etária)
+
 - **Masculino** (`AQ9`):
   | Faixa | TMB |
   |---|---|
@@ -189,6 +198,7 @@ Estrutura: `IF` aninhado sobre a idade `I`. Coeficiente aplica-se sobre **P** (p
   | ≥60 | `9.082·P + 658.5` |
 
 ## A6. Schofield (1985) — linha 10 (por faixa etária; usa P e A)
+
 - **Masculino** (`AQ10`):
   | Faixa | TMB |
   |---|---|
@@ -209,6 +219,7 @@ Estrutura: `IF` aninhado sobre a idade `I`. Coeficiente aplica-se sobre **P** (p
 > Obs.: nas faixas adultas o resultado é dado em **MJ** e multiplicado por **239** para converter em kcal.
 
 ## A7. Henry-Rees (1991) — linha 11 (por faixa; resultado ×239)
+
 - **Masculino** (`AQ11`):
   | Faixa | TMB |
   |---|---|
@@ -225,22 +236,31 @@ Estrutura: `IF` aninhado sobre a idade `I`. Coeficiente aplica-se sobre **P** (p
   | 30–59 | `(0.048·P + 2.448)·239` |
 
 ## A8. Cunningham (1980) — linha 12
+
 Usa MLG. Só calcula se `M11` (MLG) preenchida. Mesma fórmula p/ ambos os sexos.
+
 - `TMB = 22·MLG + 500`
 
 ## A9. Tinsley — por peso (2018) — linha 13
+
 Mesma fórmula p/ ambos os sexos.
+
 - `TMB = 24.8·P + 10`
 
 ## A10. Tinsley — por MLG (2018) — linha 14
+
 Usa MLG. Mesma fórmula p/ ambos os sexos.
+
 - `TMB = 25.9·MLG + 284`
 
 ## A11. Katch-McArdle (1996) — linha 17
+
 Usa MLG. Mesma fórmula p/ ambos os sexos.
+
 - `TMB = 370 + 21.6·MLG`
 
 ## A12. EER / IOM (2005) — linha 15 (seleciona helper por idade)
+
 `Calc_GastoEnerg` linha 15 escolhe por idade: 3–8 → helper linha 22; 9–18 → linha 23; ≥19 → linha 24.
 Usa **PA = `O17`** (coeficiente de atividade multiplicando o termo de peso/altura).
 Helpers (colunas `AQ`=Masc / `AR`=Fem), com A em metros = `A/100`:
@@ -259,6 +279,7 @@ Helpers (colunas `AQ`=Masc / `AR`=Fem), com A em metros = `A/100`:
 > (constantes fixas dentro da soma). Replicar exatamente.
 
 ## A13. EER (2023) — linha 16 (seleciona helper por idade)
+
 `Calc_GastoEnerg` linha 16: 3–13 → helper linha 27; 14–18 → linha 28 (fórmula idêntica à 27); ≥19 → linha 29.
 Usa **categoria de atividade `F48` ∈ {1,2,3,4}**. Inclui **custo de crescimento** `AQ26`/`AR26` (ver A16).
 
@@ -288,9 +309,11 @@ Usa **categoria de atividade `F48` ∈ {1,2,3,4}**. Inclui **custo de cresciment
 ## A14. Katch-McArdle — ver A11.
 
 ## A15. EER Gestante (2023) — linha 18
+
 Só calcula se `Calc_Antropometria!DM48` (semanas de gestação) **> 12**. Usa `F48` (trimestre/atividade)
 e adiciona `Calc_Antropometria!DJ28` (depósito energético da gestação) e `9.16·semanas`.
 Feminino (`AQ18`), com `SEM` = semanas de gestação = `Calc_Antropometria!DM48`, `DEP` = `Calc_Antropometria!DJ28`:
+
 - `F48=1`: `EER = 1131.2 − 2.04·I + 0.34·A + 12.15·P + 9.16·SEM + DEP`
 - `F48=2`: `EER = 693.35 − 2.04·I + 5.73·A + 10.2·P + 9.16·SEM + DEP`
 - `F48=3`: `EER = −223.84 − 2.04·I + 13.23·A + 8.15·P + 9.16·SEM + DEP`
@@ -301,6 +324,7 @@ Feminino (`AQ18`), com `SEM` = semanas de gestação = `Calc_Antropometria!DM48`
 > se for replicar gestante**.
 
 ## A16. EER Lactante (2023) — linhas 19 (0–6 m) e 20 (7–12 m)
+
 Base = **EER feminino 2023** (mesma estrutura de A13, por categoria `F48`), escolhendo adolescente (`I<19`)
 ou adulto (`I≥19`), e somando a energia do leite:
 
@@ -318,6 +342,7 @@ ou adulto (`I≥19`), e somando a energia do leite:
 ---
 
 ## A17. Custo energético de crescimento (helper linha 26)
+
 Somado nas equações EER 2023 (A13) via `AQ26` (Masc) / `AR26` (Fem):
 | Idade | Masculino (`AQ26`) | Feminino (`AR26`) |
 |---|---|---|
@@ -330,16 +355,17 @@ Somado nas equações EER 2023 (A13) via `AQ26` (Masc) / `AR26` (Fem):
 ---
 
 ## A18. Fator de atividade (PAL) — `Calc_GastoEnerg`
+
 A planilha guarda um catálogo de PAL por protocolo (colunas C–J, linhas 5–45), selecionável por dropdown
 (macro-dependente). Os **valores clássicos** aplicados como multiplicador do TMB (Harris-Benedict etc.) são:
 
 | Fator | Classificação |
-|---|---|
-| 1.2 | Sedentário |
-| 1.375 | Leve |
-| 1.55 | Moderada |
-| 1.725 | Intensa |
-| 1.9 | Muito intensa |
+| ----- | ------------- |
+| 1.2   | Sedentário    |
+| 1.375 | Leve          |
+| 1.55  | Moderada      |
+| 1.725 | Intensa       |
+| 1.9   | Muito intensa |
 
 Tabela auxiliar de seleção (linhas 42–45, col F=índice, G=valor): `1→1.2`, `2→1.375`, `3→1.55`, `4→1.725`.
 
@@ -353,41 +379,43 @@ Tabela auxiliar de seleção (linhas 42–45, col F=índice, G=valor): `1→1.2`
 ---
 
 ## A19. Fator de Injúria (FI) — `Calc_GastoEnerg` colunas X/Y/Z/AA, linhas 5–31
+
 Multiplica o TMB/GET em condições clínicas. `Z` = faixa (texto); `AA` = **FI médio** (valor numérico usado).
 
-| # | Condição clínica | Faixa FI | FI médio |
-|---|---|---|---|
-| 1 | Paciente não complicado | 1 | 1.0 |
-| 2 | Câncer | 1,1–1,45 | 1.275 |
-| 3 | Cirurgia eletiva | 1,0–1,1 | 1.05 |
-| 4 | Desnutrição grave | 1,5 | 1.5 |
-| 5 | Doença cardiopulmonar | 0,8–1,0 | 0.9 |
-| 6 | Doença cardiopulmonar com cirurgia | 1,3–1,55 | 1.425 |
-| 7 | Fratura | 1,2 | 1.2 |
-| 8 | Fraturas múltiplas | 1,2–1,35 | 1.275 |
-| 9 | Infecção grave | 1,3–1,35 | 1.325 |
-| 10 | Insuficiência cardíaca | 1,3–1,5 | 1.4 |
-| 11 | Insuficiência hepática | 1,3–1,55 | 1.425 |
-| 12 | Insuficiência renal aguda | 1,3 | 1.3 |
-| 13 | Jejum ou inanição | 0,85–1,0 | 0.925 |
-| 14 | Multitrauma (reabilitação) | 1,5 | 1.5 |
-| 15 | Multitrauma + sepse | 1,6 | 1.6 |
-| 16 | Pequena cirurgia | 1,2 | 1.2 |
-| 17 | Pequeno trauma de tecido | 1,14–1,37 | 1.255 |
-| 18 | Peritonite | 1,2–1,5 | 1.35 |
-| 19 | PO cirurgia cardíaca | 1,2–1,5 | 1.35 |
-| 20 | PO cirurgia geral | 1,0–1,5 | 1.25 |
-| 21 | Pós-operatório | 1,1 | 1.1 |
-| 22 | Queimadura 30 a 50% | 1,7 | 1.7 |
-| 23 | Queimadura 50 a 70% | 1,8 | 1.8 |
-| 24 | Queimadura 70 a 90% | 2 | 2.0 |
-| 25 | Queimadura até 20% | 1,0–1,5 | 1.25 |
-| 26 | Sepse | 1,1–1,8 | 1.45 |
-| 27 | Transplante de fígado | 1,2–1,5 | 1.35 |
+| #   | Condição clínica                   | Faixa FI  | FI médio |
+| --- | ---------------------------------- | --------- | -------- |
+| 1   | Paciente não complicado            | 1         | 1.0      |
+| 2   | Câncer                             | 1,1–1,45  | 1.275    |
+| 3   | Cirurgia eletiva                   | 1,0–1,1   | 1.05     |
+| 4   | Desnutrição grave                  | 1,5       | 1.5      |
+| 5   | Doença cardiopulmonar              | 0,8–1,0   | 0.9      |
+| 6   | Doença cardiopulmonar com cirurgia | 1,3–1,55  | 1.425    |
+| 7   | Fratura                            | 1,2       | 1.2      |
+| 8   | Fraturas múltiplas                 | 1,2–1,35  | 1.275    |
+| 9   | Infecção grave                     | 1,3–1,35  | 1.325    |
+| 10  | Insuficiência cardíaca             | 1,3–1,5   | 1.4      |
+| 11  | Insuficiência hepática             | 1,3–1,55  | 1.425    |
+| 12  | Insuficiência renal aguda          | 1,3       | 1.3      |
+| 13  | Jejum ou inanição                  | 0,85–1,0  | 0.925    |
+| 14  | Multitrauma (reabilitação)         | 1,5       | 1.5      |
+| 15  | Multitrauma + sepse                | 1,6       | 1.6      |
+| 16  | Pequena cirurgia                   | 1,2       | 1.2      |
+| 17  | Pequeno trauma de tecido           | 1,14–1,37 | 1.255    |
+| 18  | Peritonite                         | 1,2–1,5   | 1.35     |
+| 19  | PO cirurgia cardíaca               | 1,2–1,5   | 1.35     |
+| 20  | PO cirurgia geral                  | 1,0–1,5   | 1.25     |
+| 21  | Pós-operatório                     | 1,1       | 1.1      |
+| 22  | Queimadura 30 a 50%                | 1,7       | 1.7      |
+| 23  | Queimadura 50 a 70%                | 1,8       | 1.8      |
+| 24  | Queimadura 70 a 90%                | 2         | 2.0      |
+| 25  | Queimadura até 20%                 | 1,0–1,5   | 1.25     |
+| 26  | Sepse                              | 1,1–1,8   | 1.45     |
+| 27  | Transplante de fígado              | 1,2–1,5   | 1.35     |
 
 ---
 
 ## A20. Catálogo de atividades / METs
+
 `Calc_GastoEnerg` colunas N/O/P (Grupo / Atividade / MET) e S/T/U — **centenas** de atividades com valor MET
 (ex.: "Aeróbia, alto impacto = 7", "Andar de skate = 5", "Artes marciais moderado = 10.3"). É uma tabela de
 lookup (não uma fórmula). Se necessário replicar, extrair a lista completa das colunas N:P da sheet9. Não
@@ -401,20 +429,26 @@ Fonte: `Calc_Antropometria` (Evonut sheet8). **Masculino** = linhas 4–13; **Fe
 Cada protocolo tem: coluna Q = **Σ dobras**, coluna R = **Densidade corporal (Dc)**, coluna S = **% Gordura**.
 
 **Conversão Dc → % Gordura**: **Siri (1961)** (declarado na célula O1):
+
 ```
 %Gordura = ((4.95 / Dc) − 4.5) × 100     ≡  495/Dc − 450
 ```
+
 > Brozek **NÃO** é usado (a planilha usa Siri em todos os protocolos baseados em densidade).
 > Idade (`I`) nos protocolos vem da célula `S38`/`V38`/... (idade calculada por `YEARFRAC` da data de nascimento `EI`).
 
 ## B1. Durnin & Womersley (1974)
+
 Σ = **Bíceps + Tríceps + Subescapular + Suprailíaca** (`DG+DH+DK+DM`).
+
 - **Masculino** (R4): `Dc = 1.1765 − 0.0744·log10(Σ)`
 - **Feminino** (R16): `Dc = 1.1567 − 0.0717·log10(Σ)`
 - %Gordura = Siri.
 
 ## B2. Guedes (1985)
+
 Sítios **diferentes** por sexo:
+
 - **Masculino** (R5): Σ = **Tríceps + Abdominal + Suprailíaca** (`DH+DL+DM`);
   `Dc = 1.17136 − 0.06706·log10(Σ)`
 - **Feminino** (R17): Σ = **Subescapular + Suprailíaca + Coxa** (`DK+DM+DO`);
@@ -422,6 +456,7 @@ Sítios **diferentes** por sexo:
 - %Gordura = Siri. (Excel `LOG()` = base 10.)
 
 ## B3. Jackson-Pollock-Ward 3 dobras (1980)
+
 - **Masculino** (R6): Σ = **Peitoral + Abdominal + Coxa** (`DI+DL+DO`);
   `Dc = 1.10938 − 0.0008267·Σ + 0.0000016·Σ² − 0.0002574·I`
 - **Feminino** (R18): Σ = **Tríceps + Suprailíaca + Coxa** (`DH+DM+DO`);
@@ -429,14 +464,18 @@ Sítios **diferentes** por sexo:
 - %Gordura = Siri.
 
 ## B4. Jackson-Pollock-Ward 7 dobras (1980)
+
 Σ = **Tríceps + Peitoral + Axilar média + Subescapular + Abdominal + Suprailíaca + Coxa**
 (`DH+DI+DJ+DK+DL+DM+DO`).
+
 - **Masculino** (R7): `Dc = 1.112 − 0.00043499·Σ + 0.00000055·Σ² − 0.00028826·I`
 - **Feminino** (R19): `Dc = 1.097 − 0.00046971·Σ + 0.00000056·Σ² − 0.00012828·I`
 - %Gordura = Siri.
 
 ## B5. Petroski (1995)
+
 Sítios **diferentes** por sexo:
+
 - **Masculino** (R8): Σ = **Tríceps + Subescapular + Suprailíaca + Panturrilha** (`DH+DK+DM+DP`);
   `Dc = 1.1954713 − 0.07513507·log10(Σ) − 0.00041072·I`
 - **Feminino** (R20): Σ = **Axilar média + Suprailíaca + Coxa + Panturrilha** (`DJ+DM+DO+DP`);
@@ -444,7 +483,9 @@ Sítios **diferentes** por sexo:
 - %Gordura = Siri. (Mesmos coeficientes; muda o conjunto de dobras.)
 
 ## B6. Faulkner (1987)
+
 **Não** passa por densidade — % Gordura **direto** (coluna R contém o %; S vazia).
+
 - **Masculino** (R9): Σ = **Tríceps + Subescapular + Abdominal + Suprailíaca** (`DH+DK+DL+DM`);
   `%Gordura = Σ·0.153 + 5.783`
 - **Feminino** (R21): Σ = `DH+DL+DK+DM` (mesmas 4 dobras, ordem diferente na fórmula);
@@ -452,13 +493,17 @@ Sítios **diferentes** por sexo:
 - Fórmula idêntica p/ ambos os sexos.
 
 ## B7. Weltman & Col. (1988)
+
 **Não** usa dobras — usa **circunferência abdominal (CW)**, peso (CE) e (feminino) altura (CD).
 % Gordura **direto**:
+
 - **Masculino** (R10): `%Gordura = 0.31457·CW − 0.10969·P + 10.8336`
 - **Feminino** (R22): `%Gordura = 0.11077·CW − 0.17666·A + 0.14354·P + 51.03301`
 
 ## B8. McArdle (1992) — crianças/adolescentes (9–16 anos)
+
 Dc depende da faixa etária; usa **Tríceps (DH)** e **Subescapular (DK)** em log10.
+
 - **Masculino** (R11):
   - 9–12 anos: `Dc = 1.108 − 0.027·log10(Tríceps) − 0.038·log10(Subescapular)`
   - 13–16 anos: `Dc = 1.13 − 0.055·log10(Tríceps) − 0.026·log10(Subescapular)`
@@ -468,7 +513,9 @@ Dc depende da faixa etária; usa **Tríceps (DH)** e **Subescapular (DK)** em lo
 - %Gordura = Siri.
 
 ## B9. Slaughter (1988) — crianças/adolescentes (7–18 anos)
+
 Σ = **Tríceps + Subescapular** (`DH+DK`). % Gordura **direto** (não usa Siri).
+
 - **Feminino** (R24):
   - se `Σ > 35`: `%Gordura = 0.546·Σ + 9.7`
   - senão: `%Gordura = 1.33·Σ − 0.013·Σ² − 2.5`
@@ -488,12 +535,14 @@ Dc depende da faixa etária; usa **Tríceps (DH)** e **Subescapular (DK)** em lo
 > 7–12 → `S28`, 13–14 → `S30`, 15–17 → `S32`.
 
 ## B10. Bioimpedância
+
 % Gordura = **entrada direta** do aparelho (`BD_Antropometria!DW`). Sem fórmula (R13/R25 só repassam o valor).
 
 ---
 
 ## B11. Índices e composição corporal (colunas h–q de `Calc_Antropometria`)
-- **IMC** = `P / (A/100)²` (kg/m²). *(Cálculo padrão; célula de IMC referenciada em `u`/BD.)*
+
+- **IMC** = `P / (A/100)²` (kg/m²). _(Cálculo padrão; célula de IMC referenciada em `u`/BD.)_
 - **Razão Cintura/Quadril (RCQ)** (col `p`, só se idade ≥ 20): `RCQ = ROUNDDOWN(Cintura(CV) / Quadril(CX), 2)`
 - **Índice de conicidade** (col `q`): `C = (Cintura/100) / (0.109 · √(P / (A/100)))`
 - **CMB** (Circunf. muscular do braço) = `CircBraço(CK)·10 − π·Tríceps(DH)` (em mm; ver col i/j)
@@ -510,6 +559,7 @@ Dc depende da faixa etária; usa **Tríceps (DH)** e **Subescapular (DK)** em lo
 ---
 
 ## B12. Classificação de IMC (colunas t/u/v de `Calc_Antropometria`)
+
 Faixas (adulto) confirmadas nas células:
 | Classificação | IMC |
 |---|---|
@@ -524,6 +574,7 @@ Faixas completas de todos os graus (Magreza II/III, Obesidade I/III) **presentes
 transcritas — reabrir col u/v linhas 4–13 se precisar da tabela fechada.
 
 ## B13. Classificação de RCQ (risco cardiovascular)
+
 Tabela por sexo × faixa etária (colunas à direita, ~`CA:CH`, com "Risco Baixo/Moderado/Alto/Muito Alto").
 Ex. (Masculino): 20–29 anos → Baixo ≤0.83, Moderado 0.83–0.88, Alto 0.89–0.94, Muito alto >0.94.
 Ex. (Feminino): 20–29 → Baixo ≤0.71, Moderado 0.71–0.77, Alto 0.78–0.82. A tabela completa está nas
@@ -536,6 +587,7 @@ linhas 4–14 das colunas de risco; é **lookup**, não fórmula.
 **NÃO ENCONTRADO — sem par entrada→saída utilizável.**
 
 Ambas as planilhas foram salvas **sem dados de paciente**:
+
 - `BD_GastoEnerg` (Evonut sheet14): linhas de entrada `DD/DE/DF/DG` **vazias**. As saídas em cache de
   `Calc_GastoEnerg` refletem só o termo constante (ex.: Harris-Benedict 84 → `88.36` com P=A=I=0;
   HB19 → `66.5`; Mifflin → `5`; Tinsley peso → `10`). Isso **confirma o cabeamento das fórmulas** (a constante
@@ -545,6 +597,7 @@ Ambas as planilhas foram salvas **sem dados de paciente**:
   (rótulos numéricos), inputs também **vazios**; nenhum resultado numérico de paciente em cache.
 
 **Verificação de sanidade possível** (não é golden clínico, mas serve de teste unitário de constante):
+
 - Harris-Benedict 1984 M, com P=0,A=0,I=0 → `88.36` ✓ (cache `AF5=88.36`)
 - Harris-Benedict 1919 M, idem → `66.5` ✓ (cache `AF6=66.5`)
 - Mifflin-St Jeor, idem → `5` ✓ ; Tinsley peso → `10` ✓
@@ -583,11 +636,11 @@ Tinsley (por peso e por MLG).
 
 ### Divergiam
 
-| Equação | Planilha | Sistema (antes) | Decisão |
-|---|---|---|---|
-| Mifflin-St Jeor | `9,99·P + 6,25·A − 4,92·I ± sexo` | `10·P + 6,25·A − 5·I` | **Corrigido para a planilha.** Ela reproduz o artigo de 1990; a forma 10/5 circula em livro-texto mas não é a publicada. Diferença de ~2 kcal. |
-| Harris-Benedict 1919 e 1984 | coeficientes arredondados (13,4 / 4,8 / 5,68) | precisão do artigo (13,397 / 4,799 / 5,677) | **Mantida a precisão do artigo** (decisão do usuário). Diferença menor que 1 kcal. |
-| EER/IOM 2005 | fator de atividade multiplica **só o peso**; altura fora do fator; **acréscimo fixo por sexo e faixa** (+107 M / +144 F adulto; +140 M / +232 F em 9–18; +174 M / +198 F em 3–8) | forma publicada: fator multiplica peso **e** altura, sem acréscimo | **Convivem as duas.** A variante da planilha entrou como equação própria (`eer_iom_2005_planilha`), não como comportamento por clínica. |
+| Equação                     | Planilha                                                                                                                                                                         | Sistema (antes)                                                    | Decisão                                                                                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mifflin-St Jeor             | `9,99·P + 6,25·A − 4,92·I ± sexo`                                                                                                                                                | `10·P + 6,25·A − 5·I`                                              | **Corrigido para a planilha.** Ela reproduz o artigo de 1990; a forma 10/5 circula em livro-texto mas não é a publicada. Diferença de ~2 kcal. |
+| Harris-Benedict 1919 e 1984 | coeficientes arredondados (13,4 / 4,8 / 5,68)                                                                                                                                    | precisão do artigo (13,397 / 4,799 / 5,677)                        | **Mantida a precisão do artigo** (decisão do usuário). Diferença menor que 1 kcal.                                                             |
+| EER/IOM 2005                | fator de atividade multiplica **só o peso**; altura fora do fator; **acréscimo fixo por sexo e faixa** (+107 M / +144 F adulto; +140 M / +232 F em 9–18; +174 M / +198 F em 3–8) | forma publicada: fator multiplica peso **e** altura, sem acréscimo | **Convivem as duas.** A variante da planilha entrou como equação própria (`eer_iom_2005_planilha`), não como comportamento por clínica.        |
 
 ### Por que o EER virou equação separada e não regra por clínica
 
@@ -625,11 +678,11 @@ Guedes, Jackson-Pollock 3D, Jackson-Pollock 7D, Faulkner, McArdle, Slaughter
 
 ### Três alinhados com a planilha nesta revisão
 
-| Protocolo | Antes | Agora |
-|---|---|---|
-| Durnin & Womersley | coeficiente por faixa etária (5 faixas por sexo) | coeficiente agrupado, um por sexo (1,1765 H / 1,1567 M) |
-| Petroski | quadrática no homem, logarítmica na mulher | a MESMA logarítmica nos dois sexos; só os sítios diferem |
-| Weltman | duas circunferências abdominais, com média | uma única circunferência |
+| Protocolo          | Antes                                            | Agora                                                    |
+| ------------------ | ------------------------------------------------ | -------------------------------------------------------- |
+| Durnin & Womersley | coeficiente por faixa etária (5 faixas por sexo) | coeficiente agrupado, um por sexo (1,1765 H / 1,1567 M)  |
+| Petroski           | quadrática no homem, logarítmica na mulher       | a MESMA logarítmica nos dois sexos; só os sítios diferem |
+| Weltman            | duas circunferências abdominais, com média       | uma única circunferência                                 |
 
 As três vinham da conferência de literatura de julho, que tratou a forma da
 planilha como imprecisão. A decisão de 2026-08-03 foi o contrário: o documento

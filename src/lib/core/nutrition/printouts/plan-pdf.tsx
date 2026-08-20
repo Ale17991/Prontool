@@ -3,14 +3,7 @@ import { Document, Page, Text, View, renderToBuffer } from '@react-pdf/renderer'
 import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { DietPlanView } from '@/lib/core/nutrition/diet/plan'
-import {
-  DraftStamp,
-  PrintFooter,
-  brDate,
-  dash,
-  fmt,
-  printStyles as s,
-} from './shared'
+import { DraftStamp, PrintFooter, brDate, dash, fmt, printStyles as s } from './shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
@@ -69,7 +62,9 @@ export async function renderPlanPdf(input: PlanPdfInput): Promise<Buffer> {
 
         <Text style={s.subtle}>
           {plan.title}
-          {plan.target?.assessedAt ? ` · meta da avaliação de ${brDate(plan.target.assessedAt)}` : ''}
+          {plan.target?.assessedAt
+            ? ` · meta da avaliação de ${brDate(plan.target.assessedAt)}`
+            : ''}
         </Text>
 
         {plan.meals.map((meal) => (
@@ -116,19 +111,20 @@ export async function renderPlanPdf(input: PlanPdfInput): Promise<Buffer> {
             <Text style={[s.subtle, { marginTop: 2 }]}>
               {fmt(Math.round(meal.totals.energyKcal), 'kcal')} · P{' '}
               {fmt(Math.round(meal.totals.proteinG), 'g')} · C{' '}
-              {fmt(Math.round(meal.totals.carbG), 'g')} · G{' '}
-              {fmt(Math.round(meal.totals.fatG), 'g')}
+              {fmt(Math.round(meal.totals.carbG), 'g')} · G {fmt(Math.round(meal.totals.fatG), 'g')}
               {meal.targetPct !== null ? ` · meta ${dash(meal.targetPct)}% do dia` : ''}
             </Text>
           </View>
         ))}
 
-        <View style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 6 }}>
+        <View
+          style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 6 }}
+        >
           <Text style={s.bold}>Total do dia</Text>
           <Text>
-            {fmt(Math.round(t.energyKcal), 'kcal')} · Proteína{' '}
-            {fmt(Math.round(t.proteinG), 'g')} · Carboidrato {fmt(Math.round(t.carbG), 'g')} ·
-            Gordura {fmt(Math.round(t.fatG), 'g')} · Fibra {fmt(Math.round(t.fiberG), 'g')}
+            {fmt(Math.round(t.energyKcal), 'kcal')} · Proteína {fmt(Math.round(t.proteinG), 'g')} ·
+            Carboidrato {fmt(Math.round(t.carbG), 'g')} · Gordura {fmt(Math.round(t.fatG), 'g')} ·
+            Fibra {fmt(Math.round(t.fiberG), 'g')}
           </Text>
           {plan.target ? (
             <Text style={s.subtle}>

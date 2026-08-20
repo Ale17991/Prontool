@@ -89,7 +89,9 @@ async function loadMaterialRows(
   for (const ids of chunk(appointmentIds, IN_FILTER_CHUNK)) {
     const { data, error } = await supabase
       .from('appointment_materials' as never)
-      .select('unit_cost_cents, quantity, appointment_id, material_name, tuss_description, tuss_code')
+      .select(
+        'unit_cost_cents, quantity, appointment_id, material_name, tuss_description, tuss_code',
+      )
       .eq('tenant_id', tenantId)
       .in('appointment_id', ids)
     if (error) {

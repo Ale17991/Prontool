@@ -6,10 +6,7 @@
  * aviso. Também travamos o tom — este material é apoio, não conduta.
  */
 import { describe, expect, it } from 'vitest'
-import {
-  READY_MADE_CARE_NOTES,
-  readyMadeCareNote,
-} from '@/lib/core/care-notes/ready-made'
+import { READY_MADE_CARE_NOTES, readyMadeCareNote } from '@/lib/core/care-notes/ready-made'
 
 /** Mesmo limite do schema de `POST /api/pacientes/[id]/orientacoes`. */
 const MAX_BODY = 5000

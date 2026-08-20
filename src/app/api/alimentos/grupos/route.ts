@@ -29,7 +29,10 @@ async function gate(tenantId: string): Promise<boolean> {
   return ent.hasModule('dieta')
 }
 function moduleDisabled(): Response {
-  return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+  return NextResponse.json(
+    { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+    { status: 404 },
+  )
 }
 
 export async function GET(req: Request): Promise<Response> {
@@ -64,7 +67,9 @@ export async function POST(req: Request): Promise<Response> {
     const parsed = listSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }

@@ -51,7 +51,8 @@ const RCQ_TABLE: Record<Sex, RcqBand[]> = {
  */
 export function classifyWaistHip(ratio: number, sex: Sex, ageYears: number): string | null {
   if (ageYears < 20) return null
-  const band = RCQ_TABLE[sex].find((b) => ageYears <= b.maxAge) ?? RCQ_TABLE[sex][RCQ_TABLE[sex].length - 1]!
+  const band =
+    RCQ_TABLE[sex].find((b) => ageYears <= b.maxAge) ?? RCQ_TABLE[sex][RCQ_TABLE[sex].length - 1]!
   const [low, mod, high] = band.cuts
   if (ratio <= low) return 'Risco baixo'
   if (ratio <= mod) return 'Risco moderado'
@@ -102,11 +103,7 @@ const FAT_LABELS = [
   'Muito ruim',
 ] as const
 
-export function classifyBodyFat(
-  fatPct: number,
-  sex: Sex,
-  ageYears: number,
-): string | null {
+export function classifyBodyFat(fatPct: number, sex: Sex, ageYears: number): string | null {
   if (!Number.isFinite(fatPct) || ageYears < 18 || ageYears > 65) return null
   const band = FAT_TABLE[sex].find((b) => ageYears <= b.maxAge)
   if (!band) return null

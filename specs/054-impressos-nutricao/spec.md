@@ -22,7 +22,7 @@ A planilha de referência tem **nove telas de impressão**, e três delas
 três avaliações lado a lado** — ou seja, o impresso não é uma foto do dia, é a
 evolução. É esse formato que o paciente leva para casa e compara.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Entregar o plano alimentar impresso (Priority: P1)
 
@@ -166,7 +166,7 @@ e conferir que a curva e o percentil batem com a seção do prontuário.
   tela, dígito a dígito. Divergência entre o que a profissional viu e o que o
   paciente levou destrói a confiança no sistema.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -210,7 +210,7 @@ e conferir que a curva e o percentil batem com a seção do prontuário.
 - **Emissão**: o registro de que um documento foi gerado para um paciente, para
   fins de auditoria (quem gerou, quando, qual documento).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

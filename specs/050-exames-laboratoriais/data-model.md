@@ -8,14 +8,14 @@ Padrões herdados: catálogo global = `tenant_id` ausente + RLS read-only; dado 
 
 Resultados de exame **não criam tabela**. Vão para `public.patient_measurements` (0113), tal como está:
 
-| Coluna | Uso na 050 |
-|---|---|
-| `metric_type` → `patient_metric_types` | o analito (ex.: `lab_ferritina`) |
-| `value NUMERIC` | o resultado |
-| `unit` | copiada do catálogo pelo trigger quando omitida |
-| `measured_at DATE` | data do exame |
-| `notes` | observação livre (≤2000) |
-| `tenant_id`, `patient_id`, `created_by_user_id`, `created_at` | isolamento + autoria |
+| Coluna                                                        | Uso na 050                                      |
+| ------------------------------------------------------------- | ----------------------------------------------- |
+| `metric_type` → `patient_metric_types`                        | o analito (ex.: `lab_ferritina`)                |
+| `value NUMERIC`                                               | o resultado                                     |
+| `unit`                                                        | copiada do catálogo pelo trigger quando omitida |
+| `measured_at DATE`                                            | data do exame                                   |
+| `notes`                                                       | observação livre (≤2000)                        |
+| `tenant_id`, `patient_id`, `created_by_user_id`, `created_at` | isolamento + autoria                            |
 
 Garantias já existentes que a feature herda: append-only total (`enforce_append_only_columns('')` — correção = novo registro); RLS SELECT same-tenant e INSERT só `admin`/`profissional_saude`; validação anti-typo pelo trigger `validate_patient_measurement`; índice `(tenant_id, patient_id, metric_type, measured_at DESC)`.
 
@@ -38,6 +38,7 @@ ON CONFLICT (metric_type) DO NOTHING;
 seguido do bloco `DO $$` que replica as linhas novas em `catalog_baseline.patient_metric_types` (padrão idêntico ao das linhas 115-129 da `0175_nutrition_assessments.sql`). **Obrigatório**: `patient_metric_types` É truncada e restaurada do baseline em `resetDatabase()`; sem o refresh, os exames somem a cada `vitest`.
 
 Regras de chave:
+
 - Analitos novos: prefixo `lab_` + slug (`^[a-z][a-z0-9_]{1,63}$`).
 - **Os 7 legados da 0113 não são reinseridos nem remarcados**: `glicemia_jejum`, `hba1c`, `colesterol_total`, `ldl`, `hdl`, `triglicerides` continuam com `specialty='endocrino'` (linhas globais são append-only). O catálogo TS os declara com a chave legada e os inclui no painel.
 - Exame próprio da clínica: caminho existente `createCustomMetricType` → chave `c<tenant8>_<slug>`, `tenant_id` setado, visível só àquele tenant.
@@ -46,18 +47,18 @@ Regras de chave:
 
 ## 3. `public.lab_reference_ranges` — NOVA (global)
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `id` | UUID PK DEFAULT `gen_random_uuid()` | |
-| `analyte_key` | TEXT NOT NULL | casa com `metric_type` do catálogo |
-| `sex` | TEXT NOT NULL CHECK IN (`M`,`F`,`any`) | `any` = mesma faixa para ambos |
-| `age_min_years` | NUMERIC(6,2) NOT NULL | inclusive |
-| `age_max_years` | NUMERIC(6,2) NOT NULL | inclusive (130 = sem teto) |
-| `state` | TEXT NOT NULL DEFAULT `padrao` CHECK IN (`padrao`,`gestante`,`lactante`) | |
-| `ref_min` | NUMERIC(14,4) **NULL** | piso; NULL = sem piso |
-| `ref_max` | NUMERIC(14,4) **NULL** | teto; NULL = sem teto |
-| `unit` | TEXT NOT NULL | precisa bater com a unidade do catálogo |
-| `source_label` | TEXT NULL | procedência exibida na tela |
+| Coluna          | Tipo                                                                     | Notas                                   |
+| --------------- | ------------------------------------------------------------------------ | --------------------------------------- |
+| `id`            | UUID PK DEFAULT `gen_random_uuid()`                                      |                                         |
+| `analyte_key`   | TEXT NOT NULL                                                            | casa com `metric_type` do catálogo      |
+| `sex`           | TEXT NOT NULL CHECK IN (`M`,`F`,`any`)                                   | `any` = mesma faixa para ambos          |
+| `age_min_years` | NUMERIC(6,2) NOT NULL                                                    | inclusive                               |
+| `age_max_years` | NUMERIC(6,2) NOT NULL                                                    | inclusive (130 = sem teto)              |
+| `state`         | TEXT NOT NULL DEFAULT `padrao` CHECK IN (`padrao`,`gestante`,`lactante`) |                                         |
+| `ref_min`       | NUMERIC(14,4) **NULL**                                                   | piso; NULL = sem piso                   |
+| `ref_max`       | NUMERIC(14,4) **NULL**                                                   | teto; NULL = sem teto                   |
+| `unit`          | TEXT NOT NULL                                                            | precisa bater com a unidade do catálogo |
+| `source_label`  | TEXT NULL                                                                | procedência exibida na tela             |
 
 - **Sem `tenant_id`** — catálogo global. RLS: `SELECT TO authenticated USING (true)`; `GRANT SELECT` apenas (escrita só por service_role, via script).
 - `CONSTRAINT lab_range_natural_key UNIQUE (analyte_key, sex, age_min_years, age_max_years, state)`.
@@ -85,6 +86,7 @@ Molde: `scripts/build-dris-seed.ts`. Lê `nutri-doc/Evonut.xlsm` → aba `BD_Exa
 Mapa de colunas: `A=Cod`, `B=Desc Exame`, `C=Grupo Exame`, `D=Unidade`, `E=Ref Min H`, `F=Ref Max H`, `G=Ref Min M`, `H=Ref Max M`.
 
 Transformação por linha:
+
 1. Descarta se não houver unidade **ou** se `E..H` estiverem todas vazias (os ~204 qualitativos) e se `Grupo = 'Exames Completos'` (os 22 pseudo-painéis) — D10.
 2. Normaliza a unidade: `TRIM` + tabela de aliases contra as 37 canônicas do AF (`µg/dL`→`mcg/dL`, `mcg/Ml`→`mcg/mL`, …). **Unidade desconhecida = erro**, não gravação silenciosa.
 3. Resolve `analyte_key` por nome normalizado (sem acento/caixa/parênteses), consultando o catálogo TS — que mapeia legados (`glicemia_jejum`) e novos (`lab_*`). Nome não mapeado = reportado, não inventado.
@@ -98,11 +100,11 @@ Execução: `DRY=1` imprime contagens sem gravar; sem `DRY`, `createClient` serv
 
 ```ts
 export interface LabAnalyteDef {
-  key: string            // metric_type ('lab_ferritina' | legado 'hba1c')
+  key: string // metric_type ('lab_ferritina' | legado 'hba1c')
   label: string
   unit: string
-  group: string          // painel: 'Hemograma', 'Perfil Lipídico', …
-  aliases?: string[]     // nomes alternativos (fonte: AF) p/ casar no importador
+  group: string // painel: 'Hemograma', 'Perfil Lipídico', …
+  aliases?: string[] // nomes alternativos (fonte: AF) p/ casar no importador
   displayOrder?: number
 }
 export const LAB_ANALYTES: readonly LabAnalyteDef[]
@@ -114,14 +116,29 @@ Fonte da verdade de **o que é exame laboratorial e em que painel aparece** — 
 
 ```ts
 type LabClass = 'baixo' | 'normal' | 'alto' | 'sem_referencia'
-interface LabRange { refMin: number|null; refMax: number|null; unit: string; sourceLabel: string|null }
+interface LabRange {
+  refMin: number | null
+  refMax: number | null
+  unit: string
+  sourceLabel: string | null
+}
 interface LabResultItem {
-  analyteKey: string; label: string; group: string; unit: string
-  value: number; measuredAt: string
-  refMin: number|null; refMax: number|null; sourceLabel: string|null
+  analyteKey: string
+  label: string
+  group: string
+  unit: string
+  value: number
+  measuredAt: string
+  refMin: number | null
+  refMax: number | null
+  sourceLabel: string | null
   class: LabClass
 }
-interface LabPanelResult { items: LabResultItem[]; low: number; high: number }
+interface LabPanelResult {
+  items: LabResultItem[]
+  low: number
+  high: number
+}
 ```
 
 A classificação **nunca é gravada** — é recomputada a cada leitura a partir de resultado × faixa. Corrigir uma faixa reclassifica todo o histórico sem tocar em nenhum registro, o que preserva o append-only (Princípio I) e evita histórico com leitura obsoleta.
@@ -132,8 +149,8 @@ A chave `'exames'` já existe em `PORTAL_SECTIONS` (`implemented: false`, `defau
 
 ## Entidades e relações (resumo)
 
-- **Analito** (`patient_metric_types`, `specialty='laboratorio'` + 7 legados) — global ou por tenant. 1—* **Resultados**.
-- **Resultado** (`patient_measurements`) *—1 **Paciente**, *—1 **Analito**. Por tenant, append-only.
+- **Analito** (`patient_metric_types`, `specialty='laboratorio'` + 7 legados) — global ou por tenant. 1—\* **Resultados**.
+- **Resultado** (`patient_measurements`) _—1 **Paciente**, _—1 **Analito**. Por tenant, append-only.
 - **Faixa de referência** (`lab_reference_ranges`) — catálogo global; ligada ao analito por `analyte_key` (mesma chave, **sem FK**, espelhando a escolha da 0182 e permitindo semear faixa antes/depois do catálogo).
 - **Classificação** — derivada: Resultado × Faixa aplicável ao (sexo, idade, estado) do **Paciente**.
 - **Paciente** — fonte de sexo e `birth_date` via `rpc('get_patient_for_tenant')`; ambos sobrescrevíveis por query param, ausência não bloqueia.

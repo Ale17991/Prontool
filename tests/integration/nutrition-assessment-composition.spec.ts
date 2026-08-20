@@ -11,11 +11,41 @@ import { listMeasurements } from '@/lib/core/patient-portal/measurements'
 const METRICS = [
   { metric_type: 'peso', label: 'Peso', unit: 'kg', min_plausible: 2, max_plausible: 400 },
   { metric_type: 'imc', label: 'IMC', unit: 'kg/m²', min_plausible: 8, max_plausible: 90 },
-  { metric_type: 'percentual_gordura', label: 'Gordura corporal', unit: '%', min_plausible: 3, max_plausible: 70 },
-  { metric_type: 'massa_gorda_kg', label: 'Massa gorda', unit: 'kg', min_plausible: 0.3, max_plausible: 200 },
-  { metric_type: 'massa_magra_kg', label: 'Massa magra', unit: 'kg', min_plausible: 5, max_plausible: 150 },
-  { metric_type: 'taxa_metabolica_basal', label: 'TMB', unit: 'kcal', min_plausible: 500, max_plausible: 5000 },
-  { metric_type: 'gasto_energetico_total', label: 'GET', unit: 'kcal', min_plausible: 500, max_plausible: 8000 },
+  {
+    metric_type: 'percentual_gordura',
+    label: 'Gordura corporal',
+    unit: '%',
+    min_plausible: 3,
+    max_plausible: 70,
+  },
+  {
+    metric_type: 'massa_gorda_kg',
+    label: 'Massa gorda',
+    unit: 'kg',
+    min_plausible: 0.3,
+    max_plausible: 200,
+  },
+  {
+    metric_type: 'massa_magra_kg',
+    label: 'Massa magra',
+    unit: 'kg',
+    min_plausible: 5,
+    max_plausible: 150,
+  },
+  {
+    metric_type: 'taxa_metabolica_basal',
+    label: 'TMB',
+    unit: 'kcal',
+    min_plausible: 500,
+    max_plausible: 5000,
+  },
+  {
+    metric_type: 'gasto_energetico_total',
+    label: 'GET',
+    unit: 'kcal',
+    min_plausible: 500,
+    max_plausible: 8000,
+  },
 ]
 
 async function seedMetrics() {

@@ -241,7 +241,11 @@ export function RotuloClient() {
       ingredientsText: form.ingredientsText.trim() || null,
       allergensText: form.allergensText.trim() || null,
       storageText: form.storageText.trim() || null,
-      ingredients: ingredients.map((i, idx) => ({ foodId: i.foodId, grams: i.grams, position: idx })),
+      ingredients: ingredients.map((i, idx) => ({
+        foodId: i.foodId,
+        grams: i.grams,
+        position: idx,
+      })),
     }
   }
 
@@ -322,9 +326,9 @@ export function RotuloClient() {
     })
   }
 
-  const applied = (Object.entries(result.frontOfPack) as Array<[FrontOfPackNutrient, string]>).filter(
-    ([, v]) => v === 'aplica',
-  )
+  const applied = (
+    Object.entries(result.frontOfPack) as Array<[FrontOfPackNutrient, string]>
+  ).filter(([, v]) => v === 'aplica')
   const inconclusive = (
     Object.entries(result.frontOfPack) as Array<[FrontOfPackNutrient, string]>
   ).filter(([, v]) => v === 'inconclusivo')
@@ -423,8 +427,8 @@ export function RotuloClient() {
             <CardTitle className="text-sm">
               Ingredientes do preparo
               <span className="ml-2 font-normal text-slate-400">
-                soma {formatDeclared(ingredients.reduce((s, i) => s + i.grams, 0))} {unit} · rendimento
-                informado {formatDeclared(form.totalYield)} {unit}
+                soma {formatDeclared(ingredients.reduce((s, i) => s + i.grams, 0))} {unit} ·
+                rendimento informado {formatDeclared(form.totalYield)} {unit}
               </span>
             </CardTitle>
           </CardHeader>
@@ -439,7 +443,9 @@ export function RotuloClient() {
                   value={ing.grams}
                   onChange={(e) =>
                     setIngredients((v) =>
-                      v.map((i) => (i.key === ing.key ? { ...i, grams: Number(e.target.value) } : i)),
+                      v.map((i) =>
+                        i.key === ing.key ? { ...i, grams: Number(e.target.value) } : i,
+                      ),
                     )
                   }
                 />

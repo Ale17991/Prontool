@@ -30,6 +30,7 @@ formulário gerado representa.
 com `tenant_memed_config` guardando credencial cifrada. Seguimos o mesmo desenho.
 
 **Alternativas rejeitadas**:
+
 - Abrir `ProviderId` e registrar um adapter `whatsapp`: gera adapter mentiroso + tela de
   configuração que não serve para QR.
 - Reusar `generic_webhook`: não modela conexão, estado de sessão nem número vinculado.
@@ -61,6 +62,7 @@ de operação já na décima clínica.
 executa o envio individual.
 
 **Rationale**: três restrições se cruzam.
+
 1. FR-013 exige espaçar os envios (rajada = risco de bloqueio do número).
 2. `processBatch` (`process-batch.ts:164`) hoje dispara `Promise.allSettled` sobre até 200 itens
    de uma vez, dentro da função da Vercel. 200 × 3s de espaçamento = 10 minutos — estoura o
@@ -191,9 +193,9 @@ template próprio, com os mesmos placeholders (`paciente`, `medico`, `procedimen
 
 ## Riscos aceitos e registrados
 
-| Risco | Decisão |
-|---|---|
-| Bloqueio do número da clínica (Baileys, não-oficial) | Aceito conscientemente em 2026-07-28. Mitigação parcial: espaçamento (D3). Sem plano B implementado no v1. |
-| Evolution API compartilhada com outro produto da Homio | Aceito. Falha lá derruba o canal aqui; o FR-012 garante que isso vire um aviso claro, não 200 falhas por paciente. |
-| ~~SC-004 (leitura ≥ 3× a abertura de e-mail)~~ | **Resolvido** na clarificação de 2026-07-28: virou alvo absoluto (≥ 70% dos entregues lidos em 24h), verificável com os próprios dados da feature. |
+| Risco                                                                                                                  | Decisão                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bloqueio do número da clínica (Baileys, não-oficial)                                                                   | Aceito conscientemente em 2026-07-28. Mitigação parcial: espaçamento (D3). Sem plano B implementado no v1.                                                                                                                             |
+| Evolution API compartilhada com outro produto da Homio                                                                 | Aceito. Falha lá derruba o canal aqui; o FR-012 garante que isso vire um aviso claro, não 200 falhas por paciente.                                                                                                                     |
+| ~~SC-004 (leitura ≥ 3× a abertura de e-mail)~~                                                                         | **Resolvido** na clarificação de 2026-07-28: virou alvo absoluto (≥ 70% dos entregues lidos em 24h), verificável com os próprios dados da feature.                                                                                     |
 | Reenvio manual no WhatsApp é vetor de irritação do paciente e de bloqueio do número, de um jeito que no e-mail não era | Aceito conscientemente (clarificação de 2026-07-28, Q5): o reenvio manual vale para WhatsApp igual ao e-mail, confiando na recepção. Mitigação: só reenvia o mesmo conteúdo templado, nunca texto livre; toda tentativa fica auditada. |

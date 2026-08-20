@@ -83,11 +83,7 @@ async function seedPaciente(
   return id
 }
 
-function ctx(
-  tenantId: string,
-  params: Record<string, unknown>,
-  today = HOJE,
-): EnumerateContext {
+function ctx(tenantId: string, params: Record<string, unknown>, today = HOJE): EnumerateContext {
   return {
     supabase: sb,
     tenantId,
@@ -682,12 +678,7 @@ describe('FR-017 — paciente inativo ou anonimizado sai de qualquer avaliação
     const cat = await seedCatalogo(tenantId)
     await seedAtendimento(tenantId, pacienteId, '2026-08-13T12:00:00.000Z', cat)
 
-    const realizado = await seedAtendimento(
-      tenantId,
-      pacienteId,
-      '2026-08-10T12:00:00.000Z',
-      cat,
-    )
+    const realizado = await seedAtendimento(tenantId, pacienteId, '2026-08-10T12:00:00.000Z', cat)
     await sb
       .from('appointment_completions' as never)
       .insert({
@@ -761,9 +752,7 @@ describe('FR-017 — paciente inativo ou anonimizado sai de qualquer avaliação
       await cenarioCompleto(tenantId, pac)
 
       for (const fonte of listSources()) {
-        const candidatos = await fonte.enumerate(
-          ctx(tenantId, PARAMS[fonte.id] ?? {}),
-        )
+        const candidatos = await fonte.enumerate(ctx(tenantId, PARAMS[fonte.id] ?? {}))
         expect(
           candidatos.map((c) => c.patientId),
           `a fonte "${fonte.id}" devolveu um paciente ${situacao}`,

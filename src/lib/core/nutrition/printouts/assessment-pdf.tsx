@@ -5,12 +5,7 @@ import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import { EvolutionColumns, type EvolutionColumn } from '@/lib/pdf/evolution-columns'
 import { DOBRA_PROTOCOLS, TMB_EQUATIONS } from '@/lib/core/nutrition/protocols'
 import type { AssessmentForPrint } from '@/lib/core/nutrition/assessments/for-printout'
-import {
-  PrintFooter,
-  brDate,
-  dash,
-  printStyles as s,
-} from './shared'
+import { PrintFooter, brDate, dash, printStyles as s } from './shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
@@ -91,7 +86,10 @@ export function toColumn(a: AssessmentForPrint): EvolutionColumn {
         a.waistHipClass,
       ),
       cell('TMB', num(a.tmbKcal === null ? null : Math.round(a.tmbKcal), 'kcal')),
-      cell('Gasto energético total', num(a.getKcal === null ? null : Math.round(a.getKcal), 'kcal')),
+      cell(
+        'Gasto energético total',
+        num(a.getKcal === null ? null : Math.round(a.getKcal), 'kcal'),
+      ),
       cell('Meta calórica', num(a.targetKcal === null ? null : Math.round(a.targetKcal), 'kcal')),
     ],
   }
@@ -137,7 +135,9 @@ export async function renderAssessmentPdf(input: AssessmentPdfInput): Promise<Bu
         <EvolutionColumns columns={columns} labels={LINHAS} />
 
         {temVariacao ? (
-          <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 6 }}>
+          <View
+            style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 6 }}
+          >
             {/*
               A pergunta que o paciente faz ao receber o papel é "melhorei?".
               A variação entre a primeira e a última coluna responde direto.

@@ -72,10 +72,14 @@ export async function searchFoods(
 
   // Medidas caseiras + micronutrientes num fetch cada (a RPC não os retorna).
   const ids = rows.map((r) => r.id)
-  const [{ data: measData, error: measErr }, { data: microData, error: microErr }] = await Promise.all([
-    supabase.from('food_household_measures').select('food_id, label, grams, is_default').in('food_id', ids),
-    supabase.from('foods').select('id, micronutrients').in('id', ids),
-  ])
+  const [{ data: measData, error: measErr }, { data: microData, error: microErr }] =
+    await Promise.all([
+      supabase
+        .from('food_household_measures')
+        .select('food_id, label, grams, is_default')
+        .in('food_id', ids),
+      supabase.from('foods').select('id, micronutrients').in('id', ids),
+    ])
   if (measErr) throw new Error(`searchFoods measures failed: ${measErr.message}`)
   if (microErr) throw new Error(`searchFoods micros failed: ${microErr.message}`)
   const microsByFood = new Map<string, MicronutrientMap>()

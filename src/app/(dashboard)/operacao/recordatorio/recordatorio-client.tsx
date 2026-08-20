@@ -6,9 +6,21 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PatientTypeahead, type PatientTypeaheadValue } from '@/components/patients/patient-typeahead'
-import { itemNutrients, addNutrients, roundNutrients, type Nutrients } from '@/lib/core/nutrition/diet/totals'
-import { MICRONUTRIENTS_PRIMARY, micronutrientDef, type MicronutrientMap } from '@/lib/core/nutrition/micronutrients'
+import {
+  PatientTypeahead,
+  type PatientTypeaheadValue,
+} from '@/components/patients/patient-typeahead'
+import {
+  itemNutrients,
+  addNutrients,
+  roundNutrients,
+  type Nutrients,
+} from '@/lib/core/nutrition/diet/totals'
+import {
+  MICRONUTRIENTS_PRIMARY,
+  micronutrientDef,
+  type MicronutrientMap,
+} from '@/lib/core/nutrition/micronutrients'
 import type { FoodDTO } from '@/lib/core/nutrition/foods/search'
 
 interface Item {
@@ -64,7 +76,9 @@ function toNutrients(it: Item): Nutrients {
   )
 }
 function sum(list: Nutrients[]): Nutrients {
-  return roundNutrients(list.reduce(addNutrients, { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 }))
+  return roundNutrients(
+    list.reduce(addNutrients, { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 }),
+  )
 }
 function rescale(scaled: Nutrients, grams: number): Nutrients {
   const f = grams > 0 ? 100 / grams : 0
@@ -89,7 +103,9 @@ export function RecordatorioClient() {
   const [date, setDate] = useState(today)
   const [notes, setNotes] = useState('')
   const [meals, setMeals] = useState<Meal[]>([])
-  const [summaries, setSummaries] = useState<{ id: string; recallDate: string; totalKcal: number }[]>([])
+  const [summaries, setSummaries] = useState<
+    { id: string; recallDate: string; totalKcal: number }[]
+  >([])
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
   const [adequacy, setAdequacy] = useState<AdequacyView | null>(null)
@@ -103,7 +119,15 @@ export function RecordatorioClient() {
       latest: {
         recallDate: string
         notes: string | null
-        meals: { name: string; items: { foodId: string; name: string; grams: number | null; nutrients: Nutrients | null }[] }[]
+        meals: {
+          name: string
+          items: {
+            foodId: string
+            name: string
+            grams: number | null
+            nutrients: Nutrients | null
+          }[]
+        }[]
       } | null
     }
     setSummaries(data.summaries)
@@ -117,7 +141,10 @@ export function RecordatorioClient() {
           items: m.items
             .filter((i) => i.grams !== null)
             .map((i) => {
-              const base = rescale(i.nutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 }, i.grams!)
+              const base = rescale(
+                i.nutrients ?? { energyKcal: 0, proteinG: 0, carbG: 0, fatG: 0, fiberG: 0 },
+                i.grams!,
+              )
               return {
                 key: nextKey(),
                 foodId: i.foodId,
@@ -225,7 +252,13 @@ export function RecordatorioClient() {
   }
 
   const cls = (c: AdequacyItemView['class']) =>
-    c === 'adequado' ? 'text-emerald-600' : c === 'acima' ? 'text-amber-600' : c === 'abaixo' ? 'text-link' : 'text-slate-400'
+    c === 'adequado'
+      ? 'text-emerald-600'
+      : c === 'acima'
+        ? 'text-amber-600'
+        : c === 'abaixo'
+          ? 'text-link'
+          : 'text-slate-400'
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -238,13 +271,21 @@ export function RecordatorioClient() {
             </div>
             <div>
               <Label htmlFor="r_date">Data</Label>
-              <Input id="r_date" type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input
+                id="r_date"
+                type="date"
+                max={today}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
           </CardContent>
         </Card>
 
         {!patient ? (
-          <p className="text-sm text-slate-400">Selecione um paciente para registrar o recordatório.</p>
+          <p className="text-sm text-slate-400">
+            Selecione um paciente para registrar o recordatório.
+          </p>
         ) : (
           <>
             {meals.map((meal) => {
@@ -256,9 +297,15 @@ export function RecordatorioClient() {
                     <Input
                       className="h-8 max-w-[220px] font-semibold"
                       value={meal.name}
-                      onChange={(e) => setMeals((v) => v.map((m) => (m.key === meal.key ? { ...m, name: e.target.value } : m)))}
+                      onChange={(e) =>
+                        setMeals((v) =>
+                          v.map((m) => (m.key === meal.key ? { ...m, name: e.target.value } : m)),
+                        )
+                      }
                     />
-                    <span className="ml-auto text-xs font-semibold tabular-nums text-slate-600">{mt.energyKcal} kcal</span>
+                    <span className="ml-auto text-xs font-semibold tabular-nums text-slate-600">
+                      {mt.energyKcal} kcal
+                    </span>
                     <button
                       type="button"
                       onClick={() => setMeals((v) => v.filter((m) => m.key !== meal.key))}
@@ -284,7 +331,13 @@ export function RecordatorioClient() {
                                     ? {
                                         ...m,
                                         items: m.items.map((x) =>
-                                          x.key === it.key ? { ...x, grams: Number(e.target.value.replace(',', '.')) || 0 } : x,
+                                          x.key === it.key
+                                            ? {
+                                                ...x,
+                                                grams:
+                                                  Number(e.target.value.replace(',', '.')) || 0,
+                                              }
+                                            : x,
                                         ),
                                       }
                                     : m,
@@ -293,12 +346,18 @@ export function RecordatorioClient() {
                             }
                           />
                           <span className="text-xs text-slate-400">g</span>
-                          <span className="w-16 text-right text-xs tabular-nums text-slate-500">{n.energyKcal} kcal</span>
+                          <span className="w-16 text-right text-xs tabular-nums text-slate-500">
+                            {n.energyKcal} kcal
+                          </span>
                           <button
                             type="button"
                             onClick={() =>
                               setMeals((v) =>
-                                v.map((m) => (m.key === meal.key ? { ...m, items: m.items.filter((x) => x.key !== it.key) } : m)),
+                                v.map((m) =>
+                                  m.key === meal.key
+                                    ? { ...m, items: m.items.filter((x) => x.key !== it.key) }
+                                    : m,
+                                ),
                               )
                             }
                             className="text-slate-300 hover:text-destructive"
@@ -335,12 +394,21 @@ export function RecordatorioClient() {
             <Row label="Carboidrato" value={`${dayTotal.carbG} g`} />
             <Row label="Lipídio" value={`${dayTotal.fatG} g`} />
             <Row label="Fibra" value={`${dayTotal.fiberG} g`} />
-            {dayTotal.micros && MICRONUTRIENTS_PRIMARY.some((k) => dayTotal.micros![k] !== undefined) ? (
+            {dayTotal.micros &&
+            MICRONUTRIENTS_PRIMARY.some((k) => dayTotal.micros![k] !== undefined) ? (
               <div className="mt-2 border-t border-slate-100 pt-2">
-                {MICRONUTRIENTS_PRIMARY.filter((k) => dayTotal.micros![k] !== undefined).map((k) => {
-                  const d = micronutrientDef(k)
-                  return <Row key={k} label={d?.label ?? k} value={`${Math.round(dayTotal.micros![k]! * 10) / 10} ${d?.unit ?? ''}`} />
-                })}
+                {MICRONUTRIENTS_PRIMARY.filter((k) => dayTotal.micros![k] !== undefined).map(
+                  (k) => {
+                    const d = micronutrientDef(k)
+                    return (
+                      <Row
+                        key={k}
+                        label={d?.label ?? k}
+                        value={`${Math.round(dayTotal.micros![k]! * 10) / 10} ${d?.unit ?? ''}`}
+                      />
+                    )
+                  },
+                )}
               </div>
             ) : null}
           </CardContent>
@@ -349,7 +417,8 @@ export function RecordatorioClient() {
         {patient ? (
           <div className="flex gap-2">
             <Button variant="outline" onClick={save} disabled={saving} className="flex-1 gap-1.5">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{' '}
+              Salvar
             </Button>
             <Button onClick={analyze} disabled={adeqLoading} className="flex-1 gap-1.5">
               {adeqLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Analisar (DRI)
@@ -385,7 +454,8 @@ export function RecordatorioClient() {
               ) : adequacy.adequacy ? (
                 <>
                   <p className="mb-1 text-[11px] text-slate-500">
-                    {adequacy.adequacy.deficits} carência(s) · {adequacy.adequacy.excesses} excesso(s)
+                    {adequacy.adequacy.deficits} carência(s) · {adequacy.adequacy.excesses}{' '}
+                    excesso(s)
                   </p>
                   {adequacy.adequacy.items.map((i) => (
                     <div key={i.nutrientKey} className="flex items-center justify-between">

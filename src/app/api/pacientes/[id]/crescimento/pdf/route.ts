@@ -49,7 +49,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
       .eq('id', params.id)
       .maybeSingle()
     if (!(flag.data as { growth_tracking_enabled?: boolean } | null)?.growth_tracking_enabled) {
-      return fail('GROWTH_DISABLED', 'O acompanhamento de crescimento não está ligado para este paciente.')
+      return fail(
+        'GROWTH_DISABLED',
+        'O acompanhamento de crescimento não está ligado para este paciente.',
+      )
     }
 
     const hoje = todayInClinicTz()

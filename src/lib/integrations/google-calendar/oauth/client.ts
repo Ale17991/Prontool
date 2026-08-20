@@ -1,8 +1,4 @@
-import {
-  readGoogleOAuthEnv,
-  GOOGLE_CALENDAR_SCOPE,
-  GOOGLE_CALENDAR_FULL_SCOPE,
-} from './env'
+import { readGoogleOAuthEnv, GOOGLE_CALENDAR_SCOPE, GOOGLE_CALENDAR_FULL_SCOPE } from './env'
 import { logger } from '@/lib/observability/logger'
 import { googleOAuthCredentialsSchema, type GoogleOAuthCredentials } from './types'
 

@@ -5,10 +5,7 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
-import {
-  listLabRangesForPatient,
-  listSexDependentAnalytes,
-} from '@/lib/core/labs/reference-ranges'
+import { listLabRangesForPatient, listSexDependentAnalytes } from '@/lib/core/labs/reference-ranges'
 import { classifyLabResults } from '@/lib/core/labs/classify'
 
 type RangeSeed = {
@@ -25,9 +22,9 @@ type RangeSeed = {
 
 async function seedRanges(rows: RangeSeed[]): Promise<void> {
   const sb = serviceClient()
-  const { error } = await sb.from('lab_reference_ranges').insert(
-    rows.map((r) => ({ state: 'padrao', source_label: 'teste', ...r })) as never,
-  )
+  const { error } = await sb
+    .from('lab_reference_ranges')
+    .insert(rows.map((r) => ({ state: 'padrao', source_label: 'teste', ...r })) as never)
   if (error) throw new Error(`seed lab_reference_ranges: ${error.message}`)
 }
 
@@ -36,18 +33,83 @@ describe('Feature 050 US1 — lookup de faixa por sexo/idade/estado', () => {
     await resetDatabase()
     await seedRanges([
       // Ferritina: diverge por sexo (caso real da fonte).
-      { analyte_key: 'lab_ferritina', sex: 'M', age_min_years: 0, age_max_years: 130, ref_min: 70, ref_max: 150, unit: 'mcg/L' },
-      { analyte_key: 'lab_ferritina', sex: 'F', age_min_years: 0, age_max_years: 130, ref_min: 70, ref_max: 200, unit: 'mcg/L' },
+      {
+        analyte_key: 'lab_ferritina',
+        sex: 'M',
+        age_min_years: 0,
+        age_max_years: 130,
+        ref_min: 70,
+        ref_max: 150,
+        unit: 'mcg/L',
+      },
+      {
+        analyte_key: 'lab_ferritina',
+        sex: 'F',
+        age_min_years: 0,
+        age_max_years: 130,
+        ref_min: 70,
+        ref_max: 200,
+        unit: 'mcg/L',
+      },
       // TSH: mesma faixa para ambos os sexos.
-      { analyte_key: 'lab_tsh', sex: 'any', age_min_years: 0, age_max_years: 130, ref_min: 1, ref_max: 2.5, unit: 'mUI/L' },
+      {
+        analyte_key: 'lab_tsh',
+        sex: 'any',
+        age_min_years: 0,
+        age_max_years: 130,
+        ref_min: 1,
+        ref_max: 2.5,
+        unit: 'mUI/L',
+      },
       // Hemoglobina: 'any' genérico + linha específica de mulher (prova o desempate).
-      { analyte_key: 'lab_hemoglobina', sex: 'any', age_min_years: 0, age_max_years: 130, ref_min: 12, ref_max: 18, unit: 'g/dL' },
-      { analyte_key: 'lab_hemoglobina', sex: 'F', age_min_years: 0, age_max_years: 130, ref_min: 13.5, ref_max: 15.5, unit: 'g/dL' },
+      {
+        analyte_key: 'lab_hemoglobina',
+        sex: 'any',
+        age_min_years: 0,
+        age_max_years: 130,
+        ref_min: 12,
+        ref_max: 18,
+        unit: 'g/dL',
+      },
+      {
+        analyte_key: 'lab_hemoglobina',
+        sex: 'F',
+        age_min_years: 0,
+        age_max_years: 130,
+        ref_min: 13.5,
+        ref_max: 15.5,
+        unit: 'g/dL',
+      },
       // Vitamina D: só para adulto — prova o recorte etário.
-      { analyte_key: 'lab_vitamina_d', sex: 'any', age_min_years: 18, age_max_years: 130, ref_min: 40, ref_max: 60, unit: 'ng/mL' },
+      {
+        analyte_key: 'lab_vitamina_d',
+        sex: 'any',
+        age_min_years: 18,
+        age_max_years: 130,
+        ref_min: 40,
+        ref_max: 60,
+        unit: 'ng/mL',
+      },
       // Ácido fólico: faixa de gestante além da padrão.
-      { analyte_key: 'lab_acido_folico', sex: 'F', age_min_years: 0, age_max_years: 130, ref_min: 12, ref_max: 20, unit: 'ng/mL' },
-      { analyte_key: 'lab_acido_folico', sex: 'F', age_min_years: 0, age_max_years: 130, state: 'gestante', ref_min: 20, ref_max: 40, unit: 'ng/mL' },
+      {
+        analyte_key: 'lab_acido_folico',
+        sex: 'F',
+        age_min_years: 0,
+        age_max_years: 130,
+        ref_min: 12,
+        ref_max: 20,
+        unit: 'ng/mL',
+      },
+      {
+        analyte_key: 'lab_acido_folico',
+        sex: 'F',
+        age_min_years: 0,
+        age_max_years: 130,
+        state: 'gestante',
+        ref_min: 20,
+        ref_max: 40,
+        unit: 'ng/mL',
+      },
     ])
   })
 
@@ -76,7 +138,11 @@ describe('Feature 050 US1 — lookup de faixa por sexo/idade/estado', () => {
   it("estado informado vence 'padrao'", async () => {
     const sb = serviceClient()
     const padrao = await listLabRangesForPatient(sb, { ageYears: 30, sex: 'F' })
-    const gestante = await listLabRangesForPatient(sb, { ageYears: 30, sex: 'F', state: 'gestante' })
+    const gestante = await listLabRangesForPatient(sb, {
+      ageYears: 30,
+      sex: 'F',
+      state: 'gestante',
+    })
     expect(padrao.get('lab_acido_folico')).toMatchObject({ refMin: 12, refMax: 20 })
     expect(gestante.get('lab_acido_folico')).toMatchObject({ refMin: 20, refMax: 40 })
   })

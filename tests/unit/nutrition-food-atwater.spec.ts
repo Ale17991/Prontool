@@ -47,24 +47,38 @@ describe('normalizeFoodNutrients', () => {
   })
 
   it('rejeita macro acima da porção de referência', () => {
-    expect(() =>
-      normalizeFoodNutrients({ ...base, energyKcal: null, proteinG: 150 }),
-    ).toThrow(/proteína/i)
+    expect(() => normalizeFoodNutrients({ ...base, energyKcal: null, proteinG: 150 })).toThrow(
+      /proteína/i,
+    )
   })
 
   it('rejeita porção de referência não positiva', () => {
-    expect(() =>
-      normalizeFoodNutrients({ ...base, referenceGrams: 0, energyKcal: 100 }),
-    ).toThrow(FoodInputError)
+    expect(() => normalizeFoodNutrients({ ...base, referenceGrams: 0, energyKcal: 100 })).toThrow(
+      FoodInputError,
+    )
   })
 
   it('teto de energia acompanha a porção de referência', () => {
     // 30 g → teto 300 kcal; 250 passa, 400 não.
     expect(() =>
-      normalizeFoodNutrients({ referenceGrams: 30, energyKcal: 250, proteinG: 0, carbG: 0, fatG: 0, fiberG: null }),
+      normalizeFoodNutrients({
+        referenceGrams: 30,
+        energyKcal: 250,
+        proteinG: 0,
+        carbG: 0,
+        fatG: 0,
+        fiberG: null,
+      }),
     ).not.toThrow()
     expect(() =>
-      normalizeFoodNutrients({ referenceGrams: 30, energyKcal: 400, proteinG: 0, carbG: 0, fatG: 0, fiberG: null }),
+      normalizeFoodNutrients({
+        referenceGrams: 30,
+        energyKcal: 400,
+        proteinG: 0,
+        carbG: 0,
+        fatG: 0,
+        fiberG: null,
+      }),
     ).toThrow(/energia/i)
   })
 })

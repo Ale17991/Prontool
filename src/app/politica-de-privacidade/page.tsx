@@ -103,10 +103,10 @@ export default function PoliticaDePrivacidadePage() {
             você nos envia.
           </P>
           <P>
-            <B>Como operadora, por conta da clínica.</B> Dados cadastrais e de contato do paciente, e
-            dados de saúde registrados no atendimento — histórico, anamnese, evolução, prescrições,
-            exames, medidas e planos terapêuticos. Dados de saúde são <B>dados pessoais sensíveis</B>{' '}
-            na LGPD e recebem as proteções descritas na seção 7.
+            <B>Como operadora, por conta da clínica.</B> Dados cadastrais e de contato do paciente,
+            e dados de saúde registrados no atendimento — histórico, anamnese, evolução,
+            prescrições, exames, medidas e planos terapêuticos. Dados de saúde são{' '}
+            <B>dados pessoais sensíveis</B> na LGPD e recebem as proteções descritas na seção 7.
           </P>
         </Section>
 
@@ -127,8 +127,8 @@ export default function PoliticaDePrivacidadePage() {
               <B>Obrigações fiscais e contábeis</B> — obrigação legal (art. 7º, II).
             </Li>
             <Li>
-              <B>Dados de saúde do paciente</B> — tratados para tutela da saúde, por profissionais de
-              saúde ou serviços de saúde (art. 11, II, “f”), sob responsabilidade da clínica
+              <B>Dados de saúde do paciente</B> — tratados para tutela da saúde, por profissionais
+              de saúde ou serviços de saúde (art. 11, II, “f”), sob responsabilidade da clínica
               controladora.
             </Li>
           </Ul>
@@ -145,8 +145,8 @@ export default function PoliticaDePrivacidadePage() {
             nada do Google.
           </P>
           <P>
-            <B>Quais dados acessamos.</B> Ao conectar, o profissional autoriza dois acessos, e nenhum
-            outro:
+            <B>Quais dados acessamos.</B> Ao conectar, o profissional autoriza dois acessos, e
+            nenhum outro:
           </P>
           <Ul>
             <Li>
@@ -155,8 +155,8 @@ export default function PoliticaDePrivacidadePage() {
               ocupados.
             </Li>
             <Li>
-              <C>userinfo.email</C> — exibir na tela de configuração qual conta Google foi conectada,
-              para que ele confirme que vinculou a correta.
+              <C>userinfo.email</C> — exibir na tela de configuração qual conta Google foi
+              conectada, para que ele confirme que vinculou a correta.
             </Li>
           </Ul>
           <P>
@@ -164,8 +164,8 @@ export default function PoliticaDePrivacidadePage() {
             agenda do profissional; quando é cancelado, removemos o evento. Além disso, lemos os{' '}
             <B>intervalos ocupados</B> da agenda dele para bloquear esses horários no sistema e
             impedir agendamento em conflito. Desses compromissos particulares registramos apenas o
-            horário: <B>título, participantes, local e descrição não são lidos nem armazenados</B>, e
-            para a clínica aquele intervalo aparece somente como indisponível.
+            horário: <B>título, participantes, local e descrição não são lidos nem armazenados</B>,
+            e para a clínica aquele intervalo aparece somente como indisponível.
           </P>
           <P>
             <B>Uso limitado.</B> O uso e a transferência, por parte da ClinniPro, das informações
@@ -175,9 +175,9 @@ export default function PoliticaDePrivacidadePage() {
             </A>
             , inclusive os requisitos de Uso Limitado (<em>Limited Use</em>). Em termos concretos:
             esses dados são usados exclusivamente para as funções descritas acima, visíveis ao
-            próprio usuário; não são vendidos; não alimentam publicidade; não são usados para treinar
-            modelos de inteligência artificial generalizados; e não são transferidos a terceiros,
-            exceto quando necessário para prestar o serviço, por exigência legal ou com o
+            próprio usuário; não são vendidos; não alimentam publicidade; não são usados para
+            treinar modelos de inteligência artificial generalizados; e não são transferidos a
+            terceiros, exceto quando necessário para prestar o serviço, por exigência legal ou com o
             consentimento do usuário.
           </P>
           <P>
@@ -195,8 +195,8 @@ export default function PoliticaDePrivacidadePage() {
           <Ul>
             <Li>
               <B>Fornecedores de infraestrutura e serviços</B> que operam sob contrato e nossas
-              instruções — hospedagem e banco de dados, envio de e-mail e de mensagens, processamento
-              de pagamentos e serviços de assinatura digital de documentos.
+              instruções — hospedagem e banco de dados, envio de e-mail e de mensagens,
+              processamento de pagamentos e serviços de assinatura digital de documentos.
             </Li>
             <Li>
               <B>Autoridades públicas</B>, quando houver obrigação legal, ordem judicial ou
@@ -318,7 +318,9 @@ function B({ children }: { children: ReactNode }) {
 }
 
 function C({ children }: { children: ReactNode }) {
-  return <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">{children}</code>
+  return (
+    <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">{children}</code>
+  )
 }
 
 function A({ href, children }: { href: string; children: ReactNode }) {

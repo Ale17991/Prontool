@@ -76,13 +76,18 @@ export async function sendOneWhatsAppReminder(
       status: 'queued',
       is_manual: isManual,
     })
-    .select('id, status, created_at, tenant_id, appointment_id, channel, scheduled_offset_hours, is_manual')
+    .select(
+      'id, status, created_at, tenant_id, appointment_id, channel, scheduled_offset_hours, is_manual',
+    )
     .maybeSingle()
 
   if (insertRes.error) {
     const code = (insertRes.error as { code?: string }).code
     if (code === '23505' && !isManual) {
-      logger.info({ appointmentId: eligible.appointmentId, offsetHours }, 'whatsapp-reminder-already-queued')
+      logger.info(
+        { appointmentId: eligible.appointmentId, offsetHours },
+        'whatsapp-reminder-already-queued',
+      )
       return { record: null, abortBatch: false }
     }
     logger.error(
@@ -118,19 +123,24 @@ export async function sendOneWhatsAppReminder(
 
   // 2. Revalidação JIT. A ordem importa: recusa antes de ausência de dado, para
   //    o histórico dizer "ele não quis" e não "faltou telefone".
-  if (!eligible.remindersOptIn) return { record: await finalize('skipped_opt_out'), abortBatch: false }
+  if (!eligible.remindersOptIn)
+    return { record: await finalize('skipped_opt_out'), abortBatch: false }
   if (!eligible.remindersWhatsappOptIn) {
     return { record: await finalize('skipped_opt_out_channel'), abortBatch: false }
   }
   if (!eligible.doctorActive) {
     return { record: await finalize('skipped_doctor_inactive'), abortBatch: false }
   }
-  if (!eligible.patientPhone) return { record: await finalize('skipped_no_phone'), abortBatch: false }
+  if (!eligible.patientPhone)
+    return { record: await finalize('skipped_no_phone'), abortBatch: false }
 
   // 3. Decrypt de nome + telefone. Mesma RPC que o e-mail já usa.
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
   if (!key) {
-    return { record: await finalize('failed', { error: 'PATIENT_DATA_ENCRYPTION_KEY missing' }), abortBatch: false }
+    return {
+      record: await finalize('failed', { error: 'PATIENT_DATA_ENCRYPTION_KEY missing' }),
+      abortBatch: false,
+    }
   }
   const dec = await supabase.rpc('get_patient_for_tenant', {
     p_tenant_id: eligible.tenantId,
@@ -138,7 +148,10 @@ export async function sendOneWhatsAppReminder(
     p_key: key,
   })
   if (dec.error || !dec.data) {
-    return { record: await finalize('failed', { error: 'decrypt-patient-failed' }), abortBatch: false }
+    return {
+      record: await finalize('failed', { error: 'decrypt-patient-failed' }),
+      abortBatch: false,
+    }
   }
   const decrypted = Array.isArray(dec.data) ? dec.data[0] : dec.data
   const patient = decrypted as { full_name: string | null; phone: string | null } | null
@@ -181,7 +194,9 @@ export async function sendOneWhatsAppReminder(
     return {
       record: await finalize('sent', {
         providerMessageId: result.providerMessageId,
-        ...(indefinido ? { error: 'envio-indefinido: timeout do serviço, aguardando confirmação' } : {}),
+        ...(indefinido
+          ? { error: 'envio-indefinido: timeout do serviço, aguardando confirmação' }
+          : {}),
       }),
       abortBatch: false,
     }
@@ -192,7 +207,10 @@ export async function sendOneWhatsAppReminder(
     return { record: await finalize('skipped_no_connection'), abortBatch: true }
   }
 
-  return { record: await finalize('failed', { error: `${result.kind}: ${result.detail}` }), abortBatch: false }
+  return {
+    record: await finalize('failed', { error: `${result.kind}: ${result.detail}` }),
+    abortBatch: false,
+  }
 }
 
 function mapToRecord(row: unknown, override: Partial<ReminderRecord> = {}): ReminderRecord {

@@ -43,7 +43,9 @@ function buildRecall(): RecallView {
     { name: 'Arroz cozido', grams: 150, food: ARROZ },
     { name: 'Feijão cozido', grams: 80, food: FEIJAO },
   ]
-  const nutrientes = itens.map((i) => roundNutrients(itemNutrients({ grams: i.grams, food: i.food })))
+  const nutrientes = itens.map((i) =>
+    roundNutrients(itemNutrients({ grams: i.grams, food: i.food })),
+  )
   const totalRefeicao = roundNutrients(nutrientes.reduce(addNutrients, ZERO()))
 
   return {
@@ -99,7 +101,13 @@ describe('totais do recordatório impresso (T027)', () => {
   it('gera um PDF de verdade', async () => {
     const buf = await renderRecallPdf({
       clinicProfile: null,
-      identity: { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/05/1990' }, { key: 'idade', label: 'Idade', value: '36 anos' }] },
+      identity: {
+        name: 'Paciente Teste',
+        lines: [
+          { key: 'nascimento', label: 'Nascimento', value: '10/05/1990' },
+          { key: 'idade', label: 'Idade', value: '36 anos' },
+        ],
+      },
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       recall: buildRecall(),
@@ -125,7 +133,13 @@ describe('totais do recordatório impresso (T027)', () => {
 
     const buf = await renderRecallPdf({
       clinicProfile: null,
-      identity: { name: 'Paciente Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: null }, { key: 'idade', label: 'Idade', value: null }] },
+      identity: {
+        name: 'Paciente Teste',
+        lines: [
+          { key: 'nascimento', label: 'Nascimento', value: null },
+          { key: 'idade', label: 'Idade', value: null },
+        ],
+      },
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       recall,

@@ -35,7 +35,13 @@ function bundle(over: Partial<PatientPortalBundle> = {}): PatientPortalBundle {
 const on = (...keys: PortalSectionKey[]) => new Set<PortalSectionKey>(keys)
 
 const goal = () => ({ metricType: 'peso_kg', targetValue: 70 }) as never
-const appt = (iso: string) => ({ id: iso, appointmentAt: iso, doctorName: null, procedureName: null, status: 'agendado' })
+const appt = (iso: string) => ({
+  id: iso,
+  appointmentAt: iso,
+  doctorName: null,
+  procedureName: null,
+  status: 'agendado',
+})
 const note = (iso: string) => ({ id: iso, body: 'Beba água', createdAt: iso })
 
 const build = (args: Partial<Parameters<typeof buildPortalHome>[0]> = {}) =>

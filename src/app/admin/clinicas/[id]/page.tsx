@@ -104,10 +104,11 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
   const lastAuditAt = (lastAuditRes.data as { created_at?: string } | null)?.created_at ?? null
   const lastApptAt = (lastApptRes.data as { created_at?: string } | null)?.created_at ?? null
   // Mais recente entre auditoria e agendamento (ambos podem ser null).
-  const lastActivity = [lastAuditAt, lastApptAt]
-    .filter((d): d is string => Boolean(d))
-    .sort()
-    .at(-1) ?? null
+  const lastActivity =
+    [lastAuditAt, lastApptAt]
+      .filter((d): d is string => Boolean(d))
+      .sort()
+      .at(-1) ?? null
 
   const metrics = {
     userCount: (userCountRes.count as number | null) ?? 0,

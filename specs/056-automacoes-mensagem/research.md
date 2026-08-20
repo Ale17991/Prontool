@@ -13,6 +13,7 @@ Decisões tomadas antes do desenho, com o que foi descartado e por quê.
 **Consequência obrigatória**: os dois motores **não podem se derrubar**. Falha na avaliação de automações não pode impedir o envio de lembretes, nem o contrário — cada bloco em `try/catch` próprio, com contadores separados na resposta.
 
 **Alternativas descartadas**:
+
 - Rota de cron própria: gasta a cota do Hobby e, pior, seria uma rota nova nunca exercitada, repetindo o risco que acabou de custar caro.
 - Avaliação sob demanda (ao abrir a tela): o gatilho de aniversário não pode depender de alguém abrir o sistema naquele dia.
 
@@ -22,17 +23,18 @@ Decisões tomadas antes do desenho, com o que foi descartado e por quê.
 
 **Decisão**: tabela `automation_occurrences` com **`UNIQUE (automation_id, patient_id, occurrence_key)`**, onde cada fonte define como computar a `occurrence_key`.
 
-| Fonte | `occurrence_key` | Significa |
-|---|---|---|
-| aniversário | `2026-08-11` | uma vez por aniversário |
-| confirmação de agendamento | id do atendimento | uma vez por atendimento |
-| sem retorno há N meses | `2026-08` | uma vez por mês corrido sem retorno |
-| checklist marcado N vezes | `2026-P07` (índice do período) | uma vez por período do checklist |
-| checklist sem marcação há N dias | `2026-P07` | idem |
+| Fonte                            | `occurrence_key`               | Significa                           |
+| -------------------------------- | ------------------------------ | ----------------------------------- |
+| aniversário                      | `2026-08-11`                   | uma vez por aniversário             |
+| confirmação de agendamento       | id do atendimento              | uma vez por atendimento             |
+| sem retorno há N meses           | `2026-08`                      | uma vez por mês corrido sem retorno |
+| checklist marcado N vezes        | `2026-P07` (índice do período) | uma vez por período do checklist    |
+| checklist sem marcação há N dias | `2026-P07`                     | idem                                |
 
 **Rationale**: idempotência **por construção**, não por disciplina de código. Reexecutar o ciclo colide no índice; um `ON CONFLICT DO NOTHING` transforma a segunda tentativa em nada. É o mesmo mecanismo que torna o marcar do checklist idempotente (`UNIQUE (checklist, item, dia)`, migration 0189) e que o serviço de WhatsApp usa para não duplicar mensagem (`UNIQUE (tenant_id, external_id)`).
 
 **Alternativas descartadas**:
+
 - Guardar "último disparo" na automação: não resolve para múltiplos pacientes, e uma falha no meio do lote deixaria o marcador adiantado.
 - Antijoin em memória, como faz `select-due.ts`: funciona, mas depende de a consulta estar certa toda vez. O índice não depende.
 
@@ -56,6 +58,7 @@ Os parâmetros da clínica ficam em `automation_triggers.params JSONB`, validado
 **Rationale**: é o padrão que o projeto já usa para integrações (`IntegrationAdapter` com `configSchema` em `src/lib/integrations/`), e resolve o FR-025: absorver o lembrete de consulta vira **um arquivo novo em `sources/`** cujo `enumerarCandidatos` delega para `selectDueAppointments`. Nem o motor nem o modelo de dados mudam.
 
 **Alternativas descartadas**:
+
 - Uma tabela por tipo de gatilho: cada fonte nova viraria migration, e o motor precisaria conhecer todas.
 - Condições genéricas sobre qualquer campo ("construtor de queries"): poder demais para o problema, superfície de ataque grande, e nenhuma clínica pediu isso.
 

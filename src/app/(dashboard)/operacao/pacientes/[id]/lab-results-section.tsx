@@ -154,7 +154,11 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
           */}
           {(data?.panel?.items.length ?? 0) > 0 ? (
             <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" asChild>
-              <a href={`/api/pacientes/${patientId}/exames/pdf${pdfQuery}`} target="_blank" rel="noreferrer">
+              <a
+                href={`/api/pacientes/${patientId}/exames/pdf${pdfQuery}`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Printer className="h-3.5 w-3.5" /> PDF
               </a>
             </Button>
@@ -183,8 +187,9 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
                 {data.need.blockedBySex} exame{data.need.blockedBySex > 1 ? 's' : ''}
               </strong>{' '}
               {data.need.blockedBySex > 1 ? 'têm' : 'tem'} faixa diferente para homem e mulher, e o
-              sexo não está no cadastro deste paciente — {data.need.blockedBySex > 1 ? 'eles aparecem' : 'ele aparece'}{' '}
-              como “sem referência”. Os demais já estão classificados. Informe abaixo para completar.
+              sexo não está no cadastro deste paciente —{' '}
+              {data.need.blockedBySex > 1 ? 'eles aparecem' : 'ele aparece'} como “sem referência”.
+              Os demais já estão classificados. Informe abaixo para completar.
             </p>
             <div className="mt-2 flex flex-wrap items-end gap-2">
               {data.need.sex ? (
@@ -252,7 +257,9 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
                           </span>
                           <span className="tabular-nums text-sm font-bold text-slate-900">
                             {fmt(it.value)}{' '}
-                            <span className="text-[10px] font-normal text-slate-500">{it.unit}</span>
+                            <span className="text-[10px] font-normal text-slate-500">
+                              {it.unit}
+                            </span>
                           </span>
                           <span className="hidden w-32 text-right text-[11px] tabular-nums text-slate-500 sm:inline">
                             {refLabel(it.refMin, it.refMax)}
@@ -306,7 +313,8 @@ export function LabResultsSection({ patientId, canWrite }: Props) {
               >
                 <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{r.label}</span>
                 <span className="tabular-nums text-sm font-bold text-slate-900">
-                  {fmt(r.value)} <span className="text-[10px] font-normal text-slate-500">{r.unit}</span>
+                  {fmt(r.value)}{' '}
+                  <span className="text-[10px] font-normal text-slate-500">{r.unit}</span>
                 </span>
                 <span className="text-[11px] text-slate-400">{formatDate(r.measuredAt)}</span>
               </div>
@@ -342,21 +350,11 @@ function NewLabReportForm({
   const [error, setError] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
-    const q = query
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase()
-      .trim()
+    const q = query.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
     const base = LAB_ANALYTES.filter((a) => values[a.key] === undefined)
     if (!q) return base.slice(0, 12)
     return base
-      .filter((a) =>
-        a.label
-          .normalize('NFD')
-          .replace(/[̀-ͯ]/g, '')
-          .toLowerCase()
-          .includes(q),
-      )
+      .filter((a) => a.label.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(q))
       .slice(0, 12)
   }, [query, values])
 
@@ -390,7 +388,10 @@ function NewLabReportForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-md border border-slate-200 bg-slate-50/60 p-3">
+    <form
+      onSubmit={submit}
+      className="space-y-3 rounded-md border border-slate-200 bg-slate-50/60 p-3"
+    >
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <Label htmlFor="lab-date" className="text-[10px]">

@@ -20,12 +20,7 @@ import { isSendablePhone, toSendableNumber } from '@/lib/core/whatsapp/phone'
 import { getSource } from './sources'
 import { janelaDoDia } from './sources/shared'
 import { listActiveAutomations, markAutomationRan } from './store'
-import {
-  claimOccurrence,
-  countSentToday,
-  releaseSuppressed,
-  settleOccurrence,
-} from './occurrences'
+import { claimOccurrence, countSentToday, releaseSuppressed, settleOccurrence } from './occurrences'
 import { render } from './render'
 import type { EvaluateResult } from './types'
 
@@ -130,7 +125,12 @@ interface Agendamento {
  * 288 vezes a consulta mais cara da feature para descobrir isso.
  */
 export function agendar(
-  auto: { params: Record<string, unknown>; sendAtLocal: string; lastFiredOn: string | null; lastRanAt: string | null },
+  auto: {
+    params: Record<string, unknown>
+    sendAtLocal: string
+    lastFiredOn: string | null
+    lastRanAt: string | null
+  },
   ancorada: boolean,
   now: Date,
   timezone: string,
@@ -181,13 +181,11 @@ export async function evaluateAutomations(
     falhas: 0,
   }
 
-  const { data: tenants, error } = await supabase
-    .from('tenant_clinic_profile')
-    .select(
-      `tenant_id, timezone, corporate_name,
+  const { data: tenants, error } = await supabase.from('tenant_clinic_profile').select(
+    `tenant_id, timezone, corporate_name,
        automation_max_per_patient_day, automation_max_per_cycle,
        automation_window_start, automation_window_end, automation_weekdays`,
-    )
+  )
   if (error) {
     logger.error({}, 'automations-load-tenants-failed')
     return total

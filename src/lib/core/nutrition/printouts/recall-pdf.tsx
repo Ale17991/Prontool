@@ -4,13 +4,7 @@ import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { AdequacyResult } from '@/lib/core/nutrition/adequacy'
 import type { RecallView } from '@/lib/core/nutrition/recall/plan'
-import {
-  PrintFooter,
-  brDate,
-  dash,
-  fmt,
-  printStyles as s,
-} from './shared'
+import { PrintFooter, brDate, dash, fmt, printStyles as s } from './shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
@@ -103,13 +97,14 @@ export async function renderRecallPdf(input: RecallPdfInput): Promise<Buffer> {
             <Text style={[s.subtle, { marginTop: 2 }]}>
               {fmt(Math.round(meal.totals.energyKcal), 'kcal')} · P{' '}
               {fmt(Math.round(meal.totals.proteinG), 'g')} · C{' '}
-              {fmt(Math.round(meal.totals.carbG), 'g')} · G{' '}
-              {fmt(Math.round(meal.totals.fatG), 'g')}
+              {fmt(Math.round(meal.totals.carbG), 'g')} · G {fmt(Math.round(meal.totals.fatG), 'g')}
             </Text>
           </View>
         ))}
 
-        <View style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 6 }}>
+        <View
+          style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 6 }}
+        >
           <Text style={s.bold}>Total do dia</Text>
           <Text>
             {fmt(t.energyKcal, 'kcal')} · Proteína {fmt(t.proteinG, 'g')} · Carboidrato{' '}
@@ -132,7 +127,9 @@ export async function renderRecallPdf(input: RecallPdfInput): Promise<Buffer> {
                 <Text style={{ flex: 3 }}>{a.label}</Text>
                 <Text style={[{ flex: 1.3 }, s.right]}>{fmt(a.total, a.unit)}</Text>
                 <Text style={[{ flex: 1.3 }, s.right]}>{fmt(a.dri, a.unit)}</Text>
-                <Text style={[{ flex: 1 }, s.right]}>{a.pct === null ? '—' : `${dash(a.pct)}%`}</Text>
+                <Text style={[{ flex: 1 }, s.right]}>
+                  {a.pct === null ? '—' : `${dash(a.pct)}%`}
+                </Text>
                 <Text style={[{ flex: 1.4 }, s.right, a.class === 'adequado' ? {} : s.bold]}>
                   {ADEQUACY_LABEL[a.class] ?? '—'}
                 </Text>

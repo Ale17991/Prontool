@@ -30,7 +30,7 @@ Gerar a tabela **INFORMAÇÃO NUTRICIONAL** de um produto alimentício a partir 
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 - **I. Integridade Financeira Imutável**: N/A direto — a feature não cria registro financeiro. O espírito é respeitado por outro caminho: o rótulo **grava a versão da norma** usada (FR-021), de modo que um documento antigo continua explicável quando a referência mudar. O rótulo é editável (é rascunho de trabalho, não histórico contábil).
 - **II. Auditabilidade Total**: criação e edição de rótulo auditam via `log_audit_event`, padrão do projeto. As referências normativas são constantes de código — auditadas por git, não por trilha de banco.

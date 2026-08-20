@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PatientTypeahead, type PatientTypeaheadValue } from '@/components/patients/patient-typeahead'
+import {
+  PatientTypeahead,
+  type PatientTypeaheadValue,
+} from '@/components/patients/patient-typeahead'
 import { MetricEvolutionChart } from '@/components/patient-portal/evolution-chart'
 import type { MeasurementDTO } from '@/lib/core/patient-portal/measurements'
 import type { PatientMetricType } from '@/lib/core/patient-portal/metric-types'
@@ -141,7 +144,8 @@ export function NutritionAssessmentClient({
     )
     setMeasurements(
       measRes.ok
-        ? ((await measRes.json()) as { measurements: Record<string, MeasurementDTO[]> }).measurements
+        ? ((await measRes.json()) as { measurements: Record<string, MeasurementDTO[]> })
+            .measurements
         : {},
     )
   }
@@ -224,9 +228,10 @@ export function NutritionAssessmentClient({
           eerCategory: (Number(eerCategory) as 1 | 2 | 3 | 4) ?? 1,
           objective: 'manutencao',
           objectiveDeltaKcal: num(objectiveDelta) ?? 0,
-          macros: macroMode === 'gkg'
-            ? { protGkg: num(protGkg) ?? 0, lipGkg: num(lipGkg) ?? 0 }
-            : { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) },
+          macros:
+            macroMode === 'gkg'
+              ? { protGkg: num(protGkg) ?? 0, lipGkg: num(lipGkg) ?? 0 }
+              : { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) },
         })
       } catch (e) {
         energyError = (e as Error).message
@@ -234,9 +239,27 @@ export function NutritionAssessmentClient({
     }
     return { composition, compositionError, energy, energyError }
   }, [
-    sex, age, weight, height, protocol, skinfolds, cintura, quadril, abdomen, fatPctInput,
-    equation, activity, injury, eerCategory, objectiveDelta, protPct, carbPct, lipPct,
-    macroMode, protGkg, lipGkg,
+    sex,
+    age,
+    weight,
+    height,
+    protocol,
+    skinfolds,
+    cintura,
+    quadril,
+    abdomen,
+    fatPctInput,
+    equation,
+    activity,
+    injury,
+    eerCategory,
+    objectiveDelta,
+    protPct,
+    carbPct,
+    lipPct,
+    macroMode,
+    protGkg,
+    lipGkg,
   ])
 
   // Avisos de domínio de validação — não bloqueiam nada, só informam.
@@ -296,7 +319,8 @@ export function NutritionAssessmentClient({
         else body.eer_category = Number(eerCategory)
         body.injury_factor = num(injury) ?? null
         body.objective_delta_kcal = num(objectiveDelta) ?? 0
-        body.macros = macroMode === 'gkg'
+        body.macros =
+          macroMode === 'gkg'
             ? { protGkg: num(protGkg) ?? 0, lipGkg: num(lipGkg) ?? 0 }
             : { protPct: num(protPct), carbPct: num(carbPct), lipPct: num(lipPct) }
       }
@@ -321,237 +345,372 @@ export function NutritionAssessmentClient({
 
   return (
     <div className="space-y-6">
-    <div className="grid gap-6 lg:grid-cols-3">
-      <form onSubmit={onSubmit} className="space-y-4 lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Paciente e dados base</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div className="col-span-2 md:col-span-4">
-              <Label>Paciente</Label>
-              <PatientTypeahead value={patient?.id ?? null} onChange={setPatient} allowCreate />
-              {patient ? (
-                <p className="mt-1 text-[11px] text-slate-400">
-                  Sexo e idade vêm do cadastro do paciente (idade calculada da data de nascimento) —
-                  ajuste se necessário.
-                </p>
-              ) : null}
-            </div>
-            <div>
-              <Label htmlFor="na_date">Data</Label>
-              <Input id="na_date" type="date" max={today} value={assessedAt} onChange={(e) => setAssessedAt(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="na_sex">Sexo</Label>
-              <select id="na_sex" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={sex} onChange={(e) => setSex(e.target.value as Sex)}>
-                <option value="M">Masculino</option>
-                <option value="F">Feminino</option>
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="na_age">Idade (anos)</Label>
-              <Input id="na_age" inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="na_weight">Peso (kg)</Label>
-              <Input id="na_weight" inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value)} />
-            </div>
-            <div>
-              <Label htmlFor="na_height">Altura (cm)</Label>
-              <Input id="na_height" inputMode="decimal" value={height} onChange={(e) => setHeight(e.target.value)} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Activity className="h-4 w-4 text-primary" /> Composição corporal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <Label htmlFor="na_proto">Protocolo</Label>
-              <select id="na_proto" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={protocol} onChange={(e) => setProtocol(e.target.value as DobraProtocol | '')}>
-                <option value="">— não avaliar —</option>
-                {Object.values(DOBRA_PROTOCOLS).map((p) => (
-                  <option key={p.slug} value={p.slug}>{p.label}</option>
-                ))}
-              </select>
-            </div>
-            {protoMeta && protocol !== 'bioimpedancia' ? (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {protoMeta.sites[sex].map((s) => (
-                  <div key={s}>
-                    <Label htmlFor={`sf_${s}`}>{SKINFOLD_LABEL[s]} (mm)</Label>
-                    <Input id={`sf_${s}`} inputMode="decimal" value={skinfolds[s] ?? ''} onChange={(e) => setSkinfolds((v) => ({ ...v, [s]: e.target.value }))} />
-                  </div>
-                ))}
-                {/* Weltman pede UMA circunferência abdominal, como no documento
-                    de base. O segundo campo saiu em 2026-08-03. */}
-                {protocol === 'weltman' ? (
-                  <div>
-                    <Label htmlFor="c_abd">Circ. abdominal (cm)</Label>
-                    <Input id="c_abd" inputMode="decimal" value={abdomen} onChange={(e) => setAbdomen(e.target.value)} />
-                  </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <form onSubmit={onSubmit} className="space-y-4 lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Paciente e dados base</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="col-span-2 md:col-span-4">
+                <Label>Paciente</Label>
+                <PatientTypeahead value={patient?.id ?? null} onChange={setPatient} allowCreate />
+                {patient ? (
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Sexo e idade vêm do cadastro do paciente (idade calculada da data de nascimento)
+                    — ajuste se necessário.
+                  </p>
                 ) : null}
               </div>
-            ) : null}
-            {protocol === 'bioimpedancia' ? (
-              <div className="max-w-[200px]">
-                <Label htmlFor="bia_fat">% de gordura (aparelho)</Label>
-                <Input id="bia_fat" inputMode="decimal" value={fatPctInput} onChange={(e) => setFatPctInput(e.target.value)} />
-              </div>
-            ) : null}
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <div>
-                <Label htmlFor="c_cint">Cintura (cm)</Label>
-                <Input id="c_cint" inputMode="decimal" value={cintura} onChange={(e) => setCintura(e.target.value)} />
+                <Label htmlFor="na_date">Data</Label>
+                <Input
+                  id="na_date"
+                  type="date"
+                  max={today}
+                  value={assessedAt}
+                  onChange={(e) => setAssessedAt(e.target.value)}
+                />
               </div>
               <div>
-                <Label htmlFor="c_quad">Quadril (cm)</Label>
-                <Input id="c_quad" inputMode="decimal" value={quadril} onChange={(e) => setQuadril(e.target.value)} />
-              </div>
-            </div>
-            {live.compositionError ? <p className="text-xs text-amber-600">{live.compositionError}</p> : null}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <FlaskConical className="h-4 w-4 text-primary" /> Gasto energético
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              <div className="col-span-2 md:col-span-1">
-                <Label htmlFor="na_eq">Equação de TMB</Label>
-                <select id="na_eq" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={equation} onChange={(e) => setEquation(e.target.value as TmbEquation | '')}>
-                  <option value="">— não avaliar —</option>
-                  {Object.values(TMB_EQUATIONS).map((q) => (
-                    <option key={q.slug} value={q.slug}>{q.label}</option>
-                  ))}
+                <Label htmlFor="na_sex">Sexo</Label>
+                <select
+                  id="na_sex"
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={sex}
+                  onChange={(e) => setSex(e.target.value as Sex)}
+                >
+                  <option value="M">Masculino</option>
+                  <option value="F">Feminino</option>
                 </select>
               </div>
-              {eqMeta && !eqMeta.eer ? (
-                <div>
-                  <Label htmlFor="na_act">Fator de atividade</Label>
-                  <select id="na_act" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={activity} onChange={(e) => setActivity(e.target.value)}>
-                    {ACTIVITY_FACTORS.map((a) => (
-                      <option key={a.value} value={a.value}>{a.value} — {a.label}</option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
               <div>
-                <Label htmlFor="na_inj">Fator de injúria</Label>
+                <Label htmlFor="na_age">Idade (anos)</Label>
+                <Input
+                  id="na_age"
+                  inputMode="numeric"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="na_weight">Peso (kg)</Label>
+                <Input
+                  id="na_weight"
+                  inputMode="decimal"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="na_height">Altura (cm)</Label>
+                <Input
+                  id="na_height"
+                  inputMode="decimal"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Activity className="h-4 w-4 text-primary" /> Composição corporal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <Label htmlFor="na_proto">Protocolo</Label>
                 <select
-                  id="na_inj"
+                  id="na_proto"
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  value={injury}
-                  onChange={(e) => setInjury(e.target.value)}
+                  value={protocol}
+                  onChange={(e) => setProtocol(e.target.value as DobraProtocol | '')}
                 >
-                  {INJURY_FACTORS.map((f, i) => (
-                    <option key={`${f.value}-${i}`} value={String(f.value)}>
-                      {f.value} · {f.label}
-                      {f.range ? ` (faixa ${f.range})` : ''}
+                  <option value="">— não avaliar —</option>
+                  {Object.values(DOBRA_PROTOCOLS).map((p) => (
+                    <option key={p.slug} value={p.slug}>
+                      {p.label}
                     </option>
                   ))}
                 </select>
               </div>
-              {eqMeta?.eer === 'category' || eqMeta?.eer === 'pa' ? (
+              {protoMeta && protocol !== 'bioimpedancia' ? (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {protoMeta.sites[sex].map((s) => (
+                    <div key={s}>
+                      <Label htmlFor={`sf_${s}`}>{SKINFOLD_LABEL[s]} (mm)</Label>
+                      <Input
+                        id={`sf_${s}`}
+                        inputMode="decimal"
+                        value={skinfolds[s] ?? ''}
+                        onChange={(e) => setSkinfolds((v) => ({ ...v, [s]: e.target.value }))}
+                      />
+                    </div>
+                  ))}
+                  {/* Weltman pede UMA circunferência abdominal, como no documento
+                    de base. O segundo campo saiu em 2026-08-03. */}
+                  {protocol === 'weltman' ? (
+                    <div>
+                      <Label htmlFor="c_abd">Circ. abdominal (cm)</Label>
+                      <Input
+                        id="c_abd"
+                        inputMode="decimal"
+                        value={abdomen}
+                        onChange={(e) => setAbdomen(e.target.value)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+              {protocol === 'bioimpedancia' ? (
+                <div className="max-w-[200px]">
+                  <Label htmlFor="bia_fat">% de gordura (aparelho)</Label>
+                  <Input
+                    id="bia_fat"
+                    inputMode="decimal"
+                    value={fatPctInput}
+                    onChange={(e) => setFatPctInput(e.target.value)}
+                  />
+                </div>
+              ) : null}
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <div>
-                  <Label htmlFor="na_cat">Nível de atividade</Label>
-                  <select id="na_cat" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={eerCategory} onChange={(e) => setEerCategory(e.target.value)}>
-                    {EER_ACTIVITY_LEVELS.map((a) => (
-                      <option key={a.value} value={a.value}>{a.label}</option>
+                  <Label htmlFor="c_cint">Cintura (cm)</Label>
+                  <Input
+                    id="c_cint"
+                    inputMode="decimal"
+                    value={cintura}
+                    onChange={(e) => setCintura(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="c_quad">Quadril (cm)</Label>
+                  <Input
+                    id="c_quad"
+                    inputMode="decimal"
+                    value={quadril}
+                    onChange={(e) => setQuadril(e.target.value)}
+                  />
+                </div>
+              </div>
+              {live.compositionError ? (
+                <p className="text-xs text-amber-600">{live.compositionError}</p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <FlaskConical className="h-4 w-4 text-primary" /> Gasto energético
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                <div className="col-span-2 md:col-span-1">
+                  <Label htmlFor="na_eq">Equação de TMB</Label>
+                  <select
+                    id="na_eq"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    value={equation}
+                    onChange={(e) => setEquation(e.target.value as TmbEquation | '')}
+                  >
+                    <option value="">— não avaliar —</option>
+                    {Object.values(TMB_EQUATIONS).map((q) => (
+                      <option key={q.slug} value={q.slug}>
+                        {q.label}
+                      </option>
                     ))}
                   </select>
                 </div>
-              ) : null}
+                {eqMeta && !eqMeta.eer ? (
+                  <div>
+                    <Label htmlFor="na_act">Fator de atividade</Label>
+                    <select
+                      id="na_act"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      value={activity}
+                      onChange={(e) => setActivity(e.target.value)}
+                    >
+                      {ACTIVITY_FACTORS.map((a) => (
+                        <option key={a.value} value={a.value}>
+                          {a.value} — {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+                <div>
+                  <Label htmlFor="na_inj">Fator de injúria</Label>
+                  <select
+                    id="na_inj"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    value={injury}
+                    onChange={(e) => setInjury(e.target.value)}
+                  >
+                    {INJURY_FACTORS.map((f, i) => (
+                      <option key={`${f.value}-${i}`} value={String(f.value)}>
+                        {f.value} · {f.label}
+                        {f.range ? ` (faixa ${f.range})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {eqMeta?.eer === 'category' || eqMeta?.eer === 'pa' ? (
+                  <div>
+                    <Label htmlFor="na_cat">Nível de atividade</Label>
+                    <select
+                      id="na_cat"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      value={eerCategory}
+                      onChange={(e) => setEerCategory(e.target.value)}
+                    >
+                      {EER_ACTIVITY_LEVELS.map((a) => (
+                        <option key={a.value} value={a.value}>
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+                <div>
+                  <Label htmlFor="na_delta">Ajuste do objetivo (kcal)</Label>
+                  <Input
+                    id="na_delta"
+                    inputMode="numeric"
+                    value={objectiveDelta}
+                    onChange={(e) => setObjectiveDelta(e.target.value)}
+                  />
+                </div>
+              </div>
               <div>
-                <Label htmlFor="na_delta">Ajuste do objetivo (kcal)</Label>
-                <Input id="na_delta" inputMode="numeric" value={objectiveDelta} onChange={(e) => setObjectiveDelta(e.target.value)} />
+                <Label htmlFor="m_mode">Prescrição dos macros</Label>
+                <select
+                  id="m_mode"
+                  className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                  value={macroMode}
+                  onChange={(e) => setMacroMode(e.target.value as 'percent' | 'gkg')}
+                >
+                  <option value="percent">Por percentual do VET</option>
+                  <option value="gkg">Por g/kg de peso (carboidrato fecha o VET)</option>
+                </select>
               </div>
-            </div>
-            <div>
-              <Label htmlFor="m_mode">Prescrição dos macros</Label>
-              <select
-                id="m_mode"
-                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
-                value={macroMode}
-                onChange={(e) => setMacroMode(e.target.value as 'percent' | 'gkg')}
-              >
-                <option value="percent">Por percentual do VET</option>
-                <option value="gkg">Por g/kg de peso (carboidrato fecha o VET)</option>
-              </select>
-            </div>
-            {macroMode === 'gkg' ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label htmlFor="m_pk">Proteína g/kg</Label><Input id="m_pk" inputMode="decimal" value={protGkg} onChange={(e) => setProtGkg(e.target.value)} /></div>
-                <div><Label htmlFor="m_lk">Lipídio g/kg</Label><Input id="m_lk" inputMode="decimal" value={lipGkg} onChange={(e) => setLipGkg(e.target.value)} /></div>
-                <p className="col-span-2 text-[11px] text-slate-400">
-                  O carboidrato completa o valor energético — não precisa informar.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-3">
-                <div><Label htmlFor="m_p">Proteína %</Label><Input id="m_p" inputMode="numeric" value={protPct} onChange={(e) => setProtPct(e.target.value)} /></div>
-                <div><Label htmlFor="m_c">Carboidrato %</Label><Input id="m_c" inputMode="numeric" value={carbPct} onChange={(e) => setCarbPct(e.target.value)} /></div>
-                <div><Label htmlFor="m_l">Lipídio %</Label><Input id="m_l" inputMode="numeric" value={lipPct} onChange={(e) => setLipPct(e.target.value)} /></div>
-              </div>
-            )}
-            {live.energyError ? <p className="text-xs text-amber-600">{live.energyError}</p> : null}
-          </CardContent>
-        </Card>
+              {macroMode === 'gkg' ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="m_pk">Proteína g/kg</Label>
+                    <Input
+                      id="m_pk"
+                      inputMode="decimal"
+                      value={protGkg}
+                      onChange={(e) => setProtGkg(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="m_lk">Lipídio g/kg</Label>
+                    <Input
+                      id="m_lk"
+                      inputMode="decimal"
+                      value={lipGkg}
+                      onChange={(e) => setLipGkg(e.target.value)}
+                    />
+                  </div>
+                  <p className="col-span-2 text-[11px] text-slate-400">
+                    O carboidrato completa o valor energético — não precisa informar.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="m_p">Proteína %</Label>
+                    <Input
+                      id="m_p"
+                      inputMode="numeric"
+                      value={protPct}
+                      onChange={(e) => setProtPct(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="m_c">Carboidrato %</Label>
+                    <Input
+                      id="m_c"
+                      inputMode="numeric"
+                      value={carbPct}
+                      onChange={(e) => setCarbPct(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="m_l">Lipídio %</Label>
+                    <Input
+                      id="m_l"
+                      inputMode="numeric"
+                      value={lipPct}
+                      onChange={(e) => setLipPct(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+              {live.energyError ? (
+                <p className="text-xs text-amber-600">{live.energyError}</p>
+              ) : null}
+            </CardContent>
+          </Card>
 
-        <div>
-          <Label htmlFor="na_notes">Observações</Label>
-          <Input id="na_notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </div>
+          <div>
+            <Label htmlFor="na_notes">Observações</Label>
+            <Input id="na_notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </div>
 
-        {error ? (
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">{error}</p>
-        ) : null}
-
-        <div className="flex flex-wrap gap-2">
-          {canWrite ? (
-            <Button type="submit" disabled={pending || !patient} className="gap-2">
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar avaliação
-            </Button>
+          {error ? (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+              {error}
+            </p>
           ) : null}
-          {/*
+
+          <div className="flex flex-wrap gap-2">
+            {canWrite ? (
+              <Button type="submit" disabled={pending || !patient} className="gap-2">
+                {pending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}{' '}
+                Salvar avaliação
+              </Button>
+            ) : null}
+            {/*
             Impresso de evolução: só faz sentido com avaliação já salva, porque
             o documento lê os snapshots gravados, não o cálculo ao vivo da tela.
           */}
-          {patient && history.length > 0 ? (
-            <Button type="button" variant="outline" className="gap-2" asChild>
-              <a
-                href={`/api/pacientes/${patient.id}/avaliacao-nutricional/pdf`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Printer className="h-4 w-4" /> Imprimir evolução
-              </a>
-            </Button>
-          ) : null}
-        </div>
-      </form>
+            {patient && history.length > 0 ? (
+              <Button type="button" variant="outline" className="gap-2" asChild>
+                <a
+                  href={`/api/pacientes/${patient.id}/avaliacao-nutricional/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Printer className="h-4 w-4" /> Imprimir evolução
+                </a>
+              </Button>
+            ) : null}
+          </div>
+        </form>
 
-      <div className="space-y-4">
-        <ResultPanel
-          composition={live.composition}
-          energy={live.energy}
-          advisories={advisories}
-          sources={[protoMeta?.source, eqMeta?.source].filter((s): s is string => !!s)}
-          sex={sex}
-          ageYears={num(age) ?? null}
-        />
-        <HistoryPanel history={history} hasPatient={!!patient} />
+        <div className="space-y-4">
+          <ResultPanel
+            composition={live.composition}
+            energy={live.energy}
+            advisories={advisories}
+            sources={[protoMeta?.source, eqMeta?.source].filter((s): s is string => !!s)}
+            sex={sex}
+            ageYears={num(age) ?? null}
+          />
+          <HistoryPanel history={history} hasPatient={!!patient} />
+        </div>
       </div>
-    </div>
 
       {patient ? (
         <EvolutionSection
@@ -591,7 +750,9 @@ function EvolutionSection({
         <CardContent className="space-y-4">
           {latest && (latest.targetKcal !== null || latest.getKcal !== null) ? (
             <div className="rounded-md border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-sm">
-              <span className="text-slate-500">Meta da última avaliação ({latest.assessedAt}):</span>{' '}
+              <span className="text-slate-500">
+                Meta da última avaliação ({latest.assessedAt}):
+              </span>{' '}
               <span className="font-semibold text-slate-800">
                 {latest.targetKcal !== null
                   ? `VET ${latest.targetKcal} kcal`
@@ -653,7 +814,9 @@ function ResultPanel({
 }) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-sm">Resultado</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-sm">Resultado</CardTitle>
+      </CardHeader>
       <CardContent className="space-y-1.5">
         {composition ? (
           <>
@@ -669,19 +832,35 @@ function ResultPanel({
             />
             <Row label="Massa gorda" value={`${composition.fatMassKg} kg`} />
             <Row label="Massa magra" value={`${composition.leanMassKg} kg`} />
-            {composition.imc !== null ? <Row label="IMC" value={`${composition.imc} (${composition.imcClass})`} /> : null}
-            {composition.waistHipRatio !== null ? <Row label="RCQ" value={`${composition.waistHipRatio}${composition.waistHipClass ? ` (${composition.waistHipClass})` : ''}`} /> : null}
+            {composition.imc !== null ? (
+              <Row label="IMC" value={`${composition.imc} (${composition.imcClass})`} />
+            ) : null}
+            {composition.waistHipRatio !== null ? (
+              <Row
+                label="RCQ"
+                value={`${composition.waistHipRatio}${composition.waistHipClass ? ` (${composition.waistHipClass})` : ''}`}
+              />
+            ) : null}
           </>
         ) : null}
         {energy ? (
           <>
             <Row label="TMB" value={`${energy.tmbKcal} kcal`} />
             <Row label="Gasto total (GET)" value={`${energy.getKcal} kcal`} />
-            {energy.targetKcal !== null ? <Row label="Meta (VET)" value={`${energy.targetKcal} kcal`} /> : null}
-            {energy.macros ? <Row label="Macros" value={`P ${energy.macros.protG}g · C ${energy.macros.carbG}g · L ${energy.macros.lipG}g`} /> : null}
+            {energy.targetKcal !== null ? (
+              <Row label="Meta (VET)" value={`${energy.targetKcal} kcal`} />
+            ) : null}
+            {energy.macros ? (
+              <Row
+                label="Macros"
+                value={`P ${energy.macros.protG}g · C ${energy.macros.carbG}g · L ${energy.macros.lipG}g`}
+              />
+            ) : null}
           </>
         ) : null}
-        {!composition && !energy ? <p className="text-xs text-slate-400">Preencha o formulário para ver o resultado.</p> : null}
+        {!composition && !energy ? (
+          <p className="text-xs text-slate-400">Preencha o formulário para ver o resultado.</p>
+        ) : null}
 
         {advisories.length > 0 ? (
           <div className="space-y-1.5 border-t border-slate-100 pt-2">
@@ -707,10 +886,18 @@ function ResultPanel({
   )
 }
 
-function HistoryPanel({ history, hasPatient }: { history: AssessmentSummary[]; hasPatient: boolean }) {
+function HistoryPanel({
+  history,
+  hasPatient,
+}: {
+  history: AssessmentSummary[]
+  hasPatient: boolean
+}) {
   return (
     <Card>
-      <CardHeader><CardTitle className="text-sm">Histórico</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-sm">Histórico</CardTitle>
+      </CardHeader>
       <CardContent className="space-y-2">
         {!hasPatient ? (
           <p className="text-xs text-slate-400">Selecione um paciente.</p>

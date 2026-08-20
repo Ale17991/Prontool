@@ -115,7 +115,11 @@ export function ConnectionPanel({ initial }: Props) {
             disabled={pending}
             className="inline-flex items-center gap-2 rounded-lg bg-brand-strong px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand disabled:opacity-60"
           >
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+            {pending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <QrCode className="h-4 w-4" />
+            )}
             {connection ? 'Gerar novo QR Code' : 'Conectar WhatsApp'}
           </button>
         )}
@@ -217,7 +221,11 @@ function StatusCard({ connection }: { connection: WhatsAppConnection | null }) {
   const status = connection?.status ?? 'disconnected'
   const meta = {
     connected: { dot: 'bg-emerald-500', label: 'Conectado', tone: 'text-emerald-700' },
-    connecting: { dot: 'bg-amber-500 animate-pulse', label: 'Aguardando leitura do QR', tone: 'text-amber-700' },
+    connecting: {
+      dot: 'bg-amber-500 animate-pulse',
+      label: 'Aguardando leitura do QR',
+      tone: 'text-amber-700',
+    },
     disconnected: { dot: 'bg-slate-400', label: 'Desconectado', tone: 'text-slate-600' },
   }[status]
 
@@ -273,8 +281,9 @@ function QrPanel({ qrCode }: { qrCode: string }) {
     <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
       <p className="text-sm font-semibold text-slate-900">Escaneie com o WhatsApp da clínica</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-        No celular: <strong>WhatsApp → Configurações → Aparelhos conectados → Conectar
-        aparelho</strong>. O código expira em cerca de um minuto.
+        No celular:{' '}
+        <strong>WhatsApp → Configurações → Aparelhos conectados → Conectar aparelho</strong>. O
+        código expira em cerca de um minuto.
       </p>
       <div className="mt-4 inline-block rounded-lg bg-white p-3 shadow-sm ring-1 ring-slate-200">
         {/* eslint-disable-next-line @next/next/no-img-element -- base64 vindo do serviço, não é asset local */}

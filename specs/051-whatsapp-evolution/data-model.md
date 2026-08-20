@@ -10,17 +10,17 @@ Todos os timestamps em UTC. Todo objeto novo carrega `tenant_id` + RLS.
 
 Conexão de WhatsApp de uma clínica. 1 linha por tenant (v1: um número por clínica).
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `tenant_id` | `UUID` PK | FK → `tenants(id)` ON DELETE RESTRICT |
-| `api_key_enc` | `BYTEA` NOT NULL | `api_key` do tenant no braço, cifrada com `enc_text_with_key(?, PATIENT_DATA_ENCRYPTION_KEY)` — padrão de `tenant_memed_config` (0110) |
-| `service_tenant_slug` | `TEXT` NOT NULL | slug do tenant no braço (prefixo do nome da instância) |
-| `instance_name` | `TEXT` NULL | nome da instância na Evolution (`{slug}-{n}`) |
-| `connection_status` | `TEXT` NOT NULL DEFAULT `'disconnected'` | CHECK ∈ (`disconnected`, `connecting`, `connected`) |
-| `number_connected` | `TEXT` NULL | número vinculado, para exibição |
-| `connected_at` | `TIMESTAMPTZ` NULL | |
-| `last_status_at` | `TIMESTAMPTZ` NULL | última confirmação de estado vinda do braço |
-| `created_at` / `updated_at` | `TIMESTAMPTZ` NOT NULL DEFAULT `now()` | |
+| Coluna                      | Tipo                                     | Notas                                                                                                                                  |
+| --------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `tenant_id`                 | `UUID` PK                                | FK → `tenants(id)` ON DELETE RESTRICT                                                                                                  |
+| `api_key_enc`               | `BYTEA` NOT NULL                         | `api_key` do tenant no braço, cifrada com `enc_text_with_key(?, PATIENT_DATA_ENCRYPTION_KEY)` — padrão de `tenant_memed_config` (0110) |
+| `service_tenant_slug`       | `TEXT` NOT NULL                          | slug do tenant no braço (prefixo do nome da instância)                                                                                 |
+| `instance_name`             | `TEXT` NULL                              | nome da instância na Evolution (`{slug}-{n}`)                                                                                          |
+| `connection_status`         | `TEXT` NOT NULL DEFAULT `'disconnected'` | CHECK ∈ (`disconnected`, `connecting`, `connected`)                                                                                    |
+| `number_connected`          | `TEXT` NULL                              | número vinculado, para exibição                                                                                                        |
+| `connected_at`              | `TIMESTAMPTZ` NULL                       |                                                                                                                                        |
+| `last_status_at`            | `TIMESTAMPTZ` NULL                       | última confirmação de estado vinda do braço                                                                                            |
+| `created_at` / `updated_at` | `TIMESTAMPTZ` NOT NULL DEFAULT `now()`   |                                                                                                                                        |
 
 **RLS**: leitura pelo tenant (`tenant_id = public.jwt_tenant_id()`); escrita só `service_role`.
 `api_key_enc` **nunca** sai em SELECT de rota — as leituras da UI usam uma view/projeção sem ela.
@@ -34,16 +34,16 @@ Conexão de WhatsApp de uma clínica. 1 linha por tenant (v1: um número por cl�
 Append-only. Uma linha por confirmação de status recebida do braço. Ver D4 do research —
 `appointment_reminders` não aceita `UPDATE` depois de terminal.
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `id` | `UUID` PK DEFAULT `gen_random_uuid()` | |
-| `tenant_id` | `UUID` NOT NULL | FK → `tenants(id)`; filtro explícito em toda query (Princípio III) |
-| `reminder_id` | `UUID` NOT NULL | FK → `appointment_reminders(id)` ON DELETE RESTRICT |
-| `provider_message_id` | `TEXT` NULL | id da mensagem no braço |
-| `status` | `TEXT` NOT NULL | CHECK ∈ (`sent`, `delivered`, `read`, `error`) |
-| `error_detail` | `TEXT` NULL | ≤ 500 chars |
-| `occurred_at` | `TIMESTAMPTZ` NOT NULL | quando o evento ocorreu (vem do braço) |
-| `received_at` | `TIMESTAMPTZ` NOT NULL DEFAULT `now()` | quando chegou aqui |
+| Coluna                | Tipo                                   | Notas                                                              |
+| --------------------- | -------------------------------------- | ------------------------------------------------------------------ |
+| `id`                  | `UUID` PK DEFAULT `gen_random_uuid()`  |                                                                    |
+| `tenant_id`           | `UUID` NOT NULL                        | FK → `tenants(id)`; filtro explícito em toda query (Princípio III) |
+| `reminder_id`         | `UUID` NOT NULL                        | FK → `appointment_reminders(id)` ON DELETE RESTRICT                |
+| `provider_message_id` | `TEXT` NULL                            | id da mensagem no braço                                            |
+| `status`              | `TEXT` NOT NULL                        | CHECK ∈ (`sent`, `delivered`, `read`, `error`)                     |
+| `error_detail`        | `TEXT` NULL                            | ≤ 500 chars                                                        |
+| `occurred_at`         | `TIMESTAMPTZ` NOT NULL                 | quando o evento ocorreu (vem do braço)                             |
+| `received_at`         | `TIMESTAMPTZ` NOT NULL DEFAULT `now()` | quando chegou aqui                                                 |
 
 **Índices**: `(tenant_id, reminder_id)`, `(reminder_id, occurred_at DESC)`.
 
@@ -80,8 +80,8 @@ que o modo "ambos" (US3) precisa.
 
 ## 4. `patients` (alterada)
 
-| Coluna | Tipo | Notas |
-|---|---|---|
+| Coluna                      | Tipo                              | Notas                               |
+| --------------------------- | --------------------------------- | ----------------------------------- |
 | `reminders_whatsapp_opt_in` | `BOOLEAN` NOT NULL DEFAULT `TRUE` | recusa específica do canal WhatsApp |
 
 `reminders_opt_in` continua sendo o **mestre**: `FALSE` nele bloqueia todos os canais. O novo
@@ -92,11 +92,11 @@ em `patients`.
 
 ## 5. `tenant_clinic_profile` (alterada)
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `reminder_channels` | `TEXT[]` NOT NULL DEFAULT `'{email}'` | subconjunto não-vazio de (`email`, `whatsapp`) |
-| `reminder_whatsapp_fallback_email` | `BOOLEAN` NOT NULL DEFAULT `TRUE` | FR "WhatsApp com fallback" (US3) |
-| `reminder_template_whatsapp` | `TEXT` NULL | template texto puro; `NULL` = default do sistema |
+| Coluna                             | Tipo                                  | Notas                                            |
+| ---------------------------------- | ------------------------------------- | ------------------------------------------------ |
+| `reminder_channels`                | `TEXT[]` NOT NULL DEFAULT `'{email}'` | subconjunto não-vazio de (`email`, `whatsapp`)   |
+| `reminder_whatsapp_fallback_email` | `BOOLEAN` NOT NULL DEFAULT `TRUE`     | FR "WhatsApp com fallback" (US3)                 |
+| `reminder_template_whatsapp`       | `TEXT` NULL                           | template texto puro; `NULL` = default do sistema |
 
 **Constraint**: `array_length(reminder_channels, 1) >= 1`. A validação "não pode ligar
 `whatsapp` sem número conectado" (FR-005) é de aplicação, não de banco — depende de estado que

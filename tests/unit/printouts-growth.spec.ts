@@ -9,7 +9,11 @@
  */
 import { describe, expect, it } from 'vitest'
 import * as pdf from '@react-pdf/renderer'
-import { MAX_PEDIATRIC_AGE_MONTHS, ageInMonths, type PercentileRow } from '@/lib/core/growth/classify'
+import {
+  MAX_PEDIATRIC_AGE_MONTHS,
+  ageInMonths,
+  type PercentileRow,
+} from '@/lib/core/growth/classify'
 import type { GrowthCurve } from '@/lib/core/growth/read'
 import { buildGeometry, project, renderGrowthPdf } from '@/lib/core/nutrition/printouts/growth-pdf'
 
@@ -55,7 +59,10 @@ describe('a curva é desenhada (T032)', () => {
 })
 
 describe('o ponto do paciente cai no lugar certo do eixo', () => {
-  const c = curve([{ ageMonths: 24, value: 12 }, { ageMonths: 36, value: 15 }])
+  const c = curve([
+    { ageMonths: 24, value: 12 },
+    { ageMonths: 36, value: 15 },
+  ])
   const g = buildGeometry(c)!
 
   it('o eixo cobre as bandas e os pontos', () => {
@@ -116,12 +123,26 @@ describe('o PDF sai', () => {
   it('gera um documento de verdade com as três curvas', async () => {
     const buf = await renderGrowthPdf({
       clinicProfile: null,
-      identity: { name: 'Criança Teste', lines: [{ key: 'nascimento', label: 'Nascimento', value: '10/08/2023' }, { key: 'idade', label: 'Idade', value: '3 anos' }] },
+      identity: {
+        name: 'Criança Teste',
+        lines: [
+          { key: 'nascimento', label: 'Nascimento', value: '10/08/2023' },
+          { key: 'idade', label: 'Idade', value: '3 anos' },
+        ],
+      },
       professionalName: 'nutri@clinica.test',
       issuedAt: '2026-08-05',
       curves: [
-        curve([{ ageMonths: 24, value: 12 }, { ageMonths: 36, value: 15 }]),
-        { ...curve([{ ageMonths: 30, value: 90 }]), indicator: 'estatura_idade', label: 'Estatura para a idade', unit: 'cm' },
+        curve([
+          { ageMonths: 24, value: 12 },
+          { ageMonths: 36, value: 15 },
+        ]),
+        {
+          ...curve([{ ageMonths: 30, value: 90 }]),
+          indicator: 'estatura_idade',
+          label: 'Estatura para a idade',
+          unit: 'cm',
+        },
       ],
     })
     expect(buf.subarray(0, 4).toString('utf8')).toBe('%PDF')

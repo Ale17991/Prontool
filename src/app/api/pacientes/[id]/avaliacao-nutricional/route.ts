@@ -12,7 +12,12 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
 import { createNutritionAssessment } from '@/lib/core/nutrition/assessments/create'
 import { listNutritionAssessments } from '@/lib/core/nutrition/assessments/list'
-import type { CircumferenceSite, DobraProtocol, SkinfoldSite, TmbEquation } from '@/lib/core/nutrition/protocols'
+import type {
+  CircumferenceSite,
+  DobraProtocol,
+  SkinfoldSite,
+  TmbEquation,
+} from '@/lib/core/nutrition/protocols'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -44,7 +49,10 @@ const createSchema = z.object({
   injury_factor: z.number().optional().nullable(),
   extra_kcal: z.number().optional().nullable(),
   eer_pa: z.number().optional().nullable(),
-  eer_category: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).optional().nullable(),
+  eer_category: z
+    .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
+    .optional()
+    .nullable(),
   pregnancy_weeks: z.number().optional().nullable(),
   objective: z.enum(['deficit', 'manutencao', 'superavit']).optional().nullable(),
   objective_delta_kcal: z.number().optional().nullable(),
@@ -61,14 +69,20 @@ async function gateModule(tenantId: string): Promise<boolean> {
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
   const route = `/api/pacientes/${params.id}/avaliacao-nutricional`
   try {
-    const session = await requireRole(['admin', 'financeiro', 'recepcionista', 'profissional_saude'], {
-      entity: 'nutrition_assessments',
-      entityId: params.id,
-      route,
-      request: req,
-    })
+    const session = await requireRole(
+      ['admin', 'financeiro', 'recepcionista', 'profissional_saude'],
+      {
+        entity: 'nutrition_assessments',
+        entityId: params.id,
+        route,
+        request: req,
+      },
+    )
     if (!(await gateModule(session.tenantId))) {
-      return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+      return NextResponse.json(
+        { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+        { status: 404 },
+      )
     }
     const supabase = createSupabaseServiceClient()
     const assessments = await listNutritionAssessments(supabase, {
@@ -81,7 +95,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/pacientes/${params.id}/avaliacao-nutricional`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -91,12 +108,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       request: req,
     })
     if (!(await gateModule(session.tenantId))) {
-      return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+      return NextResponse.json(
+        { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+        { status: 404 },
+      )
     }
     const parsed = createSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }
@@ -113,7 +135,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       heightCm: b.height_cm ?? null,
       dobraProtocol: (b.dobra_protocol as DobraProtocol | null) ?? null,
       skinfolds: (b.skinfolds as Partial<Record<SkinfoldSite, number>> | null) ?? null,
-      circumferences: (b.circumferences as Partial<Record<CircumferenceSite, number>> | null) ?? null,
+      circumferences:
+        (b.circumferences as Partial<Record<CircumferenceSite, number>> | null) ?? null,
       fatPctInput: b.fat_pct_input ?? null,
       tmbEquation: (b.tmb_equation as TmbEquation | null) ?? null,
       activityFactor: b.activity_factor ?? null,

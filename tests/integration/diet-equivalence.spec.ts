@@ -97,7 +97,13 @@ describe('Feature 047 US3 — listas de substituição', () => {
       items: [{ foodId: f1!, grams: 100 }],
     })
     await expect(
-      updateEquivalenceList(sb, { tenantId: tenantB, listId: id, groupSlug: 'frutas', name: 'hack', items: [] }),
+      updateEquivalenceList(sb, {
+        tenantId: tenantB,
+        listId: id,
+        groupSlug: 'frutas',
+        name: 'hack',
+        items: [],
+      }),
     ).rejects.toThrow()
     await expect(deleteEquivalenceList(sb, { tenantId: tenantB, listId: id })).rejects.toThrow()
   })

@@ -166,10 +166,7 @@ export function labelNutrient(key: string): LabelNutrientDef | undefined {
 export type LabelBasis = 'solido' | 'liquido'
 
 /** Nutrientes sujeitos à rotulagem nutricional frontal (a "lupa"). */
-export type FrontOfPackNutrient =
-  | 'acucares_adicionados'
-  | 'gorduras_saturadas'
-  | 'sodio'
+export type FrontOfPackNutrient = 'acucares_adicionados' | 'gorduras_saturadas' | 'sodio'
 
 /**
  * RDC 429/2020 — limites acima dos quais a embalagem MUST trazer a marca

@@ -19,14 +19,23 @@ const sb = serviceClient()
 async function seedAutomacao(tenantId: string): Promise<string> {
   const { data: msg, error: e1 } = await sb
     .from('message_templates' as never)
-    .insert({ tenant_id: tenantId, name: `M-${randomUUID().slice(0, 6)}`, body: 'Oi {{paciente}}' } as never)
+    .insert({
+      tenant_id: tenantId,
+      name: `M-${randomUUID().slice(0, 6)}`,
+      body: 'Oi {{paciente}}',
+    } as never)
     .select('id')
     .single()
   if (e1) throw new Error(`msg: ${e1.message}`)
 
   const { data: trg, error: e2 } = await sb
     .from('automation_triggers' as never)
-    .insert({ tenant_id: tenantId, name: `G-${randomUUID().slice(0, 6)}`, source: 'aniversario', params: {} } as never)
+    .insert({
+      tenant_id: tenantId,
+      name: `G-${randomUUID().slice(0, 6)}`,
+      source: 'aniversario',
+      params: {},
+    } as never)
     .select('id')
     .single()
   if (e2) throw new Error(`trigger: ${e2.message}`)
@@ -127,7 +136,10 @@ describe('Feature 056 — automation_occurrences append-only', () => {
 
   it('EXCEÇÃO 2: linha suprimida por teto pode ser apagada, para reavaliação', async () => {
     const id = await novaOcorrencia(tenantId, automationId, patientId, 'suprimido_teto_clinica')
-    const { error } = await sb.from('automation_occurrences' as never).delete().eq('id', id)
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .delete()
+      .eq('id', id)
     // Sem isto, o paciente que ficou de fora por acaso de ordenação perderia a
     // mensagem para sempre — a chave estaria consumida.
     expect(error).toBeNull()
@@ -135,14 +147,20 @@ describe('Feature 056 — automation_occurrences append-only', () => {
 
   it('linha ENVIADA não pode ser apagada', async () => {
     const id = await novaOcorrencia(tenantId, automationId, patientId, 'enviado')
-    const { error } = await sb.from('automation_occurrences' as never).delete().eq('id', id)
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .delete()
+      .eq('id', id)
     expect(error).not.toBeNull()
     expect(error?.message).toMatch(/append-only/i)
   })
 
   it('linha impedida também não pode ser apagada', async () => {
     const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_telefone')
-    const { error } = await sb.from('automation_occurrences' as never).delete().eq('id', id)
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .delete()
+      .eq('id', id)
     expect(error).not.toBeNull()
   })
 })
@@ -226,7 +244,10 @@ describe('Feature 056 — retentativa de falha (0203)', () => {
    */
   it('automação que já produziu ocorrência não pode ser excluída', async () => {
     await novaOcorrencia(tenantId, automationId, patientId, 'enviado')
-    const { error } = await sb.from('automations' as never).delete().eq('id', automationId)
+    const { error } = await sb
+      .from('automations' as never)
+      .delete()
+      .eq('id', automationId)
     expect(error).not.toBeNull()
     // 23503 é a FK da 0205 recusando — e NÃO o 42501 do trigger, que era o
     // sintoma antigo e apontava para o lugar errado.
@@ -235,13 +256,19 @@ describe('Feature 056 — retentativa de falha (0203)', () => {
 
   it('automação que nunca enviou continua excluível', async () => {
     const limpa = await seedAutomacao(tenantId)
-    const { error } = await sb.from('automations' as never).delete().eq('id', limpa)
+    const { error } = await sb
+      .from('automations' as never)
+      .delete()
+      .eq('id', limpa)
     expect(error).toBeNull()
   })
 
   it('linha que falhou continua sem poder ser apagada', async () => {
     const id = await novaOcorrencia(tenantId, automationId, patientId, 'falhou')
-    const { error } = await sb.from('automation_occurrences' as never).delete().eq('id', id)
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .delete()
+      .eq('id', id)
     expect(error).not.toBeNull()
     expect(error?.message).toMatch(/append-only/i)
   })

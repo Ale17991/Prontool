@@ -25,15 +25,15 @@ A garantia de "uma vez só" é **estrutural**, não procedural: uma tabela de oc
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Princípio | Situação | Como o desenho atende |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | **Não aplicável** | A feature não toca valor, preço, fatura nem repasse. Nenhuma tabela financeira é lida ou escrita. |
-| **II. Auditabilidade Total** | **Aplicável** | Criação, edição, ativação e desativação de automação, gatilho e mensagem passam por `log_audit_event` com ator e motivo (FR-018). `automation_occurrences` é append-only com trigger anti-UPDATE/DELETE, no padrão de `whatsapp_delivery_events`. |
-| **III. Isolamento Multi-Tenant** | **Aplicável** | Todas as 4 tabelas novas carregam `tenant_id` NOT NULL com RLS. O motor roda com service client e **filtra `tenant_id` explicitamente em cada consulta**, como já faz `process-batch`. Teste de contrato de isolamento é obrigatório. |
-| **IV. Conformidade TUSS/ANS** | **Não aplicável** | Nenhum código de procedimento é lido ou emitido. |
-| **V. RBAC** | **Aplicável** | Criar/editar automação é `admin` (FR-022), verificado no servidor em toda rota. Gate de módulo `automacoes` vale também no **motor**, não só na tela (FR-023) — lição direta da 051. |
+| Princípio                              | Situação          | Como o desenho atende                                                                                                                                                                                                                             |
+| -------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável** | **Não aplicável** | A feature não toca valor, preço, fatura nem repasse. Nenhuma tabela financeira é lida ou escrita.                                                                                                                                                 |
+| **II. Auditabilidade Total**           | **Aplicável**     | Criação, edição, ativação e desativação de automação, gatilho e mensagem passam por `log_audit_event` com ator e motivo (FR-018). `automation_occurrences` é append-only com trigger anti-UPDATE/DELETE, no padrão de `whatsapp_delivery_events`. |
+| **III. Isolamento Multi-Tenant**       | **Aplicável**     | Todas as 4 tabelas novas carregam `tenant_id` NOT NULL com RLS. O motor roda com service client e **filtra `tenant_id` explicitamente em cada consulta**, como já faz `process-batch`. Teste de contrato de isolamento é obrigatório.             |
+| **IV. Conformidade TUSS/ANS**          | **Não aplicável** | Nenhum código de procedimento é lido ou emitido.                                                                                                                                                                                                  |
+| **V. RBAC**                            | **Aplicável**     | Criar/editar automação é `admin` (FR-022), verificado no servidor em toda rota. Gate de módulo `automacoes` vale também no **motor**, não só na tela (FR-023) — lição direta da 051.                                                              |
 
 **LGPD (Restrições de Domínio)**: consentimento próprio e explícito (FR-015), nascendo negado; paciente anonimizado sai da avaliação (FR-017); nenhum telefone ou conteúdo de mensagem em log. Timestamps em UTC na persistência; "hoje" e "semana corrente" convertidos para o dia civil da clínica só na avaliação, no mesmo critério do checklist de hábitos.
 

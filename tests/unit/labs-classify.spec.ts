@@ -170,6 +170,8 @@ describe('classifyLabResults', () => {
     const homem = new Map<string, LabRange>([['lab_ferritina', range(70, 150)]])
     const mulher = new Map<string, LabRange>([['lab_ferritina', range(70, 200)]])
     expect(classifyLabResults([result('lab_ferritina', 180)], homem).items[0]!.class).toBe('alto')
-    expect(classifyLabResults([result('lab_ferritina', 180)], mulher).items[0]!.class).toBe('normal')
+    expect(classifyLabResults([result('lab_ferritina', 180)], mulher).items[0]!.class).toBe(
+      'normal',
+    )
   })
 })

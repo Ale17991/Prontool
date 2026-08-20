@@ -145,7 +145,9 @@ export function JanelaEnvio({ janelaInicio, janelaFim, dias, ocupado, chamar }: 
         >
           Salvar janela
         </Button>
-        {invalido && <span className="text-xs text-destructive">O fim precisa ser depois do início.</span>}
+        {invalido && (
+          <span className="text-xs text-destructive">O fim precisa ser depois do início.</span>
+        )}
         {salvo && !mudou && <span className="text-xs text-muted-foreground">Salvo.</span>}
       </div>
     </section>

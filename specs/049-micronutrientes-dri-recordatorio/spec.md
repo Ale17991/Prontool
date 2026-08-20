@@ -13,7 +13,7 @@
 - Q: O recordatório é de um dia (R24h clássico) ou período configurável? → A: **Um dia (R24h clássico)** — as refeições de um dia.
 - Q: Como classificar a adequação de cada nutriente vs. a DRI? → A: **<90% abaixo · 90–110% adequado · >110% acima** (faixa padrão, ajustável depois; não bloqueia, só informa).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Micronutrientes na base de alimentos (Priority: P1)
 
@@ -75,11 +75,12 @@ A nutricionista quer registrar o que o paciente **de fato comeu** num período (
 - **Unidades**: micronutrientes vêm em mg/mcg conforme o nutriente; a soma e a comparação devem respeitar a unidade de cada um.
 - **Isolamento multi-tenant**: alimentos próprios e recordatórios de uma clínica não aparecem em outra; a base global e a tabela de DRIs são compartilhadas.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 **Micronutrientes (US1)**
+
 - **FR-001**: O sistema MUST associar a cada alimento (base global e próprio da clínica) um conjunto de micronutrientes por porção de referência, cobrindo ao menos os presentes na fonte `BD ALIMENTOS` da planilha AF: cálcio, magnésio, manganês, fósforo, ferro, sódio, sódio de adição, potássio, cobre, zinco, selênio, retinol, vitamina A, tiamina (B1), riboflavina (B2), niacina (B3), equivalente de B3, piridoxina (B6), cobalamina (B12), folato, vitamina D, vitamina E, vitamina C, colesterol, ácidos graxos saturados, monoinsaturados e poli-insaturados (incluindo 18:2 e 18:3), gordura trans, açúcar total e açúcar de adição.
 - **FR-002**: O sistema MUST importar a `BD ALIMENTOS` (planilha AF, 6570 alimentos, valores por 100 g) como base global autoritativa de micronutrientes, **coexistindo** com a base atual (TACO/POF); alimentos próprios e planos existentes seguem funcionando.
 - **FR-003**: Os cálculos de total do plano alimentar e do recordatório MUST somar os micronutrientes por regra de três sobre a porção, além de energia e macros.
@@ -87,26 +88,30 @@ A nutricionista quer registrar o que o paciente **de fato comeu** num período (
 - **FR-005**: A busca/visualização de alimento MUST exibir os micronutrientes disponíveis de forma legível (com unidade de cada um).
 
 **DRIs (US2)**
+
 - **FR-006**: O sistema MUST manter uma tabela de referência de ingestão recomendada (DRI) por micronutriente, faixa etária e sexo, incluindo estados especiais quando presentes na fonte (gestante/lactante), a partir da fonte `BD_DRIs` (planilha Evonut) usada como gabarito.
 - **FR-007**: A tabela de DRIs MUST ser um catálogo global (compartilhado por todas as clínicas), não editável pela clínica.
 
 **Análise de adequação (US2)**
+
 - **FR-008**: O sistema MUST calcular, para um plano ou recordatório e um paciente, a adequação por nutriente = total consumido/planejado ÷ recomendação (DRI) da faixa do paciente, expressa em % e classificada em **abaixo (<90%) / adequado (90–110%) / acima (>110%)** — faixa padrão ajustável, não-bloqueante.
 - **FR-009**: A análise MUST destacar carências (muito abaixo) e excessos (muito acima) e cobrir energia, macros e micronutrientes.
 - **FR-010**: A idade usada MUST ser derivada da data de nascimento do paciente quando disponível; sexo, do cadastro; ambos ajustáveis manualmente na tela sem bloquear.
 - **FR-011**: Nutrientes sem DRI aplicável MUST aparecer com o total mas sem % de adequação, marcados como "sem referência".
 
 **Recordatório (US3)**
+
 - **FR-012**: O sistema MUST permitir criar e editar um recordatório alimentar de **um dia (R24h)** por paciente, com refeições e itens (alimento + quantidade em gramas ou medida caseira), reusando a busca de alimentos e as medidas caseiras existentes.
 - **FR-013**: O recordatório MUST calcular energia/macros/micros ao vivo (mesmo motor de soma do plano) e permitir rodar a análise de adequação sobre ele.
 - **FR-014**: O sistema MUST manter histórico de recordatórios por paciente (data e totais), visível para a equipe.
 - **FR-015**: O acesso ao recordatório MUST ser controlado pelo módulo `nutri_recordatorio` (item de menu e rota negados quando desligado) e pelos papéis já usados na vertical de nutrição.
 
 **Transversais**
+
 - **FR-016**: Alimentos próprios e recordatórios MUST ser isolados por clínica (multi-tenant); a base global de alimentos e a tabela de DRIs são compartilhadas.
 - **FR-017**: Os números MUST bater entre a tela (cálculo ao vivo) e o que é gravado/relido — soma sem divergência além de arredondamento.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Alimento (estendido)**: além de energia/macros/fibra, carrega os micronutrientes por porção de referência. Global (compartilhado) ou próprio da clínica.
 - **DRI (recomendação)**: valor recomendado de um micronutriente por faixa etária, sexo e estado (padrão/gestante/lactante). Catálogo global.
@@ -114,7 +119,7 @@ A nutricionista quer registrar o que o paciente **de fato comeu** num período (
 - **Análise de adequação**: leitura derivada (não necessariamente persistida) que cruza os totais de um plano/recordatório com a DRI da faixa do paciente, produzindo % e classificação por nutriente.
 - **Paciente**: fonte de idade (data de nascimento) e sexo para escolher a faixa de DRI (reuso do cadastro existente).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

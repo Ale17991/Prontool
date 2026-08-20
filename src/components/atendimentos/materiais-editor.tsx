@@ -373,8 +373,8 @@ export function MateriaisEditor({
               </div>
               {catalogLoaded && availableCatalog.length === 0 ? (
                 <div className="text-[11px] text-slate-400">
-                  Nenhum insumo no catálogo ainda. Use “Insumo livre” ou cadastre em
-                  Configurações → Materiais.
+                  Nenhum insumo no catálogo ainda. Use “Insumo livre” ou cadastre em Configurações →
+                  Materiais.
                 </div>
               ) : (
                 <select

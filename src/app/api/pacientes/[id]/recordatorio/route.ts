@@ -36,7 +36,10 @@ async function gate(tenantId: string): Promise<boolean> {
   return ent.hasModule('nutri_recordatorio')
 }
 function moduleDisabled(): Response {
-  return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+  return NextResponse.json(
+    { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+    { status: 404 },
+  )
 }
 
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
@@ -57,7 +60,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/pacientes/${params.id}/recordatorio`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -70,7 +76,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const parsed = saveSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }

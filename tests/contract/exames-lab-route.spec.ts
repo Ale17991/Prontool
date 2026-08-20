@@ -214,8 +214,28 @@ describe('Feature 050 — validação e atomicidade do laudo', () => {
     // fica "sem referência" e conta como motivo concreto para pedir o dado.
     const sb = serviceClient()
     const ins = await sb.from('lab_reference_ranges').insert([
-      { analyte_key: 'lab_ferritina', sex: 'M', age_min_years: 0, age_max_years: 130, state: 'padrao', ref_min: 70, ref_max: 150, unit: 'mcg/L', source_label: 'teste' },
-      { analyte_key: 'lab_ferritina', sex: 'F', age_min_years: 0, age_max_years: 130, state: 'padrao', ref_min: 70, ref_max: 200, unit: 'mcg/L', source_label: 'teste' },
+      {
+        analyte_key: 'lab_ferritina',
+        sex: 'M',
+        age_min_years: 0,
+        age_max_years: 130,
+        state: 'padrao',
+        ref_min: 70,
+        ref_max: 150,
+        unit: 'mcg/L',
+        source_label: 'teste',
+      },
+      {
+        analyte_key: 'lab_ferritina',
+        sex: 'F',
+        age_min_years: 0,
+        age_max_years: 130,
+        state: 'padrao',
+        ref_min: 70,
+        ref_max: 200,
+        unit: 'mcg/L',
+        source_label: 'teste',
+      },
     ] as never)
     if (ins.error) throw new Error(ins.error.message)
 

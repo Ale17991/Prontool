@@ -6,7 +6,13 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { resetDatabase, serviceClient } from '@/tests/helpers/supabase-test-client'
 import { seedTenant, seedUser } from '@/tests/helpers/seed-factories'
-import { createLabel, getLabel, updateLabel, listLabels, deleteLabel } from '@/lib/core/nutrition/labeling/store'
+import {
+  createLabel,
+  getLabel,
+  updateLabel,
+  listLabels,
+  deleteLabel,
+} from '@/lib/core/nutrition/labeling/store'
 import { NORMATIVE_VERSION } from '@/lib/core/nutrition/labeling/reference'
 
 async function seedFood(external: string, name: string): Promise<string> {

@@ -6,7 +6,12 @@
  * M, 30 anos, 80 kg, 180 cm, MLG 64 kg.
  */
 import { describe, it, expect } from 'vitest'
-import { computeEnergy, computeTmb, computeGet, type EnergyInput } from '@/lib/core/nutrition/energy'
+import {
+  computeEnergy,
+  computeTmb,
+  computeGet,
+  type EnergyInput,
+} from '@/lib/core/nutrition/energy'
 import { NutritionInputError } from '@/lib/core/nutrition/body-composition'
 
 const base: EnergyInput = {
@@ -77,7 +82,11 @@ describe('Feature 046 — GET, VET e macros', () => {
 
   it('macros que não somam 100% são rejeitados', () => {
     expect(() =>
-      computeEnergy({ ...base, activityFactor: 1.2, macros: { protPct: 30, carbPct: 30, lipPct: 30 } }),
+      computeEnergy({
+        ...base,
+        activityFactor: 1.2,
+        macros: { protPct: 30, carbPct: 30, lipPct: 30 },
+      }),
     ).toThrow(/100%/)
   })
 })
@@ -117,10 +126,18 @@ describe('coeficientes conferidos contra a planilha de referência', () => {
 
   it('Harris-Benedict mantém a precisão da publicação e difere por sexo', () => {
     const m = computeTmb({
-      sex: 'M', ageYears: I, weightKg: P, heightCm: A, equation: 'harris_benedict_1984',
+      sex: 'M',
+      ageYears: I,
+      weightKg: P,
+      heightCm: A,
+      equation: 'harris_benedict_1984',
     })
     const f = computeTmb({
-      sex: 'F', ageYears: I, weightKg: P, heightCm: A, equation: 'harris_benedict_1984',
+      sex: 'F',
+      ageYears: I,
+      weightKg: P,
+      heightCm: A,
+      equation: 'harris_benedict_1984',
     })
     expect(m).toBeCloseTo(88.362 + 13.397 * P + 4.799 * A - 5.677 * I, 6)
     expect(f).toBeCloseTo(447.593 + 9.247 * P + 3.098 * A - 4.33 * I, 6)
@@ -186,8 +203,12 @@ describe('fatores de injúria conferidos contra o documento de base', () => {
 
   it('o fator de injúria reduz mesmo o GET quando é menor que 1', () => {
     const base = {
-      sex: 'M' as const, ageYears: 40, weightKg: 80, heightCm: 175,
-      equation: 'mifflin' as const, activityFactor: 1.55,
+      sex: 'M' as const,
+      ageYears: 40,
+      weightKg: 80,
+      heightCm: 175,
+      equation: 'mifflin' as const,
+      activityFactor: 1.55,
     }
     const semInjuria = computeEnergy({ ...base, injuryFactor: 1 })
     const cardiopulmonar = computeEnergy({ ...base, injuryFactor: 0.9 })

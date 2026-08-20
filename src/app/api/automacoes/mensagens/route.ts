@@ -38,7 +38,11 @@ function unknownVariables(body: string): string[] {
 export async function GET(req: Request): Promise<Response> {
   const route = '/api/automacoes/mensagens'
   try {
-    const session = await requireRole(['admin'], { entity: 'message_templates', route, request: req })
+    const session = await requireRole(['admin'], {
+      entity: 'message_templates',
+      route,
+      request: req,
+    })
     if (!(await hasAutomationsModule(session.tenantId))) return moduleDisabled()
 
     const mensagens = await listMessageTemplates(createSupabaseServiceClient(), session.tenantId)
@@ -51,7 +55,11 @@ export async function GET(req: Request): Promise<Response> {
 export async function POST(req: Request): Promise<Response> {
   const route = '/api/automacoes/mensagens'
   try {
-    const session = await requireRole(['admin'], { entity: 'message_templates', route, request: req })
+    const session = await requireRole(['admin'], {
+      entity: 'message_templates',
+      route,
+      request: req,
+    })
     if (!(await hasAutomationsModule(session.tenantId))) return moduleDisabled()
 
     const parsed = createSchema.safeParse(await req.json())

@@ -10,7 +10,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { listMeasurements } from '@/lib/core/patient-portal/measurements'
 import { isLabAnalyte } from '@/lib/core/labs/catalog'
-import { classifyLabResults, type LabPanelResult, type LabResultInput } from '@/lib/core/labs/classify'
+import {
+  classifyLabResults,
+  type LabPanelResult,
+  type LabResultInput,
+} from '@/lib/core/labs/classify'
 import {
   listLabRangesForPatient,
   listSexDependentAnalytes,
@@ -100,7 +104,8 @@ export async function buildLabPanelForPatient(
       p_patient_id: args.patientId,
       p_key: key,
     } as never)
-    const p = ((data as unknown as Array<{ birth_date: string | null; sex: string | null }>) ?? [])[0]
+    const p = ((data as unknown as Array<{ birth_date: string | null; sex: string | null }>) ??
+      [])[0]
     if (p) {
       if (ageYears === null && p.birth_date) ageYears = ageFromBirth(p.birth_date)
       if (!sex && p.sex) sex = p.sex === 'masculino' ? 'M' : p.sex === 'feminino' ? 'F' : null

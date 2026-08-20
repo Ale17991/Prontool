@@ -260,7 +260,10 @@ export async function recordMeasurementsBatch(
     .insert(rows as never)
     .select(COLUMNS)
   if (error || !data) {
-    if (error?.message?.includes('MEASUREMENT_OUT_OF_RANGE') || error?.message?.includes('METRIC_TYPE_')) {
+    if (
+      error?.message?.includes('MEASUREMENT_OUT_OF_RANGE') ||
+      error?.message?.includes('METRIC_TYPE_')
+    ) {
       throw new DomainError('MEASUREMENT_REJECTED', error.message, { status: 422 })
     }
     throw new Error(`recordMeasurementsBatch insert failed: ${error?.message}`)

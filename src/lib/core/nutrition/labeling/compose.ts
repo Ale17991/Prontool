@@ -98,7 +98,10 @@ interface RawTotal {
   missingFrom: string[]
 }
 
-function sumNutrient(nutrient: LabelNutrientDef, ingredients: readonly LabelIngredient[]): RawTotal {
+function sumNutrient(
+  nutrient: LabelNutrientDef,
+  ingredients: readonly LabelIngredient[],
+): RawTotal {
   let total = 0
   const missingFrom: string[] = []
   for (const ing of ingredients) {

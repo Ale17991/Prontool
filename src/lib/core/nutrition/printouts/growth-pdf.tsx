@@ -14,12 +14,7 @@ import { ClinicHeader } from '@/lib/pdf/clinic-header'
 import type { ClinicProfile } from '@/lib/core/clinic-profile/types'
 import type { GrowthCurve } from '@/lib/core/growth/read'
 import type { PercentileRow } from '@/lib/core/growth/classify'
-import {
-  PrintFooter,
-  brDate,
-  dash,
-  printStyles as s,
-} from './shared'
+import { PrintFooter, brDate, dash, printStyles as s } from './shared'
 import { PatientIdentityBlock } from '@/lib/pdf/patient-identity-block'
 import type { PatientIdentity } from '@/lib/core/printouts/patient-identity'
 
@@ -93,7 +88,11 @@ export function buildGeometry(curve: GrowthCurve): ChartGeometry | null {
 }
 
 /** Coordenada no desenho. Y é invertido: no SVG ele cresce para baixo. */
-export function project(g: ChartGeometry, ageMonths: number, value: number): { x: number; y: number } {
+export function project(
+  g: ChartGeometry,
+  ageMonths: number,
+  value: number,
+): { x: number; y: number } {
   const w = CHART.width - CHART.padLeft - CHART.padRight
   const h = CHART.height - CHART.padTop - CHART.padBottom
   const x = CHART.padLeft + ((ageMonths - g.xMin) / (g.xMax - g.xMin)) * w
@@ -148,7 +147,12 @@ function Chart({ curve }: { curve: GrowthCurve }) {
       ))}
 
       {curve.points.length > 1 ? (
-        <Polyline points={polyline(g, curve.points)} fill="none" stroke="#0f172a" strokeWidth={1.2} />
+        <Polyline
+          points={polyline(g, curve.points)}
+          fill="none"
+          stroke="#0f172a"
+          strokeWidth={1.2}
+        />
       ) : null}
 
       {curve.points.map((p) => {

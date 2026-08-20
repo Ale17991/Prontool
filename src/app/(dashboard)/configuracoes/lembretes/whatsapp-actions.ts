@@ -73,7 +73,10 @@ function serviceDb(): SupabaseClient<Database> {
 
 /** Slug estável e previsível para a instância no serviço de envio. */
 function slugFor(tenantSlug: string | null, tenantId: string): string {
-  const base = (tenantSlug ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-')
+  const base = (tenantSlug ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
   const clean = base.replace(/^-|-$/g, '')
   // Sufixo do uuid evita colisão entre clínicas de nome parecido — o serviço
   // recusaria com 409, mas é melhor não chegar lá.
@@ -84,7 +87,9 @@ function slugFor(tenantSlug: string | null, tenantId: string): string {
 // Leitura
 // =========================================================================
 
-export async function readConnection(): Promise<ActionResult<{ connection: WhatsAppConnection | null }>> {
+export async function readConnection(): Promise<
+  ActionResult<{ connection: WhatsAppConnection | null }>
+> {
   const auth = await authorize()
   if (!auth.ok) return auth.response
   try {
@@ -100,7 +105,9 @@ export async function readConnection(): Promise<ActionResult<{ connection: Whats
  * Reconcilia o espelho local com o estado ao vivo no serviço. É o que a tela
  * chama em polling enquanto o QR está na tela esperando a leitura.
  */
-export async function refreshConnection(): Promise<ActionResult<{ connection: WhatsAppConnection | null }>> {
+export async function refreshConnection(): Promise<
+  ActionResult<{ connection: WhatsAppConnection | null }>
+> {
   const auth = await authorize()
   if (!auth.ok) return auth.response
   const db = serviceDb()
@@ -116,7 +123,8 @@ export async function refreshConnection(): Promise<ActionResult<{ connection: Wh
     const live = instances.find((i) => i.evolutionName === current.instanceName) ?? instances[0]
     if (!live) return { ok: true, connection: current }
 
-    const status = live.status === 'open' ? 'connected' : live.status === 'close' ? 'disconnected' : 'connecting'
+    const status =
+      live.status === 'open' ? 'connected' : live.status === 'close' ? 'disconnected' : 'connecting'
     await updateConnectionState(db, auth.tenantId, {
       status,
       instanceName: live.evolutionName,
@@ -186,7 +194,10 @@ export async function connectWhatsApp(): Promise<ActionResult<{ qrCode: string |
 
     // 2) Instância existente reconecta; nova é criada.
     const result = connection?.instanceName
-      ? { ...(await connectInstance(apiKey, connection.instanceName)), instanceName: connection.instanceName }
+      ? {
+          ...(await connectInstance(apiKey, connection.instanceName)),
+          instanceName: connection.instanceName,
+        }
       : await createInstance(apiKey)
 
     await updateConnectionState(db, auth.tenantId, {

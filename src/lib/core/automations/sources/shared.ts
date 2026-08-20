@@ -112,10 +112,7 @@ export function mesesAtras(iso: string, meses: number): string {
  * ontem — um agendamento feito às 22h cairia no dia errado, e a confirmação
  * sairia com um dia de atraso ou não sairia.
  */
-export function janelaDoDia(
-  diaCivil: string,
-  timezone: string,
-): { de: string; ate: string } {
+export function janelaDoDia(diaCivil: string, timezone: string): { de: string; ate: string } {
   const offset = offsetHoras(timezone, diaCivil)
   const meiaNoite = Date.parse(`${diaCivil}T00:00:00.000Z`) + offset * 3_600_000
   return {
@@ -223,9 +220,7 @@ export function antecedenciaSchema(minMinutos: number, maxMinutos: number) {
       }
       return o
     },
-    z
-      .object({ antecedenciaMin: z.number().int().min(minMinutos).max(maxMinutos) })
-      .strict(),
+    z.object({ antecedenciaMin: z.number().int().min(minMinutos).max(maxMinutos) }).strict(),
   )
 }
 

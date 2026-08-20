@@ -55,18 +55,15 @@ registerSource({
       metric_type: string
       target_value: number
       direction: string
-    }>(
-      (from, to) => {
-        let q = ctx.supabase
-          .from('patient_metric_goals')
-          .select('id, patient_id, metric_type, target_value, direction')
-          .eq('tenant_id', ctx.tenantId)
-          .eq('active', true)
-        if (metricType) q = q.eq('metric_type', metricType)
-        return q.order('id').range(from, to) as unknown as PromiseLike<Resposta>
-      },
-      'meta_atingida.metas',
-    )
+    }>((from, to) => {
+      let q = ctx.supabase
+        .from('patient_metric_goals')
+        .select('id, patient_id, metric_type, target_value, direction')
+        .eq('tenant_id', ctx.tenantId)
+        .eq('active', true)
+      if (metricType) q = q.eq('metric_type', metricType)
+      return q.order('id').range(from, to) as unknown as PromiseLike<Resposta>
+    }, 'meta_atingida.metas')
     if (metas.length === 0) return []
 
     // O rótulo da métrica vem do catálogo — global ou da clínica. Sem ele a

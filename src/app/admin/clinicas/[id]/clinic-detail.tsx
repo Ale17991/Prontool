@@ -239,8 +239,7 @@ export function ClinicDetail({
         void adminLogEnterClinicAction(row.tenantId)
         // "edit" = switch de escrita (super-admin, 0171). "view" = impersonação
         // READ-ONLY (escrita bloqueada no servidor pelo middleware).
-        const url =
-          mode === 'edit' ? '/api/admin/enter-edit' : '/api/admin/impersonation/start'
+        const url = mode === 'edit' ? '/api/admin/enter-edit' : '/api/admin/impersonation/start'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },

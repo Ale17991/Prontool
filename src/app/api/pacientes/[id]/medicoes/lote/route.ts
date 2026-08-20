@@ -31,7 +31,10 @@ const batchSchema = z.object({
     .max(50),
 })
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   const route = `/api/pacientes/${params.id}/medicoes/lote`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -43,7 +46,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const parsed = batchSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }

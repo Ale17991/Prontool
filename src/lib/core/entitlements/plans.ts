@@ -120,7 +120,8 @@ export const MODULE_HINT: Record<ModuleId, string> = {
   exames_lab: 'Resultados de exames com faixas de referência.',
   whatsapp: 'Lembrete de consulta pelo WhatsApp da clínica.',
   habitos: 'Checklist de hábitos marcado pelo paciente.',
-  automacoes: 'A clínica monta gatilho + mensagem. Precisa do WhatsApp ligado para ter por onde sair.',
+  automacoes:
+    'A clínica monta gatilho + mensagem. Precisa do WhatsApp ligado para ter por onde sair.',
   memed: 'Receituário digital assinado, com validade legal.',
 }
 
@@ -144,7 +145,15 @@ export const MODULE_BLOCKS: readonly ModuleBlock[] = [
     id: 'geral',
     label: 'Geral',
     hint: 'Serve a qualquer especialidade.',
-    modules: ['crm', 'portal_paciente', 'whatsapp', 'automacoes', 'habitos', 'exames_lab', 'convenio'],
+    modules: [
+      'crm',
+      'portal_paciente',
+      'whatsapp',
+      'automacoes',
+      'habitos',
+      'exames_lab',
+      'convenio',
+    ],
   },
   {
     id: 'prescricao',

@@ -46,7 +46,10 @@ async function gate(tenantId: string): Promise<boolean> {
   return ent.hasModule('dieta')
 }
 function moduleDisabled(): Response {
-  return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+  return NextResponse.json(
+    { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+    { status: 404 },
+  )
 }
 
 export async function GET(req: Request, { params }: { params: { id: string } }): Promise<Response> {
@@ -113,7 +116,10 @@ async function save(req: Request, patientId: string): Promise<Response> {
   return NextResponse.json({ id: result.id, plan }, { status: 200 })
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
     return await save(req, params.id)
   } catch (err) {
@@ -121,7 +127,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<Response> {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } },
+): Promise<Response> {
   try {
     return await save(req, params.id)
   } catch (err) {

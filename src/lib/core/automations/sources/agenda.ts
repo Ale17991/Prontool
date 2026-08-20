@@ -155,14 +155,7 @@ registerSource({
       hint: 'Em dias, sai no horário escolhido abaixo. Em horas ou minutos, sai contado a partir do horário da consulta — e aí o horário abaixo não se aplica.',
     },
   ],
-  variables: [
-    'data_consulta',
-    'data',
-    'hora',
-    'profissional',
-    'procedimento',
-    'antecedencia',
-  ],
+  variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento', 'antecedencia'],
 
   isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
 
@@ -222,10 +215,7 @@ registerSource({
         patientId: a.patient_id as string,
         occurrenceKey: a.id as string,
         variables: {
-          ...variaveisDoAtendimento(
-            { ...a, appointment_at: a.appointment_at as string },
-            ctx,
-          ),
+          ...variaveisDoAtendimento({ ...a, appointment_at: a.appointment_at as string }, ctx),
           antecedencia: duracaoTexto(antecedenciaMin),
         },
       }))
@@ -253,14 +243,7 @@ registerSource({
       hint: 'Em horas, dá para pedir avaliação no fim do mesmo dia do atendimento.',
     },
   ],
-  variables: [
-    'data_consulta',
-    'data',
-    'hora',
-    'profissional',
-    'procedimento',
-    'antecedencia',
-  ],
+  variables: ['data_consulta', 'data', 'hora', 'profissional', 'procedimento', 'antecedencia'],
 
   isAnchored: (p) => ehAncorada(lerAntecedencia(p)),
 
@@ -313,10 +296,7 @@ registerSource({
         patientId: a.patient_id as string,
         occurrenceKey: a.id as string,
         variables: {
-          ...variaveisDoAtendimento(
-            { ...a, appointment_at: a.appointment_at as string },
-            ctx,
-          ),
+          ...variaveisDoAtendimento({ ...a, appointment_at: a.appointment_at as string }, ctx),
           antecedencia: duracaoTexto(antecedenciaMin),
         },
       }))
@@ -367,10 +347,12 @@ registerSource({
 
     const linhas = await pageAll<{
       appointment_id: string
-      appointments: (ContextoAtendimento & {
-        patient_id: string
-        appointment_at: string
-      }) | null
+      appointments:
+        | (ContextoAtendimento & {
+            patient_id: string
+            appointment_at: string
+          })
+        | null
     }>(
       (from, to) =>
         ctx.supabase
@@ -422,10 +404,12 @@ registerSource({
 
     const linhas = await pageAll<{
       appointment_id: string
-      appointments: (ContextoAtendimento & {
-        patient_id: string
-        appointment_at: string
-      }) | null
+      appointments:
+        | (ContextoAtendimento & {
+            patient_id: string
+            appointment_at: string
+          })
+        | null
     }>(
       (from, to) =>
         ctx.supabase

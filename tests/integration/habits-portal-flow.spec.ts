@@ -115,7 +115,9 @@ describe('checklist no portal do paciente', () => {
     const { GET } = await import('@/app/api/paciente/habitos/route')
     const res = await GET(
       new Request('http://localhost/api/paciente/habitos', {
-        headers: { cookie: `${PATIENT_SESSION_COOKIE_NAME}=${createPatientSessionCookie({ patientId: p, tenantId: outro })}` },
+        headers: {
+          cookie: `${PATIENT_SESSION_COOKIE_NAME}=${createPatientSessionCookie({ patientId: p, tenantId: outro })}`,
+        },
       }) as never,
     )
     expect(res.status).toBe(200)

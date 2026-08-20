@@ -7,18 +7,18 @@ Migration: `supabase/migrations/0172_material_costs.sql`
 
 Catálogo de insumos/materiais por clínica, com custo unitário editável. **Não** é append-only (custo é config atualizável), mas toda mudança é auditada; a imutabilidade financeira vive no snapshot de uso.
 
-| Coluna | Tipo | Regras |
-|---|---|---|
-| `id` | UUID PK | `gen_random_uuid()` |
-| `tenant_id` | UUID NOT NULL | FK → `tenants(id)` ON DELETE RESTRICT |
-| `name` | TEXT NOT NULL | `length BETWEEN 1 AND 200` |
-| `unit_cost_cents` | INTEGER NOT NULL | `DEFAULT 0`, `CHECK (unit_cost_cents >= 0)` |
-| `tuss_code` | TEXT NULL | FK → `tuss_codes(code)`; se presente, DEVE ser tabela 19 vigente (trigger) |
-| `active` | BOOLEAN NOT NULL | `DEFAULT true` |
-| `created_by` | UUID NOT NULL | ator |
-| `created_at` | TIMESTAMPTZ NOT NULL | `DEFAULT now()` (UTC) |
-| `updated_by` | UUID NULL | ator da última edição |
-| `updated_at` | TIMESTAMPTZ NULL | atualizado em edição |
+| Coluna            | Tipo                 | Regras                                                                     |
+| ----------------- | -------------------- | -------------------------------------------------------------------------- |
+| `id`              | UUID PK              | `gen_random_uuid()`                                                        |
+| `tenant_id`       | UUID NOT NULL        | FK → `tenants(id)` ON DELETE RESTRICT                                      |
+| `name`            | TEXT NOT NULL        | `length BETWEEN 1 AND 200`                                                 |
+| `unit_cost_cents` | INTEGER NOT NULL     | `DEFAULT 0`, `CHECK (unit_cost_cents >= 0)`                                |
+| `tuss_code`       | TEXT NULL            | FK → `tuss_codes(code)`; se presente, DEVE ser tabela 19 vigente (trigger) |
+| `active`          | BOOLEAN NOT NULL     | `DEFAULT true`                                                             |
+| `created_by`      | UUID NOT NULL        | ator                                                                       |
+| `created_at`      | TIMESTAMPTZ NOT NULL | `DEFAULT now()` (UTC)                                                      |
+| `updated_by`      | UUID NULL            | ator da última edição                                                      |
+| `updated_at`      | TIMESTAMPTZ NULL     | atualizado em edição                                                       |
 
 - **Índices**: `(tenant_id, active)`; `(tenant_id, lower(name))` para busca; parcial `(tenant_id, tuss_code) WHERE tuss_code IS NOT NULL`.
 - **Unicidade**: `UNIQUE (tenant_id, lower(name)) WHERE active` — evita insumo ativo duplicado por nome na mesma clínica.
@@ -31,10 +31,10 @@ Catálogo de insumos/materiais por clínica, com custo unitário editável. **N�
 
 Acrescenta o custo congelado (snapshot). Comportamento append-only mantido, **exceto** UPDATE de coluna única para completar/corrigir custo pendente (ver trigger).
 
-| Coluna nova | Tipo | Regras |
-|---|---|---|
-| `unit_cost_cents` | INTEGER NOT NULL | `DEFAULT 0`, `CHECK (unit_cost_cents >= 0)` — snapshot no INSERT |
-| `material_id` | UUID NULL | FK → `tenant_materials(id)`; proveniência (NULL = ad-hoc/legado); trigger valida mesmo `tenant_id` |
+| Coluna nova       | Tipo             | Regras                                                                                             |
+| ----------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
+| `unit_cost_cents` | INTEGER NOT NULL | `DEFAULT 0`, `CHECK (unit_cost_cents >= 0)` — snapshot no INSERT                                   |
+| `material_id`     | UUID NULL        | FK → `tenant_materials(id)`; proveniência (NULL = ad-hoc/legado); trigger valida mesmo `tenant_id` |
 
 - **Custo total** (derivado, não persistido): `unit_cost_cents * quantity`.
 - **Pendência de custo** (derivada): `unit_cost_cents = 0`.

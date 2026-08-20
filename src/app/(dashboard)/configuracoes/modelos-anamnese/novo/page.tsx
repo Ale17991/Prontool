@@ -50,9 +50,12 @@ export default async function AnamneseBuilderPage({ searchParams }: PageProps) {
       .eq('tenant_id', session.tenantId)
       .eq('id', id)
       .maybeSingle()
-    const row = data as
-      | { id: string; title: string; description: string | null; fields: unknown }
-      | null
+    const row = data as {
+      id: string
+      title: string
+      description: string | null
+      fields: unknown
+    } | null
     if (row) {
       base = {
         // Na cópia o título MUDA de saída: há UNIQUE (tenant, título, versão),

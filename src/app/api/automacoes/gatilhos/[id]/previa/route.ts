@@ -27,7 +27,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     if (!(await hasAutomationsModule(session.tenantId))) return moduleDisabled()
 
     try {
-      const previa = await previewTrigger(createSupabaseServiceClient(), session.tenantId, params.id)
+      const previa = await previewTrigger(
+        createSupabaseServiceClient(),
+        session.tenantId,
+        params.id,
+      )
       return NextResponse.json(previa, { status: 200 })
     } catch (e) {
       if (e instanceof Error && e.message === 'GATILHO_NAO_ENCONTRADO') {

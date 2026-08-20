@@ -33,9 +33,13 @@ export async function prescribeDietPlan(
   }
   const hasCalcItem = view.meals.some((m) => m.items.some((i) => i.nutrients))
   if (!hasCalcItem) {
-    throw new DomainError('DIET_PLAN_EMPTY', 'O plano não tem nenhum item calculável para prescrever.', {
-      status: 422,
-    })
+    throw new DomainError(
+      'DIET_PLAN_EMPTY',
+      'O plano não tem nenhum item calculável para prescrever.',
+      {
+        status: 422,
+      },
+    )
   }
 
   // Snapshot congelado por item (motor já calculou em getDietPlanForPatient).
@@ -54,7 +58,11 @@ export async function prescribeDietPlan(
     }
   }
 
-  const totalMacros = { protG: view.totals.proteinG, carbG: view.totals.carbG, fatG: view.totals.fatG }
+  const totalMacros = {
+    protG: view.totals.proteinG,
+    carbG: view.totals.carbG,
+    fatG: view.totals.fatG,
+  }
 
   // Snapshot inteiro do cardápio — fonte da verdade do portal (SC-007).
   const snapshot = {

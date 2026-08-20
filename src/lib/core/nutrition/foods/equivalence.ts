@@ -32,20 +32,20 @@ export interface EquivalenceListDTO {
   nutrients: Nutrients
 }
 
-export async function listFoodGroups(
-  supabase: SupabaseClient<Database>,
-): Promise<FoodGroupDTO[]> {
+export async function listFoodGroups(supabase: SupabaseClient<Database>): Promise<FoodGroupDTO[]> {
   const { data, error } = await supabase
     .from('food_groups')
     .select('slug, label, display_order')
     .eq('active', true)
     .order('display_order', { ascending: true })
   if (error) throw new Error(`listFoodGroups failed: ${error.message}`)
-  return ((data ?? []) as Array<{ slug: string; label: string; display_order: number }>).map((g) => ({
-    slug: g.slug,
-    label: g.label,
-    displayOrder: g.display_order,
-  }))
+  return ((data ?? []) as Array<{ slug: string; label: string; display_order: number }>).map(
+    (g) => ({
+      slug: g.slug,
+      label: g.label,
+      displayOrder: g.display_order,
+    }),
+  )
 }
 
 /** Listas visíveis à clínica: globais (tenant_id NULL) + as próprias. */
@@ -145,10 +145,7 @@ export interface SaveEquivalenceListInput {
   items: EquivalenceItemInput[]
 }
 
-async function groupIdBySlug(
-  supabase: SupabaseClient<Database>,
-  slug: string,
-): Promise<string> {
+async function groupIdBySlug(supabase: SupabaseClient<Database>, slug: string): Promise<string> {
   const { data } = await supabase.from('food_groups').select('id').eq('slug', slug).maybeSingle()
   const id = (data as { id: string } | null)?.id
   if (!id) throw new DomainError('INVALID_GROUP', 'Grupo alimentar inválido.', { status: 422 })
@@ -162,14 +159,14 @@ async function assertFoodsVisible(
   foodIds: string[],
 ): Promise<void> {
   if (foodIds.length === 0) return
-  const { data } = await supabase
-    .from('foods')
-    .select('id, tenant_id')
-    .in('id', foodIds)
+  const { data } = await supabase.from('foods').select('id, tenant_id').in('id', foodIds)
   const rows = (data ?? []) as Array<{ id: string; tenant_id: string | null }>
-  const ok = new Set(rows.filter((r) => r.tenant_id === null || r.tenant_id === tenantId).map((r) => r.id))
+  const ok = new Set(
+    rows.filter((r) => r.tenant_id === null || r.tenant_id === tenantId).map((r) => r.id),
+  )
   for (const id of foodIds) {
-    if (!ok.has(id)) throw new DomainError('FOOD_NOT_VISIBLE', 'Alimento indisponível.', { status: 422 })
+    if (!ok.has(id))
+      throw new DomainError('FOOD_NOT_VISIBLE', 'Alimento indisponível.', { status: 422 })
   }
 }
 
@@ -179,10 +176,16 @@ export async function createEquivalenceList(
 ): Promise<{ id: string }> {
   const name = input.name.trim()
   if (name.length < 1 || name.length > 120) {
-    throw new DomainError('INVALID_LIST', 'Nome da lista inválido (1 a 120 caracteres).', { status: 422 })
+    throw new DomainError('INVALID_LIST', 'Nome da lista inválido (1 a 120 caracteres).', {
+      status: 422,
+    })
   }
   const groupId = await groupIdBySlug(supabase, input.groupSlug)
-  await assertFoodsVisible(supabase, input.tenantId, input.items.map((i) => i.foodId))
+  await assertFoodsVisible(
+    supabase,
+    input.tenantId,
+    input.items.map((i) => i.foodId),
+  )
 
   const { data, error } = await supabase
     .from('food_equivalence_lists')
@@ -228,20 +231,37 @@ export async function updateEquivalenceList(
     throw new DomainError('LIST_NOT_EDITABLE', 'Lista não editável.', { status: 403 })
   }
   const groupId = await groupIdBySlug(supabase, input.groupSlug)
-  await assertFoodsVisible(supabase, input.tenantId, input.items.map((i) => i.foodId))
+  await assertFoodsVisible(
+    supabase,
+    input.tenantId,
+    input.items.map((i) => i.foodId),
+  )
 
   const upd = await supabase
     .from('food_equivalence_lists')
-    .update({ name: input.name.trim(), reference_kcal: input.referenceKcal ?? null, group_id: groupId } as never)
+    .update({
+      name: input.name.trim(),
+      reference_kcal: input.referenceKcal ?? null,
+      group_id: groupId,
+    } as never)
     .eq('id', input.listId)
     .eq('tenant_id', input.tenantId)
   if (upd.error) throw new Error(`updateEquivalenceList: ${upd.error.message}`)
 
-  await supabase.from('food_equivalence_items').delete().eq('list_id', input.listId).eq('tenant_id', input.tenantId)
+  await supabase
+    .from('food_equivalence_items')
+    .delete()
+    .eq('list_id', input.listId)
+    .eq('tenant_id', input.tenantId)
   const items = input.items.filter((i) => i.grams > 0)
   if (items.length > 0) {
     const { error } = await supabase.from('food_equivalence_items').insert(
-      items.map((i) => ({ list_id: input.listId, tenant_id: input.tenantId, food_id: i.foodId, grams: i.grams })) as never,
+      items.map((i) => ({
+        list_id: input.listId,
+        tenant_id: input.tenantId,
+        food_id: i.foodId,
+        grams: i.grams,
+      })) as never,
     )
     if (error) throw new Error(`updateEquivalenceList items: ${error.message}`)
   }
@@ -259,6 +279,8 @@ export async function deleteEquivalenceList(
     .select('id')
   if (error) throw new Error(`deleteEquivalenceList: ${error.message}`)
   if (!data || (data as unknown[]).length === 0) {
-    throw new DomainError('LIST_NOT_EDITABLE', 'Lista não encontrada ou não editável.', { status: 404 })
+    throw new DomainError('LIST_NOT_EDITABLE', 'Lista não encontrada ou não editável.', {
+      status: 404,
+    })
   }
 }

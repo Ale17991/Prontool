@@ -5,7 +5,7 @@
 **Status**: Draft
 **Input**: Registro de resultados de exames laboratoriais com faixas de referência por sexo/idade, flag automático (baixo/normal/alto), evolução no tempo e leitura no portal. **Cross-especialidade** (útil a qualquer clínica), gated pelo módulo `exames_lab`. Item de prioridade média do gap analysis das planilhas de nutrição (`nutri-doc/`).
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Registrar resultado com flag automático (Priority: P1)
 
@@ -64,32 +64,37 @@ O paciente vê seus resultados de exames recentes no portal, com a classificaç�
 - **Valor implausível** (erro de digitação): sinalizar, não bloquear (mesmo espírito dos avisos da nutrição).
 - **Isolamento multi-tenant**: resultados de uma clínica não aparecem em outra; o catálogo de exames e faixas é global (compartilhado).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
 **Catálogo de exames + faixas (base — US1)**
+
 - **FR-001**: O sistema MUST manter um catálogo de exames laboratoriais (nome, unidade), incluindo os comuns: glicose (jejum), HbA1c, colesterol total/HDL/LDL, triglicerídeos, TSH, T4 livre, insulina, vitamina D (25-OH), vitamina B12, ferritina, ferro sérico, hemoglobina, hematócrito, ácido úrico, creatinina, TGO, TGP, PCR.
 - **FR-002**: Cada exame MUST ter faixa(s) de referência (mínimo e/ou máximo) por sexo e faixa etária (e estado quando aplicável, ex.: gestante). O catálogo é **global** (compartilhado por todas as clínicas), não editável pela clínica.
 - **FR-003**: O catálogo e as faixas MUST ser semeados de uma lista padrão, usando as abas `BD EXAMES` (AF) e `BD_Exames` (Evonut) em `nutri-doc/` como gabarito.
 
 **Registro + flag (US1)**
+
 - **FR-004**: Usuários (admin/profissional_saude) MUST poder registrar resultados de exame por paciente (exame + valor + data), com histórico.
 - **FR-005**: O sistema MUST classificar cada resultado em **baixo / normal / alto** comparando com a faixa de referência da faixa (sexo/idade/estado) do paciente, destacando os alterados.
 - **FR-006**: A idade MUST ser derivada da data de nascimento quando disponível; sexo, do cadastro; ambos ajustáveis na tela sem bloquear.
 - **FR-007**: Resultados de exames sem faixa aplicável MUST ser registrados e exibidos com o valor, marcados "sem referência" (sem flag).
 
 **Evolução (US2)**
+
 - **FR-008**: O sistema MUST exibir a evolução de um exame no tempo (gráfico), com a faixa normal como referência visual quando aplicável.
 
 **Portal (US3)**
+
 - **FR-009**: O portal do paciente MUST exibir os resultados recentes de exames com valor, data e a classificação (normal/alterado).
 
 **Transversais**
+
 - **FR-010**: O acesso à tela de exames MUST ser controlado pelo módulo `exames_lab` (item de menu e rota negados quando desligado) e pelos papéis admin/profissional_saude.
 - **FR-011**: Resultados MUST ser isolados por clínica (multi-tenant); o catálogo de exames e faixas é global.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Exame (catálogo)**: nome, unidade, e faixas de referência por sexo/idade/estado. Global.
 - **Faixa de referência**: min/max de um exame para um recorte (sexo, faixa etária, estado). Global.
@@ -97,7 +102,7 @@ O paciente vê seus resultados de exames recentes no portal, com a classificaç�
 - **Flag/Classificação**: leitura derivada (baixo/normal/alto) do resultado × faixa aplicável do paciente.
 - **Paciente**: fonte de sexo e idade (data de nascimento) para escolher a faixa (reuso do cadastro).
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

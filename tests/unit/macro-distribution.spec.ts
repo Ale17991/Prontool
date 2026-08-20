@@ -32,8 +32,7 @@ describe('distribuição entre refeições', () => {
 
   it('a soma das refeições fecha exatamente com o total', () => {
     const r = distributeMacros({ targetKcal: VET, macros: MACROS, meals: meals(splitEvenly(6)) })
-    const soma = (k: 'kcal' | 'protG' | 'carbG' | 'lipG') =>
-      r.meals.reduce((s, m) => s + m[k], 0)
+    const soma = (k: 'kcal' | 'protG' | 'carbG' | 'lipG') => r.meals.reduce((s, m) => s + m[k], 0)
     expect(soma('kcal')).toBeCloseTo(VET, 6)
     expect(soma('protG')).toBeCloseTo(MACROS.protG, 6)
     expect(soma('carbG')).toBeCloseTo(MACROS.carbG, 6)
@@ -59,7 +58,10 @@ describe('distribuição entre refeições', () => {
     const r = distributeMacros({
       targetKcal: VET,
       macros: MACROS,
-      meals: [{ key: 'a', name: 'A', pct: Number.NaN }, { key: 'b', name: 'B', pct: 100 }],
+      meals: [
+        { key: 'a', name: 'A', pct: Number.NaN },
+        { key: 'b', name: 'B', pct: 100 },
+      ],
     })
     expect(r.pctSum).toBe(100)
     expect(r.meals[0]!.kcal).toBe(0)
@@ -188,6 +190,8 @@ describe('diferença entre o plano e a meta da refeição', () => {
       meals: meals([100]),
     }).meals
     // Um "excesso" aqui seria só a ausência de alvo, não erro do plano.
-    expect(mealDeltas(alvos, [{ key: 'outra', kcal: 500, protG: 1, carbG: 1, lipG: 1 }])).toEqual([])
+    expect(mealDeltas(alvos, [{ key: 'outra', kcal: 500, protG: 1, carbG: 1, lipG: 1 }])).toEqual(
+      [],
+    )
   })
 })

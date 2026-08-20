@@ -106,13 +106,13 @@ Sem túnel, o envio funciona normalmente — só a evolução para "entregue"/"l
 
 ## 7. Casos que valem testar à mão
 
-| Cenário | Como forçar | Esperado |
-|---|---|---|
-| Paciente sem telefone | limpe o telefone do cadastro | lembrete fica `skipped_no_phone`, nada é enviado |
-| Paciente recusou WhatsApp | desmarque o opt-in de WhatsApp | `skipped_opt_out_channel`; e-mail continua saindo se o canal estiver ligado |
-| Número desconectado | desconecte o celular (WhatsApp → Aparelhos conectados → sair) | **uma** ocorrência `skipped_no_connection`, não uma por paciente |
-| Envio duplicado | rode o `curl` do ciclo duas vezes seguidas | a segunda não gera mensagem nova |
-| Confirmação forjada | `POST` no callback sem o Bearer | `401`, nada gravado |
+| Cenário                   | Como forçar                                                   | Esperado                                                                    |
+| ------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Paciente sem telefone     | limpe o telefone do cadastro                                  | lembrete fica `skipped_no_phone`, nada é enviado                            |
+| Paciente recusou WhatsApp | desmarque o opt-in de WhatsApp                                | `skipped_opt_out_channel`; e-mail continua saindo se o canal estiver ligado |
+| Número desconectado       | desconecte o celular (WhatsApp → Aparelhos conectados → sair) | **uma** ocorrência `skipped_no_connection`, não uma por paciente            |
+| Envio duplicado           | rode o `curl` do ciclo duas vezes seguidas                    | a segunda não gera mensagem nova                                            |
+| Confirmação forjada       | `POST` no callback sem o Bearer                               | `401`, nada gravado                                                         |
 
 ---
 

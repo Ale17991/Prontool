@@ -3,6 +3,7 @@
 Sistema de gestão para clínicas e consultórios. Última atualização: 2026-04-27
 
 ## Active Technologies
+
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (PDF), `exceljs` (Excel) — **sem novas deps** (045-custo-materiais-financeiro)
 - PostgreSQL via Supabase (local: `supabase start` :54321) com RLS por `tenant_id`. **Migration nova**: `0172_material_costs.sql` (045-custo-materiais-financeiro)
 - TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5, `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `recharts` (gráficos de evolução já em uso). **Sem novas deps** — o motor de cálculo é TS puro (sem libs de estatística/nutrição). (047-plano-alimentar)
@@ -128,10 +129,10 @@ pnpm supabase:gen-types
 TypeScript 5.4+ sobre Node.js 20 LTS (runtime Vercel).: Follow standard conventions
 
 ## Recent Changes
+
 - 057-portal-paciente-home: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, **middleware**), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a navegação é roteamento do próprio Next, e a renovação de sessão usa `node:crypto`, já em uso pela 030.
 - 056-automacoes-mensagem: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Server Actions, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`. **Sem novas dependências** — a avaliação é consulta SQL mais aritmética de datas, e o envio já existe.
 - 052-rotulo-nutricional: Added TypeScript 5.4 sobre Node.js 20 LTS (runtime Vercel) + Next.js 14.2 (App Router, RSC, Route Handlers), `@supabase/ssr` 0.5 / `@supabase/supabase-js` 2.45, Zod 3.23, Tailwind 3.4, shadcn/ui (Radix), `lucide-react`, `@react-pdf/renderer` (já em uso — receituário e relatórios). **Sem novas dependências** — o cálculo é regra de três mais comparação com limite.
-
 
 <!-- MANUAL ADDITIONS START -->
 
@@ -430,7 +431,7 @@ e `0198_automation_name_and_schedule.sql`. Módulo `automacoes`.
   nova = um arquivo, sem migration: `automation_triggers.source` não tem CHECK
   enumerando valores de propósito.
 - **"Uma vez só" é propriedade do BANCO**: `UNIQUE (automation_id, patient_id,
-  occurrence_key)`. Cada fonte decide o que é sua ocorrência — data para
+occurrence_key)`. Cada fonte decide o que é sua ocorrência — data para
   aniversário, id do atendimento para confirmação, **mês corrente** para as de
   estado contínuo (`sem_retorno`, `sem_medicao`, `etapa_sem_agendamento`), que
   senão viram cobrança diária. `boas_vindas` usa chave FIXA: é uma vez na vida, e
@@ -544,7 +545,7 @@ compartilhado por `seed-tuss.ts` e `check-tuss-collision.ts`.
   5.967 do oficial; 1.114 medicamentos contra 44.574. Código publicado depois do
   último commit dele simplesmente não existia no produto — `30310172` e
   `20101406` (oftalmologia) foram os que apareceram no uso real. A falha não
-  aparecia em teste nenhum: o typeahead devolvia resultado, só nunca *aquele*.
+  aparecia em teste nenhum: o typeahead devolvia resultado, só nunca _aquele_.
 - **A versão é fixada em `ANS_VERSION_DEFAULT`, nunca descoberta.** Atualizar é
   um PR de uma linha, revisável; auto-descobrir "a mais nova" faria o mesmo seed
   produzir catálogos diferentes em dias diferentes.

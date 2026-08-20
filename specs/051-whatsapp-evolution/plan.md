@@ -35,24 +35,26 @@ preciso biblioteca de geração de QR.
 **Project Type**: Web app multi-tenant.
 **Performance Goals**: lote de até 200 lembretes por ciclo diário, espaçados em ~4s por clínica.
 **Constraints**:
+
 - Cron **diário** e só diário — mais frequente trava todos os deploys no plano Hobby.
 - `appointment_reminders` é append-only com trigger que só permite `queued → terminal`.
 - Telefone de paciente é dado sensível: cifrado em repouso, nunca em log.
-**Scale/Scope**: dezenas de clínicas, um número de WhatsApp cada.
+  **Scale/Scope**: dezenas de clínicas, um número de WhatsApp cada.
 
 ## Constitution Check
 
-*GATE: avaliado antes da Phase 0 e reavaliado após a Phase 1.*
+_GATE: avaliado antes da Phase 0 e reavaliado após a Phase 1._
 
-| Princípio | Aplica? | Como o desenho atende |
-|---|---|---|
-| **I. Integridade Financeira Imutável** | Indireto | Nada financeiro é tocado. Mas a postura append-only é respeitada onde importa: `whatsapp_delivery_events` é append-only e **não** relaxa o trigger anti-mutação de `appointment_reminders` (D4). |
-| **II. Auditabilidade Total** | Sim | Conexão, desconexão e ativação do canal geram `log_audit_event`. O trigger de auditoria de `appointment_reminders` já cobre INSERT e transição de status. Alteração de opt-out do paciente é auditada pelo trigger existente em `patients`. |
-| **III. Isolamento Multi-Tenant** | Sim | Toda tabela nova carrega `tenant_id` + RLS. O cron usa service-role mas filtra `tenant_id` explicitamente em cada query (padrão já vigente em `select-due.ts`). No callback, o `tenant_id` é derivado do lembrete, **nunca** do corpo da requisição. A `api_key` de uma clínica não alcança instância de outra. |
-| **IV. Conformidade TUSS/ANS** | Não | Feature não toca catálogo nem faturamento. |
-| **V. RBAC** | Sim | Conectar/desconectar o número e ativar o canal exigem `admin` (FR-024), avaliado no servidor. A rota de callback é legitimamente pública e autenticada por segredo compartilhado — o prefixo `webhooks/` já é isento em `check-require-role.mjs:34`. |
+| Princípio                              | Aplica?  | Como o desenho atende                                                                                                                                                                                                                                                                                           |
+| -------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **I. Integridade Financeira Imutável** | Indireto | Nada financeiro é tocado. Mas a postura append-only é respeitada onde importa: `whatsapp_delivery_events` é append-only e **não** relaxa o trigger anti-mutação de `appointment_reminders` (D4).                                                                                                                |
+| **II. Auditabilidade Total**           | Sim      | Conexão, desconexão e ativação do canal geram `log_audit_event`. O trigger de auditoria de `appointment_reminders` já cobre INSERT e transição de status. Alteração de opt-out do paciente é auditada pelo trigger existente em `patients`.                                                                     |
+| **III. Isolamento Multi-Tenant**       | Sim      | Toda tabela nova carrega `tenant_id` + RLS. O cron usa service-role mas filtra `tenant_id` explicitamente em cada query (padrão já vigente em `select-due.ts`). No callback, o `tenant_id` é derivado do lembrete, **nunca** do corpo da requisição. A `api_key` de uma clínica não alcança instância de outra. |
+| **IV. Conformidade TUSS/ANS**          | Não      | Feature não toca catálogo nem faturamento.                                                                                                                                                                                                                                                                      |
+| **V. RBAC**                            | Sim      | Conectar/desconectar o número e ativar o canal exigem `admin` (FR-024), avaliado no servidor. A rota de callback é legitimamente pública e autenticada por segredo compartilhado — o prefixo `webhooks/` já é isento em `check-require-role.mjs:34`.                                                            |
 
 **Restrições de domínio**:
+
 - LGPD: telefone decifrado só existe em memória entre a RPC e a chamada de envio; nunca
   persistido em claro fora do cadastro cifrado, nunca logado (SC-007).
 - Credenciais em cofre, não em env: `api_key` da clínica vai cifrada em
@@ -64,7 +66,7 @@ preciso biblioteca de geração de QR.
 
 **Reavaliação (pós-Phase 1)**: passa. O desenho final não introduziu tabela sem `tenant_id`,
 não relaxou trigger existente, não colocou segredo em env de tenant e não criou rota em `/api/*`
-sem autenticação. A seção *Complexity Tracking* fica vazia e por isso foi removida.
+sem autenticação. A seção _Complexity Tracking_ fica vazia e por isso foi removida.
 
 ## Project Structure
 

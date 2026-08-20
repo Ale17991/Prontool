@@ -52,7 +52,10 @@ describe('catálogo de exames laboratoriais', () => {
 
   it('toda unidade é canônica e cabe no CHECK de 16 chars', () => {
     for (const a of LAB_ANALYTES) {
-      expect(() => normalizeUnit(a.unit), `unidade não canônica em ${a.key}: ${a.unit}`).not.toThrow()
+      expect(
+        () => normalizeUnit(a.unit),
+        `unidade não canônica em ${a.key}: ${a.unit}`,
+      ).not.toThrow()
       expect(normalizeUnit(a.unit)).toBe(a.unit)
       expect(a.unit.length).toBeLessThanOrEqual(16)
     }

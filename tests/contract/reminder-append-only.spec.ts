@@ -92,7 +92,10 @@ describe('Feature 051 — appointment_reminders continua append-only', () => {
 
   it('NÃO permite transição a partir de estado terminal', async () => {
     const id = await novoLembrete()
-    await sb.from('appointment_reminders' as never).update({ status: 'sent' } as never).eq('id', id)
+    await sb
+      .from('appointment_reminders' as never)
+      .update({ status: 'sent' } as never)
+      .eq('id', id)
 
     const { error } = await sb
       .from('appointment_reminders' as never)
@@ -103,7 +106,10 @@ describe('Feature 051 — appointment_reminders continua append-only', () => {
 
   it('NÃO permite DELETE', async () => {
     const id = await novoLembrete()
-    const { error } = await sb.from('appointment_reminders' as never).delete().eq('id', id)
+    const { error } = await sb
+      .from('appointment_reminders' as never)
+      .delete()
+      .eq('id', id)
     expect(error).not.toBeNull()
   })
 
@@ -115,13 +121,19 @@ describe('Feature 051 — appointment_reminders continua append-only', () => {
       status: 'queued',
       is_manual: false,
     }
-    const a = await sb.from('appointment_reminders' as never).insert({ ...base, channel: 'email' } as never)
-    const b = await sb.from('appointment_reminders' as never).insert({ ...base, channel: 'whatsapp' } as never)
+    const a = await sb
+      .from('appointment_reminders' as never)
+      .insert({ ...base, channel: 'email' } as never)
+    const b = await sb
+      .from('appointment_reminders' as never)
+      .insert({ ...base, channel: 'whatsapp' } as never)
     expect(a.error).toBeNull()
     expect(b.error).toBeNull()
 
     // Mas o MESMO canal repetido colide — é a idempotência do cron (SC-003).
-    const c = await sb.from('appointment_reminders' as never).insert({ ...base, channel: 'whatsapp' } as never)
+    const c = await sb
+      .from('appointment_reminders' as never)
+      .insert({ ...base, channel: 'whatsapp' } as never)
     expect(c.error).not.toBeNull()
   })
 })

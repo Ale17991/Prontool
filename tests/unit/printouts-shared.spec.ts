@@ -134,10 +134,6 @@ describe('colunas de evolução', () => {
       toColumn(assessment('2026-02-10')),
       toColumn(assessment('2026-05-12')),
     ])
-    expect(escolhidas.map((c) => c.assessedAt)).toEqual([
-      '2026-02-10',
-      '2026-05-12',
-      '2026-08-01',
-    ])
+    expect(escolhidas.map((c) => c.assessedAt)).toEqual(['2026-02-10', '2026-05-12', '2026-08-01'])
   })
 })

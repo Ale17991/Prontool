@@ -99,7 +99,11 @@ export async function buildMonthlyReport(
   // Feature 045 — gasto com materiais atribuído por convênio e por profissional
   // (mesma janela; estornados já excluídos pelo agregador).
   const [materialsByPlan, materialsByDoctor] = await Promise.all([
-    materialsCostByPlan(supabase, { tenantId: input.tenantId, fromIso: fromTs, toIso: toExclusiveTs }),
+    materialsCostByPlan(supabase, {
+      tenantId: input.tenantId,
+      fromIso: fromTs,
+      toIso: toExclusiveTs,
+    }),
     materialsCostByDoctor(supabase, {
       tenantId: input.tenantId,
       fromIso: fromTs,

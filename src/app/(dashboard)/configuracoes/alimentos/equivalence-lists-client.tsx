@@ -43,7 +43,8 @@ export function EquivalenceListsClient({ groups }: { groups: GroupOption[] }) {
   async function refresh() {
     setLoading(true)
     const res = await fetch('/api/alimentos/grupos')
-    if (res.ok) setLists(((await res.json()) as { equivalenceLists: EquivalenceListDTO[] }).equivalenceLists)
+    if (res.ok)
+      setLists(((await res.json()) as { equivalenceLists: EquivalenceListDTO[] }).equivalenceLists)
     setLoading(false)
   }
   useEffect(() => {
@@ -101,7 +102,7 @@ export function EquivalenceListsClient({ groups }: { groups: GroupOption[] }) {
                   <span className="text-sm font-semibold text-slate-700">
                     {l.name}
                     <span className="ml-1.5 text-[10px] font-normal text-slate-400">
-                      {l.groupSlug ? groupLabel.get(l.groupSlug) ?? l.groupSlug : ''}
+                      {l.groupSlug ? (groupLabel.get(l.groupSlug) ?? l.groupSlug) : ''}
                       {l.referenceKcal ? ` · ≈${l.referenceKcal} kcal` : ''}
                       {l.isCustom ? '' : ' · padrão'}
                     </span>
@@ -141,7 +142,9 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
     setRefKcal(v)
     const t = Number(v.replace(',', '.')) || 0
     if (t > 0) {
-      setItems((list) => list.map((i) => ({ ...i, grams: gramsForKcal(t, i.referenceGrams, i.energyKcal) })))
+      setItems((list) =>
+        list.map((i) => ({ ...i, grams: gramsForKcal(t, i.referenceGrams, i.energyKcal) })),
+      )
     }
   }
 
@@ -177,7 +180,12 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <div className="col-span-2">
           <Label htmlFor="el_name">Nome</Label>
-          <Input id="el_name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Carboidratos — 1 porção" />
+          <Input
+            id="el_name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Carboidratos — 1 porção"
+          />
         </div>
         <div>
           <Label htmlFor="el_group">Grupo</Label>
@@ -220,12 +228,18 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
               value={String(it.grams)}
               onChange={(e) =>
                 setItems((v) =>
-                  v.map((x) => (x.key === it.key ? { ...x, grams: Number(e.target.value.replace(',', '.')) || 0 } : x)),
+                  v.map((x) =>
+                    x.key === it.key
+                      ? { ...x, grams: Number(e.target.value.replace(',', '.')) || 0 }
+                      : x,
+                  ),
                 )
               }
             />
             <span className="text-xs text-slate-400">g</span>
-            <span className="w-16 text-right text-xs tabular-nums text-slate-500">{itemKcal(it)} kcal</span>
+            <span className="w-16 text-right text-xs tabular-nums text-slate-500">
+              {itemKcal(it)} kcal
+            </span>
             <button
               type="button"
               onClick={() => setItems((v) => v.filter((x) => x.key !== it.key))}
@@ -260,7 +274,12 @@ function NewListForm({ groups, onCreated }: { groups: GroupOption[]; onCreated: 
       {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={pending} className="gap-1.5">
-          {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} Criar lista
+          {pending ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}{' '}
+          Criar lista
         </Button>
       </div>
     </div>

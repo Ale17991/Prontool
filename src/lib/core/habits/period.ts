@@ -149,9 +149,7 @@ export function itemStats(args: {
   const elapsed = days.filter((d) => toDayNumber(d) <= todayN)
 
   return items.map((item) => {
-    const marked = new Set(
-      marks.filter((m) => m.itemId === item.id).map((m) => m.markDate),
-    )
+    const marked = new Set(marks.filter((m) => m.itemId === item.id).map((m) => m.markDate))
     let longest = 0
     let run = 0
     for (const d of days) {

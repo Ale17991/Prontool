@@ -8,26 +8,26 @@ Decisões técnicas antes do design. As decisões de produto já fechadas com o 
 
 ### VDR — IN 75/2020, Anexo II
 
-| Nutriente | VDR |
-|---|---|
-| Valor energético | 2.000 kcal |
-| Carboidratos | 300 g |
-| Açúcares totais | **sem VDR** — declara sem %VD |
-| Açúcares adicionados | 50 g |
-| Proteínas | 50 g |
-| Gorduras totais | 65 g |
-| Gorduras saturadas | 20 g |
-| Gorduras trans | 2 g |
-| Fibra alimentar | 25 g |
-| Sódio | 2.000 mg |
+| Nutriente            | VDR                           |
+| -------------------- | ----------------------------- |
+| Valor energético     | 2.000 kcal                    |
+| Carboidratos         | 300 g                         |
+| Açúcares totais      | **sem VDR** — declara sem %VD |
+| Açúcares adicionados | 50 g                          |
+| Proteínas            | 50 g                          |
+| Gorduras totais      | 65 g                          |
+| Gorduras saturadas   | 20 g                          |
+| Gorduras trans       | 2 g                           |
+| Fibra alimentar      | 25 g                          |
+| Sódio                | 2.000 mg                      |
 
 ### Limites da rotulagem frontal — RDC 429/2020
 
-| Nutriente | Sólidos (por 100 g) | Líquidos (por 100 mL) |
-|---|---|---|
-| Açúcares adicionados | ≥ 15 g | ≥ 7,5 g |
-| Gorduras saturadas | ≥ 6 g | ≥ 3 g |
-| Sódio | ≥ 600 mg | ≥ 300 mg |
+| Nutriente            | Sólidos (por 100 g) | Líquidos (por 100 mL) |
+| -------------------- | ------------------- | --------------------- |
+| Açúcares adicionados | ≥ 15 g              | ≥ 7,5 g               |
+| Gorduras saturadas   | ≥ 6 g               | ≥ 3 g                 |
+| Sódio                | ≥ 600 mg            | ≥ 300 mg              |
 
 ### Arredondamento — IN 75/2020, Anexo III
 
@@ -56,16 +56,16 @@ Conferidos, um a um, os 10 VDR do Anexo II, os limites do Anexo IV e os 6 limite
 
 A aba "Rótulos Nutricionais" do `AF..xlsm` usa referências que **não são as da IN 75/2020** — várias coincidem com a revogada RDC 360/2003:
 
-| Nutriente | Planilha | IN 75/2020 | RDC 360/2003 (revogada) |
-|---|---|---|---|
-| Energia | 1956,25 | 2.000 | 2.000 |
-| Proteínas | 75,37 | **50** | 75 |
-| Gorduras totais | 52,22 | **65** | 55 |
-| Gorduras saturadas | 23,33 | **20** | 22 |
-| Sódio | 2633,33 | **2.000** | 2.400 |
-| Açúcares adicionados | **300** | **50** | não existia |
-| Carboidratos | 300 | 300 | 300 |
-| Fibra | 25 | 25 | 25 |
+| Nutriente            | Planilha | IN 75/2020 | RDC 360/2003 (revogada) |
+| -------------------- | -------- | ---------- | ----------------------- |
+| Energia              | 1956,25  | 2.000      | 2.000                   |
+| Proteínas            | 75,37    | **50**     | 75                      |
+| Gorduras totais      | 52,22    | **65**     | 55                      |
+| Gorduras saturadas   | 23,33    | **20**     | 22                      |
+| Sódio                | 2633,33  | **2.000**  | 2.400                   |
+| Açúcares adicionados | **300**  | **50**     | não existia             |
+| Carboidratos         | 300      | 300        | 300                     |
+| Fibra                | 25       | 25         | 25                      |
 
 O caso grave é o açúcar adicionado: referência de 300 g em vez de 50 g faz um produto doce declarar **1/6** do %VD real. A planilha também **não tem** rotulagem frontal, que é obrigatória desde a RDC 429/2020.
 
@@ -85,7 +85,7 @@ O caso grave é o açúcar adicionado: referência de 300 g em vez de 50 g faz u
 
 **Decisão**: `labeling/compose.ts` — puro, sem I/O. Recebe os ingredientes (alimento + gramas), o rendimento total e a porção; devolve, por nutriente, o valor por 100 g/mL, por porção, o %VD e um **estado de completude** (`completo` | `incompleto` | `sobrescrito`), mais a lista de ingredientes que faltaram naquele nutriente.
 
-**Rationale**: o motor de soma da 047/049 (`diet/totals.ts`) já escala por regra de três e já trata micro ausente como chave ausente (não zero). O que ele **não** faz é dizer *quais* itens faltaram — e isso é requisito central aqui (FR-011). Envolver o motor existente em vez de reescrevê-lo mantém a garantia de que plano e rótulo somam igual.
+**Rationale**: o motor de soma da 047/049 (`diet/totals.ts`) já escala por regra de três e já trata micro ausente como chave ausente (não zero). O que ele **não** faz é dizer _quais_ itens faltaram — e isso é requisito central aqui (FR-011). Envolver o motor existente em vez de reescrevê-lo mantém a garantia de que plano e rótulo somam igual.
 
 **Os quatro nutrientes de rótulo já existem na base** como micronutrientes importados na 049: `ag_saturados_g`, `ag_trans_g`, `acucar_total_g`, `acucar_adicao_g`. **Sem migration de schema para nutriente.**
 
@@ -93,14 +93,14 @@ O caso grave é o açúcar adicionado: referência de 300 g em vez de 50 g faz u
 
 **Decisão**: cada nutriente do rótulo está em exatamente um destes estados, e a tela nunca os confunde:
 
-| Estado | Significa | Como aparece |
-|---|---|---|
-| **Calculado** | todos os ingredientes tinham o dado | valor normal |
-| **Incompleto** | ao menos um ingrediente não tinha o dado | marcado, com a lista de quais faltam; **nunca** exibido como 0 |
-| **Sobrescrito** | a nutricionista informou o valor | valor com marca de origem manual, desfazível |
-| **Zero declarado** | calculado e abaixo do limite do Anexo IV | exibido como `0`, que é a declaração correta |
+| Estado             | Significa                                | Como aparece                                                   |
+| ------------------ | ---------------------------------------- | -------------------------------------------------------------- |
+| **Calculado**      | todos os ingredientes tinham o dado      | valor normal                                                   |
+| **Incompleto**     | ao menos um ingrediente não tinha o dado | marcado, com a lista de quais faltam; **nunca** exibido como 0 |
+| **Sobrescrito**    | a nutricionista informou o valor         | valor com marca de origem manual, desfazível                   |
+| **Zero declarado** | calculado e abaixo do limite do Anexo IV | exibido como `0`, que é a declaração correta                   |
 
-**Rationale**: é a diferença entre "não sei" e "é zero". Num rótulo comercial, imprimir 0 para um dado desconhecido é declaração falsa. Com 7% de cobertura de açúcares adicionados na base, o estado *incompleto* é o caso comum, não a exceção.
+**Rationale**: é a diferença entre "não sei" e "é zero". Num rótulo comercial, imprimir 0 para um dado desconhecido é declaração falsa. Com 7% de cobertura de açúcares adicionados na base, o estado _incompleto_ é o caso comum, não a exceção.
 
 ## D5 — Lupa inconclusiva
 

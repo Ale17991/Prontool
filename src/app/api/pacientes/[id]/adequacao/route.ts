@@ -44,7 +44,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
     // Módulo exigido conforme a fonte.
     const requiredModule = source === 'recordatorio' ? 'nutri_recordatorio' : 'dieta'
     if (!ent.hasModule(requiredModule)) {
-      return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+      return NextResponse.json(
+        { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+        { status: 404 },
+      )
     }
 
     // Totais: plano ativo ou recordatório (ref_id, ou o mais recente).
@@ -55,13 +58,19 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
         ? await getRecall(supabase, session.tenantId, refId)
         : (await listRecalls(supabase, session.tenantId, params.id)).latest
       if (!recall) {
-        return NextResponse.json({ error: { code: 'NO_RECALL', message: 'Sem recordatório para analisar.' } }, { status: 404 })
+        return NextResponse.json(
+          { error: { code: 'NO_RECALL', message: 'Sem recordatório para analisar.' } },
+          { status: 404 },
+        )
       }
       totals = recall.totals
     } else {
       const plan = await getDietPlanForPatient(supabase, session.tenantId, params.id)
       if (!plan) {
-        return NextResponse.json({ error: { code: 'NO_PLAN', message: 'Sem plano ativo para analisar.' } }, { status: 404 })
+        return NextResponse.json(
+          { error: { code: 'NO_PLAN', message: 'Sem plano ativo para analisar.' } },
+          { status: 404 },
+        )
       }
       totals = plan.totals
     }
@@ -78,10 +87,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }):
         p_patient_id: params.id,
         p_key: key,
       } as never)
-      const p = ((data as unknown as Array<{ birth_date: string | null; sex: string | null }>) ?? [])[0]
+      const p = ((data as unknown as Array<{ birth_date: string | null; sex: string | null }>) ??
+        [])[0]
       if (p) {
         if (ageYears === null && p.birth_date) ageYears = ageFromBirth(p.birth_date)
-        if (!sexParam && p.sex) sexParam = p.sex === 'masculino' ? 'M' : p.sex === 'feminino' ? 'F' : null
+        if (!sexParam && p.sex)
+          sexParam = p.sex === 'masculino' ? 'M' : p.sex === 'feminino' ? 'F' : null
       }
     }
 

@@ -31,7 +31,7 @@ Antes de semear valendo, confira a extração: `DRY=1 pnpm seed:lab-ranges` impr
 6. **Append-only**: tente corrigir um valor digitado errado.
    **Esperado**: não há editar/excluir; a correção é um novo lançamento, e a tela diz isso com todas as letras.
 7. **Valor absurdo** (ex.: hemoglobina 900): salve.
-   **Esperado**: 422 com mensagem clara e **nada gravado do lote inteiro** (atomicidade). Se um valor *clinicamente* muito alterado (ex.: ferritina 2000) for rejeitado, a faixa plausível do seed está apertada demais — é o risco registrado no `research.md`, corrigir o seed.
+   **Esperado**: 422 com mensagem clara e **nada gravado do lote inteiro** (atomicidade). Se um valor _clinicamente_ muito alterado (ex.: ferritina 2000) for rejeitado, a faixa plausível do seed está apertada demais — é o risco registrado no `research.md`, corrigir o seed.
 
 ## US2 — Evolução
 

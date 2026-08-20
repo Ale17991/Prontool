@@ -32,9 +32,9 @@
 ## Notes
 
 - **Todos os itens passam** após a sessão de clarificação de 2026-08-13
-  (4 perguntas feitas e respondidas, registradas em *Clarifications*).
+  (4 perguntas feitas e respondidas, registradas em _Clarifications_).
 - A clarificação **mudou o tamanho da feature**: o que era mudança só de tela
   passou a exigir uma migration (**0202+**) por duas razões — texto de
   boas-vindas por clínica (FR-018) e área na trilha de acesso (FR-007).
 - Decisões menores (ordem dos cards, comportamento de área vazia) seguem
-  resolvidas por padrão e registradas em *Assumptions*, sem virarem pergunta.
+  resolvidas por padrão e registradas em _Assumptions_, sem virarem pergunta.

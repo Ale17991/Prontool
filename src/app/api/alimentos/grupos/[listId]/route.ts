@@ -7,7 +7,10 @@ import { z } from 'zod'
 import { requireRole } from '@/lib/auth/require-role'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getTenantEntitlements } from '@/lib/core/entitlements/read'
-import { updateEquivalenceList, deleteEquivalenceList } from '@/lib/core/nutrition/foods/equivalence'
+import {
+  updateEquivalenceList,
+  deleteEquivalenceList,
+} from '@/lib/core/nutrition/foods/equivalence'
 import { toHttpResponse } from '@/lib/observability/http'
 
 export const dynamic = 'force-dynamic'
@@ -25,10 +28,16 @@ async function gate(tenantId: string): Promise<boolean> {
   return ent.hasModule('dieta')
 }
 function moduleDisabled(): Response {
-  return NextResponse.json({ error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } }, { status: 404 })
+  return NextResponse.json(
+    { error: { code: 'MODULE_DISABLED', message: 'Módulo indisponível.' } },
+    { status: 404 },
+  )
 }
 
-export async function PATCH(req: Request, { params }: { params: { listId: string } }): Promise<Response> {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { listId: string } },
+): Promise<Response> {
   const route = `/api/alimentos/grupos/${params.listId}`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {
@@ -41,7 +50,9 @@ export async function PATCH(req: Request, { params }: { params: { listId: string
     const parsed = patchSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
       return NextResponse.json(
-        { error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues } },
+        {
+          error: { code: 'INVALID_BODY', message: 'Payload inválido', issues: parsed.error.issues },
+        },
         { status: 400 },
       )
     }
@@ -61,7 +72,10 @@ export async function PATCH(req: Request, { params }: { params: { listId: string
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { listId: string } }): Promise<Response> {
+export async function DELETE(
+  req: Request,
+  { params }: { params: { listId: string } },
+): Promise<Response> {
   const route = `/api/alimentos/grupos/${params.listId}`
   try {
     const session = await requireRole(['admin', 'profissional_saude'], {

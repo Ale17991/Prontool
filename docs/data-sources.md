@@ -78,7 +78,7 @@ trigger (0024) and `detect-deprecated` — had nothing to act on. From the
 table 18. Do not let the raw spreadsheet fool you — 205.561 of table
 19's rows have the end-of-vigência cell filled with an **empty string**
 rather than left blank, so a "cell is not null" count reports 205 k
-phantom retirements. The parser reads a *date*, which is why it gets 0.
+phantom retirements. The parser reads a _date_, which is why it gets 0.
 Expect few or no `tuss_deprecated` alerts on the first prod run; that is
 the source being accurate, not the scan being broken.
 
@@ -101,7 +101,7 @@ nothing uses them, and the alternative risks hiding a code that is
 merely restructured rather than dead. Revisit if a clinic ever reports
 a glosa traced to one of them.
 
-Note this is the difference between *retired* and *absent*: retirement
+Note this is the difference between _retired_ and _absent_: retirement
 is published as `valid_to` and the product acts on it; absence is
 silent, and the seed leaves the last known state untouched.
 
@@ -142,7 +142,7 @@ production run is legally gated now; it is just an operator task.
    upsert alone is ~750 batched requests (~35 min against the local
    stack; longer over the internet). Transient transport errors are
    retried with backoff — a local run did hit one `TypeError: fetch
-   failed` at 53% before that was added. The upsert is idempotent, so a
+failed` at 53% before that was added. The upsert is idempotent, so a
    run that dies for another reason can simply be started again.
 
 ### Operational note — table 19 is large
@@ -152,7 +152,7 @@ footprint of `tuss_codes` (order of 1 GB with indexes). Two things
 follow, both handled in migration 0194:
 
 - The typeahead cannot use `or=(code.ilike,description.ilike,
-  manufacturer.ilike)` at that scale — there is no index that serves it.
+manufacturer.ilike)` at that scale — there is no index that serves it.
   Search goes through the `search_tuss_codes` RPC, backed by one GIN
   trigram index over the concatenated, unaccented, lowercased triple.
 - `detect-deprecated` no longer pulls the full retired-code list (it

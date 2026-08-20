@@ -75,10 +75,7 @@ export function compositionAdvisories(args: {
 }
 
 /** Avisos do bloco de gasto energético. */
-export function energyAdvisories(args: {
-  equation: TmbEquation
-  ageYears: number
-}): Advisory[] {
+export function energyAdvisories(args: { equation: TmbEquation; ageYears: number }): Advisory[] {
   const { equation, ageYears } = args
   const out: Advisory[] = []
 
@@ -131,7 +128,8 @@ export function energyAdvisories(args: {
   if (equation === 'schofield' && ageYears >= 18) {
     out.push({
       code: 'SCHOFIELD_HEIGHT_UNUSED',
-      message: 'Nesta faixa o Schofield usa apenas o peso — a altura informada não entra no cálculo.',
+      message:
+        'Nesta faixa o Schofield usa apenas o peso — a altura informada não entra no cálculo.',
     })
   }
 
