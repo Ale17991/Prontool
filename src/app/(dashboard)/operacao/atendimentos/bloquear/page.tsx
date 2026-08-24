@@ -24,7 +24,7 @@ export default async function BloquearHorarioPage({ searchParams }: PageProps) {
   const supabase = createSupabaseServerClient()
   const { data: doctorsRaw } = await supabase
     .from('doctors')
-    .select('id, full_name, active')
+    .select('id, full_name, active, payment_mode')
     .eq('tenant_id', session.tenantId)
     .eq('active', true)
     .order('full_name', { ascending: true })
@@ -32,6 +32,14 @@ export default async function BloquearHorarioPage({ searchParams }: PageProps) {
   const doctors: DoctorOption[] = (
     (doctorsRaw ?? []) as Array<{ id: string; full_name: string }>
   ).map((d) => ({ id: d.id, fullName: d.full_name }))
+
+  // Clínica de um profissional só: ele já entra selecionado. Conta apenas
+  // principais — o liberal é participante de procedimento e não tem agenda
+  // própria, então cadastrá-lo não pode devolver o clique obrigatório.
+  const principals = ((doctorsRaw ?? []) as Array<{ id: string; payment_mode: string }>).filter(
+    (d) => d.payment_mode !== 'liberal',
+  )
+  const soleDoctorId = principals.length === 1 ? principals[0]!.id : null
 
   const today = new Date()
   const yyyy = today.getFullYear()
@@ -68,7 +76,7 @@ export default async function BloquearHorarioPage({ searchParams }: PageProps) {
           <ScheduleBlockForm
             doctors={doctors}
             defaultDate={defaultDate}
-            defaultDoctorId={searchParams.doctor_id ?? null}
+            defaultDoctorId={searchParams.doctor_id ?? soleDoctorId}
           />
         </CardContent>
       </Card>

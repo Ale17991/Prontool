@@ -101,6 +101,10 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
   const doctors: FormOption[] = (
     (doctorsRes.data ?? []) as Array<{ id: string; full_name: string }>
   ).map((d) => ({ id: d.id, label: d.full_name }))
+  // Clínica de um profissional só: ele já entra selecionado. A lista acima só
+  // tem principais (liberal é participante, nunca titular do atendimento), então
+  // o assistente cadastrado ao lado do titular não desliga o preenchimento.
+  const soleDoctorId = doctors.length === 1 ? doctors[0]!.id : null
 
   const procedures = (
     (proceduresRes.data ?? []) as Array<{
@@ -159,6 +163,7 @@ export default async function NovoAtendimentoPage({ searchParams }: PageProps) {
             participationDegrees={degreeOptions}
             slotIntervalMinutes={slotIntervalMinutes}
             initialAppointmentAt={searchParams.at}
+            defaultDoctorId={soleDoctorId}
             canManageCatalog={session.role === 'admin' || session.role === 'financeiro'}
           />
         </CardContent>

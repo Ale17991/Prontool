@@ -60,6 +60,11 @@ export interface NewAppointmentFormProps {
   /** Intervalo (minutos) da agenda — preenche o fim automaticamente. */
   slotIntervalMinutes?: number
   initialAppointmentAt?: string
+  /**
+   * Profissional já selecionado ao abrir. Vem preenchido quando a clínica tem
+   * um único profissional principal — escolher entre uma opção não é escolha.
+   */
+  defaultDoctorId?: string | null
   /** admin/financeiro — habilita salvar insumo livre no catálogo (Feature 045). */
   canManageCatalog?: boolean
 }
@@ -92,12 +97,13 @@ export function NewAppointmentForm({
   participationDegrees,
   slotIntervalMinutes = 30,
   initialAppointmentAt,
+  defaultDoctorId = null,
   canManageCatalog = false,
 }: NewAppointmentFormProps) {
   const router = useRouter()
   const [patient, setPatient] = useState<PatientTypeaheadValue | null>(null)
   const patientId = patient?.id ?? ''
-  const [doctorId, setDoctorId] = useState('')
+  const [doctorId, setDoctorId] = useState(defaultDoctorId ?? '')
   // Sem módulo Convênio, ignora qualquer plano herdado do paciente (só particular).
   const defaultPlanId = hasConvenio ? (patient?.planId ?? null) : null
   // Método "Convênio" só quando o módulo está ativo.
