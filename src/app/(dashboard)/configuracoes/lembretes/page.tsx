@@ -19,6 +19,14 @@ import { BackLink } from '@/components/ui/back-link'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * O envio de WhatsApp espera até 50s pelo serviço (que por sua vez espera 45s
+ * pela Evolution). Sem folga aqui, a Vercel mata a função antes de a resposta
+ * chegar, e o desfecho volta a ser indeterminado — que é o defeito que o
+ * timeout maior existe para fechar.
+ */
+export const maxDuration = 60
+
 export default async function LembretesPage() {
   const session = await getSession()
   if (!session) redirect('/login')

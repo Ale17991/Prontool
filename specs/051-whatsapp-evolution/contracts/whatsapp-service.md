@@ -93,10 +93,18 @@ Respostas de erro e o que o Clinni faz com cada uma:
 | Status  | Significado                 | Ação no Clinni                                                                 |
 | ------- | --------------------------- | ------------------------------------------------------------------------------ |
 | `200`   | enviado                     | lembrete → `sent`, guarda `messageId` em `provider_message_id`                 |
+| `202`   | aceito, desfecho indefinido | lembrete → `sent` com nota; **não re-enviar** — o ACK é quem fecha a conta     |
 | `401`   | api-key inválida/inativa    | lembrete → `failed`; alerta para a clínica (config quebrada)                   |
 | `409`   | nenhuma instância conectada | lembrete → `skipped_no_connection`; **aborta o lote daquela clínica** (FR-012) |
 | `502`   | falha no envio              | lembrete → `failed` com motivo                                                 |
 | timeout | sem resposta                | lembrete → `failed`; a retentativa é segura por causa do `externalId`          |
+
+**O timeout de quem chama tem que ser MAIOR que o de quem é chamado.** O braço espera 45s pela
+Evolution antes de desistir (a primeira mensagem de uma instância recém-vinculada é lenta — o
+Baileys sobe frio) e só então responde `202`. Com os 20s que o `service-client` usava, o Clinni
+desistia primeiro e o `202` nunca chegava: todo envio lento virava `timeout`, a tela dizia que o
+serviço havia RECUSADO, e a mensagem chegava no celular assim mesmo (21/08/2026). Hoje são 50s
+deste lado, e as funções da Vercel que enviam declaram `maxDuration` compatível.
 
 **Requisito novo sobre o braço**: em conflito de `(tenant_id, external_id)`, responder `200` com
 a mensagem já existente em vez de enviar de novo.
