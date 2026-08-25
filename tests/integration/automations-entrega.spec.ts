@@ -183,4 +183,69 @@ describe('Feature 056 — confirmação de entrega de automação', () => {
     expect(r.entregues).toBe(0)
     expect(r.taxa).toBeNull()
   })
+
+  /**
+   * Estes dois travam o defeito de 24/08/2026. O envio demorava mais que o
+   * timeout do cliente, a função morria antes de gravar o desfecho, e a
+   * ocorrência ficava `pendente` para sempre — enquanto a mensagem tinha sido
+   * ENTREGUE E LIDA, com os dois eventos gravados aqui do lado. O histórico da
+   * clínica contradizia a prova que ela mesma guardava.
+   */
+  async function ocorrenciaPendente(chave: string): Promise<string> {
+    const { data: pac } = await sb
+      .from('patients')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .limit(1)
+      .single()
+    const { data } = await sb
+      .from('automation_occurrences' as never)
+      .insert({
+        tenant_id: tenantId,
+        automation_id: automationId,
+        patient_id: (pac as unknown as { id: string }).id,
+        occurrence_key: chave,
+        outcome: 'pendente',
+      } as never)
+      .select('id')
+      .single()
+    return (data as unknown as { id: string }).id
+  }
+
+  async function desfecho(id: string) {
+    const { data } = await sb
+      .from('automation_occurrences' as never)
+      .select('outcome, provider_message_id')
+      .eq('id', id)
+      .single()
+    return data as unknown as { outcome: string; provider_message_id: string | null }
+  }
+
+  it('a confirmação FECHA a ocorrência que ficou pendente, e guarda a correlação', async () => {
+    const { POST } = await import('@/app/api/webhooks/whatsapp-status/route')
+    const id = await ocorrenciaPendente('2026-08-24')
+
+    const res = await POST(
+      requisicao({ externalId: id, status: 'delivered', messageId: 'msg-abc' }, SEGREDO),
+    )
+    expect(res.status).toBe(200)
+
+    const d = await desfecho(id)
+    expect(d.outcome).toBe('enviado')
+    expect(d.provider_message_id).toBe('msg-abc')
+  })
+
+  it('ACK de erro NÃO fecha a ocorrência — falha de entrega não é falha de envio', async () => {
+    const { POST } = await import('@/app/api/webhooks/whatsapp-status/route')
+    const id = await ocorrenciaPendente('2026-08-25')
+
+    const res = await POST(
+      requisicao({ externalId: id, status: 'error', error: 'sem whatsapp' }, SEGREDO),
+    )
+    expect(res.status).toBe(200)
+
+    // Continua pendente: marcar `falhou` a reabriria para retentativa (0203) e
+    // reenviaria uma mensagem que pode já ter saído.
+    expect((await desfecho(id)).outcome).toBe('pendente')
+  })
 })

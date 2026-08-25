@@ -18,6 +18,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { DELIVERY_RANK, type WhatsAppDeliveryStatus } from './types'
+import { logger } from '@/lib/observability/logger'
 
 export interface RecordDeliveryEventInput {
   tenantId: string
@@ -60,6 +61,57 @@ export async function recordDeliveryEvent(
     occurred_at: input.occurredAt,
   })
   if (error) throw new Error(`recordDeliveryEvent failed: ${error.message}`)
+
+  await fecharOcorrenciaPendente(supabase, input)
+}
+
+/**
+ * A confirmação é PROVA de que a mensagem saiu — e prova vale mais que o
+ * registro do envio, que pode nunca ter sido escrito.
+ *
+ * Aconteceu duas vezes em produção. O envio demorava mais que o timeout do
+ * cliente, a função morria antes de gravar o desfecho, e a ocorrência ficava
+ * em `pendente` para sempre. Em 24/08/2026 a mensagem foi ENTREGUE E LIDA, com
+ * os dois eventos gravados aqui, e o histórico da clínica seguia dizendo
+ * "pendente". O comentário da coluna `provider_message_id` na 0196 já previa
+ * exatamente este desfecho.
+ *
+ * Só promove `pendente → enviado`. Desfecho final não é tocado — o trigger da
+ * 0203 recusaria, e com razão. O `.eq('outcome', 'pendente')` é o que torna a
+ * promoção idempotente: `delivered` e `read` chegam quase juntos, e o segundo
+ * simplesmente não acha linha.
+ *
+ * `error` NÃO promove, e não marca `falhou`. Um ACK de erro é falha de
+ * ENTREGA de mensagem que já saiu; marcar `falhou` a reabriria para
+ * retentativa (0203) e mandaria de novo o que o paciente já recebeu.
+ *
+ * Falhar aqui não derruba o registro do evento: a confirmação já está gravada,
+ * e é dela que a leitura vive (`resolveDeliveryStatuses`). Fechar a ocorrência
+ * é acerto de histórico, não a verdade em si.
+ */
+async function fecharOcorrenciaPendente(
+  supabase: SupabaseClient<Database>,
+  input: RecordDeliveryEventInput,
+): Promise<void> {
+  if (!input.automationOccurrenceId || input.status === 'error') return
+
+  const { error } = await supabase
+    .from('automation_occurrences')
+    .update({
+      outcome: 'enviado',
+      // A coluna de correlação nasce nula e só o envio a preenchia. Numa
+      // ocorrência que ficou pendente, ela nunca foi escrita.
+      ...(input.providerMessageId ? { provider_message_id: input.providerMessageId } : {}),
+    })
+    .eq('id', input.automationOccurrenceId)
+    .eq('outcome', 'pendente')
+
+  if (error) {
+    logger.warn(
+      { tenantId: input.tenantId, err: error.message },
+      'automation-occurrence-close-failed',
+    )
+  }
 }
 
 /**
