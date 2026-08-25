@@ -21,7 +21,13 @@ import type {
   WhatsAppServiceInstance,
 } from './types'
 
-const SEND_TIMEOUT_MS = 20_000
+// Tem que ser MAIOR que o timeout do serviço para a Evolution (45s), senão
+// desistimos antes de ele conseguir responder — e o 202 `indefinido`, que é a
+// resposta certa para um envio lento, nunca chega até aqui. Era exatamente esse
+// o defeito: com 20s deste lado, envio de instância recém-conectada virava
+// `timeout` e a tela dizia que o serviço havia RECUSADO, enquanto a mensagem
+// saía e era lida no celular (medido em 21/08/2026, três testes seguidos).
+const SEND_TIMEOUT_MS = 50_000
 const CONNECT_TIMEOUT_MS = 30_000
 
 function serviceUrl(): string {

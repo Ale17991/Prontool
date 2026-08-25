@@ -16,7 +16,7 @@ import { evaluateAutomations } from '@/lib/core/automations/evaluate'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 30
+export const maxDuration = 60
 
 /**
  * O Vercel Cron invoca com **GET**, não com POST — e a rota só exportava POST,

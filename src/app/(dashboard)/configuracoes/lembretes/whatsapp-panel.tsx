@@ -173,6 +173,8 @@ function TestSendCard() {
           NOT_CONFIGURED: 'O serviço de WhatsApp não está configurado. Fale com o suporte.',
           UNAUTHORIZED: 'Você não tem permissão para enviar testes.',
           SEND_FAILED: 'O serviço recusou o envio. Tente de novo em alguns instantes.',
+          SEND_TIMEOUT:
+            'A confirmação não voltou a tempo. A mensagem pode ter saído mesmo assim — confira o aparelho antes de enviar de novo.',
           INTERNAL_ERROR: 'Não foi possível enviar. Tente de novo.',
         }[res.error],
       )

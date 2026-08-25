@@ -47,6 +47,7 @@ interface ActionErr {
     | 'INTERNAL_ERROR'
     | 'INVALID_PHONE'
     | 'SEND_FAILED'
+    | 'SEND_TIMEOUT'
   message?: string
 }
 type ActionResult<T> = ({ ok: true } & T) | ActionErr
@@ -331,6 +332,10 @@ export async function sendTestWhatsApp(rawPhone: string): Promise<ActionResult<{
       // dizia conectado e a instância já tinha caído. Vale o erro específico,
       // senão o admin fica reenviando contra um número desconectado.
       if (result.kind === 'no_connection') return { ok: false, error: 'NO_CONNECTION' }
+      // Timeout NÃO é recusa: a mensagem pode ter saído. E no teste cada clique
+      // gera um externalId novo, então dizer "recusou" convida o admin a mandar
+      // uma SEGUNDA mensagem de verdade para quem já recebeu a primeira.
+      if (result.kind === 'timeout') return { ok: false, error: 'SEND_TIMEOUT' }
       return { ok: false, error: 'SEND_FAILED', message: result.kind }
     }
 
