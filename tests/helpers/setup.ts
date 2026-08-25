@@ -48,6 +48,18 @@ process.env.GHL_SSO_JWKS_URL ??= 'https://services.leadconnectorhq.com/.well-kno
 process.env.WHATSAPP_SERVICE_URL = 'https://whatsapp-service.test/functions/v1'
 process.env.WHATSAPP_SERVICE_MASTER_KEY = 'test-master-key'
 
+// MESMA TRAVA, mesmo motivo. Sem chave, `sendAlertEmail` desiste ANTES do
+// HTTP e devolve `{id:null}` — então o espião do MSW não vê chamada nenhuma e
+// todo teste que confere o conteúdo de um e-mail de alerta falha por vazio, em
+// vez de por conteúdo errado. Era isso que quebrava `alert-email-no-pii` e
+// `webhook-missing-field` SÓ na CI: na máquina de desenvolvimento a chave vem
+// do .env.local, e o defeito ficava invisível.
+//
+// `=` e não `??=`, como no WhatsApp: com a chave REAL do .env.local, um teste
+// que escapasse do MSW mandaria e-mail de verdade.
+process.env.RESEND_API_KEY = 'test_resend_api_key'
+process.env.RESEND_FROM = 'alertas@clinni.test'
+
 // Feature 030 — segredo do cookie HMAC do portal do paciente. Produção usa
 // env dedicado; nos testes basta um valor estável e forte o bastante.
 process.env.PATIENT_SESSION_SECRET ??= 'test_patient_session_secret_min_32_chars_xxxxxxxx'
