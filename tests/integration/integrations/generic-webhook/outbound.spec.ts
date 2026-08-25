@@ -83,7 +83,13 @@ describe('Polish — generic_webhook + multi-adapter fan-out', () => {
       new Request('http://localhost/api/pacientes', {
         method: 'POST',
         headers: { authorization: `Bearer ${jwt}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ full_name: 'Webhook Recipient', cpf: '12345678901' }),
+        // Telefone é obrigatório desde `BASE_REQUIRED` (política de campos do
+        // cadastro); sem ele a rota devolve 422 e o fan-out nem chega a rodar.
+        body: JSON.stringify({
+          full_name: 'Webhook Recipient',
+          cpf: '12345678901',
+          phone: '5527988887777',
+        }),
       }),
     )
     expect(res.status).toBe(201)
@@ -135,7 +141,11 @@ describe('Polish — generic_webhook + multi-adapter fan-out', () => {
       new Request('http://localhost/api/pacientes', {
         method: 'POST',
         headers: { authorization: `Bearer ${jwt}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ full_name: 'Fan Out', cpf: '22233344455' }),
+        body: JSON.stringify({
+          full_name: 'Fan Out',
+          cpf: '22233344455',
+          phone: '5527988887778',
+        }),
       }),
     )
     expect(res.status).toBe(201)
@@ -181,7 +191,11 @@ describe('Polish — generic_webhook + multi-adapter fan-out', () => {
       new Request('http://localhost/api/pacientes', {
         method: 'POST',
         headers: { authorization: `Bearer ${jwt}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ full_name: 'Silent', cpf: randomCpf() }),
+        body: JSON.stringify({
+          full_name: 'Silent',
+          cpf: randomCpf(),
+          phone: '5527988887779',
+        }),
       }),
     )
     expect(res.status).toBe(201)

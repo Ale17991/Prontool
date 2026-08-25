@@ -92,11 +92,20 @@ jobs:
 
   test-integration:
     runs-on: ubuntu-latest
-    # NÃO-BLOQUEANTE (temporário): 8 testes / 5 arquivos falham SÓ na suíte
-    # completa por uma contaminação order-dependent pré-existente (passam
-    # isolados; não reproduz local). As falhas ficam VISÍVEIS como anotação,
-    # mas não bloqueiam o merge. Remover quando o isolamento for resolvido.
-    continue-on-error: true
+    # VOLTOU A BLOQUEAR. O diagnóstico de "contaminação order-dependent" estava
+    # errado: os arquivos já rodam em série (`singleFork`), e as 5 falhas
+    # restantes tinham duas causas banais e reais.
+    #
+    # (1) `RESEND_API_KEY` só existia no .env.local. Sem ela, `sendAlertEmail`
+    #     desiste antes do HTTP e o espião não vê chamada — falhava SÓ na CI,
+    #     que é justamente onde ninguém olhava. Agora o setup força uma chave
+    #     falsa, como já fazia com o WhatsApp.
+    # (2) Telefone virou obrigatório no cadastro e três payloads de teste eram
+    #     anteriores a isso, levando 422.
+    #
+    # Não repor o `continue-on-error` para destravar um merge: um job que não
+    # bloqueia é um job que ninguém lê, e foi assim que estas duas causas
+    # ficaram meses invisíveis atrás de um master verde.
     # Testes de integração rodam contra o stack Supabase local completo
     # (Postgres + Auth + RLS) via `supabase start` — que já sobe o Postgres
     # na 54322. NÃO declarar um `services: postgres` aqui: ele bindava a mesma
