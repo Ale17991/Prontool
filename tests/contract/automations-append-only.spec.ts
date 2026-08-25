@@ -221,12 +221,51 @@ describe('Feature 056 — retentativa de falha (0203)', () => {
   })
 
   /**
-   * Impedido continua final. Sem consentimento, sem telefone e sem variável são
-   * estados do mundo, não indisponibilidade — retentar seria insistir com quem
+   * Impedido continua final — com UMA exceção, que a 0207 abriu e que os três
+   * testes abaixo delimitam. Sem consentimento, sem telefone e sem variável são
+   * estados do mundo, não indisponibilidade: retentar seria insistir com quem
    * disse não.
    */
   it('impedido NÃO é reaberto, mesmo incrementando a tentativa', async () => {
     const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_consentimento')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente', attempts: 2 } as never)
+      .eq('id', id)
+    expect(error).not.toBeNull()
+  })
+
+  /**
+   * A 0207, e a fronteira que ela move.
+   *
+   * Em 21/08/2026 o número da clínica ficou fora do ar por uma hora e meia, e as
+   * cinco ocorrências daquele intervalo foram gravadas `impedido_sem_conexao` —
+   * final, com o UNIQUE impedindo qualquer outra no lugar. Cinco avisos de "sua
+   * consulta é hoje" que não chegaram e nunca mais chegariam.
+   *
+   * Número fora do ar não é estado do mundo: é a mesma indisponibilidade
+   * passageira que fez a 0203 abrir `falhou`. Estava na família errada.
+   */
+  it('impedido_sem_conexao VOLTA a pendente quando as tentativas crescem', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_conexao')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente', attempts: 2 } as never)
+      .eq('id', id)
+    expect(error).toBeNull()
+  })
+
+  it('impedido_sem_conexao sem incrementar a tentativa é recusado', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_conexao')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente' } as never)
+      .eq('id', id)
+    expect(error).not.toBeNull()
+  })
+
+  it('a exceção é só para conexão — sem telefone continua final', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_telefone')
     const { error } = await sb
       .from('automation_occurrences' as never)
       .update({ outcome: 'pendente', attempts: 2 } as never)

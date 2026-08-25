@@ -45,7 +45,8 @@ export async function claimOccurrence(
 
   if (error) {
     // 23505 = já existe. Quase sempre é o ciclo rodando de novo no mesmo dia —
-    // mas pode ser uma tentativa de envio que FALHOU e ainda merece outra.
+    // mas pode ser uma tentativa que esbarrou em indisponibilidade e ainda
+    // merece outra.
     if ((error as { code?: string }).code === '23505') {
       return reclaimFailed(supabase, input)
     }
@@ -69,17 +70,33 @@ const MAX_TENTATIVAS = 3
 /**
  * Reabre uma ocorrência que falhou, para o ciclo tentar de novo.
  *
- * Só `falhou` é reaberto. `impedido_*` não melhora tentando de novo daqui a
- * cinco minutos — sem consentimento, sem telefone e sem variável são estados do
- * mundo, não indisponibilidade —, e reabrir seria insistir com quem disse não.
- * `enviado` e `suprimido_*` também não: um já aconteceu, o outro tem caminho
- * próprio (a linha é apagada e reavaliada).
+ * Reabre o que foi INDISPONIBILIDADE: `falhou` (o serviço recusou ou não
+ * respondeu) e `impedido_sem_conexao` (o número da clínica estava fora do ar).
+ *
+ * O segundo entrou na 0207, depois de uma queda de uma hora e meia em 21/08/2026
+ * custar cinco avisos de "sua consulta é hoje" que nunca chegaram e nunca mais
+ * chegariam. A 0203 o havia deixado final por enquadrá-lo como `impedido_*`, mas
+ * número fora do ar é exatamente a indisponibilidade passageira que motivou
+ * aquela migration — não um estado do mundo.
+ *
+ * Os demais `impedido_*` seguem fora: sem consentimento, sem telefone e sem
+ * variável não melhoram tentando de novo daqui a cinco minutos, e reabrir seria
+ * insistir com quem disse não. `enviado` e `suprimido_*` também não: um já
+ * aconteceu, o outro tem caminho próprio (a linha é apagada e reavaliada).
+ *
+ * REABRIR NÃO É REENVIAR. A ocorrência volta para `pendente` e só sai se a FONTE
+ * ainda enumerar aquele paciente. Para automação ancorada, `janelaAncorada`
+ * limita a borda de trás em 30 minutos — passou disso, ninguém é enumerado e a
+ * mensagem é descartada, em vez de chegar dizendo "sua consulta é hoje às 14h"
+ * às 17h. O frescor continua sendo decidido lá.
  *
  * A condição no UPDATE repete o que o SELECT acabou de ler, de propósito: entre
  * as duas consultas cabe outro ciclo, e sem o filtro os dois reabririam a mesma
  * linha e o paciente receberia duas vezes. Quem perde a corrida atualiza zero
  * linhas e desiste.
  */
+const REABRIVEIS = ['falhou', 'impedido_sem_conexao']
+
 async function reclaimFailed(supabase: SupabaseClient, input: ClaimInput): Promise<string | null> {
   const { data: atual } = await supabase
     .from('automation_occurrences')
@@ -91,7 +108,7 @@ async function reclaimFailed(supabase: SupabaseClient, input: ClaimInput): Promi
     .maybeSingle()
 
   const linha = atual as { id: string; outcome: string; attempts: number | null } | null
-  if (!linha || linha.outcome !== 'falhou') return null
+  if (!linha || !REABRIVEIS.includes(linha.outcome)) return null
 
   const tentativas = linha.attempts ?? 1
   if (tentativas >= MAX_TENTATIVAS) return null
@@ -100,7 +117,10 @@ async function reclaimFailed(supabase: SupabaseClient, input: ClaimInput): Promi
     .from('automation_occurrences')
     .update({ outcome: 'pendente', attempts: tentativas + 1, reason: null })
     .eq('id', linha.id)
-    .eq('outcome', 'falhou')
+    // O desfecho lido, e não a lista: o UPDATE tem que casar com a MESMA linha
+    // que o SELECT viu, senão dois ciclos reabrem a mesma e o paciente recebe
+    // duas vezes.
+    .eq('outcome', linha.outcome)
     .eq('attempts', tentativas)
     .select('id')
     .maybeSingle()

@@ -359,6 +359,7 @@ async function evaluateTenant(
 
   let enviadasNoCiclo = 0
   let falhasDeEnvio = 0
+  let semConexaoNoEnvio = 0
 
   // Um cache por CLÍNICA e por CICLO. Vive só o tempo desta função de propósito:
   // cache que atravessasse ciclos guardaria consentimento já revogado.
@@ -464,6 +465,11 @@ async function evaluateTenant(
       } else if (desfecho === 'falhou') {
         r.falhas++
         falhasDeEnvio++
+      } else if (desfecho === 'sem_conexao') {
+        // Continua contando como impedida no resultado: o que mudou é que agora
+        // ela também vira aviso, e a ocorrência é retentável (0207).
+        r.impedidas++
+        semConexaoNoEnvio++
       } else {
         r.impedidas++
       }
@@ -505,6 +511,36 @@ async function evaluateTenant(
    * alguém reconectar à mão, trocando "não avisou" por "parou de enviar". O
    * espelho continua sendo do serviço; daqui sai o aviso.
    */
+  /**
+   * A MESMA doutrina do bloco acima, para a queda descoberta no envio.
+   *
+   * O alerta preventivo existe desde sempre, mas nunca teve chance de disparar
+   * neste caso: ele depende do espelho, e o espelho estava mentindo. O resultado
+   * medido em 21/08/2026 foram cinco avisos de "sua consulta é hoje" perdidos em
+   * silêncio, sem nada em `alerts` e nada em `notifications`.
+   *
+   * Agregado por ciclo, e com `reason` PRÓPRIO: se reusasse o do preventivo, a
+   * deduplicação por hora faria um esconder o outro — e os dois querem dizer
+   * coisas diferentes ("não tentei" contra "tentei e o número estava fora").
+   */
+  if (semConexaoNoEnvio > 0) {
+    logger.warn({ tenantId, semConexao: semConexaoNoEnvio }, 'automations-numero-fora-do-ar')
+    await dispatchAlert({
+      tenantId,
+      type: 'integration_sync_failed',
+      subjectRef: { provider: 'whatsapp', reason: 'no_connection_on_send' },
+      detail: {
+        provider: 'whatsapp',
+        mensagem:
+          semConexaoNoEnvio === 1
+            ? 'O número de WhatsApp da clínica está fora do ar: uma mensagem de automação não pôde ser entregue ao serviço de envio. A tela pode ainda mostrar "conectado" — reconecte o número em Configurações → Lembretes.'
+            : `O número de WhatsApp da clínica está fora do ar: ${semConexaoNoEnvio} mensagens de automação não puderam ser entregues ao serviço de envio. A tela pode ainda mostrar "conectado" — reconecte o número em Configurações → Lembretes.`,
+      },
+    }).catch(() => {
+      // Best-effort: alerta não pode derrubar o ciclo das outras clínicas.
+    })
+  }
+
   if (falhasDeEnvio > 0) {
     logger.warn({ tenantId, falhas: falhasDeEnvio }, 'automations-falhas-de-envio')
     await dispatchAlert({
@@ -534,7 +570,7 @@ async function enviarUm(args: {
   variables: Record<string, string>
   patientId: string
   occurrenceId: string
-}): Promise<'enviado' | 'falhou' | 'impedido'> {
+}): Promise<'enviado' | 'falhou' | 'impedido' | 'sem_conexao'> {
   const { supabase, tenantId, patientId, occurrenceId } = args
 
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
@@ -621,8 +657,14 @@ async function enviarUm(args: {
   }
 
   if (res.kind === 'no_connection') {
+    // Desfecho próprio, e não `impedido`, porque é AQUI que a queda do número é
+    // descoberta de verdade. A checagem preventiva lá em cima lê o nosso
+    // espelho (`connection_status`), que é o último evento recebido e não uma
+    // sondagem — em 21/08/2026 ele dizia "conectado" enquanto a Evolution já
+    // tinha derrubado o número, e a clínica ficou uma hora e meia sem enviar
+    // nada, sem um único alerta. Quem sabe da queda é este retorno.
     await settleOccurrence(supabase, occurrenceId, 'impedido_sem_conexao')
-    return 'impedido'
+    return 'sem_conexao'
   }
 
   await settleOccurrence(supabase, occurrenceId, 'falhou', { reason: `${res.kind}: ${res.detail}` })
