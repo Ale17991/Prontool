@@ -17,5 +17,6 @@ import './agenda'
 import './acompanhamento'
 import './financeiro'
 import './tratamento'
+import './portal'
 
 export { getSource, listSources } from './registry'

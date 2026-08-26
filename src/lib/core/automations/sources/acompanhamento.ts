@@ -14,7 +14,7 @@
 
 import { z } from 'zod'
 import { registerSource } from './registry'
-import { addDias, dataCivilBr, eligiblePatients, pageAll } from './shared'
+import { addDias, dataCivilBr, eligiblePatients, mesesAtras, pageAll } from './shared'
 import type { EnumerateContext, SourceCandidate } from '../types'
 
 type Resposta = { data: unknown; error: { message: string } | null }
@@ -268,3 +268,305 @@ registerSource({
 function formatarNumero(v: number): string {
   return Number.isInteger(v) ? String(v) : v.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
 }
+
+// ---------------------------------------------------------------------------
+// Sem recordatório alimentar
+// ---------------------------------------------------------------------------
+
+registerSource({
+  id: 'recordatorio_em_branco',
+  label: 'Sem recordatório alimentar há N dias',
+  group: 'acompanhamento',
+  requiresModule: 'nutri_recordatorio',
+  hint: 'Dispara para quem já enviou algum recordatório antes e está há N dias sem enviar nenhum. Repete no máximo uma vez por mês.',
+  /**
+   * Aqui a ausência é do PACIENTE — o recordatório é ele quem preenche —, mas
+   * "não preencheu" continua não sendo "não comeu direito", e a mensagem não
+   * pode sugerir que alguém está sendo vigiado no prato.
+   */
+  warning:
+    'O sistema sabe que nenhum recordatório foi ENVIADO — não o que o paciente comeu. Escreva como convite para registrar, nunca como cobrança de dieta.',
+  paramsSchema: z.object({ dias: z.number().int().min(3).max(120) }).strict(),
+  fields: [
+    {
+      name: 'dias',
+      label: 'Dias sem nenhum recordatório',
+      kind: 'number',
+      min: 3,
+      max: 120,
+      defaultValue: 14,
+      hint: 'Abaixo de 3 dias a mensagem chega antes de haver o que registrar.',
+    },
+  ],
+  variables: ['dias', 'ultimo_recordatorio'],
+
+  async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
+    return ultimoRegistroAntigo(ctx, {
+      tabela: 'food_recalls',
+      coluna: 'recall_date',
+      corte: addDias(ctx.today, -(ctx.params as { dias: number }).dias),
+      rotulo: 'recordatorio_em_branco',
+      variaveis: (quando) => ({
+        dias: String((ctx.params as { dias: number }).dias),
+        ultimo_recordatorio: dataCivilBr(quando),
+      }),
+    })
+  },
+})
+
+// ---------------------------------------------------------------------------
+// Avaliação nutricional vencida
+// ---------------------------------------------------------------------------
+
+registerSource({
+  id: 'avaliacao_vencida',
+  label: 'Última avaliação há N meses',
+  group: 'acompanhamento',
+  requiresModule: 'nutri_avaliacao',
+  hint: 'Dispara para quem já foi avaliado e está há N meses sem nova avaliação. Repete no máximo uma vez por mês.',
+  /**
+   * Esta NÃO leva aviso, e a diferença é real: a avaliação é feita PELA
+   * CLÍNICA. Não há inferência sobre o comportamento do paciente a policiar —
+   * o convite para reavaliar é sobre a agenda dela, não sobre a conduta dele.
+   */
+  paramsSchema: z.object({ meses: z.number().int().min(1).max(36) }).strict(),
+  fields: [
+    {
+      name: 'meses',
+      label: 'Meses desde a última avaliação',
+      kind: 'number',
+      min: 1,
+      max: 36,
+      defaultValue: 6,
+    },
+  ],
+  variables: ['meses', 'ultima_avaliacao'],
+
+  async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
+    const { meses } = ctx.params as { meses: number }
+    return ultimoRegistroAntigo(ctx, {
+      tabela: 'nutrition_assessments',
+      // Coluna DATE — sem fuso, e por isso comparável direto com o dia civil
+      // da clínica. É a mesma distinção que a 058 firmou em `brDateOnly`.
+      coluna: 'assessed_at',
+      corte: mesesAtras(ctx.today, meses),
+      rotulo: 'avaliacao_vencida',
+      variaveis: (quando) => ({
+        meses: String(meses),
+        ultima_avaliacao: dataCivilBr(quando),
+      }),
+    })
+  },
+})
+
+/**
+ * "Já teve, e o último foi antes do corte" — a forma que `recordatorio_em_branco`
+ * e `avaliacao_vencida` compartilham, e que `sem_medicao` também tem escrita à
+ * mão logo acima.
+ *
+ * QUEM NUNCA TEVE NÃO ENTRA, e isso não é detalhe de implementação: a fonte é
+ * sobre acompanhamento INTERROMPIDO. Mandar "faz tempo que não recebemos seu
+ * recordatório" para quem jamais enviou um soa como mensagem trocada, porque é.
+ *
+ * A chave é MENSAL porque o estado é contínuo: quem está há 40 dias sem
+ * registrar segue assim no dia 41, e sem freio próprio isso vira mensagem
+ * diária até a pessoa ceder.
+ */
+async function ultimoRegistroAntigo(
+  ctx: EnumerateContext,
+  cfg: {
+    tabela: string
+    coluna: string
+    corte: string
+    rotulo: string
+    variaveis: (quando: string) => Record<string, string>
+  },
+): Promise<SourceCandidate[]> {
+  const aptos = await eligiblePatients(ctx)
+  if (aptos.size === 0) return []
+
+  // Uma varredura só, decisão em memória — pelo mesmo motivo de `sem_medicao`:
+  // perguntar "qual o último de cada um" paciente a paciente seria uma ida ao
+  // banco por pessoa da clínica, todo dia.
+  const linhas = await pageAll<Record<string, string>>(
+    (from, to) =>
+      ctx.supabase
+        .from(cfg.tabela)
+        .select(`patient_id, ${cfg.coluna}`)
+        .eq('tenant_id', ctx.tenantId)
+        .order('patient_id')
+        .range(from, to) as unknown as PromiseLike<Resposta>,
+    cfg.rotulo,
+  )
+
+  const ultima = new Map<string, string>()
+  for (const linha of linhas) {
+    const patientId = linha.patient_id
+    const quando = (linha[cfg.coluna] ?? '').slice(0, 10)
+    if (!patientId || !quando) continue
+    const atual = ultima.get(patientId)
+    if (!atual || quando > atual) ultima.set(patientId, quando)
+  }
+
+  const out: SourceCandidate[] = []
+  for (const [patientId, quando] of ultima) {
+    if (!aptos.has(patientId)) continue
+    if (quando > cfg.corte) continue
+    out.push({
+      patientId,
+      occurrenceKey: ctx.today.slice(0, 7),
+      variables: cfg.variaveis(quando),
+    })
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// Afastando-se da meta
+// ---------------------------------------------------------------------------
+
+registerSource({
+  id: 'afastando_da_meta',
+  label: 'Medições consecutivas afastando-se da meta',
+  group: 'acompanhamento',
+  hint: 'Dispara quando as últimas medições andam, seguidas, na direção contrária à meta lançada. Repete no máximo uma vez por mês.',
+  /**
+   * ESTA FONTE NÃO OFERECE O VALOR NEM A VARIAÇÃO, e a ausência é o guarda-corpo.
+   *
+   * Mandar "seu peso subiu 2 kg" por WhatsApp é devolver um dado clínico sem
+   * ninguém junto para interpretá-lo, a um público que frequentemente tem
+   * relação difícil com esse número. A regra existe para TRAZER O PACIENTE À
+   * CONSULTA, não para dar o veredito por mensagem — e a restrição mora aqui,
+   * na fonte, para não depender da boa vontade de quem escreve o texto: a
+   * validação de variáveis recusa, na hora de associar, um texto que peça o que
+   * a fonte não fornece.
+   */
+  warning:
+    'A mensagem NÃO deve citar números nem dizer que algo piorou. Convide para uma conversa ("que tal a gente se falar?") — o resultado se interpreta na consulta, com a profissional junto.',
+  paramsSchema: z
+    .object({
+      metricType: z.string().min(1).max(60),
+      consecutivas: z.number().int().min(2).max(10),
+    })
+    .strict(),
+  fields: [
+    {
+      name: 'metricType',
+      label: 'Qual métrica',
+      kind: 'select',
+      optionsFrom: 'metric_types',
+      hint: 'Só métricas com meta lançada entram — sem meta não existe "direção contrária".',
+    },
+    {
+      name: 'consecutivas',
+      label: 'Quantas medições seguidas na direção contrária',
+      kind: 'number',
+      min: 2,
+      max: 10,
+      defaultValue: 3,
+      hint: 'Duas já é uma tendência; três evita reagir a uma oscilação isolada.',
+    },
+  ],
+  variables: ['metrica'],
+
+  async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
+    const { metricType, consecutivas } = ctx.params as {
+      metricType: string
+      consecutivas: number
+    }
+    const aptos = await eligiblePatients(ctx)
+    if (aptos.size === 0) return []
+
+    const metas = await pageAll<{
+      patient_id: string
+      metric_type: string
+      direction: string
+      target_value: number
+    }>(
+      (from, to) =>
+        ctx.supabase
+          .from('patient_metric_goals')
+          .select('patient_id, metric_type, direction, target_value')
+          .eq('tenant_id', ctx.tenantId)
+          .eq('metric_type', metricType)
+          .eq('active', true)
+          .order('patient_id')
+          .range(from, to) as unknown as PromiseLike<Resposta>,
+      'afastando_da_meta.metas',
+    )
+    if (metas.length === 0) return []
+
+    const medicoes = await pageAll<{ patient_id: string; value: number; measured_at: string }>(
+      (from, to) =>
+        ctx.supabase
+          .from('patient_measurements')
+          .select('patient_id, value, measured_at')
+          .eq('tenant_id', ctx.tenantId)
+          .eq('metric_type', metricType)
+          .order('measured_at', { ascending: false })
+          .range(from, to) as unknown as PromiseLike<Resposta>,
+      'afastando_da_meta.medicoes',
+    )
+
+    // `consecutivas` TRANSIÇÕES exigem `consecutivas + 1` medições. Guardar só
+    // essas: a base inteira de um paciente antigo não muda a resposta e custa
+    // memória à toa.
+    const necessarias = consecutivas + 1
+    const porPaciente = new Map<string, number[]>()
+    for (const m of medicoes) {
+      const lista = porPaciente.get(m.patient_id) ?? []
+      if (lista.length < necessarias) {
+        lista.push(m.value)
+        porPaciente.set(m.patient_id, lista)
+      }
+    }
+
+    const tipos = await pageAll<{ metric_type: string; label: string }>(
+      (from, to) =>
+        ctx.supabase
+          .from('patient_metric_types')
+          .select('metric_type, label')
+          .or(`tenant_id.is.null,tenant_id.eq.${ctx.tenantId}`)
+          .order('metric_type')
+          .range(from, to) as unknown as PromiseLike<Resposta>,
+      'afastando_da_meta.tipos',
+    )
+    const rotulo = new Map(tipos.map((t) => [t.metric_type, t.label]))
+
+    const out: SourceCandidate[] = []
+    for (const meta of metas) {
+      if (!aptos.has(meta.patient_id)) continue
+      const valores = porPaciente.get(meta.patient_id) ?? []
+      if (valores.length < necessarias) continue
+
+      // Já está na meta? Então não está se afastando dela, mesmo tendo
+      // oscilado — cobrar quem já chegou é o oposto do que a fonte quer.
+      const decrescente = meta.direction === 'decrease'
+      const atual = valores[0]!
+      if (decrescente ? atual <= meta.target_value : atual >= meta.target_value) continue
+
+      // A lista vem do mais NOVO para o mais antigo, então cada par é uma
+      // transição do antigo (i+1) para o novo (i).
+      let afastou = true
+      for (let i = 0; i < consecutivas; i++) {
+        const novo = valores[i]!
+        const velho = valores[i + 1]!
+        const piorou = decrescente ? novo > velho : novo < velho
+        if (!piorou) {
+          afastou = false
+          break
+        }
+      }
+      if (!afastou) continue
+
+      out.push({
+        patientId: meta.patient_id,
+        // Mensal: a tendência não se desfaz da noite para o dia, e sem freio
+        // isto vira cobrança diária de quem já está numa fase difícil.
+        occurrenceKey: ctx.today.slice(0, 7),
+        variables: { metrica: rotulo.get(meta.metric_type) ?? meta.metric_type },
+      })
+    }
+    return out
+  },
+})
