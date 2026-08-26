@@ -20,6 +20,13 @@ import {
   patientFieldPolicy,
   type PatientField,
 } from '@/lib/core/patients/required-fields'
+import {
+  MARITAL_STATUS_LABEL,
+  MARITAL_STATUS_VALUES,
+  OCCUPATION_MAX_LENGTH,
+  PATIENT_RACE_LABEL,
+  PATIENT_RACE_VALUES,
+} from '@/lib/core/patients/demographics'
 
 export interface HealthPlanOption {
   id: string
@@ -90,6 +97,9 @@ export function NewPatientForm({
   const [planId, setPlanId] = useState<string>('')
 
   const [sex, setSex] = useState<string>('')
+  const [maritalStatus, setMaritalStatus] = useState<string>('')
+  const [race, setRace] = useState<string>('')
+  const [occupation, setOccupation] = useState('')
   const [socialName, setSocialName] = useState('')
   const [motherName, setMotherName] = useState('')
   const [rg, setRg] = useState('')
@@ -215,6 +225,9 @@ export function NewPatientForm({
           // convênio — quem paga como se resolve na hora do atendimento.
           plan_id: planId && planId !== '__none__' ? planId : null,
           sex: sex || null,
+          marital_status: maritalStatus || null,
+          race: race || null,
+          occupation: occupation.trim() || null,
           social_name: socialName.trim() || null,
           mother_name: motherName.trim() || null,
           rg: rg.trim() || null,
@@ -332,6 +345,52 @@ export function NewPatientForm({
               <SelectItem value="intersexo">Intersexo</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="marital_status">Estado civil (opcional)</Label>
+          <Select value={maritalStatus} onValueChange={setMaritalStatus}>
+            <SelectTrigger id="marital_status">
+              <SelectValue placeholder="Selecione…" />
+            </SelectTrigger>
+            <SelectContent>
+              {MARITAL_STATUS_VALUES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {MARITAL_STATUS_LABEL[v]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="race">Raça/cor (opcional)</Label>
+          <Select value={race} onValueChange={setRace}>
+            <SelectTrigger id="race">
+              <SelectValue placeholder="Selecione…" />
+            </SelectTrigger>
+            <SelectContent>
+              {PATIENT_RACE_VALUES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {PATIENT_RACE_LABEL[v]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Autodeclarada: preenchida por observação de quem atende, ela
+              deixa de medir o que se propõe a medir. */}
+          <p className="text-[11px] text-slate-400">Como o paciente se declara.</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="occupation">Ocupação (opcional)</Label>
+          <Input
+            id="occupation"
+            maxLength={OCCUPATION_MAX_LENGTH}
+            placeholder="Professora, aposentado, estudante…"
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+          />
         </div>
 
         <div className="space-y-1.5">

@@ -14,6 +14,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { PatientDetail } from '@/lib/core/patients/get'
+import {
+  MARITAL_STATUS_LABEL,
+  MARITAL_STATUS_VALUES,
+  OCCUPATION_MAX_LENGTH,
+  PATIENT_RACE_LABEL,
+  PATIENT_RACE_VALUES,
+  maritalStatusLabel,
+  patientRaceLabel,
+} from '@/lib/core/patients/demographics'
 
 const SEX_LABEL: Record<string, string> = {
   feminino: 'Feminino',
@@ -24,6 +33,9 @@ const SEX_LABEL: Record<string, string> = {
 type IdentityFields = Pick<
   PatientDetail,
   | 'sex'
+  | 'maritalStatus'
+  | 'race'
+  | 'occupation'
   | 'phone'
   | 'email'
   | 'socialName'
@@ -49,6 +61,9 @@ export function IdentityEditor({
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [sex, setSex] = useState(identity.sex ?? '')
+  const [maritalStatus, setMaritalStatus] = useState(identity.maritalStatus ?? '')
+  const [race, setRace] = useState(identity.race ?? '')
+  const [occupation, setOccupation] = useState(identity.occupation ?? '')
   const [phone, setPhone] = useState(identity.phone ?? '')
   const [email, setEmail] = useState(identity.email ?? '')
   const [socialName, setSocialName] = useState(identity.socialName ?? '')
@@ -71,6 +86,9 @@ export function IdentityEditor({
 
   function reset() {
     setSex(identity.sex ?? '')
+    setMaritalStatus(identity.maritalStatus ?? '')
+    setRace(identity.race ?? '')
+    setOccupation(identity.occupation ?? '')
     setPhone(identity.phone ?? '')
     setEmail(identity.email ?? '')
     setSocialName(identity.socialName ?? '')
@@ -96,6 +114,9 @@ export function IdentityEditor({
         body: JSON.stringify({
           identity: {
             sex: sex || null,
+            marital_status: maritalStatus || null,
+            race: race || null,
+            occupation: occupation.trim() || null,
             phone: phone.trim() || null,
             email: email.trim() || null,
             social_name: socialName.trim() || null,
@@ -129,6 +150,9 @@ export function IdentityEditor({
       ['Celular', identity.phone],
       ['E-mail', identity.email],
       ['Sexo', identity.sex ? (SEX_LABEL[identity.sex] ?? identity.sex) : null],
+      ['Estado civil', maritalStatusLabel(identity.maritalStatus)],
+      ['Raça/cor', patientRaceLabel(identity.race)],
+      ['Ocupação', identity.occupation],
       ['Nome social', identity.socialName],
       ['Nome da mãe', identity.motherName],
       ['RG', identity.rg],
@@ -182,8 +206,8 @@ export function IdentityEditor({
           </dl>
         ) : (
           <p className="text-xs italic text-slate-400">
-            Sexo, nome social, nome da mãe, RG, carteirinha, contato de emergência e responsável
-            ainda não informados.
+            Sexo, estado civil, raça/cor, ocupação, nome social, nome da mãe, RG, carteirinha,
+            contato de emergência e responsável ainda não informados.
           </p>
         )}
       </div>
@@ -248,6 +272,49 @@ export function IdentityEditor({
               <SelectItem value="intersexo">Intersexo</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="id_marital">Estado civil</Label>
+          <Select value={maritalStatus} onValueChange={setMaritalStatus}>
+            <SelectTrigger id="id_marital">
+              <SelectValue placeholder="Selecione…" />
+            </SelectTrigger>
+            <SelectContent>
+              {MARITAL_STATUS_VALUES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {MARITAL_STATUS_LABEL[v]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="id_race">Raça/cor</Label>
+          <Select value={race} onValueChange={setRace}>
+            <SelectTrigger id="id_race">
+              <SelectValue placeholder="Selecione…" />
+            </SelectTrigger>
+            <SelectContent>
+              {PATIENT_RACE_VALUES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {PATIENT_RACE_LABEL[v]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* O dado só vale como o paciente declara: preenchido por observação
+              de quem atende, ele deixa de medir o que se propõe a medir. */}
+          <p className="text-[11px] text-slate-400">Como o paciente se declara.</p>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="id_occupation">Ocupação</Label>
+          <Input
+            id="id_occupation"
+            maxLength={OCCUPATION_MAX_LENGTH}
+            placeholder="Professora, aposentado, estudante…"
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="id_social">Nome social</Label>

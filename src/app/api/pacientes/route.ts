@@ -11,6 +11,13 @@ import {
   missingRequiredPatientFields,
   patientFieldPolicy,
 } from '@/lib/core/patients/required-fields'
+import {
+  MARITAL_STATUS_VALUES,
+  OCCUPATION_MAX_LENGTH,
+  PATIENT_RACE_VALUES,
+  type MaritalStatus,
+  type PatientRace,
+} from '@/lib/core/patients/demographics'
 import { toHttpResponse } from '@/lib/observability/http'
 
 /**
@@ -101,6 +108,15 @@ const createSchema = z.object({
   plan_id: z.string().uuid().optional().nullable(),
   // Identificação clínica (todos opcionais).
   sex: z.enum(['feminino', 'masculino', 'intersexo']).optional().nullable(),
+  marital_status: z
+    .enum(MARITAL_STATUS_VALUES as [string, ...string[]])
+    .optional()
+    .nullable(),
+  race: z
+    .enum(PATIENT_RACE_VALUES as [string, ...string[]])
+    .optional()
+    .nullable(),
+  occupation: optionalText(OCCUPATION_MAX_LENGTH),
   social_name: optionalText(200),
   mother_name: optionalText(200),
   rg: optionalText(40),
@@ -255,6 +271,9 @@ export async function POST(req: Request): Promise<Response> {
       birthDate: parsed.data.birth_date ?? undefined,
       planId: parsed.data.plan_id ?? null,
       sex: parsed.data.sex ?? null,
+      maritalStatus: (parsed.data.marital_status ?? null) as MaritalStatus | null,
+      race: (parsed.data.race ?? null) as PatientRace | null,
+      occupation: parsed.data.occupation,
       socialName: parsed.data.social_name,
       motherName: parsed.data.mother_name,
       rg: parsed.data.rg,

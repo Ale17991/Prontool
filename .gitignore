@@ -40,6 +40,13 @@ test-results/
 .claude/settings.local.json
 .tmp/
 
+# Base de pacientes para importação (PII de terceiros — LGPD).
+# Estes arquivos são dados de pacientes de uma clínica cliente: nome, endereço,
+# nascimento e telefone. Repositório não é lugar de PII, e git não esquece —
+# commitar uma vez é vazamento permanente, mesmo depois do `rm`.
+docs/lista.xls
+docs/*-import-pendencias.xlsx
+
 # Local working / marketing assets (not part of the app build)
 clinni-instagram/
 homio-ref/

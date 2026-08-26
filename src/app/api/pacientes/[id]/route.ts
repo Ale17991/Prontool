@@ -5,6 +5,13 @@ import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
 import { getPatient } from '@/lib/core/patients/get'
 import { updatePatientAddress } from '@/lib/core/patients/update-address'
 import { updatePatientIdentity } from '@/lib/core/patients/update-identity'
+import {
+  MARITAL_STATUS_VALUES,
+  OCCUPATION_MAX_LENGTH,
+  PATIENT_RACE_VALUES,
+  type MaritalStatus,
+  type PatientRace,
+} from '@/lib/core/patients/demographics'
 import { NotFoundError } from '@/lib/observability/errors'
 import { toHttpResponse } from '@/lib/observability/http'
 
@@ -31,6 +38,9 @@ const addressPatchSchema = z
 const identityPatchSchema = z
   .object({
     sex: z.enum(['feminino', 'masculino', 'intersexo']).nullable(),
+    marital_status: z.enum(MARITAL_STATUS_VALUES as [string, ...string[]]).nullable(),
+    race: z.enum(PATIENT_RACE_VALUES as [string, ...string[]]).nullable(),
+    occupation: z.string().trim().max(OCCUPATION_MAX_LENGTH).nullable(),
     phone: z.string().trim().max(40).nullable(),
     email: z.string().trim().email('E-mail inválido').max(200).nullable(),
     social_name: z.string().trim().max(200).nullable(),
@@ -184,6 +194,9 @@ export async function PATCH(
         patientId: params.id,
         fields: {
           sex: i.sex,
+          maritalStatus: i.marital_status as MaritalStatus | null | undefined,
+          race: i.race as PatientRace | null | undefined,
+          occupation: i.occupation,
           phone: i.phone,
           email: i.email,
           socialName: i.social_name,
