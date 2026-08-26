@@ -720,6 +720,45 @@ describe('FR-017 — paciente inativo ou anonimizado sai de qualquer avaliação
         issued_at: '2026-07-27T14:00:00.000Z',
       } as never)
       .throwOnError()
+
+    // As cinco fontes trazidas da 053. Sem estes registros o teste de
+    // elegibilidade passaria por vazio: a fonte não devolveria o paciente
+    // inapto porque não devolveria paciente NENHUM, o que não prova nada.
+    await sb
+      .from('patient_portal_access_log' as never)
+      .insert({
+        tenant_id: tenantId,
+        patient_id: pacienteId,
+        // O CHECK da 0113 aceita login_ok | login_fail | view — 'login' não
+        // existe, e `ip_hash` é NOT NULL.
+        action: 'login_ok',
+        ip_hash: 'hash-de-teste',
+        created_at: '2026-06-01T12:00:00.000Z',
+      } as never)
+      .throwOnError()
+
+    await sb
+      .from('food_recalls' as never)
+      .insert({
+        tenant_id: tenantId,
+        patient_id: pacienteId,
+        recall_date: '2026-06-01',
+        created_by_user_id: ATOR,
+      } as never)
+      .throwOnError()
+
+    await sb
+      .from('nutrition_assessments' as never)
+      .insert({
+        tenant_id: tenantId,
+        patient_id: pacienteId,
+        assessed_at: '2026-01-10',
+        sex: 'F',
+        age_years: 40,
+        weight_kg: 70,
+        created_by_user_id: ATOR,
+      } as never)
+      .throwOnError()
   }
 
   /** Parâmetros mínimos válidos para cada fonte, tirados do próprio schema. */
@@ -738,7 +777,29 @@ describe('FR-017 — paciente inativo ou anonimizado sai de qualquer avaliação
     exame_sem_retorno: { dias: 15 },
     checklist_marcado: { itemId: 'agua', vezes: 1 },
     checklist_sem_marcacao: { itemId: 'agua', dias: 1 },
+    sequencia_habito: { itemId: 'agua', dias: 2 },
+    recordatorio_em_branco: { dias: 14 },
+    avaliacao_vencida: { meses: 6 },
+    afastando_da_meta: { metricType: 'peso', consecutivas: 2 },
+    sem_acesso_portal: { dias: 30 },
   }
+
+  /**
+   * A tabela acima é fixture, e fixture esquecida falha em SILÊNCIO: sem
+   * entrada, a fonte nova recebia `{}`, enumerava com parâmetro `undefined` e
+   * "passava" o teste de elegibilidade sem ter enumerado nada. Descoberto ao
+   * trazer as cinco fontes da 053.
+   *
+   * O critério não é uma lista paralela — é o próprio schema da fonte: se ela
+   * recusa `{}`, precisa de parâmetros aqui. Fonte sem parâmetro obrigatório
+   * segue dispensada, e a próxima que nascer se cobra sozinha.
+   */
+  it('toda fonte com parâmetro obrigatório tem fixture nesta tabela', () => {
+    const semFixture = listSources()
+      .filter((f) => !f.paramsSchema.safeParse({}).success && !PARAMS[f.id])
+      .map((f) => f.id)
+    expect(semFixture, 'acrescente os parâmetros mínimos em PARAMS').toEqual([])
+  })
 
   for (const situacao of ['inativo', 'anonimizado', 'sem consentimento'] as const) {
     it(`nenhuma fonte devolve paciente ${situacao}`, async () => {
@@ -760,4 +821,149 @@ describe('FR-017 — paciente inativo ou anonimizado sai de qualquer avaliação
       }
     })
   }
+})
+
+/**
+ * As fontes trazidas da 053, e o que nelas é JUÍZO e não mecânica.
+ *
+ * A 053 desenhou catorze sinais; nove já existiam na 056 com outro nome. Estas
+ * cinco eram as exclusivas, e vieram porque o desenho delas já carregava as
+ * decisões difíceis — em especial a de `afastando_da_meta`, que se recusa a
+ * dizer o número.
+ */
+describe('fontes vindas da 053', () => {
+  beforeEach(async () => {
+    await resetDatabase()
+  })
+
+  async function metaEMedicoes(
+    tenantId: string,
+    pacienteId: string,
+    valores: Array<{ valor: number; em: string }>,
+    alvo = 70,
+  ) {
+    await sb
+      .from('patient_metric_goals' as never)
+      .insert({
+        tenant_id: tenantId,
+        patient_id: pacienteId,
+        metric_type: 'peso_teste',
+        target_value: alvo,
+        direction: 'decrease',
+        created_by_user_id: ATOR,
+      } as never)
+      .throwOnError()
+
+    await sb
+      .from('patient_measurements' as never)
+      .insert(
+        valores.map((v) => ({
+          tenant_id: tenantId,
+          patient_id: pacienteId,
+          metric_type: 'peso_teste',
+          value: v.valor,
+          unit: 'kg',
+          measured_at: v.em,
+          created_by_user_id: ATOR,
+        })) as never,
+      )
+      .throwOnError()
+  }
+
+  const afastando = () => {
+    const f = getSource('afastando_da_meta')
+    if (!f) throw new Error('fonte não registrada')
+    return f
+  }
+
+  it('duas medições seguidas subindo, com meta de baixar, dispara', async () => {
+    const tenantId = await clinica('afasta1')
+    await seedMetrica(tenantId, 'peso_teste')
+    const pac = await seedPaciente(tenantId)
+    await metaEMedicoes(tenantId, pac, [
+      { valor: 80, em: '2026-08-01T12:00:00.000Z' },
+      { valor: 83, em: '2026-08-05T12:00:00.000Z' },
+      { valor: 85, em: '2026-08-09T12:00:00.000Z' },
+    ])
+
+    const c = await afastando().enumerate(
+      ctx(tenantId, { metricType: 'peso_teste', consecutivas: 2 }),
+    )
+    expect(c.map((x) => x.patientId)).toContain(pac)
+  })
+
+  /**
+   * A invariante que é o motivo de a fonte existir do jeito que existe.
+   *
+   * Mandar "seu peso subiu 2 kg" por WhatsApp devolve um dado clínico sem
+   * ninguém junto para interpretá-lo. A fonte não OFERECE o número, e por isso
+   * a validação de variáveis recusa, na tela, um texto que o peça — o
+   * guarda-corpo não depende de quem escreve a mensagem.
+   */
+  it('a fonte NÃO fornece valor nem variação — só o nome da métrica', () => {
+    expect([...afastando().variables]).toEqual(['metrica'])
+  })
+
+  it('quem JÁ está na meta não entra, mesmo tendo oscilado para cima', async () => {
+    const tenantId = await clinica('afasta2')
+    await seedMetrica(tenantId, 'peso_teste')
+    const pac = await seedPaciente(tenantId)
+    // Subiu duas vezes seguidas, mas 68 continua abaixo da meta de 70.
+    await metaEMedicoes(tenantId, pac, [
+      { valor: 64, em: '2026-08-01T12:00:00.000Z' },
+      { valor: 66, em: '2026-08-05T12:00:00.000Z' },
+      { valor: 68, em: '2026-08-09T12:00:00.000Z' },
+    ])
+
+    const c = await afastando().enumerate(
+      ctx(tenantId, { metricType: 'peso_teste', consecutivas: 2 }),
+    )
+    expect(c.map((x) => x.patientId)).not.toContain(pac)
+  })
+
+  it('uma oscilação isolada no meio quebra a sequência', async () => {
+    const tenantId = await clinica('afasta3')
+    await seedMetrica(tenantId, 'peso_teste')
+    const pac = await seedPaciente(tenantId)
+    // Subiu, DESCEU, subiu: não são três transições na mesma direção.
+    await metaEMedicoes(tenantId, pac, [
+      { valor: 80, em: '2026-08-01T12:00:00.000Z' },
+      { valor: 84, em: '2026-08-04T12:00:00.000Z' },
+      { valor: 82, em: '2026-08-07T12:00:00.000Z' },
+      { valor: 85, em: '2026-08-09T12:00:00.000Z' },
+    ])
+
+    const c = await afastando().enumerate(
+      ctx(tenantId, { metricType: 'peso_teste', consecutivas: 3 }),
+    )
+    expect(c.map((x) => x.patientId)).not.toContain(pac)
+  })
+
+  /**
+   * Quem nunca entrou no portal não sumiu — nunca chegou. É outro público, e
+   * "faz tempo que não vemos você por aqui" para quem jamais esteve soa como
+   * mensagem trocada, porque é.
+   */
+  it('sem_acesso_portal ignora quem NUNCA abriu o portal', async () => {
+    const tenantId = await clinica('portal1')
+    const nunca = await seedPaciente(tenantId)
+    const sumido = await seedPaciente(tenantId)
+
+    await sb
+      .from('patient_portal_access_log' as never)
+      .insert({
+        tenant_id: tenantId,
+        patient_id: sumido,
+        action: 'login_ok',
+        ip_hash: 'hash-de-teste',
+        created_at: '2026-06-01T12:00:00.000Z',
+      } as never)
+      .throwOnError()
+
+    const f = getSource('sem_acesso_portal')
+    const c = await f!.enumerate(ctx(tenantId, { dias: 30 }))
+    const ids = c.map((x) => x.patientId)
+    expect(ids).toContain(sumido)
+    expect(ids).not.toContain(nunca)
+  })
 })

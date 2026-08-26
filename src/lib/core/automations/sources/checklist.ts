@@ -20,7 +20,7 @@
 
 import { z } from 'zod'
 import { registerSource } from './registry'
-import { currentPeriod, type PeriodKind } from '@/lib/core/habits/period'
+import { addDays, currentPeriod, type PeriodKind } from '@/lib/core/habits/period'
 import { pageAll } from './shared'
 import type { EnumerateContext, SourceCandidate } from '../types'
 
@@ -232,3 +232,84 @@ function addDaysIso(iso: string, delta: number): string {
     dt.getUTCDate(),
   ).padStart(2, '0')}`
 }
+
+// ---------------------------------------------------------------------------
+// Sequência de dias marcando o mesmo hábito
+// ---------------------------------------------------------------------------
+
+registerSource({
+  id: 'sequencia_habito',
+  label: 'Sequência de dias marcando o mesmo hábito',
+  group: 'checklist',
+  requiresModule: 'habitos',
+  hint: 'Dispara quando o paciente completa N dias seguidos marcando o hábito escolhido. Reconhece cada sequência uma vez.',
+  /**
+   * Esta NÃO leva `warning`, e a ausência é significativa: é a irmã feliz de
+   * `checklist_sem_marcacao`. Lá o dado está AUSENTE e a inferência precisa de
+   * guarda-corpo; aqui ele está PRESENTE. Quem marcou sete dias marcou sete
+   * dias, e não existe jeito de acusar alguém injustamente por isso.
+   */
+  paramsSchema: z
+    .object({
+      itemId: z.string().min(1).max(80),
+      dias: z.number().int().min(2).max(90),
+    })
+    .strict(),
+  fields: [
+    {
+      name: 'itemId',
+      label: 'Qual hábito',
+      kind: 'select',
+      optionsFrom: 'habit_items',
+    },
+    {
+      name: 'dias',
+      label: 'Dias seguidos',
+      kind: 'number',
+      min: 2,
+      max: 90,
+      defaultValue: 7,
+      hint: 'A sequência conta até HOJE: quebrou ontem, a conta recomeça.',
+    },
+  ],
+  variables: ['habito', 'dias'],
+
+  async enumerate(ctx: EnumerateContext): Promise<SourceCandidate[]> {
+    const { itemId, dias } = ctx.params as { itemId: string; dias: number }
+    const grades = await checklistsComItem(ctx, itemId)
+    if (grades.length === 0) return []
+
+    const out: SourceCandidate[] = []
+    for (const grade of grades) {
+      // Busca só o necessário: a sequência que interessa termina hoje, então
+      // nada antes de `hoje - dias` muda a resposta.
+      const desde = addDays(ctx.today, -(dias + 1))
+      const marcadas = new Set(await marcasNoIntervalo(ctx, grade.id, itemId, desde, ctx.today))
+
+      let seq = 0
+      let dia = ctx.today
+      // O piso é o início da grade: dia anterior a ela não existe, e sem esse
+      // corte um alvo grande contaria "sequência" sobre dias que a grade nem
+      // cobria.
+      while (dia >= grade.start_date && marcadas.has(dia) && seq <= dias) {
+        seq++
+        dia = addDays(dia, -1)
+      }
+      if (seq < dias) continue
+
+      out.push({
+        patientId: grade.patient_id,
+        /**
+         * A chave é a sequência ALCANÇADA, não a data: quem chega a sete dias
+         * hoje segue com sete ou mais amanhã, e chave por data mandaria
+         * parabéns todo dia até a pessoa falhar — transformando reconhecimento
+         * em ruído. Quebrar e reconquistar depois também não repete, e isso é
+         * deliberado: a segunda vez que se chega a "7 dias" não é notícia nova.
+         */
+        occurrenceKey: `${itemId}:${dias}`,
+        variables: { habito: grade.label, dias: String(seq) },
+      })
+    }
+    return out
+  },
+})
