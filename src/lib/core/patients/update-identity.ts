@@ -3,6 +3,7 @@ import { fromTypedInput } from '@/lib/core/whatsapp/phone'
 import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
 import type { PatientSex } from './get'
+import type { MaritalStatus, PatientRace } from './demographics'
 
 export interface UpdatePatientIdentityInput {
   tenantId: string
@@ -10,6 +11,10 @@ export interface UpdatePatientIdentityInput {
   fields: {
     /** `sex` é em claro; null limpa. */
     sex?: PatientSex | null
+    /** Também em claro — ver `demographics.ts`. */
+    maritalStatus?: MaritalStatus | null
+    race?: PatientRace | null
+    occupation?: string | null
     /** Contato principal (exigidos pela Memed para prescrever). */
     phone?: string | null
     email?: string | null
@@ -30,6 +35,14 @@ export interface UpdatePatientIdentityInput {
 function ehTelefone(field: string): boolean {
   return field === 'phone' || field === 'emergencyContactPhone'
 }
+
+/** Campos que NÃO são cifrados (não re-identificam sozinhos) — ver `demographics.ts`. */
+const PLAIN_COLUMNS: ReadonlyArray<[keyof UpdatePatientIdentityInput['fields'], string]> = [
+  ['sex', 'sex'],
+  ['maritalStatus', 'marital_status'],
+  ['race', 'race'],
+  ['occupation', 'occupation'],
+]
 
 const ENC_COLUMNS: ReadonlyArray<[keyof UpdatePatientIdentityInput['fields'], string]> = [
   ['phone', 'phone_enc'],
@@ -61,9 +74,13 @@ export async function updatePatientIdentity(
 
   const update: Record<string, unknown> = {}
 
-  // `sex` em claro.
-  if (input.fields.sex !== undefined) {
-    update.sex = input.fields.sex ?? null
+  // Colunas em claro. Diferente das cifradas, string vazia e null são a mesma
+  // coisa aqui: o CHECK do banco recusa '' nas de lista fechada, e "ocupação
+  // em branco" é ocupação ausente, não ocupação vazia.
+  for (const [field, column] of PLAIN_COLUMNS) {
+    const value = input.fields[field] as string | null | undefined
+    if (value === undefined) continue
+    update[column] = value === null || value.trim() === '' ? null : value.trim()
   }
 
   for (const [field, column] of ENC_COLUMNS) {

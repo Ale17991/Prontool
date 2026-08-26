@@ -4986,12 +4986,15 @@ export type Database = {
           guardian_relationship_enc: string | null
           id: string
           insurance_card_number_enc: string | null
+          marital_status: string | null
           mother_name_enc: string | null
+          occupation: string | null
           outreach_opt_in: boolean
           phone_enc: string | null
           photo_path: string | null
           photo_uploaded_at: string | null
           plan_id: string | null
+          race: string | null
           reminders_opt_in: boolean
           reminders_whatsapp_opt_in: boolean
           rg_enc: string | null
@@ -5026,12 +5029,15 @@ export type Database = {
           guardian_relationship_enc?: string | null
           id?: string
           insurance_card_number_enc?: string | null
+          marital_status?: string | null
           mother_name_enc?: string | null
+          occupation?: string | null
           outreach_opt_in?: boolean
           phone_enc?: string | null
           photo_path?: string | null
           photo_uploaded_at?: string | null
           plan_id?: string | null
+          race?: string | null
           reminders_opt_in?: boolean
           reminders_whatsapp_opt_in?: boolean
           rg_enc?: string | null
@@ -5066,12 +5072,15 @@ export type Database = {
           guardian_relationship_enc?: string | null
           id?: string
           insurance_card_number_enc?: string | null
+          marital_status?: string | null
           mother_name_enc?: string | null
+          occupation?: string | null
           outreach_opt_in?: boolean
           phone_enc?: string | null
           photo_path?: string | null
           photo_uploaded_at?: string | null
           plan_id?: string | null
+          race?: string | null
           reminders_opt_in?: boolean
           reminders_whatsapp_opt_in?: boolean
           rg_enc?: string | null
@@ -8917,7 +8926,13 @@ export type Database = {
       jwt_role: { Args: never; Returns: string }
       jwt_tenant_id: { Args: never; Returns: string }
       list_patients_for_tenant: {
-        Args: { p_key: string; p_tenant_id: string }
+        Args: {
+          p_key: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_tenant_id: string
+        }
         Returns: {
           address_cep: string
           address_city: string
@@ -8935,6 +8950,7 @@ export type Database = {
           ghl_contact_id: string
           id: string
           phone: string
+          total_count: number
           updated_at: string
         }[]
       }

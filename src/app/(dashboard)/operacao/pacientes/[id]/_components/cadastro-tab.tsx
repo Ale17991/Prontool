@@ -128,6 +128,9 @@ export function CadastroTab({
         patientId={patientId}
         identity={{
           sex: patient.sex,
+          maritalStatus: patient.maritalStatus,
+          race: patient.race,
+          occupation: patient.occupation,
           phone: patient.phone,
           email: patient.email,
           socialName: patient.socialName,

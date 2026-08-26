@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { fromTypedInput } from '@/lib/core/whatsapp/phone'
+import type { MaritalStatus, PatientRace } from './demographics'
 import type { DispatchResult } from '@/lib/integrations/types'
 import { publishDomainEvent } from '@/lib/core/events/publish'
 
@@ -40,6 +41,10 @@ export interface CreateManualPatientInput {
   planId?: string | null | undefined
   // Identificação clínica (todos opcionais; PII cifrada, exceto `sex`).
   sex?: PatientSex | null | undefined
+  /** Estado civil, raça/cor e ocupação: colunas em claro (ver `demographics.ts`). */
+  maritalStatus?: MaritalStatus | null | undefined
+  race?: PatientRace | null | undefined
+  occupation?: string | null | undefined
   socialName?: string | null | undefined
   motherName?: string | null | undefined
   rg?: string | null | undefined
@@ -144,6 +149,10 @@ export async function createPatientManually(
       address_state_enc: addrState,
       plan_id: input.planId ?? null,
       sex: input.sex ?? null,
+      // Em claro, como `sex`: não re-identificam sozinhos e o uso é agregado.
+      marital_status: input.maritalStatus ?? null,
+      race: input.race ?? null,
+      occupation: input.occupation?.trim() || null,
       social_name_enc: socialName,
       mother_name_enc: motherName,
       rg_enc: rg,

@@ -3,6 +3,7 @@ import type { Database } from '@/lib/db/types'
 import { NotFoundError } from '@/lib/observability/errors'
 import { createSignedUrlOrNull } from '@/lib/core/storage/signed-url'
 import { PATIENT_PHOTO_BUCKET, PATIENT_PHOTO_SIGNED_URL_TTL_SECONDS } from './photo'
+import type { MaritalStatus, PatientRace } from './demographics'
 
 /**
  * Detalhe do paciente com PII descriptografada via RPC
@@ -28,6 +29,10 @@ export interface PatientDetail {
   fullName: string
   socialName: string | null
   sex: PatientSex | null
+  /** Colunas em claro (0208) — não passam pelo RPC de decifragem. */
+  maritalStatus: MaritalStatus | null
+  race: PatientRace | null
+  occupation: string | null
   cpf: string
   rg: string | null
   motherName: string | null
@@ -125,7 +130,9 @@ export async function getPatient(
   // com embed do health_plans pra pegar o nome numa única ida ao banco.
   const planResult = await supabase
     .from('patients')
-    .select('plan_id, status, alert_note, photo_path, health_plans:plan_id ( id, name )')
+    .select(
+      'plan_id, status, alert_note, photo_path, marital_status, race, occupation, health_plans:plan_id ( id, name )',
+    )
     .eq('tenant_id', args.tenantId)
     .eq('id', args.patientId)
     .maybeSingle()
@@ -134,6 +141,9 @@ export async function getPatient(
     status?: string | null
     alert_note?: string | null
     photo_path?: string | null
+    marital_status?: string | null
+    race?: string | null
+    occupation?: string | null
   } | null
   const photoSignedUrl = await createSignedUrlOrNull(
     supabase,
@@ -148,6 +158,9 @@ export async function getPatient(
     fullName: row.full_name ?? '',
     socialName: row.social_name,
     sex: (row.sex as PatientSex | null) ?? null,
+    maritalStatus: (opsRow?.marital_status as MaritalStatus | null) ?? null,
+    race: (opsRow?.race as PatientRace | null) ?? null,
+    occupation: opsRow?.occupation ?? null,
     cpf: row.cpf ?? '',
     rg: row.rg,
     motherName: row.mother_name,
