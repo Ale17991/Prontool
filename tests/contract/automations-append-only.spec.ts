@@ -274,6 +274,30 @@ describe('Feature 056 — retentativa de falha (0203)', () => {
   })
 
   /**
+   * A 0210. Número que não tem WhatsApp é estado do mundo, e retentar é inútil
+   * POR CONSTRUÇÃO: a Evolution já respondeu `exists:false`. Insistir queimaria
+   * até três vagas do ciclo — e a vaga é uma só (0199) — calando as outras
+   * automações da clínica para tentar de novo o que não pode dar certo.
+   */
+  it('impedido_sem_whatsapp é final: retentar é inútil por construção', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'impedido_sem_whatsapp')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'pendente', attempts: 2 } as never)
+      .eq('id', id)
+    expect(error).not.toBeNull()
+  })
+
+  it('o desfecho impedido_sem_whatsapp é aceito pelo CHECK', async () => {
+    const id = await novaOcorrencia(tenantId, automationId, patientId, 'pendente')
+    const { error } = await sb
+      .from('automation_occurrences' as never)
+      .update({ outcome: 'impedido_sem_whatsapp' } as never)
+      .eq('id', id)
+    expect(error).toBeNull()
+  })
+
+  /**
    * A 0205: excluir a AUTOMAÇÃO é recusado quando ela já produziu ocorrência.
    *
    * A 0196 dizia CASCADE e nunca funcionou — o DELETE cascateado esbarrava neste
