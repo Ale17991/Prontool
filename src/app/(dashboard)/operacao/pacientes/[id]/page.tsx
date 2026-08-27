@@ -403,6 +403,13 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
   const canApplyAnamnesis = session.role === 'admin'
   const canDeleteAnamnese = session.role === 'admin'
   const canWriteVitals = session.role === 'admin' || session.role === 'profissional_saude'
+  // Foto de evolução inclui a RECEPÇÃO: em clínica de estética quem fotografa
+  // é quem recebe. `financeiro` fica de fora — é o dado mais sensível da ficha
+  // e não tem uso financeiro. Mesma lista da rota (defesa em profundidade).
+  const canWritePhotos =
+    session.role === 'admin' ||
+    session.role === 'recepcionista' ||
+    session.role === 'profissional_saude'
   const canWriteDiagnosis = session.role === 'admin' || session.role === 'profissional_saude'
   const canDeleteDiagnosis = session.role === 'admin'
   const canRecordPayment = session.role === 'admin' || session.role === 'financeiro'
@@ -552,6 +559,7 @@ export default async function PacienteDetailPage({ params, searchParams }: PageP
           hasHabitos,
           hasNutriAvaliacao,
           canWriteVitals,
+          canWritePhotos,
           canWriteDiagnosis,
           canDeleteDiagnosis,
         }}

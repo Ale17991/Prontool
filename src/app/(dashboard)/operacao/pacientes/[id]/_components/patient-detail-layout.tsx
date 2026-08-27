@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PatientQuickView } from './patient-quick-view'
 import { ClinicalTimeline } from './clinical-timeline'
 import { CadastroTab } from './cadastro-tab'
+import { ProgressPhotosSection } from './progress-photos-section'
 import { HabitsSection } from '../habits-section'
 import { CareNotesEditor } from '../care-notes-editor'
 import { WorkoutEditor } from '../workout-editor'
@@ -90,6 +91,7 @@ interface Props {
     hasHabitos: boolean
     hasNutriAvaliacao: boolean
     canWriteVitals: boolean
+    canWritePhotos: boolean
     canWriteDiagnosis: boolean
     canDeleteDiagnosis: boolean
   }
@@ -252,6 +254,7 @@ export function PatientDetailLayout({
                   authors={authors}
                   canWriteNote={cadastro.canWriteClinical}
                 />
+                <ProgressPhotosSection patientId={patientId} canWrite={cadastro.canWritePhotos} />
               </TabsContent>
             ) : null}
             <TabsContent value="clinico" className="space-y-4">
