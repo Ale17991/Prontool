@@ -38,6 +38,7 @@ const DESFECHO: Record<string, string> = {
   suprimido_teto_clinica: 'Segurada pelo limite do ciclo — sai nos próximos dias',
   impedido_sem_consentimento: 'Paciente sem consentimento para automações',
   impedido_sem_telefone: 'Paciente sem telefone válido no cadastro',
+  impedido_sem_whatsapp: 'O número do paciente não tem WhatsApp — confira o cadastro',
   impedido_variavel_ausente: 'Faltou dado para preencher a mensagem',
   impedido_sem_conexao: 'WhatsApp da clínica fora do ar no momento do envio',
   falhou: 'Falhou',

@@ -360,6 +360,7 @@ async function evaluateTenant(
   let enviadasNoCiclo = 0
   let falhasDeEnvio = 0
   let semConexaoNoEnvio = 0
+  let semWhatsAppNoEnvio = 0
 
   // Um cache por CLÍNICA e por CICLO. Vive só o tempo desta função de propósito:
   // cache que atravessasse ciclos guardaria consentimento já revogado.
@@ -465,6 +466,9 @@ async function evaluateTenant(
       } else if (desfecho === 'falhou') {
         r.falhas++
         falhasDeEnvio++
+      } else if (desfecho === 'sem_whatsapp') {
+        r.impedidas++
+        semWhatsAppNoEnvio++
       } else if (desfecho === 'sem_conexao') {
         // Continua contando como impedida no resultado: o que mudou é que agora
         // ela também vira aviso, e a ocorrência é retentável (0207).
@@ -511,6 +515,36 @@ async function evaluateTenant(
    * alguém reconectar à mão, trocando "não avisou" por "parou de enviar". O
    * espelho continua sendo do serviço; daqui sai o aviso.
    */
+  /**
+   * O AVISO TEM QUE MANDAR A CLÍNICA AO LUGAR CERTO.
+   *
+   * Antes da 0210 isto caía no alerta de falha de envio, que diz "confira a
+   * conexão do número" — e a conexão está perfeita. Alerta que manda caçar a
+   * coisa errada é o que ensina a clínica a ignorar alerta, preocupação que
+   * este arquivo já registra em dois outros lugares.
+   *
+   * E o que estava escondido era ACIONÁVEL: "o telefone deste paciente não tem
+   * WhatsApp" a recepção resolve — confere o cadastro, liga. Virando "falha de
+   * envio", morria como problema técnico nosso.
+   */
+  if (semWhatsAppNoEnvio > 0) {
+    logger.warn({ tenantId, semWhatsApp: semWhatsAppNoEnvio }, 'automations-numero-sem-whatsapp')
+    await dispatchAlert({
+      tenantId,
+      type: 'integration_sync_failed',
+      subjectRef: { provider: 'whatsapp', reason: 'patient_without_whatsapp' },
+      detail: {
+        provider: 'whatsapp',
+        mensagem:
+          semWhatsAppNoEnvio === 1
+            ? 'Um paciente tem telefone cadastrado, mas o número não tem WhatsApp — a mensagem não foi enviada. A conexão da clínica está normal. Confira o cadastro em Pacientes; o histórico da automação mostra quem é.'
+            : `${semWhatsAppNoEnvio} pacientes têm telefone cadastrado, mas o número não tem WhatsApp — as mensagens não foram enviadas. A conexão da clínica está normal. Confira os cadastros em Pacientes; o histórico da automação mostra quem são.`,
+      },
+    }).catch(() => {
+      // Best-effort: alerta não pode derrubar o ciclo das outras clínicas.
+    })
+  }
+
   /**
    * A MESMA doutrina do bloco acima, para a queda descoberta no envio.
    *
@@ -570,7 +604,7 @@ async function enviarUm(args: {
   variables: Record<string, string>
   patientId: string
   occurrenceId: string
-}): Promise<'enviado' | 'falhou' | 'impedido' | 'sem_conexao'> {
+}): Promise<'enviado' | 'falhou' | 'impedido' | 'sem_conexao' | 'sem_whatsapp'> {
   const { supabase, tenantId, patientId, occurrenceId } = args
 
   const key = process.env.PATIENT_DATA_ENCRYPTION_KEY
@@ -654,6 +688,16 @@ async function enviarUm(args: {
       providerMessageId: res.providerMessageId,
     })
     return 'enviado'
+  }
+
+  if (res.kind === 'no_whatsapp') {
+    // O número está bem formado e não tem WhatsApp — a Evolution respondeu
+    // `exists:false`. É estado do mundo, e por isso `impedido_*` (final): a
+    // 0207 abriu retentativa só para indisponibilidade passageira, e insistir
+    // aqui queimaria até três vagas do ciclo contra um número inexistente,
+    // calando as outras automações da clínica.
+    await settleOccurrence(supabase, occurrenceId, 'impedido_sem_whatsapp')
+    return 'sem_whatsapp'
   }
 
   if (res.kind === 'no_connection') {

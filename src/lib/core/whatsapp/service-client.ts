@@ -245,12 +245,35 @@ export async function sendText(args: {
     }
     if (status === 401) return fail('unauthorized', 'invalid or inactive api key')
     if (status === 409) return fail('no_connection', 'no connected instance for this clinic')
+    if (semWhatsApp(body)) return fail('no_whatsapp', 'evolution respondeu exists:false')
     return fail('send_failed', `service responded ${status}`)
   } catch (err) {
     const isTimeout = err instanceof Error && err.name === 'TimeoutError'
     // Retentativa é segura: o serviço deduplica por (tenant_id, external_id).
     return fail(isTimeout ? 'timeout' : 'send_failed', errText(err))
   }
+}
+
+/**
+ * O número existe no WhatsApp?
+ *
+ * A Evolution recusa com 400 e diz textualmente qual é o problema:
+ *
+ *     {"jid":"55...@s.whatsapp.net","exists":false,"number":"55..."}
+ *
+ * O braço traduz esse 400 para 502 e repassa a mensagem crua em `error`, então
+ * é dela que a resposta sai. É farejar string, e é feio — mas o alternativo é
+ * um código de status novo no braço, que vive em outro repositório e em outro
+ * ciclo de deploy. Enquanto isso, "não tem WhatsApp" continuaria virando
+ * "falhou" e sendo retentado três vezes contra um número que a Evolution já
+ * disse que não existe.
+ *
+ * Quando o braço passar a distinguir isso no status, esta função sai e o
+ * chamador não muda.
+ */
+function semWhatsApp(body: unknown): boolean {
+  const erro = (body as { error?: unknown } | null)?.error
+  return typeof erro === 'string' && /"exists"s*:s*false/.test(erro)
 }
 
 function fail(kind: WhatsAppSendFailure, detail: string): WhatsAppSendResult {

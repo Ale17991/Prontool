@@ -28,6 +28,7 @@ export type OccurrenceOutcome =
   | 'suprimido_teto_clinica'
   | 'impedido_sem_consentimento'
   | 'impedido_sem_telefone'
+  | 'impedido_sem_whatsapp'
   | 'impedido_variavel_ausente'
   | 'impedido_sem_conexao'
   | 'falhou'

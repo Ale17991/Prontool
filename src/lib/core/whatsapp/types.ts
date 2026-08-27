@@ -85,9 +85,18 @@ export type WhatsAppSendResult =
  *   inteiro e vira uma única ocorrência agregada (FR-012), em vez de uma falha
  *   por paciente.
  * - `unauthorized`: a credencial da clínica é inválida — configuração quebrada.
+ * - `no_whatsapp`: o número está bem formado e simplesmente NÃO TEM WhatsApp —
+ *   a Evolution responde `exists:false`. É estado do mundo, não indisponibilidade:
+ *   retentar é inútil por construção, e insistir queima a vaga do ciclo (0199)
+ *   calando as outras mensagens da clínica.
  * - `send_failed` / `timeout`: falha pontual daquela mensagem; o lote continua.
  */
-export type WhatsAppSendFailure = 'no_connection' | 'unauthorized' | 'send_failed' | 'timeout'
+export type WhatsAppSendFailure =
+  | 'no_connection'
+  | 'no_whatsapp'
+  | 'unauthorized'
+  | 'send_failed'
+  | 'timeout'
 
 /** Instância como devolvida pelo serviço na listagem. */
 export interface WhatsAppServiceInstance {
