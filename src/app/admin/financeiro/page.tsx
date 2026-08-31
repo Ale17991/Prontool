@@ -6,7 +6,11 @@ import { getPlanPrices, type PlanPrices } from '@/lib/core/admin/plan-prices'
 import { PLAN_LABEL, type Plan } from '@/lib/core/entitlements/plans'
 import { formatCurrency } from '@/lib/utils'
 import type { Database } from '@/lib/db/types'
+import { listPartners, type BillingPartner } from '@/lib/core/billing/partners'
+import { partnerSplitTotals } from '@/lib/core/billing/charges'
+import { isAsaasConfigured, asaasEnvironment } from '@/lib/core/billing/asaas/client'
 import { PlanPricesForm } from './plan-prices-form'
+import { PartnersSection } from './partners-form'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +25,18 @@ export default async function AdminFinanceiroPage() {
     ;[summary, prices] = await Promise.all([getFinancialSummary(sb, {}), getPlanPrices(sb)])
   } catch {
     summary = null
+  }
+
+  // Parceiros/split vivem em tabelas da 0212. Falham em separado do resumo de
+  // propósito: antes da migration aplicada, a seção some e o MRR continua na
+  // tela — degradar a página inteira por causa de uma tabela que ainda não
+  // existe esconderia o número que o /admin existe para mostrar.
+  let partners: BillingPartner[] = []
+  let splitTotals: Awaited<ReturnType<typeof partnerSplitTotals>> = []
+  try {
+    ;[partners, splitTotals] = await Promise.all([listPartners(sb), partnerSplitTotals(sb)])
+  } catch {
+    partners = []
   }
 
   return (
@@ -121,6 +137,21 @@ export default async function AdminFinanceiroPage() {
           </div>
 
           <PlanPricesForm prices={prices} />
+
+          <PartnersSection partners={partners} totals={splitTotals} />
+
+          <p className="text-xs text-slate-400">
+            Cobrança via Asaas:{' '}
+            {isAsaasConfigured() ? (
+              <span className="font-medium text-slate-600">
+                conectado ({asaasEnvironment() === 'production' ? 'produção' : 'sandbox'})
+              </span>
+            ) : (
+              <span className="font-medium text-[hsl(var(--warning-foreground))]">
+                não configurado — defina ASAAS_API_KEY
+              </span>
+            )}
+          </p>
         </>
       )}
     </div>

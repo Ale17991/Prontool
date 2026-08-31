@@ -14,6 +14,12 @@ import {
   type ClinicUserRow,
 } from './clinic-detail'
 import type { Plan } from '@/lib/core/entitlements/plans'
+import { getTenantBilling } from '@/lib/core/billing/subscription'
+import { getPlanPrices } from '@/lib/core/admin/plan-prices'
+import { listChargesForTenant, type BillingCharge } from '@/lib/core/billing/charges'
+import { listPartners, type BillingPartner } from '@/lib/core/billing/partners'
+import { isAsaasConfigured } from '@/lib/core/billing/asaas/client'
+import { BillingCard } from './billing-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,6 +83,33 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
   const isSuper = (await superAdminUserId()) !== null
 
   const profile = await getClinicProfile(sb, id)
+
+  // Cobrança (0212). Falha em separado do resto da ficha: enquanto a migration
+  // não estiver aplicada, o bloco some e o hub da clínica continua servindo —
+  // derrubar a página inteira por uma tabela ausente tiraria do ar o lugar de
+  // onde se troca plano e se libera módulo.
+  let billing: Awaited<ReturnType<typeof getTenantBilling>> = null
+  let charges: BillingCharge[] = []
+  let partners: BillingPartner[] = []
+  let planPriceCents = 0
+  let billingAvailable = true
+  try {
+    const [b, c, p, prices] = await Promise.all([
+      getTenantBilling(sb, id),
+      listChargesForTenant(sb, id),
+      listPartners(sb),
+      getPlanPrices(sb),
+    ])
+    billing = b
+    charges = c
+    partners = p
+    // Preço de TABELA do plano — é o que o card mostra como "vazio = ...".
+    // O valor negociado (override) já viaja em `billing.priceCents`.
+    planPriceCents =
+      prices[((entRes.data as { plan?: string } | null)?.plan as Plan) ?? 'legacy'] ?? 0
+  } catch {
+    billingAvailable = false
+  }
 
   const ent = entRes.data as {
     plan: string
@@ -171,6 +204,17 @@ export default async function AdminClinicaDetailPage({ params }: { params: { id:
           email: profile.email,
         }}
       />
+
+      {billingAvailable && (
+        <BillingCard
+          tenantId={tenant.id}
+          billing={billing}
+          charges={charges}
+          partners={partners}
+          planPriceCents={planPriceCents}
+          asaasConfigured={isAsaasConfigured()}
+        />
+      )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <h3 className="mb-1 text-sm font-bold text-slate-900">Usuários da clínica</h3>
