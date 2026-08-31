@@ -120,9 +120,13 @@ export function PartnersSection({
       </div>
 
       <p className="mb-3 text-xs text-slate-500">
-        Parte da assinatura vai direto para a carteira do parceiro, dividida pelo próprio Asaas. O
-        valor dividido é gravado na fatura no momento da emissão — mudar a regra aqui não altera o
-        que já foi cobrado.
+        Parte da assinatura vai direto para a carteira do parceiro, dividida pelo próprio Asaas.{' '}
+        <strong className="text-slate-700">
+          Quanto cada clínica repassa é definido na página dela
+        </strong>
+        , porque depende do plano que ela contratou do parceiro — o valor abaixo é só o padrão,
+        usado quando a clínica não tem o próprio. O que foi dividido fica gravado na fatura: mudar a
+        regra não altera o que já foi cobrado.
       </p>
 
       {partners.length === 0 ? (
@@ -229,7 +233,9 @@ export function PartnersSection({
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div>
-              <Label className="text-[11px] font-bold uppercase text-slate-500">Tipo</Label>
+              <Label className="text-[11px] font-bold uppercase text-slate-500">
+                Tipo do padrão
+              </Label>
               <select
                 value={form.mode}
                 onChange={(e) => setForm({ ...form, mode: e.target.value as SplitMode })}
@@ -253,9 +259,7 @@ export function PartnersSection({
               </div>
             ) : (
               <div>
-                <Label className="text-[11px] font-bold uppercase text-slate-500">
-                  R$ por cobrança
-                </Label>
+                <Label className="text-[11px] font-bold uppercase text-slate-500">R$ padrão</Label>
                 <Input
                   value={form.fixed}
                   onChange={(e) => setForm({ ...form, fixed: e.target.value })}

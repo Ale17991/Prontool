@@ -51,11 +51,7 @@ export async function GET(req: Request): Promise<Response> {
     const from = periodo.from ?? noventaDiasAtras()
     const { registros, paginacao } = await listPartnerBillingRecords(
       ctx.supabase,
-      {
-        id: ctx.partner.id,
-        splitPercentBps: ctx.partner.splitPercentBps,
-        splitFixedCents: ctx.partner.splitFixedCents,
-      },
+      { id: ctx.partner.id },
       {
         from,
         to: periodo.to,

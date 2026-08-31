@@ -27,7 +27,7 @@ import {
 } from './asaas/client'
 import type { AsaasBillingType, AsaasCycle } from './asaas/types'
 import { upsertChargeFromAsaas } from './charges'
-import { buildSplit, getPartner, type BillingPartner } from './partners'
+import { buildSplit, getPartner, resolveSplitRule, type BillingPartner } from './partners'
 
 export interface TenantBilling {
   tenantId: string
@@ -39,6 +39,9 @@ export interface TenantBilling {
   priceCents: number | null
   nextDueDate: string | null
   partnerId: string | null
+  /** Repasse desta clínica ao parceiro. NULL nos dois = usa o padrão do parceiro. */
+  splitPercentBps: number | null
+  splitFixedCents: number | null
   notes: string | null
 }
 
@@ -51,11 +54,13 @@ interface BillingRow {
   price_cents: number | null
   next_due_date: string | null
   partner_id: string | null
+  split_percent_bps: number | null
+  split_fixed_cents: number | null
   notes: string | null
 }
 
 const COLUMNS =
-  'tenant_id, asaas_customer_id, asaas_subscription_id, billing_cycle, billing_type, price_cents, next_due_date, partner_id, notes'
+  'tenant_id, asaas_customer_id, asaas_subscription_id, billing_cycle, billing_type, price_cents, next_due_date, partner_id, split_percent_bps, split_fixed_cents, notes'
 
 function mapRow(r: BillingRow): TenantBilling {
   return {
@@ -67,6 +72,8 @@ function mapRow(r: BillingRow): TenantBilling {
     priceCents: r.price_cents,
     nextDueDate: r.next_due_date,
     partnerId: r.partner_id,
+    splitPercentBps: r.split_percent_bps,
+    splitFixedCents: r.split_fixed_cents,
     notes: r.notes,
   }
 }
@@ -90,6 +97,9 @@ export interface SaveTenantBillingInput {
   priceCents?: number | null
   nextDueDate?: string | null
   partnerId?: string | null
+  /** Repasse ao parceiro. `null` nos dois volta ao padrão do parceiro. */
+  splitPercentBps?: number | null
+  splitFixedCents?: number | null
   notes?: string | null
 }
 
@@ -112,6 +122,16 @@ export async function saveTenantBilling(
   if (input.nextDueDate && !/^\d{4}-\d{2}-\d{2}$/.test(input.nextDueDate)) {
     throw new ValidationError('Data de vencimento deve ser AAAA-MM-DD.')
   }
+  // O banco já barra os dois modos juntos; barrar aqui devolve mensagem em
+  // português em vez de erro de constraint na cara de quem está configurando.
+  if (
+    input.splitPercentBps !== undefined &&
+    input.splitPercentBps !== null &&
+    input.splitFixedCents !== undefined &&
+    input.splitFixedCents !== null
+  ) {
+    throw new ValidationError('Escolha percentual OU valor fixo no repasse, não os dois.')
+  }
 
   const row: Record<string, unknown> = { tenant_id: tenantId }
   if (input.billingCycle !== undefined) row.billing_cycle = input.billingCycle
@@ -119,6 +139,8 @@ export async function saveTenantBilling(
   if (input.priceCents !== undefined) row.price_cents = input.priceCents
   if (input.nextDueDate !== undefined) row.next_due_date = input.nextDueDate
   if (input.partnerId !== undefined) row.partner_id = input.partnerId
+  if (input.splitPercentBps !== undefined) row.split_percent_bps = input.splitPercentBps
+  if (input.splitFixedCents !== undefined) row.split_fixed_cents = input.splitFixedCents
   if (input.notes !== undefined) row.notes = input.notes
 
   const { error } = await supabase
@@ -295,7 +317,12 @@ export async function startOrUpdateSubscription(
   const partner: BillingPartner | null = billing?.partnerId
     ? await getPartner(supabase, billing.partnerId)
     : null
-  const split = buildSplit(partner, amountCents)
+  // A regra da CLÍNICA manda; a do parceiro é só o padrão (0216 D1).
+  const rule = resolveSplitRule(partner, {
+    percentBps: billing?.splitPercentBps ?? null,
+    fixedCents: billing?.splitFixedCents ?? null,
+  })
+  const split = buildSplit(partner, rule, amountCents)
 
   const cycle = billing?.billingCycle ?? 'MONTHLY'
   const billingType = billing?.billingType ?? 'UNDEFINED'

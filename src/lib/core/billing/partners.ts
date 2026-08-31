@@ -156,6 +156,37 @@ export async function upsertPartner(
   return (data as unknown as { id: string }).id
 }
 
+/** Regra de repasse já resolvida — de quem recebe e quanto. */
+export interface SplitRule {
+  walletId: string | null
+  percentBps: number | null
+  fixedCents: number | null
+}
+
+/**
+ * Regra que VALE para esta clínica (0216 D1).
+ *
+ * A da clínica manda; a do parceiro é só o padrão, usado quando a clínica não
+ * tem a própria. Mesmo desenho de `tenant_billing.price_cents`, que é NULL
+ * quando se usa o preço de tabela do plano.
+ *
+ * A escolha é por MODO, não campo a campo: uma clínica que define percentual
+ * não herda o valor fixo do parceiro. Misturar os dois produziria uma regra que
+ * ninguém escreveu.
+ */
+export function resolveSplitRule(
+  partner: BillingPartner | null,
+  clinica: { percentBps: number | null; fixedCents: number | null },
+): SplitRule {
+  if (!partner) return { walletId: null, percentBps: null, fixedCents: null }
+  const temPropria = clinica.percentBps !== null || clinica.fixedCents !== null
+  return {
+    walletId: partner.asaasWalletId,
+    percentBps: temPropria ? clinica.percentBps : partner.splitPercentBps,
+    fixedCents: temPropria ? clinica.fixedCents : partner.splitFixedCents,
+  }
+}
+
 /**
  * Monta o objeto de split do Asaas para uma cobrança de `amountCents`.
  *
@@ -167,14 +198,19 @@ export async function upsertPartner(
  * escolha: recusar a cobrança inteira porque o parceiro não terminou de abrir
  * a conta deixaria a Clinni sem receber. Fica o aviso no log; o acerto com o
  * parceiro é conversa comercial, não bloqueio de faturamento.
+ *
+ * Sem regra também não divide (0216 D2). É a direção segura: o dinheiro fica
+ * conosco e se resolve conversando. Dividir por engano manda dinheiro para
+ * fora, e isso não volta.
  */
 export function buildSplit(
   partner: BillingPartner | null,
+  rule: SplitRule,
   amountCents: number,
 ): { split: AsaasSplit[]; amountCents: number } | null {
   if (!partner) return null
   if (partner.status !== 'active') return null
-  if (!partner.asaasWalletId) {
+  if (!rule.walletId) {
     logger.warn(
       { event: 'billing_partner.no_wallet', slug: partner.slug },
       'partner-without-wallet-skipping-split',
@@ -182,8 +218,8 @@ export function buildSplit(
     return null
   }
   const cents = splitAmountCents(amountCents, {
-    splitPercentBps: partner.splitPercentBps,
-    splitFixedCents: partner.splitFixedCents,
+    splitPercentBps: rule.percentBps,
+    splitFixedCents: rule.fixedCents,
   })
   if (cents === null || cents <= 0) return null
 
@@ -192,7 +228,7 @@ export function buildSplit(
   // snapshot. Deixar o Asaas recalcular o percentual criaria duas verdades
   // sobre a mesma divisão, com arredondamentos que não têm por que coincidir.
   return {
-    split: [{ walletId: partner.asaasWalletId, fixedValue: cents / 100 }],
+    split: [{ walletId: rule.walletId, fixedValue: cents / 100 }],
     amountCents: cents,
   }
 }

@@ -22,7 +22,6 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
-import { splitAmountCents } from '@/lib/core/billing/asaas/money'
 import { varrerTudo } from './scan'
 import { MAX_POR_PAGINA, type Paginacao } from './financeiro'
 
@@ -287,14 +286,18 @@ export interface PartnerBillingRecord {
  * que custa retificação — quem quiser enxergar a fila em aberto pede
  * `incluirPendentes`.
  *
- * O valor do repasse sai do SNAPSHOT gravado na emissão. Cobrança anterior à
- * regra de split atual (ou emitida quando o parceiro ainda não tinha carteira)
- * tem snapshot nulo; nesse caso recalculamos pela regra vigente apenas para
- * INFORMAR, nunca gravando — e a diferença, se houver, é conversa comercial.
+ * O valor do repasse sai do SNAPSHOT gravado na emissão, e SÓ dele. Snapshot
+ * nulo vira zero, porque é o que aconteceu: aquela cobrança não foi dividida —
+ * emitida antes de haver regra, ou com o parceiro ainda sem carteira.
+ *
+ * Recalcular pela regra de hoje seria pior que inútil desde a 0216: a regra é
+ * por CLÍNICA e muda com o plano que ela contratou, então o número recomposto
+ * descreveria um repasse que nunca existiu, num campo que o parceiro usa para
+ * emitir nota.
  */
 export async function listPartnerBillingRecords(
   supabase: SupabaseClient<Database>,
-  partner: { id: string; splitPercentBps: number | null; splitFixedCents: number | null },
+  partner: { id: string },
   opts: {
     from?: string
     to?: string
@@ -364,13 +367,7 @@ export async function listPartnerBillingRecords(
 
   const registros = charges.map((c) => {
     const p = profById.get(c.tenant_id) ?? {}
-    const repasse =
-      c.split_amount_cents ??
-      splitAmountCents(c.amount_cents, {
-        splitPercentBps: partner.splitPercentBps,
-        splitFixedCents: partner.splitFixedCents,
-      }) ??
-      0
+    const repasse = c.split_amount_cents ?? 0
     return {
       cobranca_id: c.id,
       clinica: {
