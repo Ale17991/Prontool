@@ -94,10 +94,16 @@ function main() {
     // requireRole internamente e ainda aplica gate de módulo, isolamento por
     // clínica e recusa de paciente anonimizado. É reconhecido como autenticador,
     // e NÃO isento: uma rota que não chame nenhum destes continua reprovando.
+    // OU openPartnerRequest (API de parceiro): guard único de /api/parceiros/*,
+    // que autentica por chave de parceiro (SHA-256 + comparação em tempo
+    // constante), exige escopo e recusa parceiro inativo. Não é sessão de
+    // usuário — o consumidor é um sistema de fora —, mas é autenticação de
+    // verdade, e por isso entra aqui em vez de virar caminho isento.
     const hasAuth =
       /requireRole\s*\(/.test(src) ||
       /getSession(FromRequest)?\s*\(/.test(src) ||
       /openPrintout\s*\(/.test(src) ||
+      /openPartner(Clinic)?Request\s*\(/.test(src) ||
       /(superAdminUserId|platformAdminUserId)\s*\(/.test(src)
     if (!hasAuth) {
       offenders.push({ rel, verbs })

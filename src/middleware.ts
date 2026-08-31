@@ -220,6 +220,21 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/api/workers') ||
+    // API de parceiro: quem chama é um sistema de fora, autenticado por CHAVE
+    // (openPartnerRequest), nunca por cookie do Supabase. Sem estar aqui a
+    // requisição ainda passava — /api/* não sofre redirect —, mas pagava um
+    // getUser() contra o Supabase em toda chamada para descobrir que não há
+    // sessão. É latência pura numa integração que pagina.
+    pathname.startsWith('/api/parceiros/') ||
+    // Documentação pública da API. NÃO é rota de API, então sem esta linha o
+    // middleware manda para /login quem não tem sessão — que é exatamente o
+    // desenvolvedor de fora para quem a página existe.
+    pathname === '/docs' ||
+    pathname.startsWith('/docs/') ||
+    // Entrega da credencial de parceiro por link de uso único. Mesma razão: o
+    // desenvolvedor do parceiro não tem conta aqui, e a autenticação é a posse
+    // do token de 256 bits na própria URL.
+    pathname.startsWith('/parceiro/credenciais/') ||
     // Logout limpa os cookies de sessão — o refresh do middleware não pode
     // re-setá-los e atrapalhar o sign-out.
     pathname.startsWith('/api/auth/logout') ||
