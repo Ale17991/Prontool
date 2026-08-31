@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { superAdminUserId } from '@/lib/auth/platform-admin'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
@@ -17,7 +18,7 @@ import {
   validarFaixas,
   type CredentialLink,
 } from '@/lib/core/partners/credential-link'
-import { resolvePublicBaseUrl } from '@/lib/core/app-url'
+import { originFromHeaders } from '@/lib/core/app-url'
 import {
   cancelTenantSubscription,
   saveTenantBilling,
@@ -174,7 +175,12 @@ export async function adminGerarCredenciaisAction(input: {
       allowedIps,
       keyExpiresAt,
       ttlHoras: input.ttlHoras,
-      baseUrl: resolvePublicBaseUrl(),
+      // Origem REAL da requisição, não `NEXT_PUBLIC_APP_URL`. A env não está
+      // garantida no build da Vercel, e sem ela `resolvePublicBaseUrl()` devolve
+      // `http://localhost:3000` — o link sairia inútil para o parceiro, e o
+      // erro só apareceria do lado dele. O domínio que quem gera está usando é
+      // o domínio certo por construção.
+      baseUrl: originFromHeaders(headers()),
     })
     revalidatePath('/admin/financeiro')
     return { ok: true, data: link }
