@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
 import { sendSupportTicketEmail } from '@/lib/integrations/email/resend-client'
+import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
+import { isHomioCrmConfigured, sendTicketToHomioCrm } from './crm'
 import { KIND_LABELS, type SupportTicketCreateInput } from './schema'
 
 export interface CreateSupportTicketContext {
@@ -16,6 +18,8 @@ export interface CreateSupportTicketContext {
 export interface CreateSupportTicketResult {
   id: string
   emailDelivered: boolean
+  /** `false` também quando o CRM não está configurado — não é falha. */
+  crmDelivered: boolean
 }
 
 /**
@@ -88,5 +92,89 @@ export async function createSupportTicket(
     )
   }
 
-  return { id: ticketId, emailDelivered }
+  // CRM da Homio (0218). Best-effort pelo mesmo motivo do e-mail: o ticket já
+  // está gravado, e o GHL fora do ar não pode transformar "reclamação
+  // registrada" em erro na cara de quem estava pedindo ajuda.
+  //
+  // Service client, e não o `supabase` recebido: `tenant_crm_contacts` é tabela
+  // de plataforma, sem policy para `authenticated`. O INSERT do ticket acima
+  // continua passando pela RLS, que é onde ela importa.
+  let crmDelivered = false
+  if (isHomioCrmConfigured()) {
+    try {
+      const service = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
+      const clinica = await carregarClinica(service, ctx.tenantId, ctx.tenantName)
+      crmDelivered = await sendTicketToHomioCrm(service, clinica, {
+        ticketId,
+        kind: input.kind,
+        title: input.title,
+        description: input.description,
+        pageUrl: input.pageUrl ?? null,
+        userEmail: ctx.userEmail,
+        userRole: ctx.userRole,
+      })
+    } catch (err) {
+      logger.error(
+        {
+          err: err instanceof Error ? err.message : String(err),
+          ticket_id: ticketId,
+          tenant_id: ctx.tenantId,
+        },
+        'support-ticket-crm-failed',
+      )
+    }
+  }
+
+  return { id: ticketId, emailDelivered, crmDelivered }
+}
+
+/**
+ * Dados da clínica que acompanham o contato no CRM.
+ *
+ * Tudo opcional: clínica com cadastro incompleto ainda vira contato — o que
+ * falta some do registro, e não impede o lead de existir.
+ */
+async function carregarClinica(
+  supabase: SupabaseClient<Database>,
+  tenantId: string,
+  tenantName: string | null,
+): Promise<{
+  tenantId: string
+  nome: string
+  slug: string | null
+  email: string | null
+  telefone: string | null
+  plano: string | null
+  situacao: string | null
+}> {
+  const [tenant, perfil, ent] = await Promise.all([
+    supabase.from('tenants').select('name, slug').eq('id', tenantId).maybeSingle(),
+    supabase
+      .from('tenant_clinic_profile')
+      .select('corporate_name, email, phone')
+      .eq('tenant_id', tenantId)
+      .maybeSingle(),
+    supabase
+      .from('tenant_entitlements')
+      .select('plan, status')
+      .eq('tenant_id', tenantId)
+      .maybeSingle(),
+  ])
+  const t = tenant.data as { name?: string; slug?: string } | null
+  const p = perfil.data as {
+    corporate_name?: string | null
+    email?: string | null
+    phone?: string | null
+  } | null
+  const e = ent.data as { plan?: string | null; status?: string | null } | null
+
+  return {
+    tenantId,
+    nome: t?.name ?? tenantName ?? 'Clínica sem nome',
+    slug: t?.slug ?? null,
+    email: p?.email ?? null,
+    telefone: p?.phone ?? null,
+    plano: e?.plan ?? null,
+    situacao: e?.status ?? null,
+  }
 }
