@@ -197,7 +197,11 @@ interface PipelineAlvo {
  * jogar ticket no funil de vendas errado é pior que não criar o card, e o
  * aviso diz quais existem para a env ser preenchida.
  */
-async function pipelineAlvo(token: string, locationId: string): Promise<PipelineAlvo | null> {
+async function pipelineAlvo(
+  token: string,
+  locationId: string,
+  diag: Record<string, unknown>,
+): Promise<PipelineAlvo | null> {
   if (
     cachePipeline &&
     cachePipeline.locationId === locationId &&
@@ -234,6 +238,11 @@ async function pipelineAlvo(token: string, locationId: string): Promise<Pipeline
           nome: escolhido.name ?? '—',
         }
       } else {
+        // Distingue "o nome não bate" de "não vieram pipelines": no primeiro
+        // caso a correção é a env, no segundo é o escopo do token. Sem separar,
+        // as duas apareciam como o mesmo "não encontrei".
+        diag.pipeline_procurado = desejado
+        diag.pipelines_na_location = pipelines.map((p) => p.name)
         logger.warn(
           {
             event: 'homio_crm.pipeline_nao_encontrado',
@@ -244,6 +253,10 @@ async function pipelineAlvo(token: string, locationId: string): Promise<Pipeline
         )
       }
     } else {
+      // Quase sempre escopo faltando no Private Integration Token
+      // (opportunities.readonly). O status é o que diz isso.
+      diag.pipelines_http = res.status
+      diag.pipelines_resposta = (await res.text().catch(() => '')).slice(0, 200)
       logger.warn({ status: res.status }, 'homio-crm-pipelines-failed')
     }
   } catch (err) {
@@ -273,7 +286,7 @@ async function criarOportunidade(
   ticket: TicketParaCrm,
   diag: Record<string, unknown>,
 ): Promise<void> {
-  const alvo = await pipelineAlvo(token, locationId)
+  const alvo = await pipelineAlvo(token, locationId, diag)
   if (!alvo) {
     diag.pipeline = 'nao_encontrado'
     return
