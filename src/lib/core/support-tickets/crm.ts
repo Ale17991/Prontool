@@ -140,6 +140,129 @@ function montarCampos(
 }
 
 // =========================================================================
+// Pipeline de suporte — cada ticket vira um card
+// =========================================================================
+
+let cachePipeline: { locationId: string; emMs: number; alvo: PipelineAlvo | null } | null = null
+
+interface PipelineAlvo {
+  pipelineId: string
+  stageId: string
+  nome: string
+}
+
+/**
+ * Pipeline onde o ticket vira oportunidade, e o PRIMEIRO estágio dela.
+ *
+ * Resolvido por NOME (`GHL_HOMIO_PIPELINE`, padrão "Suporte"), pelo mesmo
+ * motivo dos campos personalizados: exigir id transformaria "criar um pipeline"
+ * em "criar, copiar dois ids e fazer deploy".
+ *
+ * Quando a env não está definida e existe UM pipeline só na location, usamos
+ * ele — não há ambiguidade a resolver. Com vários, preferimos NÃO adivinhar:
+ * jogar ticket no funil de vendas errado é pior que não criar o card, e o
+ * aviso diz quais existem para a env ser preenchida.
+ */
+async function pipelineAlvo(token: string, locationId: string): Promise<PipelineAlvo | null> {
+  if (
+    cachePipeline &&
+    cachePipeline.locationId === locationId &&
+    Date.now() - cachePipeline.emMs < CACHE_MS
+  ) {
+    return cachePipeline.alvo
+  }
+
+  let alvo: PipelineAlvo | null = null
+  try {
+    const res = await fetchWithRetry(
+      `${GHL_API_BASE}/opportunities/pipelines?locationId=${encodeURIComponent(locationId)}`,
+      { method: 'GET', headers: buildHeaders(token) },
+    )
+    if (res.ok) {
+      const body = (await res.json().catch(() => null)) as {
+        pipelines?: Array<{ id?: string; name?: string; stages?: Array<{ id?: string }> }>
+      } | null
+      const pipelines = (body?.pipelines ?? []).filter((p) => p.id && p.stages?.[0]?.id)
+      const desejado = (process.env.GHL_HOMIO_PIPELINE ?? 'Suporte').trim().toLowerCase()
+
+      const escolhido =
+        pipelines.find((p) => (p.name ?? '').trim().toLowerCase() === desejado) ??
+        (process.env.GHL_HOMIO_PIPELINE
+          ? undefined
+          : pipelines.length === 1
+            ? pipelines[0]
+            : undefined)
+
+      if (escolhido) {
+        alvo = {
+          pipelineId: escolhido.id!,
+          stageId: escolhido.stages![0]!.id!,
+          nome: escolhido.name ?? '—',
+        }
+      } else {
+        logger.warn(
+          {
+            event: 'homio_crm.pipeline_nao_encontrado',
+            procurado: desejado,
+            existentes: pipelines.map((p) => p.name),
+          },
+          'homio-crm-pipeline-not-found',
+        )
+      }
+    } else {
+      logger.warn({ status: res.status }, 'homio-crm-pipelines-failed')
+    }
+  } catch (err) {
+    logger.warn(
+      { err: err instanceof Error ? err.message : String(err) },
+      'homio-crm-pipelines-error',
+    )
+  }
+
+  cachePipeline = { locationId, emMs: Date.now(), alvo }
+  return alvo
+}
+
+/**
+ * Cria o card do ticket no pipeline. Best-effort: contato e nota já
+ * aconteceram, e falhar aqui não desfaz o que valeu.
+ *
+ * Um card POR TICKET, de propósito — num funil de suporte cada chamado é um
+ * item a trabalhar e a mover de estágio. Reaproveitar uma oportunidade aberta
+ * esconderia o segundo chamado atrás do primeiro.
+ */
+async function criarOportunidade(
+  token: string,
+  locationId: string,
+  contactId: string,
+  clinica: DadosClinica,
+  ticket: TicketParaCrm,
+): Promise<void> {
+  const alvo = await pipelineAlvo(token, locationId)
+  if (!alvo) return
+
+  const res = await fetchWithRetry(`${GHL_API_BASE}/opportunities/`, {
+    method: 'POST',
+    headers: buildHeaders(token),
+    body: JSON.stringify({
+      pipelineId: alvo.pipelineId,
+      pipelineStageId: alvo.stageId,
+      locationId,
+      contactId,
+      name: `[${KIND_LABELS[ticket.kind]}] ${ticket.title} — ${clinica.nome}`,
+      status: 'open',
+    }),
+  })
+  if (!res.ok) {
+    const texto = await res.text().catch(() => '')
+    logger.warn(
+      { status: res.status, body: texto.slice(0, 200), ticket_id: ticket.ticketId },
+      'homio-crm-opportunity-failed',
+    )
+  }
+}
+
+// =========================================================================
 // Contato da clínica
 // =========================================================================
 
@@ -312,6 +435,9 @@ export async function sendTicketToHomioCrm(
       logger.warn({ status: res.status, ticket_id: ticket.ticketId }, 'homio-crm-note-failed')
       return false
     }
+    const { locationId } = credenciais()
+    await criarOportunidade(token, locationId, contactId, clinica, ticket)
+
     logger.info(
       { event: 'support_ticket.sent_to_crm', ticket_id: ticket.ticketId, kind: ticket.kind },
       'support-ticket-sent-to-crm',
