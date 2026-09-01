@@ -105,6 +105,20 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
       'homio-crm-custom-fields-error',
     )
   }
+  // Campo esperado que não existe na location é pulado — mas em SILÊNCIO seria
+  // pior que o erro: um acento diferente em "Clinni Situação" faria o dado
+  // sumir do CRM sem nada indicar por quê. O aviso nomeia exatamente o que
+  // falta, para a correção ser criar o campo com o nome certo.
+  const faltando = Object.values(CAMPOS_GHL).filter(
+    (nome) => !porNome.has(nome.trim().toLowerCase()),
+  )
+  if (faltando.length > 0) {
+    logger.warn(
+      { event: 'homio_crm.campos_faltando', campos: faltando, encontrados: porNome.size },
+      'homio-crm-custom-fields-missing',
+    )
+  }
+
   cacheCampos = { locationId, emMs: Date.now(), porNome }
   return porNome
 }
