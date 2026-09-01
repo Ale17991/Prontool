@@ -43,6 +43,26 @@ export const CAMPOS_GHL = {
   quemAbriu: 'Clinni Quem abriu',
 } as const
 
+/**
+ * Normaliza o nome do campo para comparar.
+ *
+ * O nome é digitado por gente numa tela do GHL, e a comparação exata quebrava
+ * por qualquer diferença invisível: acento em "Situação", maiúscula em "ID",
+ * hífen em "Clinni - Plano", espaço a mais. Todas essas são a MESMA intenção,
+ * e recusar por causa delas transforma um campo criado corretamente em campo
+ * que não existe.
+ *
+ * Tira acento, caixa e tudo que não é letra ou número — "Clinni - Situação" e
+ * "clinni_situacao" viram a mesma chave.
+ */
+export function chaveDeCampo(nome: string): string {
+  return nome
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
 const TAG_POR_TIPO: Record<SupportTicketKind, string> = {
   bug: 'clinni-bug',
   suggestion: 'clinni-sugestao',
@@ -94,7 +114,7 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
         customFields?: Array<{ id?: string; name?: string }>
       } | null
       for (const c of body?.customFields ?? []) {
-        if (c.id && c.name) porNome.set(c.name.trim().toLowerCase(), c.id)
+        if (c.id && c.name) porNome.set(chaveDeCampo(c.name), c.id)
       }
     } else {
       logger.warn({ status: res.status }, 'homio-crm-custom-fields-failed')
@@ -109,12 +129,16 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
   // pior que o erro: um acento diferente em "Clinni Situação" faria o dado
   // sumir do CRM sem nada indicar por quê. O aviso nomeia exatamente o que
   // falta, para a correção ser criar o campo com o nome certo.
-  const faltando = Object.values(CAMPOS_GHL).filter(
-    (nome) => !porNome.has(nome.trim().toLowerCase()),
-  )
+  const faltando = Object.values(CAMPOS_GHL).filter((nome) => !porNome.has(chaveDeCampo(nome)))
   if (faltando.length > 0) {
+    // Lista também o que EXISTE: saber que faltaram 6 não diz como consertar;
+    // ver os nomes reais ao lado dos esperados mostra a divergência na hora.
     logger.warn(
-      { event: 'homio_crm.campos_faltando', campos: faltando, encontrados: porNome.size },
+      {
+        event: 'homio_crm.campos_faltando',
+        esperados: faltando,
+        existentes: [...porNome.keys()],
+      },
       'homio-crm-custom-fields-missing',
     )
   }
@@ -133,7 +157,7 @@ function montarCampos(
   >) {
     const valor = valores[chave]
     if (!valor) continue
-    const id = porNome.get(nome.trim().toLowerCase())
+    const id = porNome.get(chaveDeCampo(nome))
     if (id) out.push({ id, value: valor })
   }
   return out
@@ -356,12 +380,25 @@ async function garantirContato(
     )
     return null
   }
-  const body = (await res.json().catch(() => null)) as {
-    contact?: { id?: string }
-    id?: string
-  } | null
+  const texto = await res.text().catch(() => '')
+  let body: { contact?: { id?: string }; id?: string } | null = null
+  try {
+    body = JSON.parse(texto) as { contact?: { id?: string }; id?: string }
+  } catch {
+    body = null
+  }
   const contactId = body?.contact?.id ?? body?.id ?? null
-  if (!contactId) return null
+  if (!contactId) {
+    // Este caminho era MUDO: resposta 2xx cujo corpo não traz id reconhecível
+    // devolvia null e o ticket sumia do CRM sem nada no log. Sem a resposta em
+    // mãos não há como saber se o formato mudou ou se veio outra coisa no
+    // lugar. Recortado para não despejar payload inteiro no log.
+    logger.warn(
+      { status: res.status, body: texto.slice(0, 400), tenant_id: clinica.tenantId },
+      'homio-crm-upsert-sem-id',
+    )
+    return null
+  }
 
   const { error } = await supabase.from('tenant_crm_contacts' as never).upsert(
     {
