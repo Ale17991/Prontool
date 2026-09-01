@@ -113,8 +113,14 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
     (nome) => !porNome.has(nome.trim().toLowerCase()),
   )
   if (faltando.length > 0) {
+    // Lista também o que EXISTE: saber que faltaram 6 não diz como consertar;
+    // ver os nomes reais ao lado dos esperados mostra a divergência na hora.
     logger.warn(
-      { event: 'homio_crm.campos_faltando', campos: faltando, encontrados: porNome.size },
+      {
+        event: 'homio_crm.campos_faltando',
+        esperados: faltando,
+        existentes: [...porNome.keys()],
+      },
       'homio-crm-custom-fields-missing',
     )
   }
@@ -356,12 +362,25 @@ async function garantirContato(
     )
     return null
   }
-  const body = (await res.json().catch(() => null)) as {
-    contact?: { id?: string }
-    id?: string
-  } | null
+  const texto = await res.text().catch(() => '')
+  let body: { contact?: { id?: string }; id?: string } | null = null
+  try {
+    body = JSON.parse(texto) as { contact?: { id?: string }; id?: string }
+  } catch {
+    body = null
+  }
   const contactId = body?.contact?.id ?? body?.id ?? null
-  if (!contactId) return null
+  if (!contactId) {
+    // Este caminho era MUDO: resposta 2xx cujo corpo não traz id reconhecível
+    // devolvia null e o ticket sumia do CRM sem nada no log. Sem a resposta em
+    // mãos não há como saber se o formato mudou ou se veio outra coisa no
+    // lugar. Recortado para não despejar payload inteiro no log.
+    logger.warn(
+      { status: res.status, body: texto.slice(0, 400), tenant_id: clinica.tenantId },
+      'homio-crm-upsert-sem-id',
+    )
+    return null
+  }
 
   const { error } = await supabase.from('tenant_crm_contacts' as never).upsert(
     {
