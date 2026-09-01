@@ -172,9 +172,14 @@ export async function peekCredentialLink(
 /**
  * Revela a credencial e queima o link. Só deve ser chamada de um POST.
  *
- * O UPDATE condicional (`revealed_at IS NULL`) é o que garante o uso único:
- * dois POST simultâneos disputam a mesma linha e apenas um afeta registro. Um
- * `SELECT` seguido de `UPDATE` deixaria os dois lerem "ainda não revelado".
+ * Uma chamada só, à RPC `reveal_partner_credential` (0217). A versão anterior
+ * fazia em dois passos — marcava `revealed_at` para reservar a linha, lia o
+ * segredo, depois apagava — e o primeiro passo criava o estado que o CHECK
+ * `partner_credential_links_burned` proíbe: revelado COM segredo. Todo revelar
+ * quebrava com `23514`, e o parceiro via uma tela de erro genérica.
+ *
+ * O uso único agora é o `FOR UPDATE` dentro da função: duas chamadas
+ * simultâneas disputam a linha, e a segunda não encontra mais nada elegível.
  */
 export async function revealCredentialLink(
   supabase: SupabaseClient<Database>,
@@ -183,52 +188,25 @@ export async function revealCredentialLink(
 ): Promise<{ secret: string } | { erro: LinkStatus }> {
   if (!/^[a-f0-9]{64}$/.test(token)) return { erro: 'desconhecido' }
 
-  const { data, error } = await supabase
-    .from('partner_credential_links' as never)
-    .update({ revealed_at: new Date().toISOString(), revealed_ip: ip } as never)
-    .eq('token_hash', sha256(token))
-    .is('revealed_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .select('id, api_key_id, secret_enc')
-    .maybeSingle()
+  const { data, error } = await supabase.rpc(
+    'reveal_partner_credential' as never,
+    {
+      p_token_hash: sha256(token),
+      p_key: chaveDeCifra(),
+      p_ip: ip,
+    } as never,
+  )
+  if (error) throw new Error(`reveal_partner_credential failed: ${error.message}`)
 
-  if (error) throw new Error(`revealCredentialLink failed: ${error.message}`)
   if (!data) {
-    // Não afetou linha: inexistente, já revelado ou expirado. Consultamos de
-    // novo só para dizer QUAL — sem poder revelar nada, já que o UPDATE não
-    // pegou.
+    // Nada a revelar: inexistente, já revelado ou expirado. Consultamos o
+    // estado só para dizer QUAL — a decisão já foi tomada dentro da função.
     const info = await peekCredentialLink(supabase, token)
     return { erro: info.status === 'valido' ? 'usado' : info.status }
   }
 
-  const row = data as unknown as { id: string; api_key_id: string; secret_enc: string }
-  const dec = await supabase.rpc('dec_text_with_key', {
-    cipher: row.secret_enc,
-    key: chaveDeCifra(),
-  })
-  if (dec.error || !dec.data) {
-    throw new Error(`dec_text_with_key failed: ${dec.error?.message ?? 'null plaintext'}`)
-  }
-
-  // Apaga o segredo AGORA. O CHECK do banco já proíbe linha revelada com
-  // credencial, mas esperar o próximo passo deixaria uma janela em que ela
-  // existe decifrável e não é mais entregável.
-  const limpeza = await supabase
-    .from('partner_credential_links' as never)
-    .update({ secret_enc: null } as never)
-    .eq('id', row.id)
-  if (limpeza.error) {
-    logger.error(
-      { event: 'partner_credential_link.cleanup_failed', link_id: row.id },
-      'partner-credential-cleanup-failed',
-    )
-  }
-
-  logger.info(
-    { event: 'partner_credential_link.revealed', api_key_id: row.api_key_id },
-    'partner-credential-link-revealed',
-  )
-  return { secret: String(dec.data) }
+  logger.info({ event: 'partner_credential_link.revealed' }, 'partner-credential-link-revealed')
+  return { secret: String(data) }
 }
 
 /** Valida as faixas digitadas no /admin antes de gravar. */
