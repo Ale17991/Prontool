@@ -105,16 +105,26 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
   }
   const porNome = new Map<string, string>()
   try {
+    // `model=all` porque o padrão do GHL devolve só um recorte (os campos de
+    // CONTATO). Campo criado no contexto de oportunidade não aparecia, e o
+    // sintoma era "criei o campo e o sistema diz que não existe" — com a lista
+    // de existentes mostrando outros campos, o que só aumentava a confusão.
     const res = await fetchWithRetry(
-      `${GHL_API_BASE}/locations/${encodeURIComponent(locationId)}/customFields`,
+      `${GHL_API_BASE}/locations/${encodeURIComponent(locationId)}/customFields?model=all`,
       { method: 'GET', headers: buildHeaders(token) },
     )
     if (res.ok) {
       const body = (await res.json().catch(() => null)) as {
-        customFields?: Array<{ id?: string; name?: string }>
+        customFields?: Array<{ id?: string; name?: string; fieldKey?: string }>
       } | null
       for (const c of body?.customFields ?? []) {
-        if (c.id && c.name) porNome.set(chaveDeCampo(c.name), c.id)
+        if (!c.id) continue
+        // Casa por NOME e também por `fieldKey` ("contact.clinni_id"): o GHL
+        // deriva a chave do nome digitado, e às vezes é ela que corresponde ao
+        // que a pessoa vê na tela. Duas portas para o mesmo campo custam nada e
+        // eliminam uma classe inteira de "não encontrei".
+        if (c.name) porNome.set(chaveDeCampo(c.name), c.id)
+        if (c.fieldKey) porNome.set(chaveDeCampo(c.fieldKey.replace(/^[a-z]+\./i, '')), c.id)
       }
     } else {
       logger.warn({ status: res.status }, 'homio-crm-custom-fields-failed')
