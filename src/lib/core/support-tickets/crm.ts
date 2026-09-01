@@ -43,6 +43,26 @@ export const CAMPOS_GHL = {
   quemAbriu: 'Clinni Quem abriu',
 } as const
 
+/**
+ * Normaliza o nome do campo para comparar.
+ *
+ * O nome é digitado por gente numa tela do GHL, e a comparação exata quebrava
+ * por qualquer diferença invisível: acento em "Situação", maiúscula em "ID",
+ * hífen em "Clinni - Plano", espaço a mais. Todas essas são a MESMA intenção,
+ * e recusar por causa delas transforma um campo criado corretamente em campo
+ * que não existe.
+ *
+ * Tira acento, caixa e tudo que não é letra ou número — "Clinni - Situação" e
+ * "clinni_situacao" viram a mesma chave.
+ */
+export function chaveDeCampo(nome: string): string {
+  return nome
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
 const TAG_POR_TIPO: Record<SupportTicketKind, string> = {
   bug: 'clinni-bug',
   suggestion: 'clinni-sugestao',
@@ -94,7 +114,7 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
         customFields?: Array<{ id?: string; name?: string }>
       } | null
       for (const c of body?.customFields ?? []) {
-        if (c.id && c.name) porNome.set(c.name.trim().toLowerCase(), c.id)
+        if (c.id && c.name) porNome.set(chaveDeCampo(c.name), c.id)
       }
     } else {
       logger.warn({ status: res.status }, 'homio-crm-custom-fields-failed')
@@ -109,9 +129,7 @@ async function camposPorNome(token: string, locationId: string): Promise<Map<str
   // pior que o erro: um acento diferente em "Clinni Situação" faria o dado
   // sumir do CRM sem nada indicar por quê. O aviso nomeia exatamente o que
   // falta, para a correção ser criar o campo com o nome certo.
-  const faltando = Object.values(CAMPOS_GHL).filter(
-    (nome) => !porNome.has(nome.trim().toLowerCase()),
-  )
+  const faltando = Object.values(CAMPOS_GHL).filter((nome) => !porNome.has(chaveDeCampo(nome)))
   if (faltando.length > 0) {
     // Lista também o que EXISTE: saber que faltaram 6 não diz como consertar;
     // ver os nomes reais ao lado dos esperados mostra a divergência na hora.
@@ -139,7 +157,7 @@ function montarCampos(
   >) {
     const valor = valores[chave]
     if (!valor) continue
-    const id = porNome.get(nome.trim().toLowerCase())
+    const id = porNome.get(chaveDeCampo(nome))
     if (id) out.push({ id, value: valor })
   }
   return out
