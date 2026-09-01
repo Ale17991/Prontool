@@ -3,7 +3,7 @@ import type { Database } from '@/lib/db/types'
 import { logger } from '@/lib/observability/logger'
 import { sendSupportTicketEmail } from '@/lib/integrations/email/resend-client'
 import { createSupabaseServiceClient } from '@/lib/db/supabase-service'
-import { isHomioCrmConfigured, sendTicketToHomioCrm } from './crm'
+import { isHomioCrmConfigured, sendTicketToHomioCrm, type CrmStatus } from './crm'
 import { KIND_LABELS, type SupportTicketCreateInput } from './schema'
 
 export interface CreateSupportTicketContext {
@@ -18,8 +18,8 @@ export interface CreateSupportTicketContext {
 export interface CreateSupportTicketResult {
   id: string
   emailDelivered: boolean
-  /** `false` também quando o CRM não está configurado — não é falha. */
-  crmDelivered: boolean
+  /** Desfecho do envio ao CRM. `sem_config` não é falha. */
+  crmStatus: CrmStatus
 }
 
 /**
@@ -99,12 +99,13 @@ export async function createSupportTicket(
   // Service client, e não o `supabase` recebido: `tenant_crm_contacts` é tabela
   // de plataforma, sem policy para `authenticated`. O INSERT do ticket acima
   // continua passando pela RLS, que é onde ela importa.
-  let crmDelivered = false
+  let crmStatus: CrmStatus = 'sem_config'
   if (isHomioCrmConfigured()) {
+    const service = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
+    let detail: Record<string, unknown> = {}
     try {
-      const service = createSupabaseServiceClient() as unknown as SupabaseClient<Database>
       const clinica = await carregarClinica(service, ctx.tenantId, ctx.tenantName)
-      crmDelivered = await sendTicketToHomioCrm(service, clinica, {
+      const res = await sendTicketToHomioCrm(service, clinica, {
         ticketId,
         kind: input.kind,
         title: input.title,
@@ -113,19 +114,35 @@ export async function createSupportTicket(
         userEmail: ctx.userEmail,
         userRole: ctx.userRole,
       })
+      crmStatus = res.status
+      detail = res.detail
     } catch (err) {
+      crmStatus = 'erro'
+      detail = { erro: err instanceof Error ? err.message : String(err) }
       logger.error(
-        {
-          err: err instanceof Error ? err.message : String(err),
-          ticket_id: ticketId,
-          tenant_id: ctx.tenantId,
-        },
+        { err: detail.erro, ticket_id: ticketId, tenant_id: ctx.tenantId },
         'support-ticket-crm-failed',
+      )
+    }
+
+    // Grava o desfecho NO TICKET (0219). Sem isto o diagnóstico dependia do log
+    // da Vercel, que retém uma janela curta e devolve poucas linhas por
+    // requisição — duas causas reais custaram rodadas de deploy só para serem
+    // lidas. Falhar aqui não pode desfazer o ticket: só perde o rastro.
+    try {
+      await untyped(service)
+        .from('support_tickets')
+        .update({ crm_status: crmStatus, crm_detail: detail })
+        .eq('id', ticketId)
+    } catch (err) {
+      logger.warn(
+        { err: err instanceof Error ? err.message : String(err), ticket_id: ticketId },
+        'support-ticket-crm-status-save-failed',
       )
     }
   }
 
-  return { id: ticketId, emailDelivered, crmDelivered }
+  return { id: ticketId, emailDelivered, crmStatus }
 }
 
 /**
