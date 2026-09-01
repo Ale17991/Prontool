@@ -358,6 +358,20 @@ async function garantirContato(
     return existente
   }
 
+  // O GHL RECUSA upsert sem e-mail nem telefone ("Pass at least one of number,
+  // email"). Clínica sem os dois no cadastro é comum, então usamos o e-mail de
+  // QUEM ABRIU como reserva: é dado real, ligado àquela clínica, e é para quem
+  // a operação responderia de qualquer forma. Nunca inventamos um endereço —
+  // contato falso no CRM é pior que contato ausente.
+  const email = clinica.email ?? quemAbriu
+  if (!email && !clinica.telefone) {
+    logger.warn(
+      { event: 'homio_crm.sem_contato', tenant_id: clinica.tenantId },
+      'homio-crm-sem-email-nem-telefone',
+    )
+    return null
+  }
+
   const res = await fetchWithRetry(`${GHL_API_BASE}/contacts/upsert`, {
     method: 'POST',
     headers: buildHeaders(token),
@@ -365,7 +379,7 @@ async function garantirContato(
       locationId,
       name: clinica.nome,
       companyName: clinica.nome,
-      ...(clinica.email ? { email: clinica.email } : {}),
+      ...(email ? { email } : {}),
       ...(clinica.telefone ? { phone: clinica.telefone } : {}),
       tags,
       source: 'clinni-suporte',
