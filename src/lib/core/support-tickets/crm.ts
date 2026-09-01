@@ -271,9 +271,14 @@ async function criarOportunidade(
   contactId: string,
   clinica: DadosClinica,
   ticket: TicketParaCrm,
+  diag: Record<string, unknown>,
 ): Promise<void> {
   const alvo = await pipelineAlvo(token, locationId)
-  if (!alvo) return
+  if (!alvo) {
+    diag.pipeline = 'nao_encontrado'
+    return
+  }
+  diag.pipeline = alvo.nome
 
   const res = await fetchWithRetry(`${GHL_API_BASE}/opportunities/`, {
     method: 'POST',
@@ -293,7 +298,10 @@ async function criarOportunidade(
       { status: res.status, body: texto.slice(0, 200), ticket_id: ticket.ticketId },
       'homio-crm-opportunity-failed',
     )
+    diag.card = `falhou (${res.status})`
+    return
   }
+  diag.card = 'criado'
 }
 
 // =========================================================================
@@ -339,6 +347,7 @@ async function garantirContato(
   clinica: DadosClinica,
   quemAbriu: string | null,
   tipo: SupportTicketKind,
+  diag: Record<string, unknown>,
 ): Promise<string | null> {
   const { token, locationId } = credenciais()
   const porNome = await camposPorNome(token, locationId)
@@ -351,6 +360,8 @@ async function garantirContato(
     quemAbriu,
   })
   const tags = ['clinni', TAG_POR_TIPO[tipo]]
+  diag.campos_enviados = customFields.length
+  diag.campos_na_location = [...porNome.keys()]
 
   const existente = await contatoGravado(supabase, clinica.tenantId, locationId)
 
@@ -379,6 +390,7 @@ async function garantirContato(
       { event: 'homio_crm.sem_contato', tenant_id: clinica.tenantId },
       'homio-crm-sem-email-nem-telefone',
     )
+    diag.motivo = 'sem_contato'
     return null
   }
 
@@ -402,6 +414,9 @@ async function garantirContato(
       { status: res.status, body: texto.slice(0, 200), tenant_id: clinica.tenantId },
       'homio-crm-upsert-failed',
     )
+    diag.motivo = 'upsert_falhou'
+    diag.http = res.status
+    diag.resposta = texto.slice(0, 300)
     return null
   }
   const texto = await res.text().catch(() => '')
@@ -421,6 +436,9 @@ async function garantirContato(
       { status: res.status, body: texto.slice(0, 400), tenant_id: clinica.tenantId },
       'homio-crm-upsert-sem-id',
     )
+    diag.motivo = 'upsert_falhou'
+    diag.http = res.status
+    diag.resposta = texto.slice(0, 300)
     return null
   }
 
@@ -444,6 +462,20 @@ async function garantirContato(
 // Entrada
 // =========================================================================
 
+/** Desfecho do envio, gravado no ticket (0219). */
+export type CrmStatus =
+  | 'enviado'
+  | 'sem_config'
+  | 'sem_contato'
+  | 'upsert_falhou'
+  | 'nota_falhou'
+  | 'erro'
+
+export interface CrmResultado {
+  status: CrmStatus
+  detail: Record<string, unknown>
+}
+
 export interface TicketParaCrm {
   ticketId: string
   kind: SupportTicketKind
@@ -466,12 +498,23 @@ export async function sendTicketToHomioCrm(
   supabase: SupabaseClient<Database>,
   clinica: DadosClinica,
   ticket: TicketParaCrm,
-): Promise<boolean> {
-  if (!isHomioCrmConfigured()) return false
+): Promise<CrmResultado> {
+  if (!isHomioCrmConfigured()) return { status: 'sem_config', detail: {} }
+
+  // Acumula o contexto ao longo do caminho para o desfecho ser gravado no
+  // ticket (0219). Sem isto o diagnóstico dependia do log da Vercel, que retém
+  // uma janela curta — e duas causas reais custaram rodadas de deploy só para
+  // serem lidas.
+  const diag: Record<string, unknown> = {}
+
   try {
-    const { token } = credenciais()
-    const contactId = await garantirContato(supabase, clinica, ticket.userEmail, ticket.kind)
-    if (!contactId) return false
+    const { token, locationId } = credenciais()
+    const contactId = await garantirContato(supabase, clinica, ticket.userEmail, ticket.kind, diag)
+    if (!contactId) {
+      const motivo = diag.motivo === 'sem_contato' ? 'sem_contato' : 'upsert_falhou'
+      return { status: motivo, detail: diag }
+    }
+    diag.contact_id = contactId
 
     const linhas = [
       `[${KIND_LABELS[ticket.kind]}] ${ticket.title}`,
@@ -493,22 +536,24 @@ export async function sendTicketToHomioCrm(
       },
     )
     if (!res.ok) {
+      const texto = await res.text().catch(() => '')
       logger.warn({ status: res.status, ticket_id: ticket.ticketId }, 'homio-crm-note-failed')
-      return false
+      diag.http = res.status
+      diag.resposta = texto.slice(0, 300)
+      return { status: 'nota_falhou', detail: diag }
     }
-    const { locationId } = credenciais()
-    await criarOportunidade(token, locationId, contactId, clinica, ticket)
+
+    await criarOportunidade(token, locationId, contactId, clinica, ticket, diag)
 
     logger.info(
       { event: 'support_ticket.sent_to_crm', ticket_id: ticket.ticketId, kind: ticket.kind },
       'support-ticket-sent-to-crm',
     )
-    return true
+    return { status: 'enviado', detail: diag }
   } catch (err) {
-    logger.error(
-      { err: err instanceof Error ? err.message : String(err), ticket_id: ticket.ticketId },
-      'homio-crm-send-failed',
-    )
-    return false
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error({ err: msg, ticket_id: ticket.ticketId }, 'homio-crm-send-failed')
+    diag.erro = msg
+    return { status: 'erro', detail: diag }
   }
 }
