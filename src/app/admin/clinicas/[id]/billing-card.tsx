@@ -75,12 +75,45 @@ export function BillingCard({
       : '',
   )
   const [dueDate, setDueDate] = useState<string>(billing?.nextDueDate ?? '')
+  const [splitModo, setSplitModo] = useState<'percent' | 'fixed'>(
+    billing?.splitFixedCents !== null && billing?.splitFixedCents !== undefined
+      ? 'fixed'
+      : 'percent',
+  )
+  const [splitValor, setSplitValor] = useState<string>(
+    billing?.splitFixedCents !== null && billing?.splitFixedCents !== undefined
+      ? (billing.splitFixedCents / 100).toFixed(2)
+      : billing?.splitPercentBps !== null && billing?.splitPercentBps !== undefined
+        ? (billing.splitPercentBps / 100).toFixed(2)
+        : '',
+  )
   const [reissue, setReissue] = useState(false)
   const [pending, start] = useTransition()
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
 
   const effective =
     price.trim() === '' ? planPriceCents : Math.round(Number(price.replace(',', '.')) * 100)
+
+  const parceiro = partners.find((p) => p.id === partnerId) ?? null
+  const splitNum = Number(splitValor.replace(',', '.'))
+  const temValor = splitValor.trim() !== '' && Number.isFinite(splitNum) && splitNum > 0
+  const splitPercentBps = temValor && splitModo === 'percent' ? Math.round(splitNum * 100) : null
+  const splitFixedCents = temValor && splitModo === 'fixed' ? Math.round(splitNum * 100) : null
+
+  // Quanto o parceiro recebe de fato. Vazio = herda o padrão do parceiro; o
+  // cálculo abaixo mostra o número que VAI ser dividido, para ninguém descobrir
+  // o valor errado só na fatura.
+  const bpsEfetivo = splitPercentBps ?? (temValor ? null : (parceiro?.splitPercentBps ?? null))
+  const fixoEfetivo = splitFixedCents ?? (temValor ? null : (parceiro?.splitFixedCents ?? null))
+  const repasseCents =
+    !parceiro || !Number.isFinite(effective)
+      ? null
+      : fixoEfetivo !== null
+        ? fixoEfetivo
+        : bpsEfetivo !== null
+          ? Math.floor((effective * bpsEfetivo) / 10000)
+          : null
+  const herdado = !temValor && repasseCents !== null
 
   function run(fn: () => Promise<{ ok: boolean; error?: string }>, okText: string) {
     setMsg(null)
@@ -165,7 +198,7 @@ export function BillingCard({
           <p className="mt-1 text-[10px] text-slate-400">Vazio = 7 dias a partir da ativação.</p>
         </div>
         <div className="md:col-span-2">
-          <Label className="text-[11px] font-bold uppercase text-slate-500">Parceiro (split)</Label>
+          <Label className="text-[11px] font-bold uppercase text-slate-500">Parceiro</Label>
           <select
             value={partnerId}
             onChange={(e) => setPartnerId(e.target.value)}
@@ -175,15 +208,62 @@ export function BillingCard({
             {partners.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
-                {p.splitFixedCents !== null
-                  ? ` — ${formatCurrency(p.splitFixedCents)} por cobrança`
-                  : p.splitPercentBps !== null
-                    ? ` — ${(p.splitPercentBps / 100).toFixed(2).replace('.', ',')}%`
-                    : ' — sem regra de split'}
               </option>
             ))}
           </select>
         </div>
+
+        {parceiro && (
+          <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <Label className="text-[11px] font-bold uppercase text-slate-500">
+              Repasse a {parceiro.name}
+            </Label>
+            <p className="mb-2 mt-0.5 text-[11px] text-slate-500">
+              Depende do plano que esta clínica contratou do parceiro — por isso fica aqui, e não no
+              cadastro dele.
+            </p>
+            <div className="flex items-center gap-2">
+              <select
+                value={splitModo}
+                onChange={(e) => setSplitModo(e.target.value as 'percent' | 'fixed')}
+                className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm"
+              >
+                <option value="percent">Percentual</option>
+                <option value="fixed">Valor fixo</option>
+              </select>
+              <Input
+                value={splitValor}
+                onChange={(e) => setSplitValor(e.target.value)}
+                inputMode="decimal"
+                placeholder={splitModo === 'percent' ? '25,00' : '30,00'}
+                className="max-w-[140px]"
+              />
+              <span className="text-xs text-slate-400">
+                {splitModo === 'percent' ? '% por cobrança' : 'R$ por cobrança'}
+              </span>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-500">
+              {repasseCents === null ? (
+                <>
+                  Nada será repassado — nem esta clínica nem o parceiro têm valor definido.
+                  <strong className="text-slate-700"> A Clinni recebe a cobrança inteira.</strong>
+                </>
+              ) : (
+                <>
+                  De {formatCurrency(Number.isFinite(effective) ? effective : 0)}, o parceiro recebe{' '}
+                  <strong className="text-slate-900">{formatCurrency(repasseCents)}</strong>
+                  {herdado && ' (padrão do parceiro — deixe vazio para manter)'}
+                  {!parceiro.asaasWalletId && (
+                    <span className="text-[hsl(var(--warning-foreground))]">
+                      {' '}
+                      — mas o parceiro ainda não tem carteira Asaas, então nada é dividido.
+                    </span>
+                  )}
+                </>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -200,6 +280,8 @@ export function BillingCard({
                   priceCents: price.trim() === '' ? null : effective,
                   nextDueDate: dueDate || null,
                   partnerId: partnerId || null,
+                  splitPercentBps: partnerId ? splitPercentBps : null,
+                  splitFixedCents: partnerId ? splitFixedCents : null,
                 }),
               'Configuração salva.',
             )
