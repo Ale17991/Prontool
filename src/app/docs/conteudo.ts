@@ -15,6 +15,15 @@
 
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinnipro.com.br'
 
+/**
+ * Contato de integração publicado no rodapé.
+ *
+ * PROVISÓRIO — endereço definitivo a definir. Fica como constante nomeada, e
+ * não solto no meio do HTML, para a troca ser uma linha e não uma caçada no
+ * meio de 900 linhas de marcação.
+ */
+const CONTATO_INTEGRACAO = 'clinnipro@gmail.com'
+
 export function documentoHtml(baseUrl: string = APP_URL): string {
   const api = `${baseUrl.replace(/\/+$/, '')}/api/parceiros/v1`
   return `<!doctype html>
@@ -1025,9 +1034,9 @@ curl ${api}/clinicas \\
     <footer>
       <p>
         D&uacute;vidas de integra&ccedil;&atilde;o, emiss&atilde;o e revoga&ccedil;&atilde;o de
-        chave: fale com o seu contato comercial na Clinni. Mudan&ccedil;as que quebrem contrato
-        entram numa vers&atilde;o nova do caminho &mdash; a <code>v1</code> n&atilde;o muda de
-        forma debaixo de voc&ecirc;.
+        chave: <a href="mailto:${CONTATO_INTEGRACAO}">${CONTATO_INTEGRACAO}</a>.
+        Mudan&ccedil;as que quebrem contrato entram numa vers&atilde;o nova do caminho &mdash; a
+        <code>v1</code> n&atilde;o muda de forma debaixo de voc&ecirc;.
       </p>
     </footer>
   </main>
