@@ -44,6 +44,16 @@ export const CAMPOS_GHL = {
 } as const
 
 /**
+ * Campo da OPORTUNIDADE que carrega o texto do chamado.
+ *
+ * Separado de `CAMPOS_GHL` porque vive noutro objeto: aqueles descrevem a
+ * clínica no contato, este descreve o chamado no card. Opcional como os demais
+ * — se não existir na location, o card entra sem ele e a nota no contato segue
+ * sendo a fonte completa.
+ */
+export const CAMPO_CHAMADO = 'Clinni Chamado'
+
+/**
  * Normaliza o nome do campo para comparar.
  *
  * O nome é digitado por gente numa tela do GHL, e a comparação exata quebrava
@@ -284,6 +294,7 @@ async function criarOportunidade(
   contactId: string,
   clinica: DadosClinica,
   ticket: TicketParaCrm,
+  texto: string,
   diag: Record<string, unknown>,
 ): Promise<void> {
   const alvo = await pipelineAlvo(token, locationId, diag)
@@ -292,6 +303,13 @@ async function criarOportunidade(
     return
   }
   diag.pipeline = alvo.nome
+
+  // O texto do chamado vai no card quando a location tem o campo. Sem ele, o
+  // card entra igual — a nota no contato continua sendo a fonte completa, e um
+  // campo ausente nunca deve custar a fila de trabalho.
+  const porNome = await camposPorNome(token, locationId)
+  const idChamado = porNome.get(chaveDeCampo(CAMPO_CHAMADO))
+  diag.campo_chamado = idChamado ? 'preenchido' : 'ausente na location'
 
   const res = await fetchWithRetry(`${GHL_API_BASE}/opportunities/`, {
     method: 'POST',
@@ -303,6 +321,7 @@ async function criarOportunidade(
       contactId,
       name: `[${KIND_LABELS[ticket.kind]}] ${ticket.title} — ${clinica.nome}`,
       status: 'open',
+      ...(idChamado ? { customFields: [{ id: idChamado, value: texto }] } : {}),
     }),
   })
   if (!res.ok) {
@@ -556,7 +575,8 @@ export async function sendTicketToHomioCrm(
       return { status: 'nota_falhou', detail: diag }
     }
 
-    await criarOportunidade(token, locationId, contactId, clinica, ticket, diag)
+    const textoDoChamado = linhas.join('\n')
+    await criarOportunidade(token, locationId, contactId, clinica, ticket, textoDoChamado, diag)
 
     logger.info(
       { event: 'support_ticket.sent_to_crm', ticket_id: ticket.ticketId, kind: ticket.kind },
