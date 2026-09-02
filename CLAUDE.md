@@ -779,3 +779,103 @@ em `tenant_clinic_profile.printout_patient_fields`, exceção por documento em
   configurar o obrigatório convida glosa) e prontuário completo (lá os dados
   são a seção 1, conteúdo e não cabeçalho; completo que esconde CPF deixa de
   ser completo, e é a completude que o faz servir para portabilidade).
+
+## Cobrança da plataforma via Asaas (migrations 0212, 0216)
+
+Como a **Clinni recebe das clínicas**. Não confundir com o financeiro da
+clínica (`payment_records`/`payment_installments`), que registra o que o
+PACIENTE paga a ela — são dois fluxos de dinheiro, em contas distintas, e
+misturá-los faria o MRR da plataforma somar receita alheia.
+
+- **A credencial do Asaas é de PLATAFORMA e fica em env** (`ASAAS_API_KEY`), não
+  cifrada por linha: é uma só, é nossa, e não pertence a tenant nenhum. O padrão
+  de credencial por linha (0110/0185) vale para o lado clínica→paciente, que
+  ganhou `tenant_asaas_config` PREPARADA e ainda não consumida.
+- **O split vai como valor FIXO já arredondado aqui**, mesmo quando a regra é
+  percentual, e é gravado como SNAPSHOT na fatura. Deixar o Asaas recalcular
+  criaria duas verdades sobre a mesma divisão; recalcular na leitura reescreveria
+  o que já saiu do caixa.
+- **O repasse é POR CLÍNICA, não por parceiro** (0216). O parceiro vende mais de
+  um plano, e com a regra nele todas as clínicas dividiriam igual — a primeira
+  que assinasse plano diferente seria repassada errado, em silêncio, todo mês. A
+  regra da clínica EXECUTA; a do parceiro é só padrão. A herança é por MODO, não
+  campo a campo: quem define valor fixo não herda o percentual do parceiro.
+- **Sem regra em lugar nenhum, não se divide.** Direção segura: o dinheiro fica
+  conosco e vira conversa comercial. Dividir por engano manda dinheiro para
+  fora, e isso não volta.
+- **`CONFIRMED` e `RECEIVED` seguem distintos**: o primeiro é "pagou, não
+  liquidou". Achatá-los faria o caixa contar dinheiro que ainda volta por
+  chargeback. Para LIBERAR ACESSO os dois valem — é outra pergunta
+  (`grantsAccess`), porque o cliente cumpriu a parte dele.
+- **O webhook responde 200 a evento órfão.** A fila do Asaas é sequencial: um
+  != 200 trava a entrega de TODOS os eventos até alguém destravar no painel.
+  Falha real (banco fora) devolve 500 de propósito, aí a reentrega é o que se
+  quer. Sem `ASAAS_WEBHOOK_TOKEN` a rota responde **503**, fechada — aceitar
+  chamada sem token daria a qualquer um o poder de marcar assinatura como paga.
+- **Estorno rebaixa para `past_due`, nunca cancela.** Cancelamento é decisão
+  comercial; e contrato cancelado não ressuscita por evento de gateway.
+
+## API de parceiros (migrations 0213–0215, 0217)
+
+Leitura para o parceiro (zee.lu) emitir nota sem redigitação, em
+`/api/parceiros/v1`. Documentação pública em **`/docs`**, fonte única em
+`src/app/docs/conteudo.ts`.
+
+- **`openPartnerRequest` é a porta única**: chave, escopo, faixa de IP, teto por
+  minuto, recorte por parceiro e trilha de acesso moram nela. O parceiro sai da
+  CHAVE, nunca da requisição — não há parâmetro que peça a carteira alheia.
+- **404 e nunca 403** para clínica de outro parceiro: 403 confirmaria que o id
+  existe, e é assim que se levanta a carteira de um concorrente, um id por vez.
+- **Movimentações RECUSAM acima de 20.000 em vez de truncar.** O PostgREST corta
+  em 1.000 sem avisar; devolver um pedaço faria quem soma acreditar que somou o
+  mês, e um fechamento a menos não vem com mensagem de erro.
+- **Entrada é a PARCELA PAGA, não a cobrança.** Um parcelado em 6× move o caixa
+  seis vezes, em seis datas; emitir pela data da cobrança poria seis meses de
+  receita na competência do primeiro mês.
+- **A credencial é entregue por LINK DE USO ÚNICO** (`/parceiro/credenciais/[token]`).
+  O segredo fica cifrado até ser revelado e é apagado na revelação — há CHECK no
+  banco garantindo. **Revelar é POST**: cliente de e-mail e antivírus
+  pré-carregam links e queimariam um GET.
+- **A 0217 existe porque o CHECK proibia o estado intermediário do código.** O
+  revelar em dois passos (marcar `revealed_at`, ler, apagar) criava exatamente
+  "revelado COM segredo" e quebrava com `23514` em produção — `tsc`, `lint` e
+  `build` passavam limpos. Hoje é uma RPC, um comando só, e o uso único é o
+  `FOR UPDATE`. `UPDATE ... RETURNING` não serve: devolve o valor NOVO.
+- **Do paciente saem nome e CPF, e nada mais** — é o tomador da nota. Nada
+  clínico atravessa. Anonimizado volta sem identificação e a linha financeira
+  FICA: o que se apaga é quem, não quanto.
+- **Faixa de IP: array vazio BLOQUEIA, ausência libera.** Confundir os dois é o
+  erro clássico de allowlist, e a versão perigosa é a que libera.
+
+## Suporte vira contato no CRM da Homio (migrations 0218, 0219)
+
+Ticket de bug/sugestão/suporte cria contato + nota + card no GoHighLevel **da
+Homio**. Destino de PLATAFORMA: `tenant_integrations`/`withGhlAuth` autenticam
+contra a sub-conta de CADA CLÍNICA, e mandar por lá criaria o lead dentro do CRM
+de quem abriu o chamado. Por isso fica FORA do registry de `IntegrationAdapter`.
+
+- **O contato é a CLÍNICA**, não a pessoa; quem abriu vai na nota e no campo
+  `Clinni Quem abriu`. Contato por pessoa espalharia a mesma conta em vários
+  registros, e conversa comercial acontece no nível da clínica.
+- **Campos e pipeline resolvidos por NOME**, não por id em env — exigir id
+  transformaria "criar um campo" em "criar, copiar o id e fazer deploy".
+- **Quatro armadilhas que custaram rodadas de deploy:**
+  1. **`?model=all`** na busca de campos. O padrão do GHL devolve só um recorte,
+     e campo criado no contexto de oportunidade não aparece. O sintoma é "criei
+     o campo e o sistema diz que não existe", com uma lista de OUTROS campos.
+  2. **O GHL recusa contato sem e-mail nem telefone** (`400 Pass at least one
+of number, email`). Cadastro incompleto é comum: usamos o e-mail de quem
+     abriu como reserva. Nunca inventar endereço — contato falso é pior que
+     ausente, porque alguém escreve para ele.
+  3. **Escopos do Private Integration Token**: além de `contacts.*` e
+     `locations/customFields.readonly`, precisa dos de OPORTUNIDADE para o card.
+  4. **O cache de campos é de 10 min por instância.** O aviso `campos_faltando`
+     só sai quando há busca nova — a AUSÊNCIA dele NÃO prova que os campos foram
+     encontrados.
+- **`crm_status`/`crm_detail` em `support_tickets` (0219) é onde se diagnostica**,
+  não o log. O envio é best-effort e portanto silencioso por desenho; o efeito
+  colateral foi descobrir que silencioso também significa não diagnosticável. O
+  log da Vercel tem retenção curta e devolve poucas linhas por requisição —
+  quatro tentativas foram gastas tentando ler por lá antes de a coluna existir.
+- O e-mail para `operations@homio.com.br` **continua saindo**: o CRM é segundo
+  destino, não substituto.
