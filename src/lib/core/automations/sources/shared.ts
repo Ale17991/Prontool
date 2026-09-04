@@ -272,21 +272,28 @@ export function antecedenciaSchema(minMinutos: number, maxMinutos: number) {
 }
 
 /**
- * Quanto uma mensagem ancorada pode chegar ATRASADA, em minutos.
+ * Quanto uma mensagem ancorada pode chegar atrasada POR CULPA DO MOTOR, em
+ * minutos.
  *
  * Nasceu de um caso real medido em produção (20/08/2026): uma automação de "4
- * horas antes da consulta" entregou mensagens 1h30 antes. A causa é a soma de
- * duas proteções que não conversavam. A janela de silêncio (08:00–20:00) guarda
- * a noite inteira; às 08:00 o ciclo perguntava "que âncoras venceram nas últimas
- * SEIS horas" e despejava todas de uma vez; e o teto de uma mensagem a cada 5
- * minutos escoava a fila devagar. A consulta das 10:20, cuja hora de avisar era
- * 06:20, saía 08:50 — com o texto dizendo "4 horas" e a verdade sendo 1h30.
+ * horas antes da consulta" entregou mensagens 1h30 antes, com o texto dizendo
+ * "4 horas". A mensagem afirma uma distância, e entregar fora dela não é
+ * atraso: é informação falsa no celular do paciente.
  *
- * A mensagem afirma uma distância. Entregar fora dela não é atraso, é informação
- * falsa no celular do paciente — e por isso o que passa do teto é DESCARTADO em
- * silêncio, e não enfileirado. É a mesma doutrina que já governava o teto de 6h
- * de varredura ("a hora dela passou e não volta"); o que muda é o número, que ali
- * dimensionava sobreviver a um deploy ruim e aqui dimensiona não mentir.
+ * O que mudou em 04/09/2026 foi DE QUANDO este relógio conta. Ele contava do
+ * instante da âncora, e com isso punia a mensagem por tempo em que o motor
+ * nunca teve como agir: a noite guardada pela janela de silêncio da clínica, e
+ * o intervalo em que a consulta simplesmente ainda não existia na agenda. Numa
+ * clínica que abre a janela às 08:00 e avisa com 4 horas de antecedência,
+ * NENHUMA consulta antes das 12:00 recebia — a âncora das 06:00 vencia com o
+ * motor calado, e às 08:00 já estava fora do teto. Medido na clínica Thiago
+ * Padilha entre 19/08 e 04/09: 26 mensagens perdidas pelo silêncio e 72 por
+ * agenda lançada depois da âncora, contra 86 entregues.
+ *
+ * Hoje o relógio conta de `podeDesde` — o primeiro instante em que o envio era
+ * possível. Assim o teto continua fazendo exatamente o trabalho para o qual foi
+ * criado, que é cortar a cauda de uma FILA ESCOANDO devagar, e para de
+ * descartar mensagem que nunca teve a sua chance.
  *
  * Trinta minutos, e não cinco, porque o escoamento é parte da operação normal:
  * com uma mensagem por ciclo de 5 minutos, seis âncoras que vencem juntas levam
@@ -296,17 +303,151 @@ export function antecedenciaSchema(minMinutos: number, maxMinutos: number) {
 export const ATRASO_MAX_MINUTOS = 30
 
 /**
- * A janela de instantes de ÂNCORA que vencem neste ciclo.
+ * Quanto para trás a varredura de uma fonte ancorada NO PASSADO ("3 horas
+ * depois do atendimento") busca eventos.
  *
- * O ciclo pergunta "o que aconteceu (ou vai acontecer) e cuja hora de avisar
- * caiu entre a varredura anterior e agora". Para uma antecedência de 2 horas, a
- * hora de avisar de uma consulta das 16h é 14h — então às 14h05 o ciclo procura
- * consultas marcadas entre 16h e 16h15, e não consultas marcadas agora.
+ * Dezesseis horas cobrem a noite inteira de silêncio (20:00 → 08:00) com folga,
+ * que é o buraco que `podeDesde` precisa enxergar para liberar o represado na
+ * abertura da janela. Não vale para o sentido "antes", que tem alcance melhor:
+ * ali a varredura pega TODO evento futuro dentro da antecedência, e é isso que
+ * faz a consulta lançada em cima da hora ser alcançada.
+ */
+const ALCANCE_RECUPERACAO_MS = 16 * 3_600_000
+
+/**
+ * O primeiro instante em que esta mensagem PODIA ter saído.
  *
- * O intervalo é aberto no início e fechado no fim: uma âncora exatamente na
- * fronteira pertence a um ciclo só. Fechar os dois lados faria a consulta que
- * cai no minuto exato do corte ser enumerada duas vezes — o UNIQUE do banco
- * recusaria a segunda, mas o trabalho seria pago duas vezes e o log mentiria.
+ * Três coisas atrasam legitimamente uma mensagem ancorada, e nenhuma delas é
+ * culpa do motor:
+ *
+ * - a **âncora** ainda não tinha vencido;
+ * - o **fato ainda não existia** — a consulta foi lançada na agenda depois da
+ *   hora de avisar sobre ela, o que em muita clínica é a regra e não a exceção:
+ *   a agenda do dia costuma ser digitada na tarde anterior;
+ * - a **janela de horário da clínica estava fechada** — o motor sai antes de
+ *   varrer, e sair é decisão dela, não falha nossa.
+ *
+ * O maior dos três é o instante a partir do qual o silêncio passa a ser nosso.
+ */
+export function podeDesde(args: {
+  ancora: Date
+  /** Quando o fato entrou no sistema. `null` quando a fonte não sabe. */
+  nasceuEm?: Date | null
+  /** Abertura da janela de automações da clínica hoje. */
+  janelaAbertaDesde?: Date
+  /** O instante do ciclo, quando o chamador quer o corte de nascimento. */
+  agora?: Date
+}): Date {
+  /**
+   * Nascimento à FRENTE do ciclo é desconsiderado, nunca respeitado.
+   *
+   * `created_at` vem do relógio do banco e `agora` do relógio do processo; um
+   * adiantamento de segundos entre os dois faria a mensagem esperar mais um
+   * ciclo por nada. Pior: o dado é usado para LIBERAR envio, e um valor no
+   * futuro o bloquearia — que é exatamente a classe de silêncio que esta
+   * correção existe para acabar. Na dúvida, ignora-se o campo e a decisão volta
+   * a ser da âncora.
+   */
+  const nasceu = args.nasceuEm?.getTime() ?? 0
+  const nascimento = args.agora && nasceu > args.agora.getTime() ? 0 : nasceu
+
+  return new Date(
+    Math.max(args.ancora.getTime(), nascimento, args.janelaAbertaDesde?.getTime() ?? 0),
+  )
+}
+
+/**
+ * Este candidato está devido NESTE ciclo?
+ *
+ * Substitui o corte que antes era feito só pelo intervalo SQL. A troca é
+ * necessária, não estética: `podeDesde` depende de quando cada linha nasceu, e
+ * isso não cabe num intervalo sobre a coluna de data do evento. A consulta
+ * passou a trazer um superconjunto, e a regra passou a ser esta função — uma
+ * só, testável, compartilhada pelas três fontes ancoradas.
+ *
+ * O intervalo é aberto no início e fechado no fim: um instante exatamente na
+ * fronteira pertence a um ciclo só. Fechar os dois lados faria o candidato do
+ * minuto exato do corte ser enumerado duas vezes — o UNIQUE do banco recusaria
+ * a segunda, mas o trabalho seria pago duas vezes e o log mentiria.
+ */
+export function devidaAgora(ctx: EnumerateContext, ancora: Date, nasceuEm?: Date | null): boolean {
+  const pode = podeDesde({
+    ancora,
+    nasceuEm,
+    janelaAbertaDesde: ctx.janelaAbertaDesde,
+    agora: ctx.now,
+  })
+  if (pode.getTime() > ctx.now.getTime()) return false
+
+  /**
+   * O teto de atraso só vale quando o relógio começou a correr NA ÂNCORA — que
+   * é o único caso em que o silêncio foi nosso.
+   *
+   * Quando o candidato foi liberado por outra coisa (a janela abriu, a consulta
+   * acabou de ser lançada), ele entra numa fila que escoa a uma mensagem por
+   * ciclo, e o teto de meia hora a decaptaria: numa manhã de dez consultas, as
+   * quatro últimas voltariam a ser descartadas — o mesmo defeito, com outro
+   * disfarce. O freio dessa fila não é o relógio, é `markAutomationRan`: a marca
+   * de varredura NÃO avança enquanto sobrar alguém, e no ciclo em que a fila
+   * esvazia ela avança e fecha o represado de uma vez.
+   *
+   * A entrega segue impossível de ficar errada: a consulta que já começou é
+   * descartada pela fonte, e a que mudaria de dia civil pelo guarda-corpo de
+   * `mesmoDiaCivil`.
+   *
+   * A prévia fica de fora, pelo mesmo motivo que já a isenta do descarte do
+   * atendimento que começou: ela varre o DIA INTEIRO de uma vez para responder
+   * "quantos isso pega hoje?". Sob o teto de atraso ela responderia pela última
+   * meia hora, e a clínica ligaria às cegas uma automação que vai falar com cem
+   * pessoas.
+   */
+  const puniDemora = !ctx.previewMode && pode.getTime() === ancora.getTime()
+  const borda = puniDemora
+    ? Math.max(ctx.windowFrom.getTime(), ctx.now.getTime() - ATRASO_MAX_MINUTOS * 60_000)
+    : ctx.windowFrom.getTime()
+  return pode.getTime() > borda
+}
+
+/**
+ * A entrega ainda cai no MESMO dia civil que a âncora pretendia?
+ *
+ * É o guarda-corpo de liberar mensagem represada. O texto de uma automação
+ * ancorada costuma ser relativo ao dia — "sua consulta é *hoje* às 10h", "está
+ * confirmada sua consulta *Amanhã*" —, e essa palavra foi escrita contando com
+ * o dia em que a âncora vence. Entregar no dia seguinte não é mensagem
+ * atrasada, é mensagem ERRADA.
+ *
+ * O caso concreto que isto barra: uma automação de 24 horas cuja consulta de
+ * hoje às 20:00 foi lançada hoje de manhã. A âncora venceu ontem às 20:00, o
+ * fato nasceu hoje às 10:00, e sem esta checagem o paciente receberia "sua
+ * consulta é amanhã" sobre uma consulta que é daqui a dez horas.
+ */
+export function mesmoDiaCivil(a: Date, b: Date, timezone: string): boolean {
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+  return fmt.format(a) === fmt.format(b)
+}
+
+/**
+ * A janela de eventos que o ciclo precisa TRAZER do banco.
+ *
+ * Deixou de ser o corte e passou a ser um superconjunto — quem decide é
+ * `devidaAgora`. Os dois sentidos têm alcances diferentes porque as perguntas
+ * são diferentes:
+ *
+ * **antes** ("4 horas antes da consulta") traz TODA consulta que ainda vai
+ * acontecer dentro da antecedência. É o que faz a consulta lançada em cima da
+ * hora ser alcançada: a âncora dela já nasceu vencida, e nenhum intervalo
+ * ancorado na varredura anterior a encontraria. O conjunto é pequeno e limitado
+ * pela própria antecedência.
+ *
+ * **depois** ("3 horas depois do atendimento") olha para trás, onde não existe
+ * o problema do fato que nasce tarde — mas existe o do silêncio da noite, e por
+ * isso o alcance é `ALCANCE_RECUPERACAO_MS`.
  */
 export function janelaAncorada(
   ctx: EnumerateContext,
@@ -315,22 +456,53 @@ export function janelaAncorada(
 ): { de: string; ate: string } {
   const sinal = sentido === 'antes' ? 1 : -1
   const desloc = sinal * deslocamentoMin * 60_000
-  // O atraso de uma mensagem ancorada é EXATAMENTE o tamanho desta janela: quem
-  // entra pela borda de trás teve a sua âncora vencida há `now - windowFrom`.
-  // Limitar a borda de trás é, portanto, limitar a mentira. Ver ATRASO_MAX_MINUTOS.
-  //
-  // A prévia fica de fora, pelo mesmo motivo que já a isenta do descarte do
-  // atendimento que começou: ela varre o DIA INTEIRO de uma vez para responder
-  // "quantos isso pega hoje?". Aplicar aqui o teto de atraso encolheria a
-  // pergunta do dia para meia hora, e a clínica veria "1 paciente" antes de
-  // ligar uma automação que vai falar com cem.
-  const bordaDeTras = ctx.previewMode
-    ? ctx.windowFrom.getTime()
-    : Math.max(ctx.windowFrom.getTime(), ctx.now.getTime() - ATRASO_MAX_MINUTOS * 60_000)
-  return {
-    de: new Date(bordaDeTras + desloc).toISOString(),
-    ate: new Date(ctx.now.getTime() + desloc).toISOString(),
+  const ate = ctx.now.getTime() + desloc
+
+  // A prévia continua medindo exatamente o dia que lhe foi entregue.
+  if (ctx.previewMode) {
+    return {
+      de: new Date(ctx.windowFrom.getTime() + desloc).toISOString(),
+      ate: new Date(ate).toISOString(),
+    }
   }
+
+  const de =
+    sentido === 'antes' ? ctx.now.getTime() : ctx.now.getTime() - ALCANCE_RECUPERACAO_MS + desloc
+  return { de: new Date(de).toISOString(), ate: new Date(ate).toISOString() }
+}
+
+/**
+ * O texto de `{{antecedencia}}` que a mensagem pode afirmar sem mentir.
+ *
+ * Na operação normal a distância real é a configurada, a menos do escoamento da
+ * fila, e o texto continua sendo o da configuração — nenhuma mensagem que já
+ * saía muda de palavra. Quando a entrega é de um represado (silêncio da noite,
+ * consulta lançada tarde), a distância real é OUTRA, e é ela que vai no texto:
+ * a permissividade nova só é defensável porque a mensagem passa a dizer a
+ * verdade sobre si mesma.
+ */
+export function textoAntecedencia(
+  configuradoMin: number,
+  realMin: number,
+  comoAncorada: boolean,
+): string {
+  if (!comoAncorada) return duracaoTexto(configuradoMin, false)
+  if (Math.abs(realMin - configuradoMin) <= ATRASO_MAX_MINUTOS) {
+    return duracaoTexto(configuradoMin, true)
+  }
+  // Abaixo de uma hora a leitura é em minutos; acima, arredonda ao quarto de
+  // hora e nunca para uma unidade que esconda o resto — "2 horas" para uma hora
+  // e meia seria a mesma classe de mentira que o teto de atraso existe para
+  // impedir.
+  if (realMin < 60) {
+    const minutos = Math.min(55, Math.max(5, Math.round(realMin / 5) * 5))
+    return `${minutos} minutos`
+  }
+  const arredondado = Math.round(realMin / 15) * 15
+  const h = Math.floor(arredondado / 60)
+  const m = arredondado % 60
+  if (m === 0) return `${h} ${h === 1 ? 'hora' : 'horas'}`
+  return `${h}h${String(m).padStart(2, '0')}`
 }
 
 // ---------------------------------------------------------------------------

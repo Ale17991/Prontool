@@ -30,8 +30,8 @@ import {
   antecedenciaSchema,
   dataBr,
   dataHoraBr,
-  duracaoTexto,
   ancorada,
+  devidaAgora,
   lerAntecedencia,
   eligiblePatients,
   emDias,
@@ -39,8 +39,11 @@ import {
   janelaAncorada,
   janelaDoDia,
   mesesAtras,
+  mesmoDiaCivil,
   pageAll,
   primeiroNome,
+  textoAntecedencia,
+  ATRASO_MAX_MINUTOS,
   MINUTOS_POR_DIA,
 } from './shared'
 import type { EnumerateContext, SourceCandidate } from '../types'
@@ -73,6 +76,46 @@ function variaveisDoAtendimento(
   const proc = a.procedures?.display_name
   if (proc) vars.procedimento = proc
   return vars
+}
+
+/**
+ * Um candidato ancorado está devido NESTE ciclo, e a entrega ainda honra o dia
+ * que a âncora pretendia?
+ *
+ * As duas perguntas andam juntas em toda fonte ancorada, e separá-las seria
+ * caro: liberar o represado sem checar o dia entregaria "está confirmada sua
+ * consulta *Amanhã*" sobre uma consulta que é daqui a dez horas.
+ *
+ * A checagem de dia só vale quando a entrega passou do teto de tolerância. Na
+ * operação normal a âncora está a minutos daqui, e aplicar o corte de dia civil
+ * ali quebraria por engano o ciclo que atravessa a meia-noite numa clínica com
+ * janela de horário larga — trocaríamos um defeito por outro.
+ */
+function ancoradaDevida(args: {
+  ctx: EnumerateContext
+  /** O evento que ancora o envio: o horário da consulta, a conclusão, a falta. */
+  evento: string
+  deslocamentoMin: number
+  sentido: 'antes' | 'depois'
+  /** Quando o fato entrou no sistema, quando a fonte sabe. */
+  nasceuEm?: string | null
+}): boolean {
+  const { ctx, evento, deslocamentoMin, sentido } = args
+  if (ctx.previewMode) return true
+
+  const sinal = sentido === 'antes' ? -1 : 1
+  const ancora = new Date(Date.parse(evento) + sinal * deslocamentoMin * 60_000)
+  if (!devidaAgora(ctx, ancora, args.nasceuEm ? new Date(args.nasceuEm) : null)) return false
+
+  const atrasoMin = (ctx.now.getTime() - ancora.getTime()) / 60_000
+  if (atrasoMin <= ATRASO_MAX_MINUTOS) return true
+  return mesmoDiaCivil(ancora, ctx.now, ctx.timezone)
+}
+
+/** A distância REAL entre este envio e o evento, em minutos. */
+function distanciaReal(ctx: EnumerateContext, evento: string, sentido: 'antes' | 'depois'): number {
+  const delta = (Date.parse(evento) - ctx.now.getTime()) / 60_000
+  return sentido === 'antes' ? delta : -delta
 }
 
 // ---------------------------------------------------------------------------
@@ -169,7 +212,8 @@ registerSource({
     // horário que a clínica escolheu. Em horas ou minutos, o recorte é a janela
     // deste ciclo deslocada — a mensagem sai a tantas horas da consulta,
     // qualquer que seja a hora do dia.
-    const { de, ate } = ancorada(ctx.params)
+    const ehAncorada = ancorada(ctx.params)
+    const { de, ate } = ehAncorada
       ? janelaAncorada(ctx, antecedenciaMin, 'antes')
       : janelaDoDia(addDias(ctx.today, emDias(antecedenciaMin)), ctx.timezone)
 
@@ -180,13 +224,16 @@ registerSource({
         id: string | null
         patient_id: string | null
         appointment_at: string | null
+        created_at: string | null
         effective_status: string | null
       }
     >(
       (from, to) =>
         ctx.supabase
           .from('appointments_effective')
-          .select(`id, patient_id, appointment_at, effective_status, ${COLUNAS_CONTEXTO}`)
+          .select(
+            `id, patient_id, appointment_at, created_at, effective_status, ${COLUNAS_CONTEXTO}`,
+          )
           .eq('tenant_id', ctx.tenantId)
           .gte('appointment_at', de)
           .lt('appointment_at', ate)
@@ -203,20 +250,35 @@ registerSource({
           a.appointment_at &&
           aptos.has(a.patient_id) &&
           ['agendado', 'confirmado', 'ativo'].includes(a.effective_status ?? '') &&
-          // Consulta que JÁ COMEÇOU não recebe aviso de preparo. Na operação
-          // normal a janela nunca alcança o passado, mas ela é ancorada na
-          // varredura anterior: depois de um deploy longo ou de o ciclo ficar
-          // parado, o intervalo cresce e passa a incluir consulta que já
-          // aconteceu. Avisar para jejuar depois do exame é pior que silêncio.
-          // Na prévia o filtro não vale — ver `previewMode` em types.ts.
-          (ctx.previewMode || Date.parse(a.appointment_at as string) > ctx.now.getTime()),
+          // Consulta que JÁ COMEÇOU não recebe aviso de preparo. A janela
+          // ancorada agora traz TODA consulta futura dentro da antecedência, e
+          // este corte é o que garante que ela seja mesmo futura. Avisar para
+          // jejuar depois do exame é pior que silêncio. Na prévia o filtro não
+          // vale — ver `previewMode` em types.ts.
+          (ctx.previewMode || Date.parse(a.appointment_at as string) > ctx.now.getTime()) &&
+          // A âncora venceu e o envio ainda é honesto? Passa por `created_at`
+          // porque a agenda desta clínica costuma ser lançada depois da hora de
+          // avisar sobre ela — e mensagem que nunca teve a sua chance não é
+          // mensagem atrasada.
+          (!ehAncorada ||
+            ancoradaDevida({
+              ctx,
+              evento: a.appointment_at as string,
+              deslocamentoMin: antecedenciaMin,
+              sentido: 'antes',
+              nasceuEm: a.created_at,
+            })),
       )
       .map((a) => ({
         patientId: a.patient_id as string,
         occurrenceKey: a.id as string,
         variables: {
           ...variaveisDoAtendimento({ ...a, appointment_at: a.appointment_at as string }, ctx),
-          antecedencia: duracaoTexto(antecedenciaMin, ancorada(ctx.params)),
+          antecedencia: textoAntecedencia(
+            antecedenciaMin,
+            distanciaReal(ctx, a.appointment_at as string, 'antes'),
+            ehAncorada,
+          ),
         },
       }))
   },
@@ -254,7 +316,8 @@ registerSource({
 
     // O corte é pela CONCLUSÃO, não pelo horário marcado: um atendimento
     // remarcado e realizado depois deve contar de quando aconteceu.
-    const { de, ate } = ancorada(ctx.params)
+    const ehAncorada = ancorada(ctx.params)
+    const { de, ate } = ehAncorada
       ? janelaAncorada(ctx, antecedenciaMin, 'depois')
       : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone)
 
@@ -290,14 +353,26 @@ registerSource({
           aptos.has(a.patient_id) &&
           // Estornado é atendimento desfeito: perguntar "como foi?" sobre algo
           // que a clínica anulou é constrangedor para as duas partes.
-          a.effective_status !== 'estornado',
+          a.effective_status !== 'estornado' &&
+          (!ehAncorada ||
+            (Boolean(a.completed_at) &&
+              ancoradaDevida({
+                ctx,
+                evento: a.completed_at as string,
+                deslocamentoMin: antecedenciaMin,
+                sentido: 'depois',
+              }))),
       )
       .map((a) => ({
         patientId: a.patient_id as string,
         occurrenceKey: a.id as string,
         variables: {
           ...variaveisDoAtendimento({ ...a, appointment_at: a.appointment_at as string }, ctx),
-          antecedencia: duracaoTexto(antecedenciaMin, ancorada(ctx.params)),
+          antecedencia: textoAntecedencia(
+            antecedenciaMin,
+            distanciaReal(ctx, (a.completed_at ?? a.appointment_at) as string, 'depois'),
+            ehAncorada,
+          ),
         },
       }))
   },
@@ -341,7 +416,8 @@ registerSource({
     const aptos = await eligiblePatients(ctx)
     if (aptos.size === 0) return []
 
-    const { de, ate } = ancorada(ctx.params)
+    const ehAncorada = ancorada(ctx.params)
+    const { de, ate } = ehAncorada
       ? janelaAncorada(ctx, antecedenciaMin, 'depois')
       : janelaDoDia(addDias(ctx.today, -emDias(antecedenciaMin)), ctx.timezone)
 
@@ -373,6 +449,17 @@ registerSource({
     for (const f of linhas) {
       const a = f.appointments
       if (!a || !aptos.has(a.patient_id)) continue
+      if (
+        ehAncorada &&
+        !ancoradaDevida({
+          ctx,
+          evento: a.appointment_at,
+          deslocamentoMin: antecedenciaMin,
+          sentido: 'depois',
+        })
+      ) {
+        continue
+      }
       out.push({
         patientId: a.patient_id,
         occurrenceKey: f.appointment_id,

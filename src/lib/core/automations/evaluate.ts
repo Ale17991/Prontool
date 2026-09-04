@@ -68,6 +68,12 @@ interface TenantRow {
   automation_weekdays: number[] | null
 }
 
+/** `08:00` ou `08:00:00` em minutos desde a meia-noite. */
+function minutosDoRelogio(hhmm: string): number {
+  const [h, m] = hhmm.slice(0, 5).split(':').map(Number)
+  return (h ?? 0) * 60 + (m ?? 0)
+}
+
 /** Dia civil da clínica, nunca a data do servidor. */
 function clinicToday(now: Date, timezone: string): string {
   return new Intl.DateTimeFormat('en-CA', {
@@ -357,6 +363,18 @@ async function evaluateTenant(
   const inicioDoDia = startOfClinicDayIso(today, tz)
   const clinicName = tenant.corporate_name ?? 'Clínica'
 
+  /**
+   * O instante em que a janela de silêncio abriu HOJE.
+   *
+   * Vai para as fontes ancoradas porque é ele que separa "o motor se atrasou"
+   * de "a clínica mandou esperar". Sem essa distinção, a mensagem cuja âncora
+   * vence de madrugada é descartada de manhã como se tivesse sido perdida —
+   * era o que apagava, todo dia, os avisos das consultas da manhã.
+   */
+  const janelaAbertaDesde = new Date(
+    Date.parse(inicioDoDia) + minutosDoRelogio(janelaInicio) * 60_000,
+  )
+
   let enviadasNoCiclo = 0
   let falhasDeEnvio = 0
   let semConexaoNoEnvio = 0
@@ -379,6 +397,7 @@ async function evaluateTenant(
         today,
         now,
         windowFrom: plano.windowFrom,
+        janelaAbertaDesde,
         timezone: tz,
         clinicName,
         params: auto.params,

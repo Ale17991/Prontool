@@ -201,6 +201,41 @@ describe('fonte: pre_consulta', () => {
     expect(r.map((c) => c.occurrenceKey)).toEqual([alvo])
   })
 
+  /**
+   * A maior causa de mensagem perdida medida em produção (clínica Thiago
+   * Padilha, 19/08 a 04/09/2026): a agenda do dia é digitada na tarde anterior,
+   * ou no próprio dia. A âncora já NASCE vencida, e o corte por janela de
+   * varredura nunca a alcançava — 72 avisos descartados em silêncio.
+   *
+   * Este teste usa o relógio de verdade de propósito: é `created_at` que decide,
+   * e ele vem do banco. Com um `now` fabricado o campo seria descartado pelo
+   * corte de nascimento à frente do ciclo, e o teste não provaria nada.
+   */
+  it('alcança a consulta lançada depois da própria âncora', async () => {
+    const tenantId = await clinica('pre-tardia')
+    const cat = await seedCatalogo(tenantId)
+    const pac = await seedPaciente(tenantId)
+
+    const agora = new Date()
+    const daqui70Min = new Date(agora.getTime() + 70 * 60_000)
+    const alvo = await seedAtendimento(tenantId, pac, daqui70Min.toISOString(), cat)
+
+    // Aviso de 1h30 para uma consulta que é daqui a 1h10: a hora de avisar
+    // passou há vinte minutos, e a consulta só existe desde agora. A janela da
+    // varredura anterior é de um ciclo — a que o motor realmente usa —, e é ela
+    // que nunca alcançaria esta âncora.
+    const r = await fonte.enumerate({
+      ...ctx(tenantId, { antecedenciaMin: 90 }),
+      now: agora,
+      windowFrom: new Date(agora.getTime() - 5 * 60_000),
+    })
+    expect(r.map((c) => c.occurrenceKey)).toEqual([alvo])
+    // Vinte minutos cabem na tolerância, então o texto segue sendo o
+    // configurado — nenhuma mensagem que já saía muda de palavra por causa
+    // desta correção.
+    expect(r[0]?.variables.antecedencia).toBe('90 minutos')
+  })
+
   it('consulta CANCELADA não recebe orientação de preparo', async () => {
     const tenantId = await clinica('pre-canc')
     const cat = await seedCatalogo(tenantId)
