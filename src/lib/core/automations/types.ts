@@ -76,6 +76,20 @@ export interface EnumerateContext {
    */
   windowFrom: Date
   /**
+   * A abertura da janela de horário da clínica HOJE, em UTC.
+   *
+   * Existe porque tempo dentro da janela de silêncio não é atraso do motor: é
+   * uma decisão da clínica, e a mensagem represada por ela não pode ser
+   * descartada como se tivesse sido esquecida. Sem isto, uma clínica que abre a
+   * janela às 08:00 e avisa com 4 horas de antecedência nunca alcançava
+   * consulta nenhuma antes das 12:00 — a âncora vencia com o motor calado e
+   * chegava às 08:00 já fora do teto de atraso.
+   *
+   * Só o motor preenche. A prévia deixa ausente de propósito: ela mede o dia
+   * inteiro e não deve represar nada.
+   */
+  janelaAbertaDesde?: Date
+  /**
    * Esta enumeração é a PRÉVIA da tela, medindo o dia inteiro.
    *
    * A prévia usa a mesma consulta e as mesmas regras de elegibilidade — o que
