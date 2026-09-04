@@ -216,9 +216,15 @@ describe('fonte: pre_consulta', () => {
     const cat = await seedCatalogo(tenantId)
     const pac = await seedPaciente(tenantId)
 
-    const agora = new Date()
-    const daqui70Min = new Date(agora.getTime() + 70 * 60_000)
+    const daqui70Min = new Date(Date.now() + 70 * 60_000)
     const alvo = await seedAtendimento(tenantId, pac, daqui70Min.toISOString(), cat)
+
+    // O instante do ciclo é lido DEPOIS de semear, e a ordem não é detalhe: o
+    // `created_at` vem do relógio do banco, e um ciclo anterior a ele cairia no
+    // corte de nascimento à frente — o campo seria desconsiderado e a decisão
+    // voltaria para a âncora, que é justamente o que este teste quer provar que
+    // deixou de mandar sozinha.
+    const agora = new Date()
 
     // Aviso de 1h30 para uma consulta que é daqui a 1h10: a hora de avisar
     // passou há vinte minutos, e a consulta só existe desde agora. A janela da
